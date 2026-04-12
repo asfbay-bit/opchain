@@ -30,4 +30,4 @@
 
 ## More info
 
-https://aidops.dev/dev-skills
+https://opchain.dev
