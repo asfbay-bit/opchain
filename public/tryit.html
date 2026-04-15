@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>opchain — Try It</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="logo">opchain</div>
+      <nav class="nav-scroll" aria-label="Primary">
+        <div class="nav">
+          <a href="/">Introduction</a>
+          <a href="/architecture.html">Architecture</a>
+          <a href="/skills.html">Skill Library</a>
+          <a href="/install.html">Install</a>
+          <a href="/tryit.html" class="active">Try It</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Try It</h1>
+    <p class="tryit-subtitle">Experience opchain skills with live AI. Pick a skill and chat — 5 exchanges free.</p>
+
+    <!-- State 1: Email gate -->
+    <div id="tryit-gate" class="tryit-gate">
+      <p class="tryit-gate-label">Enter your email to start a free demo session.</p>
+      <form id="tryit-gate-form" class="tryit-gate-form" autocomplete="off">
+        <input id="tryit-email" type="email" placeholder="you@example.com" required autocomplete="email" />
+        <button type="submit" class="tryit-gate-btn">Start</button>
+      </form>
+      <p id="tryit-gate-error" class="tryit-error" hidden></p>
+    </div>
+
+    <!-- State 2+: Chat interface (hidden until email accepted) -->
+    <div id="tryit-app" class="tryit-app" hidden>
+      <!-- Skill pills -->
+      <div id="tryit-skills" class="tryit-skills" role="group" aria-label="Select a skill"></div>
+
+      <!-- Chat area -->
+      <div id="tryit-chat" class="tryit-chat">
+        <div id="tryit-messages" class="tryit-messages">
+          <div id="tryit-intro" class="tryit-intro">Select a skill above to get started.</div>
+        </div>
+      </div>
+
+      <!-- Starter prompts -->
+      <div id="tryit-starters" class="tryit-starters" hidden></div>
+
+      <!-- Input row -->
+      <div id="tryit-input-row" class="tryit-input-row" hidden>
+        <textarea id="tryit-input" class="tryit-input" rows="1" placeholder="Type your message…" disabled></textarea>
+        <button id="tryit-send" class="tryit-send" disabled aria-label="Send message">Send</button>
+      </div>
+
+      <!-- Exchange counter -->
+      <p id="tryit-counter" class="tryit-counter" hidden></p>
+
+      <!-- Demo complete CTA -->
+      <div id="tryit-complete" class="tryit-complete" hidden>
+        <p class="tryit-complete-title">Demo complete</p>
+        <p class="tryit-complete-body">
+          You've used your free exchanges. Install opchain in Claude Code for the full experience — unlimited turns,
+          multi-skill pipelines, and persistent checkpoints.
+        </p>
+        <a href="/install.html" class="btn-outline">Install opchain</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="/skills.js"></script>
+  <script src="/tryit.js"></script>
+</body>
+</html>
