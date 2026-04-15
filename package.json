@@ -1,0 +1,19 @@
+{
+  "name": "opchain-dev",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "node build.mjs",
+    "deploy": "wrangler deploy",
+    "deploy:skip-build": "wrangler deploy --config wrangler.jsonc --no-build",
+    "sync-docs": "bash scripts/sync-docs.sh",
+    "make-zip": "bash scripts/make-skills-zip.sh",
+    "prebuild": "npm run sync-docs && npm run make-zip"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "wrangler": "^4.0.0"
+  }
+}
