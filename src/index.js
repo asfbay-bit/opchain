@@ -86,7 +86,7 @@ const BASELINE_SECURITY_HEADERS = {
 const CSP_HTML =
   "default-src 'self'; " +
   "script-src 'self' 'unsafe-inline' https://*.i.posthog.com; " +
-  "connect-src 'self' https://api.anthropic.com https://*.i.posthog.com; " +
+  "connect-src 'self' https://*.i.posthog.com; " +
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
   "img-src 'self' data:; " +
   "font-src 'self' https://fonts.gstatic.com; " +

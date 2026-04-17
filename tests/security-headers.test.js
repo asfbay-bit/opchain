@@ -32,7 +32,7 @@ describe("security headers — HTML responses", () => {
     expect(csp).toBeTruthy();
     expect(csp).toMatch(/default-src 'self'/);
     expect(csp).toMatch(/frame-ancestors 'none'/);
-    expect(csp).toMatch(/connect-src [^;]*https:\/\/api\.anthropic\.com/);
+    expect(csp).toMatch(/connect-src [^;]*https:\/\/\*\.i\.posthog\.com/);
   });
 });
 
