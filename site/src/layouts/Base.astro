@@ -23,7 +23,7 @@ const {
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
-const ogImage = new URL("/favicon.svg", Astro.site).toString();
+const ogImage = new URL("/og-image.png", Astro.site).toString();
 ---
 
 <!doctype html>
