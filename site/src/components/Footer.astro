@@ -38,7 +38,16 @@ const year = new Date().getFullYear();
   const btn = document.getElementById("opchain-privacy-reset");
   btn?.addEventListener("click", () => {
     try {
+      // Reset our consent flag *and* any PostHog-managed keys. If the user
+      // previously accepted and now wants to opt out, they'd expect nothing
+      // tracked of theirs to persist.
       localStorage.removeItem("opchain-consent");
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith("ph_") || k.startsWith("posthog_"))) {
+          localStorage.removeItem(k);
+        }
+      }
     } catch { /* ignore */ }
     location.reload();
   });

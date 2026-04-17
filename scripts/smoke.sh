@@ -38,15 +38,17 @@ check_health() {
 
 check_homepage() {
   local status
-  status="$(curl -sS -o /dev/null -w '%{http_code}' "${URL}/")"
+  # `|| echo 000` keeps the var numeric when curl can't reach the host, so
+  # the `-eq` / `-lt` comparisons below don't trip `set -eu`.
+  status="$(curl -sS -o /dev/null -w '%{http_code}' "${URL}/" 2>/dev/null || echo 000)"
   [ "$status" = "200" ]
 }
 
 check_zip() {
   local status
-  status="$(curl -sS -o /dev/null -w '%{http_code}' -I "${URL}/opchain-skills.zip")"
+  status="$(curl -sS -o /dev/null -w '%{http_code}' -I "${URL}/opchain-skills.zip" 2>/dev/null || echo 000)"
   # Worker may serve 200 or a 3xx chain; accept anything < 400.
-  [ "$status" -lt 400 ]
+  [ "$status" -lt 400 ] 2>/dev/null
 }
 
 check_security_headers() {

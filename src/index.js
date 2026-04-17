@@ -278,9 +278,11 @@ export default {
     const url = new URL(request.url);
     const requestId = request.headers.get("X-Opchain-Request-Id") || newRequestId();
     const res = await route(request, env, ctx, url, origin, requestId);
-    // Asset path already stamped headers via applySecurityHeaders. For every
-    // other response (JSON, SSE, 204) we stamp the baseline headers here.
-    if (!res.headers.has("X-Content-Type-Options")) applyBaselineHeaders(res);
+    // Stamp baseline headers on every response. Idempotent — asset responses
+    // already set them inside applySecurityHeaders, re-setting is a no-op.
+    // Doing this unconditionally prevents latent bugs where a future handler
+    // sets one baseline header and accidentally suppresses the rest.
+    applyBaselineHeaders(res);
     return res;
   },
 };
