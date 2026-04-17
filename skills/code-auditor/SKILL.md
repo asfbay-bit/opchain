@@ -1,5 +1,14 @@
 ---
 name: code-auditor
+displayName: Code Auditor
+version: 1.0.0
+shortDesc: Auditor → Fixer → Verifier quality loop.
+phases: [build]
+triAgent: true
+tryable: true
+commands:
+  - /audit
+  - /audit full
 description: >
   Code quality auditor with Auditor/Fixer/Verifier loop. Use for /audit, "audit this",
   "find bugs", "security audit", "code review", "pre-deploy check", "what's wrong with

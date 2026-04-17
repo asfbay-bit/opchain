@@ -24,11 +24,9 @@ jobs:
           cache: npm
       - name: Install
         run: npm ci
-      - name: Verify skill catalog is in sync
-        run: npm run verify-catalog
       - name: Unit tests
         run: npm test
-      - name: Build worker
+      - name: Build worker (also regenerates the skill catalog from skills/*)
         env:
           OPCHAIN_VERSION: ${{ github.sha }}
         run: npm run build

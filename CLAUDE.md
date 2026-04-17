@@ -45,11 +45,11 @@ opchain/
 │   ├── ux-engineer/
 │   ├── orchestrator.md     # Shared orchestration rules
 │   └── README.md           # Installation instructions
-├── site/                   # NEW — Astro 5 app (Sprint 0 scaffold). Cutover in Sprint 6.
+├── site/                   # Astro 5 app. Scaffolded Sprint 0; content collection in Sprint 1; cutover Sprint 6.
 ├── scripts/
-│   ├── sync-docs.sh        # skills/ → public/docs/ sync
-│   ├── make-skills-zip.sh  # skills/ → public/opchain-skills.zip
-│   └── verify-catalog.sh   # fails CI if skills/, public/skills.js, and SKILL_PROMPTS drift
+│   ├── sync-docs.sh                # skills/ → public/docs/ sync
+│   ├── make-skills-zip.sh          # skills/ → public/opchain-skills.zip
+│   └── gen-skills-catalog.mjs      # skills/<id>/SKILL.md + TRYIT.md → public/skills.js + src/generated/skill-prompts.js
 ├── tests/                  # Vitest unit + handler tests
 ├── .github/workflows/      # ci.yml + deploy.yml
 ├── wrangler.jsonc           # Worker config (prod + env.staging)
@@ -63,12 +63,12 @@ opchain/
 
 ```bash
 # Worker (current production) ————————————————————————————————————
-npm run dev              # wrangler dev on localhost:8787
-npm run build            # prebuild (sync-docs + make-zip) → esbuild → dist/
+npm run dev              # prebuild then wrangler dev on localhost:8787
+npm run build            # prebuild (gen-catalog + sync-docs + make-zip) → esbuild → dist/
 npm run deploy           # wrangler deploy (production)
 npm run deploy:staging   # wrangler deploy --env staging (staging.opchain.dev)
 npm test                 # vitest unit + integration-ish suite
-npm run verify-catalog   # drift check: skills/ ↔ public/skills.js ↔ SKILL_PROMPTS
+npm run gen-catalog      # skills/<id>/SKILL.md + TRYIT.md → public/skills.js + src/generated/skill-prompts.js
 npm run sync-docs        # skills/ → public/docs/ (runs in prebuild)
 npm run make-zip         # skills/ → public/opchain-skills.zip (runs in prebuild)
 
@@ -104,7 +104,11 @@ CI deploy needs two GitHub Actions secrets at the repo level:
 ## Important Notes
 
 - **Static site pages** are plain HTML + vanilla JS. No framework, no build step for the frontend.
-- **Skill docs** in `public/docs/` are synced from `skills/` via `sync-docs.sh`. Edit the source in `skills/`, not `public/docs/`.
+- **Skill catalog is regenerated on every build.** `scripts/gen-skills-catalog.mjs` reads `skills/<id>/SKILL.md` frontmatter + `skills/<id>/TRYIT.md` and emits:
+    - `public/skills.js` — consumed by `public/skills.html` + `public/tryit.html`.
+    - `src/generated/skill-prompts.js` — consumed by the Worker for Try-It system prompts + display names.
+  Adding or renaming a skill requires edits in **one** place: the `skills/` directory. Both generated files are gitignored.
+- **Skill docs** in `public/docs/` are synced from `skills/` via `sync-docs.sh`. Same rule — edit the source in `skills/`, the copy regenerates on build.
 - **The Try It API** uses KV (`DATA` binding) for rate limiting and lead tracking.
 - **styles.css** has all component styles inline — no CSS modules, no preprocessor.
 - **URL paths in HTML** use root-relative paths (e.g., `/styles.css`, `/docs/app-architect/SKILL.md`). These were previously `/opchain/styles.css` etc. when hosted under aidops.dev — they've been updated for standalone hosting.

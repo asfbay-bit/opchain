@@ -1,5 +1,14 @@
 ---
 name: integrations-engineer
+displayName: Integrations Engineer
+version: 1.0.0
+shortDesc: Third-party APIs, OAuth, webhooks.
+phases: [build]
+triAgent: true
+tryable: true
+commands:
+  - /integrate
+  - /integrate plan
 description: >
   Third-party API integrations with Planner/Builder/Tester loop. Use for /integrate,
   "connect to Salesforce", "webhook", "OAuth", "API integration", "connect to Slack",

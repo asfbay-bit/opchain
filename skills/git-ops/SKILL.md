@@ -1,5 +1,17 @@
 ---
 name: git-ops
+displayName: Git Ops
+version: 1.0.0
+shortDesc: Branch, commit, PR, sync workflows.
+phases: [build]
+triAgent: false
+tryable: true
+commands:
+  - /git
+  - /commit
+  - /pr
+  - /push
+  - /git-sync
 description: >
   Git workflow: branch, commit, PR, sync. Use for /git, /commit, /pr, /push,
   "commit this", "push to git", "create a PR", "sync to repo", or any git
