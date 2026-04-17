@@ -104,7 +104,7 @@
     gateErrorEl.hidden = true;
     var btn = gateFormEl.querySelector('button');
     btn.disabled = true;
-    btn.textContent = 'Starting…';
+    btn.textContent = 'starting…';
 
     fetch('/api/try/start', {
       method: 'POST',
@@ -116,7 +116,7 @@
         if (data.error) {
           showGateError(data.error);
           btn.disabled = false;
-          btn.textContent = 'Start';
+          btn.textContent = 'start';
           return;
         }
         sessionToken = data.session_token;
@@ -128,7 +128,7 @@
       .catch(function () {
         showGateError('Could not connect. Please try again.');
         btn.disabled = false;
-        btn.textContent = 'Start';
+        btn.textContent = 'start';
       });
   }
 

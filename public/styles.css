@@ -540,15 +540,6 @@ pre {
 .prose h3 { margin-top: 1.5rem; color: var(--linen); }
 .prose ul { margin: 0.5rem 0 1rem; padding-left: 1.25rem; color: var(--sand); }
 .prose li { margin-bottom: 0.3rem; }
-.prose code {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  background: var(--forge);
-  padding: 1px 5px;
-  border: 0.5px solid var(--slag);
-  border-radius: var(--r-xs);
-  color: var(--linen);
-}
 .prose pre {
   font-family: var(--font-mono);
   font-size: 12px;
