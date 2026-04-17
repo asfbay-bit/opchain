@@ -51,7 +51,7 @@ jobs:
           cache-dependency-path: site/package-lock.json
       - name: Install
         working-directory: site
-        run: npm install
+        run: npm ci
       - name: Astro check (type + content validation)
         working-directory: site
         run: npm run check
