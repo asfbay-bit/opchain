@@ -7,13 +7,21 @@
     "dev": "wrangler dev",
     "build": "node build.mjs",
     "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
     "deploy:skip-build": "wrangler deploy --config wrangler.jsonc --no-build",
     "sync-docs": "bash scripts/sync-docs.sh",
     "make-zip": "bash scripts/make-skills-zip.sh",
-    "prebuild": "npm run sync-docs && npm run make-zip"
+    "verify-catalog": "bash scripts/verify-catalog.sh",
+    "prebuild": "npm run sync-docs && npm run make-zip",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "site:install": "cd site && npm install",
+    "site:dev": "cd site && npm run dev",
+    "site:build": "cd site && npm run build"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",
+    "vitest": "^2.1.0",
     "wrangler": "^4.0.0"
   }
 }

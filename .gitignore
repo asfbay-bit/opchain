@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+site/dist/
+site/.astro/
+
+# Cloudflare
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# Env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Checkpoints (opchain skills write here)
+.checkpoints/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+.DS_Store

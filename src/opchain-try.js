@@ -146,12 +146,12 @@ function jsonResponse(body, status = 200) {
   });
 }
 
-function isValidEmail(email) {
+export function isValidEmail(email) {
   return typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 /** Create an HMAC-signed session token. */
-async function createSessionToken(email, secret) {
+export async function createSessionToken(email, secret) {
   const id = crypto.randomUUID();
   const payload = `${id}:${email}`;
   const key = await crypto.subtle.importKey(
@@ -167,7 +167,7 @@ async function createSessionToken(email, secret) {
 }
 
 /** Verify an HMAC-signed session token. Returns the email or null. */
-async function verifySessionToken(token, secret) {
+export async function verifySessionToken(token, secret) {
   if (typeof token !== 'string') return null;
   const parts = token.split(':');
   if (parts.length < 3) return null;
@@ -281,9 +281,12 @@ async function handleStart(request, env) {
     }));
   }
 
-  // Create signed session token
-  const secret = env.DEPLOY_API_TOKEN || 'opchain-dev-secret';
-  const token = await createSessionToken(email, secret);
+  // Create signed session token. Fail closed if the signing secret is not configured.
+  if (!env.DEPLOY_API_TOKEN) {
+    console.error('opchain-try: DEPLOY_API_TOKEN is not set — refusing to sign tokens');
+    return jsonResponse({ error: 'Try-It is not configured.' }, 503);
+  }
+  const token = await createSessionToken(email, env.DEPLOY_API_TOKEN);
 
   return jsonResponse({
     session_token: token,
@@ -302,9 +305,12 @@ async function handleChat(request, env) {
 
   const { skill, messages, session_token } = body || {};
 
-  // Validate session token
-  const secret = env.DEPLOY_API_TOKEN || 'opchain-dev-secret';
-  const email = await verifySessionToken(session_token, secret);
+  // Validate session token. Fail closed if the signing secret is not configured.
+  if (!env.DEPLOY_API_TOKEN) {
+    console.error('opchain-try: DEPLOY_API_TOKEN is not set — refusing to verify tokens');
+    return jsonResponse({ error: 'Try-It is not configured.' }, 503);
+  }
+  const email = await verifySessionToken(session_token, env.DEPLOY_API_TOKEN);
   if (!email) {
     return jsonResponse({ error: 'Invalid or expired session. Please re-enter your email.' }, 401);
   }

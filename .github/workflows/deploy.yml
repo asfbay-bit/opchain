@@ -1,0 +1,100 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        default: staging
+        type: choice
+        options: [staging, production]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.event.inputs.environment || 'staging' }}
+  cancel-in-progress: false
+
+jobs:
+  staging:
+    name: Deploy to staging
+    if: ${{ github.event_name == 'push' || github.event.inputs.environment == 'staging' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.opchain.dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build
+        env:
+          OPCHAIN_VERSION: ${{ github.sha }}
+        run: npm run build
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env staging
+      - name: Smoke — /api/health
+        run: |
+          set -e
+          for i in 1 2 3 4 5; do
+            body=$(curl -fsS https://staging.opchain.dev/api/health || true)
+            if echo "$body" | grep -q '"ok":true'; then
+              echo "staging health OK: $body"
+              exit 0
+            fi
+            echo "attempt $i failed, retrying in 5s"
+            sleep 5
+          done
+          echo "staging health never reported OK"
+          exit 1
+
+  production:
+    name: Promote to production
+    if: ${{ github.event.inputs.environment == 'production' }}
+    needs: []
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://opchain.dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build
+        env:
+          OPCHAIN_VERSION: ${{ github.sha }}
+        run: npm run build
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+      - name: Smoke — /api/health
+        run: |
+          set -e
+          for i in 1 2 3 4 5; do
+            body=$(curl -fsS https://opchain.dev/api/health || true)
+            if echo "$body" | grep -q '"ok":true'; then
+              echo "production health OK: $body"
+              exit 0
+            fi
+            echo "attempt $i failed, retrying in 5s"
+            sleep 5
+          done
+          echo "production health never reported OK"
+          exit 1

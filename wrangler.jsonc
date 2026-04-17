@@ -18,7 +18,28 @@
   "kv_namespaces": [
     {
       "binding": "DATA",
-      "id": "7574667e560c4727bae2da069c9d6f52"
+      "id": "7574667e560c4727bae2da069c9d6f52",
+      // preview_id keeps `wrangler dev` off the production KV namespace.
+      // Create a preview namespace with:  wrangler kv namespace create DATA --preview
+      // and replace the value below with the returned preview id.
+      "preview_id": "REPLACE_WITH_PREVIEW_KV_ID"
     }
-  ]
+  ],
+  "env": {
+    "staging": {
+      "name": "opchain-staging",
+      // Staging worker; fill in a CNAME to staging.opchain.dev before enabling.
+      // "routes": [{ "pattern": "staging.opchain.dev", "custom_domain": true }],
+      "kv_namespaces": [
+        {
+          "binding": "DATA",
+          // Create a dedicated staging namespace with:
+          //   wrangler kv namespace create DATA-STAGING
+          // then paste the returned id here.
+          "id": "REPLACE_WITH_STAGING_KV_ID",
+          "preview_id": "REPLACE_WITH_PREVIEW_KV_ID"
+        }
+      ]
+    }
+  }
 }

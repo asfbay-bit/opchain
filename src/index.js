@@ -11,19 +11,24 @@
 
 import { handleOpchainTry } from "./opchain-try.js";
 
+// Injected at build time by esbuild `define` (see build.mjs). In tests the
+// identifier is replaced before import by the Vitest define plumbing.
+// eslint-disable-next-line no-undef
+const VERSION = typeof __OPCHAIN_VERSION__ !== "undefined" ? __OPCHAIN_VERSION__ : "dev";
+
 // ── Linear Feedback Config ──────────────────────────────────────────────────
 
 const TEAM_ID = "7548a4f9-6ed3-42a6-9130-3b2b45db3c5c";
 const PROJECT_ID = "7a8ea196-9a52-4efb-b997-003cb48a3f1a";
 
-const LABEL_MAP = {
+export const LABEL_MAP = {
   bug: "68403073-fd71-44aa-95bc-aea91ed7e4de",
   feature: "a9f89cba-878b-4c2e-a9e4-871866a03592",
   improvement: "e9956661-28ed-4ca2-8d54-8e5457bbb773",
   general: "ec0403ab-31b9-4aa6-a097-e54e4bbff69c",
 };
 
-const PRIORITY_MAP = { 0: 0, 1: 4, 2: 3, 3: 2, 4: 1 };
+export const PRIORITY_MAP = { 0: 0, 1: 4, 2: 3, 3: 2, 4: 1 };
 
 const SKILL_NAMES = {
   "checkpoint-protocol": "Checkpoint Protocol",
@@ -57,7 +62,7 @@ const LINEAR_MUTATION = `mutation IssueCreate($input: IssueCreateInput!) {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function corsHeaders(origin) {
+export function corsHeaders(origin) {
   const headers = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -181,8 +186,13 @@ export default {
     // Health check
     if (url.pathname === "/api/health" && request.method === "GET") {
       return new Response(
-        JSON.stringify({ ok: true, service: "opchain-dev" }),
-        { headers: { "Content-Type": "application/json" } },
+        JSON.stringify({ ok: true, service: "opchain-dev", version: VERSION }),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-Opchain-Version": VERSION,
+          },
+        },
       );
     }
 

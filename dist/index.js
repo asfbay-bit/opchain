@@ -238,8 +238,11 @@ async function handleStart(request, env) {
       source: "tryit"
     }));
   }
-  const secret = env.DEPLOY_API_TOKEN || "opchain-dev-secret";
-  const token = await createSessionToken(email, secret);
+  if (!env.DEPLOY_API_TOKEN) {
+    console.error("opchain-try: DEPLOY_API_TOKEN is not set \u2014 refusing to sign tokens");
+    return jsonResponse({ error: "Try-It is not configured." }, 503);
+  }
+  const token = await createSessionToken(email, env.DEPLOY_API_TOKEN);
   return jsonResponse({
     session_token: token,
     remaining: MAX_EXCHANGES - usage.count
@@ -253,8 +256,11 @@ async function handleChat(request, env) {
     return jsonResponse({ error: "Invalid JSON body" }, 400);
   }
   const { skill, messages, session_token } = body || {};
-  const secret = env.DEPLOY_API_TOKEN || "opchain-dev-secret";
-  const email = await verifySessionToken(session_token, secret);
+  if (!env.DEPLOY_API_TOKEN) {
+    console.error("opchain-try: DEPLOY_API_TOKEN is not set \u2014 refusing to verify tokens");
+    return jsonResponse({ error: "Try-It is not configured." }, 503);
+  }
+  const email = await verifySessionToken(session_token, env.DEPLOY_API_TOKEN);
   if (!email) {
     return jsonResponse({ error: "Invalid or expired session. Please re-enter your email." }, 401);
   }
@@ -388,6 +394,7 @@ async function handleOpchainTry(request, url, env) {
 }
 
 // src/index.js
+var VERSION = true ? "a6ac19b" : "dev";
 var TEAM_ID = "7548a4f9-6ed3-42a6-9130-3b2b45db3c5c";
 var PROJECT_ID = "7a8ea196-9a52-4efb-b997-003cb48a3f1a";
 var LABEL_MAP = {
@@ -526,8 +533,13 @@ var index_default = {
     }
     if (url.pathname === "/api/health" && request.method === "GET") {
       return new Response(
-        JSON.stringify({ ok: true, service: "opchain-dev" }),
-        { headers: { "Content-Type": "application/json" } }
+        JSON.stringify({ ok: true, service: "opchain-dev", version: VERSION }),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-Opchain-Version": VERSION
+          }
+        }
       );
     }
     if (url.pathname === "/api/feedback" && request.method === "POST") {
@@ -555,5 +567,8 @@ var index_default = {
   }
 };
 export {
+  LABEL_MAP,
+  PRIORITY_MAP,
+  corsHeaders,
   index_default as default
 };
