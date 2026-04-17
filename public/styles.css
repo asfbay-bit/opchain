@@ -24,11 +24,11 @@
   --bg:          var(--obsidian);
   --ribbon:      #231b13;
   --ribbon-edge: #3a2f26;
-  --surface:     var(--surface);
+  --surface:     var(--forge);
   --card:        #241C15;
-  --border:      var(--border);
-  --text:        var(--text);
-  --muted:       var(--muted);
+  --border:      var(--slag);
+  --text:        var(--linen);
+  --muted:       var(--sand);
   --subtle:      #8A7868;
   --accent:      #e05c18;
   --accent-hover: #b84510;
