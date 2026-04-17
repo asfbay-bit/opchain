@@ -111,18 +111,21 @@ body {
 .ph-brand { display: flex; align-items: center; gap: 0.75rem; }
 .ph-logo {
   font-family: var(--font-display); font-weight: 600; font-size: 15px;
-  letter-spacing: 0.22em; color: var(--text);
+  letter-spacing: 0.22em; color: var(--ribbon-text, var(--text));
 }
 .ph-nav { display: flex; gap: 0; flex-wrap: wrap; justify-content: flex-end; }
 .ph-nav a {
   font-family: var(--font-mono); font-size: 11px; font-weight: 500;
-  letter-spacing: 0.05em; color: var(--muted);
+  letter-spacing: 0.05em; color: var(--ribbon-muted, var(--muted));
   padding: 0 1rem; height: 56px;
   display: inline-flex; align-items: center;
   text-decoration: none; border-bottom: 2px solid transparent;
 }
-.ph-nav a:hover { color: var(--text); }
-.ph-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+.ph-nav a:hover { color: var(--ribbon-text, var(--text)); }
+.ph-nav a.active {
+  color: var(--ribbon-active, var(--accent));
+  border-bottom-color: var(--ribbon-active, var(--accent));
+}
 
 .hero {
   padding: 3rem 1.5rem 2.5rem;
@@ -317,13 +320,99 @@ body {
   --accent-hover:#963608;
   --accent-dim: rgba(192, 74, 24, 0.12);
 }
+
+/* ── Batch 2 ── */
+
+/* 6. CLAY — warm terracotta-beige ground. Wild rustic. */
+.preview[data-theme="clay"] {
+  --bg:         #d9b998;
+  --ribbon:     #c9a786;
+  --ribbon-edge:#8f6e50;
+  --surface:    #c9a786;
+  --card:       #e8dfd0;
+  --border:     #8f6e50;
+  --text:       #2a1810;
+  --muted:      #5a3e2a;
+  --subtle:     #7c5e44;
+  --accent:     #b84510;
+  --accent-hover:#8a3308;
+  --accent-dim: rgba(184, 69, 16, 0.14);
+}
+
+/* 7. MOSS — saturated sage-olive ground. Wild green with ember complementary. */
+.preview[data-theme="moss"] {
+  --bg:         #b5c19a;
+  --ribbon:     #a4b08a;
+  --ribbon-edge:#6c7b58;
+  --surface:    #a4b08a;
+  --card:       #c8d1ad;
+  --border:     #6c7b58;
+  --text:       #1c2210;
+  --muted:      #3d4a2e;
+  --subtle:     #5c6d48;
+  --accent:     #e05c18;
+  --accent-hover:#b84510;
+  --accent-dim: rgba(224, 92, 24, 0.14);
+}
+
+/* 8. POPPY — linen ground, ember ribbon. Wild: ribbon IS the brand moment. */
+.preview[data-theme="poppy"] {
+  --bg:         #e8dfd0;
+  --ribbon:     #e05c18;
+  --ribbon-edge:#b84510;
+  --surface:    #dccfb5;
+  --card:       #f6f0e8;
+  --border:     #a39474;
+  --text:       #1c1710;
+  --muted:      #4a3e2a;
+  --subtle:     #6a5a44;
+  --accent:     #1c1710;            /* flipped: accent = obsidian, not ember */
+  --accent-hover:#0a0705;            /* darker than accent — consistent with every other theme */
+  --accent-dim: rgba(28, 23, 16, 0.10);
+  /* Ribbon overrides — text must read against saturated ember */
+  --ribbon-text:   #f6f0e8;
+  --ribbon-muted:  rgba(246, 240, 232, 0.78);
+  --ribbon-active: #f6f0e8;
+}
+
+/* 9. AMBER — parchment × dawn hybrid. Warmer than parchment, less peach than dawn. */
+.preview[data-theme="amber"] {
+  --bg:         #f8ebda;
+  --ribbon:     #eed8bc;
+  --ribbon-edge:#d4b58f;
+  --surface:    #f4e5cf;
+  --card:       #ffffff;
+  --border:     #ccb390;
+  --text:       #1c1710;
+  --muted:      #5a4a30;
+  --subtle:     #8c7657;
+  --accent:     #d95010;
+  --accent-hover:#ab3e08;
+  --accent-dim: rgba(217, 80, 16, 0.12);
+}
+
+/* 10. COBALT — cool blue-gray. Completely out there: breaks warm-only, ember as complementary pop. */
+.preview[data-theme="cobalt"] {
+  --bg:         #d8dde3;
+  --ribbon:     #c2cad4;
+  --ribbon-edge:#8895a5;
+  --surface:    #c8d1dc;
+  --card:       #ebeef2;
+  --border:     #8895a5;
+  --text:       #0f1825;
+  --muted:      #3f4e62;
+  --subtle:     #67778c;
+  --accent:     #e05c18;
+  --accent-hover:#b84510;
+  --accent-dim: rgba(224, 92, 24, 0.12);
+}
 </style>
 </head>
 <body>
 
 <div class="chrome">
   <div class="chrome-inner">
-    <span class="chrome-title">opchain · light mode v2 · batch 1 of 2</span>
+    <span class="chrome-title">opchain · light mode v2 · all 10</span>
     <span class="chrome-label">theme</span>
     <div class="theme-pills" role="radiogroup" aria-label="Select theme">
       <button class="theme-pill" data-theme="parchment" aria-pressed="true">1 · parchment</button>
@@ -331,6 +420,11 @@ body {
       <button class="theme-pill" data-theme="bone"      aria-pressed="false">3 · bone</button>
       <button class="theme-pill" data-theme="dawn"      aria-pressed="false">4 · dawn</button>
       <button class="theme-pill" data-theme="sage"      aria-pressed="false">5 · sage</button>
+      <button class="theme-pill" data-theme="clay"      aria-pressed="false">6 · clay</button>
+      <button class="theme-pill" data-theme="moss"      aria-pressed="false">7 · moss</button>
+      <button class="theme-pill" data-theme="poppy"     aria-pressed="false">8 · poppy</button>
+      <button class="theme-pill" data-theme="amber"     aria-pressed="false">9 · amber</button>
+      <button class="theme-pill" data-theme="cobalt"    aria-pressed="false">10 · cobalt</button>
     </div>
     <p class="theme-note" id="theme-note"></p>
   </div>
@@ -427,6 +521,11 @@ const THEMES = {
   bone:      { blurb: '3 · Bone — near-white, barely warm. Ribbon has the most contrast vs bg. Crispest conservative.', swatches: [['bg','#fafaf3'],['ribbon','#f0ebde'],['surface','#f4efe0'],['text','#1c1710'],['accent','#d95010']] },
   dawn:      { blurb: '4 · Dawn — warm peach-cream. Ribbon leans amber. Adventurous: pulls toward sunrise.', swatches: [['bg','#faece0'],['ribbon','#f2dbc7'],['surface','#f5e1cd'],['text','#231509'],['accent','#c94a0c']] },
   sage:      { blurb: '5 · Sage — muted cool green-tint. Only option with a non-warm cast. Adventurous: breaks the warm-only rule.', swatches: [['bg','#e6ebdc'],['ribbon','#d4dbc6'],['surface','#dde4cc'],['text','#1c1a12'],['accent','#c04a18']] },
+  clay:      { blurb: '6 · Clay — saturated warm terracotta-beige. Rustic, pre-modern, pottery studio. WILD.', swatches: [['bg','#d9b998'],['ribbon','#c9a786'],['surface','#c9a786'],['text','#2a1810'],['accent','#b84510']] },
+  moss:      { blurb: '7 · Moss — saturated sage-olive ground, ember as complementary pop. Botanical, foresty. WILD.', swatches: [['bg','#b5c19a'],['ribbon','#a4b08a'],['surface','#a4b08a'],['text','#1c2210'],['accent','#e05c18']] },
+  poppy:     { blurb: '8 · Poppy — linen ground but ember ribbon. The ribbon IS the brand moment. Maximum chrome contrast. WILD.', swatches: [['bg','#e8dfd0'],['ribbon','#e05c18'],['surface','#dccfb5'],['text','#1c1710'],['accent','#1c1710']] },
+  amber:     { blurb: '9 · Amber — parchment × dawn hybrid. Warmer than parchment, less peach than dawn. The blend you asked for.', swatches: [['bg','#f8ebda'],['ribbon','#eed8bc'],['surface','#f4e5cf'],['text','#1c1710'],['accent','#d95010']] },
+  cobalt:    { blurb: '10 · Cobalt — cool blue-gray. Breaks warm-only entirely. Ember as complementary pop. COMPLETELY OUT THERE.', swatches: [['bg','#d8dde3'],['ribbon','#c2cad4'],['surface','#c8d1dc'],['text','#0f1825'],['accent','#e05c18']] },
 };
 
 const preview = document.querySelector('.preview');
