@@ -13,25 +13,36 @@ that form a software development pipeline (concept → spec → design → build
 - **CI:** `.github/workflows/ci.yml` runs on every PR (test + build + catalog verify). `deploy.yml` pushes main to staging automatically; production requires manual `workflow_dispatch` approval.
 - **Version stamp:** the build injects `__OPCHAIN_VERSION__` (short git SHA) via esbuild `define`. Visible in `GET /api/health` and the `X-Opchain-Version` response header.
 
+### Rollback
+
+If a deploy breaks production:
+
+1. `npx wrangler deployments list` — find the last good deployment id.
+2. `npx wrangler rollback <deployment-id>` — reverts the Worker.
+3. Cloudflare serves the previous code within ~30s.
+4. File a post-mortem as a `/feedback type=bug` so it lands in Linear.
+
+The smoke step in `.github/workflows/deploy.yml` fails the deploy action on any
+regression (health, homepage, zip, security headers), so rollback is rarely
+needed — but it's there.
+
 ## Repo Layout
 
 ```
 opchain/
 ├── src/                    # Cloudflare Worker source
-│   ├── index.js            # Router: static assets, feedback API, try-it API
-│   └── opchain-try.js      # Email-gated AI chat demo (SSE streaming)
-├── public/                 # Static site (served by Worker via ASSETS binding)
-│   ├── index.html          # Introduction page
-│   ├── architecture.html   # Architecture overview
-│   ├── skills.html         # Skill Library (interactive browser)
-│   ├── install.html        # Installation guide
-│   ├── tryit.html          # Try It demo UI
-│   ├── styles.css          # Shared stylesheet (dark theme, all components)
-│   ├── skills.js           # Skill metadata array
-│   ├── skills-app.js       # Skill card renderer + filter logic
-│   ├── tryit.js            # Try It chat UI + SSE client
-│   ├── opchain-skills.zip  # Downloadable skill bundle
-│   └── docs/               # Synced SKILL.md files (one per skill)
+│   ├── index.js            # Router: static assets, feedback API, try-it API, 301 redirects
+│   ├── opchain-try.js      # Email-gated AI chat demo (SSE streaming)
+│   └── lib/                # Shared worker libs (schemas, kv, retry, analytics, request-id)
+├── site/                   # Astro 5 app — the whole site lives here now.
+│   ├── src/pages/          # Every route: /, /architecture, /skills, /skills/[id], /install, /tryit, /privacy, /404
+│   ├── src/components/     # TryIt, FeedbackWidget, ConsentBanner, Header, Footer, UI kit
+│   ├── src/layouts/        # Base.astro (head, theme init, analytics beacon)
+│   └── dist/               # Built static HTML — gitignored
+├── public/                 # BUILD OUTPUT — gitignored. Materialized by scripts/build-site.sh.
+│   ├── (astro dist copied in)
+│   ├── opchain-skills.zip  # Generated from skills/ by scripts/make-skills-zip.sh
+│   └── docs/               # Synced from skills/ by scripts/sync-docs.sh
 ├── skills/                 # Skill source definitions (the product)
 │   ├── app-architect/
 │   ├── checkpoint-protocol/
@@ -108,7 +119,7 @@ CI deploy needs two GitHub Actions secrets at the repo level:
 
 ## Important Notes
 
-- **Static site pages** are plain HTML + vanilla JS. No framework, no build step for the frontend.
+- **The site is Astro 5 in static mode** (Sprint 6). Pages, components, content collection for skills live in `site/`. `npm run prebuild` runs `astro build` and copies `site/dist/` into `public/`, then the Worker serves everything through the ASSETS binding. Nothing in `public/` is source-of-truth any more — it's gitignored.
 - **Skill catalog is regenerated on every build.** `scripts/gen-skills-catalog.mjs` reads `skills/<id>/SKILL.md` frontmatter + `skills/<id>/TRYIT.md` and emits:
     - `public/skills.js` — consumed by `public/skills.html` + `public/tryit.html`.
     - `src/generated/skill-prompts.js` — consumed by the Worker for Try-It system prompts + display names.

@@ -36,9 +36,15 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Install (site)
+        working-directory: site
+        run: npm ci
       - name: Build
         env:
           OPCHAIN_VERSION: ${{ github.sha }}
+          PUBLIC_CF_BEACON_TOKEN: ${{ secrets.PUBLIC_CF_BEACON_TOKEN }}
+          PUBLIC_POSTHOG_KEY: ${{ secrets.PUBLIC_POSTHOG_KEY }}
+          PUBLIC_POSTHOG_HOST: ${{ secrets.PUBLIC_POSTHOG_HOST }}
         run: npm run build
       - name: Deploy
         id: deploy
@@ -73,9 +79,15 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Install (site)
+        working-directory: site
+        run: npm ci
       - name: Build
         env:
           OPCHAIN_VERSION: ${{ github.sha }}
+          PUBLIC_CF_BEACON_TOKEN: ${{ secrets.PUBLIC_CF_BEACON_TOKEN }}
+          PUBLIC_POSTHOG_KEY: ${{ secrets.PUBLIC_POSTHOG_KEY }}
+          PUBLIC_POSTHOG_HOST: ${{ secrets.PUBLIC_POSTHOG_HOST }}
         run: npm run build
       - name: Deploy
         id: deploy

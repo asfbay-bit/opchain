@@ -5,8 +5,8 @@ import TryIt from "../components/TryIt.astro";
 import { getTryablePrompts } from "../lib/skills";
 
 const tryable = await getTryablePrompts();
-const url = new URL(Astro.request.url);
-const preselect = url.searchParams.get("skill") || tryable[0]?.id || "";
+// Static build — `?skill=foo` is read client-side in TryIt.astro's script.
+const preselect = tryable[0]?.id || "";
 ---
 
 <Base

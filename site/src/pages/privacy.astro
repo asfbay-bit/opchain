@@ -23,11 +23,19 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
       <h2>What we collect</h2>
       <ul>
         <li>
-          <strong>Try-It emails.</strong> When you start a live demo we store
-          your email in a Cloudflare KV entry to rate-limit exchanges
-          (5/day) and to follow up with opchain release notes if you
-          opt in. Entries expire after 365 days (configurable via
-          <code>LEAD_TTL_DAYS</code> for self-hosted deployments).
+          <strong>Cloudflare Web Analytics</strong> — cookieless pageview
+          beacon that records URL, referrer, and country only. No personal
+          data, no cross-site tracking, no cookies. Runs on every page;
+          no opt-out because there's nothing to opt out of.
+        </li>
+        <li>
+          <strong>Try-It emails.</strong> When you start a live demo we
+          store your email in a Cloudflare KV entry to rate-limit
+          exchanges (5/day) and to follow up with opchain release notes
+          if you opt in. Entries expire after 365 days (configurable via
+          <code>LEAD_TTL_DAYS</code> for self-hosted deployments). Email
+          <a href="mailto:privacy@opchain.dev">privacy@opchain.dev</a> to
+          delete yours sooner.
         </li>
         <li>
           <strong>Rate-limit counters.</strong> IP-addressed counters
@@ -36,15 +44,16 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
         </li>
         <li>
           <strong>Anonymous usage events</strong> (optional — consent
-          banner). We use PostHog to understand which skills people
-          try and where they stop. The identifier is a SHA-256 of your
-          lowercased email; we never send the raw email. If you
-          decline the banner, no events are captured and no PostHog
-          cookies are set.
+          banner). PostHog collects funnel events: which skills get
+          tried, where people stop, whether they grab the zip. The
+          identifier is a SHA-256 of your lowercased email; we never
+          send the raw email. Decline the banner → no SDK load, no
+          cookies, no events.
         </li>
         <li>
           <strong>Feedback submissions</strong> go to Linear for
-          triage. Including your email is optional.
+          triage. Including your email is optional; if you leave it
+          blank we have no way to reply.
         </li>
       </ul>
     </section>
