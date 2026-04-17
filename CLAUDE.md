@@ -5,9 +5,13 @@ that form a software development pipeline (concept → spec → design → build
 
 ## Deployment
 
-- **Worker:** `opchain-dev` on Cloudflare Workers
-- **URL:** https://opchain-dev.4fstpkkw72.workers.dev (custom domain: opchain.dev)
-- **Deploy:** `npm run deploy` (builds then deploys via wrangler)
+- **Production Worker:** `opchain-dev` on Cloudflare Workers
+- **Production URL:** https://opchain-dev.4fstpkkw72.workers.dev (custom domain: opchain.dev)
+- **Staging Worker:** `opchain-staging` (see `wrangler.jsonc env.staging`; CNAME + KV ids require one-time setup)
+- **Staging URL:** https://staging.opchain.dev (planned)
+- **Deploy:** `npm run deploy` (production) / `npm run deploy:staging`
+- **CI:** `.github/workflows/ci.yml` runs on every PR (test + build + catalog verify). `deploy.yml` pushes main to staging automatically; production requires manual `workflow_dispatch` approval.
+- **Version stamp:** the build injects `__OPCHAIN_VERSION__` (short git SHA) via esbuild `define`. Visible in `GET /api/health` and the `X-Opchain-Version` response header.
 
 ## Repo Layout
 
@@ -41,31 +45,37 @@ opchain/
 │   ├── ux-engineer/
 │   ├── orchestrator.md     # Shared orchestration rules
 │   └── README.md           # Installation instructions
+├── site/                   # NEW — Astro 5 app (Sprint 0 scaffold). Cutover in Sprint 6.
 ├── scripts/
 │   ├── sync-docs.sh        # skills/ → public/docs/ sync
-│   └── make-skills-zip.sh  # skills/ → public/opchain-skills.zip
-├── wrangler.jsonc           # Worker config (name: opchain-dev)
-├── build.mjs               # esbuild: src/index.js → dist/index.js
+│   ├── make-skills-zip.sh  # skills/ → public/opchain-skills.zip
+│   └── verify-catalog.sh   # fails CI if skills/, public/skills.js, and SKILL_PROMPTS drift
+├── tests/                  # Vitest unit + handler tests
+├── .github/workflows/      # ci.yml + deploy.yml
+├── wrangler.jsonc           # Worker config (prod + env.staging)
+├── build.mjs               # esbuild: src/index.js → dist/index.js, injects __OPCHAIN_VERSION__
+├── vitest.config.js        # test runner config (defines __OPCHAIN_VERSION__ = "test")
+├── .env.example            # env var template (copy to .dev.vars for local)
 └── package.json
 ```
 
 ## Key Commands
 
 ```bash
-# Development (port 8787)
-npm run dev
+# Worker (current production) ————————————————————————————————————
+npm run dev              # wrangler dev on localhost:8787
+npm run build            # prebuild (sync-docs + make-zip) → esbuild → dist/
+npm run deploy           # wrangler deploy (production)
+npm run deploy:staging   # wrangler deploy --env staging (staging.opchain.dev)
+npm test                 # vitest unit + integration-ish suite
+npm run verify-catalog   # drift check: skills/ ↔ public/skills.js ↔ SKILL_PROMPTS
+npm run sync-docs        # skills/ → public/docs/ (runs in prebuild)
+npm run make-zip         # skills/ → public/opchain-skills.zip (runs in prebuild)
 
-# Build (syncs docs + zip, then esbuild)
-npm run build
-
-# Deploy to Cloudflare
-npm run deploy
-
-# Sync skill docs to public/ (runs automatically in prebuild)
-npm run sync-docs
-
-# Bundle skills ZIP (runs automatically in prebuild)
-npm run make-zip
+# New Astro site (Sprint 0 scaffold; real pages land Sprints 1-3) —
+npm run site:install     # one-time: cd site && npm install
+npm run site:dev         # astro dev on localhost:4321
+npm run site:build       # astro build → site/dist
 ```
 
 ## API Routes
@@ -80,11 +90,16 @@ npm run make-zip
 
 ## Environment Variables
 
-Set in `.dev.vars` for local dev, Cloudflare dashboard for production:
+Template lives in `.env.example`. Copy to `.dev.vars` for local dev; set in the Cloudflare dashboard (or via `wrangler secret put`) for staging + production.
 
 - `LINEAR_API_KEY` — Linear API key for feedback endpoint
 - `ANTHROPIC_API_KEY` — Claude API key for Try It chat
-- `DEPLOY_API_TOKEN` — HMAC secret for session token signing
+- `DEPLOY_API_TOKEN` — HMAC secret for session token signing. **Required.** If unset, `/api/try/start` and `/api/try/chat` return 503 (fail-closed, no fallback).
+
+CI deploy needs two GitHub Actions secrets at the repo level:
+
+- `CLOUDFLARE_API_TOKEN` — Wrangler API token with Workers deploy scope
+- `CLOUDFLARE_ACCOUNT_ID` — the opchain Cloudflare account id
 
 ## Important Notes
 
