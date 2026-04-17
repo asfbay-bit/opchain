@@ -1,6 +1,6 @@
 # aidops dev skills ecosystem
 
-9 skills + 1 protocol for building software with Claude.
+10 skills + 1 protocol for building software with Claude.
 
 ## Installation (Claude.ai / Cowork)
 
@@ -22,6 +22,7 @@
 | stack-forge | Universal stack advisor |
 | reverse-spec | Code → spec docs |
 | ux-engineer | Tri-design harness |
+| dash-forge | Dashboards + dense data UI (spec + React prototype) |
 | code-auditor | Auditor → Fixer → Verifier |
 | integrations-engineer | API integration harness |
 | git-ops | Git workflow |

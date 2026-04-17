@@ -60,13 +60,16 @@ reverse-spec ──► app-architect ──► git-ops ──► deploy-ops
                       │
                       ├── Phase 2: auto-invokes stack-forge
                       ├── Phase 3: design pipeline
+                      │     ├── auto-attaches ux-engineer on UI sprints
+                      │     └── ux-engineer ──► dash-forge on data-heavy screens
                       ├── Phase 6: build loop (Generator → Evaluator)
                       │     └── auto-attaches ux-engineer on UI sprints
                       └── Phase 7: launch handoff
-                      
+
 code-auditor ──► runs at any stage, required before deploy
 integrations-engineer ──► runs when external APIs needed
 scale-ops ──► runs when scaling questions arise
+dash-forge ──► invoked by ux-engineer (or app-architect) for dashboards + dense data UIs
 ```
 
 ### Upstream/Downstream Map
@@ -75,7 +78,8 @@ scale-ops ──► runs when scaling questions arise
 |---|---|---|
 | **app-architect** | reverse-spec | git-ops (after build), deploy-ops (at launch) |
 | **stack-forge** | app-architect (discovery context) | — (returns control to app-architect) |
-| **ux-engineer** | app-architect (design baseline) | — (returns control to app-architect) |
+| **ux-engineer** | app-architect (design baseline) | dash-forge (on data-heavy screens), otherwise returns control |
+| **dash-forge** | ux-engineer (tokens + design spec), app-architect (design phase, dashboard surface) | — (returns control to caller with design spec + prototype) |
 | **code-auditor** | reverse-spec, app-architect | deploy-ops (pre-deploy gate) |
 | **integrations-engineer** | app-architect (integration spec) | code-auditor (verify integration) |
 | **git-ops** | app-architect (sprint context) | deploy-ops (post-push) |
@@ -114,6 +118,7 @@ RIGHT (active invocation):
 | Integration needed | app-architect (Phase 2) | integrations-engineer | Invoke integrations-engineer for the specific service |
 | Stack decision needed | app-architect (Phase 2) | stack-forge | Auto-invoke (already wired in app-architect) |
 | UI sprint detected | app-architect (Phase 6) | ux-engineer | Auto-attach Design Evaluator (already wired) |
+| Data-heavy screen flagged | ux-engineer (Phase 1 intake) or app-architect (Phase 3 design) | dash-forge | Package tokens + design spec into dash-forge context, invoke /data-forge; hand the resulting spec + prototype back to the caller |
 
 ### How to Invoke Another Skill
 
@@ -295,7 +300,7 @@ description: >
 
 Every skill should know these facts:
 
-- **Total skills:** 9 skills + 1 protocol (checkpoint)
+- **Total skills:** 10 skills + 1 protocol (checkpoint)
 - **Tri-agent skills:** app-architect (Generator/Evaluator), ux-engineer (Design
   Planner/Generator/Evaluator), code-auditor (Auditor/Fixer/Verifier),
   integrations-engineer (Planner/Builder/Tester)

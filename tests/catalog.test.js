@@ -10,11 +10,12 @@ import {
 // file under test; editing it by hand is a mistake.
 
 describe("generated skill catalog", () => {
-  it("lists all 10 skills in SKILL_NAMES", () => {
+  it("lists all 11 skills in SKILL_NAMES", () => {
     expect(Object.keys(SKILL_NAMES).sort()).toEqual([
       "app-architect",
       "checkpoint-protocol",
       "code-auditor",
+      "dash-forge",
       "deploy-ops",
       "git-ops",
       "integrations-engineer",
@@ -25,10 +26,11 @@ describe("generated skill catalog", () => {
     ]);
   });
 
-  it("exposes 9 tryable skills (checkpoint-protocol is excluded)", () => {
+  it("exposes 10 tryable skills (checkpoint-protocol is excluded)", () => {
     expect(VALID_SKILLS.sort()).toEqual([
       "app-architect",
       "code-auditor",
+      "dash-forge",
       "deploy-ops",
       "git-ops",
       "integrations-engineer",
