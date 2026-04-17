@@ -3,41 +3,44 @@
    Canonical design tokens shared with public/styles.css.
    Consumed by the Astro site (Sprint 2+) via Tailwind 4 or
    directly in component CSS.
+   Light theme activated via data-theme="light" on <html>.
    ───────────────────────────────────────────────────────────── */
 
 :root {
-  /* Neutral ramp */
-  --obsidian:  #1c1710;  /* page background */
-  --forge:     #2a2218;  /* card surface */
-  --slag:      #5a5040;  /* borders, muted text */
-  --sand:      #c4b89e;  /* secondary text */
-  --linen:     #e8dfd0;  /* primary text */
-  --parchment: #f6f0e8;  /* light surface */
-
-  /* Accent */
-  --ember:     #e05c18;  /* primary accent, active node, CTA */
-  --char:      #b84510;  /* accent hover */
+  /* Brand constants (never themed) */
+  --obsidian:  #1c1710;
+  --forge:     #2a2218;
+  --slag:      #5a5040;
+  --sand:      #c4b89e;
+  --linen:     #e8dfd0;
+  --parchment: #f6f0e8;
+  --ember:     #e05c18;
+  --char:      #b84510;
   --ember-dim: rgba(224, 92, 24, 0.10);
   --ember-glow: rgba(224, 92, 24, 0.22);
 
-  /* Semantic aliases */
-  --bg:      var(--obsidian);
-  --surface: var(--forge);
-  --card:    #241C15;
-  --border:  var(--slag);
-  --text:    var(--linen);
-  --muted:   var(--sand);
-  --subtle:  #8A7868;
-  --accent:  var(--ember);
-  --accent-hover: var(--char);
-  --accent-dim:  var(--ember-dim);
-  --danger:  #d86464;
-  --success: #7ec99a;
+  /* ─────────── DARK THEME (default — Obsidian) ─────────── */
+  --bg:          var(--obsidian);
+  --ribbon:      #231b13;
+  --ribbon-edge: #3a2f26;
+  --surface:     var(--forge);
+  --card:        #241C15;
+  --border:      var(--slag);
+  --text:        var(--linen);
+  --muted:       var(--sand);
+  --subtle:      #8A7868;
+  --accent:      #e05c18;
+  --accent-hover:#b84510;
+  --accent-dim:  rgba(224, 92, 24, 0.10);
+  --glow:        rgba(224, 92, 24, 0.14);
+  --danger:      #d86464;
+  --success:     #7ec99a;
 
-  /* Logo tokens */
-  --logo-primary:   var(--linen);
-  --logo-secondary: var(--slag);
-  --logo-accent:    var(--ember);
+  /* Logo tokens — SVG fills/strokes use these. */
+  --logo-stroke:    var(--text);
+  --logo-spine:     var(--subtle);
+  --logo-filled:    var(--accent);
+  --logo-dot-dark:  var(--bg);
 
   /* Typography */
   --font-display: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -64,17 +67,22 @@
   --dur-base: 200ms;
 }
 
-/* Light background overrides — applied via data-theme="light" in Sprint 2+. */
+/* ─────────── LIGHT THEME (Amber) ─────────── */
 [data-theme="light"] {
-  --bg:      var(--parchment);
-  --surface: #EEE5D3;
-  --card:    #FFFFFF;
-  --border:  var(--sand);
-  --text:    var(--obsidian);
-  --muted:   var(--slag);
-  --subtle:  #7A6B58;
-
-  --logo-primary:   var(--obsidian);
-  --logo-secondary: var(--sand);
-  --logo-accent:    var(--ember);
+  --bg:          #f8ebda;
+  --ribbon:      #eed8bc;
+  --ribbon-edge: #d4b58f;
+  --surface:     #f4e5cf;
+  --card:        #ffffff;
+  --border:      #ccb390;
+  --text:        #1c1710;
+  --muted:       #5a4a30;
+  --subtle:      #8c7657;
+  --accent:      #d95010;
+  --accent-hover:#ab3e08;
+  --accent-dim:  rgba(217, 80, 16, 0.12);
+  --glow:        rgba(217, 80, 16, 0.10);
+  --danger:      #b33a3a;
+  --success:     #3f7a55;
+  /* Logo tokens re-resolve automatically via the semantic tokens above. */
 }
