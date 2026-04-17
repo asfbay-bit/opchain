@@ -13,6 +13,7 @@
     "make-zip": "bash scripts/make-skills-zip.sh",
     "gen-catalog": "node scripts/gen-skills-catalog.mjs",
     "prebuild": "npm run gen-catalog && npm run sync-docs && npm run make-zip",
+    "pretest": "npm run gen-catalog",
     "test": "vitest run",
     "test:watch": "vitest",
     "site:install": "cd site && npm install",
