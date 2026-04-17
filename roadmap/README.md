@@ -13,8 +13,9 @@ from the `reverse-spec-output/` baseline.
 
 ## TL;DR
 
-- **Seven sprints, ~82 Claude hours + ~14 user hours, ~2–3 weeks.**
+- **Seven sprints, ~89 Claude hours + ~14 user hours, ~2–3 weeks.**
 - **Stack:** Cloudflare Workers (kept) + Astro 5 + TypeScript + Zod + Tailwind 4.
+- **Analytics:** Cloudflare Web Analytics (pageviews, cookieless) + PostHog Cloud (funnel events, cookied after consent).
 - **Order:** foundation → single source of truth for skills → design system → page rebuilds → try-it rewrite → hardening → cutover.
 - **Every sprint resolves specific gaps from `reverse-spec-output/gap-analysis.md`.**
 
@@ -26,9 +27,9 @@ from the `reverse-spec-output/` baseline.
 | 1 | Single source of truth | One catalog in `skills/`, drives site and Try-It |
 | 2 | Design system v2 | Tokens + component library + styleguide page |
 | 3 | Page rebuilds | Real content on every page; per-skill detail pages |
-| 4 | Try-It rewrite | TS + Zod + retries + per-request IDs + safer markdown |
-| 5 | Hardening | CSP + lead TTL + structured logs + Dependabot |
-| 6 | Cutover | Replace `public/` + `src/` with Astro output; smoke tests |
+| 4 | Try-It rewrite | TS + Zod + retries + per-request IDs + safer markdown + PostHog server events |
+| 5 | Hardening | CSP + lead TTL + structured logs + Dependabot + consent banner |
+| 6 | Cutover | Replace `public/` + `src/` with Astro output; smoke tests + PostHog dashboards + `/privacy` |
 
 ## Gate protocol
 

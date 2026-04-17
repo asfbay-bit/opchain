@@ -85,15 +85,60 @@ the token structure leaves room for it).
 
 No external vendor. Enough for this scale.
 
-## Analytics
+## Analytics: Cloudflare Web Analytics + PostHog Cloud
 
-**Cloudflare Web Analytics** — privacy-first, free, one `<script>` tag.
-Optional; confirm before Sprint 3 includes it.
+Two-tier:
+
+**Tier 1 — Cloudflare Web Analytics.** Pageviews, referrers, Core Web
+Vitals. One `<script>` tag, cookieless, no consent banner needed. Wired
+into the global Astro layout (`site/src/layouts/Base.astro`) in Sprint 6.
+
+**Tier 2 — PostHog Cloud.** Event-level funnel tracking:
+
+| Event | Fired from | Purpose |
+|---|---|---|
+| `$pageview` | client (PostHog SDK) | Deduped pageviews for the funnel |
+| `demo_email_submitted` | server (`/api/try/start` 2xx) | Top of funnel |
+| `demo_chat_started` | server (first `/api/try/chat` per session) | Activation |
+| `demo_chat_completed` | server (chat stream `message_stop`) | Engagement depth |
+| `demo_skill_selected` | client | Which skills users try |
+| `install_cta_clicked` | client | CTA efficacy |
+| `zip_downloaded` | server (`GET *.zip`) | Conversion proxy |
+| `feedback_submitted` | server (`/api/feedback` 2xx) | Qualitative signal |
+| `nav_clicked` | client | Navigation heatmap |
+
+Rationale:
+
+- Client SDK only loads **after** consent; server-side `capture()` calls fire
+  unconditionally (no PII included — hashed email as `distinct_id` for
+  funnel stitching; actual email stays in KV, not in PostHog).
+- Event taxonomy lives in `site/src/lib/analytics.ts`; every call goes
+  through a typed wrapper so event names + properties stay consistent.
+- PostHog Cloud EU for GDPR alignment; project API key stored as a
+  non-secret env var (it's client-visible anyway).
+- Session replay, feature flags, experiments — all available in PostHog
+  but **off** by default for this roadmap.
+
+Consent banner (Sprint 5): simple accept/decline bar, choice persisted in
+`localStorage`, respected before any PostHog client init. No CF WA gating
+(it's cookieless).
+
+## Privacy
+
+`/privacy` page added in Sprint 6 documenting:
+- What's collected (pageviews via CF WA, funnel events via PostHog after
+  consent, emails via Try-It KV).
+- Retention (lead TTL 365 days; PostHog event retention per their plan).
+- User controls (cookie opt-out link, mailto for data export/delete).
 
 ## Cost estimate
 
 - Workers Free → $0 until 100k requests/day.
 - Anthropic Haiku usage scales with Try-It demand; dominant cost under any
   realistic traffic. Assume ≤ $50/mo at current demo cap.
+- PostHog Cloud free tier: 1M events/mo + 5K session recordings. At
+  opchain.dev's scale, well within free. Upgrade only if recordings are
+  enabled.
+- Cloudflare Web Analytics: free.
 - Linear + GitHub — unchanged (team already pays).
-- Net: **no new line items** from the redesign.
+- Net: **no new line items** at the expected traffic level.

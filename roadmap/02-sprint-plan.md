@@ -192,7 +192,7 @@ harden the streaming path.
 
 ### Features
 
-- M4 (XSS surface in markdown renderer), M8 (hardcoded Anthropic model), M7 (hardcoded Linear IDs), L4 (no retries), L5 (no request IDs).
+- M4 (XSS surface in markdown renderer), M8 (hardcoded Anthropic model), M7 (hardcoded Linear IDs), L4 (no retries), L5 (no request IDs). Adds PostHog server-side funnel tracking (A10).
 
 ### Deliverables
 
@@ -205,12 +205,16 @@ harden the streaming path.
 - Zod schemas for every POST body (`/api/try/start`, `/api/try/chat`, `/api/feedback`).
 - Client: visible "X exchanges remaining" counter, keyboard shortcuts (Cmd/Ctrl+Enter to send, Esc to cancel stream), error UI with retry button, auto-scroll opt-out.
 - Feedback widget: small floating button on every page, opens a dialog that posts to `/api/feedback`.
+- **PostHog event taxonomy** — `site/src/lib/analytics.ts` typed wrapper exposing `track(event, props)`; all server-side events (`demo_email_submitted`, `demo_chat_started`, `demo_chat_completed`, `zip_downloaded`, `feedback_submitted`) emitted here. `distinct_id` = SHA-256(lowercased email) so PostHog can't reverse it.
+- **Server-side PostHog capture** via their `/capture/` HTTP endpoint (no SDK on the Worker — plain `fetch`); failures are swallowed (analytics must never break the user flow).
+- `POSTHOG_PROJECT_API_KEY` + `POSTHOG_HOST` env vars wired into `wrangler.jsonc` bindings and `.env.example`. Missing vars → `track()` no-ops (so local dev doesn't need an account).
 
 ### Test Requirements
 
 - Unit: Zod schemas accept valid payloads, reject malformed; KV wrapper round-trips; markdown renderer treats hostile inputs safely (XSS test vectors from OWASP).
 - Integration: full happy-path session start → chat → end; email exhaustion → 429; invalid token → 401; Anthropic failure → 502 with no KV increment.
 - Playwright: submit email → see chat UI; send a starter prompt → stream appears; counter decrements.
+- Unit: `track()` no-ops when PostHog env vars are unset; `distinct_id` is a stable hash; PostHog capture failure does not surface to the caller.
 
 ### Definition of Done
 
@@ -218,6 +222,7 @@ harden the streaming path.
 - All three API endpoints return validation errors with consistent shape `{ error, code }`.
 - No direct `env.DATA.*` calls from handlers.
 - Zero regressions vs. current Try-It feature set.
+- Server-side PostHog events visible in the PostHog project when end-to-end tested against staging.
 
 ### Dependencies
 
@@ -225,7 +230,7 @@ Sprint 1 (skill catalog with `tryPrompt`), Sprint 3 (page shells).
 
 ### Estimated Effort
 
-CLAUDE: 16 | USER: 2 (test the feedback widget, review new error copy)
+CLAUDE: 19 | USER: 2 (test the feedback widget, review new error copy, verify PostHog events in dashboard)
 
 ---
 
@@ -235,27 +240,33 @@ CLAUDE: 16 | USER: 2 (test the feedback widget, review new error copy)
 
 ### Features
 
-- M5 (no CSP / X-Frame-Options / Referrer-Policy / Permissions-Policy), M6 (lead data TTL), L10 (wrangler schema URL), L5 (upstream request-IDs — finishes what Sprint 4 started).
+- M5 (no CSP / X-Frame-Options / Referrer-Policy / Permissions-Policy), M6 (lead data TTL), L10 (wrangler schema URL), L5 (upstream request-IDs — finishes what Sprint 4 started). Adds consent banner + PostHog client init gating (A10).
 
 ### Deliverables
 
-- `applySecurityHeaders` extended: CSP with `default-src 'self'; script-src 'self'; connect-src 'self' https://api.anthropic.com; style-src 'self' 'unsafe-inline'` (or nonce-based), Referrer-Policy `strict-origin-when-cross-origin`, X-Frame-Options `DENY`, Permissions-Policy sensible defaults.
+- `applySecurityHeaders` extended: CSP with `default-src 'self'; script-src 'self' https://*.i.posthog.com; connect-src 'self' https://api.anthropic.com https://*.i.posthog.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:` (or nonce-based for scripts), Referrer-Policy `strict-origin-when-cross-origin`, X-Frame-Options `DENY`, Permissions-Policy sensible defaults.
 - Lead KV entries TTL of 365 days (configurable via `LEAD_TTL_DAYS` env).
 - Structured JSON log lines for: feedback submitted, chat started, chat completed, rate-limit hit, upstream failure. One-line schema documented.
 - Light e2e smoke test that runs post-deploy against staging, hitting `/api/health` + `/` + `/opchain-skills.zip` + sending a fake feedback (test mode flag).
 - Dependabot / Renovate config file for weekly `esbuild`, `wrangler`, `astro`, `tailwindcss` bumps.
 - README + `CLAUDE.md` updated to reflect the new layout, scripts, and envs.
+- **Consent banner component** (`site/src/components/ConsentBanner.astro` + island) — accept/decline with "Learn more" linking to `/privacy` (stub here, real content in Sprint 6). Choice stored in `localStorage` under `opchain-consent`.
+- **PostHog client SDK loader** in the global layout — SDK is only injected **after** consent (either on banner accept or on page load if consent previously stored). No SDK, no cookies when consent is declined.
+- **Opt-out link** exposed in the footer (`Manage privacy`) that resets `localStorage` + reloads.
 
 ### Test Requirements
 
 - Integration: every API response includes the expected security headers; a request without `Origin` still gets nosniff + HSTS; CSP blocks inline scripts in a Playwright test page.
 - Lighthouse: Best Practices ≥ 95.
+- Playwright: banner visible on first visit; declining prevents PostHog SDK from loading (assert no `posthog` global, no cookies set); accepting loads the SDK; opt-out link resets state.
 
 ### Definition of Done
 
 - All HIGH and MED gaps from `reverse-spec-output/gap-analysis.md` closed or explicitly deferred.
 - No fallback secrets, no hardcoded model, no hardcoded Linear IDs.
 - Weekly dependency PRs auto-opened.
+- PostHog client SDK never loads before consent; server-side events continue to fire unconditionally.
+- CSP allow list does not include any third party beyond Anthropic and PostHog.
 
 ### Dependencies
 
@@ -263,7 +274,7 @@ Sprint 4 (handlers live in TS, easy to extend).
 
 ### Estimated Effort
 
-CLAUDE: 8 | USER: 1 (review log schema, confirm CSP doesn't break anything user-expected)
+CLAUDE: 10 | USER: 1 (review log schema, confirm CSP doesn't break anything user-expected, approve consent banner copy)
 
 ---
 
@@ -281,7 +292,9 @@ CLAUDE: 8 | USER: 1 (review log schema, confirm CSP doesn't break anything user-
 - Redirect map for any URL changes (`/architecture.html` → `/architecture`, `/install.html` → `/install`, `/skills.html` → `/skills`, `/tryit.html` → `/tryit`). Implemented via Astro redirects or Worker router.
 - `wrangler deploy` now emits the Astro build; old `src/index.js` + `build.mjs` removed.
 - Smoke tests from Sprint 5 run against prod post-deploy; rollback script documented (`wrangler rollback`).
-- Analytics: Cloudflare Web Analytics beacon added (opt-in at roadmap review).
+- **Cloudflare Web Analytics beacon** added to the global layout (cookieless, no consent gating).
+- **PostHog dashboards** configured: funnel (email → first exchange → install click), retention (return visitors), skill selection breakdown. One-time setup in the PostHog UI; dashboards documented in `docs/analytics.md`.
+- **`/privacy` page** — final content: what's collected (CF WA pageviews, PostHog funnel events after consent, Try-It emails in KV with 365-day TTL), who has access, how to opt out, mailto for data export/delete.
 - Feedback PR posted to `asfbay-bit/opchain` with the full diff; old `public/` + `src/` deleted in the same commit so history is clean.
 - Launch checklist run per `skills/app-architect/SKILL.md` L449–L460: audit green (→ invoke code-auditor `/audit full`), staging green for 24 h, monitoring in place.
 
@@ -304,7 +317,7 @@ All prior sprints.
 
 ### Estimated Effort
 
-CLAUDE: 10 | USER: 3 (launch day availability, final approval, sign-off on analytics)
+CLAUDE: 12 | USER: 3 (launch day availability, final approval, sign-off on `/privacy` copy, verify PostHog dashboards)
 
 ---
 
@@ -330,10 +343,10 @@ Follows app-architect Phase 4 "Build Order" guidance (`SKILL.md` L260–L268):
 | 1 — SSoT | 10 | 1 | 16 |
 | 2 — Design v2 | 14 | 3 | 30 |
 | 3 — Page rebuilds | 18 | 2 | 48 |
-| 4 — Try-It rewrite | 16 | 2 | 64 |
-| 5 — Hardening | 8 | 1 | 72 |
-| 6 — Cutover | 10 | 3 | 82 |
-| **Total** | **82 hrs** | **14 hrs** | — |
+| 4 — Try-It rewrite + PostHog events | 19 | 2 | 67 |
+| 5 — Hardening + consent banner | 10 | 1 | 77 |
+| 6 — Cutover + `/privacy` + dashboards | 12 | 3 | 89 |
+| **Total** | **89 hrs** | **14 hrs** | — |
 
 Calendar-wise, if run with one build session per weekday on app-architect's
 Generator → Evaluator loop (~1 sprint per 1–2 days including iteration),

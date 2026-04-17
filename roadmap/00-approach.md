@@ -65,6 +65,10 @@ At the end of the roadmap, the following are true:
   Try-It chat TTFB < 500 ms on the streaming start event.
 - **Migration:** zero visitor-visible downtime during cutover; old URLs still
   resolve.
+- **Analytics funnel visibility:** Cloudflare Web Analytics captures page
+  views; PostHog captures the funnel (landing → email gate → first
+  exchange → install click → ZIP download → feedback submit). Consent
+  banner present and pre-event (PostHog cookies only set after accept).
 
 ## Explicit Assumptions (flag & confirm before Sprint 1)
 
@@ -83,6 +87,7 @@ approval. **Any of these can be changed before Sprint 1 starts.**
 | A7 | **No auth / accounts** on the redesigned site. Try-It stays email-gated with the same 5-exchange model. | Scope clarity; matches current product. | If you want accounts or a "saved sessions" feature, that's a new sprint. |
 | A8 | **Migration strategy = one deploy.** Build the new site in a separate directory (`site/` or `web/`), deploy to `staging.opchain.dev`, review, then swap the `main` of `opchain-dev` to the new output in one cutover. | Old `public/` stays as the production fallback until cutover. | "Incremental per-page cutover" → more rigging, slower, but lower risk; we can split Sprint 6. |
 | A9 | **CI runner = GitHub Actions**, deploy via `cloudflare/wrangler-action` with OIDC. | Matches repo hosting. | Named alternative → revisit Sprint 0. |
+| A10 | **Analytics: Cloudflare Web Analytics + PostHog Cloud.** CF WA for pageviews (no cookies, no banner). PostHog Cloud for event-level funnel analysis (cookies → requires a consent banner + `/privacy` page). | Answers "is the site driving installs?" — the reverse-spec flagged no analytics as a gap. | "Plausible instead" → cookieless, drop the consent banner + `/privacy` sprint work. "Amplitude instead" → same shape as PostHog, different SDK. "Tier 1 only (CF WA)" → drop the PostHog work from Sprints 4/5/6 (-7 Claude hrs). |
 
 ## Non-goals (explicit out-of-scope)
 
@@ -92,8 +97,8 @@ approval. **Any of these can be changed before Sprint 1 starts.**
 - A mobile app.
 - Re-architecting the skills *themselves* (the SKILL.md files). This roadmap
   only touches the presentation surface + the Worker API.
-- Analytics platform integration (a 1-file Plausible or Cloudflare Web Analytics
-  addition is easy if you want it; not planned here).
+- Session replay recordings (PostHog feature, off by default).
+- A/B testing / feature flags (PostHog supports both; not planned here).
 
 ## Gate protocol (per app-architect)
 
