@@ -4,15 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "npm run prebuild && wrangler dev",
     "build": "node build.mjs",
     "deploy": "wrangler deploy",
     "deploy:staging": "wrangler deploy --env staging",
     "deploy:skip-build": "wrangler deploy --config wrangler.jsonc --no-build",
     "sync-docs": "bash scripts/sync-docs.sh",
     "make-zip": "bash scripts/make-skills-zip.sh",
-    "verify-catalog": "bash scripts/verify-catalog.sh",
-    "prebuild": "npm run sync-docs && npm run make-zip",
+    "gen-catalog": "node scripts/gen-skills-catalog.mjs",
+    "prebuild": "npm run gen-catalog && npm run sync-docs && npm run make-zip",
+    "pretest": "npm run gen-catalog",
     "test": "vitest run",
     "test:watch": "vitest",
     "site:install": "cd site && npm install",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "esbuild": "^0.24.0",
+    "gray-matter": "^4.0.3",
     "vitest": "^2.1.0",
     "wrangler": "^4.0.0"
   }

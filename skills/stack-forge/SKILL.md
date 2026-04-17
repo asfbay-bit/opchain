@@ -1,5 +1,15 @@
 ---
 name: stack-forge
+displayName: Stack Forge
+version: 1.0.0
+shortDesc: Stack decisions, Cloudflare patterns, typed pipeline.
+phases: [plan, build]
+triAgent: false
+tryable: true
+commands:
+  - /stack
+  - /stack-decide
+  - /feature
 description: >
   Stack advisor for any platform: Cloudflare, Vercel, AWS, Supabase, Rails, Django.
   Use for /stack, /stack-decide, /feature, "what stack", "tech stack", "what should I

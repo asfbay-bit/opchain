@@ -1,3 +1,18 @@
+---
+name: checkpoint-protocol
+displayName: Checkpoint Protocol
+version: 1.0.0
+shortDesc: Session persistence across skills.
+phases: [foundation]
+triAgent: false
+tryable: false
+commands: []
+description: >
+  Cross-skill protocol for session persistence. Not invoked directly — every
+  other opchain skill implements this JSON checkpoint contract so state
+  survives across conversations.
+---
+
 # Checkpoint Protocol v1.0
 
 A cross-skill convention for session persistence. Any skill that runs multi-step

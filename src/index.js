@@ -10,6 +10,7 @@
  */
 
 import { handleOpchainTry } from "./opchain-try.js";
+import { SKILL_NAMES } from "./generated/skill-prompts.js";
 
 // Injected at build time by esbuild `define` (see build.mjs). In tests the
 // identifier is replaced before import by the Vitest define plumbing.
@@ -29,19 +30,6 @@ export const LABEL_MAP = {
 };
 
 export const PRIORITY_MAP = { 0: 0, 1: 4, 2: 3, 3: 2, 4: 1 };
-
-const SKILL_NAMES = {
-  "checkpoint-protocol": "Checkpoint Protocol",
-  "app-architect": "App Architect",
-  "stack-forge": "Stack Forge",
-  "reverse-spec": "Reverse Spec",
-  "ux-engineer": "UX Engineer",
-  "code-auditor": "Code Auditor",
-  "integrations-engineer": "Integrations Engineer",
-  "git-ops": "Git Ops",
-  "deploy-ops": "Deploy Ops",
-  "scale-ops": "Scale Ops",
-};
 
 const ALLOWED_ORIGINS = [
   "https://opchain.dev",

@@ -1,5 +1,15 @@
 ---
 name: deploy-ops
+displayName: Deploy Ops
+version: 1.0.0
+shortDesc: Audit gate → staging → production → monitoring.
+phases: [build]
+triAgent: false
+tryable: true
+commands:
+  - /deploy
+  - /deploy staging
+  - /deploy audit
 description: >
   Deployment pipeline: audit gate → staging → production → monitoring. Use for
   /deploy, "deploy this", "ship it", "push to production", "staging", "rollback",

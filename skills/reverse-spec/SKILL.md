@@ -1,5 +1,18 @@
 ---
 name: reverse-spec
+displayName: Reverse Spec
+version: 1.0.0
+shortDesc: Turn existing code into pipeline-ready specs.
+phases: [plan]
+triAgent: false
+tryable: true
+commands:
+  - /reverse-spec
+  - /rev-scan
+  - /rev-full
+  - /rev-design
+  - /rev-stack
+  - /rev-sprint
 description: >
   Reverse-engineer existing code into spec docs. Use for /rev-spec, /reverse-spec,
   "document this codebase", "generate specs from code", "backfill specs", or when
