@@ -168,7 +168,7 @@
 
   function buildSkillPills() {
     skillsEl.innerHTML = '';
-    // Only show skills that have system prompts (all 9 tryable skills)
+    // Only show skills that have system prompts (all 10 tryable skills)
     var tryableIds = Object.keys(STARTERS);
     var tryableSkills = skills.filter(function (s) { return tryableIds.indexOf(s.id) !== -1; });
 
