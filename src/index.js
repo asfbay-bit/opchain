@@ -82,11 +82,13 @@ const BASELINE_SECURITY_HEADERS = {
 
 // CSP — only meaningful on HTML responses. `unsafe-inline` on style-src covers
 // Astro scoped styles; the FOUC init script in Base.astro is inline too, so
-// script-src keeps `unsafe-inline` until Sprint 6 moves it to a nonce.
+// script-src keeps `unsafe-inline` for now. Browser connects to PostHog
+// (consent-gated) and Cloudflare Web Analytics (cookieless); Anthropic is
+// only ever called from the Worker.
 const CSP_HTML =
   "default-src 'self'; " +
-  "script-src 'self' 'unsafe-inline' https://*.i.posthog.com; " +
-  "connect-src 'self' https://*.i.posthog.com; " +
+  "script-src 'self' 'unsafe-inline' https://*.i.posthog.com https://static.cloudflareinsights.com; " +
+  "connect-src 'self' https://*.i.posthog.com https://cloudflareinsights.com; " +
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
   "img-src 'self' data:; " +
   "font-src 'self' https://fonts.gstatic.com; " +
@@ -241,6 +243,16 @@ async function route(request, env, ctx, url, origin, requestId) {
       const tryUrl = new URL(url);
       tryUrl.pathname = url.pathname.replace("/api/try", "/api/opchain/try");
       return handleOpchainTry(request, tryUrl, env, ctx);
+    }
+
+    // Sprint 6 — legacy `.html` paths (live until today) now 301 to clean URLs.
+    // `/index.html` → `/`; `/foo.html` → `/foo`. We build the Response by hand
+    // (rather than `Response.redirect`) so the outer baseline-header stamp
+    // can mutate the Headers.
+    if (request.method === "GET" && url.pathname.endsWith(".html")) {
+      const clean = url.pathname === "/index.html" ? "/" : url.pathname.replace(/\.html$/, "");
+      const location = new URL(clean + url.search, url.origin).toString();
+      return new Response(null, { status: 301, headers: { Location: location } });
     }
 
     if (url.pathname === "/") {

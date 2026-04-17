@@ -148,6 +148,18 @@ const preselect = preselectProp || tryable[0]?.id || "";
 
     let sessionToken: string | null = null;
     let remaining = MAX;
+
+    // Static build — read `?skill=foo` client-side so a link like
+    // /tryit?skill=code-auditor still preselects the right pill.
+    const qSkill = new URLSearchParams(location.search).get("skill");
+    if (qSkill) {
+      const qPill = pills.find((p) => p.dataset.skillId === qSkill);
+      if (qPill) {
+        pills.forEach((p) => p.setAttribute("aria-pressed", "false"));
+        qPill.setAttribute("aria-pressed", "true");
+      }
+    }
+
     let currentSkill = pills.find((p) => p.getAttribute("aria-pressed") === "true")?.dataset.skillId
                     ?? pills[0]?.dataset.skillId
                     ?? "";

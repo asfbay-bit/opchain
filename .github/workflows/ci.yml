@@ -22,11 +22,14 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - name: Install
+      - name: Install (root)
+        run: npm ci
+      - name: Install (site) — needed because `npm run build` now runs astro build
+        working-directory: site
         run: npm ci
       - name: Unit tests
         run: npm test
-      - name: Build worker (also regenerates the skill catalog from skills/*)
+      - name: Build worker (regenerates catalog, builds site, bundles worker)
         env:
           OPCHAIN_VERSION: ${{ github.sha }}
         run: npm run build

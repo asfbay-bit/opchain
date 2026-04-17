@@ -76,6 +76,18 @@ const ogImage = new URL("/og-image.png", Astro.site).toString();
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Cloudflare Web Analytics — cookieless pageview beacon. Loaded on
+         every page (no consent gate) because it collects no PII and sets
+         no cookies. Token is set via `PUBLIC_CF_BEACON_TOKEN` at build. -->
+    {import.meta.env.PUBLIC_CF_BEACON_TOKEN && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={`{"token": "${import.meta.env.PUBLIC_CF_BEACON_TOKEN}"}`}
+      />
+    )}
   </head>
   <body>
     {!bare && <Header active={active} />}
