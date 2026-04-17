@@ -86,7 +86,9 @@
 
 /* ── Base element styles (outside Tailwind's reset) ── */
 html, body { margin: 0; min-height: 100%; }
-html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
 body {
   background: var(--bg);
   color: var(--text);

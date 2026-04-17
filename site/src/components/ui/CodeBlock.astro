@@ -6,9 +6,7 @@ interface Props {
 const { lang = "", class: className = "" } = Astro.props;
 ---
 
-<pre class:list={["codeblock", className]} data-lang={lang || undefined}>
-  <code><slot /></code>
-</pre>
+<pre class:list={["codeblock", className]} data-lang={lang || undefined}><code><slot /></code></pre>
 
 <style>
   .codeblock {
