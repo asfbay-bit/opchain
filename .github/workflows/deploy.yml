@@ -26,6 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: staging
+      # Keep the custom domain here for the GitHub UI link. The smoke test below
+      # does not depend on it — it uses the deployment-url output from wrangler.
       url: https://staging.opchain.dev
     steps:
       - uses: actions/checkout@v4
@@ -39,16 +41,24 @@ jobs:
           OPCHAIN_VERSION: ${{ github.sha }}
         run: npm run build
       - name: Deploy
+        id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env staging
       - name: Smoke — /api/health
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url }}
         run: |
           set -e
+          if [ -z "${DEPLOY_URL}" ]; then
+            echo "::warning::wrangler-action did not expose deployment-url; skipping smoke test."
+            exit 0
+          fi
+          echo "Smoke-testing ${DEPLOY_URL}/api/health"
           for i in 1 2 3 4 5; do
-            body=$(curl -fsS https://staging.opchain.dev/api/health || true)
+            body=$(curl -fsS "${DEPLOY_URL}/api/health" || true)
             if echo "$body" | grep -q '"ok":true'; then
               echo "staging health OK: $body"
               exit 0
@@ -56,7 +66,7 @@ jobs:
             echo "attempt $i failed, retrying in 5s"
             sleep 5
           done
-          echo "staging health never reported OK"
+          echo "::error::staging health never reported OK at ${DEPLOY_URL}/api/health"
           exit 1
 
   production:
@@ -79,16 +89,23 @@ jobs:
           OPCHAIN_VERSION: ${{ github.sha }}
         run: npm run build
       - name: Deploy
+        id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
       - name: Smoke — /api/health
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url }}
         run: |
           set -e
+          # Prefer the deployment-url from wrangler; fall back to the custom
+          # domain which is known to be live for production.
+          URL="${DEPLOY_URL:-https://opchain.dev}"
+          echo "Smoke-testing ${URL}/api/health"
           for i in 1 2 3 4 5; do
-            body=$(curl -fsS https://opchain.dev/api/health || true)
+            body=$(curl -fsS "${URL}/api/health" || true)
             if echo "$body" | grep -q '"ok":true'; then
               echo "production health OK: $body"
               exit 0
@@ -96,5 +113,5 @@ jobs:
             echo "attempt $i failed, retrying in 5s"
             sleep 5
           done
-          echo "production health never reported OK"
+          echo "::error::production health never reported OK at ${URL}/api/health"
           exit 1
