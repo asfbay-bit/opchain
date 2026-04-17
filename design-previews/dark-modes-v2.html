@@ -231,7 +231,9 @@ body {
    All ten entries will live here across both batches.
    ───────────────────────────────────────────── */
 
-/* 1. OBSIDIAN — current production dark. Baseline / most conservative. */
+/* 1. OBSIDIAN — current production dark. Baseline / most conservative.
+   Tokens unchanged from production; only --glow added at the halved
+   intensity used by the lifted + wild themes. */
 .preview[data-theme="obsidian"] {
   --bg:          #1c1710;
   --ribbon:      #231b13;
@@ -245,6 +247,7 @@ body {
   --accent:      #e05c18;
   --accent-hover:#b84510;
   --accent-dim:  rgba(224, 92, 24, 0.12);
+  --glow:        rgba(224, 92, 24, 0.14);
 }
 
 /* 2. ONYX — cooler, truer-black. Conservative but less warm than Obsidian. */
