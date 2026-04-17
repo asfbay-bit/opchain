@@ -305,13 +305,147 @@ body {
   --accent-hover:#d14a15;
   --accent-dim:  rgba(255, 112, 64, 0.14);
 }
+
+/* ─────────────────────────────────────────────
+   BATCH 2 — 4 lifted variations + 4 wild
+   Lifted = same family as batch 1 but less dark, more
+   layered, brighter text for readability.
+   ───────────────────────────────────────────── */
+
+/* 6. OBSIDIAN LIFTED — brighter take on #1, deeper ribbon/surface delta. */
+.preview[data-theme="obsidian-lifted"] {
+  --bg:          #241c14;
+  --ribbon:      #2e241a;
+  --ribbon-edge: #4a3a2a;
+  --surface:     #342818;
+  --card:        #2a2018;
+  --border:      #4a3a2a;
+  --text:        #f5ecdc;
+  --muted:       #d4c4a8;
+  --subtle:      #9a8a72;
+  --accent:      #e8692a;
+  --accent-hover:#c94a1a;
+  --accent-dim:  rgba(232, 105, 42, 0.14);
+}
+
+/* 7. ONYX LIFTED — cooler lift, crisper text, still restrained. */
+.preview[data-theme="onyx-lifted"] {
+  --bg:          #1a1611;
+  --ribbon:      #231d15;
+  --ribbon-edge: #42362a;
+  --surface:     #2c241a;
+  --card:        #1f1814;
+  --border:      #42362a;
+  --text:        #f1e8d8;
+  --muted:       #c8bba0;
+  --subtle:      #8a7d66;
+  --accent:      #e8692a;
+  --accent-hover:#c94a1a;
+  --accent-dim:  rgba(232, 105, 42, 0.12);
+}
+
+/* 8. FORGE LIFTED — richer burnt-wood, highest readability of the lifted four. */
+.preview[data-theme="forge-lifted"] {
+  --bg:          #2a2116;
+  --ribbon:      #33281b;
+  --ribbon-edge: #5a4632;
+  --surface:     #3d3022;
+  --card:        #332818;
+  --border:      #5a4632;
+  --text:        #faeddb;
+  --muted:       #e2cba8;
+  --subtle:      #a68a68;
+  --accent:      #f0702a;
+  --accent-hover:#c94a1a;
+  --accent-dim:  rgba(240, 112, 42, 0.14);
+}
+
+/* 9. COFFEE LIFTED — brown-warm with more contrast, cocoa feel. */
+.preview[data-theme="coffee-lifted"] {
+  --bg:          #2e1c13;
+  --ribbon:      #3a2416;
+  --ribbon-edge: #6a3d24;
+  --surface:     #432918;
+  --card:        #331f13;
+  --border:      #6a3d24;
+  --text:        #f5e4d0;
+  --muted:       #d6b894;
+  --subtle:      #9a7352;
+  --accent:      #f5752a;
+  --accent-hover:#d14a15;
+  --accent-dim:  rgba(245, 117, 42, 0.14);
+}
+
+/* 10. PLUM — dark aubergine/purple ground. Wild. */
+.preview[data-theme="plum"] {
+  --bg:          #1a0e1e;
+  --ribbon:      #241328;
+  --ribbon-edge: #4a2a52;
+  --surface:     #2e1a33;
+  --card:        #22142a;
+  --border:      #4a2a52;
+  --text:        #f0e0ec;
+  --muted:       #c0a8c4;
+  --subtle:      #8a7290;
+  --accent:      #ff7a3d;
+  --accent-hover:#e05c18;
+  --accent-dim:  rgba(255, 122, 61, 0.14);
+}
+
+/* 11. TEAL VOID — deep petrol/teal ground. Wild. */
+.preview[data-theme="teal-void"] {
+  --bg:          #0a1a1e;
+  --ribbon:      #102832;
+  --ribbon-edge: #1e4852;
+  --surface:     #173a46;
+  --card:        #0e242c;
+  --border:      #1e4852;
+  --text:        #e0f0f0;
+  --muted:       #a0c8c8;
+  --subtle:      #6a8e8e;
+  --accent:      #ff8040;
+  --accent-hover:#e05c18;
+  --accent-dim:  rgba(255, 128, 64, 0.14);
+}
+
+/* 12. BURGUNDY — dark wine/blood ground, gold-ember pop. Wild. */
+.preview[data-theme="burgundy"] {
+  --bg:          #1e0a10;
+  --ribbon:      #2a1218;
+  --ribbon-edge: #52282e;
+  --surface:     #3a1a20;
+  --card:        #261018;
+  --border:      #52282e;
+  --text:        #f5e0dc;
+  --muted:       #d4a8a8;
+  --subtle:      #9a7272;
+  --accent:      #f0a040;
+  --accent-hover:#d08020;
+  --accent-dim:  rgba(240, 160, 64, 0.14);
+}
+
+/* 13. VOID — pure near-black. OLED. Ember pops maximally. Wild. */
+.preview[data-theme="void"] {
+  --bg:          #030305;
+  --ribbon:      #0a0a0e;
+  --ribbon-edge: #252530;
+  --surface:     #16161c;
+  --card:        #0a0a0e;
+  --border:      #252530;
+  --text:        #f0f0f4;
+  --muted:       #a8a8b4;
+  --subtle:      #6a6a78;
+  --accent:      #ff5c18;
+  --accent-hover:#e04510;
+  --accent-dim:  rgba(255, 92, 24, 0.18);
+}
 </style>
 </head>
 <body>
 
 <div class="chrome">
   <div class="chrome-inner">
-    <span class="chrome-title">opchain · dark mode v2 · batch 1 of 2</span>
+    <span class="chrome-title">opchain · dark mode v2 · all 13</span>
     <span class="chrome-label">theme</span>
     <div class="theme-pills" role="radiogroup" aria-label="Select theme">
       <button class="theme-pill" data-theme="obsidian" aria-pressed="true">1 · obsidian</button>
@@ -319,6 +453,14 @@ body {
       <button class="theme-pill" data-theme="forge"    aria-pressed="false">3 · forge</button>
       <button class="theme-pill" data-theme="coffee"   aria-pressed="false">4 · coffee</button>
       <button class="theme-pill" data-theme="midnight" aria-pressed="false">5 · midnight</button>
+      <button class="theme-pill" data-theme="obsidian-lifted" aria-pressed="false">6 · obsidian+</button>
+      <button class="theme-pill" data-theme="onyx-lifted"     aria-pressed="false">7 · onyx+</button>
+      <button class="theme-pill" data-theme="forge-lifted"    aria-pressed="false">8 · forge+</button>
+      <button class="theme-pill" data-theme="coffee-lifted"   aria-pressed="false">9 · coffee+</button>
+      <button class="theme-pill" data-theme="plum"      aria-pressed="false">10 · plum</button>
+      <button class="theme-pill" data-theme="teal-void" aria-pressed="false">11 · teal void</button>
+      <button class="theme-pill" data-theme="burgundy"  aria-pressed="false">12 · burgundy</button>
+      <button class="theme-pill" data-theme="void"      aria-pressed="false">13 · void</button>
     </div>
     <p class="theme-note" id="theme-note"></p>
   </div>
@@ -413,7 +555,17 @@ const THEMES = {
   onyx:     { blurb: '2 · Onyx — cooler, closer to true black. Conservative but less warm than Obsidian.', swatches: [['bg','#0f0c08'],['ribbon','#17130e'],['surface','#1c1814'],['text','#e8dfd0'],['accent','#e05c18']] },
   forge:    { blurb: '3 · Forge — warmer/lifted. Rich burnt-wood. Conservative richer sibling.', swatches: [['bg','#221b12'],['ribbon','#2a2218'],['surface','#302717'],['text','#edded0'],['accent','#e05c18']] },
   coffee:   { blurb: '4 · Coffee — brown-warm dark. Hue pushes toward coffee-bean. Adventurous warmth.', swatches: [['bg','#241610'],['ribbon','#2e1c14'],['surface','#331f15'],['text','#f0e0d0'],['accent','#e05c18']] },
-  midnight: { blurb: '5 · Midnight — cool blue undertone. First non-warm option. Brighter ember to balance the cold ground. Adventurous.', swatches: [['bg','#10131a'],['ribbon','#161a24'],['surface','#1b1f2a'],['text','#e6e9f0'],['accent','#ff7040']] },
+  midnight: { blurb: '5 · Midnight — cool blue undertone. First non-warm option. Brighter ember. Adventurous.', swatches: [['bg','#10131a'],['ribbon','#161a24'],['surface','#1b1f2a'],['text','#e6e9f0'],['accent','#ff7040']] },
+
+  'obsidian-lifted': { blurb: '6 · Obsidian+ — brighter baseline. Deeper ribbon/surface delta, warmer ember. More depth, easier to read.', swatches: [['bg','#241c14'],['ribbon','#2e241a'],['surface','#342818'],['text','#f5ecdc'],['accent','#e8692a']] },
+  'onyx-lifted':     { blurb: '7 · Onyx+ — cooler lift. Crisper text than original Onyx; still restrained.', swatches: [['bg','#1a1611'],['ribbon','#231d15'],['surface','#2c241a'],['text','#f1e8d8'],['accent','#e8692a']] },
+  'forge-lifted':    { blurb: '8 · Forge+ — richer burnt-wood. Highest readability of the four lifted.', swatches: [['bg','#2a2116'],['ribbon','#33281b'],['surface','#3d3022'],['text','#faeddb'],['accent','#f0702a']] },
+  'coffee-lifted':   { blurb: '9 · Coffee+ — brown-warm with more contrast. Cocoa feel.', swatches: [['bg','#2e1c13'],['ribbon','#3a2416'],['surface','#432918'],['text','#f5e4d0'],['accent','#f5752a']] },
+
+  plum:        { blurb: '10 · Plum — dark aubergine/purple ground. Ember against purple is dramatic. WILD.', swatches: [['bg','#1a0e1e'],['ribbon','#241328'],['surface','#2e1a33'],['text','#f0e0ec'],['accent','#ff7a3d']] },
+  'teal-void': { blurb: '11 · Teal Void — deep petrol/teal. Ember pops as the warm complementary. WILD.', swatches: [['bg','#0a1a1e'],['ribbon','#102832'],['surface','#173a46'],['text','#e0f0f0'],['accent','#ff8040']] },
+  burgundy:    { blurb: '12 · Burgundy — dark wine ground, gold-ember pop instead of orange. Decadent. WILD.', swatches: [['bg','#1e0a10'],['ribbon','#2a1218'],['surface','#3a1a20'],['text','#f5e0dc'],['accent','#f0a040']] },
+  void:        { blurb: '13 · Void — pure near-black, OLED-friendly. Ember saturation turned up to pop maximally. WILD.', swatches: [['bg','#030305'],['ribbon','#0a0a0e'],['surface','#16161c'],['text','#f0f0f4'],['accent','#ff5c18']] },
 };
 
 const preview = document.querySelector('.preview');
