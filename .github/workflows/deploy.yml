@@ -55,14 +55,10 @@ jobs:
           command: deploy --env staging
       - name: Smoke — health + homepage + zip + security headers
         env:
-          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url }}
-        run: |
-          set -e
-          if [ -z "${DEPLOY_URL}" ]; then
-            echo "::warning::wrangler-action did not expose deployment-url; skipping smoke test."
-            exit 0
-          fi
-          ./scripts/smoke.sh
+          # Prefer the deployment-url from wrangler; fall back to the custom
+          # domain which is defined as the staging environment URL above.
+          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url || 'https://staging.opchain.dev' }}
+        run: ./scripts/smoke.sh
 
   production:
     name: Promote to production
