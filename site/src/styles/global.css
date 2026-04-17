@@ -1,0 +1,115 @@
+/* ─────────────────────────────────────────────────────────────
+   Global stylesheet — imported once by the Base layout.
+   Order:
+     1. tokens.css (defines all CSS custom properties)
+     2. Tailwind 4 core (`@import "tailwindcss"`)
+     3. @theme inline block mapping tokens → Tailwind utility names
+     4. base element styles
+   ───────────────────────────────────────────────────────────── */
+
+@import "./tokens.css";
+@import "tailwindcss";
+
+/* Tailwind 4 reads the `@theme inline` block to generate utility classes
+   from the same tokens defined in tokens.css. `inline` keeps the tokens
+   as `var(--…)` references so theme switching works at runtime without
+   a rebuild. */
+@theme inline {
+  /* Colours — themed */
+  --color-bg:           var(--bg);
+  --color-ribbon:       var(--ribbon);
+  --color-surface:      var(--surface);
+  --color-card:         var(--card);
+  --color-border:       var(--border);
+  --color-text:         var(--text);
+  --color-muted:        var(--muted);
+  --color-subtle:       var(--subtle);
+  --color-accent:       var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-dim:   var(--accent-dim);
+  --color-danger:       var(--danger);
+  --color-success:      var(--success);
+  --color-info:         var(--info);
+  --color-warning:      var(--warning);
+
+  /* Brand constants */
+  --color-obsidian:  var(--obsidian);
+  --color-forge:     var(--forge);
+  --color-slag:      var(--slag);
+  --color-sand:      var(--sand);
+  --color-linen:     var(--linen);
+  --color-parchment: var(--parchment);
+  --color-ember:     var(--ember);
+  --color-char:      var(--char);
+
+  /* Fonts */
+  --font-display: var(--font-display);
+  --font-body:    var(--font-body);
+  --font-mono:    var(--font-mono);
+
+  /* Type scale */
+  --text-xs:   var(--fs-xs);
+  --text-sm:   var(--fs-sm);
+  --text-base: var(--fs-base);
+  --text-md:   var(--fs-md);
+  --text-lg:   var(--fs-lg);
+  --text-xl:   var(--fs-xl);
+  --text-2xl:  var(--fs-2xl);
+  --text-3xl:  var(--fs-3xl);
+
+  /* Radii */
+  --radius-xs:   var(--r-xs);
+  --radius-sm:   var(--r-sm);
+  --radius-md:   var(--r-md);
+  --radius-lg:   var(--r-lg);
+  --radius-xl:   var(--r-xl);
+  --radius-pill: var(--r-pill);
+
+  /* Shadows */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+
+  /* Motion */
+  --default-transition-duration: var(--dur-base);
+  --default-transition-timing-function: var(--ease-standard);
+
+  /* Letter-spacing — reuse Tailwind's `tracking-*` utility names where it
+     makes sense. */
+  --tracking-tight: var(--ls-tight);
+  --tracking-normal: var(--ls-base);
+  --tracking-wide:  var(--ls-wide);
+  --tracking-wider: var(--ls-wider);
+  --tracking-widest:var(--ls-widest);
+}
+
+/* ── Base element styles (outside Tailwind's reset) ── */
+html, body { margin: 0; min-height: 100%; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); }
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+
+::selection { background: var(--accent); color: var(--obsidian); }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}

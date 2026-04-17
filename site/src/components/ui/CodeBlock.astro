@@ -1,0 +1,46 @@
+---
+interface Props {
+  lang?: string;
+  class?: string;
+}
+const { lang = "", class: className = "" } = Astro.props;
+---
+
+<pre class:list={["codeblock", className]} data-lang={lang || undefined}>
+  <code><slot /></code>
+</pre>
+
+<style>
+  .codeblock {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: var(--lh-base);
+    background: var(--obsidian);
+    color: var(--linen);
+    border: 0.5px solid var(--slag);
+    border-radius: var(--r-md);
+    padding: 0.85rem 1.1rem;
+    overflow-x: auto;
+    margin: 0.75rem 0;
+    position: relative;
+  }
+  .codeblock[data-lang]::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 0.35rem;
+    right: 0.55rem;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: var(--ls-wider);
+    text-transform: uppercase;
+    color: var(--slag);
+  }
+  .codeblock code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    border: 0;
+    font-family: inherit;
+    font-size: inherit;
+  }
+</style>

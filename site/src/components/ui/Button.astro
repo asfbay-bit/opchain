@@ -1,0 +1,94 @@
+---
+type Variant = "primary" | "outline" | "ghost";
+type Size = "sm" | "md" | "lg";
+
+interface Props {
+  variant?: Variant;
+  size?: Size;
+  href?: string;
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
+  class?: string;
+  /** aria-label, forwarded when present. */
+  label?: string;
+}
+
+const {
+  variant = "primary",
+  size = "md",
+  href,
+  type = "button",
+  disabled = false,
+  class: className = "",
+  label,
+} = Astro.props;
+
+const classes = ["btn", `btn-${variant}`, `btn-${size}`, className]
+  .filter(Boolean)
+  .join(" ");
+---
+
+{href ? (
+  <a href={href} class={classes} aria-label={label} aria-disabled={disabled || undefined}>
+    <slot />
+  </a>
+) : (
+  <button type={type} class={classes} disabled={disabled} aria-label={label}>
+    <slot />
+  </button>
+)}
+
+<style>
+  .btn {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: var(--ls-wide);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition:
+      background var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+    white-space: nowrap;
+  }
+  .btn-sm { font-size: 10px; padding: 0.4rem 0.75rem; }
+  .btn-md { font-size: 11px; padding: 0.55rem 1.1rem; }
+  .btn-lg { font-size: 12px; padding: 0.7rem 1.4rem; }
+
+  .btn-primary { background: var(--accent); color: var(--obsidian); border: none; }
+  .btn-primary:hover:not([disabled]):not([aria-disabled="true"]) {
+    background: var(--accent-hover);
+    color: var(--obsidian);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--accent);
+    border: 0.5px solid var(--accent);
+  }
+  .btn-outline:hover:not([disabled]):not([aria-disabled="true"]) {
+    background: var(--accent-dim);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 0.5px solid transparent;
+  }
+  .btn-ghost:hover:not([disabled]):not([aria-disabled="true"]) {
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  .btn[disabled],
+  .btn[aria-disabled="true"] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+</style>
