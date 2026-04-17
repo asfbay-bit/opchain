@@ -2,12 +2,12 @@
  * Render Markdown → HTML for the Try-It chat transcript, then sanitize.
  *
  * The output feeds `innerHTML`, so every render path goes through DOMPurify.
- * We run it in the browser (DOMPurify needs a DOM). The hook strips any href
- * that isn't http(s)/mailto/#-anchor so a model output like `[x](javascript:…)`
- * can't smuggle a protocol handler through.
+ * Uses isomorphic-dompurify so the same pipeline runs in Astro SSR and in the
+ * browser. The hook strips any href that isn't http(s)/mailto/#-anchor so a
+ * model output like `[x](javascript:…)` can't smuggle a protocol handler through.
  */
 import { marked } from "marked";
-import DOMPurify from "dompurify";
+import DOMPurify from "isomorphic-dompurify";
 
 marked.setOptions({ gfm: true, breaks: true });
 
