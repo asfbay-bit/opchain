@@ -1,0 +1,295 @@
+---
+import { render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import Eyebrow from "../../components/ui/Eyebrow.astro";
+import Badge from "../../components/ui/Badge.astro";
+import Button from "../../components/ui/Button.astro";
+import Card from "../../components/ui/Card.astro";
+import Icon from "../../components/Icon.astro";
+import { getAllSkills, getSkill } from "../../lib/skills";
+
+export async function getStaticPaths() {
+  const skills = await getAllSkills();
+  return skills.map((s) => ({ params: { id: s.data.name } }));
+}
+
+const { id } = Astro.params;
+const skill = await getSkill(id!);
+if (!skill) {
+  return Astro.redirect("/skills");
+}
+
+const { Content } = await render(skill);
+
+const phaseLabel = skill.data.phases.join(" + ");
+const description = `${skill.data.displayName} — ${skill.data.shortDesc}`;
+---
+
+<Base
+  title={`${skill.data.displayName} · opchain skill`}
+  description={description}
+  active="/skills"
+>
+  <main class="page">
+    <a href="/skills" class="back">
+      <Icon name="arrow-left" size={12} /> all skills
+    </a>
+
+    <header class="head">
+      <Eyebrow>{phaseLabel}</Eyebrow>
+      <h1>{skill.data.displayName}</h1>
+      <p class="lede">{skill.data.shortDesc}</p>
+      <div class="tags">
+        {skill.data.phases.map((p: string) => <Badge variant="accent">{p}</Badge>)}
+        {skill.data.triAgent && <Badge variant="accent">Tri-agent</Badge>}
+        {skill.data.tryable && <Badge variant="success">Tryable</Badge>}
+        <Badge variant="neutral">v{skill.data.version}</Badge>
+      </div>
+    </header>
+
+    <!-- ───────────── Quick facts + actions ───────────── -->
+    <section class="quick">
+      {skill.data.commands.length > 0 && (
+        <Card variant="surface" glow={false}>
+          <div class="quick-head">Commands</div>
+          <div class="cmds">
+            {skill.data.commands.map((c: string) => <code class="cmd">{c}</code>)}
+          </div>
+        </Card>
+      )}
+
+      <Card variant="surface" glow={false}>
+        <div class="quick-head">Pipeline phase</div>
+        <p class="quick-body">
+          <strong>{phaseLabel}</strong>
+          {skill.data.triAgent && <span> · runs as a tri-agent loop (Planner / Generator / Evaluator)</span>}
+        </p>
+      </Card>
+
+      <Card variant="surface" glow={false}>
+        <div class="quick-head">Try it</div>
+        {skill.data.tryable ? (
+          <>
+            <p class="quick-body">5 free exchanges with this skill — no install needed.</p>
+            <Button variant="primary" size="sm" href={`/tryit?skill=${skill.data.name}`}>
+              <Icon name="sparkles" size={12} />
+              try {skill.data.displayName}
+            </Button>
+          </>
+        ) : (
+          <p class="quick-body">
+            This skill is a foundational protocol — not invoked directly. Every
+            other opchain skill implements its checkpoint contract.
+          </p>
+        )}
+      </Card>
+    </section>
+
+    <!-- ───────────── Full skill markdown ───────────── -->
+    <section class="prose">
+      <Content />
+    </section>
+
+    <!-- ───────────── Footer CTA ───────────── -->
+    <section class="cta">
+      <h2>Use {skill.data.displayName} in your project</h2>
+      <p>
+        Drop the SKILL.md into <code class="ic">.claude/skills/</code> or
+        download the bundle.
+      </p>
+      <div class="cta-row">
+        <Button variant="primary" href="/install">
+          <Icon name="download" />
+          install opchain
+        </Button>
+        <Button variant="outline" href="/architecture">
+          <Icon name="layers" />
+          how it chains
+        </Button>
+      </div>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 6rem;
+  }
+
+  .back {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    color: var(--muted);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .back:hover { color: var(--accent); }
+
+  .head {
+    margin: 1.25rem 0 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0.75rem;
+  }
+  .lede {
+    color: var(--muted);
+    font-size: var(--fs-md);
+    margin: 0 0 1rem;
+  }
+  .tags { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+
+  .quick {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.6rem;
+    margin-bottom: 2.5rem;
+  }
+  .quick-head {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  .quick-body {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    margin: 0 0 0.65rem;
+  }
+  .cmds { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .cmd {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text);
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    padding: 1px 6px;
+    border-radius: var(--r-xs);
+  }
+
+  .prose :global(h1) { display: none; } /* SKILL.md repeats the title */
+  .prose {
+    font-size: var(--fs-base);
+    color: var(--muted);
+    line-height: var(--lh-base);
+  }
+  .prose :global(h2) {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 2rem 0 0.6rem;
+    letter-spacing: var(--ls-tight);
+  }
+  .prose :global(h3) {
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--text);
+    margin: 1.5rem 0 0.5rem;
+  }
+  .prose :global(p) { margin: 0 0 0.85rem; max-width: 42rem; color: var(--muted); }
+  .prose :global(ul), .prose :global(ol) {
+    margin: 0.5rem 0 1rem;
+    padding-left: 1.25rem;
+  }
+  .prose :global(li) { margin-bottom: 0.3rem; color: var(--muted); }
+  .prose :global(code) {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+  .prose :global(pre) {
+    background: var(--obsidian);
+    color: var(--linen);
+    border: 0.5px solid var(--slag);
+    padding: 0.85rem 1.1rem;
+    border-radius: var(--r-md);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: var(--lh-base);
+    margin: 0.75rem 0;
+  }
+  .prose :global(pre code) {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    color: inherit;
+  }
+  .prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+    margin: 1rem 0;
+  }
+  .prose :global(th), .prose :global(td) {
+    border: 0.5px solid var(--border);
+    padding: 0.45rem 0.65rem;
+    text-align: left;
+  }
+  .prose :global(th) {
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    letter-spacing: var(--ls-wide);
+  }
+  .prose :global(blockquote) {
+    border-left: 2px solid var(--accent);
+    padding: 0.25rem 0 0.25rem 1rem;
+    margin: 1rem 0;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .prose :global(hr) {
+    border: 0;
+    border-top: 0.5px solid var(--border);
+    margin: 2rem 0;
+  }
+  .prose :global(a) { color: var(--accent); }
+
+  .cta {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .cta h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 0.5rem;
+  }
+  .cta p { color: var(--muted); margin: 0 0 1.25rem; }
+  .cta-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+  .ic {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+</style>

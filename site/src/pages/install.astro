@@ -1,0 +1,321 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Button from "../components/ui/Button.astro";
+import Card from "../components/ui/Card.astro";
+import Icon from "../components/Icon.astro";
+
+const cliCmd = `curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
+unzip opchain-skills.zip -d .claude/skills/
+claude
+> /discover`;
+
+const teamCmd = `git add .claude/skills/
+git commit -m "chore: add opchain skills"
+git push`;
+---
+
+<Base
+  title="Install · opchain"
+  description="Install opchain in Claude Code, Claude.ai, or Claude Desktop. Three flows, one directory of SKILL.md files. No API keys required."
+  active="/install"
+>
+  <main class="page">
+    <div class="page-head">
+      <div>
+        <Eyebrow>install</Eyebrow>
+        <h1>Three flows.</h1>
+      </div>
+      <Button variant="primary" href="/opchain-skills.zip">
+        <Icon name="download" />
+        download bundle
+      </Button>
+    </div>
+
+    <p class="lede">
+      Every skill is a single <code class="ic">SKILL.md</code> file. Install
+      all eleven or just the ones you want. No API keys, no package manager,
+      no build step.
+    </p>
+
+    <!-- ───────────── Flow 1 — Claude Code ───────────── -->
+    <section class="flow">
+      <div class="flow-num">01</div>
+      <div class="flow-body">
+        <h2><Icon name="terminal" /> Claude Code CLI</h2>
+        <p>
+          Drop the files into your project's <code class="ic">.claude/skills/</code>
+          directory. Claude Code auto-discovers them on the next session.
+        </p>
+        <div class="code-row">
+          <pre class="codeblock"><code>{cliCmd}</code></pre>
+          <button class="copy" type="button" data-copy={cliCmd} aria-label="Copy command">
+            <Icon name="copy" size={12} />
+            <span class="copy-label">copy</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────── Flow 2 — Claude.ai / Desktop ───────────── -->
+    <section class="flow">
+      <div class="flow-num">02</div>
+      <div class="flow-body">
+        <h2><Icon name="layers" /> Claude.ai / Claude Desktop</h2>
+        <ol class="steps">
+          <li>
+            Download the full <a href="/opchain-skills.zip">bundle ZIP</a> or
+            individual <code class="ic">SKILL.md</code> files from the
+            <a href="/skills">Skill Library</a>.
+          </li>
+          <li>Open Claude → <strong>Settings → Customize → Skills</strong>.</li>
+          <li>Click <strong>Upload skill</strong> and pick the <code class="ic">.md</code> file.</li>
+          <li>
+            Start a new conversation and trigger by name
+            (<em>"I have an app idea"</em> auto-invokes app-architect) or by
+            slash command (<code class="ic">/discover</code>).
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ───────────── Flow 3 — Team / git ───────────── -->
+    <section class="flow">
+      <div class="flow-num">03</div>
+      <div class="flow-body">
+        <h2><Icon name="github" /> Team (check into git)</h2>
+        <p>Commit the skills directory so every teammate uses the same prompt pipeline.</p>
+        <div class="code-row">
+          <pre class="codeblock"><code>{teamCmd}</code></pre>
+          <button class="copy" type="button" data-copy={teamCmd} aria-label="Copy command">
+            <Icon name="copy" size={12} />
+            <span class="copy-label">copy</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────── Configuration table ───────────── -->
+    <section class="config">
+      <h2>Configuration</h2>
+      <Card variant="surface" glow={false}>
+        <div class="kv">
+          <div class="key"><code class="ic">.claude/skills/</code></div>
+          <div class="val">Where Claude Code looks for skills.</div>
+        </div>
+        <div class="kv">
+          <div class="key"><code class="ic">.checkpoints/</code></div>
+          <div class="val">Skills write JSON session state here. Add to .gitignore.</div>
+        </div>
+        <div class="kv">
+          <div class="key"><code class="ic">orchestrator.md</code></div>
+          <div class="val">Shared welcome protocol + pipeline map. Bundled with every skill.</div>
+        </div>
+      </Card>
+    </section>
+
+    <!-- ───────────── What you get ───────────── -->
+    <section class="what">
+      <h2>What you get</h2>
+      <ul>
+        <li><strong>11 skills</strong> covering discover · spec · design · build · audit · ship · scale</li>
+        <li><strong>Session persistence</strong> — pick up exactly where you left off</li>
+        <li><strong>Active chaining</strong> — skills invoke each other, no manual handoffs</li>
+        <li><strong>Novice mode</strong> — type "build me an app" and opchain routes you</li>
+      </ul>
+      <p style="margin-top: 1.5rem;">
+        Want to try before installing? The <a href="/tryit">Try It demo</a>
+        gives you 5 free exchanges with any of the 10 tryable skills.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    /**
+     * Tiny copy-to-clipboard handler. Reads the literal command from
+     * the button's `data-copy` attribute (preserves newlines exactly).
+     * No JS bundle for the rest of the page — only this island runs.
+     */
+    document.querySelectorAll<HTMLButtonElement>("button.copy").forEach((btn) => {
+      const original = btn.querySelector(".copy-label")?.textContent ?? "copy";
+      btn.addEventListener("click", async () => {
+        const text = btn.dataset.copy ?? "";
+        try {
+          await navigator.clipboard.writeText(text);
+          const lbl = btn.querySelector(".copy-label");
+          if (lbl) {
+            lbl.textContent = "copied ✓";
+            setTimeout(() => (lbl.textContent = original), 1500);
+          }
+        } catch {
+          /* clipboard blocked — leave the label alone */
+        }
+      });
+    });
+  </script>
+</Base>
+
+<style>
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+  }
+  .page-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
+  .lede { color: var(--muted); margin: 0 0 2.5rem; max-width: 42rem; }
+
+  .ic {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  .flow {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .flow-num {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    color: var(--accent);
+    padding-top: 0.4rem;
+  }
+  .flow-body h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .flow-body p { color: var(--muted); margin: 0 0 0.85rem; }
+  .flow-body a { color: var(--accent); }
+
+  .code-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.4rem;
+    align-items: start;
+  }
+  .codeblock {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: var(--lh-base);
+    background: var(--obsidian);
+    color: var(--linen);
+    border: 0.5px solid var(--slag);
+    border-radius: var(--r-md);
+    padding: 0.85rem 1.1rem;
+    overflow-x: auto;
+    margin: 0;
+  }
+  .codeblock code {
+    background: transparent; color: inherit; padding: 0; border: 0;
+    font-family: inherit; font-size: inherit;
+  }
+
+  .copy {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: var(--ls-wide);
+    color: var(--muted);
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 0.45rem 0.65rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: fit-content;
+    transition:
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard);
+  }
+  .copy:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .steps {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .steps strong { color: var(--text); }
+
+  .config { margin-top: 2.5rem; }
+  .config h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 1rem;
+  }
+  .kv {
+    display: grid;
+    grid-template-columns: minmax(160px, 220px) 1fr;
+    gap: 1rem;
+    align-items: baseline;
+    padding: 0.55rem 0;
+    border-bottom: 0.5px solid var(--border);
+    font-size: var(--fs-sm);
+  }
+  .kv:last-child { border-bottom: 0; }
+  .key { color: var(--accent); }
+  .val { color: var(--muted); }
+
+  .what { margin-top: 2.5rem; }
+  .what h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 1rem;
+  }
+  .what ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .what strong { color: var(--text); }
+  .what a { color: var(--accent); }
+
+  @media (max-width: 540px) {
+    .flow { grid-template-columns: 1fr; }
+    .flow-num { padding-top: 0; }
+    .code-row { grid-template-columns: 1fr; }
+  }
+</style>

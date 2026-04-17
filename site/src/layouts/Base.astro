@@ -10,6 +10,8 @@ interface Props {
   active?: string;
   /** Hide header/footer chrome (styleguide uses this for component framing). */
   bare?: boolean;
+  /** Override the OpenGraph type (default: website). */
+  ogType?: "website" | "article";
 }
 
 const {
@@ -17,7 +19,11 @@ const {
   description = "opchain — skills that ship. A set of interconnected Claude Code skills forming a software development pipeline.",
   active = "/",
   bare = false,
+  ogType = "website",
 } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImage = new URL("/og-image.png", Astro.site).toString();
 ---
 
 <!doctype html>
@@ -27,6 +33,7 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
     <script is:inline>
       // FOUC-preventing theme init — runs before CSS applies.
       (function () {
@@ -45,6 +52,21 @@ const {
         } catch (e) { /* best effort */ }
       })();
     </script>
+
+    <!-- OpenGraph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="opchain" />
+    <meta property="og:image" content={ogImage} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
