@@ -1,0 +1,258 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import CodeBlock from "../components/ui/CodeBlock.astro";
+import Card from "../components/ui/Card.astro";
+import Badge from "../components/ui/Badge.astro";
+
+const skillKinds = [
+  { kind: "Foundation",    skills: ["checkpoint-protocol"] },
+  { kind: "Plan",          skills: ["reverse-spec", "stack-forge", "ux-engineer", "dash-forge", "scale-ops"] },
+  { kind: "Plan + Build",  skills: ["app-architect"] },
+  { kind: "Build / quality", skills: ["code-auditor", "integrations-engineer", "git-ops", "deploy-ops"] },
+];
+
+const handoffs = [
+  { from: "reverse-spec",          to: "app-architect",  trigger: "Existing codebase analyzed; loads specs as Phase 2 baseline" },
+  { from: "app-architect",         to: "stack-forge",    trigger: "Phase 2 — auto-invoked for stack decision" },
+  { from: "app-architect",         to: "ux-engineer",    trigger: "Phase 6 UI sprints — auto-attaches Design Evaluator" },
+  { from: "ux-engineer",           to: "dash-forge",     trigger: "Data-heavy screens — Tufte-density specialist" },
+  { from: "app-architect",         to: "git-ops",        trigger: "All build sprints pass" },
+  { from: "git-ops",               to: "deploy-ops",     trigger: "Post /git-sync" },
+  { from: "deploy-ops",            to: "code-auditor",   trigger: "Audit gate before production" },
+  { from: "integrations-engineer", to: "code-auditor",   trigger: "Verify the integration before merge" },
+];
+---
+
+<Base
+  title="Architecture · opchain"
+  description="How opchain skills chain through JSON checkpoints to form an end-to-end software development pipeline."
+  active="/architecture"
+>
+  <main class="page">
+    <header class="page-head">
+      <Eyebrow>architecture</Eyebrow>
+      <h1>How opchain skills chain.</h1>
+      <p class="lede">
+        Every opchain skill owns one phase of the development pipeline and
+        communicates with the others through a single JSON file at
+        <code class="ic">.checkpoints/&lt;skill&gt;.checkpoint.json</code>.
+        There's no central orchestrator, no message bus, no framework — each
+        skill is a self-contained prompt package that reads its upstream
+        checkpoints and writes its own.
+      </p>
+    </header>
+
+    <!-- ───────────── Pipeline diagram ───────────── -->
+    <section class="section">
+      <h2>The pipeline</h2>
+      <CodeBlock>{`reverse-spec ──▶ app-architect ──▶ git-ops ──▶ deploy-ops
+                      │
+                      ├── auto-invokes stack-forge        (Phase 2)
+                      ├── design pipeline                 (Phase 3, ux-engineer)
+                      │     └── ux-engineer ──▶ dash-forge on data-heavy screens
+                      ├── build loop                      (Phase 6, Generator/Evaluator)
+                      └── launch handoff                  (Phase 7)
+
+code-auditor ────▶ runs at any stage, gates deploy
+integrations-engineer ────▶ runs when external APIs needed
+scale-ops ────▶ advisory, no pipeline chain
+dash-forge ────▶ invoked by ux-engineer or app-architect for dashboards`}</CodeBlock>
+    </section>
+
+    <!-- ───────────── Skill kinds ───────────── -->
+    <section class="section">
+      <h2>Skill kinds</h2>
+      <div class="kind-grid">
+        {skillKinds.map((k) => (
+          <Card variant="surface">
+            <div class="kind-head">
+              <Badge variant="accent">{k.kind}</Badge>
+            </div>
+            <ul class="kind-list">
+              {k.skills.map((s) => (
+                <li><a href={`/skills/${s}`}>{s}</a></li>
+              ))}
+            </ul>
+          </Card>
+        ))}
+      </div>
+    </section>
+
+    <!-- ───────────── Checkpoint protocol ───────────── -->
+    <section class="section">
+      <h2>Checkpoint protocol</h2>
+      <p>
+        Every skill adopts a shared JSON schema for session persistence. The
+        canonical top-level keys are <code class="ic">phase</code>,
+        <code class="ic">progress_table</code>,
+        <code class="ic">context_primer</code>,
+        <code class="ic">blockers</code>, and
+        <code class="ic">next_actions</code>. When a skill activates it reads
+        its own checkpoint (offering to resume) and checks for upstream
+        checkpoints to pre-load context.
+      </p>
+      <p>
+        This is how context flows forward without manual copy-paste.
+        <code class="ic">deploy-ops</code> reads
+        <code class="ic">code-auditor</code> to gate on audit grade.
+        <code class="ic">git-ops</code> reads
+        <code class="ic">app-architect</code> to name branches by sprint. The
+        UX Evaluator reads the approved style book to grade frontend sprints.
+      </p>
+    </section>
+
+    <!-- ───────────── Active chaining ───────────── -->
+    <section class="section">
+      <h2>Active chaining</h2>
+      <p>
+        Skills don't just <em>suggest</em> the next step — they actively
+        invoke it. When <code class="ic">app-architect</code> finishes a build
+        sprint, it reads <code class="ic">git-ops</code>'s
+        <code class="ic">SKILL.md</code> and runs
+        <code class="ic">/git-sync</code> with the sprint context. When
+        <code class="ic">git-ops</code> completes, it invokes
+        <code class="ic">deploy-ops</code>. The user sees one continuous
+        flow, not a series of handoffs.
+      </p>
+
+      <h3 class="h3">Handoff matrix</h3>
+      <div class="handoff-table">
+        <div class="hh">
+          <span>From</span><span>To</span><span>Trigger</span>
+        </div>
+        {handoffs.map((h) => (
+          <div class="hr">
+            <a href={`/skills/${h.from}`}><code class="ic">{h.from}</code></a>
+            <a href={`/skills/${h.to}`}><code class="ic accent">{h.to}</code></a>
+            <span>{h.trigger}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- ───────────── Total count ───────────── -->
+    <section class="section">
+      <h2>Total count</h2>
+      <ul class="count-list">
+        <li><strong>11 entries</strong> — 10 working skills + 1 shared protocol</li>
+        <li><strong>4 are tri-agent</strong> — app-architect, ux-engineer, code-auditor, integrations-engineer</li>
+        <li><strong>0 require API keys</strong> — every skill is a prompt package</li>
+      </ul>
+      <p style="margin-top: 1.5rem;">
+        Browse the full set in the <a href="/skills">Skill Library</a>.
+      </p>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+  }
+  .page-head { margin-bottom: 3rem; }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+    color: var(--text);
+    margin: 0.75rem 0 1rem;
+  }
+  .lede { color: var(--muted); max-width: 42rem; }
+
+  .section {
+    border-top: 0.5px solid var(--border);
+    padding-top: 2.5rem;
+    margin-top: 2.5rem;
+  }
+  .section h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 1rem;
+    letter-spacing: var(--ls-tight);
+  }
+  .section p { color: var(--muted); max-width: 42rem; margin: 0 0 1rem; }
+  .section a { color: var(--accent); }
+
+  .h3 {
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--text);
+    margin: 1.75rem 0 0.75rem;
+  }
+
+  .ic {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+  .ic.accent { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+
+  .kind-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.6rem;
+    margin-top: 1rem;
+  }
+  .kind-head { margin-bottom: 0.65rem; }
+  .kind-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .kind-list li a {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text);
+    text-decoration: none;
+  }
+  .kind-list li a:hover { color: var(--accent); }
+
+  .handoff-table {
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    margin-top: 0.75rem;
+  }
+  .hh, .hr {
+    display: grid;
+    grid-template-columns: minmax(140px, 1fr) minmax(140px, 1fr) 2.5fr;
+    gap: 1rem;
+    padding: 0.6rem 0.85rem;
+    font-size: var(--fs-sm);
+  }
+  .hh {
+    background: var(--surface);
+    color: var(--subtle);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--ls-widest);
+  }
+  .hr { border-top: 0.5px solid var(--border); color: var(--muted); align-items: baseline; }
+  .hr a { text-decoration: none; }
+
+  .count-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--muted);
+  }
+  .count-list strong { color: var(--text); }
+</style>
