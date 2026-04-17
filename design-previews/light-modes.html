@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>opchain — light mode options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+/* ── Industrial Utility canonical palette ── */
+:root {
+  --obsidian:  #1c1710;
+  --forge:     #2a2218;
+  --slag:      #5a5040;
+  --sand:      #c4b89e;
+  --linen:     #e8dfd0;
+  --parchment: #f6f0e8;
+  --ember:     #e05c18;
+  --char:      #b84510;
+  --font-display: "Outfit", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+  --r-xs: 3px; --r-sm: 4px; --r-md: 6px; --r-lg: 8px; --r-pill: 999px;
+
+  /* Defaults — overridden per theme below on .preview */
+  --bg: var(--obsidian);
+  --surface: var(--forge);
+  --card: #241C15;
+  --border: var(--slag);
+  --text: var(--linen);
+  --muted: var(--sand);
+  --subtle: #8A7868;
+  --accent: var(--ember);
+  --accent-hover: var(--char);
+  --accent-dim: rgba(224, 92, 24, 0.10);
+  --logo-bg-dot: var(--obsidian);   /* colour of the dot on the FILLED ember node (always contrasts bg) */
+  --logo-hollow-dot: var(--text);    /* colour of the dots on hollow nodes */
+  --logo-stroke: var(--text);        /* stroke of the hollow nodes */
+  --logo-spine: var(--slag);         /* the line between nodes */
+  --hero-wash: transparent;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font: 14px/1.6 var(--font-display);
+  background: #0e0b08;
+  color: #e8dfd0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Selector bar (chrome of this preview) ── */
+.chrome {
+  position: sticky; top: 0; z-index: 50;
+  background: #15100c;
+  border-bottom: 0.5px solid #3a2f26;
+  padding: 0.85rem 1.5rem;
+}
+.chrome-inner {
+  max-width: 1080px; margin: 0 auto;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem;
+}
+.chrome-title {
+  font-family: var(--font-mono); font-size: 10px;
+  color: #e05c18; letter-spacing: 0.18em; text-transform: uppercase;
+  font-weight: 500;
+}
+.chrome-title::before {
+  content: ""; display: inline-block; width: 14px; height: 1px;
+  background: #e05c18; vertical-align: middle; margin-right: 8px;
+}
+.chrome-label {
+  font-family: var(--font-mono); font-size: 10px;
+  color: #8A7868; letter-spacing: 0.1em; text-transform: uppercase;
+  margin-left: 0.5rem;
+}
+
+.theme-pills { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.theme-pill {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  background: transparent; color: #c4b89e;
+  border: 0.5px solid #5a5040; border-radius: var(--r-pill);
+  padding: 0.35rem 0.7rem; cursor: pointer;
+  transition: color 150ms, border-color 150ms, background 150ms;
+}
+.theme-pill:hover { color: #e8dfd0; }
+.theme-pill[aria-pressed="true"] {
+  color: #e05c18; border-color: #e05c18;
+  background: rgba(224,92,24,0.12);
+}
+.theme-note {
+  flex: 1 1 100%;
+  font-size: 12px; color: #8A7868;
+  padding-top: 0.25rem;
+}
+
+/* ── Theme swatches strip ── */
+.theme-strip {
+  max-width: 1080px; margin: 1.5rem auto 0;
+  padding: 0 1.5rem;
+  display: flex; gap: 8px; flex-wrap: wrap;
+  font-family: var(--font-mono); font-size: 10px;
+  color: #8A7868;
+}
+.theme-strip .chip {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  background: #1e1814; border: 0.5px solid #3a2f26; border-radius: var(--r-sm);
+  padding: 0.35rem 0.6rem;
+}
+.theme-strip .chip span { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+
+/* ── Preview frame — themed ── */
+.preview {
+  max-width: 1080px; margin: 1.5rem auto 4rem;
+  padding: 0 1.5rem;
+}
+.preview-card {
+  background: var(--bg);
+  color: var(--text);
+  border-radius: var(--r-lg);
+  border: 0.5px solid var(--border);
+  overflow: hidden;
+  transition: background 250ms, color 250ms, border-color 250ms;
+}
+
+/* ── Themed header inside preview ── */
+.ph {
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 92%, transparent), var(--bg));
+  border-bottom: 0.5px solid var(--border);
+}
+.ph-inner {
+  max-width: 960px; margin: 0 auto; padding: 0 1.5rem;
+  height: 56px; display: flex; align-items: center; justify-content: space-between;
+}
+.ph-brand { display: flex; align-items: center; gap: 0.75rem; }
+.ph-logo {
+  font-family: var(--font-display); font-weight: 600; font-size: 15px;
+  letter-spacing: 0.22em; color: var(--text);
+}
+.ph-nav { display: flex; gap: 0; flex-wrap: wrap; justify-content: flex-end; }
+.ph-nav a {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.05em; color: var(--muted);
+  padding: 0 1rem; height: 56px;
+  display: inline-flex; align-items: center;
+  text-decoration: none; border-bottom: 2px solid transparent;
+  transition: color 150ms, border-color 150ms;
+}
+.ph-nav a:hover { color: var(--text); }
+.ph-nav a.active {
+  color: var(--accent); border-bottom-color: var(--accent);
+}
+
+/* ── Hero ── */
+.hero {
+  background: var(--hero-wash);
+  padding: 3rem 1.5rem 2.5rem;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  gap: 1.25rem;
+}
+.hero .eyebrow {
+  font-family: var(--font-mono); font-size: 10px; color: var(--accent);
+  letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.hero .eyebrow::before {
+  content: ""; width: 18px; height: 1px; background: var(--accent);
+}
+.hero svg { display: block; }
+.hero h1 {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(2rem, 5vw, 3rem); letter-spacing: 0.12em;
+  color: var(--text); margin: 0;
+}
+.hero .tag {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.hero .body {
+  max-width: 42rem; color: var(--muted); font-size: 14px; line-height: 1.65;
+  margin: 0.5rem 0 0;
+}
+
+/* ── Buttons ── */
+.btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-top: 0.75rem; }
+.btn {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.05em; border-radius: var(--r-sm);
+  padding: 0.55rem 1.1rem; text-decoration: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  transition: background 150ms, color 150ms, border-color 150ms;
+}
+.btn-primary { background: var(--accent); color: var(--bg); border: none; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-outline { background: transparent; color: var(--accent); border: 0.5px solid var(--accent); }
+.btn-outline:hover { background: var(--accent-dim); }
+
+/* ── Cards row ── */
+.section { padding: 2rem 1.5rem 2.5rem; max-width: 960px; margin: 0 auto; }
+.section-head {
+  font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+  letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500;
+  margin-bottom: 1rem;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.section-head::before { content: ""; width: 14px; height: 1px; background: var(--muted); }
+
+.phase-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem; margin-bottom: 2rem;
+}
+.phase-card {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: var(--r-md); padding: 0.85rem 1rem;
+}
+.phase-card .step {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
+  color: var(--subtle); text-transform: uppercase; margin-bottom: 0.35rem;
+}
+.phase-card .name {
+  font-family: var(--font-display); font-size: 14px; font-weight: 600;
+  color: var(--text); letter-spacing: 0.02em;
+}
+.phase-card .skill {
+  font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+  margin-top: 0.25rem;
+}
+
+/* ── Skill card row ── */
+.skill-card {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: var(--r-lg); padding: 1.1rem 1.25rem;
+  transition: border-color 150ms, background 150ms;
+}
+.skill-card:hover { border-color: var(--accent); }
+.skill-card h3 {
+  margin: 0 0 0.5rem; font-family: var(--font-display);
+  font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.005em;
+}
+.skill-tag {
+  display: inline-block; font-family: var(--font-mono); font-size: 9px;
+  font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); border: 0.5px solid var(--accent);
+  border-radius: var(--r-xs); padding: 2px 7px; margin-right: 0.3rem;
+  line-height: 1.4;
+}
+.skill-desc { margin: 0.6rem 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+/* ── Try-It bubble sample ── */
+.chat {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: var(--r-lg); padding: 1.25rem;
+  display: flex; flex-direction: column; gap: 0.85rem;
+}
+.msg { max-width: 85%; }
+.msg--assistant { align-self: flex-start; }
+.msg--user { align-self: flex-end; }
+.msg-label {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--subtle); margin-bottom: 0.3rem;
+}
+.msg--user .msg-label { text-align: right; color: var(--accent); }
+.msg-content {
+  padding: 0.7rem 0.95rem; border-radius: var(--r-md);
+  font-size: 13px; line-height: 1.6;
+}
+.msg--user .msg-content { background: var(--accent); color: var(--bg); border-bottom-right-radius: var(--r-xs); }
+.msg--assistant .msg-content { background: var(--card); border: 0.5px solid var(--border); color: var(--text); border-bottom-left-radius: var(--r-xs); }
+
+/* ─────────────────────────────────────────────
+   THEMES — 1 dark + 5 light options
+   ───────────────────────────────────────────── */
+
+.preview[data-theme="dark"] {
+  --bg: var(--obsidian);
+  --surface: var(--forge);
+  --card: #241C15;
+  --border: var(--slag);
+  --text: var(--linen);
+  --muted: var(--sand);
+  --subtle: #8A7868;
+  --accent: var(--ember);
+  --accent-hover: var(--char);
+  --accent-dim: rgba(224, 92, 24, 0.10);
+  --logo-bg-dot: var(--obsidian);
+  --logo-hollow-dot: var(--text);
+  --logo-stroke: var(--text);
+  --logo-spine: var(--slag);
+  --hero-wash: transparent;
+}
+
+/* 1. PARCHMENT — warmest classic. Default light. */
+.preview[data-theme="parchment"] {
+  --bg: #f6f0e8;
+  --surface: #efe5d3;
+  --card: #ffffff;
+  --border: #c4b89e;
+  --text: #1c1710;
+  --muted: #5a5040;
+  --subtle: #8a7c68;
+  --accent: #e05c18;
+  --accent-hover: #b84510;
+  --accent-dim: rgba(224, 92, 24, 0.12);
+  --logo-bg-dot: #f6f0e8;
+  --logo-hollow-dot: #1c1710;
+  --logo-stroke: #1c1710;
+  --logo-spine: #c4b89e;
+  --hero-wash: transparent;
+}
+
+/* 2. CANVAS — crispest modern. Near-white bg. */
+.preview[data-theme="canvas"] {
+  --bg: #fdfcf9;
+  --surface: #f4eee0;
+  --card: #ffffff;
+  --border: #dccfb5;
+  --text: #1c1710;
+  --muted: #5a5040;
+  --subtle: #8a7c68;
+  --accent: #d95010;          /* very slightly muted for balance against near-white */
+  --accent-hover: #ab3e08;
+  --accent-dim: rgba(217, 80, 16, 0.10);
+  --logo-bg-dot: #fdfcf9;
+  --logo-hollow-dot: #1c1710;
+  --logo-stroke: #1c1710;
+  --logo-spine: #dccfb5;
+  --hero-wash: transparent;
+}
+
+/* 3. LINEN — mid-warm, even-keel. Linen itself as bg. */
+.preview[data-theme="linen"] {
+  --bg: #e8dfd0;
+  --surface: #dccfb5;
+  --card: #f6f0e8;
+  --border: #a39474;
+  --text: #1c1710;
+  --muted: #4a3e2a;
+  --subtle: #6a5a44;
+  --accent: #e05c18;
+  --accent-hover: #b84510;
+  --accent-dim: rgba(224, 92, 24, 0.12);
+  --logo-bg-dot: #e8dfd0;
+  --logo-hollow-dot: #1c1710;
+  --logo-stroke: #1c1710;
+  --logo-spine: #a39474;
+  --hero-wash: transparent;
+}
+
+/* 4. SAND — warmest editorial. Taupe bg, char accent for contrast. */
+.preview[data-theme="sand"] {
+  --bg: #d8c9ae;
+  --surface: #c4b89e;
+  --card: #e8dfd0;
+  --border: #8a7c68;
+  --text: #1c1710;
+  --muted: #3a2f1e;
+  --subtle: #5a4a32;
+  --accent: #b84510;          /* char — darker ember for contrast on taupe */
+  --accent-hover: #8a3308;
+  --accent-dim: rgba(184, 69, 16, 0.14);
+  --logo-bg-dot: #d8c9ae;
+  --logo-hollow-dot: #1c1710;
+  --logo-stroke: #1c1710;
+  --logo-spine: #8a7c68;
+  --hero-wash: transparent;
+}
+
+/* 5. EMBER WASH — parchment ground with a warm ember tint on the chrome. */
+.preview[data-theme="ember-wash"] {
+  --bg: #f6f0e8;
+  --surface: #faeadb;
+  --card: #ffffff;
+  --border: #e8c4a5;
+  --text: #1c1710;
+  --muted: #5a5040;
+  --subtle: #8a7c68;
+  --accent: #e05c18;
+  --accent-hover: #b84510;
+  --accent-dim: rgba(224, 92, 24, 0.12);
+  --logo-bg-dot: #f6f0e8;
+  --logo-hollow-dot: #1c1710;
+  --logo-stroke: #1c1710;
+  --logo-spine: #e8c4a5;
+  --hero-wash: linear-gradient(180deg, rgba(224, 92, 24, 0.08), transparent);
+}
+</style>
+</head>
+<body>
+
+<div class="chrome">
+  <div class="chrome-inner">
+    <span class="chrome-title">opchain · light mode options</span>
+    <span class="chrome-label">theme</span>
+    <div class="theme-pills" role="radiogroup" aria-label="Select theme">
+      <button class="theme-pill" data-theme="dark" aria-pressed="false">dark (current)</button>
+      <button class="theme-pill" data-theme="parchment" aria-pressed="true">1 · parchment</button>
+      <button class="theme-pill" data-theme="canvas" aria-pressed="false">2 · canvas</button>
+      <button class="theme-pill" data-theme="linen" aria-pressed="false">3 · linen</button>
+      <button class="theme-pill" data-theme="sand" aria-pressed="false">4 · sand</button>
+      <button class="theme-pill" data-theme="ember-wash" aria-pressed="false">5 · ember wash</button>
+    </div>
+    <p class="theme-note" id="theme-note"></p>
+  </div>
+</div>
+
+<div class="theme-strip" id="theme-strip"></div>
+
+<div class="preview" data-theme="parchment">
+  <div class="preview-card">
+
+    <!-- Header -->
+    <header class="ph">
+      <div class="ph-inner">
+        <div class="ph-brand">
+          <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+            <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1"/>
+            <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2"/>
+            <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2"/>
+            <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--accent)"/>
+            <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-hollow-dot)"/>
+            <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-hollow-dot)"/>
+            <circle cx="25" cy="16" r="1.6" fill="var(--logo-bg-dot)"/>
+          </svg>
+          <span class="ph-logo">opchain</span>
+        </div>
+        <nav class="ph-nav">
+          <a href="#" class="active">Introduction</a>
+          <a href="#">Architecture</a>
+          <a href="#">Skill Library</a>
+          <a href="#">Install</a>
+          <a href="#">Try It</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="eyebrow">skill ecosystem</div>
+      <svg width="108" height="108" viewBox="0 0 128 128" aria-hidden="true">
+        <line x1="8" y1="64" x2="120" y2="64" stroke="var(--logo-spine)" stroke-width="2"/>
+        <rect x="8" y="42" width="28" height="44" rx="5" fill="none" stroke="var(--logo-stroke)" stroke-width="2"/>
+        <rect x="50" y="42" width="28" height="44" rx="5" fill="none" stroke="var(--logo-stroke)" stroke-width="2"/>
+        <rect x="92" y="42" width="28" height="44" rx="5" fill="var(--accent)"/>
+        <circle cx="22" cy="64" r="5" fill="var(--logo-hollow-dot)"/>
+        <circle cx="64" cy="64" r="5" fill="var(--logo-hollow-dot)"/>
+        <circle cx="106" cy="64" r="5" fill="var(--logo-bg-dot)"/>
+      </svg>
+      <h1>opchain</h1>
+      <div class="tag">9 interconnected skills · 1 protocol</div>
+      <p class="body">Skills that ship — concept to production. Install a skill, trigger it by name, pick up where you left off.</p>
+      <div class="btn-row">
+        <a href="#" class="btn btn-primary">install opchain</a>
+        <a href="#" class="btn btn-outline">try it free</a>
+        <a href="#" class="btn btn-outline">browse skills</a>
+      </div>
+    </section>
+
+    <!-- Pipeline phase cards -->
+    <section class="section">
+      <div class="section-head">pipeline phases</div>
+      <div class="phase-grid">
+        <div class="phase-card"><div class="step">01 · discover</div><div class="name">Interview</div><div class="skill">app-architect</div></div>
+        <div class="phase-card"><div class="step">02 · spec</div><div class="name">Contract</div><div class="skill">stack-forge</div></div>
+        <div class="phase-card"><div class="step">03 · design</div><div class="name">Style book</div><div class="skill">ux-engineer</div></div>
+        <div class="phase-card"><div class="step">04 · build</div><div class="name">Sprint loop</div><div class="skill">app-architect</div></div>
+        <div class="phase-card"><div class="step">05 · audit</div><div class="name">Quality gate</div><div class="skill">code-auditor</div></div>
+        <div class="phase-card"><div class="step">06 · ship</div><div class="name">Deploy</div><div class="skill">deploy-ops</div></div>
+      </div>
+    </section>
+
+    <!-- Skill card + chat side by side -->
+    <section class="section" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <article class="skill-card">
+        <h3>App Architect</h3>
+        <span class="skill-tag">Plan · Build</span>
+        <span class="skill-tag">Tri-agent</span>
+        <p class="skill-desc">Idea → spec → design → build → launch in one skill.</p>
+      </article>
+      <div class="chat">
+        <div class="msg msg--assistant">
+          <div class="msg-label">App Architect</div>
+          <div class="msg-content">You're chatting with <strong>App Architect</strong>. Describe your app idea and it will run a discovery interview.</div>
+        </div>
+        <div class="msg msg--user">
+          <div class="msg-label">You</div>
+          <div class="msg-content">Build me a habit tracking app.</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+const THEMES = {
+  dark:       { note: 'Current production mode. Obsidian ground, linen text, ember accent.', swatches: ['#1c1710','#2a2218','#e8dfd0','#c4b89e','#e05c18'] },
+  parchment:  { note: '1 · Parchment — warmest classic. Most conservative light mode. Book-paper feel.', swatches: ['#f6f0e8','#efe5d3','#1c1710','#5a5040','#e05c18'] },
+  canvas:     { note: '2 · Canvas — near-white, crispest. Most modern / "SaaS" feel. Muted ember balances the lightness.', swatches: ['#fdfcf9','#f4eee0','#1c1710','#5a5040','#d95010'] },
+  linen:      { note: '3 · Linen — mid-warm. Linen itself as ground, parchment as cards. Even-keel editorial.', swatches: ['#e8dfd0','#dccfb5','#1c1710','#4a3e2a','#e05c18'] },
+  sand:       { note: '4 · Sand — warmest. Taupe ground, char (darker ember) accent for contrast. Strong craft feel.', swatches: ['#d8c9ae','#c4b89e','#1c1710','#3a2f1e','#b84510'] },
+  'ember-wash': { note: '5 · Ember Wash — parchment ground with a subtle ember gradient on the hero. Adds warmth without committing to a full accent bg.', swatches: ['#f6f0e8','#faeadb','#1c1710','#5a5040','#e05c18'] },
+};
+
+const preview = document.querySelector('.preview');
+const pills = document.querySelectorAll('.theme-pill');
+const note = document.getElementById('theme-note');
+const strip = document.getElementById('theme-strip');
+
+function setTheme(id) {
+  preview.setAttribute('data-theme', id);
+  pills.forEach(p => p.setAttribute('aria-pressed', p.dataset.theme === id ? 'true' : 'false'));
+  const t = THEMES[id];
+  note.textContent = t.note;
+  strip.innerHTML = '';
+  const labels = ['bg','surface','text','muted','accent'];
+  t.swatches.forEach((hex, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.innerHTML = `<span style="background:${hex}"></span>${labels[i]} · ${hex}`;
+    strip.appendChild(chip);
+  });
+}
+
+pills.forEach(p => p.addEventListener('click', () => setTheme(p.dataset.theme)));
+setTheme('parchment');
+</script>
+
+</body>
+</html>
