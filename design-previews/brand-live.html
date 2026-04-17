@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>opchain — Industrial Utility brand · live preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --obsidian:  #1c1710;
+  --forge:     #2a2218;
+  --slag:      #5a5040;
+  --sand:      #c4b89e;
+  --linen:     #e8dfd0;
+  --parchment: #f6f0e8;
+  --ember:     #e05c18;
+  --char:      #b84510;
+  --ember-dim: rgba(224, 92, 24, 0.10);
+  --bg: var(--obsidian);
+  --surface: var(--forge);
+  --card: #241C15;
+  --border: var(--slag);
+  --text: var(--linen);
+  --muted: var(--sand);
+  --subtle: #8A7868;
+  --danger: #d86464;
+  --font-display: "Outfit", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --r-xs: 3px; --r-sm: 4px; --r-md: 6px; --r-lg: 8px; --r-pill: 999px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: var(--font-display);
+  font-size: 14px; line-height: 1.65;
+  background: var(--bg); color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--ember); text-decoration: none; }
+a:hover { color: var(--char); }
+code { font-family: var(--font-mono); font-size: 12px; background: var(--forge);
+  border: 0.5px solid var(--slag); padding: 1px 5px; border-radius: var(--r-xs); color: var(--linen); }
+
+/* ── Preview chrome ── */
+.preview-banner {
+  background: var(--ember-dim);
+  border-bottom: 0.5px solid var(--ember);
+  padding: 0.5rem 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ember);
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* ── Site header (matches public/) ── */
+.site-header {
+  position: sticky; top: 29px; z-index: 20;
+  background: rgba(28, 23, 16, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 0.5px solid var(--slag);
+}
+.site-header-inner {
+  max-width: 960px; margin: 0 auto; padding: 0 1.5rem;
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.site-header-brand { display: flex; align-items: center; gap: 0.75rem; color: var(--linen); }
+.logo { font-family: var(--font-display); font-weight: 600; font-size: 15px;
+  letter-spacing: 0.22em; color: var(--linen); }
+.nav { display: flex; gap: 0; flex-wrap: wrap; justify-content: flex-end; }
+.nav button {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.05em; color: var(--sand);
+  background: transparent; border: none; cursor: pointer;
+  padding: 0 1rem; height: 56px;
+  border-bottom: 2px solid transparent;
+  transition: color 150ms, border-color 150ms;
+}
+.nav button:hover { color: var(--linen); }
+.nav button.active { color: var(--ember); border-bottom-color: var(--ember); }
+
+main { max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+
+/* ── Page switching ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── Shared components ── */
+.eyebrow {
+  font-family: var(--font-mono); font-size: 10px; color: var(--ember);
+  letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 8px; margin-bottom: 0.75rem;
+}
+.eyebrow::before { content: ""; width: 18px; height: 1px; background: var(--ember); }
+
+h1 { font-family: var(--font-display); font-size: 32px; font-weight: 600;
+  letter-spacing: -0.015em; line-height: 1.1; margin: 0 0 0.5rem; color: var(--linen); }
+h2 { font-family: var(--font-display); font-size: 20px; font-weight: 600;
+  letter-spacing: -0.015em; margin: 2rem 0 0.5rem; color: var(--linen); }
+h3 { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin: 1.5rem 0 0.35rem; color: var(--linen); }
+p { margin: 0 0 1rem; color: var(--sand); max-width: 42rem; }
+
+.page-head {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 0.75rem; margin-bottom: 1.5rem; padding-bottom: 1.25rem;
+  border-bottom: 0.5px solid var(--slag);
+}
+.page-head h1 { margin: 0; }
+
+.btn-primary {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.05em; color: var(--obsidian); background: var(--ember);
+  border: none; border-radius: var(--r-sm); padding: 0.55rem 1.1rem;
+  cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  transition: background 150ms;
+}
+.btn-primary:hover { background: var(--char); }
+.btn-outline {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.05em; color: var(--ember);
+  background: transparent; border: 0.5px solid var(--ember);
+  border-radius: var(--r-sm); padding: 0.5rem 1rem;
+  cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center;
+  transition: background 150ms;
+}
+.btn-outline:hover { background: var(--ember-dim); }
+
+pre { font-family: var(--font-mono); font-size: 12px; background: var(--forge);
+  border: 0.5px solid var(--slag); padding: 1rem 1.25rem; border-radius: var(--r-md);
+  overflow-x: auto; color: var(--linen); line-height: 1.7; }
+
+.kv-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono);
+  font-size: 12px; margin: 1rem 0 1.5rem; }
+.kv-table tr { border-bottom: 0.5px solid var(--forge); }
+.kv-table tr:last-child { border-bottom: 0; }
+.kv-table td { padding: 0.55rem 0.75rem; vertical-align: top; }
+.kv-table td:first-child { color: var(--ember); width: 35%; }
+.kv-table td:last-child { color: var(--sand); }
+
+/* ── Intro page ── */
+.intro-page { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 1rem; }
+.intro-hero { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; margin: 0.5rem 0 2rem; }
+.intro-hero-mark {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(2.25rem, 7vw, 3.5rem); letter-spacing: 0.12em;
+  line-height: 1; color: var(--linen); margin: 0;
+}
+.intro-tagline {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em;
+  color: var(--sand); max-width: 42rem; margin: 0 auto 2rem;
+  display: flex; flex-direction: column; gap: 0.3rem;
+}
+.intro-body { max-width: 42rem; margin: 0 auto; color: var(--sand); text-align: left; }
+.intro-actions { display: flex; gap: 0.6rem; justify-content: center; margin: 2rem auto 0; flex-wrap: wrap; }
+
+.phase-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem; margin: 2rem 0; width: 100%; max-width: 720px;
+}
+.phase-card {
+  background: var(--surface); border: 0.5px solid var(--slag);
+  border-radius: var(--r-md); padding: 0.85rem 1rem; text-align: left;
+}
+.phase-card .phase-step {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
+  color: var(--subtle); text-transform: uppercase; margin-bottom: 0.35rem;
+}
+.phase-card .phase-name {
+  font-family: var(--font-display); font-size: 14px; font-weight: 600;
+  color: var(--linen); margin-bottom: 0.25rem; letter-spacing: 0.02em;
+}
+.phase-card .phase-skill {
+  font-family: var(--font-mono); font-size: 11px; color: var(--ember);
+}
+
+/* ── Skills page ── */
+.library-panel {
+  background: var(--surface); border: 0.5px solid var(--slag);
+  border-radius: var(--r-lg); padding: 1.25rem; margin-bottom: 1.5rem;
+}
+.search-row input {
+  width: 100%; padding: 0.65rem 0.85rem;
+  border-radius: var(--r-sm); border: 0.5px solid var(--slag);
+  background: var(--card); color: var(--text);
+  font-family: var(--font-display); font-size: 14px;
+  margin-bottom: 0.85rem;
+}
+.search-row input::placeholder { color: var(--subtle); }
+.search-row input:focus { outline: none; border-color: var(--ember); box-shadow: 0 0 0 2px var(--ember-dim); }
+.phase-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; }
+.phase-pill {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--sand);
+  background: transparent; border: 0.5px solid var(--slag);
+  padding: 0.4rem 0.7rem; border-radius: var(--r-pill); cursor: pointer;
+}
+.phase-pill.active { color: var(--ember); border-color: var(--ember); background: var(--ember-dim); }
+.meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; color: var(--subtle); }
+
+.skill-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.skill-card {
+  background: var(--surface); border: 0.5px solid var(--slag);
+  border-radius: var(--r-lg); padding: 1.1rem 1.25rem;
+  transition: border-color 150ms, background 150ms;
+}
+.skill-card:hover { border-color: var(--sand); background: var(--card); }
+.skill-card h3 { margin: 0 0 0.5rem; font-size: 15px; font-weight: 600; letter-spacing: -0.005em; color: var(--linen); }
+.skill-tag {
+  display: inline-block; font-family: var(--font-mono); font-size: 9px;
+  font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ember); border: 0.5px solid var(--ember);
+  border-radius: var(--r-xs); padding: 2px 7px; margin-right: 0.3rem;
+  line-height: 1.4;
+}
+.skill-desc { margin: 0.7rem 0 0.9rem; color: var(--sand); font-size: 13px; line-height: 1.6; }
+.skill-actions a {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.04em; color: var(--ember);
+}
+
+/* ── Try It page ── */
+.tryit-subtitle { color: var(--sand); max-width: 42rem; margin: 0 0 1.75rem; }
+.tryit-gate {
+  background: var(--surface); border: 0.5px solid var(--slag);
+  border-radius: var(--r-lg); padding: 1.5rem; max-width: 30rem; margin-bottom: 2rem;
+}
+.tryit-gate-label { margin: 0 0 0.85rem; color: var(--sand); font-size: 13px; }
+.tryit-gate-form { display: flex; gap: 0.5rem; }
+.tryit-gate-form input {
+  flex: 1; padding: 0.6rem 0.85rem;
+  border-radius: var(--r-sm); border: 0.5px solid var(--slag);
+  background: var(--card); color: var(--text); font-size: 14px;
+}
+.tryit-gate-btn {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.05em; padding: 0.6rem 1.1rem;
+  border-radius: var(--r-sm); border: none;
+  background: var(--ember); color: var(--obsidian); cursor: pointer;
+}
+.tryit-skills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+.tryit-skill-pill {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.08em; padding: 0.45rem 0.75rem;
+  border-radius: var(--r-pill); border: 0.5px solid var(--slag);
+  background: transparent; color: var(--sand); cursor: pointer;
+}
+.tryit-skill-pill.active { color: var(--ember); border-color: var(--ember); background: var(--ember-dim); }
+.tryit-chat {
+  background: var(--surface); border: 0.5px solid var(--slag);
+  border-radius: var(--r-lg); padding: 1.1rem; min-height: 12rem;
+  display: flex; flex-direction: column; gap: 0.85rem;
+}
+.tryit-msg { max-width: 90%; }
+.tryit-msg--user { align-self: flex-end; }
+.tryit-msg--assistant { align-self: flex-start; }
+.tryit-msg-label {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--subtle); margin-bottom: 0.3rem;
+}
+.tryit-msg--user .tryit-msg-label { text-align: right; color: var(--ember); }
+.tryit-msg-content {
+  padding: 0.7rem 0.95rem; border-radius: var(--r-md);
+  font-size: 13px; line-height: 1.6;
+}
+.tryit-msg--user .tryit-msg-content { background: var(--ember); color: var(--obsidian); border-bottom-right-radius: var(--r-xs); }
+.tryit-msg--assistant .tryit-msg-content { background: var(--card); border: 0.5px solid var(--slag); border-bottom-left-radius: var(--r-xs); color: var(--linen); }
+.tryit-counter { font-family: var(--font-mono); font-size: 10px; color: var(--subtle); margin: 0.75rem 0 0; }
+
+/* ── Palette strip ── */
+.palette-strip { display: flex; border-radius: var(--r-lg); overflow: hidden; height: 48px; margin-bottom: 1rem; }
+.palette-chip { flex: 1; display: flex; align-items: flex-end; padding: 0.4rem; }
+.palette-chip span { font-family: var(--font-mono); font-size: 9px; color: var(--obsidian); background: rgba(246,240,232,0.8); padding: 2px 4px; border-radius: 2px; }
+.palette-chip.dark span { color: var(--linen); background: rgba(28,23,16,0.7); }
+</style>
+</head>
+<body>
+
+<div class="preview-banner">
+  live preview · Industrial Utility brand · mirrors production public/
+</div>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-header-brand" href="#" onclick="go('intro');return false">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+        <line x1="3" y1="16" x2="29" y2="16" stroke="#5a5040" stroke-width="1"/>
+        <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="#e8dfd0" stroke-width="1.2"/>
+        <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="#e8dfd0" stroke-width="1.2"/>
+        <rect x="21" y="10" width="8" height="12" rx="1.5" fill="#e05c18"/>
+        <circle cx="6.5" cy="16" r="1.6" fill="#e8dfd0"/>
+        <circle cx="15.5" cy="16" r="1.6" fill="#e8dfd0"/>
+        <circle cx="25" cy="16" r="1.6" fill="#1c1710"/>
+      </svg>
+      <span class="logo">opchain</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <button class="active" onclick="go('intro')">Introduction</button>
+      <button onclick="go('arch')">Architecture</button>
+      <button onclick="go('skills')">Skill Library</button>
+      <button onclick="go('install')">Install</button>
+      <button onclick="go('tryit')">Try It</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ─── INTRODUCTION ─── -->
+<section id="p-intro" class="page active intro-page">
+  <div class="eyebrow">brand · skill ecosystem</div>
+  <div class="intro-hero">
+    <svg width="128" height="128" viewBox="0 0 128 128" aria-hidden="true">
+      <line x1="8" y1="64" x2="120" y2="64" stroke="#5a5040" stroke-width="2"/>
+      <rect x="8" y="42" width="28" height="44" rx="5" fill="none" stroke="#e8dfd0" stroke-width="2"/>
+      <rect x="50" y="42" width="28" height="44" rx="5" fill="none" stroke="#e8dfd0" stroke-width="2"/>
+      <rect x="92" y="42" width="28" height="44" rx="5" fill="#e05c18"/>
+      <circle cx="22" cy="64" r="5" fill="#e8dfd0"/>
+      <circle cx="64" cy="64" r="5" fill="#e8dfd0"/>
+      <circle cx="106" cy="64" r="5" fill="#1c1710"/>
+    </svg>
+    <h1 class="intro-hero-mark">opchain</h1>
+  </div>
+  <div class="intro-tagline">
+    <span>9 interconnected skills · 1 protocol</span>
+    <span>skills that ship — concept to production</span>
+  </div>
+  <div class="intro-body">
+    <p>opchain is a set of Claude Code skills that form a software development pipeline. Each skill owns one phase — discovery, spec, design, build, audit, ship, scale. Skills share state through <code>.checkpoints/</code> JSON files so work persists across conversations and Claude picks up where you left off.</p>
+    <p>Install a skill, trigger it by name, and pick up where you left off. No API keys, no SaaS, no vendor lock-in.</p>
+  </div>
+  <div class="phase-grid">
+    <div class="phase-card"><div class="phase-step">01 · discover</div><div class="phase-name">Interview</div><div class="phase-skill">app-architect</div></div>
+    <div class="phase-card"><div class="phase-step">02 · spec</div><div class="phase-name">Contract</div><div class="phase-skill">stack-forge + app-architect</div></div>
+    <div class="phase-card"><div class="phase-step">03 · design</div><div class="phase-name">Style book</div><div class="phase-skill">ux-engineer</div></div>
+    <div class="phase-card"><div class="phase-step">04 · build</div><div class="phase-name">Sprint loop</div><div class="phase-skill">app-architect</div></div>
+    <div class="phase-card"><div class="phase-step">05 · audit</div><div class="phase-name">Quality gate</div><div class="phase-skill">code-auditor</div></div>
+    <div class="phase-card"><div class="phase-step">06 · ship</div><div class="phase-name">Deploy</div><div class="phase-skill">deploy-ops + git-ops</div></div>
+  </div>
+  <div class="intro-actions">
+    <a class="btn-primary" href="#" onclick="go('install');return false">install opchain</a>
+    <a class="btn-outline" href="#" onclick="go('tryit');return false">try it free</a>
+    <a class="btn-outline" href="#" onclick="go('skills');return false">browse skills</a>
+  </div>
+</section>
+
+<!-- ─── ARCHITECTURE ─── -->
+<section id="p-arch" class="page">
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">architecture</div>
+      <h1>How opchain skills chain.</h1>
+    </div>
+  </div>
+  <p>Every opchain skill owns one phase of the development pipeline and communicates with the others through a single JSON file at <code>.checkpoints/&lt;skill&gt;.checkpoint.json</code>. There is no central orchestrator, no message bus, and no framework — each skill is a self-contained prompt package that reads its upstream checkpoints and writes its own.</p>
+
+  <h2>The pipeline</h2>
+<pre>reverse-spec ──▶ app-architect ──▶ git-ops ──▶ deploy-ops
+                      │
+                      ├── auto-invokes stack-forge   (Phase 2)
+                      ├── design pipeline            (Phase 3, ux-engineer)
+                      ├── build loop                 (Phase 6, Generator/Evaluator)
+                      └── launch handoff             (Phase 7)
+
+code-auditor ────▶ runs at any stage, gates deploy
+integrations-engineer ────▶ runs when external APIs needed
+scale-ops ────▶ advisory, no pipeline chain</pre>
+
+  <h2>Skill kinds</h2>
+  <table class="kv-table">
+    <tr><td>Foundation</td><td>checkpoint-protocol</td></tr>
+    <tr><td>Plan</td><td>reverse-spec, stack-forge, ux-engineer, scale-ops</td></tr>
+    <tr><td>Plan + Build</td><td>app-architect</td></tr>
+    <tr><td>Build / quality</td><td>code-auditor, integrations-engineer, git-ops, deploy-ops</td></tr>
+  </table>
+
+  <h2>Checkpoint protocol</h2>
+  <p>Every skill adopts a shared JSON schema for session persistence. The canonical top-level keys are <code>phase</code>, <code>progress_table</code>, <code>context_primer</code>, <code>blockers</code>, and <code>next_actions</code>. When a skill activates it reads its own checkpoint (offering to resume) and checks for upstream checkpoints to pre-load context.</p>
+</section>
+
+<!-- ─── SKILLS ─── -->
+<section id="p-skills" class="page">
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">skill library</div>
+      <h1>Every skill, filterable.</h1>
+    </div>
+    <a class="btn-outline" href="#">download all skills</a>
+  </div>
+
+  <section class="library-panel">
+    <div class="search-row">
+      <input type="search" placeholder="search skills…" />
+    </div>
+    <div class="phase-pills">
+      <button class="phase-pill active">All</button>
+      <button class="phase-pill">Foundation</button>
+      <button class="phase-pill">Plan</button>
+      <button class="phase-pill">Plan + build</button>
+      <button class="phase-pill">Build</button>
+    </div>
+    <p class="meta">Showing 10 of 10 skills</p>
+  </section>
+
+  <div class="skill-list">
+    <article class="skill-card">
+      <h3>App Architect</h3>
+      <span class="skill-tag">Plan · Build</span>
+      <span class="skill-tag">Tri-agent</span>
+      <p class="skill-desc">Idea → spec → design → build → launch in one skill.</p>
+      <div class="skill-actions"><a href="#">View docs →</a></div>
+    </article>
+    <article class="skill-card">
+      <h3>Stack Forge</h3>
+      <span class="skill-tag">Plan · Build</span>
+      <p class="skill-desc">Stack decisions, Cloudflare patterns, typed pipeline.</p>
+      <div class="skill-actions"><a href="#">View docs →</a></div>
+    </article>
+    <article class="skill-card">
+      <h3>UX Engineer</h3>
+      <span class="skill-tag">Plan</span>
+      <span class="skill-tag">Tri-agent</span>
+      <p class="skill-desc">Design Planner → Generator → Evaluator harness.</p>
+      <div class="skill-actions"><a href="#">View docs →</a></div>
+    </article>
+    <article class="skill-card">
+      <h3>Code Auditor</h3>
+      <span class="skill-tag">Build</span>
+      <span class="skill-tag">Tri-agent</span>
+      <p class="skill-desc">Auditor → Fixer → Verifier quality loop.</p>
+      <div class="skill-actions"><a href="#">View docs →</a></div>
+    </article>
+    <article class="skill-card">
+      <h3>Deploy Ops</h3>
+      <span class="skill-tag">Build</span>
+      <p class="skill-desc">Audit gate → staging → production → monitoring.</p>
+      <div class="skill-actions"><a href="#">View docs →</a></div>
+    </article>
+  </div>
+</section>
+
+<!-- ─── INSTALL ─── -->
+<section id="p-install" class="page">
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">install</div>
+      <h1>Three flows.</h1>
+    </div>
+    <a class="btn-primary" href="#">download bundle</a>
+  </div>
+
+  <p>Every skill is a single <code>SKILL.md</code> file. Install all ten or just the ones you want. No API keys, no package manager, no build step.</p>
+
+  <h2>Claude Code CLI</h2>
+  <p>Drop the files into your project's <code>.claude/skills/</code> directory. Claude Code picks them up on the next session.</p>
+<pre>curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
+unzip opchain-skills.zip -d .claude/skills/
+claude
+&gt; /discover</pre>
+
+  <h2>Team (check into git)</h2>
+<pre>git add .claude/skills/
+git commit -m "chore: add opchain skills"
+git push</pre>
+
+  <h2>Configuration</h2>
+  <table class="kv-table">
+    <tr><td>.claude/skills/</td><td>Where Claude Code looks for skills.</td></tr>
+    <tr><td>.checkpoints/</td><td>Skills write JSON session state here. Gitignore this.</td></tr>
+    <tr><td>orchestrator.md</td><td>Shared welcome protocol + pipeline map. Bundled with every skill.</td></tr>
+  </table>
+</section>
+
+<!-- ─── TRY IT ─── -->
+<section id="p-tryit" class="page">
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">try it</div>
+      <h1>Five free exchanges.</h1>
+    </div>
+  </div>
+  <p class="tryit-subtitle">Live AI chat with any opchain skill. Pick a skill, describe what you're working on, and get a real response — no install required.</p>
+
+  <div class="tryit-gate">
+    <p class="tryit-gate-label">enter your email to start a free demo session.</p>
+    <div class="tryit-gate-form">
+      <input type="email" placeholder="you@example.com" />
+      <button class="tryit-gate-btn">start</button>
+    </div>
+  </div>
+
+  <div class="tryit-skills">
+    <button class="tryit-skill-pill active">App Architect</button>
+    <button class="tryit-skill-pill">Stack Forge</button>
+    <button class="tryit-skill-pill">UX Engineer</button>
+    <button class="tryit-skill-pill">Code Auditor</button>
+    <button class="tryit-skill-pill">Deploy Ops</button>
+  </div>
+
+  <div class="tryit-chat">
+    <div class="tryit-msg tryit-msg--assistant">
+      <div class="tryit-msg-label">App Architect</div>
+      <div class="tryit-msg-content">
+        <p>You're chatting with <strong>App Architect</strong>. Describe your app idea and it will run a discovery interview, then produce a mini-spec.</p>
+      </div>
+    </div>
+    <div class="tryit-msg tryit-msg--user">
+      <div class="tryit-msg-label">You</div>
+      <div class="tryit-msg-content">I want to build a habit tracking app.</div>
+    </div>
+    <div class="tryit-msg tryit-msg--assistant">
+      <div class="tryit-msg-label">App Architect</div>
+      <div class="tryit-msg-content">
+        <p>Good premise. Let me ask four quick questions to scope it:</p>
+        <ol style="margin: .5rem 0; padding-left: 1.25rem;">
+          <li>Who is the primary user — you, your team, or general consumers?</li>
+          <li>Solo user accounts or does it support groups/accountability partners?</li>
+          <li>Native mobile, web, or PWA?</li>
+          <li>Any data you want to track beyond "did it / didn't" (streaks, notes, mood)?</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <p class="tryit-counter">4 of 5 exchanges remaining</p>
+</section>
+
+</main>
+
+<!-- ─── Palette appendix at the bottom ─── -->
+<section style="max-width:960px;margin:0 auto;padding:0 1.5rem 4rem;">
+  <h2 style="color:var(--sand); font-size: 14px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500;">brand tokens</h2>
+  <div class="palette-strip">
+    <div class="palette-chip" style="background:#1c1710"><span>obsidian · #1c1710</span></div>
+    <div class="palette-chip" style="background:#2a2218"><span>forge · #2a2218</span></div>
+    <div class="palette-chip" style="background:#5a5040"><span>slag · #5a5040</span></div>
+    <div class="palette-chip dark" style="background:#c4b89e"><span>sand · #c4b89e</span></div>
+    <div class="palette-chip dark" style="background:#e8dfd0"><span>linen · #e8dfd0</span></div>
+    <div class="palette-chip dark" style="background:#f6f0e8"><span>parchment · #f6f0e8</span></div>
+    <div class="palette-chip" style="background:#e05c18"><span>ember · #e05c18</span></div>
+    <div class="palette-chip" style="background:#b84510"><span>char · #b84510</span></div>
+  </div>
+  <p style="font-size: 13px; color: var(--sand); max-width: 42rem;">Outfit 600 / 0.22em tracking for the wordmark · JetBrains Mono 500 for nav, eyebrows, meta, pills · system focus ring on every interactive · ember reserved for CTAs + active states + terminal nodes · never body text.</p>
+</section>
+
+<script>
+function go(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('p-' + id).classList.add('active');
+  const idx = ['intro','arch','skills','install','tryit'].indexOf(id);
+  document.querySelectorAll('.nav button')[idx].classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>
