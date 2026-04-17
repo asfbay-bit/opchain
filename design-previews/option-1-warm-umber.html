@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>opchain — Option 1: Warm Umber</title>
+<style>
+  :root {
+    --bg: #0B0906;
+    --surface: #181310;
+    --card: #211B16;
+    --border: #3A2F26;
+    --text: #F3EEE5;
+    --muted: #A79585;
+    --accent: #E8945C;
+    --accent-dim: rgba(232,148,92,.18);
+    --accent-strong: #F2A370;
+    --danger: #E36A6A;
+    --success: #7FB892;
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--text);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+
+  .site-header {
+    position: sticky; top: 0; z-index: 5;
+    background: rgba(11,9,6,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .site-header-inner {
+    max-width: 960px; margin: 0 auto;
+    padding: .75rem 1rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  .logo {
+    font-weight: 800; letter-spacing: -0.02em; font-size: 1.1rem;
+  }
+  .nav { display: flex; gap: 1.25rem; }
+  .nav a { color: var(--muted); text-decoration: none; font-size: .85rem; font-weight: 500; }
+  .nav a.active { color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: .2rem; }
+
+  main { max-width: 960px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+  section { margin-bottom: 3rem; }
+  .section-head {
+    text-transform: uppercase; font-size: .72rem; letter-spacing: .1em;
+    color: var(--muted); font-weight: 700; margin-bottom: .75rem;
+  }
+
+  /* Hero */
+  .hero { text-align: center; padding: 2rem 0 3rem; }
+  .hero-tag {
+    text-transform: uppercase; font-size: .78rem; letter-spacing: .12em;
+    color: var(--muted); font-weight: 600;
+  }
+  .hero-mark {
+    font-size: clamp(2.5rem, 8vw, 4rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1;
+    color: var(--accent);
+    margin: 1rem 0 .5rem;
+    text-shadow: 0 0 48px rgba(232,148,92,.35), 0 0 1px rgba(244,237,228,.25);
+  }
+  .hero-sub { color: var(--muted); max-width: 36rem; margin: 0 auto; }
+
+  /* Palette */
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: .75rem;
+  }
+  .swatch {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--card);
+  }
+  .swatch-chip { height: 88px; }
+  .swatch-meta { padding: .55rem .7rem; font-size: .78rem; }
+  .swatch-name { font-weight: 700; letter-spacing: -.01em; }
+  .swatch-hex { color: var(--muted); font-family: var(--font-mono); font-size: .72rem; margin-top: .1rem; }
+
+  /* Typography */
+  .type-row { border-bottom: 1px solid var(--border); padding: .9rem 0; display: grid; grid-template-columns: 180px 1fr; gap: 1rem; align-items: baseline; }
+  .type-row:last-child { border-bottom: 0; }
+  .type-label { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; }
+  .h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.035em; margin: 0; }
+  .h2 { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.025em; margin: 0; }
+  .eyebrow { text-transform: uppercase; font-size: .72rem; letter-spacing: .12em; color: var(--accent); font-weight: 700; }
+  .body { color: var(--text); }
+  .muted { color: var(--muted); }
+  code.inline { background: #11100E; border: 1px solid var(--border); padding: .08rem .35rem; border-radius: 4px; font: 13px var(--font-mono); color: var(--text); }
+
+  /* Components */
+  .components-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+
+  .skill-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+  }
+  .skill-card h3 { margin: 0 0 .35rem; font-size: 1.05rem; letter-spacing: -.01em; }
+  .skill-tag {
+    display: inline-block; font-size: .65rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 4px;
+    padding: .15rem .4rem; margin-right: .35rem;
+  }
+  .skill-desc { margin: .5rem 0 .75rem; color: var(--muted); font-size: .9rem; }
+  .skill-link { font-size: .85rem; font-weight: 600; color: var(--accent); text-decoration: none; }
+
+  .btn-row { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; }
+  .btn-primary {
+    padding: .6rem 1rem; border-radius: 8px; border: none;
+    background: var(--accent); color: var(--bg);
+    font-size: .85rem; font-weight: 700; cursor: pointer;
+  }
+  .btn-primary:hover { background: var(--accent-strong); }
+  .btn-outline {
+    padding: .6rem 1rem; border-radius: 8px;
+    border: 1px solid var(--accent); background: transparent; color: var(--accent);
+    font-size: .85rem; font-weight: 700; cursor: pointer;
+  }
+  .btn-outline:hover { background: var(--accent-dim); }
+  .btn-ghost {
+    padding: .6rem 1rem; border-radius: 8px;
+    border: 1px solid var(--border); background: transparent; color: var(--muted);
+    font-size: .85rem; font-weight: 600; cursor: pointer;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text); }
+
+  .pill-row { display: flex; gap: .4rem; flex-wrap: wrap; }
+  .pill {
+    border: 1px solid var(--border); background: transparent; color: var(--muted);
+    padding: .35rem .55rem; border-radius: 999px;
+    font-size: .68rem; font-weight: 700; letter-spacing: .05em;
+    cursor: pointer;
+  }
+  .pill.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  .input {
+    width: 100%;
+    padding: .6rem .85rem;
+    border-radius: 8px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text);
+    font-size: .95rem;
+  }
+  .input::placeholder { color: var(--muted); }
+  .input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+
+  .surface-demo {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+  .alert {
+    padding: .75rem 1rem; border-radius: 8px;
+    font-size: .88rem; margin-top: .5rem;
+  }
+  .alert-danger { background: rgba(227,106,106,.08); border: 1px solid var(--danger); color: var(--danger); }
+  .alert-success { background: rgba(127,184,146,.08); border: 1px solid var(--success); color: var(--success); }
+
+  footer {
+    max-width: 960px; margin: 0 auto; padding: 2rem 1rem;
+    color: var(--muted); font-size: .85rem;
+    border-top: 1px solid var(--border);
+  }
+  .option-flag {
+    display: inline-block; padding: .2rem .5rem;
+    border-radius: 4px; background: var(--accent-dim);
+    color: var(--accent); font-weight: 700; font-size: .72rem;
+    letter-spacing: .1em; text-transform: uppercase;
+    margin-bottom: .5rem;
+  }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <div class="logo">opchain</div>
+    <nav class="nav">
+      <a href="#" class="active">Introduction</a>
+      <a href="#">Architecture</a>
+      <a href="#">Skill Library</a>
+      <a href="#">Install</a>
+      <a href="#">Try It</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-tag">9 interconnected skills + 1 protocol</div>
+    <div class="hero-mark">opchain</div>
+    <p class="hero-sub">Skills that ship — concept to production. Install a skill, trigger it by name, pick up where you left off.</p>
+  </section>
+
+  <section>
+    <span class="option-flag">Option 1 · Warm Umber</span>
+    <div class="section-head">Palette</div>
+    <div class="swatches">
+      <div class="swatch"><div class="swatch-chip" style="background:#0B0906"></div><div class="swatch-meta"><div class="swatch-name">--bg</div><div class="swatch-hex">#0B0906</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#181310"></div><div class="swatch-meta"><div class="swatch-name">--surface</div><div class="swatch-hex">#181310</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#211B16"></div><div class="swatch-meta"><div class="swatch-name">--card</div><div class="swatch-hex">#211B16</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#3A2F26"></div><div class="swatch-meta"><div class="swatch-name">--border</div><div class="swatch-hex">#3A2F26</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#F3EEE5"></div><div class="swatch-meta"><div class="swatch-name">--text</div><div class="swatch-hex">#F3EEE5</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#A79585"></div><div class="swatch-meta"><div class="swatch-name">--muted</div><div class="swatch-hex">#A79585</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#E8945C"></div><div class="swatch-meta"><div class="swatch-name">--accent</div><div class="swatch-hex">#E8945C</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#F2A370"></div><div class="swatch-meta"><div class="swatch-name">--accent-strong</div><div class="swatch-hex">#F2A370</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#E36A6A"></div><div class="swatch-meta"><div class="swatch-name">--danger</div><div class="swatch-hex">#E36A6A</div></div></div>
+      <div class="swatch"><div class="swatch-chip" style="background:#7FB892"></div><div class="swatch-meta"><div class="swatch-name">--success</div><div class="swatch-hex">#7FB892</div></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">Typography — system-ui</div>
+    <div class="type-row"><div class="type-label">H1 / display</div><div class="h1">Skills that ship.</div></div>
+    <div class="type-row"><div class="type-label">H2 / section</div><div class="h2">Install a skill, trigger by name.</div></div>
+    <div class="type-row"><div class="type-label">Eyebrow</div><div class="eyebrow">Pipeline · 9 skills</div></div>
+    <div class="type-row"><div class="type-label">Body</div><div class="body">Each opchain skill owns one phase of the development pipeline — discover, spec, design, build, audit, ship, scale. Skills share state through <code class="inline">.checkpoints/</code> JSON files so context flows forward without manual handoffs.</div></div>
+    <div class="type-row"><div class="type-label">Muted / meta</div><div class="muted">9 interconnected skills. 1 shared protocol. No API keys required.</div></div>
+  </section>
+
+  <section>
+    <div class="section-head">Components</div>
+    <div class="components-grid">
+      <article class="skill-card">
+        <h3>App Architect</h3>
+        <span class="skill-tag">Plan · Build</span>
+        <span class="skill-tag">Tri-agent</span>
+        <p class="skill-desc">Idea → spec → design → build → launch in one skill.</p>
+        <a href="#" class="skill-link">View docs →</a>
+      </article>
+
+      <div class="surface-demo">
+        <div class="eyebrow" style="margin-bottom:.5rem">Try it</div>
+        <input class="input" placeholder="you@example.com" />
+        <div class="btn-row" style="margin-top:.6rem">
+          <button class="btn-primary">Start demo</button>
+          <button class="btn-outline">Install</button>
+          <button class="btn-ghost">Learn more</button>
+        </div>
+      </div>
+
+      <div class="surface-demo">
+        <div class="eyebrow" style="margin-bottom:.6rem">Filter by phase</div>
+        <div class="pill-row">
+          <button class="pill active">All</button>
+          <button class="pill">Foundation</button>
+          <button class="pill">Plan</button>
+          <button class="pill">Plan + Build</button>
+          <button class="pill">Build</button>
+        </div>
+        <div class="alert alert-success">Showing 10 of 10 skills</div>
+        <div class="alert alert-danger">Example: destructive confirmation.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Option 1 of 4 — Warm Umber. Close to current; refined tokens only. See <a href="index.html">all options</a>.
+</footer>
+</body>
+</html>
