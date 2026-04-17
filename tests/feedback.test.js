@@ -33,15 +33,15 @@ describe("corsHeaders", () => {
   it("sets the origin when it matches the allow list", () => {
     const headers = corsHeaders("https://opchain.dev");
     expect(headers["Access-Control-Allow-Origin"]).toBe("https://opchain.dev");
-    expect(headers["Access-Control-Allow-Methods"]).toBe("POST, OPTIONS");
-    expect(headers["Access-Control-Allow-Headers"]).toBe("Content-Type");
+    expect(headers["Access-Control-Allow-Methods"]).toBe("POST, GET, OPTIONS");
+    expect(headers["Access-Control-Allow-Headers"]).toBe("Content-Type, X-Opchain-Request-Id");
   });
 
   it("omits the origin header when the request origin is not allowed", () => {
     const headers = corsHeaders("https://evil.example.com");
     expect(headers["Access-Control-Allow-Origin"]).toBeUndefined();
     // Still sets the rest so preflight replies are well-formed.
-    expect(headers["Access-Control-Allow-Methods"]).toBe("POST, OPTIONS");
+    expect(headers["Access-Control-Allow-Methods"]).toBe("POST, GET, OPTIONS");
   });
 
   it("handles a missing origin header gracefully", () => {

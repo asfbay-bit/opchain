@@ -1,0 +1,215 @@
+---
+/**
+ * Floating feedback widget. Opens a dialog that POSTs to /api/feedback.
+ * Mounted once in Base.astro so it's available on every page.
+ */
+import Button from "./ui/Button.astro";
+import Input from "./ui/Input.astro";
+import Textarea from "./ui/Textarea.astro";
+import Alert from "./ui/Alert.astro";
+import Icon from "./Icon.astro";
+---
+
+<button type="button" class="feedback-launcher" id="feedback-launcher" aria-label="Send feedback">
+  <Icon name="message-square" size={14} /> feedback
+</button>
+
+<dialog class="feedback-dialog" id="feedback-dialog" aria-labelledby="feedback-title">
+  <form method="dialog" class="feedback-form" id="feedback-form" autocomplete="off">
+    <header class="feedback-head">
+      <h2 id="feedback-title">Send feedback</h2>
+      <button type="button" class="close" id="feedback-close" aria-label="Close">×</button>
+    </header>
+
+    <label class="field">
+      <span class="label">Type</span>
+      <select name="type" required>
+        <option value="bug">Bug</option>
+        <option value="feature">Feature request</option>
+        <option value="improvement">Improvement</option>
+        <option value="general" selected>General</option>
+      </select>
+    </label>
+
+    <label class="field">
+      <span class="label">Title</span>
+      <Input name="title" required placeholder="What happened?" />
+    </label>
+
+    <label class="field">
+      <span class="label">Details</span>
+      <Textarea name="description" rows={4} placeholder="Steps to reproduce, expected vs actual, anything useful." />
+    </label>
+
+    <label class="field">
+      <span class="label">Email <span class="opt">(optional)</span></span>
+      <Input type="email" name="email" placeholder="you@example.com" autocomplete="email" />
+    </label>
+
+    <div class="status" id="feedback-status" hidden>
+      <Alert variant="info"><span id="feedback-status-msg"></span></Alert>
+    </div>
+
+    <footer class="feedback-foot">
+      <Button type="submit" variant="primary" label="Submit">submit</Button>
+    </footer>
+  </form>
+</dialog>
+
+<script>
+  const launcher = document.getElementById("feedback-launcher") as HTMLButtonElement | null;
+  const dialog   = document.getElementById("feedback-dialog") as HTMLDialogElement | null;
+  const form     = document.getElementById("feedback-form")  as HTMLFormElement | null;
+  const closeBtn = document.getElementById("feedback-close") as HTMLButtonElement | null;
+  const statusEl = document.getElementById("feedback-status") as HTMLElement | null;
+  const statusMsg= document.getElementById("feedback-status-msg") as HTMLElement | null;
+
+  if (launcher && dialog && form) {
+    launcher.addEventListener("click", () => {
+      if (statusEl) statusEl.hidden = true;
+      form.reset();
+      if (typeof dialog.showModal === "function") dialog.showModal();
+      else dialog.setAttribute("open", "");
+    });
+
+    closeBtn?.addEventListener("click", () => dialog.close());
+
+    form.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const fd = new FormData(form);
+      const payload: Record<string, unknown> = Object.fromEntries(fd.entries());
+      // Strip empty optional fields so Zod's `.optional()` behaves.
+      for (const k of ["description", "email"]) {
+        if (payload[k] === "") delete payload[k];
+      }
+      if (statusMsg && statusEl) {
+        statusMsg.textContent = "Sending…";
+        statusEl.hidden = false;
+      }
+      try {
+        const res = await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (res.ok) {
+          if (statusMsg) statusMsg.textContent = "Thanks — logged as " + (body.id || "an issue") + ".";
+          setTimeout(() => dialog.close(), 1500);
+        } else {
+          if (statusMsg) statusMsg.textContent = body.error || `Failed (HTTP ${res.status}).`;
+        }
+      } catch {
+        if (statusMsg) statusMsg.textContent = "Network error — please try again.";
+      }
+    });
+  }
+</script>
+
+<style>
+  .feedback-launcher {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 50;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--surface);
+    color: var(--muted);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-pill);
+    padding: 0.5rem 0.9rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: var(--glow-md);
+    transition: color var(--dur-fast) var(--ease-standard),
+                border-color var(--dur-fast) var(--ease-standard);
+  }
+  .feedback-launcher:hover {
+    color: var(--text);
+    border-color: var(--accent);
+  }
+
+  .feedback-dialog {
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    color: var(--text);
+    padding: 0;
+    max-width: 32rem;
+    width: calc(100% - 2rem);
+    box-shadow: var(--shadow-xl);
+  }
+  .feedback-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem;
+  }
+  .feedback-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+  }
+  .feedback-head h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    margin: 0;
+    color: var(--text);
+  }
+  .close {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.1rem 0.4rem;
+  }
+  .close:hover { color: var(--text); }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+  .opt { text-transform: none; font-style: italic; }
+
+  .field select {
+    padding: 0.55rem 0.85rem;
+    border-radius: var(--r-sm);
+    border: 0.5px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: var(--fs-base);
+  }
+  .field select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+  }
+
+  .feedback-foot {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.25rem;
+  }
+</style>

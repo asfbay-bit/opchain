@@ -1,347 +1,354 @@
 /**
  * opchain Try It — email-gated AI chat demo.
  *
- * POST /api/opchain/try/start  → email submission, returns session token
- * POST /api/opchain/try/chat   → streaming chat with skill-specific system prompt
+ * POST /api/opchain/try/start  → email → session token
+ * POST /api/opchain/try/chat   → streaming chat against a per-skill system prompt
+ *
+ * Sprint 4:
+ *   - Zod validation on every POST body
+ *   - typed KV wrappers (src/lib/kv.js) — no direct env.DATA.* in this file
+ *   - single retry on Anthropic 5xx with jitter
+ *   - ANTHROPIC_MODEL env override (default: claude-haiku-4-5-20251001)
+ *   - request-ID on every log line + X-Opchain-Request-Id response header
+ *   - PostHog capture events (fire-and-forget via ctx.waitUntil)
+ *   - consistent { error, code } error shape
  */
 
-// Catalog is generated from skills/<id>/SKILL.md + TRYIT.md at build time.
-// See scripts/gen-skills-catalog.mjs. The Worker bundle inlines this via esbuild.
-import { SKILL_PROMPTS, VALID_SKILLS } from './generated/skill-prompts.js';
+import { SKILL_PROMPTS, VALID_SKILLS } from "./generated/skill-prompts.js";
+import { TryStartSchema, TryChatSchema, parseBody } from "./lib/schemas.js";
+import {
+  readIpWindow, writeIpWindow,
+  readEmailUsage, writeEmailUsage,
+  writeLeadIfNew,
+} from "./lib/kv.js";
+import { fetchWithRetry } from "./lib/retry.js";
+import { capture, hashDistinctId } from "./lib/analytics.js";
+import { bindLogger, newRequestId } from "./lib/request-id.js";
 
-const MODEL = 'claude-haiku-4-5-20251001';
+const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
 const MAX_EXCHANGES = 5;
 const MAX_TOKENS = 2048;
-const EMAIL_TTL_SEC = 86400; // 24 h
-const IP_WINDOW_SEC = 3600;  // 1 h
-const IP_MAX_SESSIONS = 20;  // per hour
+const EMAIL_TTL_SEC = 86400;     // 24h
+const IP_WINDOW_SEC = 3600;      // 1h
+const IP_MAX_SESSIONS = 20;
+const LEAD_TTL_SEC = 60 * 60 * 24 * 365; // 1y (Sprint 5 tightens this)
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+// ── Response helpers ────────────────────────────────────────────────────────
 
-function jsonResponse(body, status = 200) {
+function jsonResponse(body, status, requestId) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Opchain-Request-Id": requestId,
+    },
   });
 }
 
-export function isValidEmail(email) {
-  return typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+function errResponse(error, code, status, requestId, extra = {}) {
+  return jsonResponse({ error, code, ...extra }, status, requestId);
 }
 
-/** Create an HMAC-signed session token. */
+// ── Session token (HMAC-SHA256) ─────────────────────────────────────────────
+
+/** Create an HMAC-signed session token. Exported for tests. */
 export async function createSessionToken(email, secret) {
   const id = crypto.randomUUID();
   const payload = `${id}:${email}`;
   const key = await crypto.subtle.importKey(
-    'raw',
+    "raw",
     new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
+    { name: "HMAC", hash: "SHA-256" },
     false,
-    ['sign'],
+    ["sign"],
   );
-  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
   const hmac = btoa(String.fromCharCode(...new Uint8Array(sig)));
   return `${payload}:${hmac}`;
 }
 
 /** Verify an HMAC-signed session token. Returns the email or null. */
 export async function verifySessionToken(token, secret) {
-  if (typeof token !== 'string') return null;
-  const parts = token.split(':');
+  if (typeof token !== "string") return null;
+  const parts = token.split(":");
   if (parts.length < 3) return null;
   const hmac = parts.pop();
-  const payload = parts.join(':');
-  const emailStart = payload.indexOf(':');
+  const payload = parts.join(":");
+  const emailStart = payload.indexOf(":");
   if (emailStart < 0) return null;
   const email = payload.slice(emailStart + 1);
   try {
     const key = await crypto.subtle.importKey(
-      'raw',
+      "raw",
       new TextEncoder().encode(secret),
-      { name: 'HMAC', hash: 'SHA-256' },
+      { name: "HMAC", hash: "SHA-256" },
       false,
-      ['verify'],
+      ["verify"],
     );
     const sigBytes = Uint8Array.from(atob(hmac), (c) => c.charCodeAt(0));
-    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payload));
+    const valid = await crypto.subtle.verify("HMAC", key, sigBytes, new TextEncoder().encode(payload));
     return valid ? email : null;
   } catch {
     return null;
   }
 }
 
+// Legacy export used by aidops-style callers; kept for compat.
+export function isValidEmail(email) {
+  return typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 function getClientIP(request) {
-  return request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() || '0.0.0.0';
-}
-
-// ── Rate limiting ───────────────────────────────────────────────────────────
-
-async function checkIPRate(env, ip) {
-  const key = `opchain-try-ip:${ip}`;
-  const raw = await env.DATA.get(key);
-  const now = Math.floor(Date.now() / 1000);
-  let count = 0;
-  let start = now;
-  if (raw) {
-    try {
-      const data = JSON.parse(raw);
-      if (data.start && now - data.start < IP_WINDOW_SEC) {
-        count = data.count;
-        start = data.start;
-      }
-    } catch { /* fresh window */ }
-  }
-  if (count >= IP_MAX_SESSIONS) return false;
-  await env.DATA.put(key, JSON.stringify({ count: count + 1, start }), {
-    expirationTtl: IP_WINDOW_SEC,
-  });
-  return true;
-}
-
-async function getEmailUsage(env, email) {
-  const key = `opchain-try-email:${email.toLowerCase()}`;
-  const raw = await env.DATA.get(key);
-  if (!raw) return { count: 0 };
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return { count: 0 };
-  }
-}
-
-async function incrementEmailUsage(env, email) {
-  const key = `opchain-try-email:${email.toLowerCase()}`;
-  const usage = await getEmailUsage(env, email);
-  usage.count += 1;
-  await env.DATA.put(key, JSON.stringify(usage), { expirationTtl: EMAIL_TTL_SEC });
+  return (
+    request.headers.get("CF-Connecting-IP") ||
+    request.headers.get("X-Forwarded-For")?.split(",")[0]?.trim() ||
+    "0.0.0.0"
+  );
 }
 
 // ── Handlers ────────────────────────────────────────────────────────────────
 
-/** POST /api/opchain/try/start */
-async function handleStart(request, env) {
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return jsonResponse({ error: 'Invalid JSON body' }, 400);
+async function handleStart(request, env, ctx, requestId) {
+  const log = bindLogger(requestId);
+  const parsed = await parseBody(request, TryStartSchema);
+  if (!parsed.ok) {
+    return errResponse(parsed.error, parsed.code, 400, requestId, { issues: parsed.issues });
   }
+  const email = parsed.data.email;
 
-  const email = body?.email?.trim();
-  if (!isValidEmail(email)) {
-    return jsonResponse({ error: 'A valid email address is required.' }, 400);
-  }
-
-  // IP rate limit (prevent email spam)
+  // IP rate limit
   const ip = getClientIP(request);
-  const ipOk = await checkIPRate(env, ip);
-  if (!ipOk) {
-    return jsonResponse({ error: 'Too many requests. Please try again later.' }, 429);
+  const window = await readIpWindow(env.DATA, ip, IP_WINDOW_SEC);
+  if (window.count >= IP_MAX_SESSIONS) {
+    return errResponse("Too many requests. Please try again later.", "rate_limited_ip", 429, requestId);
   }
+  await writeIpWindow(env.DATA, ip, IP_WINDOW_SEC, { count: window.count + 1, start: window.start });
 
-  // Check existing email usage
-  const usage = await getEmailUsage(env, email);
+  // Per-email usage cap
+  const usage = await readEmailUsage(env.DATA, email);
   if (usage.count >= MAX_EXCHANGES) {
-    return jsonResponse({
-      error: `You've used all ${MAX_EXCHANGES} free exchanges. Install opchain for unlimited access.`,
-      remaining: 0,
-    }, 429);
+    return errResponse(
+      `You've used all ${MAX_EXCHANGES} free exchanges. Install opchain for unlimited access.`,
+      "exchanges_exhausted",
+      429,
+      requestId,
+      { remaining: 0 },
+    );
   }
 
-  // Store email for lead tracking (persistent, no TTL)
-  const leadKey = `opchain-leads:${email.toLowerCase()}`;
-  const existingLead = await env.DATA.get(leadKey);
-  if (!existingLead) {
-    await env.DATA.put(leadKey, JSON.stringify({
-      email: email.toLowerCase(),
-      first_seen: new Date().toISOString(),
-      source: 'tryit',
-    }));
-  }
+  const newLead = await writeLeadIfNew(env.DATA, email, "tryit", LEAD_TTL_SEC);
 
-  // Create signed session token. Fail closed if the signing secret is not configured.
   if (!env.DEPLOY_API_TOKEN) {
-    console.error('opchain-try: DEPLOY_API_TOKEN is not set — refusing to sign tokens');
-    return jsonResponse({ error: 'Try-It is not configured.' }, 503);
+    log.error("opchain-try: DEPLOY_API_TOKEN is not set — refusing to sign tokens");
+    return errResponse("Try-It is not configured.", "not_configured", 503, requestId);
   }
   const token = await createSessionToken(email, env.DEPLOY_API_TOKEN);
 
-  return jsonResponse({
-    session_token: token,
-    remaining: MAX_EXCHANGES - usage.count,
-  });
+  // Analytics — fire and forget
+  try {
+    const distinctId = await hashDistinctId(email);
+    ctx?.waitUntil?.(capture(env, {
+      distinctId,
+      event: "demo_email_submitted",
+      properties: { new_lead: newLead, request_id: requestId },
+    }));
+  } catch (e) {
+    log.warn("analytics error:", e.message);
+  }
+
+  return jsonResponse(
+    { session_token: token, remaining: MAX_EXCHANGES - usage.count },
+    200,
+    requestId,
+  );
 }
 
-/** POST /api/opchain/try/chat */
-async function handleChat(request, env) {
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return jsonResponse({ error: 'Invalid JSON body' }, 400);
+async function handleChat(request, env, ctx, requestId) {
+  const log = bindLogger(requestId);
+  const parsed = await parseBody(request, TryChatSchema);
+  if (!parsed.ok) {
+    return errResponse(parsed.error, parsed.code, 400, requestId, { issues: parsed.issues });
   }
+  const { skill, messages, session_token: sessionToken } = parsed.data;
 
-  const { skill, messages, session_token } = body || {};
-
-  // Validate session token. Fail closed if the signing secret is not configured.
   if (!env.DEPLOY_API_TOKEN) {
-    console.error('opchain-try: DEPLOY_API_TOKEN is not set — refusing to verify tokens');
-    return jsonResponse({ error: 'Try-It is not configured.' }, 503);
+    log.error("opchain-try: DEPLOY_API_TOKEN is not set — refusing to verify tokens");
+    return errResponse("Try-It is not configured.", "not_configured", 503, requestId);
   }
-  const email = await verifySessionToken(session_token, env.DEPLOY_API_TOKEN);
+  const email = await verifySessionToken(sessionToken, env.DEPLOY_API_TOKEN);
   if (!email) {
-    return jsonResponse({ error: 'Invalid or expired session. Please re-enter your email.' }, 401);
+    return errResponse(
+      "Invalid or expired session. Please re-enter your email.",
+      "invalid_session",
+      401,
+      requestId,
+    );
   }
 
-  // Validate skill
-  if (!skill || !VALID_SKILLS.includes(skill)) {
-    return jsonResponse({ error: `Invalid skill. Choose one of: ${VALID_SKILLS.join(', ')}` }, 400);
+  if (!VALID_SKILLS.includes(skill)) {
+    return errResponse(
+      `Invalid skill. Choose one of: ${VALID_SKILLS.join(", ")}`,
+      "invalid_skill",
+      400,
+      requestId,
+    );
   }
 
-  // Validate messages
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return jsonResponse({ error: 'Messages array is required.' }, 400);
-  }
-  // Count user messages (exchanges)
-  const userMessageCount = messages.filter((m) => m.role === 'user').length;
+  const userMessageCount = messages.filter((m) => m.role === "user").length;
   if (userMessageCount > MAX_EXCHANGES) {
-    return jsonResponse({
-      error: `Maximum ${MAX_EXCHANGES} exchanges reached. Install opchain for unlimited access.`,
-      remaining: 0,
-    }, 429);
+    return errResponse(
+      `Maximum ${MAX_EXCHANGES} exchanges reached. Install opchain for unlimited access.`,
+      "exchanges_exhausted",
+      429,
+      requestId,
+      { remaining: 0 },
+    );
   }
 
-  // Check email usage
-  const usage = await getEmailUsage(env, email);
+  const usage = await readEmailUsage(env.DATA, email);
   if (usage.count >= MAX_EXCHANGES) {
-    return jsonResponse({
-      error: `You've used all ${MAX_EXCHANGES} free exchanges. Install opchain for unlimited access.`,
-      remaining: 0,
-    }, 429);
+    return errResponse(
+      `You've used all ${MAX_EXCHANGES} free exchanges. Install opchain for unlimited access.`,
+      "exchanges_exhausted",
+      429,
+      requestId,
+      { remaining: 0 },
+    );
   }
 
-  // Verify API key is configured
   if (!env.ANTHROPIC_API_KEY) {
-    return jsonResponse({ error: 'AI service is not configured.' }, 503);
+    return errResponse("AI service is not configured.", "not_configured", 503, requestId);
   }
 
-  // Build system prompt
   const systemPrompt = SKILL_PROMPTS[skill];
-
-  // Clean messages — only pass role + content, limit to MAX_EXCHANGES * 2 messages
   const cleanMessages = messages
-    .filter((m) => m.role === 'user' || m.role === 'assistant')
     .map((m) => ({ role: m.role, content: String(m.content).slice(0, 4000) }))
     .slice(-(MAX_EXCHANGES * 2));
 
-  // Call Anthropic with streaming
+  const distinctId = await hashDistinctId(email);
+  if (userMessageCount === 1) {
+    ctx?.waitUntil?.(capture(env, {
+      distinctId,
+      event: "demo_chat_started",
+      properties: { skill, request_id: requestId },
+    }));
+  }
+
+  const model = env.ANTHROPIC_MODEL || DEFAULT_MODEL;
   let anthropicRes;
   try {
-    anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+    anthropicRes = await fetchWithRetry(
+      "https://api.anthropic.com/v1/messages",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: MAX_TOKENS,
+          stream: true,
+          system: systemPrompt,
+          messages: cleanMessages,
+        }),
       },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: MAX_TOKENS,
-        stream: true,
-        system: systemPrompt,
-        messages: cleanMessages,
-      }),
-    });
+    );
   } catch (e) {
-    console.error('opchain-try fetch error:', e.message);
-    return jsonResponse({ error: 'Could not reach AI service. Please try again.' }, 502);
+    log.error("opchain-try fetch error:", e.message);
+    return errResponse("Could not reach AI service. Please try again.", "upstream_unreachable", 502, requestId);
   }
 
   if (!anthropicRes.ok) {
-    const errText = await anthropicRes.text().catch(() => '');
-    console.error('opchain-try Anthropic error:', anthropicRes.status, errText);
+    const errText = await anthropicRes.text().catch(() => "");
+    log.error("opchain-try Anthropic error:", anthropicRes.status, errText);
     if (anthropicRes.status === 429) {
-      return jsonResponse({ error: 'AI service is busy. Please try again in a moment.' }, 503);
+      return errResponse("AI service is busy. Please try again in a moment.", "upstream_busy", 503, requestId);
     }
-    return jsonResponse({ error: 'AI service error. Please try again.' }, 502);
+    return errResponse("AI service error. Please try again.", "upstream_error", 502, requestId);
   }
 
-  // Increment email usage (count this exchange)
-  await incrementEmailUsage(env, email);
+  await writeEmailUsage(env.DATA, email, EMAIL_TTL_SEC, { count: usage.count + 1 });
   const remaining = MAX_EXCHANGES - (usage.count + 1);
 
-  // Stream the response, piping Anthropic SSE to the client
+  // Pipe Anthropic SSE → our SSE, emit one final `done` event.
   const { readable, writable } = new TransformStream();
   const writer = writable.getWriter();
   const encoder = new TextEncoder();
 
-  // Pipe in the background
-  (async () => {
+  const pipe = (async () => {
+    let completed = false;
     try {
       const reader = anthropicRes.body.getReader();
       const decoder = new TextDecoder();
-      let buffer = '';
-
+      let buffer = "";
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
-
-        // Process complete SSE lines
-        const lines = buffer.split('\n');
-        buffer = lines.pop(); // keep incomplete line
-
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') continue;
-            try {
-              const event = JSON.parse(data);
-              if (event.type === 'content_block_delta' && event.delta?.text) {
-                await writer.write(encoder.encode(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`));
-              } else if (event.type === 'message_stop') {
-                await writer.write(encoder.encode(`data: ${JSON.stringify({ done: true, remaining })}\n\n`));
-              }
-            } catch { /* skip unparseable events */ }
-          }
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6);
+          if (data === "[DONE]") continue;
+          try {
+            const event = JSON.parse(data);
+            if (event.type === "content_block_delta" && event.delta?.text) {
+              await writer.write(encoder.encode(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`));
+            } else if (event.type === "message_stop") {
+              completed = true;
+              await writer.write(encoder.encode(`data: ${JSON.stringify({ done: true, remaining })}\n\n`));
+            }
+          } catch { /* skip */ }
         }
       }
-
-      // Final done event if not already sent
-      await writer.write(encoder.encode(`data: ${JSON.stringify({ done: true, remaining })}\n\n`));
+      if (!completed) {
+        await writer.write(encoder.encode(`data: ${JSON.stringify({ done: true, remaining })}\n\n`));
+      }
+      ctx?.waitUntil?.(capture(env, {
+        distinctId,
+        event: "demo_chat_completed",
+        properties: { skill, remaining, request_id: requestId },
+      }));
     } catch (e) {
-      console.error('opchain-try stream error:', e.message);
+      log.error("opchain-try stream error:", e.message);
       try {
-        await writer.write(encoder.encode(`data: ${JSON.stringify({ error: 'Stream interrupted.' })}\n\n`));
+        await writer.write(encoder.encode(`data: ${JSON.stringify({ error: "Stream interrupted.", code: "stream_interrupted" })}\n\n`));
       } catch { /* writer closed */ }
     } finally {
       try { await writer.close(); } catch { /* already closed */ }
     }
   })();
 
+  // Keep the Worker alive until the stream finishes.
+  ctx?.waitUntil?.(pipe);
+
   return new Response(readable, {
     headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
+      "X-Opchain-Request-Id": requestId,
     },
   });
 }
 
 // ── Router ──────────────────────────────────────────────────────────────────
 
-export async function handleOpchainTry(request, url, env) {
-  if (request.method !== 'POST') {
-    return jsonResponse({ error: 'Method not allowed' }, 405);
+export async function handleOpchainTry(request, url, env, ctx) {
+  const requestId = request.headers.get("X-Opchain-Request-Id") || newRequestId();
+
+  if (request.method !== "POST") {
+    return errResponse("Method not allowed", "method_not_allowed", 405, requestId);
   }
 
-  if (url.pathname === '/api/opchain/try/start') {
-    return handleStart(request, env);
+  if (url.pathname === "/api/opchain/try/start") {
+    return handleStart(request, env, ctx, requestId);
   }
-  if (url.pathname === '/api/opchain/try/chat') {
-    return handleChat(request, env);
+  if (url.pathname === "/api/opchain/try/chat") {
+    return handleChat(request, env, ctx, requestId);
   }
-
-  return jsonResponse({ error: 'Not found' }, 404);
+  return errResponse("Not found", "not_found", 404, requestId);
 }
