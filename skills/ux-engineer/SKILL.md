@@ -1,5 +1,22 @@
 ---
 name: ux-engineer
+displayName: UX Engineer
+version: 1.1.0
+shortDesc: Design Planner → Generator → Evaluator harness.
+phases: [plan]
+triAgent: true
+tryable: true
+commands:
+  - /uxe
+  - /uxe plan
+  - /uxe build
+  - /uxe eval
+  - /uxe flow
+  - /uxe components
+  - /uxe fidelity
+  - /uxe dash
+  - /uxe attach
+  - /uxe detach
 description: >
   UI/UX design harness with Design Planner/Generator/Evaluator loop. Use for /uxe,
   "review the UX", "design iteration", "component library", "accessibility audit",

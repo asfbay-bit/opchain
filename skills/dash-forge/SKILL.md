@@ -1,5 +1,23 @@
 ---
 name: dash-forge
+displayName: Dash Forge
+version: 1.0.0
+shortDesc: Dashboards, BI, dense data — design spec + React prototype.
+phases: [plan]
+triAgent: false
+tryable: true
+commands:
+  - /data-forge
+  - /dash-forge
+  - /df-intake
+  - /df-archetype
+  - /df-layout
+  - /df-tokens
+  - /df-prototype
+  - /df-spec-only
+  - /df-full
+  - /df-audit
+  - /df-variants
 description: >
   Specialized dashboard and dense-information UI designer. Produces design specs AND
   working React prototypes with mock data for three archetypes: executive (KPI-driven,

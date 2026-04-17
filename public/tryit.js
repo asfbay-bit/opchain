@@ -51,6 +51,11 @@
       'CI/CD pipeline for a Python API',
       'Zero-downtime deployment strategy',
     ],
+    'dash-forge': [
+      'Design an executive KPI dashboard for a SaaS business',
+      'Ops dashboard for monitoring 50 microservices in real time',
+      'Analyst view for drilling into user conversion funnels',
+    ],
   };
 
   // Skill intro messages
@@ -64,6 +69,7 @@
     'scale-ops': 'You\'re chatting with <strong>Scale Ops</strong>. Describe your architecture and traffic patterns for a scaling assessment.',
     'git-ops': 'You\'re chatting with <strong>Git Ops</strong>. Describe your team and workflow for a git strategy recommendation.',
     'deploy-ops': 'You\'re chatting with <strong>Deploy Ops</strong>. Describe your stack and targets for a deployment pipeline plan.',
+    'dash-forge': 'You\'re chatting with <strong>Dash Forge</strong>. Describe your dashboard users and data for a design spec — archetype pick, layout, tokens, and chart selection.',
   };
 
   // DOM refs
@@ -162,7 +168,7 @@
 
   function buildSkillPills() {
     skillsEl.innerHTML = '';
-    // Only show skills that have system prompts (all 9 tryable skills)
+    // Only show skills that have system prompts (all 10 tryable skills)
     var tryableIds = Object.keys(STARTERS);
     var tryableSkills = skills.filter(function (s) { return tryableIds.indexOf(s.id) !== -1; });
 
