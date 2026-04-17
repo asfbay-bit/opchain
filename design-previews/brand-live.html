@@ -88,6 +88,11 @@ main { max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
 /* ── Page switching ── */
 .page { display: none; }
 .page.active { display: block; }
+.intro-page.page.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
 /* ── Shared components ── */
 .eyebrow {
@@ -405,7 +410,7 @@ scale-ops ────▶ advisory, no pipeline chain</pre>
       <button class="phase-pill">Plan + build</button>
       <button class="phase-pill">Build</button>
     </div>
-    <p class="meta">Showing 10 of 10 skills</p>
+    <p class="meta">Showing 5 of 10 skills</p>
   </section>
 
   <div class="skill-list">
