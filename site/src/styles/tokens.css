@@ -1,0 +1,80 @@
+/* ─────────────────────────────────────────────────────────────
+   opchain — Industrial Utility tokens
+   Canonical design tokens shared with public/styles.css.
+   Consumed by the Astro site (Sprint 2+) via Tailwind 4 or
+   directly in component CSS.
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* Neutral ramp */
+  --obsidian:  #1c1710;  /* page background */
+  --forge:     #2a2218;  /* card surface */
+  --slag:      #5a5040;  /* borders, muted text */
+  --sand:      #c4b89e;  /* secondary text */
+  --linen:     #e8dfd0;  /* primary text */
+  --parchment: #f6f0e8;  /* light surface */
+
+  /* Accent */
+  --ember:     #e05c18;  /* primary accent, active node, CTA */
+  --char:      #b84510;  /* accent hover */
+  --ember-dim: rgba(224, 92, 24, 0.10);
+  --ember-glow: rgba(224, 92, 24, 0.22);
+
+  /* Semantic aliases */
+  --bg:      var(--obsidian);
+  --surface: var(--forge);
+  --card:    #241C15;
+  --border:  var(--slag);
+  --text:    var(--linen);
+  --muted:   var(--sand);
+  --subtle:  #8A7868;
+  --accent:  var(--ember);
+  --accent-hover: var(--char);
+  --accent-dim:  var(--ember-dim);
+  --danger:  #d86464;
+  --success: #7ec99a;
+
+  /* Logo tokens */
+  --logo-primary:   var(--linen);
+  --logo-secondary: var(--slag);
+  --logo-accent:    var(--ember);
+
+  /* Typography */
+  --font-display: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body:    "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --wordmark-weight:   600;
+  --wordmark-tracking: 0.22em;
+
+  /* Logo spacing */
+  --logo-clear-space: 16px;
+  --logo-min-width:   80px;
+  --icon-min-size:    16px;
+
+  /* Radii */
+  --r-xs: 3px;
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-pill: 999px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+}
+
+/* Light background overrides — applied via data-theme="light" in Sprint 2+. */
+[data-theme="light"] {
+  --bg:      var(--parchment);
+  --surface: #EEE5D3;
+  --card:    #FFFFFF;
+  --border:  var(--sand);
+  --text:    var(--obsidian);
+  --muted:   var(--slag);
+  --subtle:  #7A6B58;
+
+  --logo-primary:   var(--obsidian);
+  --logo-secondary: var(--sand);
+  --logo-accent:    var(--ember);
+}

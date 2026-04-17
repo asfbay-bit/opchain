@@ -4,12 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>opchain — Architecture</title>
+  <meta name="description" content="How opchain skills chain through JSON checkpoints to form an end-to-end pipeline." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <header class="site-header">
     <div class="site-header-inner">
-      <div class="logo">opchain</div>
+      <a class="site-header-brand" href="/" aria-label="opchain home">
+        <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+          <line x1="3" y1="16" x2="29" y2="16" stroke="#5a5040" stroke-width="1"/>
+          <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="#e8dfd0" stroke-width="1.2"/>
+          <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="#e8dfd0" stroke-width="1.2"/>
+          <rect x="21" y="10" width="8" height="12" rx="1.5" fill="#e05c18"/>
+          <circle cx="6.5" cy="16" r="1.6" fill="#e8dfd0"/>
+          <circle cx="15.5" cy="16" r="1.6" fill="#e8dfd0"/>
+          <circle cx="25" cy="16" r="1.6" fill="#1c1710"/>
+        </svg>
+        <span class="logo">opchain</span>
+      </a>
       <nav class="nav-scroll" aria-label="Primary">
         <div class="nav">
           <a href="/">Introduction</a>
@@ -21,14 +37,81 @@
       </nav>
     </div>
   </header>
+
   <main>
-    <h1>Architecture</h1>
-    <p style="color: var(--muted); max-width: 42rem;">
-      Skills chain through checkpoints and shared orchestration rules. The canonical flow connects
-      reverse-spec, app-architect (with stack-forge and ux-engineer), git-ops, and deploy-ops, with
-      code-auditor as a pre-deploy gate. See each skill’s <code>SKILL.md</code> in the
-      <a href="/skills.html">Skill Library</a> for commands and handoffs.
-    </p>
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">architecture</div>
+        <h1>How opchain skills chain.</h1>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>
+        Every opchain skill owns one phase of the development pipeline and
+        communicates with the others through a single JSON file at
+        <code>.checkpoints/&lt;skill&gt;.checkpoint.json</code>. There is no
+        central orchestrator, no message bus, and no framework — each skill
+        is a self-contained prompt package that reads its upstream
+        checkpoints and writes its own.
+      </p>
+
+      <h2>The pipeline</h2>
+<pre>reverse-spec ──▶ app-architect ──▶ git-ops ──▶ deploy-ops
+                      │
+                      ├── auto-invokes stack-forge   (Phase 2)
+                      ├── design pipeline            (Phase 3, ux-engineer)
+                      ├── build loop                 (Phase 6, Generator/Evaluator)
+                      └── launch handoff             (Phase 7)
+
+code-auditor ────▶ runs at any stage, gates deploy
+integrations-engineer ────▶ runs when external APIs needed
+scale-ops ────▶ advisory, no pipeline chain</pre>
+
+      <h2>Skill kinds</h2>
+      <table class="kv-table">
+        <tr><td>Foundation</td><td>checkpoint-protocol</td></tr>
+        <tr><td>Plan</td><td>reverse-spec, stack-forge, ux-engineer, scale-ops</td></tr>
+        <tr><td>Plan + Build</td><td>app-architect</td></tr>
+        <tr><td>Build / quality</td><td>code-auditor, integrations-engineer, git-ops, deploy-ops</td></tr>
+      </table>
+
+      <h2>Checkpoint protocol</h2>
+      <p>
+        Every skill adopts a shared JSON schema for session persistence.
+        The canonical top-level keys are <code>phase</code>,
+        <code>progress_table</code>, <code>context_primer</code>,
+        <code>blockers</code>, and <code>next_actions</code>. When a skill
+        activates it reads its own checkpoint (offering to resume) and
+        checks for upstream checkpoints to pre-load context.
+      </p>
+      <p>
+        This is how context flows forward without manual copy-paste.
+        <code>deploy-ops</code> reads <code>code-auditor</code> to gate on
+        audit grade. <code>git-ops</code> reads
+        <code>app-architect</code> to name branches by sprint. The UX
+        Evaluator reads the approved style book to grade frontend sprints.
+      </p>
+
+      <h2>Active chaining</h2>
+      <p>
+        Skills don't just <em>suggest</em> the next step — they actively
+        invoke it. When <code>app-architect</code> finishes a build sprint,
+        it reads <code>git-ops</code>'s <code>SKILL.md</code> and runs
+        <code>/git-sync</code> with the sprint context. When
+        <code>git-ops</code> completes, it invokes <code>deploy-ops</code>.
+        The user sees one continuous flow, not a series of handoffs.
+      </p>
+
+      <h2>Total count</h2>
+      <ul>
+        <li>10 skills: 9 working skills + 1 shared protocol</li>
+        <li>4 are tri-agent: app-architect, ux-engineer, code-auditor, integrations-engineer</li>
+        <li>0 require API keys — every skill is a prompt package</li>
+      </ul>
+
+      <p>Browse the full skill set in the <a href="/skills.html">Skill Library</a>.</p>
+    </div>
   </main>
 </body>
 </html>
