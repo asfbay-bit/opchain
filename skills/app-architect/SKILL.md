@@ -1,5 +1,20 @@
 ---
 name: app-architect
+displayName: App Architect
+version: 1.1.0
+shortDesc: Idea → spec → design → build → launch in one skill.
+phases: [plan, build]
+triAgent: true
+tryable: true
+commands:
+  - /app
+  - /discover
+  - /spec
+  - /design
+  - /roadmap
+  - /scaffold
+  - /build
+  - /launch
 description: >
   Unified app development: idea → spec → design → build with Generator/Evaluator
   QA loop → launch. Use for /app, /discover, /spec, /design, /build, /launch,
