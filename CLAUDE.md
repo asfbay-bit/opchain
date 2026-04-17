@@ -93,8 +93,13 @@ npm run site:build       # astro build → site/dist
 Template lives in `.env.example`. Copy to `.dev.vars` for local dev; set in the Cloudflare dashboard (or via `wrangler secret put`) for staging + production.
 
 - `LINEAR_API_KEY` — Linear API key for feedback endpoint
+- `LINEAR_TEAM_ID`, `LINEAR_PROJECT_ID` — optional overrides for the default team/project
 - `ANTHROPIC_API_KEY` — Claude API key for Try It chat
+- `ANTHROPIC_MODEL` — optional override, defaults to `claude-haiku-4-5-20251001`
 - `DEPLOY_API_TOKEN` — HMAC secret for session token signing. **Required.** If unset, `/api/try/start` and `/api/try/chat` return 503 (fail-closed, no fallback).
+- `POSTHOG_PROJECT_API_KEY`, `POSTHOG_HOST` — server-side analytics capture. Env-gated; unset → no-op.
+- `PUBLIC_POSTHOG_KEY`, `PUBLIC_POSTHOG_HOST` — client-side PostHog (consent-gated via `ConsentBanner.astro`).
+- `LEAD_TTL_DAYS` — optional, defaults to 365. Controls KV TTL for Try-It lead records.
 
 CI deploy needs two GitHub Actions secrets at the repo level:
 

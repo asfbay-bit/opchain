@@ -13,7 +13,7 @@ import { handleOpchainTry } from "./opchain-try.js";
 import { SKILL_NAMES } from "./generated/skill-prompts.js";
 import { FeedbackSchema, parseBody } from "./lib/schemas.js";
 import { capture, hashDistinctId } from "./lib/analytics.js";
-import { bindLogger, newRequestId } from "./lib/request-id.js";
+import { bindLogger, newRequestId, EVENTS } from "./lib/request-id.js";
 
 // Injected at build time by esbuild `define` (see build.mjs).
 // eslint-disable-next-line no-undef
@@ -70,10 +70,44 @@ export function corsHeaders(origin, requestId) {
   return headers;
 }
 
+// Baseline headers — safe for every response (HTML, JSON, binary).
+const BASELINE_SECURITY_HEADERS = {
+  "X-Content-Type-Options": "nosniff",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy":
+    "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=()",
+};
+
+// CSP — only meaningful on HTML responses. `unsafe-inline` on style-src covers
+// Astro scoped styles; the FOUC init script in Base.astro is inline too, so
+// script-src keeps `unsafe-inline` until Sprint 6 moves it to a nonce.
+const CSP_HTML =
+  "default-src 'self'; " +
+  "script-src 'self' 'unsafe-inline' https://*.i.posthog.com; " +
+  "connect-src 'self' https://*.i.posthog.com; " +
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+  "img-src 'self' data:; " +
+  "font-src 'self' https://fonts.gstatic.com; " +
+  "frame-ancestors 'none'; " +
+  "base-uri 'self'; " +
+  "form-action 'self'";
+
+export function applyBaselineHeaders(res) {
+  for (const [k, v] of Object.entries(BASELINE_SECURITY_HEADERS)) {
+    res.headers.set(k, v);
+  }
+  return res;
+}
+
 function applySecurityHeaders(response) {
   const res = new Response(response.body, response);
-  res.headers.set("X-Content-Type-Options", "nosniff");
-  res.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  applyBaselineHeaders(res);
+  const ct = res.headers.get("Content-Type") || "";
+  if (ct.includes("text/html")) {
+    res.headers.set("Content-Security-Policy", CSP_HTML);
+  }
   return res;
 }
 
@@ -144,7 +178,7 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
     });
     linearData = await linearRes.json();
   } catch (e) {
-    log.error("Linear fetch error:", e.message);
+    log.eventError(EVENTS.UPSTREAM_FAILED, { upstream: "linear", reason: "fetch_error", message: e.message });
     return new Response(
       JSON.stringify({ error: "Could not reach issue tracker.", code: "upstream_unreachable" }),
       { status: 502, headers: corsHeaders(origin, requestId) },
@@ -153,6 +187,7 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
 
   if (linearData.data?.issueCreate?.success) {
     const issue = linearData.data.issueCreate.issue;
+    log.event(EVENTS.FEEDBACK_SUBMITTED, { type, priority: linearPriority, skill: skill || null, issue: issue.identifier });
     if (email) {
       try {
         const distinctId = await hashDistinctId(email);
@@ -171,7 +206,7 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
     );
   }
 
-  log.error("Linear API error:", JSON.stringify(linearData));
+  log.eventError(EVENTS.FEEDBACK_FAILED, { errors: linearData?.errors?.map((e) => e.message) ?? null });
   return new Response(
     JSON.stringify({ error: "Failed to create issue.", code: "upstream_error" }),
     { status: 500, headers: corsHeaders(origin, requestId) },
@@ -180,12 +215,7 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
 
 // ── Main Router ─────────────────────────────────────────────────────────────
 
-export default {
-  async fetch(request, env, ctx) {
-    const origin = request.headers.get("Origin");
-    const url = new URL(request.url);
-    const requestId = request.headers.get("X-Opchain-Request-Id") || newRequestId();
-
+async function route(request, env, ctx, url, origin, requestId) {
     if (request.method === "OPTIONS" && url.pathname.startsWith("/api/")) {
       return new Response(null, { status: 204, headers: corsHeaders(origin, requestId) });
     }
@@ -224,20 +254,35 @@ export default {
       const dlRes = new Response(res.body, res);
       dlRes.headers.set("Content-Disposition", 'attachment; filename="opchain-skills.zip"');
       dlRes.headers.set("Cache-Control", "public, max-age=3600");
-      // Anonymous zip-download event. No email → stable per-IP pseudonym.
-      try {
-        const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
-        const distinctId = await hashDistinctId(`ip:${ip}`);
-        ctx?.waitUntil?.(capture(env, {
-          distinctId,
-          event: "zip_downloaded",
-          properties: { path: url.pathname, request_id: requestId },
-        }));
-      } catch { /* analytics never breaks a download */ }
+      if (res.ok) {
+        try {
+          const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
+          const distinctId = await hashDistinctId(`ip:${ip}`);
+          ctx?.waitUntil?.(capture(env, {
+            distinctId,
+            event: "zip_downloaded",
+            properties: { path: url.pathname, request_id: requestId },
+          }));
+        } catch { /* analytics never breaks a download */ }
+      }
       return applySecurityHeaders(dlRes);
     }
 
     const res = await fetchAsset(env, request, url.origin);
     return applySecurityHeaders(res);
+}
+
+export default {
+  async fetch(request, env, ctx) {
+    const origin = request.headers.get("Origin");
+    const url = new URL(request.url);
+    const requestId = request.headers.get("X-Opchain-Request-Id") || newRequestId();
+    const res = await route(request, env, ctx, url, origin, requestId);
+    // Stamp baseline headers on every response. Idempotent — asset responses
+    // already set them inside applySecurityHeaders, re-setting is a no-op.
+    // Doing this unconditionally prevents latent bugs where a future handler
+    // sets one baseline header and accidentally suppresses the rest.
+    applyBaselineHeaders(res);
+    return res;
   },
 };
