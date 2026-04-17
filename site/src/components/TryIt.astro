@@ -24,7 +24,6 @@ const { preselect: preselectProp } = Astro.props;
 
 const tryable = await getTryablePrompts();
 const preselect = preselectProp || tryable[0]?.id || "";
-const initial = tryable.find((s) => s.id === preselect) ?? tryable[0];
 ---
 
 <section class="tryit" data-max-exchanges="5">
@@ -74,16 +73,10 @@ const initial = tryable.find((s) => s.id === preselect) ?? tryable[0];
     </div>
   </div>
 
-  <!-- Transcript. -->
+  <!-- Transcript. Client script populates the initial assistant message
+       via renderSafeMarkdown so initial + re-selection render identically. -->
   <div class="chat-shell" aria-live="polite" aria-label="Conversation">
-    <div class="messages" id="tryit-messages">
-      {initial && (
-        <div class="msg msg--assistant">
-          <div class="msg-label">{initial.displayName}</div>
-          <div class="msg-content markdown" set:html={initial.prompt.replace(/\n/g, "<br>")}></div>
-        </div>
-      )}
-    </div>
+    <div class="messages" id="tryit-messages"></div>
   </div>
 
   <form class="input-row" id="tryit-input-form" autocomplete="off">
@@ -161,6 +154,15 @@ const initial = tryable.find((s) => s.id === preselect) ?? tryable[0];
     const transcript: { role: "user" | "assistant"; content: string }[] = [];
     let inFlight: AbortController | null = null;
     let lastUserMessage = "";
+
+    // Render the initial skill intro with the same markdown pipeline used
+    // client-side. Avoids SSR/CSR drift (Bugbot PR23#L83).
+    const activePill = pills.find((p) => p.getAttribute("aria-pressed") === "true") ?? pills[0];
+    if (activePill) {
+      const intro = activePill.dataset.skillPrompt || "";
+      const label = activePill.dataset.skillName || "assistant";
+      if (intro) renderMessage("assistant", intro, label).classList.add("intro");
+    }
 
     function setCounter() {
       counter.textContent = `${remaining} of ${MAX} exchanges remaining`;
@@ -370,7 +372,17 @@ const initial = tryable.find((s) => s.id === preselect) ?? tryable[0];
         }
       } catch (e: any) {
         if (e?.name === "AbortError") {
-          assistantEl.textContent = streamed || "[aborted]";
+          // Preserve alternating user/assistant roles: either keep both
+          // messages (partial response was streamed) or drop both
+          // (nothing arrived). Two consecutive user messages would break
+          // the next /chat call (Bugbot PR23#L378).
+          if (streamed) {
+            assistantEl.innerHTML = renderSafeMarkdown(streamed);
+            transcript.push({ role: "assistant", content: streamed });
+          } else {
+            assistantEl.remove();
+            transcript.pop();
+          }
         } else {
           assistantEl.remove();
           transcript.pop();
