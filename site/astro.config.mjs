@@ -1,9 +1,11 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import cloudflare from "@astrojs/cloudflare";
+import tailwindcss from "@tailwindcss/vite";
 
-// Sprint 0 scaffold. Real integrations (Tailwind 4, MDX, content collections)
-// land in Sprints 1-3. Keep this file small and additive.
+// Sprint 2 — Tailwind 4 wired via Vite plugin. Design tokens live in
+// site/src/styles/tokens.css and are exposed as Tailwind utilities by
+// site/src/styles/global.css's @theme block.
 export default defineConfig({
   site: "https://opchain.dev",
   output: "server",
@@ -11,4 +13,7 @@ export default defineConfig({
     imageService: "compile",
     platformProxy: { enabled: true },
   }),
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });

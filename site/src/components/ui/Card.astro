@@ -1,0 +1,52 @@
+---
+type Variant = "surface" | "card";
+
+interface Props {
+  variant?: Variant;
+  /** Whether to render the themed glow halo. */
+  glow?: boolean;
+  class?: string;
+  /** Renders as an <a> when present. */
+  href?: string;
+}
+
+const {
+  variant = "surface",
+  glow = true,
+  class: className = "",
+  href,
+} = Astro.props;
+
+const classes = ["card", `card-${variant}`, glow ? "card-glow" : "", className]
+  .filter(Boolean)
+  .join(" ");
+---
+
+{href ? (
+  <a href={href} class={classes}>
+    <slot />
+  </a>
+) : (
+  <div class={classes}>
+    <slot />
+  </div>
+)}
+
+<style>
+  .card {
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 1.1rem 1.25rem;
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard);
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+  .card-surface { background: var(--surface); }
+  .card-card    { background: var(--card); }
+  .card-glow    { box-shadow: var(--glow-lg); }
+
+  a.card:hover { border-color: var(--accent); }
+</style>

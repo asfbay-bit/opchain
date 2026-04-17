@@ -1,0 +1,43 @@
+---
+interface Props {
+  pressed?: boolean;
+  type?: "button" | "submit";
+  class?: string;
+}
+const { pressed = false, type = "button", class: className = "" } = Astro.props;
+---
+
+<button
+  type={type}
+  class:list={["pill", className]}
+  aria-pressed={pressed}
+>
+  <slot />
+</button>
+
+<style>
+  .pill {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--muted);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-pill);
+    padding: 0.35rem 0.7rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard);
+  }
+  .pill:hover { color: var(--text); }
+  .pill[aria-pressed="true"] {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+</style>

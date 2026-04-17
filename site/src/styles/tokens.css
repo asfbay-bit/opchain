@@ -1,13 +1,15 @@
 /* ─────────────────────────────────────────────────────────────
-   opchain — Industrial Utility tokens
-   Canonical design tokens shared with public/styles.css.
-   Consumed by the Astro site (Sprint 2+) via Tailwind 4 or
-   directly in component CSS.
-   Light theme activated via data-theme="light" on <html>.
+   opchain — design tokens (Sprint 2)
+   Canonical source of truth. Shared with public/styles.css.
+   Consumed by the Astro site via global.css @theme block
+   (exposes tokens as Tailwind 4 utilities) and directly in
+   component <style> scopes.
+
+   Theme switching: [data-theme="light"] on <html>.
    ───────────────────────────────────────────────────────────── */
 
 :root {
-  /* Brand constants (never themed) */
+  /* ── Brand constants (never themed) ── */
   --obsidian:  #1c1710;
   --forge:     #2a2218;
   --slag:      #5a5040;
@@ -19,7 +21,7 @@
   --ember-dim: rgba(224, 92, 24, 0.10);
   --ember-glow: rgba(224, 92, 24, 0.22);
 
-  /* ─────────── DARK THEME (default — Obsidian) ─────────── */
+  /* ── Dark theme (default — Obsidian) ── */
   --bg:          var(--obsidian);
   --ribbon:      #231b13;
   --ribbon-edge: #3a2f26;
@@ -33,38 +35,111 @@
   --accent-hover:#b84510;
   --accent-dim:  rgba(224, 92, 24, 0.10);
   --glow:        rgba(224, 92, 24, 0.14);
-  --danger:      #d86464;
-  --success:     #7ec99a;
 
-  /* Logo tokens — SVG fills/strokes use these. */
+  /* Semantic state colours */
+  --danger:      #d86464;
+  --danger-dim:  rgba(216, 100, 100, 0.12);
+  --success:     #7ec99a;
+  --success-dim: rgba(126, 201, 154, 0.12);
+  --info:        #6cb2e0;
+  --info-dim:    rgba(108, 178, 224, 0.12);
+  --warning:     #e8c060;
+  --warning-dim: rgba(232, 192, 96, 0.12);
+
+  /* Logo tokens */
   --logo-stroke:    var(--text);
   --logo-spine:     var(--subtle);
   --logo-filled:    var(--accent);
   --logo-dot-dark:  var(--bg);
 
-  /* Typography */
+  /* ── Typography ── */
   --font-display: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-body:    "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Type scale (modular, Outfit-tuned) */
+  --fs-xs:    10px;
+  --fs-sm:    12px;
+  --fs-base:  14px;
+  --fs-md:    16px;
+  --fs-lg:    20px;
+  --fs-xl:    28px;
+  --fs-2xl:   36px;
+  --fs-3xl:   48px;
+  --fs-hero:  clamp(2.25rem, 7vw, 3.75rem);
+
+  /* Line-heights */
+  --lh-tight:   1.1;
+  --lh-snug:    1.35;
+  --lh-base:    1.55;
+  --lh-loose:   1.75;
+
+  /* Letter-spacing */
+  --ls-tight:   -0.015em;
+  --ls-base:    0;
+  --ls-wide:    0.05em;
+  --ls-wider:   0.1em;
+  --ls-widest:  0.15em;
+  --ls-display: 0.22em;   /* wordmark */
+
+  /* Wordmark convenience */
   --wordmark-weight:   600;
-  --wordmark-tracking: 0.22em;
+  --wordmark-tracking: var(--ls-display);
+
+  /* ── Space scale (4px base) ── */
+  --space-0:    0;
+  --space-px:   1px;
+  --space-1:    4px;
+  --space-2:    8px;
+  --space-3:    12px;
+  --space-4:    16px;
+  --space-5:    20px;
+  --space-6:    24px;
+  --space-8:    32px;
+  --space-10:   40px;
+  --space-12:   48px;
+  --space-16:   64px;
+  --space-20:   80px;
+  --space-24:   96px;
 
   /* Logo spacing */
   --logo-clear-space: 16px;
   --logo-min-width:   80px;
   --icon-min-size:    16px;
 
-  /* Radii */
-  --r-xs: 3px;
-  --r-sm: 4px;
-  --r-md: 6px;
-  --r-lg: 8px;
+  /* ── Radii ── */
+  --r-xs:   3px;
+  --r-sm:   4px;
+  --r-md:   6px;
+  --r-lg:   8px;
+  --r-xl:   12px;
   --r-pill: 999px;
 
-  /* Motion */
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --dur-fast: 150ms;
-  --dur-base: 200ms;
+  /* ── Shadows (layered elevation) ── */
+  --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-md:  0 2px 6px -1px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.12);
+  --shadow-lg:  0 8px 24px -6px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.12);
+  --shadow-xl:  0 16px 40px -8px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.18);
+
+  /* Accent glow — the themed halo under cards + ribbon */
+  --glow-sm:    0 0 16px -4px var(--glow, transparent);
+  --glow-md:    0 0 24px -6px var(--glow, transparent);
+  --glow-lg:    0 0 32px -6px var(--glow, transparent);
+  --glow-ribbon:0 8px 24px -8px var(--glow, transparent);
+
+  /* ── Motion ── */
+  --ease-standard:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in:        cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:       cubic-bezier(0, 0, 0.2, 1);
+  --dur-fast:       120ms;
+  --dur-base:       200ms;
+  --dur-slow:       320ms;
+  --dur-slower:     480ms;
+
+  /* ── Focus ring ── */
+  --focus-ring:       0 0 0 2px var(--accent);
+  --focus-ring-inset: inset 0 0 0 2px var(--accent);
 }
 
 /* ─────────── LIGHT THEME (Amber) ─────────── */
@@ -82,7 +157,29 @@
   --accent-hover:#ab3e08;
   --accent-dim:  rgba(217, 80, 16, 0.12);
   --glow:        rgba(217, 80, 16, 0.10);
+
   --danger:      #b33a3a;
+  --danger-dim:  rgba(179, 58, 58, 0.10);
   --success:     #3f7a55;
-  /* Logo tokens re-resolve automatically via the semantic tokens above. */
+  --success-dim: rgba(63, 122, 85, 0.10);
+  --info:        #2c6aa0;
+  --info-dim:    rgba(44, 106, 160, 0.10);
+  --warning:     #8a6b18;
+  --warning-dim: rgba(138, 107, 24, 0.10);
+
+  /* Layered shadows — lighter on light grounds to avoid heavy "web 2.0" bevel. */
+  --shadow-sm:  0 1px 2px rgba(42, 22, 6, 0.08);
+  --shadow-md:  0 2px 6px -1px rgba(42, 22, 6, 0.12), 0 1px 2px rgba(42, 22, 6, 0.06);
+  --shadow-lg:  0 8px 24px -6px rgba(42, 22, 6, 0.14), 0 2px 4px rgba(42, 22, 6, 0.06);
+  --shadow-xl:  0 16px 40px -8px rgba(42, 22, 6, 0.18), 0 4px 8px rgba(42, 22, 6, 0.08);
+}
+
+/* ── prefers-reduced-motion ── */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast:   0ms;
+    --dur-base:   0ms;
+    --dur-slow:   0ms;
+    --dur-slower: 0ms;
+  }
 }

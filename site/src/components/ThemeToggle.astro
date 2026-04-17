@@ -1,0 +1,111 @@
+---
+/**
+ * Sun/moon toggle. Flips [data-theme] on <html> and persists to
+ * localStorage. The inline FOUC script in Base.astro sets the
+ * initial theme before paint; this button only handles clicks.
+ *
+ * Icon visibility is controlled by CSS so the DOM never has to swap.
+ */
+---
+
+<button
+  class="theme-toggle"
+  type="button"
+  aria-label="Switch theme"
+  data-theme-toggle
+>
+  <svg
+    class="icon-sun"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="5"/>
+    <line x1="12" y1="1" x2="12" y2="3"/>
+    <line x1="12" y1="21" x2="12" y2="23"/>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+    <line x1="1" y1="12" x2="3" y2="12"/>
+    <line x1="21" y1="12" x2="23" y2="12"/>
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+  </svg>
+  <svg
+    class="icon-moon"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+
+<script>
+  (() => {
+    const btn = document.querySelector<HTMLButtonElement>("[data-theme-toggle]");
+    if (!btn) return;
+
+    const labelFor = (theme: string) =>
+      theme === "dark" ? "Switch to light theme" : "Switch to dark theme";
+    const currentTheme = () =>
+      document.documentElement.getAttribute("data-theme") || "dark";
+
+    btn.setAttribute("aria-label", labelFor(currentTheme()));
+
+    btn.addEventListener("click", () => {
+      const next = currentTheme() === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      btn.setAttribute("aria-label", labelFor(next));
+      try {
+        localStorage.setItem("opchain-theme", next);
+      } catch {
+        /* localStorage blocked — fall back to session-only */
+      }
+    });
+  })();
+</script>
+
+<style>
+  .theme-toggle {
+    font-family: var(--font-mono);
+    color: var(--muted);
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-sm);
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition:
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard);
+  }
+  .theme-toggle:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .theme-toggle svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+  }
+
+  /* Default (no data-theme / dark): show the sun (click → light). */
+  .icon-moon { display: none; }
+  :global([data-theme="light"]) .icon-sun { display: none; }
+  :global([data-theme="light"]) .icon-moon { display: block; }
+</style>
