@@ -92,6 +92,8 @@ body {
 .ph {
   background: var(--ribbon);
   border-bottom: 0.5px solid var(--ribbon-edge, var(--border));
+  box-shadow: 0 1px 0 var(--ribbon-highlight, transparent) inset,
+              0 8px 24px -8px var(--glow, transparent);
 }
 .ph-inner {
   max-width: 960px; margin: 0 auto; padding: 0 1.5rem;
@@ -169,6 +171,7 @@ body {
 .phase-card {
   background: var(--surface); border: 0.5px solid var(--border);
   border-radius: var(--r-md); padding: 0.85rem 1rem;
+  box-shadow: 0 0 24px -6px var(--glow, transparent);
 }
 .phase-card .step {
   font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
@@ -186,6 +189,7 @@ body {
   background: var(--surface); border: 0.5px solid var(--border);
   border-radius: var(--r-lg); padding: 1.1rem 1.25rem;
   transition: border-color 150ms;
+  box-shadow: 0 0 32px -6px var(--glow, transparent);
 }
 .skill-card:hover { border-color: var(--accent); }
 .skill-card h3 {
@@ -204,6 +208,7 @@ body {
   background: var(--surface); border: 0.5px solid var(--border);
   border-radius: var(--r-lg); padding: 1.25rem;
   display: flex; flex-direction: column; gap: 0.85rem;
+  box-shadow: 0 0 32px -6px var(--glow, transparent);
 }
 .msg { max-width: 85%; }
 .msg--assistant { align-self: flex-start; }
@@ -312,132 +317,148 @@ body {
    layered, brighter text for readability.
    ───────────────────────────────────────────── */
 
-/* 6. OBSIDIAN LIFTED — brighter take on #1, deeper ribbon/surface delta. */
+/* 6. OBSIDIAN LIFTED — brighter take on #1, deeper ribbon/surface delta, accent glow. */
 .preview[data-theme="obsidian-lifted"] {
   --bg:          #241c14;
-  --ribbon:      #2e241a;
+  --ribbon:      #362a1d;
   --ribbon-edge: #4a3a2a;
-  --surface:     #342818;
-  --card:        #2a2018;
-  --border:      #4a3a2a;
+  --ribbon-highlight: rgba(255, 230, 200, 0.04);
+  --surface:     #3e3020;
+  --card:        #332619;
+  --border:      #5a4632;
   --text:        #f5ecdc;
   --muted:       #d4c4a8;
   --subtle:      #9a8a72;
   --accent:      #e8692a;
   --accent-hover:#c94a1a;
   --accent-dim:  rgba(232, 105, 42, 0.14);
+  --glow:        rgba(232, 105, 42, 0.28);
 }
 
 /* 7. ONYX LIFTED — cooler lift, crisper text, still restrained. */
 .preview[data-theme="onyx-lifted"] {
   --bg:          #1a1611;
-  --ribbon:      #231d15;
+  --ribbon:      #2c241a;
   --ribbon-edge: #42362a;
-  --surface:     #2c241a;
-  --card:        #1f1814;
-  --border:      #42362a;
+  --ribbon-highlight: rgba(255, 230, 200, 0.04);
+  --surface:     #342a1e;
+  --card:        #261f18;
+  --border:      #4a3d2e;
   --text:        #f1e8d8;
   --muted:       #c8bba0;
   --subtle:      #8a7d66;
   --accent:      #e8692a;
   --accent-hover:#c94a1a;
   --accent-dim:  rgba(232, 105, 42, 0.12);
+  --glow:        rgba(232, 105, 42, 0.24);
 }
 
 /* 8. FORGE LIFTED — richer burnt-wood, highest readability of the lifted four. */
 .preview[data-theme="forge-lifted"] {
   --bg:          #2a2116;
-  --ribbon:      #33281b;
+  --ribbon:      #3d2f1f;
   --ribbon-edge: #5a4632;
-  --surface:     #3d3022;
-  --card:        #332818;
-  --border:      #5a4632;
+  --ribbon-highlight: rgba(255, 230, 200, 0.05);
+  --surface:     #473726;
+  --card:        #3a2e1c;
+  --border:      #6a5238;
   --text:        #faeddb;
   --muted:       #e2cba8;
   --subtle:      #a68a68;
   --accent:      #f0702a;
   --accent-hover:#c94a1a;
   --accent-dim:  rgba(240, 112, 42, 0.14);
+  --glow:        rgba(240, 112, 42, 0.30);
 }
 
 /* 9. COFFEE LIFTED — brown-warm with more contrast, cocoa feel. */
 .preview[data-theme="coffee-lifted"] {
   --bg:          #2e1c13;
-  --ribbon:      #3a2416;
+  --ribbon:      #452b19;
   --ribbon-edge: #6a3d24;
-  --surface:     #432918;
-  --card:        #331f13;
-  --border:      #6a3d24;
+  --ribbon-highlight: rgba(255, 220, 180, 0.05);
+  --surface:     #4e301e;
+  --card:        #3d2618;
+  --border:      #7a4a2a;
   --text:        #f5e4d0;
   --muted:       #d6b894;
   --subtle:      #9a7352;
   --accent:      #f5752a;
   --accent-hover:#d14a15;
   --accent-dim:  rgba(245, 117, 42, 0.14);
+  --glow:        rgba(245, 117, 42, 0.30);
 }
 
 /* 10. PLUM — dark aubergine/purple ground. Wild. */
 .preview[data-theme="plum"] {
   --bg:          #1a0e1e;
-  --ribbon:      #241328;
+  --ribbon:      #301a38;
   --ribbon-edge: #4a2a52;
-  --surface:     #2e1a33;
-  --card:        #22142a;
-  --border:      #4a2a52;
+  --ribbon-highlight: rgba(255, 200, 220, 0.05);
+  --surface:     #3a2050;
+  --card:        #28183a;
+  --border:      #5e3468;
   --text:        #f0e0ec;
   --muted:       #c0a8c4;
   --subtle:      #8a7290;
   --accent:      #ff7a3d;
   --accent-hover:#e05c18;
   --accent-dim:  rgba(255, 122, 61, 0.14);
+  --glow:        rgba(255, 122, 61, 0.30);
 }
 
 /* 11. TEAL VOID — deep petrol/teal ground. Wild. */
 .preview[data-theme="teal-void"] {
   --bg:          #0a1a1e;
-  --ribbon:      #102832;
+  --ribbon:      #173848;
   --ribbon-edge: #1e4852;
-  --surface:     #173a46;
-  --card:        #0e242c;
-  --border:      #1e4852;
+  --ribbon-highlight: rgba(200, 240, 255, 0.05);
+  --surface:     #205060;
+  --card:        #152e38;
+  --border:      #2a5c68;
   --text:        #e0f0f0;
   --muted:       #a0c8c8;
   --subtle:      #6a8e8e;
   --accent:      #ff8040;
   --accent-hover:#e05c18;
   --accent-dim:  rgba(255, 128, 64, 0.14);
+  --glow:        rgba(255, 128, 64, 0.32);
 }
 
 /* 12. BURGUNDY — dark wine/blood ground, gold-ember pop. Wild. */
 .preview[data-theme="burgundy"] {
   --bg:          #1e0a10;
-  --ribbon:      #2a1218;
+  --ribbon:      #3a1c24;
   --ribbon-edge: #52282e;
-  --surface:     #3a1a20;
-  --card:        #261018;
-  --border:      #52282e;
+  --ribbon-highlight: rgba(255, 200, 200, 0.05);
+  --surface:     #4c2028;
+  --card:        #321420;
+  --border:      #6a343e;
   --text:        #f5e0dc;
   --muted:       #d4a8a8;
   --subtle:      #9a7272;
   --accent:      #f0a040;
   --accent-hover:#d08020;
   --accent-dim:  rgba(240, 160, 64, 0.14);
+  --glow:        rgba(240, 160, 64, 0.30);
 }
 
 /* 13. VOID — pure near-black. OLED. Ember pops maximally. Wild. */
 .preview[data-theme="void"] {
   --bg:          #030305;
-  --ribbon:      #0a0a0e;
+  --ribbon:      #131318;
   --ribbon-edge: #252530;
-  --surface:     #16161c;
-  --card:        #0a0a0e;
-  --border:      #252530;
+  --ribbon-highlight: rgba(255, 255, 255, 0.05);
+  --surface:     #1e1e26;
+  --card:        #0f0f14;
+  --border:      #323240;
   --text:        #f0f0f4;
   --muted:       #a8a8b4;
   --subtle:      #6a6a78;
   --accent:      #ff5c18;
   --accent-hover:#e04510;
   --accent-dim:  rgba(255, 92, 24, 0.18);
+  --glow:        rgba(255, 92, 24, 0.40);
 }
 </style>
 </head>
