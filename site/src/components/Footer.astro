@@ -24,6 +24,8 @@ const year = new Date().getFullYear();
       <div class="col-head">source</div>
       <a href="https://github.com/asfbay-bit/opchain" rel="noopener">GitHub</a>
       <a href="https://opchain.dev/api/health" rel="noopener">API health</a>
+      <a href="/privacy">Privacy</a>
+      <button type="button" id="opchain-privacy-reset" class="link-btn">Manage privacy</button>
     </div>
   </div>
   <div class="site-footer-meta">
@@ -31,6 +33,16 @@ const year = new Date().getFullYear();
     <span>open-source · MIT</span>
   </div>
 </footer>
+
+<script>
+  const btn = document.getElementById("opchain-privacy-reset");
+  btn?.addEventListener("click", () => {
+    try {
+      localStorage.removeItem("opchain-consent");
+    } catch { /* ignore */ }
+    location.reload();
+  });
+</script>
 
 <style>
   .site-footer {
@@ -80,7 +92,19 @@ const year = new Date().getFullYear();
     text-decoration: none;
     transition: color var(--dur-fast) var(--ease-standard);
   }
-  .col a:hover { color: var(--accent); }
+  .col a:hover,
+  .col .link-btn:hover { color: var(--accent); }
+  .link-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    text-align: left;
+    font: inherit;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    cursor: pointer;
+    transition: color var(--dur-fast) var(--ease-standard);
+  }
   .site-footer-meta {
     max-width: 960px;
     margin: 0 auto;

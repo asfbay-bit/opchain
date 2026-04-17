@@ -23,7 +23,7 @@ import {
 } from "./lib/kv.js";
 import { fetchWithRetry } from "./lib/retry.js";
 import { capture, hashDistinctId } from "./lib/analytics.js";
-import { bindLogger, newRequestId } from "./lib/request-id.js";
+import { bindLogger, newRequestId, EVENTS } from "./lib/request-id.js";
 
 const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
 const MAX_EXCHANGES = 5;
@@ -31,7 +31,13 @@ const MAX_TOKENS = 2048;
 const EMAIL_TTL_SEC = 86400;     // 24h
 const IP_WINDOW_SEC = 3600;      // 1h
 const IP_MAX_SESSIONS = 20;
-const LEAD_TTL_SEC = 60 * 60 * 24 * 365; // 1y (Sprint 5 tightens this)
+const DEFAULT_LEAD_TTL_DAYS = 365;
+
+function leadTtlSec(env) {
+  const days = Number(env?.LEAD_TTL_DAYS);
+  const d = Number.isFinite(days) && days > 0 ? days : DEFAULT_LEAD_TTL_DAYS;
+  return Math.floor(d * 86400);
+}
 
 // ── Response helpers ────────────────────────────────────────────────────────
 
@@ -120,6 +126,7 @@ async function handleStart(request, env, ctx, requestId) {
   const ip = getClientIP(request);
   const window = await readIpWindow(env.DATA, ip, IP_WINDOW_SEC);
   if (window.count >= IP_MAX_SESSIONS) {
+    log.event(EVENTS.RATE_LIMIT_HIT, { limit: "ip", route: "try/start" });
     return errResponse("Too many requests. Please try again later.", "rate_limited_ip", 429, requestId);
   }
   await writeIpWindow(env.DATA, ip, IP_WINDOW_SEC, { count: window.count + 1, start: window.start });
@@ -127,6 +134,7 @@ async function handleStart(request, env, ctx, requestId) {
   // Per-email usage cap
   const usage = await readEmailUsage(env.DATA, email);
   if (usage.count >= MAX_EXCHANGES) {
+    log.event(EVENTS.RATE_LIMIT_HIT, { limit: "email_exchanges", route: "try/start" });
     return errResponse(
       `You've used all ${MAX_EXCHANGES} free exchanges. Install opchain for unlimited access.`,
       "exchanges_exhausted",
@@ -136,7 +144,7 @@ async function handleStart(request, env, ctx, requestId) {
     );
   }
 
-  const newLead = await writeLeadIfNew(env.DATA, email, "tryit", LEAD_TTL_SEC);
+  const newLead = await writeLeadIfNew(env.DATA, email, "tryit", leadTtlSec(env));
 
   if (!env.DEPLOY_API_TOKEN) {
     log.error("opchain-try: DEPLOY_API_TOKEN is not set — refusing to sign tokens");
@@ -196,6 +204,7 @@ async function handleChat(request, env, ctx, requestId) {
 
   const userMessageCount = messages.filter((m) => m.role === "user").length;
   if (userMessageCount > MAX_EXCHANGES) {
+    log.event(EVENTS.RATE_LIMIT_HIT, { limit: "exchanges_in_transcript", route: "try/chat" });
     return errResponse(
       `Maximum ${MAX_EXCHANGES} exchanges reached. Install opchain for unlimited access.`,
       "exchanges_exhausted",
@@ -207,6 +216,7 @@ async function handleChat(request, env, ctx, requestId) {
 
   const usage = await readEmailUsage(env.DATA, email);
   if (usage.count >= MAX_EXCHANGES) {
+    log.event(EVENTS.RATE_LIMIT_HIT, { limit: "email_exchanges", route: "try/chat" });
     return errResponse(
       `You've used all ${MAX_EXCHANGES} free exchanges. Install opchain for unlimited access.`,
       "exchanges_exhausted",
@@ -227,6 +237,7 @@ async function handleChat(request, env, ctx, requestId) {
 
   const distinctId = await hashDistinctId(email);
   if (userMessageCount === 1) {
+    log.event(EVENTS.CHAT_STARTED, { skill });
     ctx?.waitUntil?.(capture(env, {
       distinctId,
       event: "demo_chat_started",
@@ -256,13 +267,13 @@ async function handleChat(request, env, ctx, requestId) {
       },
     );
   } catch (e) {
-    log.error("opchain-try fetch error:", e.message);
+    log.eventError(EVENTS.UPSTREAM_FAILED, { upstream: "anthropic", reason: "fetch_error", message: e.message });
     return errResponse("Could not reach AI service. Please try again.", "upstream_unreachable", 502, requestId);
   }
 
   if (!anthropicRes.ok) {
     const errText = await anthropicRes.text().catch(() => "");
-    log.error("opchain-try Anthropic error:", anthropicRes.status, errText);
+    log.eventError(EVENTS.UPSTREAM_FAILED, { upstream: "anthropic", status: anthropicRes.status, message: errText.slice(0, 200) });
     if (anthropicRes.status === 429) {
       return errResponse("AI service is busy. Please try again in a moment.", "upstream_busy", 503, requestId);
     }
@@ -307,13 +318,14 @@ async function handleChat(request, env, ctx, requestId) {
       if (!completed) {
         await writer.write(encoder.encode(`data: ${JSON.stringify({ done: true, remaining })}\n\n`));
       }
+      log.event(EVENTS.CHAT_COMPLETED, { skill, remaining });
       ctx?.waitUntil?.(capture(env, {
         distinctId,
         event: "demo_chat_completed",
         properties: { skill, remaining, request_id: requestId },
       }));
     } catch (e) {
-      log.error("opchain-try stream error:", e.message);
+      log.eventError(EVENTS.UPSTREAM_FAILED, { upstream: "anthropic", reason: "stream_error", message: e.message });
       try {
         await writer.write(encoder.encode(`data: ${JSON.stringify({ error: "Stream interrupted.", code: "stream_interrupted" })}\n\n`));
       } catch { /* writer closed */ }
