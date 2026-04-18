@@ -85,9 +85,39 @@ const description = `${skill.data.displayName} — ${skill.data.shortDesc}`;
       </Card>
     </section>
 
-    <!-- ───────────── Full skill markdown ───────────── -->
-    <section class="prose">
-      <Content />
+    <!-- ───────────── How you'll use it (human-facing) ───────────── -->
+    <section class="usage">
+      <h2>How you'll use it</h2>
+      <p class="usage-desc">{skill.data.description}</p>
+      {skill.data.commands.length > 0 && (
+        <>
+          <p class="usage-label">Trigger with natural language or a slash command:</p>
+          <div class="usage-cmds">
+            {skill.data.commands.slice(0, 6).map((c: string) => (
+              <code class="cmd">{c}</code>
+            ))}
+            {skill.data.commands.length > 6 && (
+              <span class="cmd-more">+{skill.data.commands.length - 6} more</span>
+            )}
+          </div>
+        </>
+      )}
+    </section>
+
+    <!-- ───────────── Full SKILL.md (model-facing) ───────────── -->
+    <section class="prose-wrap">
+      <div class="prose-head">
+        <span class="prose-eyebrow">SKILL.md</span>
+        <span class="prose-note">
+          Below is the file Claude reads on invocation. It's written in
+          the model's voice — "read this", "do that" — not a user guide.
+          The <a href="#usage">How you'll use it</a> section above is
+          the one for you.
+        </span>
+      </div>
+      <section class="prose" id="skill-md">
+        <Content />
+      </section>
     </section>
 
     <!-- ───────────── Footer CTA ───────────── -->
@@ -181,6 +211,81 @@ const description = `${skill.data.displayName} — ${skill.data.shortDesc}`;
     border-radius: var(--r-xs);
   }
 
+  .usage {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .usage h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 0.75rem;
+    letter-spacing: var(--ls-tight);
+  }
+  .usage-desc {
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    color: var(--muted);
+    margin: 0 0 1.1rem;
+  }
+  .usage-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--ls-widest);
+    color: var(--subtle);
+    margin: 0 0 0.5rem;
+  }
+  .usage-cmds {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+  }
+  .cmd-more {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+  }
+
+  .prose-wrap { margin-top: 1rem; }
+  .prose-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-bottom: 0;
+    border-top-left-radius: var(--r-md);
+    border-top-right-radius: var(--r-md);
+    margin-bottom: 0;
+  }
+  .prose-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    color: var(--accent);
+    flex: 0 0 auto;
+    padding-top: 0.1rem;
+  }
+  .prose-note {
+    font-size: var(--fs-xs);
+    line-height: 1.5;
+    color: var(--subtle);
+  }
+  .prose-note a { color: var(--accent); }
+  .prose {
+    padding: 1rem 1.25rem 0.5rem;
+    border: 0.5px solid var(--border);
+    border-top: 0;
+    border-bottom-left-radius: var(--r-md);
+    border-bottom-right-radius: var(--r-md);
+    background: var(--bg);
+  }
   .prose :global(h1) { display: none; } /* SKILL.md repeats the title */
   .prose {
     font-size: var(--fs-base);

@@ -37,6 +37,13 @@ const phaseFilters = [
       </Button>
     </div>
 
+    <p class="lede">
+      Eleven prompt packages — one shared protocol plus ten skills, each
+      owning one phase of the pipeline. Click any card for the full
+      <code class="ic">SKILL.md</code>, trigger commands, and (for the
+      ten tryable skills) a five-exchange live demo.
+    </p>
+
     <section class="filter-panel" aria-labelledby="lib-heading">
       <h2 id="lib-heading" class="visually-hidden">Filters</h2>
       <Input
@@ -190,6 +197,21 @@ const phaseFilters = [
     color: var(--text);
     letter-spacing: var(--ls-tight);
     margin: 0.5rem 0 0;
+  }
+  .lede {
+    color: var(--muted);
+    margin: 0.75rem 0 1.5rem;
+    max-width: 42rem;
+    line-height: var(--lh-base);
+  }
+  .ic {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
   }
 
   .filter-panel {
