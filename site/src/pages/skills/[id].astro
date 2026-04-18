@@ -86,7 +86,7 @@ const description = `${skill.data.displayName} — ${skill.data.shortDesc}`;
     </section>
 
     <!-- ───────────── How you'll use it (human-facing) ───────────── -->
-    <section class="usage">
+    <section id="usage" class="usage">
       <h2>How you'll use it</h2>
       <p class="usage-desc">{skill.data.description}</p>
       {skill.data.commands.length > 0 && (
@@ -285,13 +285,11 @@ const description = `${skill.data.displayName} — ${skill.data.shortDesc}`;
     border-bottom-left-radius: var(--r-md);
     border-bottom-right-radius: var(--r-md);
     background: var(--bg);
-  }
-  .prose :global(h1) { display: none; } /* SKILL.md repeats the title */
-  .prose {
     font-size: var(--fs-base);
     color: var(--muted);
     line-height: var(--lh-base);
   }
+  .prose :global(h1) { display: none; } /* SKILL.md repeats the title */
   .prose :global(h2) {
     font-family: var(--font-display);
     font-size: var(--fs-lg);
