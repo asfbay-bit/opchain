@@ -1,7 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
-import CodeBlock from "../components/ui/CodeBlock.astro";
+import PipelineDiagram from "../components/PipelineDiagram.astro";
 import Card from "../components/ui/Card.astro";
 import Badge from "../components/ui/Badge.astro";
 
@@ -46,18 +46,13 @@ const handoffs = [
     <!-- ───────────── Pipeline diagram ───────────── -->
     <section class="section">
       <h2>The pipeline</h2>
-      <CodeBlock>{`reverse-spec ──▶ app-architect ──▶ git-ops ──▶ deploy-ops
-                      │
-                      ├── auto-invokes stack-forge        (Phase 2)
-                      ├── design pipeline                 (Phase 3, ux-engineer)
-                      │     └── ux-engineer ──▶ dash-forge on data-heavy screens
-                      ├── build loop                      (Phase 6, Generator/Evaluator)
-                      └── launch handoff                  (Phase 7)
-
-code-auditor ────▶ runs at any stage, gates deploy
-integrations-engineer ────▶ runs when external APIs needed
-scale-ops ────▶ advisory, no pipeline chain
-dash-forge ────▶ invoked by ux-engineer or app-architect for dashboards`}</CodeBlock>
+      <p class="caption">
+        Read left-to-right. Solid arrows are automatic handoffs — the sending
+        skill invokes the receiver directly. Dashed arrows are advisory or
+        non-blocking. <code class="ic">checkpoint-protocol</code> underlies
+        every node; every other skill inherits its JSON schema.
+      </p>
+      <PipelineDiagram />
     </section>
 
     <!-- ───────────── Skill kinds ───────────── -->
@@ -178,6 +173,11 @@ dash-forge ────▶ invoked by ux-engineer or app-architect for dashboard
   }
   .section p { color: var(--muted); max-width: 42rem; margin: 0 0 1rem; }
   .section a { color: var(--accent); }
+  .caption {
+    font-size: var(--fs-sm);
+    color: var(--subtle);
+    margin: 0 0 1rem;
+  }
 
   .h3 {
     font-family: var(--font-display);

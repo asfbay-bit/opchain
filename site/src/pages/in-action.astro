@@ -1,0 +1,663 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Card from "../components/ui/Card.astro";
+import Icon from "../components/Icon.astro";
+import { walkthroughs } from "../data/walkthroughs";
+
+/**
+ * In Action — four scripted end-to-end sessions with opchain.
+ *
+ * UX:
+ *   - Scenario picker pills select one of the four transcripts.
+ *   - Enter or "play" reveals the next step.
+ *   - Space, "skip", or End reveals everything.
+ *   - Backspace / "restart" resets to step 0.
+ *   - Numeric keys 1-4 jump between scenarios.
+ */
+
+// Inline the transcripts as a JSON island the client script can read
+// without a round-trip. Static build, so this is free.
+const catalog = JSON.stringify(
+  walkthroughs.map((w) => ({
+    id: w.id,
+    title: w.title,
+    summary: w.summary,
+    skills: w.skills,
+    runtime: w.runtime,
+    steps: w.steps,
+  })),
+);
+---
+
+<Base
+  title="In Action · opchain"
+  description="Four fully-scripted end-to-end sessions showing how opchain skills chain, from concept to deployed app."
+  active="/in-action"
+>
+  <main class="page">
+    <header class="page-head">
+      <Eyebrow>in action</Eyebrow>
+      <h1>Four sessions, start to ship.</h1>
+      <p class="lede">
+        Each walkthrough is a real transcript between a user and Claude Code
+        with opchain installed. Press <kbd>Enter</kbd> to reveal the next
+        exchange, <kbd>Space</kbd> to skip to the end, or <kbd>R</kbd> to
+        restart. Use <kbd>1</kbd>–<kbd>4</kbd> to switch scenarios.
+      </p>
+    </header>
+
+    <!-- ───────────── Scenario picker ───────────── -->
+    <section class="scenarios" id="scenario-picker">
+      {walkthroughs.map((w, i) => (
+        <Card
+          variant="surface"
+          glow={false}
+          class="scenario"
+          {...({
+            "data-scenario": w.id,
+            "data-index": String(i),
+            "aria-pressed": i === 0 ? "true" : "false",
+            role: "button",
+            tabindex: "0",
+          } as any)}
+        >
+          <div class="scenario-head">
+            <span class="scenario-num">0{i + 1}</span>
+            <span class="scenario-runtime">{w.runtime}</span>
+          </div>
+          <div class="scenario-title">{w.title}</div>
+          <p class="scenario-summary">{w.summary}</p>
+          <div class="scenario-skills">
+            {w.skills.map((s) => (
+              <code class="chip">{s}</code>
+            ))}
+          </div>
+        </Card>
+      ))}
+    </section>
+
+    <!-- ───────────── Player ───────────── -->
+    <section class="player" aria-label="Walkthrough player">
+      <div class="player-head">
+        <div class="player-title">
+          <span class="player-eyebrow" id="player-eyebrow">scenario · 01</span>
+          <h2 id="player-heading">{walkthroughs[0].title}</h2>
+        </div>
+        <div class="player-controls">
+          <button type="button" id="btn-play" class="ctl ctl-primary" aria-label="Next step (Enter)">
+            <Icon name="arrow-right" size={12} />
+            <span id="btn-play-label">start</span>
+          </button>
+          <button type="button" id="btn-skip" class="ctl" aria-label="Skip to end (Space)">
+            skip
+          </button>
+          <button type="button" id="btn-restart" class="ctl" aria-label="Restart (R)">
+            restart
+          </button>
+        </div>
+      </div>
+
+      <div class="progress">
+        <div class="progress-bar" id="progress-bar"></div>
+        <span class="progress-label" id="progress-label" aria-live="polite">step 0 of 0</span>
+      </div>
+
+      <div id="transcript" class="transcript" aria-live="polite" aria-atomic="false">
+        <!-- Populated by the client script. An initial prompt is shown below. -->
+      </div>
+
+      <div class="start-prompt" id="start-prompt">
+        <Icon name="sparkles" />
+        <p>
+          <strong>Press <kbd>Enter</kbd></strong> (or click <em>start</em>) to
+          begin. <kbd>Space</kbd> cuts to the end; <kbd>R</kbd> resets;
+          <kbd>1</kbd>–<kbd>4</kbd> switches scenarios.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script is:inline id="walkthrough-data" type="application/json" set:html={catalog}></script>
+
+  <script>
+    import { renderSafeMarkdown } from "../lib/markdown";
+
+    interface Beat {
+      type: "beat";
+      label: string;
+      caption?: string;
+      skills?: string[];
+    }
+    interface Exchange {
+      type: "exchange";
+      role: "user" | "claude";
+      skill?: string;
+      content: string;
+    }
+    type Step = Beat | Exchange;
+    interface Walkthrough {
+      id: string;
+      title: string;
+      summary: string;
+      skills: string[];
+      runtime: string;
+      steps: Step[];
+    }
+
+    const dataEl = document.getElementById("walkthrough-data");
+    if (!dataEl) throw new Error("walkthrough data missing");
+    const catalog: Walkthrough[] = JSON.parse(dataEl.textContent || "[]");
+
+    const picker       = document.getElementById("scenario-picker")!;
+    const heading      = document.getElementById("player-heading")!;
+    const eyebrow      = document.getElementById("player-eyebrow")!;
+    const transcript   = document.getElementById("transcript")!;
+    const progressBar  = document.getElementById("progress-bar")!;
+    const progressLbl  = document.getElementById("progress-label")!;
+    const playBtn      = document.getElementById("btn-play")! as HTMLButtonElement;
+    const playLbl      = document.getElementById("btn-play-label")!;
+    const skipBtn      = document.getElementById("btn-skip")! as HTMLButtonElement;
+    const restartBtn   = document.getElementById("btn-restart")! as HTMLButtonElement;
+    const startPrompt  = document.getElementById("start-prompt")!;
+
+    let currentIdx  = 0;       // which scenario
+    let stepIdx     = 0;       // how many steps revealed
+
+    function currentScenario(): Walkthrough {
+      return catalog[currentIdx];
+    }
+
+    function setScenario(i: number) {
+      if (i < 0 || i >= catalog.length) return;
+      currentIdx = i;
+      stepIdx = 0;
+      transcript.innerHTML = "";
+      const w = currentScenario();
+      heading.textContent = w.title;
+      eyebrow.textContent = `scenario · 0${i + 1}`;
+      playLbl.textContent = "start";
+      startPrompt.hidden = false;
+      updateProgress();
+
+      // Toggle pressed state on the scenario cards.
+      picker.querySelectorAll<HTMLElement>("[data-scenario]").forEach((el) => {
+        el.setAttribute("aria-pressed", el.dataset.scenario === w.id ? "true" : "false");
+      });
+    }
+
+    function updateProgress() {
+      const total = currentScenario().steps.length;
+      const pct = total === 0 ? 0 : Math.round((stepIdx / total) * 100);
+      progressBar.style.width = `${pct}%`;
+      progressLbl.textContent = `step ${stepIdx} of ${total}`;
+      const atEnd = stepIdx >= total;
+      playLbl.textContent = stepIdx === 0 ? "start" : atEnd ? "complete" : "next";
+      playBtn.disabled = atEnd;
+      skipBtn.disabled = atEnd;
+      if (stepIdx > 0) startPrompt.hidden = true;
+    }
+
+    function escapeHTML(s: string): string {
+      return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function renderStep(step: Step) {
+      if (step.type === "beat") {
+        const el = document.createElement("div");
+        el.className = "beat";
+        const skillsHtml = (step.skills ?? [])
+          .map((s) => `<code class="chip">${escapeHTML(s)}</code>`)
+          .join("");
+        el.innerHTML = `
+          <div class="beat-rule"></div>
+          <div class="beat-body">
+            <div class="beat-label">${escapeHTML(step.label)}</div>
+            ${step.caption ? `<div class="beat-caption">${escapeHTML(step.caption)}</div>` : ""}
+            ${skillsHtml ? `<div class="beat-skills">${skillsHtml}</div>` : ""}
+          </div>
+          <div class="beat-rule"></div>
+        `;
+        transcript.appendChild(el);
+        return el;
+      }
+
+      const wrap = document.createElement("div");
+      wrap.className = `msg msg--${step.role === "user" ? "user" : "assistant"}`;
+
+      const label = document.createElement("div");
+      label.className = "msg-label";
+      label.textContent = step.role === "user"
+        ? "you"
+        : (step.skill ? `claude · ${step.skill}` : "claude");
+      wrap.appendChild(label);
+
+      const body = document.createElement("div");
+      body.className = "msg-content markdown";
+      if (step.role === "user") {
+        body.textContent = step.content;
+      } else {
+        body.innerHTML = renderSafeMarkdown(step.content);
+      }
+      wrap.appendChild(body);
+
+      transcript.appendChild(wrap);
+      return wrap;
+    }
+
+    function advance() {
+      const w = currentScenario();
+      if (stepIdx >= w.steps.length) return;
+      const el = renderStep(w.steps[stepIdx]);
+      stepIdx++;
+      updateProgress();
+      el.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+
+    function skipToEnd() {
+      const w = currentScenario();
+      while (stepIdx < w.steps.length) {
+        renderStep(w.steps[stepIdx]);
+        stepIdx++;
+      }
+      updateProgress();
+      transcript.lastElementChild?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+
+    function restart() {
+      stepIdx = 0;
+      transcript.innerHTML = "";
+      startPrompt.hidden = false;
+      updateProgress();
+    }
+
+    // ── wire up ────────────────────────────────────────────────
+    playBtn.addEventListener("click", advance);
+    skipBtn.addEventListener("click", skipToEnd);
+    restartBtn.addEventListener("click", restart);
+
+    picker.querySelectorAll<HTMLElement>("[data-scenario]").forEach((el, i) => {
+      const activate = () => setScenario(i);
+      el.addEventListener("click", activate);
+      el.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          // Stop the card-local Enter/Space from also bubbling up to the
+          // window player handler — otherwise pressing Enter on a card
+          // selects the scenario AND advances a step (and Space dumps
+          // the whole transcript).
+          ev.preventDefault();
+          ev.stopPropagation();
+          activate();
+        }
+      });
+    });
+
+    window.addEventListener("keydown", (ev) => {
+      // Ignore shortcuts when the user is typing into a field.
+      const target = ev.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+        return;
+      }
+      if (ev.key === "Enter") { ev.preventDefault(); advance(); return; }
+      if (ev.key === " ")     { ev.preventDefault(); skipToEnd(); return; }
+      if (ev.key.toLowerCase() === "r") { ev.preventDefault(); restart(); return; }
+      const n = Number.parseInt(ev.key, 10);
+      if (!Number.isNaN(n) && n >= 1 && n <= catalog.length) {
+        ev.preventDefault();
+        setScenario(n - 1);
+      }
+    });
+
+    // First render.
+    setScenario(0);
+  </script>
+
+  <style>
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 6rem;
+    }
+    .page-head { margin-bottom: 2rem; }
+    .page-head h1 {
+      font-family: var(--font-display);
+      font-size: var(--fs-2xl);
+      font-weight: 600;
+      letter-spacing: var(--ls-tight);
+      color: var(--text);
+      margin: 0.5rem 0 1rem;
+    }
+    .lede { color: var(--muted); max-width: 42rem; margin: 0; }
+    kbd {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-xs);
+      padding: 1px 6px;
+      color: var(--text);
+    }
+
+    /* ── Scenario picker ─────────────────────────────────────── */
+    .scenarios {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.6rem;
+      margin-bottom: 2.5rem;
+    }
+    .scenario {
+      cursor: pointer;
+      transition:
+        border-color var(--dur-fast) var(--ease-standard),
+        background var(--dur-fast) var(--ease-standard);
+    }
+    .scenario:hover { border-color: var(--accent); }
+    .scenario[aria-pressed="true"] {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .scenario-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.4rem;
+    }
+    .scenario-num {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-widest);
+      color: var(--accent);
+    }
+    .scenario-runtime {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--subtle);
+    }
+    .scenario-title {
+      font-family: var(--font-display);
+      font-size: var(--fs-md);
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.005em;
+      margin: 0.1rem 0 0.4rem;
+    }
+    .scenario-summary {
+      margin: 0 0 0.6rem;
+      font-size: var(--fs-sm);
+      line-height: var(--lh-base);
+      color: var(--muted);
+    }
+    .scenario-skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+    .chip {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text);
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      padding: 1px 6px;
+      border-radius: var(--r-xs);
+    }
+
+    /* ── Player ──────────────────────────────────────────────── */
+    .player {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1.25rem;
+      box-shadow: var(--glow-md);
+    }
+    .player-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .player-eyebrow {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+    .player-title h2 {
+      font-family: var(--font-display);
+      font-size: var(--fs-lg);
+      font-weight: 600;
+      color: var(--text);
+      margin: 0.2rem 0 0;
+      letter-spacing: -0.005em;
+    }
+    .player-controls {
+      display: inline-flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .ctl {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: var(--ls-wide);
+      padding: 0.55rem 0.95rem;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      border: 0.5px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition:
+        color var(--dur-fast) var(--ease-standard),
+        border-color var(--dur-fast) var(--ease-standard),
+        background var(--dur-fast) var(--ease-standard);
+    }
+    .ctl:hover:not(:disabled) {
+      color: var(--text);
+      border-color: var(--muted);
+    }
+    .ctl-primary {
+      background: var(--accent);
+      color: var(--obsidian);
+      border-color: transparent;
+    }
+    .ctl-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .ctl:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── Progress ────────────────────────────────────────────── */
+    .progress {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .progress::before {
+      content: "";
+      grid-column: 1;
+      grid-row: 1;
+      height: 3px;
+      background: var(--card);
+      border-radius: var(--r-pill);
+    }
+    .progress-bar {
+      grid-column: 1;
+      grid-row: 1;
+      height: 3px;
+      width: 0;
+      background: var(--accent);
+      border-radius: var(--r-pill);
+      transition: width var(--dur-base) var(--ease-standard);
+    }
+    .progress-label {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      color: var(--subtle);
+      letter-spacing: var(--ls-wide);
+    }
+
+    /* ── Transcript + messages ───────────────────────────────── */
+    .transcript {
+      min-height: 14rem;
+      max-height: 62vh;
+      overflow-y: auto;
+      padding-right: 0.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .start-prompt {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.85rem 1rem;
+      border: 0.5px dashed var(--border);
+      border-radius: var(--r-md);
+      color: var(--subtle);
+      font-size: var(--fs-sm);
+      margin-top: 0.5rem;
+    }
+    .start-prompt[hidden] { display: none; }
+
+    .msg { max-width: 92%; }
+    .msg--assistant { align-self: flex-start; }
+    .msg--user      { align-self: flex-end; }
+    .msg-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: var(--ls-wider);
+      text-transform: uppercase;
+      color: var(--subtle);
+      margin-bottom: 0.3rem;
+    }
+    .msg-content {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem 1rem;
+      border-radius: var(--r-md);
+      font-size: var(--fs-sm);
+      line-height: var(--lh-base);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .msg--assistant .msg-content { border-bottom-left-radius: var(--r-xs); }
+    .msg--user .msg-content {
+      border-bottom-right-radius: var(--r-xs);
+      background: var(--accent-dim);
+      border-color: var(--accent);
+    }
+
+    /* Markdown prose — inline rules only; the global .markdown style
+       already covers most of this. Add scoped niceties for code/tables. */
+    .msg-content :global(p) { margin: 0 0 0.55rem; }
+    .msg-content :global(p:last-child) { margin-bottom: 0; }
+    .msg-content :global(h2),
+    .msg-content :global(h3) {
+      font-family: var(--font-display);
+      font-size: var(--fs-md);
+      margin: 0.4rem 0 0.35rem;
+      color: var(--text);
+    }
+    .msg-content :global(ul),
+    .msg-content :global(ol) {
+      margin: 0.25rem 0 0.55rem 1.1rem;
+      padding: 0;
+    }
+    .msg-content :global(li) { margin: 0.1rem 0; }
+    .msg-content :global(code) {
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .msg-content :global(pre) {
+      background: var(--obsidian);
+      color: var(--linen);
+      border: 0.5px solid var(--slag);
+      border-radius: var(--r-sm);
+      padding: 0.75rem 0.95rem;
+      overflow-x: auto;
+      font-size: 11px;
+      margin: 0.35rem 0 0.5rem;
+    }
+    .msg-content :global(pre code) {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      color: inherit;
+    }
+    .msg-content :global(table) {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin: 0.5rem 0;
+    }
+    .msg-content :global(th),
+    .msg-content :global(td) {
+      border: 0.5px solid var(--border);
+      padding: 0.3rem 0.55rem;
+      text-align: left;
+    }
+    .msg-content :global(th) {
+      background: var(--surface);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: var(--ls-wide);
+      color: var(--muted);
+    }
+    .msg-content :global(blockquote) {
+      border-left: 2px solid var(--accent);
+      padding: 0.25rem 0 0.25rem 0.85rem;
+      margin: 0.5rem 0;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ── Beat divider ────────────────────────────────────────── */
+    .beat {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 0.85rem;
+      margin: 0.5rem 0 0.25rem;
+    }
+    .beat-rule { height: 0; border-top: 0.5px solid var(--border); }
+    .beat-body {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      align-items: center;
+    }
+    .beat-label {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .beat-caption {
+      font-size: var(--fs-xs);
+      color: var(--subtle);
+    }
+    .beat-skills {
+      display: inline-flex;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 0.2rem;
+    }
+
+    @media (max-width: 720px) {
+      .player-head { flex-direction: column; align-items: flex-start; }
+      .transcript { max-height: none; }
+    }
+  </style>
+</Base>
