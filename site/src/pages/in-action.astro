@@ -352,32 +352,60 @@ const catalog = JSON.stringify(
       }
       wrap.appendChild(body);
 
-      // Artifact refs — render as clickable chips under the message body.
-      // Click scrolls the page's detail panel into view and auto-expands
-      // the matching artifact. Tight coupling is fine: both live on the
-      // same page and share the active scenario.
+      // Artifact refs — render as clickable cards INSIDE the chat.
+      // Click expands the full artifact body in place; body is scroll-bounded
+      // so tall artifacts stay in the chat canvas without growing the page.
       if (step.role === "claude" && step.artifacts && step.artifacts.length > 0) {
-        const row = document.createElement("div");
-        row.className = "msg-artifacts";
-        const labels = new Map(
-          currentScenario().outputs.map((a) => [a.id, { label: a.label, kind: a.kind }] as const),
+        const box = document.createElement("div");
+        box.className = "msg-artifacts";
+        const byId = new Map(
+          currentScenario().outputs.map((a) => [a.id, a] as const),
         );
         step.artifacts.forEach((id) => {
-          const meta = labels.get(id);
-          if (!meta) return;
-          const chip = document.createElement("button");
-          chip.type = "button";
-          chip.className = "msg-artifact";
-          chip.dataset.artifactId = id;
-          chip.innerHTML = `
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            <span>${escapeHTML(meta.label)}</span>
-            ${meta.kind ? `<span class="msg-artifact-kind">${escapeHTML(meta.kind)}</span>` : ""}
+          const artifact = byId.get(id);
+          if (!artifact) return;
+
+          const card = document.createElement("div");
+          card.className = "chat-artifact";
+
+          const head = document.createElement("button");
+          head.type = "button";
+          head.className = "chat-artifact-head";
+          head.setAttribute("aria-expanded", "false");
+          head.innerHTML = `
+            <svg class="chat-artifact-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg class="chat-artifact-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span class="chat-artifact-label">${escapeHTML(artifact.label)}</span>
+            ${artifact.kind ? `<span class="chat-artifact-kind">${escapeHTML(artifact.kind)}</span>` : ""}
           `;
-          chip.addEventListener("click", () => focusArtifact(id));
-          row.appendChild(chip);
+
+          const body = document.createElement("div");
+          body.className = "chat-artifact-body markdown";
+          body.hidden = true;
+
+          head.addEventListener("click", () => {
+            const open = head.getAttribute("aria-expanded") === "true";
+            if (open) {
+              body.hidden = true;
+              head.setAttribute("aria-expanded", "false");
+            } else {
+              if (!body.innerHTML) body.innerHTML = renderSafeMarkdown(artifact.body);
+              body.hidden = false;
+              head.setAttribute("aria-expanded", "true");
+              // Scroll the artifact head into view within the chat canvas,
+              // so the user sees "that click revealed this" without jumping
+              // the page.
+              requestAnimationFrame(() => {
+                const target = card.offsetTop - 12;
+                transcript.scrollTo({ top: target, behavior: "smooth" });
+              });
+            }
+          });
+
+          card.append(head, body);
+          box.appendChild(card);
         });
-        wrap.appendChild(row);
+        wrap.appendChild(box);
       }
 
       transcript.appendChild(wrap);
@@ -387,24 +415,6 @@ const catalog = JSON.stringify(
     /** Scroll the transcript container only — never the whole page. */
     function scrollChat() {
       transcript.scrollTo({ top: transcript.scrollHeight, behavior: "smooth" });
-    }
-
-    /** Scroll the detail panel into view and auto-expand an artifact by id. */
-    function focusArtifact(id: string) {
-      const btn = detailOuts.querySelector<HTMLButtonElement>(
-        `[data-artifact-id="${CSS.escape(id)}"]`,
-      );
-      if (!btn) return;
-      const body = btn.nextElementSibling as HTMLElement | null;
-      if (btn.getAttribute("aria-expanded") !== "true") {
-        const artifact = currentScenario().outputs.find((a) => a.id === id);
-        if (artifact && body) {
-          body.innerHTML = renderSafeMarkdown(artifact.body);
-          body.hidden = false;
-          btn.setAttribute("aria-expanded", "true");
-        }
-      }
-      btn.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     function advance() {
@@ -1042,47 +1052,139 @@ const catalog = JSON.stringify(
     }
     .msg--assistant .msg-content :global(strong) { color: var(--parchment); }
 
-    /* ── Inline artifact chips (under a Claude message) ───────── */
+    /* ── In-chat artifacts — expandable + scrollable, inside the message ── */
     .msg-artifacts {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 0.35rem;
-      margin-top: 0.5rem;
+      margin-top: 0.55rem;
     }
-    .msg-artifact {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
+    .chat-artifact {
       background: var(--char);
-      color: var(--parchment);
       border: 0.5px solid var(--slag);
       border-radius: var(--r-sm);
-      padding: 0.35rem 0.6rem;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: var(--ls-wide);
+      overflow: hidden;
+    }
+    .chat-artifact-head {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      background: transparent;
+      border: 0;
       cursor: pointer;
+      text-align: left;
+      font: inherit;
+      color: var(--parchment);
       transition:
         background var(--dur-fast) var(--ease-standard),
-        color var(--dur-fast) var(--ease-standard),
-        border-color var(--dur-fast) var(--ease-standard);
+        color var(--dur-fast) var(--ease-standard);
     }
-    .msg-artifact:hover {
-      background: var(--accent);
-      color: var(--obsidian);
-      border-color: var(--accent-hover);
-    }
-    .msg-artifact-kind {
+    .chat-artifact-head:hover {
       background: var(--obsidian);
+      color: var(--accent);
+    }
+    .chat-artifact-chevron {
+      color: var(--accent);
+      transition: transform var(--dur-fast) var(--ease-standard);
+      flex: 0 0 auto;
+    }
+    .chat-artifact-head[aria-expanded="true"] .chat-artifact-chevron {
+      transform: rotate(90deg);
+    }
+    .chat-artifact-icon {
       color: var(--sand);
+      flex: 0 0 auto;
+    }
+    .chat-artifact-label {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: var(--ls-wide);
+      color: var(--parchment);
+    }
+    .chat-artifact-kind {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--accent);
+      background: var(--obsidian);
       border: 0.5px solid var(--slag);
       padding: 1px 5px;
       border-radius: var(--r-xs);
-      font-size: 9px;
+      letter-spacing: var(--ls-wide);
     }
-    .msg-artifact:hover .msg-artifact-kind {
+    .chat-artifact-body {
+      padding: 0.8rem 1rem;
+      border-top: 0.5px solid var(--slag);
       background: var(--obsidian);
-      color: var(--accent);
+      color: var(--linen);
+      font-size: 11px;
+      line-height: 1.55;
+      max-height: 22rem;        /* keep tall outputs bounded inside the chat */
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .chat-artifact-body[hidden] { display: none; }
+    /* Prose inside an in-chat artifact body — matches dark canvas. */
+    .chat-artifact-body :global(h1),
+    .chat-artifact-body :global(h2),
+    .chat-artifact-body :global(h3) {
+      font-family: var(--font-display);
+      color: var(--parchment);
+      margin: 0.5rem 0 0.3rem;
+    }
+    .chat-artifact-body :global(h1) { font-size: var(--fs-sm); }
+    .chat-artifact-body :global(h2) { font-size: 12px; }
+    .chat-artifact-body :global(h3) { font-size: 11px; }
+    .chat-artifact-body :global(p)  { margin: 0 0 0.4rem; color: var(--linen); }
+    .chat-artifact-body :global(ul),
+    .chat-artifact-body :global(ol) { margin: 0.2rem 0 0.45rem 1.1rem; padding: 0; color: var(--linen); }
+    .chat-artifact-body :global(li) { margin: 0.1rem 0; }
+    .chat-artifact-body :global(strong) { color: var(--parchment); }
+    .chat-artifact-body :global(code) {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: var(--char);
+      border: 0.5px solid var(--slag);
+      color: var(--sand);
+      padding: 0 4px;
+      border-radius: var(--r-xs);
+    }
+    .chat-artifact-body :global(pre) {
+      background: var(--char);
+      color: var(--linen);
+      border: 0.5px solid var(--slag);
+      border-radius: var(--r-sm);
+      padding: 0.65rem 0.85rem;
+      overflow-x: auto;
+      font-size: 10px;
+      margin: 0.3rem 0 0.45rem;
+    }
+    .chat-artifact-body :global(pre code) {
+      background: transparent; border: 0; padding: 0; color: inherit; font-size: inherit;
+    }
+    .chat-artifact-body :global(table) {
+      width: 100%; border-collapse: collapse; font-size: 10px; margin: 0.4rem 0;
+    }
+    .chat-artifact-body :global(th),
+    .chat-artifact-body :global(td) {
+      border: 0.5px solid var(--slag);
+      padding: 0.25rem 0.5rem;
+      text-align: left;
+      color: var(--linen);
+    }
+    .chat-artifact-body :global(th) {
+      background: var(--char);
+      font-family: var(--font-mono);
+      color: var(--sand);
+      letter-spacing: var(--ls-wide);
+    }
+    .chat-artifact-body :global(blockquote) {
+      border-left: 2px solid var(--accent);
+      padding: 0.2rem 0 0.2rem 0.7rem;
+      margin: 0.35rem 0;
+      color: var(--sand);
     }
 
     /* ── Beat divider (inside the dark chat) ─────────────────── */
