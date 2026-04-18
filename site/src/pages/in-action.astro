@@ -176,6 +176,7 @@ const catalog = JSON.stringify(
       role: "user" | "claude";
       skill?: string;
       content: string;
+      artifacts?: string[];
     }
     type Step = Beat | Exchange;
     interface Artifact {
@@ -347,17 +348,68 @@ const catalog = JSON.stringify(
       }
       wrap.appendChild(body);
 
+      // Artifact refs — render as clickable chips under the message body.
+      // Click scrolls the page's detail panel into view and auto-expands
+      // the matching artifact. Tight coupling is fine: both live on the
+      // same page and share the active scenario.
+      if (step.role === "claude" && step.artifacts && step.artifacts.length > 0) {
+        const row = document.createElement("div");
+        row.className = "msg-artifacts";
+        const labels = new Map(
+          currentScenario().outputs.map((a) => [a.id, { label: a.label, kind: a.kind }] as const),
+        );
+        step.artifacts.forEach((id) => {
+          const meta = labels.get(id);
+          if (!meta) return;
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "msg-artifact";
+          chip.dataset.artifactId = id;
+          chip.innerHTML = `
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>${escapeHTML(meta.label)}</span>
+            ${meta.kind ? `<span class="msg-artifact-kind">${escapeHTML(meta.kind)}</span>` : ""}
+          `;
+          chip.addEventListener("click", () => focusArtifact(id));
+          row.appendChild(chip);
+        });
+        wrap.appendChild(row);
+      }
+
       transcript.appendChild(wrap);
       return wrap;
+    }
+
+    /** Scroll the transcript container only — never the whole page. */
+    function scrollChat() {
+      transcript.scrollTo({ top: transcript.scrollHeight, behavior: "smooth" });
+    }
+
+    /** Scroll the detail panel into view and auto-expand an artifact by id. */
+    function focusArtifact(id: string) {
+      const btn = detailOuts.querySelector<HTMLButtonElement>(
+        `[data-artifact-id="${CSS.escape(id)}"]`,
+      );
+      if (!btn) return;
+      const body = btn.nextElementSibling as HTMLElement | null;
+      if (btn.getAttribute("aria-expanded") !== "true") {
+        const artifact = currentScenario().outputs.find((a) => a.id === id);
+        if (artifact && body) {
+          body.innerHTML = renderSafeMarkdown(artifact.body);
+          body.hidden = false;
+          btn.setAttribute("aria-expanded", "true");
+        }
+      }
+      btn.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     function advance() {
       const w = currentScenario();
       if (stepIdx >= w.steps.length) return;
-      const el = renderStep(w.steps[stepIdx]);
+      renderStep(w.steps[stepIdx]);
       stepIdx++;
       updateProgress();
-      el.scrollIntoView({ behavior: "smooth", block: "end" });
+      scrollChat();
     }
 
     function skipToEnd() {
@@ -367,7 +419,7 @@ const catalog = JSON.stringify(
         stepIdx++;
       }
       updateProgress();
-      transcript.lastElementChild?.scrollIntoView({ behavior: "smooth", block: "end" });
+      scrollChat();
     }
 
     function restart() {
@@ -832,18 +884,26 @@ const catalog = JSON.stringify(
     }
 
     /* ── Transcript + messages ───────────────────────────────── */
+    /* Fixed height so adding messages scrolls inside the chat, not the
+       page. Page is stationary; the chat canvas keeps moving up on its
+       own as exchanges stack. `height` (not max-height) so the container
+       holds its size even when near-empty. `overscroll-behavior: contain`
+       stops a scroll at the chat edge from bubbling to the page. */
     .transcript {
-      min-height: 18rem;
-      max-height: 62vh;
+      height: 60vh;
+      min-height: 20rem;
       overflow-y: auto;
+      overscroll-behavior: contain;
       padding: 1rem 1.1rem;
       display: flex;
       flex-direction: column;
       gap: 0.85rem;
-      /* Darker chat canvas — Claude + user bubbles pop off it. */
       background: var(--obsidian);
       border: 0.5px solid var(--slag);
       border-radius: var(--r-md);
+    }
+    @media (max-width: 720px) {
+      .transcript { height: 70vh; }
     }
 
     .start-prompt {
@@ -978,6 +1038,49 @@ const catalog = JSON.stringify(
     }
     .msg--assistant .msg-content :global(strong) { color: var(--parchment); }
 
+    /* ── Inline artifact chips (under a Claude message) ───────── */
+    .msg-artifacts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+    }
+    .msg-artifact {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--char);
+      color: var(--parchment);
+      border: 0.5px solid var(--slag);
+      border-radius: var(--r-sm);
+      padding: 0.35rem 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-wide);
+      cursor: pointer;
+      transition:
+        background var(--dur-fast) var(--ease-standard),
+        color var(--dur-fast) var(--ease-standard),
+        border-color var(--dur-fast) var(--ease-standard);
+    }
+    .msg-artifact:hover {
+      background: var(--accent);
+      color: var(--obsidian);
+      border-color: var(--accent-hover);
+    }
+    .msg-artifact-kind {
+      background: var(--obsidian);
+      color: var(--sand);
+      border: 0.5px solid var(--slag);
+      padding: 1px 5px;
+      border-radius: var(--r-xs);
+      font-size: 9px;
+    }
+    .msg-artifact:hover .msg-artifact-kind {
+      background: var(--obsidian);
+      color: var(--accent);
+    }
+
     /* ── Beat divider (inside the dark chat) ─────────────────── */
     .beat {
       display: grid;
@@ -1020,7 +1123,6 @@ const catalog = JSON.stringify(
 
     @media (max-width: 720px) {
       .player-head { flex-direction: column; align-items: flex-start; }
-      .transcript { max-height: none; }
     }
   </style>
 </Base>
