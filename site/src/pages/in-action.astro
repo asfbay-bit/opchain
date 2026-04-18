@@ -352,60 +352,75 @@ const catalog = JSON.stringify(
       }
       wrap.appendChild(body);
 
-      // Artifact refs — render as clickable cards INSIDE the chat.
-      // Click expands the full artifact body in place; body is scroll-bounded
-      // so tall artifacts stay in the chat canvas without growing the page.
+      // Artifact refs — one dotted-outlined "file group" per message.
+      // The tab strip shows the filename (artifact.kind); clicking a tab
+      // expands its body inline. Clicking the active tab again collapses.
+      // If the message produced multiple files, switching tabs swaps the
+      // rendered body without collapsing.
       if (step.role === "claude" && step.artifacts && step.artifacts.length > 0) {
-        const box = document.createElement("div");
-        box.className = "msg-artifacts";
         const byId = new Map(
           currentScenario().outputs.map((a) => [a.id, a] as const),
         );
-        step.artifacts.forEach((id) => {
-          const artifact = byId.get(id);
-          if (!artifact) return;
+        const refs = step.artifacts
+          .map((id) => byId.get(id))
+          .filter((a): a is Artifact => !!a);
 
-          const card = document.createElement("div");
-          card.className = "chat-artifact";
+        if (refs.length > 0) {
+          const group = document.createElement("div");
+          group.className = "file-group";
 
-          const head = document.createElement("button");
-          head.type = "button";
-          head.className = "chat-artifact-head";
-          head.setAttribute("aria-expanded", "false");
-          head.innerHTML = `
-            <svg class="chat-artifact-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <svg class="chat-artifact-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            <span class="chat-artifact-label">${escapeHTML(artifact.label)}</span>
-            ${artifact.kind ? `<span class="chat-artifact-kind">${escapeHTML(artifact.kind)}</span>` : ""}
-          `;
+          const tabstrip = document.createElement("div");
+          tabstrip.className = "file-tabs";
+          tabstrip.setAttribute("role", "tablist");
 
           const body = document.createElement("div");
-          body.className = "chat-artifact-body markdown";
+          body.className = "file-body markdown";
           body.hidden = true;
 
-          head.addEventListener("click", () => {
-            const open = head.getAttribute("aria-expanded") === "true";
-            if (open) {
+          let activeIdx = -1;   // -1 = collapsed
+
+          const renderActive = () => {
+            if (activeIdx < 0) {
               body.hidden = true;
-              head.setAttribute("aria-expanded", "false");
-            } else {
-              if (!body.innerHTML) body.innerHTML = renderSafeMarkdown(artifact.body);
-              body.hidden = false;
-              head.setAttribute("aria-expanded", "true");
-              // Scroll the artifact head into view within the chat canvas,
-              // so the user sees "that click revealed this" without jumping
-              // the page.
-              requestAnimationFrame(() => {
-                const target = card.offsetTop - 12;
-                transcript.scrollTo({ top: target, behavior: "smooth" });
-              });
+              return;
             }
+            const a = refs[activeIdx];
+            body.innerHTML = renderSafeMarkdown(a.body);
+            body.hidden = false;
+            requestAnimationFrame(() => {
+              const target = group.offsetTop - 12;
+              transcript.scrollTo({ top: target, behavior: "smooth" });
+            });
+          };
+
+          const tabs: HTMLButtonElement[] = refs.map((a, i) => {
+            const tab = document.createElement("button");
+            tab.type = "button";
+            tab.className = "file-tab";
+            tab.setAttribute("role", "tab");
+            tab.setAttribute("aria-selected", "false");
+            tab.innerHTML = `
+              <svg class="file-tab-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span class="file-tab-name">${escapeHTML(a.kind || a.label)}</span>
+            `;
+            tab.title = a.label;
+            tab.addEventListener("click", () => {
+              if (activeIdx === i) {
+                // Clicking the open tab collapses the group.
+                activeIdx = -1;
+              } else {
+                activeIdx = i;
+              }
+              tabs.forEach((t, ti) => t.setAttribute("aria-selected", String(ti === activeIdx)));
+              renderActive();
+            });
+            return tab;
           });
 
-          card.append(head, body);
-          box.appendChild(card);
-        });
-        wrap.appendChild(box);
+          tabs.forEach((t) => tabstrip.appendChild(t));
+          group.append(tabstrip, body);
+          wrap.appendChild(group);
+        }
       }
 
       transcript.appendChild(wrap);
@@ -1052,97 +1067,93 @@ const catalog = JSON.stringify(
     }
     .msg--assistant .msg-content :global(strong) { color: var(--parchment); }
 
-    /* ── In-chat artifacts — expandable + scrollable, inside the message ── */
+    /* ── In-chat file group — dotted outline, filename tabs ──── */
     .msg-artifacts {
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      margin-top: 0.55rem;
+      margin-top: 0.6rem;
     }
-    .chat-artifact {
-      background: var(--char);
-      border: 0.5px solid var(--slag);
+    .file-group {
+      border: 1px dashed var(--slag);
       border-radius: var(--r-sm);
+      background: transparent;
       overflow: hidden;
     }
-    .chat-artifact-head {
+    .file-tabs {
       display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      padding: 0.35rem 0.4rem 0;
+      border-bottom: 1px dashed transparent;
+    }
+    .file-group:has(.file-body:not([hidden])) .file-tabs {
+      border-bottom-color: var(--slag);
+    }
+    .file-tab {
+      display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      width: 100%;
-      padding: 0.5rem 0.75rem;
+      gap: 0.4rem;
+      padding: 0.35rem 0.7rem;
       background: transparent;
-      border: 0;
+      border: 0.5px solid transparent;
+      border-bottom: 0;
+      border-top-left-radius: var(--r-xs);
+      border-top-right-radius: var(--r-xs);
       cursor: pointer;
-      text-align: left;
       font: inherit;
-      color: var(--parchment);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-wide);
+      color: var(--sand);
       transition:
         background var(--dur-fast) var(--ease-standard),
-        color var(--dur-fast) var(--ease-standard);
+        color var(--dur-fast) var(--ease-standard),
+        border-color var(--dur-fast) var(--ease-standard);
+      margin-bottom: -0.5px;
     }
-    .chat-artifact-head:hover {
-      background: var(--obsidian);
-      color: var(--accent);
-    }
-    .chat-artifact-chevron {
-      color: var(--accent);
-      transition: transform var(--dur-fast) var(--ease-standard);
-      flex: 0 0 auto;
-    }
-    .chat-artifact-head[aria-expanded="true"] .chat-artifact-chevron {
-      transform: rotate(90deg);
-    }
-    .chat-artifact-icon {
-      color: var(--sand);
-      flex: 0 0 auto;
-    }
-    .chat-artifact-label {
-      flex: 1;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: var(--ls-wide);
+    .file-tab:hover {
       color: var(--parchment);
+      background: var(--char);
     }
-    .chat-artifact-kind {
-      font-family: var(--font-mono);
-      font-size: 9px;
+    .file-tab[aria-selected="true"] {
       color: var(--accent);
       background: var(--obsidian);
-      border: 0.5px solid var(--slag);
-      padding: 1px 5px;
-      border-radius: var(--r-xs);
-      letter-spacing: var(--ls-wide);
+      border-color: var(--slag);
     }
-    .chat-artifact-body {
-      padding: 0.8rem 1rem;
-      border-top: 0.5px solid var(--slag);
+    .file-tab-icon {
+      color: currentColor;
+      flex: 0 0 auto;
+    }
+    .file-tab-name {
+      white-space: nowrap;
+    }
+
+    .file-body {
+      padding: 0.85rem 1rem;
       background: var(--obsidian);
       color: var(--linen);
       font-size: 11px;
       line-height: 1.55;
-      max-height: 22rem;        /* keep tall outputs bounded inside the chat */
+      max-height: 22rem;
       overflow-y: auto;
       overscroll-behavior: contain;
     }
-    .chat-artifact-body[hidden] { display: none; }
-    /* Prose inside an in-chat artifact body — matches dark canvas. */
-    .chat-artifact-body :global(h1),
-    .chat-artifact-body :global(h2),
-    .chat-artifact-body :global(h3) {
+    .file-body[hidden] { display: none; }
+
+    .file-body :global(h1),
+    .file-body :global(h2),
+    .file-body :global(h3) {
       font-family: var(--font-display);
       color: var(--parchment);
       margin: 0.5rem 0 0.3rem;
     }
-    .chat-artifact-body :global(h1) { font-size: var(--fs-sm); }
-    .chat-artifact-body :global(h2) { font-size: 12px; }
-    .chat-artifact-body :global(h3) { font-size: 11px; }
-    .chat-artifact-body :global(p)  { margin: 0 0 0.4rem; color: var(--linen); }
-    .chat-artifact-body :global(ul),
-    .chat-artifact-body :global(ol) { margin: 0.2rem 0 0.45rem 1.1rem; padding: 0; color: var(--linen); }
-    .chat-artifact-body :global(li) { margin: 0.1rem 0; }
-    .chat-artifact-body :global(strong) { color: var(--parchment); }
-    .chat-artifact-body :global(code) {
+    .file-body :global(h1) { font-size: var(--fs-sm); }
+    .file-body :global(h2) { font-size: 12px; }
+    .file-body :global(h3) { font-size: 11px; }
+    .file-body :global(p)  { margin: 0 0 0.4rem; color: var(--linen); }
+    .file-body :global(ul),
+    .file-body :global(ol) { margin: 0.2rem 0 0.45rem 1.1rem; padding: 0; color: var(--linen); }
+    .file-body :global(li) { margin: 0.1rem 0; }
+    .file-body :global(strong) { color: var(--parchment); }
+    .file-body :global(code) {
       font-family: var(--font-mono);
       font-size: 10px;
       background: var(--char);
@@ -1151,7 +1162,7 @@ const catalog = JSON.stringify(
       padding: 0 4px;
       border-radius: var(--r-xs);
     }
-    .chat-artifact-body :global(pre) {
+    .file-body :global(pre) {
       background: var(--char);
       color: var(--linen);
       border: 0.5px solid var(--slag);
@@ -1161,26 +1172,26 @@ const catalog = JSON.stringify(
       font-size: 10px;
       margin: 0.3rem 0 0.45rem;
     }
-    .chat-artifact-body :global(pre code) {
+    .file-body :global(pre code) {
       background: transparent; border: 0; padding: 0; color: inherit; font-size: inherit;
     }
-    .chat-artifact-body :global(table) {
+    .file-body :global(table) {
       width: 100%; border-collapse: collapse; font-size: 10px; margin: 0.4rem 0;
     }
-    .chat-artifact-body :global(th),
-    .chat-artifact-body :global(td) {
+    .file-body :global(th),
+    .file-body :global(td) {
       border: 0.5px solid var(--slag);
       padding: 0.25rem 0.5rem;
       text-align: left;
       color: var(--linen);
     }
-    .chat-artifact-body :global(th) {
+    .file-body :global(th) {
       background: var(--char);
       font-family: var(--font-mono);
       color: var(--sand);
       letter-spacing: var(--ls-wide);
     }
-    .chat-artifact-body :global(blockquote) {
+    .file-body :global(blockquote) {
       border-left: 2px solid var(--accent);
       padding: 0.2rem 0 0.2rem 0.7rem;
       margin: 0.35rem 0;
