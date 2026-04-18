@@ -72,6 +72,53 @@ const catalog = JSON.stringify(
       ))}
     </section>
 
+    <!-- ───────────── Detail panel — full width for the active scenario ───────────── -->
+    <section class="detail" aria-live="polite">
+      <div class="detail-head">
+        <div>
+          <h2 class="detail-title" id="detail-title">{walkthroughs[0].title}</h2>
+          <p class="detail-summary" id="detail-summary">{walkthroughs[0].summary}</p>
+        </div>
+        <div class="detail-meta">
+          <span class="detail-runtime" id="detail-runtime">{walkthroughs[0].runtime}</span>
+          <div class="detail-skills" id="detail-skills">
+            {walkthroughs[0].skills.map((s) => (<code class="chip">{s}</code>))}
+          </div>
+        </div>
+      </div>
+
+      <p class="detail-body" id="detail-body">{walkthroughs[0].description}</p>
+
+      <div class="detail-io">
+        <div class="io-col">
+          <div class="io-head">Inputs</div>
+          <ul class="io-list" id="detail-inputs">
+            {walkthroughs[0].inputs.map((x) => <li>{x}</li>)}
+          </ul>
+        </div>
+        <div class="io-col">
+          <div class="io-head">Outputs <span class="io-hint">click to expand</span></div>
+          <ul class="io-list artifacts" id="detail-outputs">
+            {walkthroughs[0].outputs.map((a) => (
+              <li class="artifact">
+                <button
+                  type="button"
+                  class="artifact-head"
+                  aria-expanded="false"
+                  {...({ "data-artifact-id": a.id } as any)}
+                >
+                  <Icon name="arrow-right" size={10} class="artifact-chevron" />
+                  <span class="artifact-label">{a.label}</span>
+                  {a.kind && <span class="artifact-kind">{a.kind}</span>}
+                </button>
+                <div class="artifact-body markdown" hidden></div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+
     <!-- ───────────── Player ───────────── -->
     <section class="player" aria-label="Walkthrough player">
       <div class="player-head">
@@ -131,10 +178,20 @@ const catalog = JSON.stringify(
       content: string;
     }
     type Step = Beat | Exchange;
+    interface Artifact {
+      id: string;
+      label: string;
+      kind?: string;
+      body: string;
+    }
     interface Walkthrough {
       id: string;
       title: string;
+      tagline: string;
       summary: string;
+      description: string;
+      inputs: string[];
+      outputs: Artifact[];
       skills: string[];
       runtime: string;
       steps: Step[];
@@ -147,6 +204,13 @@ const catalog = JSON.stringify(
     const picker       = document.getElementById("scenario-picker")!;
     const heading      = document.getElementById("player-heading")!;
     const eyebrow      = document.getElementById("player-eyebrow")!;
+    const detailTitle  = document.getElementById("detail-title")!;
+    const detailSum    = document.getElementById("detail-summary")!;
+    const detailBody   = document.getElementById("detail-body")!;
+    const detailRun    = document.getElementById("detail-runtime")!;
+    const detailSkills = document.getElementById("detail-skills")!;
+    const detailInputs = document.getElementById("detail-inputs")!;
+    const detailOuts   = document.getElementById("detail-outputs")!;
     const transcript   = document.getElementById("transcript")!;
     const progressBar  = document.getElementById("progress-bar")!;
     const progressLbl  = document.getElementById("progress-label")!;
@@ -169,15 +233,62 @@ const catalog = JSON.stringify(
       stepIdx = 0;
       transcript.innerHTML = "";
       const w = currentScenario();
+
+      // Player head
       heading.textContent = w.title;
       eyebrow.textContent = `scenario · 0${i + 1}`;
       playLbl.textContent = "start";
       startPrompt.hidden = false;
+
+      // Detail panel — title, summary, body, runtime, skills, I/O, artifacts.
+      detailTitle.textContent = w.title;
+      detailSum.textContent   = w.summary;
+      detailBody.textContent  = w.description;
+      detailRun.textContent   = w.runtime;
+      detailSkills.innerHTML  = w.skills.map((s) => `<code class="chip">${escapeHTML(s)}</code>`).join("");
+      detailInputs.innerHTML  = w.inputs.map((x) => `<li>${escapeHTML(x)}</li>`).join("");
+      detailOuts.innerHTML    = w.outputs.map((a) => `
+        <li class="artifact">
+          <button type="button" class="artifact-head" aria-expanded="false" data-artifact-id="${escapeHTML(a.id)}">
+            <svg class="artifact-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <span class="artifact-label">${escapeHTML(a.label)}</span>
+            ${a.kind ? `<span class="artifact-kind">${escapeHTML(a.kind)}</span>` : ""}
+          </button>
+          <div class="artifact-body markdown" hidden></div>
+        </li>
+      `).join("");
+      wireArtifactToggles();
+
       updateProgress();
 
       // Toggle pressed state on the scenario cards.
       picker.querySelectorAll<HTMLElement>("[data-scenario]").forEach((el) => {
-        el.setAttribute("aria-pressed", el.dataset.scenario === w.id ? "true" : "false");
+        const matched = el.dataset.scenario === w.id;
+        el.setAttribute("aria-pressed", matched ? "true" : "false");
+        el.setAttribute("aria-selected", matched ? "true" : "false");
+      });
+    }
+
+    function wireArtifactToggles() {
+      const w = currentScenario();
+      const byId = new Map(w.outputs.map((a) => [a.id, a] as const));
+      detailOuts.querySelectorAll<HTMLButtonElement>(".artifact-head").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.artifactId || "";
+          const artifact = byId.get(id);
+          if (!artifact) return;
+          const body = btn.nextElementSibling as HTMLElement | null;
+          if (!body) return;
+          const open = btn.getAttribute("aria-expanded") === "true";
+          if (open) {
+            body.hidden = true;
+            btn.setAttribute("aria-expanded", "false");
+          } else {
+            body.innerHTML = renderSafeMarkdown(artifact.body);
+            body.hidden = false;
+            btn.setAttribute("aria-expanded", "true");
+          }
+        });
       });
     }
 
@@ -394,6 +505,231 @@ const catalog = JSON.stringify(
       border: 0.5px solid var(--border);
       padding: 1px 6px;
       border-radius: var(--r-xs);
+    }
+
+    /* ── Detail panel — full width under the card strip ─────── */
+    .detail {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--glow-md);
+    }
+    .detail-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .detail-title {
+      font-family: var(--font-display);
+      font-size: var(--fs-xl);
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      margin: 0 0 0.35rem;
+    }
+    .detail-summary {
+      margin: 0;
+      font-size: var(--fs-sm);
+      color: var(--muted);
+      max-width: 52ch;
+    }
+    .detail-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      align-items: flex-end;
+    }
+    .detail-runtime {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-wide);
+      color: var(--subtle);
+    }
+    .detail-skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      justify-content: flex-end;
+    }
+    .detail-body {
+      font-size: var(--fs-sm);
+      line-height: var(--lh-base);
+      color: var(--muted);
+      margin: 0 0 1.25rem;
+    }
+
+    .detail-io {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 720px) {
+      .detail-io { grid-template-columns: 1fr; }
+    }
+    .io-head {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+      margin-bottom: 0.55rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+    .io-hint {
+      text-transform: none;
+      letter-spacing: var(--ls-wide);
+      font-size: 10px;
+      color: var(--subtle);
+      font-style: italic;
+    }
+    .io-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .io-list:not(.artifacts) li {
+      font-size: var(--fs-sm);
+      color: var(--muted);
+      padding-left: 0.9rem;
+      position: relative;
+    }
+    .io-list:not(.artifacts) li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    /* ── Artifacts (collapsible) ─────────────────────────────── */
+    .artifacts { gap: 0.3rem; }
+    .artifact {
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--card);
+      overflow: hidden;
+    }
+    .artifact-head {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      width: 100%;
+      padding: 0.55rem 0.8rem;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      color: var(--text);
+      transition:
+        background var(--dur-fast) var(--ease-standard),
+        color var(--dur-fast) var(--ease-standard);
+    }
+    .artifact-head:hover {
+      background: var(--accent-dim);
+      color: var(--text);
+    }
+    .artifact-chevron {
+      color: var(--accent);
+      transition: transform var(--dur-fast) var(--ease-standard);
+    }
+    .artifact-head[aria-expanded="true"] .artifact-chevron {
+      transform: rotate(90deg);
+    }
+    .artifact-label {
+      flex: 1;
+      font-size: var(--fs-sm);
+      color: var(--text);
+    }
+    .artifact-kind {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      padding: 1px 6px;
+      border-radius: var(--r-xs);
+      letter-spacing: var(--ls-wide);
+    }
+    .artifact-body {
+      padding: 0.9rem 1.1rem;
+      border-top: 0.5px solid var(--border);
+      background: var(--ribbon);
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--text);
+      max-height: 28rem;
+      overflow-y: auto;
+    }
+    .artifact-body[hidden] { display: none; }
+    .artifact-body :global(h1),
+    .artifact-body :global(h2),
+    .artifact-body :global(h3) {
+      font-family: var(--font-display);
+      color: var(--text);
+      margin: 0.6rem 0 0.35rem;
+    }
+    .artifact-body :global(h1) { font-size: var(--fs-md); }
+    .artifact-body :global(h2) { font-size: var(--fs-sm); }
+    .artifact-body :global(h3) { font-size: 12px; }
+    .artifact-body :global(p)  { margin: 0 0 0.5rem; color: var(--muted); }
+    .artifact-body :global(ul),
+    .artifact-body :global(ol) { margin: 0.25rem 0 0.5rem 1.2rem; padding: 0; color: var(--muted); }
+    .artifact-body :global(li) { margin: 0.1rem 0; }
+    .artifact-body :global(code) {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      padding: 0 4px;
+      border-radius: var(--r-xs);
+    }
+    .artifact-body :global(pre) {
+      background: var(--obsidian);
+      color: var(--linen);
+      border: 0.5px solid var(--slag);
+      border-radius: var(--r-sm);
+      padding: 0.75rem 0.95rem;
+      overflow-x: auto;
+      font-size: 11px;
+      margin: 0.35rem 0 0.5rem;
+    }
+    .artifact-body :global(pre code) {
+      background: transparent; border: 0; padding: 0;
+    }
+    .artifact-body :global(table) {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin: 0.5rem 0;
+    }
+    .artifact-body :global(th),
+    .artifact-body :global(td) {
+      border: 0.5px solid var(--border);
+      padding: 0.3rem 0.55rem;
+      text-align: left;
+    }
+    .artifact-body :global(th) {
+      background: var(--surface);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-wide);
+      color: var(--muted);
+    }
+    .artifact-body :global(blockquote) {
+      border-left: 2px solid var(--accent);
+      padding: 0.2rem 0 0.2rem 0.8rem;
+      margin: 0.4rem 0;
+      color: var(--muted);
     }
 
     /* ── Player ──────────────────────────────────────────────── */
