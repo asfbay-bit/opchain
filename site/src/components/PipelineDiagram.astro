@@ -78,8 +78,9 @@ const edges: Edge[] = [
   // Side chain
   { from: "integrations-engineer", to: "code-auditor", shape: "arrow", fromSide: "r", toSide: "l" },
 
-  // code-auditor gate on deploy-ops (runs below; arrow comes up)
-  { from: "deploy-ops",  to: "code-auditor", shape: "dotted", fromSide: "b", toSide: "t", curve: "elbow" },
+  // code-auditor gates deploy-ops — arrow points *up* from the auditor
+  // to the deploy node. (Was reversed in the first PR pass; Bugbot caught it.)
+  { from: "code-auditor", to: "deploy-ops", shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
 ];
 
 function edgePath(e: Edge): string {

@@ -281,7 +281,12 @@ const catalog = JSON.stringify(
       el.addEventListener("click", activate);
       el.addEventListener("keydown", (ev) => {
         if (ev.key === "Enter" || ev.key === " ") {
+          // Stop the card-local Enter/Space from also bubbling up to the
+          // window player handler — otherwise pressing Enter on a card
+          // selects the scenario AND advances a step (and Space dumps
+          // the whole transcript).
           ev.preventDefault();
+          ev.stopPropagation();
           activate();
         }
       });
