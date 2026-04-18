@@ -21,7 +21,11 @@ const catalog = JSON.stringify(
   walkthroughs.map((w) => ({
     id: w.id,
     title: w.title,
+    tagline: w.tagline,
     summary: w.summary,
+    description: w.description,
+    inputs: w.inputs,
+    outputs: w.outputs,
     skills: w.skills,
     runtime: w.runtime,
     steps: w.steps,
