@@ -373,23 +373,29 @@ const catalog = JSON.stringify(
           tabstrip.className = "file-tabs";
           tabstrip.setAttribute("role", "tablist");
 
-          const body = document.createElement("div");
-          body.className = "file-body markdown";
-          body.hidden = true;
+          const fileBody = document.createElement("div");
+          fileBody.className = "file-body markdown";
+          fileBody.hidden = true;
 
           let activeIdx = -1;   // -1 = collapsed
 
           const renderActive = () => {
             if (activeIdx < 0) {
-              body.hidden = true;
+              fileBody.hidden = true;
               return;
             }
             const a = refs[activeIdx];
-            body.innerHTML = renderSafeMarkdown(a.body);
-            body.hidden = false;
+            fileBody.innerHTML = renderSafeMarkdown(a.body);
+            fileBody.hidden = false;
             requestAnimationFrame(() => {
-              const target = group.offsetTop - 12;
-              transcript.scrollTo({ top: target, behavior: "smooth" });
+              const tRect = transcript.getBoundingClientRect();
+              const gRect = group.getBoundingClientRect();
+              const target =
+                transcript.scrollTop + (gRect.top - tRect.top) - 12;
+              transcript.scrollTo({
+                top: Math.max(0, target),
+                behavior: "smooth",
+              });
             });
           };
 
@@ -418,7 +424,7 @@ const catalog = JSON.stringify(
           });
 
           tabs.forEach((t) => tabstrip.appendChild(t));
-          group.append(tabstrip, body);
+          group.append(tabstrip, fileBody);
           wrap.appendChild(group);
         }
       }
@@ -1068,10 +1074,8 @@ const catalog = JSON.stringify(
     .msg--assistant .msg-content :global(strong) { color: var(--parchment); }
 
     /* ── In-chat file group — dotted outline, filename tabs ──── */
-    .msg-artifacts {
-      margin-top: 0.6rem;
-    }
     .file-group {
+      margin-top: 0.6rem;
       border: 1px dashed var(--slag);
       border-radius: var(--r-sm);
       background: transparent;
