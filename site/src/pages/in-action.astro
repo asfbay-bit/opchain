@@ -1,7 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
-import Card from "../components/ui/Card.astro";
 import Icon from "../components/Icon.astro";
 import { walkthroughs } from "../data/walkthroughs";
 
@@ -53,33 +52,23 @@ const catalog = JSON.stringify(
       </p>
     </header>
 
-    <!-- ───────────── Scenario picker ───────────── -->
-    <section class="scenarios" id="scenario-picker">
+    <!-- ───────────── Scenario picker — collapsed strip ───────────── -->
+    <section class="scenarios" id="scenario-picker" role="tablist" aria-label="Pick a scenario">
       {walkthroughs.map((w, i) => (
-        <Card
-          variant="surface"
-          glow={false}
+        <button
+          type="button"
           class="scenario"
+          role="tab"
+          aria-pressed={i === 0 ? "true" : "false"}
+          aria-selected={i === 0 ? "true" : "false"}
           {...({
             "data-scenario": w.id,
             "data-index": String(i),
-            "aria-pressed": i === 0 ? "true" : "false",
-            role: "button",
-            tabindex: "0",
           } as any)}
         >
-          <div class="scenario-head">
-            <span class="scenario-num">0{i + 1}</span>
-            <span class="scenario-runtime">{w.runtime}</span>
-          </div>
-          <div class="scenario-title">{w.title}</div>
-          <p class="scenario-summary">{w.summary}</p>
-          <div class="scenario-skills">
-            {w.skills.map((s) => (
-              <code class="chip">{s}</code>
-            ))}
-          </div>
-        </Card>
+          <span class="scenario-num">0{i + 1}</span>
+          <span class="scenario-tagline">{w.tagline}</span>
+        </button>
       ))}
     </section>
 
@@ -282,19 +271,13 @@ const catalog = JSON.stringify(
     skipBtn.addEventListener("click", skipToEnd);
     restartBtn.addEventListener("click", restart);
 
-    picker.querySelectorAll<HTMLElement>("[data-scenario]").forEach((el, i) => {
-      const activate = () => setScenario(i);
-      el.addEventListener("click", activate);
+    picker.querySelectorAll<HTMLButtonElement>("[data-scenario]").forEach((el, i) => {
+      el.addEventListener("click", () => setScenario(i));
+      // Native <button> Enter/Space → click. Stop the keydown from also
+      // bubbling to the window player handler, which would otherwise
+      // advance/skip the transcript on the same keystroke.
       el.addEventListener("keydown", (ev) => {
-        if (ev.key === "Enter" || ev.key === " ") {
-          // Stop the card-local Enter/Space from also bubbling up to the
-          // window player handler — otherwise pressing Enter on a card
-          // selects the scenario AND advances a step (and Space dumps
-          // the whole transcript).
-          ev.preventDefault();
-          ev.stopPropagation();
-          activate();
-        }
+        if (ev.key === "Enter" || ev.key === " ") ev.stopPropagation();
       });
     });
 
@@ -352,59 +335,56 @@ const catalog = JSON.stringify(
       color: var(--text);
     }
 
-    /* ── Scenario picker ─────────────────────────────────────── */
+    /* ── Scenario picker — compact strip ─────────────────────── */
     .scenarios {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 0.6rem;
-      margin-bottom: 2.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.45rem;
+      margin-bottom: 1.5rem;
     }
     .scenario {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.8rem 1rem;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
       cursor: pointer;
+      text-align: left;
+      font: inherit;
+      color: var(--text);
       transition:
         border-color var(--dur-fast) var(--ease-standard),
-        background var(--dur-fast) var(--ease-standard);
+        background var(--dur-fast) var(--ease-standard),
+        transform var(--dur-fast) var(--ease-standard);
     }
-    .scenario:hover { border-color: var(--accent); }
+    .scenario:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
     .scenario[aria-pressed="true"] {
       border-color: var(--accent);
       background: var(--accent-dim);
-    }
-    .scenario-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 0.4rem;
+      box-shadow: var(--glow-md);
     }
     .scenario-num {
+      flex: 0 0 auto;
       font-family: var(--font-mono);
-      font-size: var(--fs-xs);
-      letter-spacing: var(--ls-widest);
-      color: var(--accent);
-    }
-    .scenario-runtime {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--subtle);
-    }
-    .scenario-title {
-      font-family: var(--font-display);
       font-size: var(--fs-md);
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: var(--ls-tight);
+      min-width: 1.75rem;
+    }
+    .scenario-tagline {
+      flex: 1;
+      font-family: var(--font-display);
+      font-size: var(--fs-sm);
       font-weight: 600;
       color: var(--text);
       letter-spacing: -0.005em;
-      margin: 0.1rem 0 0.4rem;
-    }
-    .scenario-summary {
-      margin: 0 0 0.6rem;
-      font-size: var(--fs-sm);
-      line-height: var(--lh-base);
-      color: var(--muted);
-    }
-    .scenario-skills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.25rem;
+      line-height: 1.25;
     }
     .chip {
       font-family: var(--font-mono);
