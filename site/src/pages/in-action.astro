@@ -1,7 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
-import Card from "../components/ui/Card.astro";
 import Icon from "../components/Icon.astro";
 import { walkthroughs } from "../data/walkthroughs";
 
@@ -22,7 +21,11 @@ const catalog = JSON.stringify(
   walkthroughs.map((w) => ({
     id: w.id,
     title: w.title,
+    tagline: w.tagline,
     summary: w.summary,
+    description: w.description,
+    inputs: w.inputs,
+    outputs: w.outputs,
     skills: w.skills,
     runtime: w.runtime,
     steps: w.steps,
@@ -38,43 +41,86 @@ const catalog = JSON.stringify(
   <main class="page">
     <header class="page-head">
       <Eyebrow>in action</Eyebrow>
-      <h1>Four sessions, start to ship.</h1>
+      <h1>Proof, not pitches.</h1>
       <p class="lede">
-        Each walkthrough is a real transcript between a user and Claude Code
-        with opchain installed. Press <kbd>Enter</kbd> to reveal the next
-        exchange, <kbd>Space</kbd> to skip to the end, or <kbd>R</kbd> to
-        restart. Use <kbd>1</kbd>–<kbd>4</kbd> to switch scenarios.
+        Four full opchain sessions, nothing redacted. A solo founder shipping
+        v1 in a single chat. A rescue on a three-year-old codebase nobody
+        remembers. A dashboard rebuild that halved the noise. Stripe
+        subscriptions gated by a real audit and shipped in a week.
+      </p>
+      <p class="kbd-hint">
+        <kbd>Enter</kbd> to live through each exchange ·
+        <kbd>Space</kbd> to skip to the payoff ·
+        <kbd>R</kbd> to restart ·
+        <kbd>1</kbd>–<kbd>4</kbd> to jump between scenarios.
       </p>
     </header>
 
-    <!-- ───────────── Scenario picker ───────────── -->
-    <section class="scenarios" id="scenario-picker">
+    <!-- ───────────── Scenario picker — collapsed strip ───────────── -->
+    <section class="scenarios" id="scenario-picker" role="tablist" aria-label="Pick a scenario">
       {walkthroughs.map((w, i) => (
-        <Card
-          variant="surface"
-          glow={false}
+        <button
+          type="button"
           class="scenario"
+          role="tab"
+          aria-pressed={i === 0 ? "true" : "false"}
+          aria-selected={i === 0 ? "true" : "false"}
           {...({
             "data-scenario": w.id,
             "data-index": String(i),
-            "aria-pressed": i === 0 ? "true" : "false",
-            role: "button",
-            tabindex: "0",
           } as any)}
         >
-          <div class="scenario-head">
-            <span class="scenario-num">0{i + 1}</span>
-            <span class="scenario-runtime">{w.runtime}</span>
-          </div>
-          <div class="scenario-title">{w.title}</div>
-          <p class="scenario-summary">{w.summary}</p>
-          <div class="scenario-skills">
-            {w.skills.map((s) => (
-              <code class="chip">{s}</code>
-            ))}
-          </div>
-        </Card>
+          <span class="scenario-num">0{i + 1}</span>
+          <span class="scenario-tagline">{w.tagline}</span>
+        </button>
       ))}
+    </section>
+
+    <!-- ───────────── Detail panel — full width for the active scenario ───────────── -->
+    <section class="detail" aria-live="polite">
+      <div class="detail-head">
+        <div>
+          <h2 class="detail-title" id="detail-title">{walkthroughs[0].title}</h2>
+          <p class="detail-summary" id="detail-summary">{walkthroughs[0].summary}</p>
+        </div>
+        <div class="detail-meta">
+          <span class="detail-runtime" id="detail-runtime">{walkthroughs[0].runtime}</span>
+          <div class="detail-skills" id="detail-skills">
+            {walkthroughs[0].skills.map((s) => (<code class="chip">{s}</code>))}
+          </div>
+        </div>
+      </div>
+
+      <p class="detail-body" id="detail-body">{walkthroughs[0].description}</p>
+
+      <div class="detail-io">
+        <div class="io-col">
+          <div class="io-head">Inputs</div>
+          <ul class="io-list" id="detail-inputs">
+            {walkthroughs[0].inputs.map((x) => <li>{x}</li>)}
+          </ul>
+        </div>
+        <div class="io-col">
+          <div class="io-head">Outputs <span class="io-hint">click to expand</span></div>
+          <ul class="io-list artifacts" id="detail-outputs">
+            {walkthroughs[0].outputs.map((a) => (
+              <li class="artifact">
+                <button
+                  type="button"
+                  class="artifact-head"
+                  aria-expanded="false"
+                  {...({ "data-artifact-id": a.id } as any)}
+                >
+                  <Icon name="arrow-right" size={10} class="artifact-chevron" />
+                  <span class="artifact-label">{a.label}</span>
+                  {a.kind && <span class="artifact-kind">{a.kind}</span>}
+                </button>
+                <div class="artifact-body markdown" hidden></div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </section>
 
     <!-- ───────────── Player ───────────── -->
@@ -134,12 +180,23 @@ const catalog = JSON.stringify(
       role: "user" | "claude";
       skill?: string;
       content: string;
+      artifacts?: string[];
     }
     type Step = Beat | Exchange;
+    interface Artifact {
+      id: string;
+      label: string;
+      kind?: string;
+      body: string;
+    }
     interface Walkthrough {
       id: string;
       title: string;
+      tagline: string;
       summary: string;
+      description: string;
+      inputs: string[];
+      outputs: Artifact[];
       skills: string[];
       runtime: string;
       steps: Step[];
@@ -152,6 +209,13 @@ const catalog = JSON.stringify(
     const picker       = document.getElementById("scenario-picker")!;
     const heading      = document.getElementById("player-heading")!;
     const eyebrow      = document.getElementById("player-eyebrow")!;
+    const detailTitle  = document.getElementById("detail-title")!;
+    const detailSum    = document.getElementById("detail-summary")!;
+    const detailBody   = document.getElementById("detail-body")!;
+    const detailRun    = document.getElementById("detail-runtime")!;
+    const detailSkills = document.getElementById("detail-skills")!;
+    const detailInputs = document.getElementById("detail-inputs")!;
+    const detailOuts   = document.getElementById("detail-outputs")!;
     const transcript   = document.getElementById("transcript")!;
     const progressBar  = document.getElementById("progress-bar")!;
     const progressLbl  = document.getElementById("progress-label")!;
@@ -174,15 +238,62 @@ const catalog = JSON.stringify(
       stepIdx = 0;
       transcript.innerHTML = "";
       const w = currentScenario();
+
+      // Player head
       heading.textContent = w.title;
       eyebrow.textContent = `scenario · 0${i + 1}`;
       playLbl.textContent = "start";
       startPrompt.hidden = false;
+
+      // Detail panel — title, summary, body, runtime, skills, I/O, artifacts.
+      detailTitle.textContent = w.title;
+      detailSum.textContent   = w.summary;
+      detailBody.textContent  = w.description;
+      detailRun.textContent   = w.runtime;
+      detailSkills.innerHTML  = w.skills.map((s) => `<code class="chip">${escapeHTML(s)}</code>`).join("");
+      detailInputs.innerHTML  = w.inputs.map((x) => `<li>${escapeHTML(x)}</li>`).join("");
+      detailOuts.innerHTML    = w.outputs.map((a) => `
+        <li class="artifact">
+          <button type="button" class="artifact-head" aria-expanded="false" data-artifact-id="${escapeHTML(a.id)}">
+            <svg class="artifact-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <span class="artifact-label">${escapeHTML(a.label)}</span>
+            ${a.kind ? `<span class="artifact-kind">${escapeHTML(a.kind)}</span>` : ""}
+          </button>
+          <div class="artifact-body markdown" hidden></div>
+        </li>
+      `).join("");
+      wireArtifactToggles();
+
       updateProgress();
 
       // Toggle pressed state on the scenario cards.
       picker.querySelectorAll<HTMLElement>("[data-scenario]").forEach((el) => {
-        el.setAttribute("aria-pressed", el.dataset.scenario === w.id ? "true" : "false");
+        const matched = el.dataset.scenario === w.id;
+        el.setAttribute("aria-pressed", matched ? "true" : "false");
+        el.setAttribute("aria-selected", matched ? "true" : "false");
+      });
+    }
+
+    function wireArtifactToggles() {
+      const w = currentScenario();
+      const byId = new Map(w.outputs.map((a) => [a.id, a] as const));
+      detailOuts.querySelectorAll<HTMLButtonElement>(".artifact-head").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.artifactId || "";
+          const artifact = byId.get(id);
+          if (!artifact) return;
+          const body = btn.nextElementSibling as HTMLElement | null;
+          if (!body) return;
+          const open = btn.getAttribute("aria-expanded") === "true";
+          if (open) {
+            body.hidden = true;
+            btn.setAttribute("aria-expanded", "false");
+          } else {
+            body.innerHTML = renderSafeMarkdown(artifact.body);
+            body.hidden = false;
+            btn.setAttribute("aria-expanded", "true");
+          }
+        });
       });
     }
 
@@ -241,17 +352,68 @@ const catalog = JSON.stringify(
       }
       wrap.appendChild(body);
 
+      // Artifact refs — render as clickable chips under the message body.
+      // Click scrolls the page's detail panel into view and auto-expands
+      // the matching artifact. Tight coupling is fine: both live on the
+      // same page and share the active scenario.
+      if (step.role === "claude" && step.artifacts && step.artifacts.length > 0) {
+        const row = document.createElement("div");
+        row.className = "msg-artifacts";
+        const labels = new Map(
+          currentScenario().outputs.map((a) => [a.id, { label: a.label, kind: a.kind }] as const),
+        );
+        step.artifacts.forEach((id) => {
+          const meta = labels.get(id);
+          if (!meta) return;
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "msg-artifact";
+          chip.dataset.artifactId = id;
+          chip.innerHTML = `
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>${escapeHTML(meta.label)}</span>
+            ${meta.kind ? `<span class="msg-artifact-kind">${escapeHTML(meta.kind)}</span>` : ""}
+          `;
+          chip.addEventListener("click", () => focusArtifact(id));
+          row.appendChild(chip);
+        });
+        wrap.appendChild(row);
+      }
+
       transcript.appendChild(wrap);
       return wrap;
+    }
+
+    /** Scroll the transcript container only — never the whole page. */
+    function scrollChat() {
+      transcript.scrollTo({ top: transcript.scrollHeight, behavior: "smooth" });
+    }
+
+    /** Scroll the detail panel into view and auto-expand an artifact by id. */
+    function focusArtifact(id: string) {
+      const btn = detailOuts.querySelector<HTMLButtonElement>(
+        `[data-artifact-id="${CSS.escape(id)}"]`,
+      );
+      if (!btn) return;
+      const body = btn.nextElementSibling as HTMLElement | null;
+      if (btn.getAttribute("aria-expanded") !== "true") {
+        const artifact = currentScenario().outputs.find((a) => a.id === id);
+        if (artifact && body) {
+          body.innerHTML = renderSafeMarkdown(artifact.body);
+          body.hidden = false;
+          btn.setAttribute("aria-expanded", "true");
+        }
+      }
+      btn.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     function advance() {
       const w = currentScenario();
       if (stepIdx >= w.steps.length) return;
-      const el = renderStep(w.steps[stepIdx]);
+      renderStep(w.steps[stepIdx]);
       stepIdx++;
       updateProgress();
-      el.scrollIntoView({ behavior: "smooth", block: "end" });
+      scrollChat();
     }
 
     function skipToEnd() {
@@ -261,7 +423,7 @@ const catalog = JSON.stringify(
         stepIdx++;
       }
       updateProgress();
-      transcript.lastElementChild?.scrollIntoView({ behavior: "smooth", block: "end" });
+      scrollChat();
     }
 
     function restart() {
@@ -276,19 +438,13 @@ const catalog = JSON.stringify(
     skipBtn.addEventListener("click", skipToEnd);
     restartBtn.addEventListener("click", restart);
 
-    picker.querySelectorAll<HTMLElement>("[data-scenario]").forEach((el, i) => {
-      const activate = () => setScenario(i);
-      el.addEventListener("click", activate);
+    picker.querySelectorAll<HTMLButtonElement>("[data-scenario]").forEach((el, i) => {
+      el.addEventListener("click", () => setScenario(i));
+      // Native <button> Enter/Space → click. Stop the keydown from also
+      // bubbling to the window player handler, which would otherwise
+      // advance/skip the transcript on the same keystroke.
       el.addEventListener("keydown", (ev) => {
-        if (ev.key === "Enter" || ev.key === " ") {
-          // Stop the card-local Enter/Space from also bubbling up to the
-          // window player handler — otherwise pressing Enter on a card
-          // selects the scenario AND advances a step (and Space dumps
-          // the whole transcript).
-          ev.preventDefault();
-          ev.stopPropagation();
-          activate();
-        }
+        if (ev.key === "Enter" || ev.key === " ") ev.stopPropagation();
       });
     });
 
@@ -327,7 +483,15 @@ const catalog = JSON.stringify(
       color: var(--text);
       margin: 0.5rem 0 1rem;
     }
-    .lede { color: var(--muted); max-width: 42rem; margin: 0; }
+    .lede { color: var(--muted); max-width: 42rem; margin: 0 0 0.9rem; }
+    .kbd-hint {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-wide);
+      color: var(--subtle);
+    }
+    .kbd-hint kbd { margin: 0 0.15rem; }
     kbd {
       font-family: var(--font-mono);
       font-size: 11px;
@@ -338,59 +502,56 @@ const catalog = JSON.stringify(
       color: var(--text);
     }
 
-    /* ── Scenario picker ─────────────────────────────────────── */
+    /* ── Scenario picker — compact strip ─────────────────────── */
     .scenarios {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 0.6rem;
-      margin-bottom: 2.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.45rem;
+      margin-bottom: 1.5rem;
     }
     .scenario {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.8rem 1rem;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
       cursor: pointer;
+      text-align: left;
+      font: inherit;
+      color: var(--text);
       transition:
         border-color var(--dur-fast) var(--ease-standard),
-        background var(--dur-fast) var(--ease-standard);
+        background var(--dur-fast) var(--ease-standard),
+        transform var(--dur-fast) var(--ease-standard);
     }
-    .scenario:hover { border-color: var(--accent); }
+    .scenario:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
     .scenario[aria-pressed="true"] {
       border-color: var(--accent);
       background: var(--accent-dim);
-    }
-    .scenario-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 0.4rem;
+      box-shadow: var(--glow-md);
     }
     .scenario-num {
+      flex: 0 0 auto;
       font-family: var(--font-mono);
-      font-size: var(--fs-xs);
-      letter-spacing: var(--ls-widest);
-      color: var(--accent);
-    }
-    .scenario-runtime {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--subtle);
-    }
-    .scenario-title {
-      font-family: var(--font-display);
       font-size: var(--fs-md);
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: var(--ls-tight);
+      min-width: 1.75rem;
+    }
+    .scenario-tagline {
+      flex: 1;
+      font-family: var(--font-display);
+      font-size: var(--fs-sm);
       font-weight: 600;
       color: var(--text);
       letter-spacing: -0.005em;
-      margin: 0.1rem 0 0.4rem;
-    }
-    .scenario-summary {
-      margin: 0 0 0.6rem;
-      font-size: var(--fs-sm);
-      line-height: var(--lh-base);
-      color: var(--muted);
-    }
-    .scenario-skills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.25rem;
+      line-height: 1.25;
     }
     .chip {
       font-family: var(--font-mono);
@@ -400,6 +561,231 @@ const catalog = JSON.stringify(
       border: 0.5px solid var(--border);
       padding: 1px 6px;
       border-radius: var(--r-xs);
+    }
+
+    /* ── Detail panel — full width under the card strip ─────── */
+    .detail {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--glow-md);
+    }
+    .detail-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .detail-title {
+      font-family: var(--font-display);
+      font-size: var(--fs-xl);
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      margin: 0 0 0.35rem;
+    }
+    .detail-summary {
+      margin: 0;
+      font-size: var(--fs-sm);
+      color: var(--muted);
+      max-width: 52ch;
+    }
+    .detail-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      align-items: flex-end;
+    }
+    .detail-runtime {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-wide);
+      color: var(--subtle);
+    }
+    .detail-skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      justify-content: flex-end;
+    }
+    .detail-body {
+      font-size: var(--fs-sm);
+      line-height: var(--lh-base);
+      color: var(--muted);
+      margin: 0 0 1.25rem;
+    }
+
+    .detail-io {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 720px) {
+      .detail-io { grid-template-columns: 1fr; }
+    }
+    .io-head {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+      margin-bottom: 0.55rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+    .io-hint {
+      text-transform: none;
+      letter-spacing: var(--ls-wide);
+      font-size: 10px;
+      color: var(--subtle);
+      font-style: italic;
+    }
+    .io-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .io-list:not(.artifacts) li {
+      font-size: var(--fs-sm);
+      color: var(--muted);
+      padding-left: 0.9rem;
+      position: relative;
+    }
+    .io-list:not(.artifacts) li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    /* ── Artifacts (collapsible) ─────────────────────────────── */
+    .artifacts { gap: 0.3rem; }
+    .artifact {
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--card);
+      overflow: hidden;
+    }
+    .artifact-head {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      width: 100%;
+      padding: 0.55rem 0.8rem;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      color: var(--text);
+      transition:
+        background var(--dur-fast) var(--ease-standard),
+        color var(--dur-fast) var(--ease-standard);
+    }
+    .artifact-head:hover {
+      background: var(--accent-dim);
+      color: var(--text);
+    }
+    .artifact-chevron {
+      color: var(--accent);
+      transition: transform var(--dur-fast) var(--ease-standard);
+    }
+    .artifact-head[aria-expanded="true"] .artifact-chevron {
+      transform: rotate(90deg);
+    }
+    .artifact-label {
+      flex: 1;
+      font-size: var(--fs-sm);
+      color: var(--text);
+    }
+    .artifact-kind {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      padding: 1px 6px;
+      border-radius: var(--r-xs);
+      letter-spacing: var(--ls-wide);
+    }
+    .artifact-body {
+      padding: 0.9rem 1.1rem;
+      border-top: 0.5px solid var(--border);
+      background: var(--ribbon);
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--text);
+      max-height: 28rem;
+      overflow-y: auto;
+    }
+    .artifact-body[hidden] { display: none; }
+    .artifact-body :global(h1),
+    .artifact-body :global(h2),
+    .artifact-body :global(h3) {
+      font-family: var(--font-display);
+      color: var(--text);
+      margin: 0.6rem 0 0.35rem;
+    }
+    .artifact-body :global(h1) { font-size: var(--fs-md); }
+    .artifact-body :global(h2) { font-size: var(--fs-sm); }
+    .artifact-body :global(h3) { font-size: 12px; }
+    .artifact-body :global(p)  { margin: 0 0 0.5rem; color: var(--muted); }
+    .artifact-body :global(ul),
+    .artifact-body :global(ol) { margin: 0.25rem 0 0.5rem 1.2rem; padding: 0; color: var(--muted); }
+    .artifact-body :global(li) { margin: 0.1rem 0; }
+    .artifact-body :global(code) {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      padding: 0 4px;
+      border-radius: var(--r-xs);
+    }
+    .artifact-body :global(pre) {
+      background: var(--obsidian);
+      color: var(--linen);
+      border: 0.5px solid var(--slag);
+      border-radius: var(--r-sm);
+      padding: 0.75rem 0.95rem;
+      overflow-x: auto;
+      font-size: 11px;
+      margin: 0.35rem 0 0.5rem;
+    }
+    .artifact-body :global(pre code) {
+      background: transparent; border: 0; padding: 0;
+    }
+    .artifact-body :global(table) {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin: 0.5rem 0;
+    }
+    .artifact-body :global(th),
+    .artifact-body :global(td) {
+      border: 0.5px solid var(--border);
+      padding: 0.3rem 0.55rem;
+      text-align: left;
+    }
+    .artifact-body :global(th) {
+      background: var(--surface);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-wide);
+      color: var(--muted);
+    }
+    .artifact-body :global(blockquote) {
+      border-left: 2px solid var(--accent);
+      padding: 0.2rem 0 0.2rem 0.8rem;
+      margin: 0.4rem 0;
+      color: var(--muted);
     }
 
     /* ── Player ──────────────────────────────────────────────── */
@@ -502,14 +888,26 @@ const catalog = JSON.stringify(
     }
 
     /* ── Transcript + messages ───────────────────────────────── */
+    /* Fixed height so adding messages scrolls inside the chat, not the
+       page. Page is stationary; the chat canvas keeps moving up on its
+       own as exchanges stack. `height` (not max-height) so the container
+       holds its size even when near-empty. `overscroll-behavior: contain`
+       stops a scroll at the chat edge from bubbling to the page. */
     .transcript {
-      min-height: 14rem;
-      max-height: 62vh;
+      height: 60vh;
+      min-height: 20rem;
       overflow-y: auto;
-      padding-right: 0.4rem;
+      overscroll-behavior: contain;
+      padding: 1rem 1.1rem;
       display: flex;
       flex-direction: column;
       gap: 0.85rem;
+      background: var(--obsidian);
+      border: 0.5px solid var(--slag);
+      border-radius: var(--r-md);
+    }
+    @media (max-width: 720px) {
+      .transcript { height: 70vh; }
     }
 
     .start-prompt {
@@ -517,110 +915,177 @@ const catalog = JSON.stringify(
       align-items: center;
       gap: 0.6rem;
       padding: 0.85rem 1rem;
-      border: 0.5px dashed var(--border);
+      border: 0.5px dashed var(--slag);
       border-radius: var(--r-md);
-      color: var(--subtle);
+      color: var(--sand);
+      background: var(--forge);
       font-size: var(--fs-sm);
       margin-top: 0.5rem;
     }
     .start-prompt[hidden] { display: none; }
+    .start-prompt kbd {
+      background: var(--obsidian);
+      border: 0.5px solid var(--slag);
+      color: var(--linen);
+    }
 
-    .msg { max-width: 92%; }
-    .msg--assistant { align-self: flex-start; }
-    .msg--user      { align-self: flex-end; }
+    .msg { max-width: 88%; }
+    .msg--assistant { align-self: flex-start; }   /* Claude on the left */
+    .msg--user      { align-self: flex-end;   }   /* user on the right  */
     .msg-label {
       font-family: var(--font-mono);
       font-size: 9px;
       font-weight: 500;
       letter-spacing: var(--ls-wider);
       text-transform: uppercase;
-      color: var(--subtle);
+      color: var(--sand);
       margin-bottom: 0.3rem;
+      opacity: 0.8;
     }
+    .msg--user .msg-label { text-align: right; }
     .msg-content {
-      background: var(--card);
-      border: 0.5px solid var(--border);
-      color: var(--text);
-      padding: 0.75rem 1rem;
+      padding: 0.8rem 1rem;
       border-radius: var(--r-md);
       font-size: var(--fs-sm);
       line-height: var(--lh-base);
       white-space: pre-wrap;
       word-wrap: break-word;
+      border: 0.5px solid;
     }
-    .msg--assistant .msg-content { border-bottom-left-radius: var(--r-xs); }
+    /* Claude (left): muted forge bubble with ember accent edge */
+    .msg--assistant .msg-content {
+      background: var(--forge);
+      border-color: var(--slag);
+      color: var(--linen);
+      border-bottom-left-radius: var(--r-xs);
+    }
+    /* User (right): ember-accent bubble, clearly different from Claude's */
     .msg--user .msg-content {
+      background: var(--accent);
+      border-color: var(--accent-hover);
+      color: var(--obsidian);
       border-bottom-right-radius: var(--r-xs);
-      background: var(--accent-dim);
-      border-color: var(--accent);
+      font-weight: 500;
     }
 
-    /* Markdown prose — inline rules only; the global .markdown style
-       already covers most of this. Add scoped niceties for code/tables. */
-    .msg-content :global(p) { margin: 0 0 0.55rem; }
-    .msg-content :global(p:last-child) { margin-bottom: 0; }
-    .msg-content :global(h2),
-    .msg-content :global(h3) {
+    /* Markdown prose — scoped to the assistant bubble (dark background). */
+    .msg--assistant .msg-content :global(p) { margin: 0 0 0.55rem; color: var(--linen); }
+    .msg--assistant .msg-content :global(p:last-child) { margin-bottom: 0; }
+    .msg--assistant .msg-content :global(h1),
+    .msg--assistant .msg-content :global(h2),
+    .msg--assistant .msg-content :global(h3) {
       font-family: var(--font-display);
-      font-size: var(--fs-md);
-      margin: 0.4rem 0 0.35rem;
-      color: var(--text);
+      color: var(--parchment);
+      margin: 0.5rem 0 0.35rem;
     }
-    .msg-content :global(ul),
-    .msg-content :global(ol) {
+    .msg--assistant .msg-content :global(h2) { font-size: var(--fs-md); }
+    .msg--assistant .msg-content :global(h3) { font-size: var(--fs-sm); }
+    .msg--assistant .msg-content :global(ul),
+    .msg--assistant .msg-content :global(ol) {
       margin: 0.25rem 0 0.55rem 1.1rem;
       padding: 0;
-    }
-    .msg-content :global(li) { margin: 0.1rem 0; }
-    .msg-content :global(code) {
-      font-family: var(--font-mono);
-      font-size: 12px;
-    }
-    .msg-content :global(pre) {
-      background: var(--obsidian);
       color: var(--linen);
+    }
+    .msg--assistant .msg-content :global(li) { margin: 0.1rem 0; }
+    .msg--assistant .msg-content :global(code) {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--obsidian);
       border: 0.5px solid var(--slag);
+      color: var(--sand);
+      padding: 1px 5px;
+      border-radius: var(--r-xs);
+    }
+    .msg--assistant .msg-content :global(pre) {
+      background: var(--char);
+      color: var(--linen);
+      border: 0.5px solid var(--obsidian);
       border-radius: var(--r-sm);
       padding: 0.75rem 0.95rem;
       overflow-x: auto;
       font-size: 11px;
       margin: 0.35rem 0 0.5rem;
     }
-    .msg-content :global(pre code) {
+    .msg--assistant .msg-content :global(pre code) {
       background: transparent;
       border: 0;
       padding: 0;
       color: inherit;
+      font-size: inherit;
     }
-    .msg-content :global(table) {
+    .msg--assistant .msg-content :global(table) {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
+      font-size: 11px;
       margin: 0.5rem 0;
     }
-    .msg-content :global(th),
-    .msg-content :global(td) {
-      border: 0.5px solid var(--border);
+    .msg--assistant .msg-content :global(th),
+    .msg--assistant .msg-content :global(td) {
+      border: 0.5px solid var(--slag);
       padding: 0.3rem 0.55rem;
       text-align: left;
+      color: var(--linen);
     }
-    .msg-content :global(th) {
-      background: var(--surface);
+    .msg--assistant .msg-content :global(th) {
+      background: var(--char);
       font-family: var(--font-mono);
       font-size: 10px;
-      font-weight: 500;
       letter-spacing: var(--ls-wide);
-      color: var(--muted);
+      color: var(--sand);
     }
-    .msg-content :global(blockquote) {
+    .msg--assistant .msg-content :global(blockquote) {
       border-left: 2px solid var(--accent);
       padding: 0.25rem 0 0.25rem 0.85rem;
       margin: 0.5rem 0;
-      color: var(--muted);
+      color: var(--sand);
       font-style: italic;
     }
+    .msg--assistant .msg-content :global(strong) { color: var(--parchment); }
 
-    /* ── Beat divider ────────────────────────────────────────── */
+    /* ── Inline artifact chips (under a Claude message) ───────── */
+    .msg-artifacts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+    }
+    .msg-artifact {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--char);
+      color: var(--parchment);
+      border: 0.5px solid var(--slag);
+      border-radius: var(--r-sm);
+      padding: 0.35rem 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-wide);
+      cursor: pointer;
+      transition:
+        background var(--dur-fast) var(--ease-standard),
+        color var(--dur-fast) var(--ease-standard),
+        border-color var(--dur-fast) var(--ease-standard);
+    }
+    .msg-artifact:hover {
+      background: var(--accent);
+      color: var(--obsidian);
+      border-color: var(--accent-hover);
+    }
+    .msg-artifact-kind {
+      background: var(--obsidian);
+      color: var(--sand);
+      border: 0.5px solid var(--slag);
+      padding: 1px 5px;
+      border-radius: var(--r-xs);
+      font-size: 9px;
+    }
+    .msg-artifact:hover .msg-artifact-kind {
+      background: var(--obsidian);
+      color: var(--accent);
+    }
+
+    /* ── Beat divider (inside the dark chat) ─────────────────── */
     .beat {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
@@ -628,7 +1093,7 @@ const catalog = JSON.stringify(
       gap: 0.85rem;
       margin: 0.5rem 0 0.25rem;
     }
-    .beat-rule { height: 0; border-top: 0.5px solid var(--border); }
+    .beat-rule { height: 0; border-top: 0.5px solid var(--slag); }
     .beat-body {
       text-align: center;
       display: flex;
@@ -645,7 +1110,7 @@ const catalog = JSON.stringify(
     }
     .beat-caption {
       font-size: var(--fs-xs);
-      color: var(--subtle);
+      color: var(--sand);
     }
     .beat-skills {
       display: inline-flex;
@@ -654,10 +1119,14 @@ const catalog = JSON.stringify(
       justify-content: center;
       margin-top: 0.2rem;
     }
+    .beat-skills .chip {
+      background: var(--char);
+      border-color: var(--slag);
+      color: var(--sand);
+    }
 
     @media (max-width: 720px) {
       .player-head { flex-direction: column; align-items: flex-start; }
-      .transcript { max-height: none; }
     }
   </style>
 </Base>
