@@ -38,12 +38,18 @@ const catalog = JSON.stringify(
   <main class="page">
     <header class="page-head">
       <Eyebrow>in action</Eyebrow>
-      <h1>Four sessions, start to ship.</h1>
+      <h1>Proof, not pitches.</h1>
       <p class="lede">
-        Each walkthrough is a real transcript between a user and Claude Code
-        with opchain installed. Press <kbd>Enter</kbd> to reveal the next
-        exchange, <kbd>Space</kbd> to skip to the end, or <kbd>R</kbd> to
-        restart. Use <kbd>1</kbd>–<kbd>4</kbd> to switch scenarios.
+        Four full opchain sessions, nothing redacted. A solo founder shipping
+        v1 in a single chat. A rescue on a three-year-old codebase nobody
+        remembers. A dashboard rebuild that halved the noise. Stripe
+        subscriptions gated by a real audit and shipped in a week.
+      </p>
+      <p class="kbd-hint">
+        <kbd>Enter</kbd> to live through each exchange ·
+        <kbd>Space</kbd> to skip to the payoff ·
+        <kbd>R</kbd> to restart ·
+        <kbd>1</kbd>–<kbd>4</kbd> to jump between scenarios.
       </p>
     </header>
 
@@ -327,7 +333,15 @@ const catalog = JSON.stringify(
       color: var(--text);
       margin: 0.5rem 0 1rem;
     }
-    .lede { color: var(--muted); max-width: 42rem; margin: 0; }
+    .lede { color: var(--muted); max-width: 42rem; margin: 0 0 0.9rem; }
+    .kbd-hint {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-wide);
+      color: var(--subtle);
+    }
+    .kbd-hint kbd { margin: 0 0.15rem; }
     kbd {
       font-family: var(--font-mono);
       font-size: 11px;
