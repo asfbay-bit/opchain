@@ -44,8 +44,12 @@ git push`;
       <div class="flow-body">
         <h2><Icon name="terminal" /> Claude Code CLI</h2>
         <p>
-          Drop the files into your project's <code class="ic">.claude/skills/</code>
-          directory. Claude Code auto-discovers them on the next session.
+          Need the CLI first?
+          <a href="https://claude.com/claude-code" rel="noopener">
+            Install Claude Code
+          </a>, open a terminal at your project root, then drop the skills
+          into <code class="ic">.claude/skills/</code>. Claude Code
+          auto-discovers them on the next session.
         </p>
         <div class="code-row">
           <pre class="codeblock"><code>{cliCmd}</code></pre>
@@ -54,6 +58,13 @@ git push`;
             <span class="copy-label">copy</span>
           </button>
         </div>
+        <p class="verify">
+          <strong>Verify it worked.</strong> In that session, type
+          <code class="ic">/discover</code>. If app-architect starts an
+          interview ("Who's the primary user? Sync or async? …"), you're
+          set. If not, re-check that the files landed in
+          <code class="ic">.claude/skills/&lt;name&gt;/SKILL.md</code>.
+        </p>
       </div>
     </section>
 
@@ -118,10 +129,10 @@ git push`;
     <section class="what">
       <h2>What you get</h2>
       <ul>
-        <li><strong>11 skills</strong> covering discover · spec · design · build · audit · ship · scale</li>
-        <li><strong>Session persistence</strong> — pick up exactly where you left off</li>
-        <li><strong>Active chaining</strong> — skills invoke each other, no manual handoffs</li>
-        <li><strong>Novice mode</strong> — type "build me an app" and opchain routes you</li>
+        <li><strong>10 skills + 1 shared protocol</strong> covering discover · spec · design · build · audit · ship · scale</li>
+        <li><strong>Session persistence</strong> — JSON checkpoints in <code class="ic">.checkpoints/</code>; pick up exactly where you left off, next chat or next week</li>
+        <li><strong>Active chaining</strong> — skills invoke each other automatically at phase boundaries; no manual handoffs</li>
+        <li><strong>Natural-language triggers</strong> — type "build me an app" or "audit this before Friday" and opchain routes you to the right skill</li>
       </ul>
       <p style="margin-top: 1.5rem;">
         Want to try before installing? The <a href="/tryit">Try It demo</a>
@@ -213,6 +224,16 @@ git push`;
     gap: 0.45rem;
   }
   .flow-body p { color: var(--muted); margin: 0 0 0.85rem; }
+  .flow-body .verify {
+    margin-top: 0.9rem;
+    padding: 0.75rem 0.95rem;
+    border-left: 2px solid var(--accent);
+    background: var(--surface);
+    border-radius: var(--r-xs);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .flow-body .verify strong { color: var(--text); }
   .flow-body a { color: var(--accent); }
 
   .code-row {

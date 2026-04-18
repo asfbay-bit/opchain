@@ -18,7 +18,7 @@ const phases = [
 
 <Base
   title="opchain — skills that ship"
-  description="opchain is 10 interconnected Claude Code skills + 1 protocol. A complete software development pipeline: discover, spec, design, build, audit, ship, scale."
+  description="opchain is 10 Claude Code skills + 1 shared protocol (11 total). A complete software development pipeline: discover, spec, design, build, audit, ship, scale."
   active="/"
 >
   <main class="intro">
@@ -30,21 +30,28 @@ const phases = [
     </div>
 
     <div class="intro-tagline">
-      <span>10 interconnected skills · 1 protocol</span>
+      <span>10 skills + 1 shared protocol · 11 total</span>
       <span>skills that ship — concept to production</span>
     </div>
 
     <div class="intro-body">
       <p>
-        opchain is a set of Claude Code skills that form a software
-        development pipeline. Each skill owns one phase — discovery, spec,
-        design, build, audit, ship, scale. Skills share state through
-        <code>.checkpoints/</code> JSON files so work persists across
-        conversations and Claude picks up where you left off.
+        <strong>If you've ever tried to build something real with Claude
+        and watched it lose the plot between chats</strong> — forgetting
+        your spec, redesigning what it already designed, repeating
+        questions it asked an hour ago — opchain is the missing layer.
       </p>
       <p>
-        Install a skill, trigger it by name, pick up where you left off.
-        No API keys, no SaaS, no vendor lock-in.
+        Ten Claude Code skills + one shared protocol. Each skill owns
+        one phase (discover, spec, design, build, audit, ship, scale)
+        and writes JSON checkpoints to <code>.checkpoints/</code>.
+        Claude reads them back on the next session and picks up where
+        you left off. Skills invoke each other automatically at phase
+        boundaries — no manual handoffs, no copy-paste.
+      </p>
+      <p>
+        Install them, trigger by name, keep going. No API keys. No SaaS.
+        No vendor lock-in — every skill is a single Markdown file.
       </p>
     </div>
 
