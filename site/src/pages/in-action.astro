@@ -352,32 +352,81 @@ const catalog = JSON.stringify(
       }
       wrap.appendChild(body);
 
-      // Artifact refs — render as clickable chips under the message body.
-      // Click scrolls the page's detail panel into view and auto-expands
-      // the matching artifact. Tight coupling is fine: both live on the
-      // same page and share the active scenario.
+      // Artifact refs — one dotted-outlined "file group" per message.
+      // The tab strip shows the filename (artifact.kind); clicking a tab
+      // expands its body inline. Clicking the active tab again collapses.
+      // If the message produced multiple files, switching tabs swaps the
+      // rendered body without collapsing.
       if (step.role === "claude" && step.artifacts && step.artifacts.length > 0) {
-        const row = document.createElement("div");
-        row.className = "msg-artifacts";
-        const labels = new Map(
-          currentScenario().outputs.map((a) => [a.id, { label: a.label, kind: a.kind }] as const),
+        const byId = new Map(
+          currentScenario().outputs.map((a) => [a.id, a] as const),
         );
-        step.artifacts.forEach((id) => {
-          const meta = labels.get(id);
-          if (!meta) return;
-          const chip = document.createElement("button");
-          chip.type = "button";
-          chip.className = "msg-artifact";
-          chip.dataset.artifactId = id;
-          chip.innerHTML = `
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            <span>${escapeHTML(meta.label)}</span>
-            ${meta.kind ? `<span class="msg-artifact-kind">${escapeHTML(meta.kind)}</span>` : ""}
-          `;
-          chip.addEventListener("click", () => focusArtifact(id));
-          row.appendChild(chip);
-        });
-        wrap.appendChild(row);
+        const refs = step.artifacts
+          .map((id) => byId.get(id))
+          .filter((a): a is Artifact => !!a);
+
+        if (refs.length > 0) {
+          const group = document.createElement("div");
+          group.className = "file-group";
+
+          const tabstrip = document.createElement("div");
+          tabstrip.className = "file-tabs";
+          tabstrip.setAttribute("role", "tablist");
+
+          const fileBody = document.createElement("div");
+          fileBody.className = "file-body markdown";
+          fileBody.hidden = true;
+
+          let activeIdx = -1;   // -1 = collapsed
+
+          const renderActive = () => {
+            if (activeIdx < 0) {
+              fileBody.hidden = true;
+              return;
+            }
+            const a = refs[activeIdx];
+            fileBody.innerHTML = renderSafeMarkdown(a.body);
+            fileBody.hidden = false;
+            requestAnimationFrame(() => {
+              const tRect = transcript.getBoundingClientRect();
+              const gRect = group.getBoundingClientRect();
+              const target =
+                transcript.scrollTop + (gRect.top - tRect.top) - 12;
+              transcript.scrollTo({
+                top: Math.max(0, target),
+                behavior: "smooth",
+              });
+            });
+          };
+
+          const tabs: HTMLButtonElement[] = refs.map((a, i) => {
+            const tab = document.createElement("button");
+            tab.type = "button";
+            tab.className = "file-tab";
+            tab.setAttribute("role", "tab");
+            tab.setAttribute("aria-selected", "false");
+            tab.innerHTML = `
+              <svg class="file-tab-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span class="file-tab-name">${escapeHTML(a.kind || a.label)}</span>
+            `;
+            tab.title = a.label;
+            tab.addEventListener("click", () => {
+              if (activeIdx === i) {
+                // Clicking the open tab collapses the group.
+                activeIdx = -1;
+              } else {
+                activeIdx = i;
+              }
+              tabs.forEach((t, ti) => t.setAttribute("aria-selected", String(ti === activeIdx)));
+              renderActive();
+            });
+            return tab;
+          });
+
+          tabs.forEach((t) => tabstrip.appendChild(t));
+          group.append(tabstrip, fileBody);
+          wrap.appendChild(group);
+        }
       }
 
       transcript.appendChild(wrap);
@@ -387,24 +436,6 @@ const catalog = JSON.stringify(
     /** Scroll the transcript container only — never the whole page. */
     function scrollChat() {
       transcript.scrollTo({ top: transcript.scrollHeight, behavior: "smooth" });
-    }
-
-    /** Scroll the detail panel into view and auto-expand an artifact by id. */
-    function focusArtifact(id: string) {
-      const btn = detailOuts.querySelector<HTMLButtonElement>(
-        `[data-artifact-id="${CSS.escape(id)}"]`,
-      );
-      if (!btn) return;
-      const body = btn.nextElementSibling as HTMLElement | null;
-      if (btn.getAttribute("aria-expanded") !== "true") {
-        const artifact = currentScenario().outputs.find((a) => a.id === id);
-        if (artifact && body) {
-          body.innerHTML = renderSafeMarkdown(artifact.body);
-          body.hidden = false;
-          btn.setAttribute("aria-expanded", "true");
-        }
-      }
-      btn.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     function advance() {
@@ -1042,47 +1073,133 @@ const catalog = JSON.stringify(
     }
     .msg--assistant .msg-content :global(strong) { color: var(--parchment); }
 
-    /* ── Inline artifact chips (under a Claude message) ───────── */
-    .msg-artifacts {
+    /* ── In-chat file group — dotted outline, filename tabs ──── */
+    .file-group {
+      margin-top: 0.6rem;
+      border: 1px dashed var(--slag);
+      border-radius: var(--r-sm);
+      background: transparent;
+      overflow: hidden;
+    }
+    .file-tabs {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.35rem;
-      margin-top: 0.5rem;
+      gap: 0;
+      padding: 0.35rem 0.4rem 0;
+      border-bottom: 1px dashed transparent;
     }
-    .msg-artifact {
+    .file-group:has(.file-body:not([hidden])) .file-tabs {
+      border-bottom-color: var(--slag);
+    }
+    .file-tab {
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      background: var(--char);
-      color: var(--parchment);
-      border: 0.5px solid var(--slag);
-      border-radius: var(--r-sm);
-      padding: 0.35rem 0.6rem;
+      padding: 0.35rem 0.7rem;
+      background: transparent;
+      border: 0.5px solid transparent;
+      border-bottom: 0;
+      border-top-left-radius: var(--r-xs);
+      border-top-right-radius: var(--r-xs);
+      cursor: pointer;
+      font: inherit;
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: var(--ls-wide);
-      cursor: pointer;
+      color: var(--sand);
       transition:
         background var(--dur-fast) var(--ease-standard),
         color var(--dur-fast) var(--ease-standard),
         border-color var(--dur-fast) var(--ease-standard);
+      margin-bottom: -0.5px;
     }
-    .msg-artifact:hover {
-      background: var(--accent);
-      color: var(--obsidian);
-      border-color: var(--accent-hover);
+    .file-tab:hover {
+      color: var(--parchment);
+      background: var(--char);
     }
-    .msg-artifact-kind {
-      background: var(--obsidian);
-      color: var(--sand);
-      border: 0.5px solid var(--slag);
-      padding: 1px 5px;
-      border-radius: var(--r-xs);
-      font-size: 9px;
-    }
-    .msg-artifact:hover .msg-artifact-kind {
-      background: var(--obsidian);
+    .file-tab[aria-selected="true"] {
       color: var(--accent);
+      background: var(--obsidian);
+      border-color: var(--slag);
+    }
+    .file-tab-icon {
+      color: currentColor;
+      flex: 0 0 auto;
+    }
+    .file-tab-name {
+      white-space: nowrap;
+    }
+
+    .file-body {
+      padding: 0.85rem 1rem;
+      background: var(--obsidian);
+      color: var(--linen);
+      font-size: 11px;
+      line-height: 1.55;
+      max-height: 22rem;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .file-body[hidden] { display: none; }
+
+    .file-body :global(h1),
+    .file-body :global(h2),
+    .file-body :global(h3) {
+      font-family: var(--font-display);
+      color: var(--parchment);
+      margin: 0.5rem 0 0.3rem;
+    }
+    .file-body :global(h1) { font-size: var(--fs-sm); }
+    .file-body :global(h2) { font-size: 12px; }
+    .file-body :global(h3) { font-size: 11px; }
+    .file-body :global(p)  { margin: 0 0 0.4rem; color: var(--linen); }
+    .file-body :global(ul),
+    .file-body :global(ol) { margin: 0.2rem 0 0.45rem 1.1rem; padding: 0; color: var(--linen); }
+    .file-body :global(li) { margin: 0.1rem 0; }
+    .file-body :global(strong) { color: var(--parchment); }
+    .file-body :global(code) {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: var(--char);
+      border: 0.5px solid var(--slag);
+      color: var(--sand);
+      padding: 0 4px;
+      border-radius: var(--r-xs);
+    }
+    .file-body :global(pre) {
+      background: var(--char);
+      color: var(--linen);
+      border: 0.5px solid var(--slag);
+      border-radius: var(--r-sm);
+      padding: 0.65rem 0.85rem;
+      overflow-x: auto;
+      font-size: 10px;
+      margin: 0.3rem 0 0.45rem;
+    }
+    .file-body :global(pre code) {
+      background: transparent; border: 0; padding: 0; color: inherit; font-size: inherit;
+    }
+    .file-body :global(table) {
+      width: 100%; border-collapse: collapse; font-size: 10px; margin: 0.4rem 0;
+    }
+    .file-body :global(th),
+    .file-body :global(td) {
+      border: 0.5px solid var(--slag);
+      padding: 0.25rem 0.5rem;
+      text-align: left;
+      color: var(--linen);
+    }
+    .file-body :global(th) {
+      background: var(--char);
+      font-family: var(--font-mono);
+      color: var(--sand);
+      letter-spacing: var(--ls-wide);
+    }
+    .file-body :global(blockquote) {
+      border-left: 2px solid var(--accent);
+      padding: 0.2rem 0 0.2rem 0.7rem;
+      margin: 0.35rem 0;
+      color: var(--sand);
     }
 
     /* ── Beat divider (inside the dark chat) ─────────────────── */
