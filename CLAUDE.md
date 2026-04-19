@@ -7,8 +7,8 @@ that form a software development pipeline (concept → spec → design → build
 
 - **Production Worker:** `opchain-dev` on Cloudflare Workers
 - **Production URL:** https://opchain-dev.4fstpkkw72.workers.dev (custom domain: opchain.dev)
-- **Staging Worker:** `opchain-staging` (see `wrangler.jsonc env.staging`; CNAME + KV ids require one-time setup)
-- **Staging URL:** https://staging.opchain.dev (planned)
+- **Staging Worker:** `opchain-staging` (see `wrangler.jsonc env.staging`)
+- **Staging URL:** https://staging.opchain.dev — wired in `wrangler.jsonc` after PR uncommenting the route. Requires a one-time CNAME `staging.opchain.dev → opchain-staging.4fstpkkw72.workers.dev`. Default `*.workers.dev` URL is blocked account-wide (`host_not_allowed`).
 - **Deploy:** `npm run deploy` (production) / `npm run deploy:staging`
 - **CI:** `.github/workflows/ci.yml` runs on every PR (test + build + catalog verify). `deploy.yml` pushes main to staging automatically; production requires manual `workflow_dispatch` approval.
 - **Version stamp:** the build injects `__OPCHAIN_VERSION__` (short git SHA) via esbuild `define`. Visible in `GET /api/health` and the `X-Opchain-Version` response header.
