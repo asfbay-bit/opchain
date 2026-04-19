@@ -11,7 +11,25 @@ npm install
 npm run dev      # astro dev on localhost:4321
 npm run build    # astro build → ./dist
 npm run check    # astro check (type + content validation)
+npm run test:e2e # Playwright e2e (auto-builds with test PostHog key, then runs preview)
 ```
+
+## E2E (Sprint 7a)
+
+The Playwright suite lives in `site/tests/e2e/` and runs against a real
+`astro preview` server on `127.0.0.1:4321`. The Worker is **not** booted —
+`/api/try/*` is mocked per-test via `page.route()`.
+
+First run on a clean clone:
+
+```bash
+cd site
+npx playwright install chromium    # one-time browser install (~150 MB)
+npm run test:e2e
+```
+
+CI runs the same suite on `ubuntu-latest`; cached browsers keep the step
+under a minute warm.
 
 ## Roadmap
 
