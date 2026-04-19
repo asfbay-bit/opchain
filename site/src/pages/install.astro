@@ -53,7 +53,7 @@ git push`;
         </p>
         <div class="code-row">
           <pre class="codeblock"><code>{cliCmd}</code></pre>
-          <button class="copy" type="button" data-copy={cliCmd} aria-label="Copy command">
+          <button class="copy" type="button" data-copy={cliCmd} data-flow="cli" aria-label="Copy command">
             <Icon name="copy" size={12} />
             <span class="copy-label">copy</span>
           </button>
@@ -98,7 +98,7 @@ git push`;
         <p>Commit the skills directory so every teammate uses the same prompt pipeline.</p>
         <div class="code-row">
           <pre class="codeblock"><code>{teamCmd}</code></pre>
-          <button class="copy" type="button" data-copy={teamCmd} aria-label="Copy command">
+          <button class="copy" type="button" data-copy={teamCmd} data-flow="team" aria-label="Copy command">
             <Icon name="copy" size={12} />
             <span class="copy-label">copy</span>
           </button>
@@ -142,6 +142,8 @@ git push`;
   </main>
 
   <script>
+    import { track } from "../lib/analytics";
+
     /**
      * Tiny copy-to-clipboard handler. Reads the literal command from
      * the button's `data-copy` attribute (preserves newlines exactly).
@@ -151,6 +153,7 @@ git push`;
       const original = btn.querySelector(".copy-label")?.textContent ?? "copy";
       btn.addEventListener("click", async () => {
         const text = btn.dataset.copy ?? "";
+        track("install_copy_clicked", { flow: btn.dataset.flow ?? "unknown" });
         try {
           await navigator.clipboard.writeText(text);
           const lbl = btn.querySelector(".copy-label");
