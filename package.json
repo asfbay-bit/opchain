@@ -9,6 +9,7 @@
     "deploy": "wrangler deploy",
     "deploy:staging": "wrangler deploy --env staging",
     "deploy:skip-build": "wrangler deploy --config wrangler.jsonc --no-build",
+    "promote": "git fetch origin main && gh workflow run promote.yml -f sha=$(git rev-parse origin/main)",
     "sync-docs": "bash scripts/sync-docs.sh",
     "make-zip": "bash scripts/make-skills-zip.sh",
     "gen-catalog": "node scripts/gen-skills-catalog.mjs",

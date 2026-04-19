@@ -16,16 +16,21 @@ import { defineConfig, devices } from "@playwright/test";
  * `npm run test:e2e` inherits whatever is in your shell (unset →
  * consent-accept test is skipped).
  */
+const PORT = 4321;
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : undefined,
-  reporter: process.env.CI ? [["github"], ["list"]] : "list",
+  reporter: process.env.CI
+    ? [["github"], ["html", { open: "never" }], ["list"]]
+    : "list",
   use: {
-    baseURL: "http://127.0.0.1:4321",
+    baseURL: `http://127.0.0.1:${PORT}`,
     trace: "on-first-retry",
+    video: "off",
   },
   projects: [
     {
@@ -34,8 +39,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run preview -- --host 127.0.0.1 --port 4321",
-    url: "http://127.0.0.1:4321",
+    // `astro preview` serves the static build. The Worker is not booted —
+    // /api/* routes are mocked per-test via `page.route()`.
+    command: `npm run preview -- --host 127.0.0.1 --port ${PORT}`,
+    url: `http://127.0.0.1:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },

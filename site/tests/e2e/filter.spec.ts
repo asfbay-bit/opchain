@@ -8,8 +8,6 @@ import { expect, test } from "@playwright/test";
  */
 
 function visibleSkillCount(page: import("@playwright/test").Page) {
-  // Cards are hidden via the `hidden` attribute, not display:none — so
-  // `:visible` is the right predicate here.
   return page.locator("[data-skill]:visible").count();
 }
 
@@ -48,5 +46,18 @@ test.describe("skill library filter", () => {
     const triCount = await visibleSkillCount(page);
     expect(triCount).toBeGreaterThan(0);
     expect(triCount).toBeLessThan(total);
+  });
+
+  test("counter text updates to reflect visible count", async ({ page }) => {
+    await page.goto("/skills");
+    const counter = page.locator("#skill-count");
+
+    const baseline = (await counter.textContent())?.trim() ?? "";
+    expect(baseline).toMatch(/Showing \d+ of \d+ skills/);
+
+    await page.locator('[data-phase="foundation"]').click();
+    const filtered = (await counter.textContent())?.trim() ?? "";
+    expect(filtered).toMatch(/Showing \d+ of \d+ skills/);
+    expect(filtered).not.toBe(baseline);
   });
 });

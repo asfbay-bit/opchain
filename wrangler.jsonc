@@ -27,10 +27,14 @@
   "env": {
     "staging": {
       "name": "opchain-staging",
-      // Staging worker; add a CNAME to staging.opchain.dev + uncomment below
-      // to attach a custom domain. Without this line the worker is still
-      // reachable at its default *.workers.dev URL.
-      // "routes": [{ "pattern": "staging.opchain.dev", "custom_domain": true }],
+      // Staging custom domain. `custom_domain: true` means Cloudflare provisions
+      // and manages the DNS record automatically on first `wrangler deploy
+      // --env staging` — do NOT pre-create a CNAME in the Cloudflare dashboard
+      // or wrangler will error with "error 100117 Hostname ... already has
+      // externally managed DNS records". Default *.workers.dev access is blocked
+      // at the Cloudflare account level (host_not_allowed), so the custom
+      // domain is the only entry point for staging.
+      "routes": [{ "pattern": "staging.opchain.dev", "custom_domain": true }],
       "kv_namespaces": [
         {
           "binding": "DATA",

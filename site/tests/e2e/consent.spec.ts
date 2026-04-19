@@ -9,13 +9,13 @@ import { expect, test } from "@playwright/test";
  * `window.posthog` global appearing — the inline bootstrap replaces the
  * stub with the real SDK).
  *
- * All tests start with a clean slate: `localStorage` cleared before each
- * goto so the banner appears.
+ * The build for e2e bakes `PUBLIC_POSTHOG_KEY=phc_test_e2e` via `pretest:e2e`
+ * in site/package.json so the loader path is exercised in CI.
+ *
+ * All tests that need a clean slate use `gotoFresh` so the banner appears.
  */
 
 async function gotoFresh(page: import("@playwright/test").Page, path = "/") {
-  // Navigate once so we're on the origin, then clear storage and reload.
-  // (localStorage can't be set pre-navigation — no origin yet.)
   await page.goto(path);
   await page.evaluate(() => localStorage.clear());
   await page.goto(path);
@@ -32,12 +32,13 @@ test.describe("consent banner", () => {
     await page.locator("#consent-decline").click();
     await expect(page.locator("#consent-banner")).toBeHidden();
 
-    // Give the bootstrap a beat to NOT fire.
     await page.waitForTimeout(200);
     const hasPosthog = await page.evaluate(
-      () => typeof (window as any).posthog !== "undefined",
+      () => typeof (window as any).posthog,
     );
-    expect(hasPosthog, "PostHog must not load when consent is declined").toBe(false);
+    expect(hasPosthog, "PostHog must not load when consent is declined").toBe(
+      "undefined",
+    );
 
     const stored = await page.evaluate(() => localStorage.getItem("opchain-consent"));
     expect(stored).toBe("declined");
@@ -50,12 +51,43 @@ test.describe("consent banner", () => {
 
     const stored = await page.evaluate(() => localStorage.getItem("opchain-consent"));
     expect(stored).toBe("granted");
+
+    const posthogType = await page.evaluate(() => typeof (window as any).posthog);
+    test.skip(
+      posthogType === "undefined",
+      "PUBLIC_POSTHOG_KEY not baked into the build — accept loader is a no-op",
+    );
+    expect(posthogType).toBe("object");
   });
 
   test("banner stays hidden on subsequent visits after decline", async ({ page }) => {
     await gotoFresh(page);
     await page.locator("#consent-decline").click();
     await page.goto("/skills");
+    await expect(page.locator("#consent-banner")).toBeHidden();
+  });
+
+  test("prior 'granted' decision skips banner on next visit", async ({ page, context }) => {
+    await context.addInitScript(() => {
+      try {
+        localStorage.setItem("opchain-consent", "granted");
+      } catch {
+        /* ignore */
+      }
+    });
+    await page.goto("/");
+    await expect(page.locator("#consent-banner")).toBeHidden();
+  });
+
+  test("prior 'declined' decision skips banner on next visit", async ({ page, context }) => {
+    await context.addInitScript(() => {
+      try {
+        localStorage.setItem("opchain-consent", "declined");
+      } catch {
+        /* ignore */
+      }
+    });
+    await page.goto("/");
     await expect(page.locator("#consent-banner")).toBeHidden();
   });
 });

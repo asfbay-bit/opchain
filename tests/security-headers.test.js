@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import worker from "../src/index.js";
 
-function makeEnv(overrides = {}) {
+function makeEnv(htmlBody = "<!doctype html><html><head></head><body></body></html>", overrides = {}) {
   return {
     LINEAR_API_KEY: "test",
     ANTHROPIC_API_KEY: "test",
     DEPLOY_API_TOKEN: "test-secret",
     ASSETS: {
       async fetch() {
-        return new Response("<!doctype html><html></html>", {
+        return new Response(htmlBody, {
           status: 200,
           headers: { "Content-Type": "text/html; charset=utf-8" },
         });
@@ -38,6 +38,13 @@ describe("security headers — HTML responses", () => {
     // Cloudflare Web Analytics beacon script + reporting endpoint.
     expect(csp).toMatch(/script-src [^;]*static\.cloudflareinsights\.com/);
     expect(csp).toMatch(/connect-src [^;]*cloudflareinsights\.com/);
+
+    // Sprint 7c — script-src must use a nonce, not 'unsafe-inline'.
+    expect(csp).toMatch(/script-src [^;]*'nonce-[A-Za-z0-9_-]{20,}'/);
+    expect(csp).toMatch(/script-src [^;]*'strict-dynamic'/);
+    expect(csp).not.toMatch(/script-src [^;]*'unsafe-inline'/);
+    // style-src keeps 'unsafe-inline' for Tailwind for now (B-08).
+    expect(csp).toMatch(/style-src [^;]*'unsafe-inline'/);
   });
 });
 

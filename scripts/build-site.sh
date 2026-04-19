@@ -46,4 +46,7 @@ for entry in "${PRESERVE[@]}"; do
 done
 rmdir "${TMP}" 2>/dev/null || true
 
+echo "[build-site] injecting CSP nonce placeholder"
+node "${ROOT}/scripts/inject-nonce-placeholder.mjs"
+
 echo "[build-site] public/ rebuilt"
