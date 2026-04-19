@@ -1,28 +1,24 @@
-name: Deploy
+name: Deploy to staging
+
+# Every push to main lands on staging.opchain.dev. Production deploys go
+# through .github/workflows/promote.yml after a human verifies the staging
+# build. Use workflow_dispatch to re-run a staging deploy without a push.
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      environment:
-        description: Target environment
-        required: true
-        default: staging
-        type: choice
-        options: [staging, production]
 
 permissions:
   contents: read
 
 concurrency:
-  group: deploy-${{ github.event.inputs.environment || 'staging' }}
+  group: deploy-staging
   cancel-in-progress: false
 
 jobs:
   staging:
     name: Deploy to staging
-    if: ${{ github.event_name == 'push' || github.event.inputs.environment == 'staging' }}
     runs-on: ubuntu-latest
     environment:
       name: staging
@@ -55,46 +51,5 @@ jobs:
           command: deploy --env staging
       - name: Smoke — health + homepage + zip + security headers
         env:
-          # Prefer the deployment-url from wrangler; fall back to the custom
-          # domain which is defined as the staging environment URL above.
           DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url || 'https://staging.opchain.dev' }}
-        run: ./scripts/smoke.sh
-
-  production:
-    name: Promote to production
-    if: ${{ github.event.inputs.environment == 'production' }}
-    needs: []
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://opchain.dev
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      - name: Install (site)
-        working-directory: site
-        run: npm ci
-      - name: Build
-        env:
-          OPCHAIN_VERSION: ${{ github.sha }}
-          PUBLIC_CF_BEACON_TOKEN: ${{ secrets.PUBLIC_CF_BEACON_TOKEN }}
-          PUBLIC_POSTHOG_KEY: ${{ secrets.PUBLIC_POSTHOG_KEY }}
-          PUBLIC_POSTHOG_HOST: ${{ secrets.PUBLIC_POSTHOG_HOST }}
-        run: npm run build
-      - name: Deploy
-        id: deploy
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
-      - name: Smoke — health + homepage + zip + security headers
-        env:
-          # Prefer the deployment-url from wrangler; fall back to the custom
-          # domain which is known to be live for production.
-          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url || 'https://opchain.dev' }}
         run: ./scripts/smoke.sh
