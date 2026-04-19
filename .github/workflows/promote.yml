@@ -27,7 +27,7 @@ jobs:
           # build.mjs uses OPCHAIN_VERSION verbatim (see build.mjs:7), so the
           # header matches the full SHA passed via github.sha on the staging
           # workflow. Compare full SHA, not the short form.
-          got="$(curl -fsS -D - -o /dev/null https://staging.opchain.dev/ \
+          got="$(curl -fsS -D - -o /dev/null https://staging.opchain.dev/api/health \
                  | tr -d '\r' \
                  | awk -F': ' 'tolower($1)=="x-opchain-version" {print $2; exit}')"
           echo "staging reports version: '${got}'"
