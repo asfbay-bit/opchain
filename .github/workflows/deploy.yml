@@ -26,6 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: staging
+      # Keep the custom domain here for the GitHub UI link. The smoke test below
+      # does not depend on it — it uses the deployment-url output from wrangler.
       url: https://staging.opchain.dev
     steps:
       - uses: actions/checkout@v4
@@ -34,30 +36,29 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Install (site)
+        working-directory: site
+        run: npm ci
       - name: Build
         env:
           OPCHAIN_VERSION: ${{ github.sha }}
+          PUBLIC_CF_BEACON_TOKEN: ${{ secrets.PUBLIC_CF_BEACON_TOKEN }}
+          PUBLIC_POSTHOG_KEY: ${{ secrets.PUBLIC_POSTHOG_KEY }}
+          PUBLIC_POSTHOG_HOST: ${{ secrets.PUBLIC_POSTHOG_HOST }}
         run: npm run build
       - name: Deploy
+        id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env staging
-      - name: Smoke — /api/health
-        run: |
-          set -e
-          for i in 1 2 3 4 5; do
-            body=$(curl -fsS https://staging.opchain.dev/api/health || true)
-            if echo "$body" | grep -q '"ok":true'; then
-              echo "staging health OK: $body"
-              exit 0
-            fi
-            echo "attempt $i failed, retrying in 5s"
-            sleep 5
-          done
-          echo "staging health never reported OK"
-          exit 1
+      - name: Smoke — health + homepage + zip + security headers
+        env:
+          # Prefer the deployment-url from wrangler; fall back to the custom
+          # domain which is defined as the staging environment URL above.
+          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url || 'https://staging.opchain.dev' }}
+        run: ./scripts/smoke.sh
 
   production:
     name: Promote to production
@@ -74,27 +75,26 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Install (site)
+        working-directory: site
+        run: npm ci
       - name: Build
         env:
           OPCHAIN_VERSION: ${{ github.sha }}
+          PUBLIC_CF_BEACON_TOKEN: ${{ secrets.PUBLIC_CF_BEACON_TOKEN }}
+          PUBLIC_POSTHOG_KEY: ${{ secrets.PUBLIC_POSTHOG_KEY }}
+          PUBLIC_POSTHOG_HOST: ${{ secrets.PUBLIC_POSTHOG_HOST }}
         run: npm run build
       - name: Deploy
+        id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
-      - name: Smoke — /api/health
-        run: |
-          set -e
-          for i in 1 2 3 4 5; do
-            body=$(curl -fsS https://opchain.dev/api/health || true)
-            if echo "$body" | grep -q '"ok":true'; then
-              echo "production health OK: $body"
-              exit 0
-            fi
-            echo "attempt $i failed, retrying in 5s"
-            sleep 5
-          done
-          echo "production health never reported OK"
-          exit 1
+      - name: Smoke — health + homepage + zip + security headers
+        env:
+          # Prefer the deployment-url from wrangler; fall back to the custom
+          # domain which is known to be live for production.
+          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url || 'https://opchain.dev' }}
+        run: ./scripts/smoke.sh

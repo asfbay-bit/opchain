@@ -1,0 +1,130 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+---
+
+<Base
+  title="Privacy · opchain"
+  description="What opchain.dev collects, how it's used, and how to opt out."
+  active="/privacy"
+>
+  <main class="page">
+    <div class="page-head">
+      <Eyebrow>privacy</Eyebrow>
+      <h1>Privacy.</h1>
+    </div>
+
+    <p class="lede">
+      We collect the minimum needed to make the site useful. No ads, no
+      cross-site tracking, no dark patterns.
+    </p>
+
+    <section>
+      <h2>What we collect</h2>
+      <ul>
+        <li>
+          <strong>Cloudflare Web Analytics</strong> — cookieless pageview
+          beacon that records URL, referrer, and country only. No personal
+          data, no cross-site tracking, no cookies. Runs on every page;
+          no opt-out because there's nothing to opt out of.
+        </li>
+        <li>
+          <strong>Try-It emails.</strong> When you start a live demo we
+          store your email in a Cloudflare KV entry to rate-limit
+          exchanges (5/day) and to follow up with opchain release notes
+          if you opt in. Entries expire after 365 days (configurable via
+          <code>LEAD_TTL_DAYS</code> for self-hosted deployments). Email
+          <a href="mailto:privacy@opchain.dev">privacy@opchain.dev</a> to
+          delete yours sooner.
+        </li>
+        <li>
+          <strong>Rate-limit counters.</strong> IP-addressed counters
+          keyed by <code>CF-Connecting-IP</code>, expiring after 1 hour.
+          Used only to prevent abuse.
+        </li>
+        <li>
+          <strong>Anonymous usage events</strong> (optional — consent
+          banner). PostHog collects funnel events: which skills get
+          tried, where people stop, whether they grab the zip. The
+          identifier is a SHA-256 of your lowercased email; we never
+          send the raw email. Decline the banner → no SDK load, no
+          cookies, no events.
+        </li>
+        <li>
+          <strong>Feedback submissions</strong> go to Linear for
+          triage. Including your email is optional; if you leave it
+          blank we have no way to reply.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>What we don't do</h2>
+      <ul>
+        <li>Share your email with third parties.</li>
+        <li>Profile you across other sites.</li>
+        <li>Record your screen or keystrokes.</li>
+        <li>Sell usage data.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Opting out</h2>
+      <p>
+        Click <strong>Manage privacy</strong> in the footer to reset
+        your consent choice. Declining stops PostHog from loading
+        altogether. If you'd like your Try-It email removed ahead of
+        its TTL, email <a href="mailto:privacy@opchain.dev">privacy@opchain.dev</a>.
+      </p>
+    </section>
+
+    <section>
+      <h2>Self-hosting</h2>
+      <p>
+        opchain is open source. If you run a fork, your data stays in
+        your Cloudflare account. Analytics are env-gated — without
+        <code>POSTHOG_PROJECT_API_KEY</code>, nothing is captured.
+      </p>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+  }
+  .page-head { margin-bottom: 1.25rem; }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
+  .lede { color: var(--muted); margin: 0 0 1.5rem; max-width: 42rem; }
+  section { margin-top: 1.75rem; }
+  section h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    color: var(--text);
+    margin: 0 0 0.5rem;
+    letter-spacing: var(--ls-tight);
+  }
+  section p,
+  section li { color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-base); }
+  section ul { margin: 0.25rem 0 0 1.1rem; padding: 0; }
+  section li { margin-bottom: 0.45rem; }
+  code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+  section a { color: var(--accent); }
+</style>

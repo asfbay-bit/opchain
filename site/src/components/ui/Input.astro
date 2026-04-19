@@ -1,0 +1,68 @@
+---
+type InputType = "text" | "email" | "password" | "url" | "search" | "tel" | "number";
+
+interface Props {
+  type?: InputType;
+  name?: string;
+  id?: string;
+  value?: string;
+  placeholder?: string;
+  required?: boolean;
+  disabled?: boolean;
+  autocomplete?: string;
+  class?: string;
+  label?: string;
+  /** aria-label when not using a visible <label> */
+  ariaLabel?: string;
+}
+
+const {
+  type = "text",
+  name,
+  id,
+  value,
+  placeholder,
+  required,
+  disabled,
+  autocomplete,
+  class: className = "",
+  label,
+  ariaLabel,
+} = Astro.props;
+---
+
+<input
+  type={type}
+  name={name}
+  id={id}
+  value={value}
+  placeholder={placeholder}
+  required={required}
+  disabled={disabled}
+  autocomplete={autocomplete}
+  aria-label={ariaLabel ?? label}
+  class:list={["input", className]}
+/>
+
+<style>
+  .input {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--r-sm);
+    border: 0.5px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: var(--fs-base);
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      box-shadow var(--dur-fast) var(--ease-standard);
+  }
+  .input::placeholder { color: var(--subtle); }
+  .input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+  }
+  .input:disabled { opacity: 0.55; cursor: not-allowed; }
+</style>

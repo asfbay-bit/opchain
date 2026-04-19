@@ -1,5 +1,20 @@
 ---
 name: app-architect
+displayName: App Architect
+version: 1.1.0
+shortDesc: Idea → spec → design → build → launch in one skill.
+phases: [plan, build]
+triAgent: true
+tryable: true
+commands:
+  - /app
+  - /discover
+  - /spec
+  - /design
+  - /roadmap
+  - /scaffold
+  - /build
+  - /launch
 description: >
   Unified app development: idea → spec → design → build with Generator/Evaluator
   QA loop → launch. Use for /app, /discover, /spec, /design, /build, /launch,
@@ -27,6 +42,7 @@ APP ARCHITECT COMMANDS
   /discover       Discovery interview (Phase 1)
   /spec           Spec generation + stack-forge (Phase 2)
   /design         Design pipeline — style book, wireframes, prototypes (Phase 3)
+                    auto-routes data-heavy screens to /data-forge
   /roadmap        Sprint plan generation (Phase 4)
 
   BUILD PHASES
@@ -205,13 +221,53 @@ Read `references/ux-design-guide.md` for the full methodology.
 Interactive HTML showing all design tokens live: colors, typography, spacing, borders,
 component examples (buttons, forms, cards in all variants × states).
 
-### 3b. Wireframe Review
+**Token discipline:**
+- **Colors must be semantic, not aesthetic.** Every color has a role: chrome / state / accent / series. Do not ship a palette of 12 brand hues without role assignment.
+- **Type ramp ≤ 5 steps.** Display / headline / body / caption / micro. More sizes = more cognitive tax.
+- **Spacing on a scale.** 4/8/12/16/24/32/48/64 — not arbitrary px values per component.
+- **Dark mode is a separate palette.** If dark mode is in scope, design both palettes in the style book. Don't invert at build time.
+
+### 3b. Wireframe Review & Dashboard Detection
 Text + ASCII layout sketches per screen: purpose, layout zones, key elements, states,
 navigation paths.
+
+**For each screen, declare:**
+- Primary question / action the screen serves (one sentence)
+- Above-the-fold vs. scroll content
+- Empty / loading / error / success states (all four)
+- Responsive behavior at 375 / 768 / 1280px (or declare "desktop only" with reason)
+
+**As part of this review, scan for data-heavy surfaces:**
+
+- Any screen where the primary job is "show data" rather than "enable action"
+- Screens with ≥3 charts or ≥5 KPIs on one view
+- Any "dashboard", "analytics", "BI", "monitoring", or "report" screen
+- Any screen downstream of a data-architect handoff
+
+For each detected surface, route to dash-forge (`/data-forge`):
+
+```
+Detected data-heavy screen: [screen name]
+Suggested routing: dash-forge for specialized design
+
+dash-forge produces:
+  - Archetype-appropriate design (exec / ops / analyst)
+  - Density + semantic color + chart selection
+  - Working React prototype with mock data
+
+  (Y) Route to dash-forge
+  (N) Handle in app-architect design pipeline
+```
+
+When routed, skip detailed wireframes for that screen — mark it `source: dash-forge` and dash-forge's handoff bundle plugs into the Phase 3e punch list directly.
 
 ### 3c. Wireframe Mockup Build
 Interactive HTML prototypes: clickable navigation, real layout, realistic data,
 all states, responsive at 375/768/1280px.
+
+**Realistic data rule:** Mock data must match the domain — real entity names, plausible distributions, realistic volumes. `[1, 2, 3]` arrays and "Customer A / B / C" are failure modes.
+
+**Skip for dash-forge-routed screens** — they're handled separately.
 
 ### ★ Design Direction Approval Gate
 Write checkpoint: phase "design-approved".
@@ -219,6 +275,15 @@ Write checkpoint: phase "design-approved".
 ### 3d. Screen & Component Punch List
 Exhaustive build checklist: every screen, component, variant, prop, state, interaction.
 The punch list IS the scope — if it's not listed, it doesn't get built.
+
+**For dashboard surfaces routed to dash-forge**, the punch list references the dash-forge handoff bundle instead of re-specifying. Format:
+
+```
+Screen: Executive Compliance Dashboard
+  Source: dash-forge handoff at ./dash-forge-handoff/
+  Components: see prototype.tsx + component inventory
+  Integration: see integration-notes.md
+```
 
 ### ★ Punch List Approval Gate
 Write checkpoint: phase "punch-list-approved".

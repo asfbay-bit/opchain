@@ -1,5 +1,22 @@
 ---
 name: ux-engineer
+displayName: UX Engineer
+version: 1.1.0
+shortDesc: Design Planner → Generator → Evaluator harness.
+phases: [plan]
+triAgent: true
+tryable: true
+commands:
+  - /uxe
+  - /uxe plan
+  - /uxe build
+  - /uxe eval
+  - /uxe flow
+  - /uxe components
+  - /uxe fidelity
+  - /uxe dash
+  - /uxe attach
+  - /uxe detach
 description: >
   UI/UX design harness with Design Planner/Generator/Evaluator loop. Use for /uxe,
   "review the UX", "design iteration", "component library", "accessibility audit",
@@ -37,6 +54,7 @@ UX ENGINEER COMMANDS
   /uxe flow          Map and audit user flows across screens
   /uxe components    View, update, or audit the living component library
   /uxe fidelity      Compare built code against approved design artifacts
+  /uxe dash          Route data-heavy UI to dash-forge for specialized design
 
   TRI-DEV PLUGIN
   /uxe attach        Activate Design Evaluator for current tri-dev session
@@ -106,6 +124,55 @@ The same failure modes that plague code generation hit design even harder:
 
 ---
 
+## Routing to dash-forge (`/uxe dash`)
+
+Some screens are primarily **data display**: dashboards, BI views, analytics, monitoring consoles, dense reports. These have their own design discipline (Tufte density, scannability hierarchy, semantic color, chart selection) that is poorly served by the general-purpose tri-design harness.
+
+For these screens, ux-engineer routes to **dash-forge** — a specialized skill for dashboard and dense-information UI.
+
+### Auto-detect triggers
+
+During `/uxe plan` or when evaluating a brief, ux-engineer should recognize dashboard surfaces and surface the routing option. Triggers:
+
+- Brief mentions "dashboard", "analytics", "BI", "KPI", "monitoring", "report view"
+- ≥3 charts or ≥5 KPIs on the same screen
+- Upstream context includes a `data-architect-handoff.md`
+- Screen's primary job is "show data" rather than "enable action"
+
+When detected, offer:
+
+```
+This screen looks data-heavy. Route design to dash-forge?
+
+dash-forge specializes in:
+  - Exec / Ops / Analyst archetype branching
+  - Density tuning, semantic color, chart selection
+  - Working React prototype with archetype-appropriate viz stack (Tremor / Recharts / D3)
+
+  (Y) Route to dash-forge
+  (N) Continue with ux-engineer tri-design harness
+```
+
+### Explicit routing: `/uxe dash`
+
+User can force routing with `/uxe dash [brief]`. ux-engineer packages its current context (tokens, component library, design spec if any) and invokes dash-forge's `/data-forge` with upstream context pre-populated.
+
+### Token handoff (bidirectional)
+
+- **ux-engineer → dash-forge:** If ux-engineer already has approved tokens, pass them as design constraints. dash-forge will specialize density/chart-color tokens within that system.
+- **dash-forge → ux-engineer:** When dash-forge produces dashboard tokens (semantic color, density scales), hand them back so ux-engineer's living component library stays consistent.
+
+### When NOT to route
+
+Keep the work in ux-engineer if:
+- The data surface is a single inline widget in a larger form/workflow screen
+- The "dashboard" is just a landing page with a few summary tiles (≤3) plus navigation
+- User explicitly wants the tri-design harness applied
+
+Rule of thumb: if the screen IS the dashboard, route. If the screen CONTAINS a small data widget, handle it in ux-engineer.
+
+---
+
 ## Phase 1: Design Planning (`/uxe plan`)
 
 The Design Planner takes a brief and expands it into a design specification.
@@ -124,6 +191,7 @@ The Planner is an experienced design director. Key behaviors:
   Commit to a direction and justify it.
 - Consider the user's context: device, environment, frequency of use, expertise.
 - Plan for the worst case: longest text, slowest connection, smallest screen.
+- **Scan for data surfaces.** Before finalizing the screen inventory, flag any screen that is primarily data display (see Routing to dash-forge section above for triggers). For each flagged screen, ask the user: "This is a data-heavy screen. Route to dash-forge? (Y/N)". If Y, mark the screen in the spec as `source: dash-forge` and stop detailed design work for that screen — dash-forge will own it.
 
 ### Outputs
 

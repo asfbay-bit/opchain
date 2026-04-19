@@ -1,5 +1,14 @@
 ---
 name: scale-ops
+displayName: Scale Ops
+version: 1.0.0
+shortDesc: Load, caching, capacity planning.
+phases: [plan]
+triAgent: false
+tryable: true
+commands:
+  - /scale
+  - /scale audit
 description: >
   Scaling readiness: load test, perf budgets, caching, capacity planning. Use for
   /scale, "load test", "can this handle more users", "performance", "caching strategy",

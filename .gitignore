@@ -6,6 +6,12 @@ dist/
 site/dist/
 site/.astro/
 
+# Sprint 6 — public/ is now a build artifact (Astro output + sync'd docs + zip).
+# `scripts/build-site.sh` rebuilds it on every prebuild. Nothing in public/ is
+# source-of-truth any more; source lives in site/ (pages/components) and skills/.
+public/
+src/generated/
+
 # Cloudflare
 .wrangler/
 .dev.vars

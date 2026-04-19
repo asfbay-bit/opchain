@@ -1,0 +1,57 @@
+---
+interface Props {
+  name?: string;
+  id?: string;
+  placeholder?: string;
+  rows?: number;
+  disabled?: boolean;
+  class?: string;
+  ariaLabel?: string;
+}
+
+const {
+  name,
+  id,
+  placeholder,
+  rows = 3,
+  disabled,
+  class: className = "",
+  ariaLabel,
+} = Astro.props;
+---
+
+<textarea
+  name={name}
+  id={id}
+  placeholder={placeholder}
+  rows={rows}
+  disabled={disabled}
+  aria-label={ariaLabel}
+  class:list={["textarea", className]}><slot /></textarea>
+
+<style>
+  .textarea {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--r-sm);
+    border: 0.5px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    resize: vertical;
+    min-height: 3rem;
+    max-height: 12rem;
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      box-shadow var(--dur-fast) var(--ease-standard);
+  }
+  .textarea::placeholder { color: var(--subtle); }
+  .textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+  }
+  .textarea:disabled { opacity: 0.55; cursor: not-allowed; }
+</style>

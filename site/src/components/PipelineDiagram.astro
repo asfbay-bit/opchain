@@ -1,0 +1,314 @@
+---
+/**
+ * Pipeline diagram — replaces the Sprint 3 ASCII diagram with a
+ * structured SVG of how the 10 skills + 1 protocol chain.
+ *
+ * Design notes:
+ *   - Industrial Utility palette; strokes use `currentColor` + tokens
+ *     so the diagram recolours with the theme toggle.
+ *   - Boxes are clickable links to /skills/<id>.
+ *   - `preserveAspectRatio="xMidYMid meet"` scales to container width
+ *     while holding aspect ratio — no awkward squish on mobile.
+ *   - Honors `prefers-reduced-motion` via the embedded <style>.
+ */
+
+type Node = {
+  id: string;
+  label: string;
+  x: number;
+  y: number;
+  w?: number;
+  h?: number;
+  kind: "spine" | "plan" | "dash" | "advisory" | "gate" | "side" | "foundation";
+};
+
+const W = 64;
+const H = 38;
+
+const nodes: Node[] = [
+  // Top band — foundation spans full width
+  { id: "checkpoint-protocol", label: "checkpoint-protocol", x: 60, y: 28, w: 780, h: 34, kind: "foundation" },
+
+  // Main spine — horizontal, centered vertically
+  { id: "reverse-spec",  label: "reverse-spec",  x: 40,  y: 160, kind: "spine" },
+  { id: "app-architect", label: "app-architect", x: 260, y: 160, kind: "spine", w: 132, h: 46 },
+  { id: "git-ops",       label: "git-ops",       x: 540, y: 160, kind: "spine" },
+  { id: "deploy-ops",    label: "deploy-ops",    x: 700, y: 160, kind: "spine" },
+
+  // Plan branches — above the spine, feeding app-architect
+  { id: "stack-forge",   label: "stack-forge",   x: 210, y: 90,  kind: "plan" },
+  { id: "ux-engineer",   label: "ux-engineer",   x: 310, y: 90,  kind: "plan" },
+  { id: "dash-forge",    label: "dash-forge",    x: 410, y: 90,  kind: "dash" },
+  { id: "scale-ops",     label: "scale-ops",     x: 520, y: 90,  kind: "advisory" },
+
+  // Side chain — below the spine
+  { id: "integrations-engineer", label: "integrations-engineer", x: 200, y: 255, kind: "side", w: 160 },
+
+  // Gate — far-right below the spine
+  { id: "code-auditor",  label: "code-auditor",  x: 620, y: 255, kind: "gate" },
+];
+
+// Helper to find a node by id
+const n = (id: string) => nodes.find((x) => x.id === id)!;
+
+// Edges are drawn as paths; each entry carries metadata.
+// shape: "arrow" | "dotted"
+type Edge = {
+  from: string; to: string;
+  label?: string;
+  shape?: "arrow" | "dotted";
+  curve?: "straight" | "down" | "up" | "elbow";
+  // where on the source/target to anchor ("r"=right, "l"=left, "t"=top, "b"=bottom, "c"=center)
+  fromSide?: "r" | "l" | "t" | "b";
+  toSide?: "r" | "l" | "t" | "b";
+};
+
+const edges: Edge[] = [
+  // Main spine
+  { from: "reverse-spec",  to: "app-architect", shape: "arrow", fromSide: "r", toSide: "l" },
+  { from: "app-architect", to: "git-ops",       shape: "arrow", fromSide: "r", toSide: "l" },
+  { from: "git-ops",       to: "deploy-ops",    shape: "arrow", fromSide: "r", toSide: "l" },
+
+  // app-architect auto-invokes plan-phase skills (upward)
+  { from: "app-architect", to: "stack-forge", shape: "arrow", fromSide: "t", toSide: "b", curve: "elbow" },
+  { from: "app-architect", to: "ux-engineer", shape: "arrow", fromSide: "t", toSide: "b", curve: "elbow" },
+  { from: "ux-engineer",   to: "dash-forge",  shape: "arrow", fromSide: "r", toSide: "l" },
+  { from: "app-architect", to: "scale-ops",   shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
+
+  // Side chain
+  { from: "integrations-engineer", to: "code-auditor", shape: "arrow", fromSide: "r", toSide: "l" },
+
+  // code-auditor gates deploy-ops — arrow points *up* from the auditor
+  // to the deploy node. (Was reversed in the first PR pass; Bugbot caught it.)
+  { from: "code-auditor", to: "deploy-ops", shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
+];
+
+function edgePath(e: Edge): string {
+  const a = n(e.from);
+  const b = n(e.to);
+  const aw = a.w ?? W, ah = a.h ?? H;
+  const bw = b.w ?? W, bh = b.h ?? H;
+
+  const sidePoint = (node: Node, side: "r" | "l" | "t" | "b", nw: number, nh: number) => {
+    switch (side) {
+      case "r": return { x: node.x + nw, y: node.y + nh / 2 };
+      case "l": return { x: node.x,      y: node.y + nh / 2 };
+      case "t": return { x: node.x + nw / 2, y: node.y };
+      case "b": return { x: node.x + nw / 2, y: node.y + nh };
+    }
+  };
+
+  const from = sidePoint(a, e.fromSide ?? "r", aw, ah);
+  const to   = sidePoint(b, e.toSide   ?? "l", bw, bh);
+
+  if (e.curve === "elbow") {
+    // Vertical then horizontal elbow (or vice-versa depending on sides).
+    if ((e.fromSide === "t" || e.fromSide === "b") && (e.toSide === "t" || e.toSide === "b")) {
+      const midY = (from.y + to.y) / 2;
+      return `M${from.x},${from.y} L${from.x},${midY} L${to.x},${midY} L${to.x},${to.y}`;
+    }
+  }
+  // Default: straight line
+  return `M${from.x},${from.y} L${to.x},${to.y}`;
+}
+
+// Phase labels under the spine
+const phaseLabels = [
+  { x: 60,  label: "discover" },
+  { x: 280, label: "plan + build" },
+  { x: 560, label: "ship" },
+];
+---
+
+<figure class="pipeline">
+  <svg
+    viewBox="0 0 860 320"
+    xmlns="http://www.w3.org/2000/svg"
+    role="img"
+    aria-labelledby="pipeline-title pipeline-desc"
+    class="pipeline-svg"
+  >
+    <title id="pipeline-title">opchain pipeline</title>
+    <desc id="pipeline-desc">
+      Ten skills plus the checkpoint-protocol foundation. reverse-spec feeds
+      app-architect, which auto-invokes stack-forge, ux-engineer and dash-forge
+      during the plan phase, then hands off through git-ops to deploy-ops.
+      code-auditor gates deploys and verifies integrations-engineer handoffs.
+    </desc>
+
+    <!-- Arrow + dot defs -->
+    <defs>
+      <marker id="pl-arrow" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)" />
+      </marker>
+      <marker id="pl-arrow-dim" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--subtle)" />
+      </marker>
+    </defs>
+
+    <!-- Phase lane labels -->
+    {phaseLabels.map((p) => (
+      <text x={p.x} y={148} class="lane-label">{p.label}</text>
+    ))}
+
+    <!-- Edges drawn first so node boxes sit on top -->
+    {edges.map((e) => (
+      <path
+        d={edgePath(e)}
+        class:list={["edge", e.shape === "dotted" ? "edge-dotted" : "edge-solid"]}
+        marker-end={e.shape === "dotted" ? "url(#pl-arrow-dim)" : "url(#pl-arrow)"}
+        fill="none"
+      />
+    ))}
+
+    <!-- Nodes -->
+    {nodes.map((node) => (
+      <a href={`/skills/${node.id}`} class="node-link">
+        <g class:list={["node", `node-${node.kind}`]}>
+          <rect
+            x={node.x}
+            y={node.y}
+            width={node.w ?? W}
+            height={node.h ?? H}
+            rx="6"
+            ry="6"
+          />
+          <text
+            x={node.x + (node.w ?? W) / 2}
+            y={node.y + (node.h ?? H) / 2 + 4}
+            text-anchor="middle"
+          >{node.label}</text>
+        </g>
+      </a>
+    ))}
+  </svg>
+
+  <ul class="legend" aria-label="Legend">
+    <li><span class="swatch swatch-spine"></span> main spine</li>
+    <li><span class="swatch swatch-plan"></span> auto-invoked by app-architect</li>
+    <li><span class="swatch swatch-gate"></span> code-audit gate</li>
+    <li><span class="swatch swatch-side"></span> side chain</li>
+    <li><span class="swatch swatch-foundation"></span> foundation (every skill inherits)</li>
+    <li><span class="swatch swatch-dotted"></span> advisory / dotted = non-blocking</li>
+  </ul>
+</figure>
+
+<style>
+  .pipeline {
+    margin: 1.25rem 0 0;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .pipeline-svg {
+    width: 100%;
+    height: auto;
+    min-width: 640px;      /* keep legible; container scrolls on narrow screens */
+    display: block;
+  }
+
+  /* Lane labels */
+  .lane-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    fill: var(--subtle);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  /* Edges */
+  .edge {
+    stroke-width: 1.25;
+    transition: stroke var(--dur-fast) var(--ease-standard);
+  }
+  .edge-solid   { stroke: var(--accent); }
+  .edge-dotted  { stroke: var(--subtle); stroke-dasharray: 3 3; }
+
+  /* Node link wrapper */
+  .node-link { text-decoration: none; cursor: pointer; }
+
+  /* Node boxes */
+  .node rect {
+    fill: var(--surface);
+    stroke: var(--border);
+    stroke-width: 0.5;
+    transition:
+      fill var(--dur-fast) var(--ease-standard),
+      stroke var(--dur-fast) var(--ease-standard),
+      filter var(--dur-fast) var(--ease-standard);
+  }
+  .node text {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    fill: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  /* Per-kind accents */
+  .node-spine rect      { stroke: var(--accent); }
+  .node-spine text      { fill: var(--text); font-weight: 600; }
+
+  .node-plan rect       { stroke: var(--border); fill: var(--card); }
+  .node-plan text       { fill: var(--muted); }
+
+  .node-dash rect       { stroke: var(--accent); fill: var(--card); }
+  .node-dash text       { fill: var(--text); }
+
+  .node-advisory rect   { stroke: var(--border); fill: var(--card); stroke-dasharray: 3 3; }
+  .node-advisory text   { fill: var(--subtle); font-style: italic; }
+
+  .node-gate rect       { stroke: var(--warning, var(--accent)); fill: var(--card); }
+  .node-gate text       { fill: var(--text); font-weight: 600; }
+
+  .node-side rect       { stroke: var(--border); fill: var(--card); }
+  .node-side text       { fill: var(--muted); }
+
+  .node-foundation rect { stroke: var(--slag); fill: var(--ribbon); stroke-dasharray: 4 2; }
+  .node-foundation text { fill: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; font-size: 9px; }
+
+  /* Hover — brighten + glow */
+  .node-link:hover rect,
+  .node-link:focus-visible rect {
+    fill: var(--accent-dim);
+    stroke: var(--accent);
+  }
+  .node-link:hover text,
+  .node-link:focus-visible text { fill: var(--text); }
+
+  /* Legend */
+  .legend {
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+  }
+  .legend li { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .swatch {
+    display: inline-block;
+    width: 14px;
+    height: 10px;
+    border-radius: var(--r-xs);
+  }
+  .swatch-spine      { background: var(--surface); border: 1px solid var(--accent); }
+  .swatch-plan       { background: var(--card);    border: 1px solid var(--border); }
+  .swatch-gate       { background: var(--card);    border: 1px solid var(--warning, var(--accent)); }
+  .swatch-side       { background: var(--card);    border: 1px solid var(--border); }
+  .swatch-foundation { background: var(--ribbon);  border: 1px dashed var(--slag); }
+  .swatch-dotted     {
+    background: transparent;
+    border-top: 2px dashed var(--subtle);
+    width: 18px; height: 2px;
+    border-radius: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .edge, .node rect, .node text { transition: none; }
+  }
+</style>

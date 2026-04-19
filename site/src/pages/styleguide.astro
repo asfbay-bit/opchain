@@ -1,0 +1,637 @@
+---
+import Base from "../layouts/Base.astro";
+import Button from "../components/ui/Button.astro";
+import Pill from "../components/ui/Pill.astro";
+import Card from "../components/ui/Card.astro";
+import Input from "../components/ui/Input.astro";
+import Textarea from "../components/ui/Textarea.astro";
+import Badge from "../components/ui/Badge.astro";
+import Alert from "../components/ui/Alert.astro";
+import CodeBlock from "../components/ui/CodeBlock.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Icon from "../components/Icon.astro";
+import Logo from "../components/Logo.astro";
+
+/**
+ * Internal styleguide page. Renders every token + every component
+ * variant so we can verify the design system end-to-end. Not linked
+ * from any public nav — browse directly to /styleguide.
+ *
+ * Theme toggle in the header flips dark/light; this page is the
+ * fastest way to spot regressions across both modes.
+ */
+
+const palette = [
+  { token: "--bg",           role: "page background" },
+  { token: "--ribbon",       role: "menubar" },
+  { token: "--surface",      role: "panels + cards" },
+  { token: "--card",         role: "inner surface" },
+  { token: "--border",       role: "1px borders" },
+  { token: "--text",         role: "primary text" },
+  { token: "--muted",        role: "secondary text" },
+  { token: "--subtle",       role: "tertiary text" },
+  { token: "--accent",       role: "CTA / active" },
+  { token: "--accent-hover", role: "CTA hover" },
+  { token: "--danger",       role: "destructive" },
+  { token: "--success",      role: "positive" },
+  { token: "--info",         role: "neutral info" },
+  { token: "--warning",      role: "caution" },
+];
+
+const brand = [
+  { token: "--obsidian",  hex: "#1c1710" },
+  { token: "--forge",     hex: "#2a2218" },
+  { token: "--slag",      hex: "#5a5040" },
+  { token: "--sand",      hex: "#c4b89e" },
+  { token: "--linen",     hex: "#e8dfd0" },
+  { token: "--parchment", hex: "#f6f0e8" },
+  { token: "--ember",     hex: "#e05c18" },
+  { token: "--char",      hex: "#b84510" },
+];
+
+const typeScale = [
+  { token: "--fs-hero", label: "Hero (clamp)" },
+  { token: "--fs-3xl",  label: "3xl / 48px" },
+  { token: "--fs-2xl",  label: "2xl / 36px" },
+  { token: "--fs-xl",   label: "xl / 28px" },
+  { token: "--fs-lg",   label: "lg / 20px" },
+  { token: "--fs-md",   label: "md / 16px" },
+  { token: "--fs-base", label: "base / 14px" },
+  { token: "--fs-sm",   label: "sm / 12px" },
+  { token: "--fs-xs",   label: "xs / 10px" },
+];
+
+const spaceScale = [1, 2, 3, 4, 5, 6, 8, 10, 12, 16];
+const radii = [
+  { token: "--r-xs",   label: "3px" },
+  { token: "--r-sm",   label: "4px" },
+  { token: "--r-md",   label: "6px" },
+  { token: "--r-lg",   label: "8px" },
+  { token: "--r-xl",   label: "12px" },
+  { token: "--r-pill", label: "999px" },
+];
+const shadows = ["--shadow-sm", "--shadow-md", "--shadow-lg", "--shadow-xl"];
+const icons = [
+  "arrow-right", "arrow-left", "check", "x", "plus", "menu",
+  "copy", "download", "external-link", "github",
+  "sun", "moon", "terminal", "layers", "cpu", "target", "sparkles",
+] as const;
+---
+
+<Base title="opchain — Styleguide" description="Internal design-system styleguide." active="">
+  <main class="sg">
+    <header class="sg-head">
+      <Eyebrow>design system · internal</Eyebrow>
+      <h1 class="sg-title">Styleguide</h1>
+      <p class="sg-sub">
+        Every token, every component variant. Flip the theme in the header to
+        audit both Obsidian dark and Amber light.
+      </p>
+    </header>
+
+    <!-- ───────────── BRAND MARK ───────────── -->
+    <section class="sg-section">
+      <Eyebrow>01 · mark</Eyebrow>
+      <h2>Brand mark</h2>
+      <div class="sg-row">
+        <div class="mark-well"><Logo size={64} /></div>
+        <div class="mark-well"><Logo size={40} /></div>
+        <div class="mark-well"><Logo size={28} /></div>
+        <div class="mark-well"><Logo size={16} /></div>
+      </div>
+      <p class="sg-note">
+        Three-node chain icon — token-driven fills/strokes; auto-recolors on
+        theme change.
+      </p>
+    </section>
+
+    <!-- ───────────── PALETTE ───────────── -->
+    <section class="sg-section">
+      <Eyebrow>02 · palette</Eyebrow>
+      <h2>Semantic tokens</h2>
+      <div class="swatch-grid">
+        {palette.map((c) => (
+          <div class="swatch">
+            <div class="chip" style={`background: var(${c.token});`}></div>
+            <div class="meta">
+              <code>{c.token}</code>
+              <span>{c.role}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="sg-sub-h">Brand constants</h3>
+      <div class="swatch-grid">
+        {brand.map((c) => (
+          <div class="swatch">
+            <div class="chip" style={`background: ${c.hex};`}></div>
+            <div class="meta">
+              <code>{c.token}</code>
+              <span>{c.hex}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- ───────────── TYPOGRAPHY ───────────── -->
+    <section class="sg-section">
+      <Eyebrow>03 · typography</Eyebrow>
+      <h2>Type scale</h2>
+      <div class="type-stack">
+        {typeScale.map((t) => (
+          <div class="type-row">
+            <code class="tag">{t.token}</code>
+            <div style={`font-size: var(${t.token}); font-family: var(--font-display); font-weight: 600; letter-spacing: var(--ls-tight); line-height: 1.1;`}>
+              Skills that ship.
+            </div>
+            <span class="muted">{t.label}</span>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="sg-sub-h">Body + mono</h3>
+      <div class="type-stack">
+        <div class="type-row">
+          <code class="tag">--font-body</code>
+          <p style="margin:0; max-width: 36rem;">
+            Outfit, a clean geometric sans. Default weight 400; 500 for
+            emphasis; 600 for display moments like the wordmark. Letter-spacing
+            stays neutral except on the wordmark which is locked at
+            <code>0.22em</code>.
+          </p>
+          <span class="muted">Outfit</span>
+        </div>
+        <div class="type-row">
+          <code class="tag">--font-mono</code>
+          <p style="margin:0; font-family: var(--font-mono); font-size: var(--fs-sm); letter-spacing: var(--ls-wide);">
+            JetBrains Mono — used for nav, eyebrows, tags, code.
+          </p>
+          <span class="muted">JetBrains Mono</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────── SPACE + RADII ───────────── -->
+    <section class="sg-section">
+      <Eyebrow>04 · space + radii</Eyebrow>
+      <h2>Space scale (4px base)</h2>
+      <div class="space-grid">
+        {spaceScale.map((n) => (
+          <div class="space-row">
+            <code class="tag">--space-{n}</code>
+            <div class="space-bar" style={`width: var(--space-${n});`}></div>
+            <span class="muted">{n * 4}px</span>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="sg-sub-h">Radii</h3>
+      <div class="radii-grid">
+        {radii.map((r) => (
+          <div class="radii-cell">
+            <div class="radii-demo" style={`border-radius: var(${r.token});`}></div>
+            <code class="tag">{r.token}</code>
+            <span class="muted">{r.label}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- ───────────── SHADOWS ───────────── -->
+    <section class="sg-section">
+      <Eyebrow>05 · shadows</Eyebrow>
+      <h2>Elevation</h2>
+      <div class="shadow-grid">
+        {shadows.map((s) => (
+          <div class="shadow-cell" style={`box-shadow: var(${s});`}>
+            <code class="tag">{s}</code>
+          </div>
+        ))}
+        <div class="shadow-cell glow-demo">
+          <code class="tag">--glow-lg</code>
+        </div>
+      </div>
+      <p class="sg-note">
+        <code>--glow-lg</code> is the themed halo that surrounds cards + the
+        ribbon. It inherits the current theme's accent colour so it shifts with
+        the theme toggle.
+      </p>
+    </section>
+
+    <!-- ───────────── ICONS ───────────── -->
+    <section class="sg-section">
+      <Eyebrow>06 · icons</Eyebrow>
+      <h2>Icon set ({icons.length})</h2>
+      <div class="icon-grid">
+        {icons.map((name) => (
+          <div class="icon-cell">
+            <Icon name={name} size={20} />
+            <code class="tag">{name}</code>
+          </div>
+        ))}
+      </div>
+      <p class="sg-note">
+        Feather-style, 24×24 viewBox, <code>currentColor</code> strokes. Render
+        via <code>&lt;Icon name="…" size={`{16}`} /&gt;</code>.
+      </p>
+    </section>
+
+    <!-- ───────────── BUTTONS ───────────── -->
+    <section class="sg-section">
+      <Eyebrow>07 · buttons</Eyebrow>
+      <h2>Button</h2>
+      <div class="sg-row">
+        <Button variant="primary">primary</Button>
+        <Button variant="outline">outline</Button>
+        <Button variant="ghost">ghost</Button>
+      </div>
+
+      <h3 class="sg-sub-h">Sizes</h3>
+      <div class="sg-row">
+        <Button variant="primary" size="sm">small</Button>
+        <Button variant="primary" size="md">medium</Button>
+        <Button variant="primary" size="lg">large</Button>
+      </div>
+
+      <h3 class="sg-sub-h">With icons</h3>
+      <div class="sg-row">
+        <Button variant="primary">
+          <Icon name="download" />
+          download bundle
+        </Button>
+        <Button variant="outline">
+          <Icon name="external-link" />
+          view docs
+        </Button>
+        <Button variant="ghost">
+          <Icon name="copy" />
+          copy
+        </Button>
+      </div>
+
+      <h3 class="sg-sub-h">States</h3>
+      <div class="sg-row">
+        <Button variant="primary" disabled>disabled</Button>
+        <Button variant="outline" disabled>disabled</Button>
+      </div>
+    </section>
+
+    <!-- ───────────── PILLS + BADGES ───────────── -->
+    <section class="sg-section">
+      <Eyebrow>08 · pills + badges</Eyebrow>
+      <h2>Pill</h2>
+      <div class="sg-row">
+        <Pill pressed>all</Pill>
+        <Pill>foundation</Pill>
+        <Pill>plan</Pill>
+        <Pill>plan + build</Pill>
+        <Pill>build</Pill>
+      </div>
+
+      <h3 class="sg-sub-h">Badge</h3>
+      <div class="sg-row">
+        <Badge variant="accent">Plan</Badge>
+        <Badge variant="accent">Tri-agent</Badge>
+        <Badge variant="neutral">v1.1.0</Badge>
+        <Badge variant="success">passing</Badge>
+        <Badge variant="danger">failing</Badge>
+        <Badge variant="info">info</Badge>
+        <Badge variant="warning">warning</Badge>
+      </div>
+    </section>
+
+    <!-- ───────────── INPUTS ───────────── -->
+    <section class="sg-section">
+      <Eyebrow>09 · inputs</Eyebrow>
+      <h2>Text fields</h2>
+      <div class="input-stack">
+        <Input placeholder="you@example.com" ariaLabel="Email" />
+        <Input placeholder="disabled" disabled ariaLabel="Disabled example" />
+        <Textarea placeholder="describe your app idea…" ariaLabel="App idea" rows={3} />
+      </div>
+    </section>
+
+    <!-- ───────────── CARDS ───────────── -->
+    <section class="sg-section">
+      <Eyebrow>10 · cards</Eyebrow>
+      <h2>Surface + glow</h2>
+      <div class="card-grid">
+        <Card>
+          <h3 class="card-h">App Architect</h3>
+          <div style="margin-bottom: 0.4rem;">
+            <Badge variant="accent">Plan · Build</Badge>
+            <Badge variant="accent">Tri-agent</Badge>
+          </div>
+          <p class="card-body">Idea → spec → design → build → launch in one skill.</p>
+          <a href="#" class="card-link">View docs →</a>
+        </Card>
+
+        <Card variant="card" glow={false}>
+          <h3 class="card-h">Reverse Spec</h3>
+          <Badge variant="accent">Plan</Badge>
+          <p class="card-body">Turn existing code into pipeline-ready specs.</p>
+          <a href="#" class="card-link">View docs →</a>
+        </Card>
+
+        <Card href="/styleguide">
+          <h3 class="card-h">Linkable card</h3>
+          <p class="card-body">Renders as an &lt;a&gt; when the href prop is set. Hover highlights the border in the accent color.</p>
+        </Card>
+      </div>
+    </section>
+
+    <!-- ───────────── ALERTS ───────────── -->
+    <section class="sg-section">
+      <Eyebrow>11 · alerts</Eyebrow>
+      <h2>Alert</h2>
+      <div class="alert-stack">
+        <Alert variant="info">
+          Showing 10 of 10 skills. <a href="#">Clear filters</a>.
+        </Alert>
+        <Alert variant="success">
+          Deploy to staging passed. 0 regressions.
+        </Alert>
+        <Alert variant="warning">
+          CNAME for staging.opchain.dev not yet configured — worker reachable at its *.workers.dev URL.
+        </Alert>
+        <Alert variant="danger">
+          Too many requests. Please try again later.
+        </Alert>
+      </div>
+    </section>
+
+    <!-- ───────────── CODE ───────────── -->
+    <section class="sg-section">
+      <Eyebrow>12 · code</Eyebrow>
+      <h2>Code block</h2>
+      <CodeBlock lang="bash">curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
+unzip opchain-skills.zip -d .claude/skills/
+claude &gt; /discover</CodeBlock>
+
+      <CodeBlock lang="ts">{`import { SKILL_PROMPTS } from "./generated/skill-prompts.js";
+export const MAX_EXCHANGES = 5;`}</CodeBlock>
+
+      <p class="sg-note">
+        Always dark ground regardless of theme — code blocks stay readable in
+        Amber too.
+      </p>
+    </section>
+
+    <!-- ───────────── MOTION ───────────── -->
+    <section class="sg-section">
+      <Eyebrow>13 · motion</Eyebrow>
+      <h2>Motion</h2>
+      <div class="motion-grid">
+        <div>
+          <code class="tag">--dur-fast</code>
+          <div class="motion-bar motion-fast"></div>
+          <span class="muted">120ms · hover / press</span>
+        </div>
+        <div>
+          <code class="tag">--dur-base</code>
+          <div class="motion-bar motion-base"></div>
+          <span class="muted">200ms · theme flip</span>
+        </div>
+        <div>
+          <code class="tag">--dur-slow</code>
+          <div class="motion-bar motion-slow"></div>
+          <span class="muted">320ms · panel open</span>
+        </div>
+      </div>
+      <p class="sg-note">
+        Hover any bar to trigger its transition.
+        <code>prefers-reduced-motion</code> zeroes every duration.
+      </p>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .sg {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+  }
+
+  .sg-head { margin-bottom: 3rem; }
+  .sg-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+    margin: 0.75rem 0 0.5rem;
+    color: var(--text);
+  }
+  .sg-sub {
+    color: var(--muted);
+    max-width: 42rem;
+    font-size: var(--fs-base);
+  }
+
+  .sg-section {
+    border-top: 0.5px solid var(--border);
+    padding-top: 2.5rem;
+    margin-top: 2.5rem;
+  }
+  .sg-section h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+    color: var(--text);
+    margin: 0.5rem 0 1.25rem;
+  }
+  .sg-sub-h {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    font-weight: 500;
+    margin: 2rem 0 0.75rem;
+  }
+  .sg-note {
+    margin-top: 1rem;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+  }
+  .muted { color: var(--subtle); font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: var(--ls-wide); }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 6px;
+    border-radius: var(--r-xs);
+    color: var(--muted);
+  }
+
+  .sg-row { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+
+  /* Mark */
+  .mark-well {
+    width: 96px; height: 96px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+  }
+
+  /* Palette */
+  .swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+  }
+  .swatch {
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .chip { height: 56px; }
+  .meta {
+    padding: 0.5rem 0.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .meta code {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text);
+    background: transparent;
+    border: 0;
+    padding: 0;
+  }
+  .meta span { font-size: var(--fs-xs); color: var(--subtle); }
+
+  /* Typography */
+  .type-stack { display: flex; flex-direction: column; gap: 0.6rem; }
+  .type-row {
+    display: grid;
+    grid-template-columns: 120px 1fr auto;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-bottom: 0.5px dashed var(--border);
+  }
+  .type-row:last-child { border-bottom: 0; }
+
+  /* Space */
+  .space-grid { display: flex; flex-direction: column; gap: 0.35rem; }
+  .space-row {
+    display: grid;
+    grid-template-columns: 120px 1fr auto;
+    align-items: center;
+    gap: 1rem;
+  }
+  .space-bar {
+    height: 12px;
+    background: var(--accent);
+    border-radius: var(--r-xs);
+  }
+
+  /* Radii */
+  .radii-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 0.6rem;
+  }
+  .radii-cell {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0.35rem; padding: 1rem 0.6rem;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+  }
+  .radii-demo {
+    width: 52px; height: 52px;
+    background: var(--accent);
+  }
+
+  /* Shadows */
+  .shadow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    padding: 1.5rem 0;
+  }
+  .shadow-cell {
+    height: 120px;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .glow-demo { box-shadow: var(--glow-lg); }
+
+  /* Icons */
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.4rem;
+  }
+  .icon-cell {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0.5rem; padding: 0.85rem 0.35rem;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    color: var(--text);
+  }
+  .icon-cell .tag { font-size: 9px; letter-spacing: var(--ls-wide); }
+
+  /* Inputs */
+  .input-stack {
+    display: flex; flex-direction: column; gap: 0.75rem;
+    max-width: 28rem;
+  }
+
+  /* Cards */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.85rem;
+  }
+  .card-h {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .card-body { color: var(--muted); font-size: var(--fs-sm); margin: 0.6rem 0 0.75rem; }
+  .card-link {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--accent);
+  }
+
+  /* Alerts */
+  .alert-stack { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  /* Motion */
+  .motion-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  .motion-bar {
+    height: 10px;
+    background: var(--accent);
+    border-radius: var(--r-xs);
+    margin: 0.5rem 0 0.35rem;
+    transform: translateX(0);
+    transition: transform var(--dur-base) var(--ease-standard);
+    width: 100%;
+  }
+  .motion-fast { transition-duration: var(--dur-fast); }
+  .motion-base { transition-duration: var(--dur-base); }
+  .motion-slow { transition-duration: var(--dur-slow); }
+  .motion-bar:hover { transform: translateX(40%); }
+</style>

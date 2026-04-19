@@ -1,14 +1,18 @@
 // @ts-check
 import { defineConfig } from "astro/config";
-import cloudflare from "@astrojs/cloudflare";
+import sitemap from "@astrojs/sitemap";
+import tailwindcss from "@tailwindcss/vite";
 
-// Sprint 0 scaffold. Real integrations (Tailwind 4, MDX, content collections)
-// land in Sprints 1-3. Keep this file small and additive.
+// Sprint 6 — the cutover. Static output; the Worker at src/index.js handles
+// /api/* and serves the Astro build as static assets via the ASSETS binding.
+// Keeping the build static means no cold-start latency on page views and
+// lets Cloudflare cache everything at the edge.
 export default defineConfig({
   site: "https://opchain.dev",
-  output: "server",
-  adapter: cloudflare({
-    imageService: "compile",
-    platformProxy: { enabled: true },
-  }),
+  output: "static",
+  trailingSlash: "never",
+  integrations: [sitemap()],
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });

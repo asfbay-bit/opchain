@@ -10,6 +10,7 @@ from the `reverse-spec-output/` baseline.
 | `00-approach.md` | Why redesign; success criteria; explicit assumptions to confirm or redirect; non-goals; gate protocol |
 | `01-stack-decision.md` | Stack-forge auto-invoke — platform, framework, language, validation, styling, tests, CI |
 | `02-sprint-plan.md` | 7 sprints with features, deliverables, test requirements, Definition of Done, effort |
+| `03-post-launch.md` | Post-Sprint-6 audit (2026-04-19): what shipped after cutover, outstanding debt, proposed Sprint 7 |
 
 ## TL;DR
 

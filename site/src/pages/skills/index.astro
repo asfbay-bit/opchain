@@ -1,0 +1,335 @@
+---
+import Base from "../../layouts/Base.astro";
+import Eyebrow from "../../components/ui/Eyebrow.astro";
+import Card from "../../components/ui/Card.astro";
+import Badge from "../../components/ui/Badge.astro";
+import Pill from "../../components/ui/Pill.astro";
+import Input from "../../components/ui/Input.astro";
+import Button from "../../components/ui/Button.astro";
+import Icon from "../../components/Icon.astro";
+import { getAllSkills } from "../../lib/skills";
+
+const skills = await getAllSkills();
+
+const phaseFilters = [
+  { id: "all",        label: "All" },
+  { id: "foundation", label: "Foundation" },
+  { id: "plan",       label: "Plan" },
+  { id: "plan-build", label: "Plan + build" },
+  { id: "build",      label: "Build" },
+];
+---
+
+<Base
+  title="Skill Library · opchain"
+  description="Browse all 11 opchain skills, filter by pipeline phase, see trigger commands. Download any skill or the complete bundle."
+  active="/skills"
+>
+  <main class="page">
+    <div class="page-head">
+      <div>
+        <Eyebrow>skill library</Eyebrow>
+        <h1>Every skill, filterable.</h1>
+      </div>
+      <Button variant="outline" href="/opchain-skills.zip">
+        <Icon name="download" />
+        download all skills
+      </Button>
+    </div>
+
+    <p class="lede">
+      Eleven prompt packages — one shared protocol plus ten skills, each
+      owning one phase of the pipeline. Click any card for the full
+      <code class="ic">SKILL.md</code>, trigger commands, and (for the
+      ten tryable skills) a five-exchange live demo.
+    </p>
+
+    <section class="filter-panel" aria-labelledby="lib-heading">
+      <h2 id="lib-heading" class="visually-hidden">Filters</h2>
+      <Input
+        type="search"
+        id="skill-search"
+        placeholder="search skills…"
+        autocomplete="off"
+        ariaLabel="Search skills"
+      />
+
+      <div class="phase-pills" id="phase-pills" role="group" aria-label="Filter by pipeline phase">
+        {phaseFilters.map((p, i) => (
+          <Pill pressed={i === 0} {...({ "data-phase": p.id } as any)}>{p.label}</Pill>
+        ))}
+      </div>
+
+      <label class="tri-row">
+        <input type="checkbox" id="tri-only" />
+        <span>Tri-agent only</span>
+      </label>
+
+      <p id="skill-count" class="meta" aria-live="polite">
+        Showing {skills.length} of {skills.length} skills
+      </p>
+    </section>
+
+    <div id="skill-list" class="skill-list">
+      {skills.map((s) => (
+        <Card
+          variant="surface"
+          href={`/skills/${s.data.name}`}
+          class="skill-card"
+          {...({
+            "data-skill": s.data.name,
+            "data-phases": s.data.phases.join(","),
+            "data-tri": String(s.data.triAgent),
+            "data-search": `${s.data.displayName} ${s.data.shortDesc} ${s.data.name}`.toLowerCase(),
+          } as any)}
+        >
+          <div class="card-head">
+            <h3>{s.data.displayName}</h3>
+            <span class="version">v{s.data.version}</span>
+          </div>
+          <div class="card-tags">
+            {s.data.phases.map((p: string) => (
+              <Badge variant="accent">{p}</Badge>
+            ))}
+            {s.data.triAgent && <Badge variant="accent">Tri-agent</Badge>}
+          </div>
+          <p class="short">{s.data.shortDesc}</p>
+          {s.data.commands.length > 0 && (
+            <div class="commands">
+              {s.data.commands.slice(0, 3).map((c: string) => (
+                <code class="cmd">{c}</code>
+              ))}
+              {s.data.commands.length > 3 && (
+                <span class="cmd-more">+{s.data.commands.length - 3} more</span>
+              )}
+            </div>
+          )}
+          <div class="card-foot">
+            <span class="link">View docs <Icon name="arrow-right" size={12} /></span>
+          </div>
+        </Card>
+      ))}
+    </div>
+
+    <p id="empty" class="empty" hidden>No skills match these filters.</p>
+  </main>
+
+  <script>
+    /**
+     * Client-side filter for the Skill Library. Reads data-* attributes off
+     * the rendered cards so we don't ship a copy of the catalog as JSON.
+     * Filter state never leaves the page; nothing persists to URL or storage
+     * (kept simple — Sprint 4 can add URL params if useful).
+     */
+    const list   = document.getElementById("skill-list")!;
+    const cards  = Array.from(list.querySelectorAll<HTMLElement>("[data-skill]"));
+    const search = document.getElementById("skill-search") as HTMLInputElement | null;
+    const triOnly= document.getElementById("tri-only")    as HTMLInputElement | null;
+    const pillsEl= document.getElementById("phase-pills");
+    const count  = document.getElementById("skill-count");
+    const empty  = document.getElementById("empty");
+
+    let phase: string = "all";
+    const total = cards.length;
+
+    function phaseMatch(card: HTMLElement): boolean {
+      if (phase === "all") return true;
+      const phases = (card.dataset.phases || "").split(",");
+      const hasPlan  = phases.includes("plan");
+      const hasBuild = phases.includes("build");
+      if (phase === "foundation") return phases.includes("foundation");
+      if (phase === "plan")       return hasPlan && !hasBuild;
+      if (phase === "build")      return hasBuild && !hasPlan;
+      if (phase === "plan-build") return hasPlan && hasBuild;
+      return true;
+    }
+
+    function render() {
+      const q   = (search?.value || "").trim().toLowerCase();
+      const tri = !!triOnly?.checked;
+      let visible = 0;
+      cards.forEach((card) => {
+        const matches =
+          phaseMatch(card) &&
+          (!tri || card.dataset.tri === "true") &&
+          (!q || (card.dataset.search || "").includes(q));
+        card.hidden = !matches;
+        if (matches) visible++;
+      });
+      if (count)  count.textContent  = `Showing ${visible} of ${total} skills`;
+      if (empty)  empty.hidden       = visible !== 0;
+    }
+
+    function setPhase(next: string) {
+      phase = next;
+      pillsEl?.querySelectorAll<HTMLButtonElement>("[data-phase]").forEach((p) => {
+        p.setAttribute("aria-pressed", p.dataset.phase === next ? "true" : "false");
+      });
+      render();
+    }
+
+    pillsEl?.querySelectorAll<HTMLButtonElement>("[data-phase]").forEach((p) => {
+      p.addEventListener("click", () => setPhase(p.dataset.phase || "all"));
+    });
+    search?.addEventListener("input", render);
+    triOnly?.addEventListener("change", render);
+  </script>
+</Base>
+
+<style>
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+  }
+  .page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
+  .lede {
+    color: var(--muted);
+    margin: 0.75rem 0 1.5rem;
+    max-width: 42rem;
+    line-height: var(--lh-base);
+  }
+  .ic {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  .filter-panel {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--glow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .phase-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tri-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .tri-row input {
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .meta {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    color: var(--subtle);
+    margin: 0;
+  }
+
+  .skill-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .skill-card { display: block; }
+
+  .card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+  }
+  .card-head h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.005em;
+  }
+  .version {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+  }
+
+  .card-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 0.55rem; }
+
+  .short {
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    margin: 0 0 0.6rem;
+    line-height: var(--lh-base);
+  }
+
+  .commands {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 0.6rem;
+  }
+  .cmd {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text);
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    padding: 1px 6px;
+    border-radius: var(--r-xs);
+  }
+  .cmd-more {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+  }
+
+  .card-foot {
+    margin-top: 0.5rem;
+  }
+  .link {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .empty {
+    text-align: center;
+    color: var(--subtle);
+    font-style: italic;
+    margin-top: 2rem;
+  }
+</style>

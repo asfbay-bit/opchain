@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>opchain — light mode v2 · batch 1 (3 conservative + 2 adventurous)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+/* ── Brand constants ── */
+:root {
+  --obsidian:  #1c1710;
+  --forge:     #2a2218;
+  --slag:      #5a5040;
+  --sand:      #c4b89e;
+  --linen:     #e8dfd0;
+  --parchment: #f6f0e8;
+  --ember:     #e05c18;
+  --char:      #b84510;
+  --font-display: "Outfit", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+  --r-xs: 3px; --r-sm: 4px; --r-md: 6px; --r-lg: 8px; --r-pill: 999px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font: 14px/1.6 var(--font-display);
+  background: #0e0b08; color: #e8dfd0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Chrome ── */
+.chrome {
+  position: sticky; top: 0; z-index: 50;
+  background: #15100c; border-bottom: 0.5px solid #3a2f26;
+  padding: 0.85rem 1.5rem;
+}
+.chrome-inner {
+  max-width: 1080px; margin: 0 auto;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem;
+}
+.chrome-title {
+  font-family: var(--font-mono); font-size: 10px;
+  color: #e05c18; letter-spacing: 0.18em; text-transform: uppercase;
+  font-weight: 500;
+}
+.chrome-title::before {
+  content: ""; display: inline-block; width: 14px; height: 1px;
+  background: #e05c18; vertical-align: middle; margin-right: 8px;
+}
+.chrome-label {
+  font-family: var(--font-mono); font-size: 10px;
+  color: #8A7868; letter-spacing: 0.1em; text-transform: uppercase;
+  margin-left: 0.5rem;
+}
+.theme-pills { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.theme-pill {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  background: transparent; color: #c4b89e;
+  border: 0.5px solid #5a5040; border-radius: var(--r-pill);
+  padding: 0.35rem 0.7rem; cursor: pointer;
+  transition: color 150ms, border-color 150ms, background 150ms;
+}
+.theme-pill:hover { color: #e8dfd0; }
+.theme-pill[aria-pressed="true"] {
+  color: #e05c18; border-color: #e05c18; background: rgba(224,92,24,0.12);
+}
+.theme-note {
+  flex: 1 1 100%;
+  font-size: 12px; color: #8A7868; padding-top: 0.25rem;
+}
+
+/* Palette strip */
+.theme-strip {
+  max-width: 1080px; margin: 1.5rem auto 0; padding: 0 1.5rem;
+  display: flex; gap: 8px; flex-wrap: wrap;
+  font-family: var(--font-mono); font-size: 10px; color: #8A7868;
+}
+.theme-strip .chip {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  background: #1e1814; border: 0.5px solid #3a2f26; border-radius: var(--r-sm);
+  padding: 0.35rem 0.6rem;
+}
+.theme-strip .chip span.swatch {
+  width: 14px; height: 14px; border-radius: 3px; display: inline-block;
+  border: 0.5px solid rgba(255,255,255,0.08);
+}
+
+/* ── Preview frame — themed ── */
+.preview {
+  max-width: 1080px; margin: 1.5rem auto 4rem; padding: 0 1.5rem;
+}
+.preview-card {
+  background: var(--bg); color: var(--text);
+  border-radius: var(--r-lg); border: 0.5px solid var(--border);
+  overflow: hidden;
+  transition: background 250ms, color 250ms, border-color 250ms;
+}
+
+/* ── Themed header (the ribbon — distinct from bg) ── */
+.ph {
+  background: var(--ribbon);
+  border-bottom: 0.5px solid var(--ribbon-edge, var(--border));
+}
+.ph-inner {
+  max-width: 960px; margin: 0 auto; padding: 0 1.5rem;
+  height: 56px; display: flex; align-items: center; justify-content: space-between;
+}
+.ph-brand { display: flex; align-items: center; gap: 0.75rem; }
+.ph-logo {
+  font-family: var(--font-display); font-weight: 600; font-size: 15px;
+  letter-spacing: 0.22em; color: var(--ribbon-text, var(--text));
+}
+.ph-nav { display: flex; gap: 0; flex-wrap: wrap; justify-content: flex-end; }
+.ph-nav a {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.05em; color: var(--ribbon-muted, var(--muted));
+  padding: 0 1rem; height: 56px;
+  display: inline-flex; align-items: center;
+  text-decoration: none; border-bottom: 2px solid transparent;
+}
+.ph-nav a:hover { color: var(--ribbon-text, var(--text)); }
+.ph-nav a.active {
+  color: var(--ribbon-active, var(--accent));
+  border-bottom-color: var(--ribbon-active, var(--accent));
+}
+
+.hero {
+  padding: 3rem 1.5rem 2.5rem;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  gap: 1.25rem;
+}
+.hero .eyebrow {
+  font-family: var(--font-mono); font-size: 10px; color: var(--accent);
+  letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.hero .eyebrow::before {
+  content: ""; width: 18px; height: 1px; background: var(--accent);
+}
+.hero svg { display: block; }
+.hero h1 {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(2rem, 5vw, 3rem); letter-spacing: 0.12em;
+  color: var(--text); margin: 0;
+}
+.hero .tag {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.hero .body {
+  max-width: 42rem; color: var(--muted); font-size: 14px; line-height: 1.65;
+  margin: 0.5rem 0 0;
+}
+
+.btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-top: 0.75rem; }
+.btn {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.05em; border-radius: var(--r-sm);
+  padding: 0.55rem 1.1rem; text-decoration: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  transition: background 150ms;
+}
+.btn-primary { background: var(--accent); color: var(--bg); border: none; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-outline { background: transparent; color: var(--accent); border: 0.5px solid var(--accent); }
+.btn-outline:hover { background: var(--accent-dim); }
+
+.section { padding: 2rem 1.5rem 2.5rem; max-width: 960px; margin: 0 auto; }
+.section-head {
+  font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+  letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500;
+  margin-bottom: 1rem;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.section-head::before { content: ""; width: 14px; height: 1px; background: var(--muted); }
+
+.phase-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem; margin-bottom: 2rem;
+}
+.phase-card {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: var(--r-md); padding: 0.85rem 1rem;
+}
+.phase-card .step {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
+  color: var(--subtle); text-transform: uppercase; margin-bottom: 0.35rem;
+}
+.phase-card .name {
+  font-family: var(--font-display); font-size: 14px; font-weight: 600;
+  color: var(--text); letter-spacing: 0.02em;
+}
+.phase-card .skill {
+  font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+  margin-top: 0.25rem;
+}
+
+.skill-card {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: var(--r-lg); padding: 1.1rem 1.25rem;
+  transition: border-color 150ms;
+}
+.skill-card:hover { border-color: var(--accent); }
+.skill-card h3 {
+  margin: 0 0 0.5rem; font-family: var(--font-display);
+  font-size: 15px; font-weight: 600; color: var(--text);
+}
+.skill-tag {
+  display: inline-block; font-family: var(--font-mono); font-size: 9px;
+  font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); border: 0.5px solid var(--accent);
+  border-radius: var(--r-xs); padding: 2px 7px; margin-right: 0.3rem;
+}
+.skill-desc { margin: 0.6rem 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+.chat {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: var(--r-lg); padding: 1.25rem;
+  display: flex; flex-direction: column; gap: 0.85rem;
+}
+.msg { max-width: 85%; }
+.msg--assistant { align-self: flex-start; }
+.msg--user { align-self: flex-end; }
+.msg-label {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--subtle); margin-bottom: 0.3rem;
+}
+.msg--user .msg-label { text-align: right; color: var(--accent); }
+.msg-content {
+  padding: 0.7rem 0.95rem; border-radius: var(--r-md);
+  font-size: 13px; line-height: 1.6;
+}
+.msg--user .msg-content { background: var(--accent); color: var(--bg); border-bottom-right-radius: var(--r-xs); }
+.msg--assistant .msg-content { background: var(--card); border: 0.5px solid var(--border); color: var(--text); border-bottom-left-radius: var(--r-xs); }
+
+/* ─────────────────────────────────────────────
+   THEMES — batch 1: 3 conservative + 2 adventurous
+   ───────────────────────────────────────────── */
+
+/* 1. PARCHMENT — warmest classic. Default conservative. */
+.preview[data-theme="parchment"] {
+  --bg:         #f6f0e8;
+  --ribbon:     #ede2d0;
+  --ribbon-edge:#d7c9af;
+  --surface:    #efe5d3;
+  --card:       #ffffff;
+  --border:     #c4b89e;
+  --text:       #1c1710;
+  --muted:      #5a5040;
+  --subtle:     #8a7c68;
+  --accent:     #e05c18;
+  --accent-hover:#b84510;
+  --accent-dim: rgba(224, 92, 24, 0.12);
+}
+
+/* 2. LINEN — mid-warm heather. Conservative. */
+.preview[data-theme="linen"] {
+  --bg:         #e8dfd0;
+  --ribbon:     #dccfb5;
+  --ribbon-edge:#b09a74;
+  --surface:    #dccfb5;
+  --card:       #f6f0e8;
+  --border:     #a39474;
+  --text:       #1c1710;
+  --muted:      #4a3e2a;
+  --subtle:     #6a5a44;
+  --accent:     #e05c18;
+  --accent-hover:#b84510;
+  --accent-dim: rgba(224, 92, 24, 0.12);
+}
+
+/* 3. BONE — near-white, barely warm. Conservative. */
+.preview[data-theme="bone"] {
+  --bg:         #fafaf3;
+  --ribbon:     #f0ebde;
+  --ribbon-edge:#ddd4c1;
+  --surface:    #f4efe0;
+  --card:       #ffffff;
+  --border:     #d7ccb4;
+  --text:       #1c1710;
+  --muted:      #5a5040;
+  --subtle:     #8a7c68;
+  --accent:     #d95010;
+  --accent-hover:#ab3e08;
+  --accent-dim: rgba(217, 80, 16, 0.10);
+}
+
+/* 4. DAWN — warm peach-cream. Adventurous. */
+.preview[data-theme="dawn"] {
+  --bg:         #faece0;
+  --ribbon:     #f2dbc7;
+  --ribbon-edge:#dcb896;
+  --surface:    #f5e1cd;
+  --card:       #fff5ea;
+  --border:     #d8b899;
+  --text:       #231509;
+  --muted:      #6a4b33;
+  --subtle:     #97755a;
+  --accent:     #c94a0c;
+  --accent-hover:#a03608;
+  --accent-dim: rgba(201, 74, 12, 0.12);
+}
+
+/* 5. SAGE — muted cool green-tint. Adventurous. */
+.preview[data-theme="sage"] {
+  --bg:         #e6ebdc;
+  --ribbon:     #d4dbc6;
+  --ribbon-edge:#aeb892;
+  --surface:    #dde4cc;
+  --card:       #f1f4e8;
+  --border:     #a9b38d;
+  --text:       #1c1a12;
+  --muted:      #4f5238;
+  --subtle:     #7c8060;
+  --accent:     #c04a18;
+  --accent-hover:#963608;
+  --accent-dim: rgba(192, 74, 24, 0.12);
+}
+
+/* ── Batch 2 ── */
+
+/* 6. CLAY — warm terracotta-beige ground. Wild rustic. */
+.preview[data-theme="clay"] {
+  --bg:         #d9b998;
+  --ribbon:     #c9a786;
+  --ribbon-edge:#8f6e50;
+  --surface:    #c9a786;
+  --card:       #e8dfd0;
+  --border:     #8f6e50;
+  --text:       #2a1810;
+  --muted:      #5a3e2a;
+  --subtle:     #7c5e44;
+  --accent:     #b84510;
+  --accent-hover:#8a3308;
+  --accent-dim: rgba(184, 69, 16, 0.14);
+}
+
+/* 7. MOSS — saturated sage-olive ground. Wild green with ember complementary. */
+.preview[data-theme="moss"] {
+  --bg:         #b5c19a;
+  --ribbon:     #a4b08a;
+  --ribbon-edge:#6c7b58;
+  --surface:    #a4b08a;
+  --card:       #c8d1ad;
+  --border:     #6c7b58;
+  --text:       #1c2210;
+  --muted:      #3d4a2e;
+  --subtle:     #5c6d48;
+  --accent:     #e05c18;
+  --accent-hover:#b84510;
+  --accent-dim: rgba(224, 92, 24, 0.14);
+}
+
+/* 8. POPPY — linen ground, ember ribbon. Wild: ribbon IS the brand moment. */
+.preview[data-theme="poppy"] {
+  --bg:         #e8dfd0;
+  --ribbon:     #e05c18;
+  --ribbon-edge:#b84510;
+  --surface:    #dccfb5;
+  --card:       #f6f0e8;
+  --border:     #a39474;
+  --text:       #1c1710;
+  --muted:      #4a3e2a;
+  --subtle:     #6a5a44;
+  --accent:     #1c1710;            /* flipped: accent = obsidian, not ember */
+  --accent-hover:#0a0705;            /* darker than accent — consistent with every other theme */
+  --accent-dim: rgba(28, 23, 16, 0.10);
+  /* Ribbon overrides — text must read against saturated ember */
+  --ribbon-text:   #f6f0e8;
+  --ribbon-muted:  rgba(246, 240, 232, 0.78);
+  --ribbon-active: #f6f0e8;
+}
+
+/* 9. AMBER — parchment × dawn hybrid. Warmer than parchment, less peach than dawn. */
+.preview[data-theme="amber"] {
+  --bg:         #f8ebda;
+  --ribbon:     #eed8bc;
+  --ribbon-edge:#d4b58f;
+  --surface:    #f4e5cf;
+  --card:       #ffffff;
+  --border:     #ccb390;
+  --text:       #1c1710;
+  --muted:      #5a4a30;
+  --subtle:     #8c7657;
+  --accent:     #d95010;
+  --accent-hover:#ab3e08;
+  --accent-dim: rgba(217, 80, 16, 0.12);
+}
+
+/* 10. COBALT — cool blue-gray. Completely out there: breaks warm-only, ember as complementary pop. */
+.preview[data-theme="cobalt"] {
+  --bg:         #d8dde3;
+  --ribbon:     #c2cad4;
+  --ribbon-edge:#8895a5;
+  --surface:    #c8d1dc;
+  --card:       #ebeef2;
+  --border:     #8895a5;
+  --text:       #0f1825;
+  --muted:      #3f4e62;
+  --subtle:     #67778c;
+  --accent:     #e05c18;
+  --accent-hover:#b84510;
+  --accent-dim: rgba(224, 92, 24, 0.12);
+}
+</style>
+</head>
+<body>
+
+<div class="chrome">
+  <div class="chrome-inner">
+    <span class="chrome-title">opchain · light mode v2 · all 10</span>
+    <span class="chrome-label">theme</span>
+    <div class="theme-pills" role="radiogroup" aria-label="Select theme">
+      <button class="theme-pill" data-theme="parchment" aria-pressed="true">1 · parchment</button>
+      <button class="theme-pill" data-theme="linen"     aria-pressed="false">2 · linen</button>
+      <button class="theme-pill" data-theme="bone"      aria-pressed="false">3 · bone</button>
+      <button class="theme-pill" data-theme="dawn"      aria-pressed="false">4 · dawn</button>
+      <button class="theme-pill" data-theme="sage"      aria-pressed="false">5 · sage</button>
+      <button class="theme-pill" data-theme="clay"      aria-pressed="false">6 · clay</button>
+      <button class="theme-pill" data-theme="moss"      aria-pressed="false">7 · moss</button>
+      <button class="theme-pill" data-theme="poppy"     aria-pressed="false">8 · poppy</button>
+      <button class="theme-pill" data-theme="amber"     aria-pressed="false">9 · amber</button>
+      <button class="theme-pill" data-theme="cobalt"    aria-pressed="false">10 · cobalt</button>
+    </div>
+    <p class="theme-note" id="theme-note"></p>
+  </div>
+</div>
+
+<div class="theme-strip" id="theme-strip"></div>
+
+<div class="preview" data-theme="parchment">
+  <div class="preview-card">
+
+    <!-- Themed ribbon header — slightly different color from page bg -->
+    <header class="ph">
+      <div class="ph-inner">
+        <div class="ph-brand">
+          <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+            <line x1="3" y1="16" x2="29" y2="16" stroke="var(--subtle)" stroke-width="1"/>
+            <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--text)" stroke-width="1.2"/>
+            <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--text)" stroke-width="1.2"/>
+            <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--accent)"/>
+            <circle cx="6.5" cy="16" r="1.6" fill="var(--text)"/>
+            <circle cx="15.5" cy="16" r="1.6" fill="var(--text)"/>
+            <circle cx="25" cy="16" r="1.6" fill="var(--bg)"/>
+          </svg>
+          <span class="ph-logo">opchain</span>
+        </div>
+        <nav class="ph-nav">
+          <a href="#" class="active">Introduction</a>
+          <a href="#">Architecture</a>
+          <a href="#">Skill Library</a>
+          <a href="#">Install</a>
+          <a href="#">Try It</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">skill ecosystem</div>
+      <svg width="108" height="108" viewBox="0 0 128 128" aria-hidden="true">
+        <line x1="8" y1="64" x2="120" y2="64" stroke="var(--subtle)" stroke-width="2"/>
+        <rect x="8" y="42" width="28" height="44" rx="5" fill="none" stroke="var(--text)" stroke-width="2"/>
+        <rect x="50" y="42" width="28" height="44" rx="5" fill="none" stroke="var(--text)" stroke-width="2"/>
+        <rect x="92" y="42" width="28" height="44" rx="5" fill="var(--accent)"/>
+        <circle cx="22" cy="64" r="5" fill="var(--text)"/>
+        <circle cx="64" cy="64" r="5" fill="var(--text)"/>
+        <circle cx="106" cy="64" r="5" fill="var(--bg)"/>
+      </svg>
+      <h1>opchain</h1>
+      <div class="tag">10 interconnected skills · 1 protocol</div>
+      <p class="body">Skills that ship — concept to production. Install a skill, trigger it by name, pick up where you left off.</p>
+      <div class="btn-row">
+        <a href="#" class="btn btn-primary">install opchain</a>
+        <a href="#" class="btn btn-outline">try it free</a>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">pipeline phases</div>
+      <div class="phase-grid">
+        <div class="phase-card"><div class="step">01 · discover</div><div class="name">Interview</div><div class="skill">app-architect</div></div>
+        <div class="phase-card"><div class="step">02 · spec</div><div class="name">Contract</div><div class="skill">stack-forge</div></div>
+        <div class="phase-card"><div class="step">03 · design</div><div class="name">Style book</div><div class="skill">ux-engineer</div></div>
+        <div class="phase-card"><div class="step">04 · build</div><div class="name">Sprint loop</div><div class="skill">app-architect</div></div>
+        <div class="phase-card"><div class="step">05 · audit</div><div class="name">Quality gate</div><div class="skill">code-auditor</div></div>
+        <div class="phase-card"><div class="step">06 · ship</div><div class="name">Deploy</div><div class="skill">deploy-ops</div></div>
+      </div>
+    </section>
+
+    <section class="section" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <article class="skill-card">
+        <h3>App Architect</h3>
+        <span class="skill-tag">Plan · Build</span>
+        <span class="skill-tag">Tri-agent</span>
+        <p class="skill-desc">Idea → spec → design → build → launch in one skill.</p>
+      </article>
+      <div class="chat">
+        <div class="msg msg--assistant">
+          <div class="msg-label">App Architect</div>
+          <div class="msg-content">Describe your app idea and it will run a discovery interview.</div>
+        </div>
+        <div class="msg msg--user">
+          <div class="msg-label">You</div>
+          <div class="msg-content">Build me a habit tracking app.</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+const THEMES = {
+  parchment: { blurb: '1 · Parchment — warmest classic. Ribbon a shade cooler than the bg. Most conservative.', swatches: [['bg','#f6f0e8'],['ribbon','#ede2d0'],['surface','#efe5d3'],['text','#1c1710'],['accent','#e05c18']] },
+  linen:     { blurb: '2 · Linen — mid-warm heather. Ribbon deeper linen, feels like a header band. Conservative.', swatches: [['bg','#e8dfd0'],['ribbon','#dccfb5'],['surface','#dccfb5'],['text','#1c1710'],['accent','#e05c18']] },
+  bone:      { blurb: '3 · Bone — near-white, barely warm. Ribbon has the most contrast vs bg. Crispest conservative.', swatches: [['bg','#fafaf3'],['ribbon','#f0ebde'],['surface','#f4efe0'],['text','#1c1710'],['accent','#d95010']] },
+  dawn:      { blurb: '4 · Dawn — warm peach-cream. Ribbon leans amber. Adventurous: pulls toward sunrise.', swatches: [['bg','#faece0'],['ribbon','#f2dbc7'],['surface','#f5e1cd'],['text','#231509'],['accent','#c94a0c']] },
+  sage:      { blurb: '5 · Sage — muted cool green-tint. Only option with a non-warm cast. Adventurous: breaks the warm-only rule.', swatches: [['bg','#e6ebdc'],['ribbon','#d4dbc6'],['surface','#dde4cc'],['text','#1c1a12'],['accent','#c04a18']] },
+  clay:      { blurb: '6 · Clay — saturated warm terracotta-beige. Rustic, pre-modern, pottery studio. WILD.', swatches: [['bg','#d9b998'],['ribbon','#c9a786'],['surface','#c9a786'],['text','#2a1810'],['accent','#b84510']] },
+  moss:      { blurb: '7 · Moss — saturated sage-olive ground, ember as complementary pop. Botanical, foresty. WILD.', swatches: [['bg','#b5c19a'],['ribbon','#a4b08a'],['surface','#a4b08a'],['text','#1c2210'],['accent','#e05c18']] },
+  poppy:     { blurb: '8 · Poppy — linen ground but ember ribbon. The ribbon IS the brand moment. Maximum chrome contrast. WILD.', swatches: [['bg','#e8dfd0'],['ribbon','#e05c18'],['surface','#dccfb5'],['text','#1c1710'],['accent','#1c1710']] },
+  amber:     { blurb: '9 · Amber — parchment × dawn hybrid. Warmer than parchment, less peach than dawn. The blend you asked for.', swatches: [['bg','#f8ebda'],['ribbon','#eed8bc'],['surface','#f4e5cf'],['text','#1c1710'],['accent','#d95010']] },
+  cobalt:    { blurb: '10 · Cobalt — cool blue-gray. Breaks warm-only entirely. Ember as complementary pop. COMPLETELY OUT THERE.', swatches: [['bg','#d8dde3'],['ribbon','#c2cad4'],['surface','#c8d1dc'],['text','#0f1825'],['accent','#e05c18']] },
+};
+
+const preview = document.querySelector('.preview');
+const pills = document.querySelectorAll('.theme-pill');
+const note = document.getElementById('theme-note');
+const strip = document.getElementById('theme-strip');
+
+function setTheme(id) {
+  preview.setAttribute('data-theme', id);
+  pills.forEach(p => p.setAttribute('aria-pressed', p.dataset.theme === id ? 'true' : 'false'));
+  const t = THEMES[id];
+  note.textContent = t.blurb;
+  strip.innerHTML = '';
+  t.swatches.forEach(([label, hex]) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.innerHTML = `<span class="swatch" style="background:${hex}"></span>${label} · ${hex}`;
+    strip.appendChild(chip);
+  });
+}
+
+pills.forEach(p => p.addEventListener('click', () => setTheme(p.dataset.theme)));
+setTheme('parchment');
+</script>
+
+</body>
+</html>

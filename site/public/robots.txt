@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /styleguide
+
+Sitemap: https://opchain.dev/sitemap-index.xml

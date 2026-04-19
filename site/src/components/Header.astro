@@ -1,0 +1,125 @@
+---
+import Logo from "./Logo.astro";
+import ThemeToggle from "./ThemeToggle.astro";
+
+interface NavLink {
+  href: string;
+  label: string;
+}
+
+interface Props {
+  /** Route of the current page (e.g. "/architecture"). Underlines the matching nav link. */
+  active?: string;
+  links?: NavLink[];
+}
+
+const defaultLinks: NavLink[] = [
+  { href: "/",              label: "Introduction" },
+  { href: "/architecture",  label: "Architecture" },
+  { href: "/in-action",     label: "In Action" },
+  { href: "/skills",        label: "Skill Library" },
+  { href: "/install",       label: "Install" },
+  { href: "/tryit",         label: "Try It" },
+];
+
+const { active = "/", links = defaultLinks } = Astro.props;
+---
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-header-brand" href="/" aria-label="opchain home">
+      <Logo size={28} />
+      <span class="logo">opchain</span>
+    </a>
+    <nav class="nav-scroll" aria-label="Primary">
+      <div class="nav">
+        {links.map((link) => (
+          <a
+            href={link.href}
+            class:list={["nav-link", { active: link.href === active }]}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+    </nav>
+    <ThemeToggle />
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--ribbon);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid var(--ribbon-edge);
+    box-shadow: var(--glow-ribbon);
+    transition:
+      background var(--dur-base) var(--ease-standard),
+      border-color var(--dur-base) var(--ease-standard),
+      box-shadow var(--dur-base) var(--ease-standard);
+  }
+  .site-header-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .site-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .site-header-brand:hover { color: var(--text); }
+  .logo {
+    font-family: var(--font-display);
+    font-weight: var(--wordmark-weight);
+    font-size: 15px;
+    letter-spacing: var(--wordmark-tracking);
+    color: var(--text);
+  }
+  .nav-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex: 1;
+    min-width: 0;
+  }
+  .nav-scroll::-webkit-scrollbar { display: none; }
+  .nav {
+    display: flex;
+    gap: 0;
+    white-space: nowrap;
+    justify-content: flex-end;
+  }
+  .nav-link {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: var(--ls-wide);
+    color: var(--muted);
+    padding: 0 1rem;
+    height: 56px;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition:
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+  }
+  .nav-link:hover { color: var(--text); }
+  .nav-link.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+</style>

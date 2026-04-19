@@ -1,0 +1,31 @@
+---
+type Variant = "info" | "success" | "warning" | "danger";
+
+interface Props {
+  variant?: Variant;
+  class?: string;
+}
+
+const { variant = "info", class: className = "" } = Astro.props;
+---
+
+<div
+  class:list={["alert", `alert-${variant}`, className]}
+  role="status"
+>
+  <slot />
+</div>
+
+<style>
+  .alert {
+    font-size: var(--fs-sm);
+    line-height: var(--lh-base);
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--r-md);
+    border: 0.5px solid;
+  }
+  .alert-info    { color: var(--info);    border-color: var(--info);    background: var(--info-dim); }
+  .alert-success { color: var(--success); border-color: var(--success); background: var(--success-dim); }
+  .alert-warning { color: var(--warning); border-color: var(--warning); background: var(--warning-dim); }
+  .alert-danger  { color: var(--danger);  border-color: var(--danger);  background: var(--danger-dim); }
+</style>

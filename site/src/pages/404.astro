@@ -1,0 +1,55 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Button from "../components/ui/Button.astro";
+---
+
+<Base title="Not found · opchain" description="That page doesn't exist.">
+  <main class="page">
+    <Eyebrow>404</Eyebrow>
+    <h1>Nothing to see here.</h1>
+    <p class="lede">
+      The URL you followed isn't one of ours — it may have been an old
+      <code>.html</code> path that moved, a rename, or a typo.
+    </p>
+
+    <div class="actions">
+      <Button variant="primary" href="/">back home</Button>
+      <Button variant="outline" href="/skills">browse skills</Button>
+      <Button variant="ghost" href="/install">install</Button>
+    </div>
+  </main>
+</Base>
+
+<style>
+  .page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 6rem 1.5rem 8rem;
+    text-align: center;
+  }
+  .page h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-hero);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 1rem;
+  }
+  .lede { color: var(--muted); margin: 0 0 2rem; }
+  .actions {
+    display: inline-flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+</style>

@@ -1,0 +1,131 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="col">
+      <div class="brand">opchain</div>
+      <p class="tagline">skills that ship.</p>
+    </div>
+    <div class="col">
+      <div class="col-head">product</div>
+      <a href="/">Introduction</a>
+      <a href="/architecture">Architecture</a>
+      <a href="/skills">Skill Library</a>
+      <a href="/install">Install</a>
+    </div>
+    <div class="col">
+      <div class="col-head">try</div>
+      <a href="/tryit">Live demo</a>
+      <a href="/opchain-skills.zip">Download bundle</a>
+    </div>
+    <div class="col">
+      <div class="col-head">source</div>
+      <a href="https://github.com/asfbay-bit/opchain" rel="noopener">GitHub</a>
+      <a href="https://opchain.dev/api/health" rel="noopener">API health</a>
+      <a href="/privacy">Privacy</a>
+      <button type="button" id="opchain-privacy-reset" class="link-btn">Manage privacy</button>
+    </div>
+  </div>
+  <div class="site-footer-meta">
+    <span>&copy; {year} opchain</span>
+    <span>open-source · MIT</span>
+  </div>
+</footer>
+
+<script>
+  const btn = document.getElementById("opchain-privacy-reset");
+  btn?.addEventListener("click", () => {
+    try {
+      // Reset our consent flag *and* any PostHog-managed keys. If the user
+      // previously accepted and now wants to opt out, they'd expect nothing
+      // tracked of theirs to persist.
+      localStorage.removeItem("opchain-consent");
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith("ph_") || k.startsWith("posthog_"))) {
+          localStorage.removeItem(k);
+        }
+      }
+    } catch { /* ignore */ }
+    location.reload();
+  });
+</script>
+
+<style>
+  .site-footer {
+    border-top: 0.5px solid var(--border);
+    background: var(--bg);
+    color: var(--muted);
+    margin-top: 6rem;
+  }
+  .site-footer-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 2rem;
+  }
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .col-head {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    color: var(--subtle);
+    margin-bottom: 0.2rem;
+  }
+  .brand {
+    font-family: var(--font-display);
+    font-weight: var(--wordmark-weight);
+    font-size: 15px;
+    letter-spacing: var(--wordmark-tracking);
+    color: var(--text);
+  }
+  .tagline {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wider);
+    margin: 0.25rem 0 0;
+  }
+  .col a {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-standard);
+  }
+  .col a:hover,
+  .col .link-btn:hover { color: var(--accent); }
+  .link-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    text-align: left;
+    font: inherit;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    cursor: pointer;
+    transition: color var(--dur-fast) var(--ease-standard);
+  }
+  .site-footer-meta {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1.25rem 1.5rem 2rem;
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+  }
+</style>
