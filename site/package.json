@@ -11,7 +11,9 @@
     "astro": "astro",
     "check": "astro check",
     "pretest:e2e": "PUBLIC_POSTHOG_KEY=phc_test_e2e PUBLIC_POSTHOG_HOST=http://127.0.0.1:9999 astro build",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "prelhci": "astro build",
+    "lhci": "lhci autorun --config=../lighthouserc.json"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.0.0",
@@ -23,6 +25,8 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.0",
+    "@axe-core/playwright": "^4.11.2",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.59.1",
     "@tailwindcss/vite": "^4.2.2",
     "tailwindcss": "^4.2.2",

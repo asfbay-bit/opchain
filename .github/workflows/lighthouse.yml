@@ -1,0 +1,41 @@
+name: Lighthouse
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lhci:
+    name: LHCI — perf, a11y, best-practices, SEO
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Install (site)
+        working-directory: site
+        run: npm ci
+      - name: Build site
+        working-directory: site
+        env:
+          # Match the production build: PostHog public key baked, beacon token absent
+          # so CF Web Analytics doesn't try to load. Keeping these out of the LHCI run
+          # avoids third-party network noise during scoring.
+          PUBLIC_POSTHOG_KEY: ""
+        run: npm run build
+      - name: Run LHCI
+        working-directory: site
+        run: npx --no -- lhci autorun --config=../lighthouserc.json
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}

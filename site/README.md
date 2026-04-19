@@ -31,6 +31,25 @@ npm run test:e2e
 CI runs the same suite on `ubuntu-latest`; cached browsers keep the step
 under a minute warm.
 
+## Lighthouse (Sprint 7b)
+
+Per-PR Lighthouse audit via `@lhci/cli`. Runs against a fresh `astro
+preview`. Budgets live at the repo root (`lighthouserc.json`):
+
+- `/` and `/skills`: Performance / Accessibility / Best Practices / SEO ≥ 0.95
+- `/in-action`: Performance ≥ 0.85 (chat-mock-heavy DOM); the rest ≥ 0.95
+
+Local one-shot:
+
+```bash
+cd site
+npm run lhci
+```
+
+CI workflow `.github/workflows/lighthouse.yml` runs the same on every PR
+and uploads the report to LHCI temporary public storage (link surfaces
+in the action summary).
+
 ## Roadmap
 
 - Sprint 1: content collections for `skills/*/SKILL.md`, typed catalog.
