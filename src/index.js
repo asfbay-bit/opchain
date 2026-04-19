@@ -80,21 +80,37 @@ const BASELINE_SECURITY_HEADERS = {
     "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=()",
 };
 
-// CSP — only meaningful on HTML responses. `unsafe-inline` on style-src covers
-// Astro scoped styles; the FOUC init script in Base.astro is inline too, so
-// script-src keeps `unsafe-inline` for now. Browser connects to PostHog
-// (consent-gated) and Cloudflare Web Analytics (cookieless); Anthropic is
-// only ever called from the Worker.
-const CSP_HTML =
-  "default-src 'self'; " +
-  "script-src 'self' 'unsafe-inline' https://*.i.posthog.com https://static.cloudflareinsights.com; " +
-  "connect-src 'self' https://*.i.posthog.com https://cloudflareinsights.com; " +
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-  "img-src 'self' data:; " +
-  "font-src 'self' https://fonts.gstatic.com; " +
-  "frame-ancestors 'none'; " +
-  "base-uri 'self'; " +
-  "form-action 'self'";
+// Sprint 7c — CSP nonce. The placeholder `__OPCHAIN_NONCE__` is stamped onto
+// every <script> tag at build time by scripts/inject-nonce-placeholder.mjs.
+// On every HTML response we generate a fresh nonce, substitute the placeholder
+// in the body, and emit it in the CSP header. `'strict-dynamic'` lets a
+// nonce-blessed script load further scripts; the explicit hosts remain for
+// older browsers. `style-src` keeps `'unsafe-inline'` because Tailwind 4
+// emits inline `style=` attributes; converting that is backlog item B-08.
+export const NONCE_PLACEHOLDER = "__OPCHAIN_NONCE__";
+
+export function generateNonce() {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  // base64url, no padding — safe inside CSP and HTML attributes.
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+export function buildCspHtml(nonce) {
+  return (
+    "default-src 'self'; " +
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://*.i.posthog.com https://static.cloudflareinsights.com; ` +
+    "connect-src 'self' https://*.i.posthog.com https://cloudflareinsights.com; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "img-src 'self' data:; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "frame-ancestors 'none'; " +
+    "base-uri 'self'; " +
+    "form-action 'self'"
+  );
+}
 
 export function applyBaselineHeaders(res) {
   for (const [k, v] of Object.entries(BASELINE_SECURITY_HEADERS)) {
@@ -103,13 +119,24 @@ export function applyBaselineHeaders(res) {
   return res;
 }
 
-function applySecurityHeaders(response) {
-  const res = new Response(response.body, response);
-  applyBaselineHeaders(res);
-  const ct = res.headers.get("Content-Type") || "";
-  if (ct.includes("text/html")) {
-    res.headers.set("Content-Security-Policy", CSP_HTML);
+async function applySecurityHeaders(response) {
+  const ct = response.headers.get("Content-Type") || "";
+  if (!ct.includes("text/html")) {
+    const res = new Response(response.body, response);
+    applyBaselineHeaders(res);
+    return res;
   }
+  // HTML path: read the body, swap placeholder for a per-request nonce, then
+  // re-emit. Per-page cost is sub-millisecond on Workers; HTML is tiny.
+  const nonce = generateNonce();
+  const text = await response.text();
+  const swapped = text.split(NONCE_PLACEHOLDER).join(nonce);
+  const res = new Response(swapped, response);
+  applyBaselineHeaders(res);
+  res.headers.set("Content-Security-Policy", buildCspHtml(nonce));
+  // Content-Length will be wrong if substitution changed length; let the
+  // platform recompute by deleting it (Cloudflare adds Transfer-Encoding).
+  res.headers.delete("Content-Length");
   return res;
 }
 
