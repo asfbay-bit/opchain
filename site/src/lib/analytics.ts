@@ -39,8 +39,3 @@ export function track(event: ClientEvent, properties: Record<string, unknown> = 
     // Analytics never surfaces failures.
   }
 }
-
-/** True only when consent was explicitly granted AND the SDK is loaded. */
-export function isAnalyticsActive(): boolean {
-  return getPosthog() !== null;
-}

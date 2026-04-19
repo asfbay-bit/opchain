@@ -153,6 +153,7 @@ git push`;
       const original = btn.querySelector(".copy-label")?.textContent ?? "copy";
       btn.addEventListener("click", async () => {
         const text = btn.dataset.copy ?? "";
+        track("install_copy_clicked", { flow: btn.dataset.flow ?? "unknown" });
         try {
           await navigator.clipboard.writeText(text);
           const lbl = btn.querySelector(".copy-label");
@@ -160,7 +161,6 @@ git push`;
             lbl.textContent = "copied ✓";
             setTimeout(() => (lbl.textContent = original), 1500);
           }
-          track("install_copy_clicked", { flow: btn.dataset.flow ?? "unknown" });
         } catch {
           /* clipboard blocked — leave the label alone */
         }
