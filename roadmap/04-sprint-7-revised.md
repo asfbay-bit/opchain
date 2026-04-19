@@ -158,10 +158,15 @@ CLAUDE: 2 | USER: 1 (verify FOUC behaviour on staging in both themes before prom
 
 #### Pre-flight (one-time, user-side — not code)
 
-- **DNS CNAME** for `staging.opchain.dev → opchain-staging.4fstpkkw72.workers.dev`.
-  Without it `wrangler deploy --env staging` succeeds but the custom hostname
-  never binds and the Worker is unreachable (`*.workers.dev` is blocked
-  account-wide with `host_not_allowed`).
+- **DNS for `staging.opchain.dev`** — **do nothing manually.** `wrangler.jsonc`
+  sets `env.staging.routes[0].custom_domain = true`, which means the first
+  `wrangler deploy --env staging` creates and manages the DNS record for you.
+  Adding a CNAME by hand in the Cloudflare dashboard causes the deploy to fail
+  with `error 100117 "Hostname 'staging.opchain.dev' already has externally
+  managed DNS records"`. If that error fires, delete the hand-rolled record and
+  re-run the deploy. `*.workers.dev` is blocked account-wide with
+  `host_not_allowed`, so the Worker-managed custom domain is the only entry
+  point — but wrangler provisions it.
 - **Staging secrets** on Cloudflare — `wrangler secret put <name> --env staging`
   for each of `DEPLOY_API_TOKEN`, `ANTHROPIC_API_KEY`, `LINEAR_API_KEY`, and
   (optional) `POSTHOG_PROJECT_API_KEY`. Production secrets do **not** carry
@@ -225,13 +230,14 @@ already in `wrangler.jsonc env.staging`. Dedicated KV namespace
 
 #### Dependencies
 
-- DNS CNAME and staging secrets live (pre-flight).
+- Staging secrets live (pre-flight). DNS is auto-managed by Cloudflare on
+  first `wrangler deploy --env staging` — no manual CNAME.
 - `/api/health` on staging returns `{version: <sha>}` (already shipped
   Sprint 0 — `src/index.js:252-262`).
 
 #### Estimated Effort
 
-CLAUDE: 3 | USER: 1 (DNS check, `wrangler secret put --env staging` for 3–4
+CLAUDE: 3 | USER: 1 (`wrangler secret put --env staging` for 3–4
 secrets, configure `production` GitHub environment reviewers)
 
 ---

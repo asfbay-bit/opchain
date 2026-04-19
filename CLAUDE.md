@@ -8,7 +8,7 @@ that form a software development pipeline (concept → spec → design → build
 - **Production Worker:** `opchain-dev` on Cloudflare Workers
 - **Production URL:** https://opchain-dev.4fstpkkw72.workers.dev (custom domain: opchain.dev)
 - **Staging Worker:** `opchain-staging` (see `wrangler.jsonc env.staging`)
-- **Staging URL:** https://staging.opchain.dev. Requires a one-time CNAME `staging.opchain.dev → opchain-staging.4fstpkkw72.workers.dev`. Default `*.workers.dev` URL is blocked account-wide (`host_not_allowed`).
+- **Staging URL:** https://staging.opchain.dev. DNS is managed automatically by Cloudflare because `wrangler.jsonc env.staging.routes[0].custom_domain = true` — the first `wrangler deploy --env staging` creates the CNAME for you. **Do not add a CNAME manually** (Cloudflare refuses to take over externally-managed records: `error 100117 "already has externally managed DNS records"`). Default `*.workers.dev` URL is blocked account-wide (`host_not_allowed`), so the custom domain is the only entry point.
 - **Version stamp:** the build injects `__OPCHAIN_VERSION__` (full git SHA in CI, short SHA locally) via esbuild `define`. Surfaced in `GET /api/health` (both the JSON `version` field and the `X-Opchain-Version` header — the header is only set on that route). The promote workflow reads `/api/health` to confirm staging is serving the exact SHA being promoted.
 
 ### Deploy flow (staging-first, human-gated promote)
