@@ -9,7 +9,7 @@ that form a software development pipeline (concept → spec → design → build
 - **Production URL:** https://opchain-dev.4fstpkkw72.workers.dev (custom domain: opchain.dev)
 - **Staging Worker:** `opchain-staging` (see `wrangler.jsonc env.staging`)
 - **Staging URL:** https://staging.opchain.dev. Requires a one-time CNAME `staging.opchain.dev → opchain-staging.4fstpkkw72.workers.dev`. Default `*.workers.dev` URL is blocked account-wide (`host_not_allowed`).
-- **Version stamp:** the build injects `__OPCHAIN_VERSION__` (full git SHA in CI, short SHA locally) via esbuild `define`. Visible in `GET /api/health` and the `X-Opchain-Version` response header. The promote workflow uses this header to confirm staging is serving the exact SHA being promoted.
+- **Version stamp:** the build injects `__OPCHAIN_VERSION__` (full git SHA in CI, short SHA locally) via esbuild `define`. Surfaced in `GET /api/health` (both the JSON `version` field and the `X-Opchain-Version` header — the header is only set on that route). The promote workflow reads `/api/health` to confirm staging is serving the exact SHA being promoted.
 
 ### Deploy flow (staging-first, human-gated promote)
 
@@ -31,7 +31,7 @@ feature branch ─► PR ─► CI green ─► merge to main
                         npm run promote        ← or `gh workflow run promote.yml -f sha=<sha>`
                                          │
                         .github/workflows/promote.yml
-                          1. verify X-Opchain-Version on staging == target SHA
+                          1. verify staging /api/health version == target SHA
                           2. GitHub environment `production` approval gate
                           3. wrangler deploy (prod) + smoke
                                          │

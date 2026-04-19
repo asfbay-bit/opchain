@@ -179,10 +179,11 @@ already in `wrangler.jsonc env.staging`. Dedicated KV namespace
 
 - **New workflow** `.github/workflows/promote.yml`:
   - `workflow_dispatch` only; input = `sha` (commit to promote).
-  - Job 1 (`verify-staging`): hits `https://staging.opchain.dev/` and
-    asserts `X-Opchain-Version` matches the input SHA. Fails if staging is
-    serving a different (or stale) build — guarantees staging has seen this
-    exact code.
+  - Job 1 (`verify-staging`): hits `https://staging.opchain.dev/api/health`
+    and asserts the JSON `version` field matches the input SHA. Fails if
+    staging is serving a different (or stale) build — guarantees staging has
+    seen this exact code. (`/api/health` is the only route that exposes the
+    build SHA; baseline security headers on asset routes don't include it.)
   - Job 2 (`promote`): checks out the input SHA, builds with
     `OPCHAIN_VERSION=<sha>`, deploys with `wrangler deploy` (production),
     runs `scripts/smoke.sh` against prod. Scoped to GitHub `environment:
@@ -225,8 +226,8 @@ already in `wrangler.jsonc env.staging`. Dedicated KV namespace
 #### Dependencies
 
 - DNS CNAME and staging secrets live (pre-flight).
-- `X-Opchain-Version` header on staging (already shipped Sprint 0 —
-  `src/index.js:258`).
+- `/api/health` on staging returns `{version: <sha>}` (already shipped
+  Sprint 0 — `src/index.js:252-262`).
 
 #### Estimated Effort
 
