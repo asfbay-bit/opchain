@@ -1,61 +1,93 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 /**
- * Sprint 7a: consent banner gates the PostHog SDK.
- * Closes Sprint 5 DoD: no PostHog before consent.
+ * Consent banner behaviour.
  *
- * The build for e2e bakes `PUBLIC_POSTHOG_KEY=phc_test_e2e` so the
- * loader path is exercised. See `pretest:e2e` in site/package.json.
+ * The banner is rendered by every page via `Base.astro` → `ConsentBanner.astro`.
+ * On first visit with no stored decision it must be visible. Declining
+ * must NOT load PostHog. Accepting must load it (verified by the
+ * `window.posthog` global appearing — the inline bootstrap replaces the
+ * stub with the real SDK).
+ *
+ * The build for e2e bakes `PUBLIC_POSTHOG_KEY=phc_test_e2e` via `pretest:e2e`
+ * in site/package.json so the loader path is exercised in CI.
+ *
+ * All tests that need a clean slate use `gotoFresh` so the banner appears.
  */
 
-test("consent: banner visible on fresh storage; decline → no posthog", async ({ page }) => {
-  await page.goto("/");
-  // Banner is rendered server-side and revealed by the inline script after
-  // it confirms localStorage has no decision yet.
-  const banner = page.locator("#consent-banner");
-  await expect(banner).toBeVisible();
+async function gotoFresh(page: import("@playwright/test").Page, path = "/") {
+  await page.goto(path);
+  await page.evaluate(() => localStorage.clear());
+  await page.goto(path);
+}
 
-  await page.locator("#consent-decline").click();
-  await expect(banner).toBeHidden();
-
-  // localStorage records the decision; PostHog stub must not exist.
-  const stored = await page.evaluate(() => localStorage.getItem("opchain-consent"));
-  expect(stored).toBe("declined");
-  const hasPosthog = await page.evaluate(() => typeof (window as any).posthog);
-  expect(hasPosthog).toBe("undefined");
-});
-
-test("consent: accept → banner hidden, posthog stub present", async ({ page }) => {
-  await page.goto("/");
-  await page.locator("#consent-accept").click();
-  await expect(page.locator("#consent-banner")).toBeHidden();
-
-  const stored = await page.evaluate(() => localStorage.getItem("opchain-consent"));
-  expect(stored).toBe("granted");
-
-  // The official PostHog snippet creates a stub object on `window.posthog`
-  // synchronously inside loadPosthog(). We don't assert network calls —
-  // just that the stub is in place. Skip if the build wasn't run with
-  // PUBLIC_POSTHOG_KEY (loader is a no-op then).
-  const posthogType = await page.evaluate(() => typeof (window as any).posthog);
-  if (posthogType === "undefined") {
-    test.skip(true, "PUBLIC_POSTHOG_KEY not baked into the build — accept loader is a no-op");
-  }
-  expect(posthogType).toBe("object");
-});
-
-test("consent: prior 'granted' decision skips banner on next visit", async ({ page, context }) => {
-  await context.addInitScript(() => {
-    try { localStorage.setItem("opchain-consent", "granted"); } catch {}
+test.describe("consent banner", () => {
+  test("visible on first visit (no stored decision)", async ({ page }) => {
+    await gotoFresh(page);
+    await expect(page.locator("#consent-banner")).toBeVisible();
   });
-  await page.goto("/");
-  await expect(page.locator("#consent-banner")).toBeHidden();
-});
 
-test("consent: prior 'declined' decision skips banner on next visit", async ({ page, context }) => {
-  await context.addInitScript(() => {
-    try { localStorage.setItem("opchain-consent", "declined"); } catch {}
+  test("declining hides the banner and does NOT load PostHog", async ({ page }) => {
+    await gotoFresh(page);
+    await page.locator("#consent-decline").click();
+    await expect(page.locator("#consent-banner")).toBeHidden();
+
+    await page.waitForTimeout(200);
+    const hasPosthog = await page.evaluate(
+      () => typeof (window as any).posthog,
+    );
+    expect(hasPosthog, "PostHog must not load when consent is declined").toBe(
+      "undefined",
+    );
+
+    const stored = await page.evaluate(() => localStorage.getItem("opchain-consent"));
+    expect(stored).toBe("declined");
   });
-  await page.goto("/");
-  await expect(page.locator("#consent-banner")).toBeHidden();
+
+  test("accepting hides the banner and stores consent", async ({ page }) => {
+    await gotoFresh(page);
+    await page.locator("#consent-accept").click();
+    await expect(page.locator("#consent-banner")).toBeHidden();
+
+    const stored = await page.evaluate(() => localStorage.getItem("opchain-consent"));
+    expect(stored).toBe("granted");
+
+    const posthogType = await page.evaluate(() => typeof (window as any).posthog);
+    test.skip(
+      posthogType === "undefined",
+      "PUBLIC_POSTHOG_KEY not baked into the build — accept loader is a no-op",
+    );
+    expect(posthogType).toBe("object");
+  });
+
+  test("banner stays hidden on subsequent visits after decline", async ({ page }) => {
+    await gotoFresh(page);
+    await page.locator("#consent-decline").click();
+    await page.goto("/skills");
+    await expect(page.locator("#consent-banner")).toBeHidden();
+  });
+
+  test("prior 'granted' decision skips banner on next visit", async ({ page, context }) => {
+    await context.addInitScript(() => {
+      try {
+        localStorage.setItem("opchain-consent", "granted");
+      } catch {
+        /* ignore */
+      }
+    });
+    await page.goto("/");
+    await expect(page.locator("#consent-banner")).toBeHidden();
+  });
+
+  test("prior 'declined' decision skips banner on next visit", async ({ page, context }) => {
+    await context.addInitScript(() => {
+      try {
+        localStorage.setItem("opchain-consent", "declined");
+      } catch {
+        /* ignore */
+      }
+    });
+    await page.goto("/");
+    await expect(page.locator("#consent-banner")).toBeHidden();
+  });
 });

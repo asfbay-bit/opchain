@@ -1,45 +1,63 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 /**
- * Sprint 7a: phase filter on /skills strictly reduces visible card count.
- * Closes Sprint 3 DoD.
+ * The /skills page ships a client-side filter over data-* attributes.
+ * This suite asserts the filter actually changes what's visible; the
+ * exact skill set is intentionally not hardcoded so adding or removing
+ * a skill doesn't break the suite.
  */
 
-test("filter: 'plan' phase reduces visible cards from the 'all' baseline", async ({ page }) => {
-  await page.goto("/skills");
+function visibleSkillCount(page: import("@playwright/test").Page) {
+  return page.locator("[data-skill]:visible").count();
+}
 
-  const cards = page.locator(".skill-card");
-  const allCount = await cards.evaluateAll((els) =>
-    els.filter((el) => (el as HTMLElement).offsetParent !== null).length
-  );
-  expect(allCount).toBeGreaterThan(0);
+test.describe("skill library filter", () => {
+  test("All pill shows every skill", async ({ page }) => {
+    await page.goto("/skills");
+    const total = await page.locator("[data-skill]").count();
+    expect(total, "expected at least a handful of skills").toBeGreaterThanOrEqual(5);
+    expect(await visibleSkillCount(page)).toBe(total);
+  });
 
-  await page.locator('[data-phase="plan"]').click();
+  test("Plan pill reduces the visible card set", async ({ page }) => {
+    await page.goto("/skills");
+    const total = await page.locator("[data-skill]").count();
 
-  const planCount = await cards.evaluateAll((els) =>
-    els.filter((el) => (el as HTMLElement).offsetParent !== null).length
-  );
+    await page.locator('[data-phase="plan"]').click();
+    const planCount = await visibleSkillCount(page);
 
-  expect(planCount).toBeGreaterThan(0);
-  expect(planCount).toBeLessThan(allCount);
+    expect(planCount).toBeGreaterThan(0);
+    expect(planCount).toBeLessThan(total);
+  });
 
-  // Reset to all → original count restored.
-  await page.locator('[data-phase="all"]').click();
-  const restored = await cards.evaluateAll((els) =>
-    els.filter((el) => (el as HTMLElement).offsetParent !== null).length
-  );
-  expect(restored).toBe(allCount);
-});
+  test("Empty state appears when no skills match", async ({ page }) => {
+    await page.goto("/skills");
+    const search = page.locator('input[type="search"]');
+    await search.fill("thisSkillDoesNotExist_xyz123");
 
-test("filter: counter text updates to reflect visible count", async ({ page }) => {
-  await page.goto("/skills");
-  const counter = page.locator("#skill-count");
+    await expect(page.locator("#empty")).toBeVisible();
+    expect(await visibleSkillCount(page)).toBe(0);
+  });
 
-  const baseline = (await counter.textContent())?.trim() ?? "";
-  expect(baseline).toMatch(/Showing \d+ of \d+ skills/);
+  test("Tri-agent checkbox further narrows the set", async ({ page }) => {
+    await page.goto("/skills");
+    const total = await page.locator("[data-skill]").count();
+    await page.locator("#tri-only").check();
+    const triCount = await visibleSkillCount(page);
+    expect(triCount).toBeGreaterThan(0);
+    expect(triCount).toBeLessThan(total);
+  });
 
-  await page.locator('[data-phase="foundation"]').click();
-  const filtered = (await counter.textContent())?.trim() ?? "";
-  expect(filtered).toMatch(/Showing \d+ of \d+ skills/);
-  expect(filtered).not.toBe(baseline);
+  test("counter text updates to reflect visible count", async ({ page }) => {
+    await page.goto("/skills");
+    const counter = page.locator("#skill-count");
+
+    const baseline = (await counter.textContent())?.trim() ?? "";
+    expect(baseline).toMatch(/Showing \d+ of \d+ skills/);
+
+    await page.locator('[data-phase="foundation"]').click();
+    const filtered = (await counter.textContent())?.trim() ?? "";
+    expect(filtered).toMatch(/Showing \d+ of \d+ skills/);
+    expect(filtered).not.toBe(baseline);
+  });
 });

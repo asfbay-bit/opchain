@@ -12,6 +12,7 @@
     "check": "astro check",
     "pretest:e2e": "PUBLIC_POSTHOG_KEY=phc_test_e2e PUBLIC_POSTHOG_HOST=http://127.0.0.1:9999 astro build",
     "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install --with-deps chromium",
     "prelhci": "astro build",
     "lhci": "lhci autorun --config=../lighthouserc.json"
   },
