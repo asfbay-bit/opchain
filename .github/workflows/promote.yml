@@ -1,0 +1,76 @@
+name: Promote to production
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit SHA to promote (must already be live on staging)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: promote-production
+  cancel-in-progress: false
+
+jobs:
+  verify-staging:
+    name: Verify staging is serving target SHA
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check X-Opchain-Version on staging.opchain.dev
+        env:
+          TARGET_SHA: ${{ github.event.inputs.sha }}
+        run: |
+          # build.mjs uses OPCHAIN_VERSION verbatim (see build.mjs:7), so the
+          # header matches the full SHA passed via github.sha on the staging
+          # workflow. Compare full SHA, not the short form.
+          got="$(curl -fsS -D - -o /dev/null https://staging.opchain.dev/ \
+                 | tr -d '\r' \
+                 | awk -F': ' 'tolower($1)=="x-opchain-version" {print $2; exit}')"
+          echo "staging reports version: '${got}'"
+          echo "expected version:        '${TARGET_SHA}'"
+          if [ "${got}" != "${TARGET_SHA}" ]; then
+            echo "::error::staging.opchain.dev is not serving ${TARGET_SHA}. Deploy that SHA to staging first (push to main, or re-run the Deploy to staging workflow)."
+            exit 1
+          fi
+
+  promote:
+    name: Deploy to production
+    needs: verify-staging
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://opchain.dev
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Install (site)
+        working-directory: site
+        run: npm ci
+      - name: Build
+        env:
+          OPCHAIN_VERSION: ${{ github.event.inputs.sha }}
+          PUBLIC_CF_BEACON_TOKEN: ${{ secrets.PUBLIC_CF_BEACON_TOKEN }}
+          PUBLIC_POSTHOG_KEY: ${{ secrets.PUBLIC_POSTHOG_KEY }}
+          PUBLIC_POSTHOG_HOST: ${{ secrets.PUBLIC_POSTHOG_HOST }}
+        run: npm run build
+      - name: Deploy
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+      - name: Smoke — production
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url || 'https://opchain.dev' }}
+        run: ./scripts/smoke.sh

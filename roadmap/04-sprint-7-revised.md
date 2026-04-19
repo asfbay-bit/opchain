@@ -146,10 +146,100 @@ CLAUDE: 2 | USER: 1 (verify FOUC behaviour on staging in both themes before prom
 
 ---
 
+### Sub-sprint 7d — Staging-first promotion flow (~3 h Claude)
+
+#### Features (formalises Sprint 0 staging + closes a launch-day process gap)
+
+- Makes "push to main → staging; human-verified promote to production" the
+  codified deploy path, not an informal convention.
+- Removes the risk that a `workflow_dispatch` with `environment=production`
+  bypasses the staging smoke entirely (current `deploy.yml` production job
+  has `needs: []`).
+
+#### Pre-flight (one-time, user-side — not code)
+
+- **DNS CNAME** for `staging.opchain.dev → opchain-staging.4fstpkkw72.workers.dev`.
+  Without it `wrangler deploy --env staging` succeeds but the custom hostname
+  never binds and the Worker is unreachable (`*.workers.dev` is blocked
+  account-wide with `host_not_allowed`).
+- **Staging secrets** on Cloudflare — `wrangler secret put <name> --env staging`
+  for each of `DEPLOY_API_TOKEN`, `ANTHROPIC_API_KEY`, `LINEAR_API_KEY`, and
+  (optional) `POSTHOG_PROJECT_API_KEY`. Production secrets do **not** carry
+  over to the staging environment. Without `DEPLOY_API_TOKEN` the Try-It
+  endpoints return 503 on staging by design.
+- **GitHub environment** `production` configured with required reviewers so
+  the promote workflow pauses for a manual approval click.
+
+No new Worker is created in code — `wrangler deploy --env staging` provisions
+the `opchain-staging` Worker on Cloudflare on first run, using the config
+already in `wrangler.jsonc env.staging`. Dedicated KV namespace
+(`6156bc3d5a5c4bd780f3d2667950e703`) also already exists.
+
+#### Deliverables
+
+- **New workflow** `.github/workflows/promote.yml`:
+  - `workflow_dispatch` only; input = `sha` (commit to promote).
+  - Job 1 (`verify-staging`): hits `https://staging.opchain.dev/` and
+    asserts `X-Opchain-Version` matches the input SHA. Fails if staging is
+    serving a different (or stale) build — guarantees staging has seen this
+    exact code.
+  - Job 2 (`promote`): checks out the input SHA, builds with
+    `OPCHAIN_VERSION=<sha>`, deploys with `wrangler deploy` (production),
+    runs `scripts/smoke.sh` against prod. Scoped to GitHub `environment:
+    production` so reviewer approval is required before the deploy step
+    runs.
+- **`.github/workflows/deploy.yml` simplification**:
+  - Renamed to "Deploy to staging".
+  - `production` job removed (moved to `promote.yml`).
+  - `workflow_dispatch` kept but without the `environment` choice input —
+    it just re-runs a staging deploy.
+  - `concurrency.group` simplified to `deploy-staging`.
+- **`package.json`** — new `promote` script:
+  ```
+  git fetch origin main && gh workflow run promote.yml -f sha=$(git rev-parse origin/main)
+  ```
+  One command kicks off a prod promotion of whatever's currently on `main`
+  (assumes `main` has already auto-deployed to staging via `deploy.yml`).
+- **`CLAUDE.md`** — Deployment section updated with the canonical flow:
+  merge to main → auto-staging → verify staging → `npm run promote` (or
+  GitHub UI) → approval gate → production.
+
+#### Test Requirements
+
+- Dry-run promote workflow with a SHA that's **not** on staging → the
+  `verify-staging` job fails before any deploy occurs (proves the gate works).
+- Dry-run promote workflow after a staging deploy completes with that SHA →
+  `verify-staging` passes; `promote` job pauses at the GitHub environment
+  approval prompt.
+- Smoke test passes on the promoted prod deploy.
+
+#### Definition of Done
+
+- `.github/workflows/deploy.yml` has no `production` job.
+- `promote.yml` refuses to promote a SHA that isn't live on staging.
+- Production deploy requires GitHub environment approval click (not just a
+  UI dropdown choice).
+- `npm run promote` dispatches the workflow from a developer's laptop.
+- The deploy flow is documented end-to-end in `CLAUDE.md`.
+
+#### Dependencies
+
+- DNS CNAME and staging secrets live (pre-flight).
+- `X-Opchain-Version` header on staging (already shipped Sprint 0 —
+  `src/index.js:258`).
+
+#### Estimated Effort
+
+CLAUDE: 3 | USER: 1 (DNS check, `wrangler secret put --env staging` for 3–4
+secrets, configure `production` GitHub environment reviewers)
+
+---
+
 ### Sprint 7 Build Order
 
-7a → 7b → 7c. Each lands as its own PR; CI gates added in 7b enforce the new
-bars from then on.
+7a → 7b → 7c → 7d. Each lands as its own PR; CI gates added in 7b enforce the
+new bars from then on. 7d is independent of 7a/b/c and can land in parallel
+if the test harness sprints slip.
 
 ---
 
@@ -206,7 +296,8 @@ approval before Sub-sprint 7a starts:
 | 7a — Playwright e2e harness | 7 | 0 |
 | 7b — Lighthouse + Axe gates | 5 | 0 |
 | 7c — CSP nonce migration | 2 | 1 |
-| **Total** | **14 hrs** | **1 hr** |
+| 7d — Staging-first promotion | 3 | 1 |
+| **Total** | **17 hrs** | **2 hrs** |
 
 Calendar: 2–3 build sessions on the Generator → Evaluator loop, ~1 week
 end-to-end if run consecutively.

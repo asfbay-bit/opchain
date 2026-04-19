@@ -8,10 +8,47 @@ that form a software development pipeline (concept → spec → design → build
 - **Production Worker:** `opchain-dev` on Cloudflare Workers
 - **Production URL:** https://opchain-dev.4fstpkkw72.workers.dev (custom domain: opchain.dev)
 - **Staging Worker:** `opchain-staging` (see `wrangler.jsonc env.staging`)
-- **Staging URL:** https://staging.opchain.dev — wired in `wrangler.jsonc` after PR uncommenting the route. Requires a one-time CNAME `staging.opchain.dev → opchain-staging.4fstpkkw72.workers.dev`. Default `*.workers.dev` URL is blocked account-wide (`host_not_allowed`).
-- **Deploy:** `npm run deploy` (production) / `npm run deploy:staging`
-- **CI:** `.github/workflows/ci.yml` runs on every PR (test + build + catalog verify). `deploy.yml` pushes main to staging automatically; production requires manual `workflow_dispatch` approval.
-- **Version stamp:** the build injects `__OPCHAIN_VERSION__` (short git SHA) via esbuild `define`. Visible in `GET /api/health` and the `X-Opchain-Version` response header.
+- **Staging URL:** https://staging.opchain.dev. Requires a one-time CNAME `staging.opchain.dev → opchain-staging.4fstpkkw72.workers.dev`. Default `*.workers.dev` URL is blocked account-wide (`host_not_allowed`).
+- **Version stamp:** the build injects `__OPCHAIN_VERSION__` (full git SHA in CI, short SHA locally) via esbuild `define`. Visible in `GET /api/health` and the `X-Opchain-Version` response header. The promote workflow uses this header to confirm staging is serving the exact SHA being promoted.
+
+### Deploy flow (staging-first, human-gated promote)
+
+Every change reaches production via staging. Production has no direct push.
+
+```
+feature branch ─► PR ─► CI green ─► merge to main
+                                         │
+                                         ▼
+                        .github/workflows/deploy.yml
+                        (auto, on push to main)
+                                         │
+                                         ▼
+                        staging.opchain.dev + smoke
+                                         │
+                        human verifies staging looks right
+                                         │
+                                         ▼
+                        npm run promote        ← or `gh workflow run promote.yml -f sha=<sha>`
+                                         │
+                        .github/workflows/promote.yml
+                          1. verify X-Opchain-Version on staging == target SHA
+                          2. GitHub environment `production` approval gate
+                          3. wrangler deploy (prod) + smoke
+                                         │
+                                         ▼
+                                  opchain.dev
+```
+
+- **`npm run promote`** fetches `origin/main` and dispatches `promote.yml` with that SHA. Use `gh workflow run promote.yml -f sha=<sha>` directly for older commits.
+- **The verify step is the safety net.** If staging is serving a different SHA (e.g. staging deploy still in flight, or someone force-pushed main), promote fails before any prod deploy happens.
+- **Direct deploy escape hatches** (`npm run deploy`, `npm run deploy:staging`) still exist for emergency local deploys from a trusted machine, but the canonical path is the workflow.
+
+### CI
+
+- `.github/workflows/ci.yml` runs on every PR and push to main: Vitest, `astro check`, site build, Playwright e2e.
+- `.github/workflows/deploy.yml` auto-deploys main to staging.
+- `.github/workflows/promote.yml` is manual (`workflow_dispatch`) and gates production behind the staging-SHA match + a GitHub environment approval.
+- `.github/workflows/lighthouse.yml` runs Lighthouse/Axe budgets against staging post-deploy (Sub-sprint 7b).
 
 ### Rollback
 
@@ -22,9 +59,9 @@ If a deploy breaks production:
 3. Cloudflare serves the previous code within ~30s.
 4. File a post-mortem as a `/feedback type=bug` so it lands in Linear.
 
-The smoke step in `.github/workflows/deploy.yml` fails the deploy action on any
-regression (health, homepage, zip, security headers), so rollback is rarely
-needed — but it's there.
+The smoke step in both `deploy.yml` (staging) and `promote.yml` (production)
+fails the action on any regression (health, homepage, zip, security headers),
+so rollback is rarely needed — but it's there.
 
 ## Repo Layout
 
