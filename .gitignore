@@ -31,6 +31,9 @@ site/test-results/
 site/playwright-report/
 site/.playwright/
 
+# LHCI (Sprint 7b)
+.lighthouseci/
+
 # Logs
 *.log
 npm-debug.log*
