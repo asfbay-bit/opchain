@@ -72,5 +72,8 @@ jobs:
           command: deploy
       - name: Smoke — production
         env:
-          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url || 'https://opchain.dev' }}
+          # See deploy.yml: wrangler-action v3 returns a human-readable string
+          # (e.g. "opchain.dev (custom domain)") for custom_domain routes,
+          # which breaks curl. Use the known URL directly.
+          DEPLOY_URL: https://opchain.dev
         run: ./scripts/smoke.sh
