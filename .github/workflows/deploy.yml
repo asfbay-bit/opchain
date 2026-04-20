@@ -51,5 +51,10 @@ jobs:
           command: deploy --env staging
       - name: Smoke — health + homepage + zip + security headers
         env:
-          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url || 'https://staging.opchain.dev' }}
+          # Hardcoded: wrangler-action v3's `deployment-url` output returns a
+          # human-readable string like "staging.opchain.dev (custom domain)"
+          # for routes with custom_domain=true, which breaks curl. The custom
+          # domain is the only entry point (workers.dev is blocked), so just
+          # use it directly.
+          DEPLOY_URL: https://staging.opchain.dev
         run: ./scripts/smoke.sh
