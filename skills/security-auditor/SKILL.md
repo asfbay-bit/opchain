@@ -1,5 +1,20 @@
 ---
 name: security-auditor
+displayName: Security Auditor
+version: 1.0.0
+shortDesc: Threat modeling, OWASP hardening, and attack-surface review.
+phases: [build]
+triAgent: false
+tryable: false
+commands:
+  - /security
+  - /secaudit
+  - /sec
+  - /threat-model
+  - /owasp
+  - /hardening
+  - /attack-surface
+  - /posture
 description: >
   Practice-level security posture assessment: threat modeling (STRIDE), OWASP Top 10
   compliance mapping, runtime/infra hardening (CSP, TLS, DNS, WAF, Cloudflare config),
