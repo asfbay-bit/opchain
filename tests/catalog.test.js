@@ -8,9 +8,14 @@ import {
 // These assertions protect the invariants the rest of the codebase assumes.
 // scripts/gen-skills-catalog.mjs is the only thing that should generate the
 // file under test; editing it by hand is a mistake.
+//
+// The skill lists below are hardcoded on purpose: any add/remove/rename of
+// a skill should fail this test, forcing the author to update CLAUDE.md and
+// any other places the list is documented. If you're here because the build
+// fails after adding a skill — good, that's the point. Update both lists.
 
 describe("generated skill catalog", () => {
-  it("lists all 11 skills in SKILL_NAMES", () => {
+  it("lists all 15 skills in SKILL_NAMES", () => {
     expect(Object.keys(SKILL_NAMES).sort()).toEqual([
       "app-architect",
       "checkpoint-protocol",
@@ -19,14 +24,18 @@ describe("generated skill catalog", () => {
       "deploy-ops",
       "git-ops",
       "integrations-engineer",
+      "migration-ops",
+      "monitoring-ops",
+      "orchestrator",
       "reverse-spec",
       "scale-ops",
+      "security-auditor",
       "stack-forge",
       "ux-engineer",
     ]);
   });
 
-  it("exposes 10 tryable skills (checkpoint-protocol is excluded)", () => {
+  it("exposes 13 tryable skills (checkpoint-protocol + security-auditor excluded)", () => {
     expect(VALID_SKILLS.sort()).toEqual([
       "app-architect",
       "code-auditor",
@@ -34,12 +43,16 @@ describe("generated skill catalog", () => {
       "deploy-ops",
       "git-ops",
       "integrations-engineer",
+      "migration-ops",
+      "monitoring-ops",
+      "orchestrator",
       "reverse-spec",
       "scale-ops",
       "stack-forge",
       "ux-engineer",
     ]);
     expect(VALID_SKILLS).not.toContain("checkpoint-protocol");
+    expect(VALID_SKILLS).not.toContain("security-auditor");
   });
 
   it("every VALID_SKILL has a SKILL_PROMPTS entry", () => {
