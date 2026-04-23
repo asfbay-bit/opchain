@@ -9,6 +9,13 @@
   "build": {
     "command": "node build.mjs"
   },
+  // Production custom domain. `custom_domain: true` means Cloudflare provisions
+  // and manages the DNS record automatically on first `wrangler deploy` — same
+  // rule as staging: do NOT pre-create a CNAME in the Cloudflare dashboard or
+  // wrangler will error with "error 100117 Hostname ... already has externally
+  // managed DNS records". Default *.workers.dev access is blocked account-wide
+  // (host_not_allowed), so the custom domain is the only entry point.
+  "routes": [{ "pattern": "opchain.dev", "custom_domain": true }],
   "assets": {
     "directory": "./public/",
     "binding": "ASSETS",
