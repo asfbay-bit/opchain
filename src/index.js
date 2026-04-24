@@ -282,12 +282,6 @@ async function route(request, env, ctx, url, origin, requestId) {
       return new Response(null, { status: 301, headers: { Location: location } });
     }
 
-    if (url.pathname === "/") {
-      const indexReq = new Request(new URL("/index.html", url.origin), request);
-      const res = await fetchAsset(env, indexReq, url.origin);
-      return applySecurityHeaders(res);
-    }
-
     if (url.pathname.endsWith(".zip")) {
       const res = await fetchAsset(env, request, url.origin);
       const dlRes = new Response(res.body, res);
