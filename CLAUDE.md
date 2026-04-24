@@ -5,63 +5,51 @@ that form a software development pipeline (concept → spec → design → build
 
 ## Deployment
 
-- **Production Worker:** `opchain-dev` on Cloudflare Workers
-- **Production URL:** https://opchain-dev.4fstpkkw72.workers.dev (custom domain: opchain.dev)
-- **Staging Worker:** `opchain-staging` (see `wrangler.jsonc env.staging`)
-- **Staging URL:** https://staging.opchain.dev. DNS is managed automatically by Cloudflare because `wrangler.jsonc env.staging.routes[0].custom_domain = true` — the first `wrangler deploy --env staging` creates the CNAME for you. **Do not add a CNAME manually** (Cloudflare refuses to take over externally-managed records: `error 100117 "already has externally managed DNS records"`). Default `*.workers.dev` URL is blocked account-wide (`host_not_allowed`), so the custom domain is the only entry point.
-- **Version stamp:** the build injects `__OPCHAIN_VERSION__` (full git SHA in CI, short SHA locally) via esbuild `define`. Surfaced in `GET /api/health` (both the JSON `version` field and the `X-Opchain-Version` header — the header is only set on that route). The promote workflow reads `/api/health` to confirm staging is serving the exact SHA being promoted.
+Deploys are **manual**, run from a developer laptop with `wrangler login` already done. There is no automatic CI/CD path — `deploy.yml` and `promote.yml` were removed because the GitHub Actions Cloudflare token couldn't reliably manage routes/DNS in the `opchain.dev` zone, which left the bindings in a broken state. Deploying as a logged-in human in `wrangler` uses your full account session and avoids that whole class of token-scope issue.
 
-### Deploy flow (staging-first, human-gated promote)
+- **Production Worker:** `opchain-dev` on Cloudflare Workers, served at `opchain.dev`.
+- **Staging Worker:** `opchain-staging`, served at `staging.opchain.dev`. See `wrangler.jsonc env.staging`.
+- **Both** use `custom_domain: true` — Cloudflare manages DNS automatically on `wrangler deploy`. Do not pre-create CNAMEs manually (Cloudflare refuses to take over externally-managed records: `error 100117`).
+- **Version stamp:** `build.mjs` injects `__OPCHAIN_VERSION__` via esbuild `define`, sourced from `OPCHAIN_VERSION` env var or `git rev-parse --short HEAD`. Surfaced in `GET /api/health` (`version` JSON field + `X-Opchain-Version` response header on that route).
 
-Every change reaches production via staging. Production has no direct push.
+### Deploy flow
 
 ```
-feature branch ─► PR ─► CI green ─► merge to main
-                                         │
-                                         ▼
-                        .github/workflows/deploy.yml
-                        (auto, on push to main)
-                                         │
-                                         ▼
-                        staging.opchain.dev + smoke
-                                         │
-                        human verifies staging looks right
-                                         │
-                                         ▼
-                        npm run promote        ← or `gh workflow run promote.yml -f sha=<sha>`
-                                         │
-                        .github/workflows/promote.yml
-                          1. verify staging /api/health version == target SHA
-                          2. GitHub environment `production` approval gate
-                          3. wrangler deploy (prod) + smoke
-                                         │
-                                         ▼
-                                  opchain.dev
+feature branch ─► PR ─► CI green (tests only) ─► merge to main
+                                                       │
+                                                       ▼
+                                       (you, on your laptop)
+                                       npm run deploy:staging
+                                                       │
+                                                       ▼
+                                            staging.opchain.dev
+                                                       │
+                                       (you, in a browser, eyeball it)
+                                                       │
+                                                       ▼
+                                            npm run deploy
+                                                       │
+                                                       ▼
+                                                opchain.dev
 ```
 
-- **`npm run promote`** fetches `origin/main` and dispatches `promote.yml` with that SHA. Use `gh workflow run promote.yml -f sha=<sha>` directly for older commits.
-- **The verify step is the safety net.** If staging is serving a different SHA (e.g. staging deploy still in flight, or someone force-pushed main), promote fails before any prod deploy happens.
-- **Direct deploy escape hatches** (`npm run deploy`, `npm run deploy:staging`) still exist for emergency local deploys from a trusted machine, but the canonical path is the workflow.
+- `npm run deploy:staging` → `wrangler deploy --env staging`
+- `npm run deploy` → `wrangler deploy` (production)
+- After each deploy, sanity-check by hand: `curl -sS https://staging.opchain.dev/api/health` and confirm `version` matches your local commit SHA.
 
 ### CI
 
-- `.github/workflows/ci.yml` runs on every PR and push to main: Vitest, `astro check`, site build, Playwright e2e.
-- `.github/workflows/deploy.yml` auto-deploys main to staging.
-- `.github/workflows/promote.yml` is manual (`workflow_dispatch`) and gates production behind the staging-SHA match + a GitHub environment approval.
-- `.github/workflows/lighthouse.yml` runs Lighthouse/Axe budgets against staging post-deploy (Sub-sprint 7b).
+`.github/workflows/ci.yml` runs on every PR and push to main: Vitest, `astro check`, site build, Playwright e2e. CI does not deploy anything — it only verifies the build is green before you decide to ship.
+
+`.github/workflows/lighthouse.yml` runs Lighthouse/Axe budgets on PR builds (not against deployed environments).
 
 ### Rollback
 
-If a deploy breaks production:
+If a manual deploy breaks production:
 
 1. `npx wrangler deployments list` — find the last good deployment id.
 2. `npx wrangler rollback <deployment-id>` — reverts the Worker.
 3. Cloudflare serves the previous code within ~30s.
-4. File a post-mortem as a `/feedback type=bug` so it lands in Linear.
-
-The smoke step in both `deploy.yml` (staging) and `promote.yml` (production)
-fails the action on any regression (health, homepage, zip, security headers),
-so rollback is rarely needed — but it's there.
 
 ## Repo Layout
 
