@@ -9,19 +9,18 @@
   "build": {
     "command": "node build.mjs"
   },
-  // Production route. We previously used `custom_domain: true` here, but
-  // Cloudflare silently failed to provision the DNS record on first deploy —
-  // the Worker trigger landed cleanly ("Deployed opchain-dev triggers —
-  // opchain.dev (custom domain)" in wrangler output) but the edge still
-  // returned `x-deny-reason: host_not_allowed` on every request. Switching
-  // to a traditional Workers Route ("pattern" + "zone_name") separates the
-  // two: wrangler only configures the route mapping, and the DNS record at
-  // `opchain.dev` must exist in the zone already (A/AAAA proxied — either
-  // the sentinel 192.0.2.1 / 100:: that Cloudflare documents for Workers
-  // routing, or any proxied record, since Workers Routes intercept before
-  // the record's target is used). See wrangler.jsonc history pre-switch if
-  // the custom_domain path needs to be restored.
-  "routes": [{ "pattern": "opchain.dev/*", "zone_name": "opchain.dev" }],
+  // Production custom domain. `custom_domain: true` lets Cloudflare manage
+  // the DNS record automatically on `wrangler deploy`. This requires the
+  // CLOUDFLARE_API_TOKEN secret to have:
+  //   - Account → Workers Scripts:Edit
+  //   - Zone → Workers Routes:Edit on opchain.dev
+  //   - Zone → DNS:Edit on opchain.dev
+  // Without those zone scopes wrangler still prints a "Deployed" success
+  // line but the route never attaches at the edge — the symptom is
+  // `x-deny-reason: host_not_allowed` on every request. See the deploy.yml
+  // log for the diagnostic warning ("token does not have 'All Zones'
+  // permissions").
+  "routes": [{ "pattern": "opchain.dev", "custom_domain": true }],
   "assets": {
     "directory": "./public/",
     "binding": "ASSETS",
@@ -40,11 +39,13 @@
   "env": {
     "staging": {
       "name": "opchain-staging",
-      // Staging route. See the prod `routes` comment above for why we moved
-      // off `custom_domain: true`. Requires a proxied DNS record at
-      // `staging.opchain.dev` in the `opchain.dev` zone. The Workers Route
-      // pattern then intercepts requests before the DNS target matters.
-      "routes": [{ "pattern": "staging.opchain.dev/*", "zone_name": "opchain.dev" }],
+      // Staging custom domain. Same token-scope requirements as the prod
+      // entry above. `custom_domain: true` means Cloudflare auto-provisions
+      // and manages the DNS record on first deploy — do NOT pre-create a
+      // CNAME or AAAA record for staging.opchain.dev manually, or wrangler
+      // will refuse with "error 100117 Hostname ... already has externally
+      // managed DNS records".
+      "routes": [{ "pattern": "staging.opchain.dev", "custom_domain": true }],
       "kv_namespaces": [
         {
           "binding": "DATA",
