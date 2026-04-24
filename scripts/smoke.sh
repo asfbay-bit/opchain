@@ -20,28 +20,49 @@ note() { echo "smoke: $*"; }
 err()  { echo "::error::$*"; fail=1; }
 
 # Retry a curl check a few times — Cloudflare edge takes a moment to pick up
-# a fresh deploy.
+# a fresh deploy. Tunable via env so tests can run fast and local sanity
+# checks don't pay the full 15s-per-failed-check cost.
+SMOKE_RETRIES="${SMOKE_RETRIES:-5}"
+SMOKE_RETRY_SLEEP="${SMOKE_RETRY_SLEEP:-3}"
 with_retry() {
   local i
-  for i in 1 2 3 4 5; do
+  for (( i=1; i<=SMOKE_RETRIES; i++ )); do
     if "$@"; then return 0; fi
-    sleep 3
+    [ "$i" -lt "$SMOKE_RETRIES" ] && sleep "$SMOKE_RETRY_SLEEP"
   done
   return 1
 }
 
 check_health() {
   local body
+  local hdrs
   body="$(curl -fsS "${URL}/api/health")" || return 1
-  echo "$body" | grep -q '"ok":true'
+  echo "$body" | grep -q '"ok":true' || return 1
+  # A past failure mode was the Worker returning 200 with a non-JSON body
+  # (e.g. Cloudflare intercepting with an error page). Assert content-type
+  # directly so the symptom is caught here, not in a downstream consumer.
+  hdrs="$(curl -fsS -D - -o /dev/null "${URL}/api/health")" || return 1
+  echo "$hdrs" | grep -qi '^content-type: *application/json'
 }
 
 check_homepage() {
-  local status
-  # `|| echo 000` keeps the var numeric when curl can't reach the host, so
-  # the `-eq` / `-lt` comparisons below don't trip `set -eu`.
-  status="$(curl -sS -o /dev/null -w '%{http_code}' "${URL}/" 2>/dev/null || echo 000)"
-  [ "$status" = "200" ]
+  local hdrs status ct
+  hdrs="$(curl -sS -D - -o /dev/null -w 'HTTP %{http_code}\n' "${URL}/" 2>/dev/null)" || return 1
+  status="$(echo "$hdrs" | awk '/^HTTP /{print $2}' | tail -1)"
+  [ "$status" = "200" ] || return 1
+  # Guard against the "blank page, browser downloads a file" class of bug:
+  # if the Worker returns 200 but serves the homepage as octet-stream (or
+  # any non-HTML Content-Type), browsers treat it as a file download instead
+  # of rendering. Fail smoke — better to block the deploy than promote a
+  # broken staging to prod.
+  ct="$(echo "$hdrs" | awk -F': ' 'tolower($1)=="content-type"{print tolower($2)}' | tr -d '\r' | tail -1)"
+  case "$ct" in
+    text/html*) return 0 ;;
+    *)
+      echo "smoke: homepage content-type is '${ct}' (expected text/html)"
+      return 1
+      ;;
+  esac
 }
 
 check_zip() {
@@ -63,8 +84,8 @@ check_security_headers() {
 }
 
 note "target  = ${URL}"
-with_retry check_health           && note "health  OK" || err "health never reported ok"
-with_retry check_homepage         && note "home    OK" || err "homepage did not return 200"
+with_retry check_health           && note "health  OK" || err "health check failed — 200+{ok:true}+application/json"
+with_retry check_homepage         && note "home    OK" || err "homepage failed — 200+text/html"
 with_retry check_zip              && note "zip     OK" || err "zip download not reachable"
 with_retry check_security_headers && note "headers OK" || err "security headers missing on homepage"
 
