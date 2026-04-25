@@ -1,0 +1,556 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Icon from "../components/Icon.astro";
+
+// Preview page — four layout options for the new combined Demo page
+// (which folds /in-action + /tryit into one route). Pick one and I'll
+// implement it.
+
+// Alternative name pairs to consider (asterisk = my pick).
+const alternatives = [
+  { replay: "Replays *",     live: "Live *",       note: "punchy, honest, two short words" },
+  { replay: "Walkthroughs",  live: "Sandbox",      note: "guided vs open" },
+  { replay: "Tours",         live: "Hands-on",     note: "warmer, less technical" },
+  { replay: "Showcase",      live: "Try it",       note: "keeps existing 'Try it' brand" },
+];
+---
+
+<Base title="Demo — layout preview" description="Four layout options for the combined Demo page" active="/">
+  <main class="preview">
+    <section class="preview-head">
+      <Eyebrow>preview · pick one</Eyebrow>
+      <h1>Demo page — layout options</h1>
+      <p class="preview-sub">
+        The new <strong>Demo</strong> tab folds <code>/in-action</code> + <code>/tryit</code>
+        into one route. Below: 4 ways to handle the two-mode split. Mockups are static.
+      </p>
+    </section>
+
+    <!-- ─── Naming + intro copy proposal ─────────────────────────── -->
+    <section class="copy-block">
+      <h2>1. Names + intro copy</h2>
+      <p class="hint">Slicker names for the two modes. Top of the page would read:</p>
+      <blockquote class="lede-mock">
+        Two ways to feel it out. <span class="hl">Replays</span> scrub through curated
+        skill conversations end-to-end so you can see the work without setting
+        anything up. <span class="hl">Live</span> wires you up to a real instance for
+        five exchanges — your prompts, no sign-up.
+      </blockquote>
+      <p class="hint">Other name pairs I considered:</p>
+      <ul class="alt-list">
+        {alternatives.map((a) => (
+          <li>
+            <code>{a.replay}</code> &nbsp;/&nbsp; <code>{a.live}</code>
+            <span class="hint inline"> — {a.note}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- ─── Option A: Tabs ───────────────────────────────────────── -->
+    <section class="opt">
+      <header class="opt-head">
+        <h2>Option A — Tabs</h2>
+        <p class="hint">Horizontal tabs at the top of the demo area. One mode visible at a time. Familiar, low-effort.</p>
+      </header>
+
+      <div class="mock card-wrap">
+        <p class="lede-mock-small">Two ways to feel it out. <span class="hl">Replays</span> scrub through curated skill conversations. <span class="hl">Live</span> talks to a real instance — five exchanges, no sign-up.</p>
+
+        <div class="tabs">
+          <button class="tab is-active" type="button">Replays</button>
+          <button class="tab" type="button">Live</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-toolbar">
+            <select class="fake-select" disabled>
+              <option>app-architect — discover phase</option>
+            </select>
+            <span class="step">step 3 / 12</span>
+            <div class="step-controls">
+              <button type="button" disabled>‹</button>
+              <button type="button" disabled>›</button>
+            </div>
+          </div>
+          <div class="transcript">
+            <div class="msg msg-user">build me a recipe app for cooks who hate measuring</div>
+            <div class="msg msg-asst">noted — quick scoping pass first. who's the primary user, home cook or pro? and what does success look like for them — fewer scales? faster prep?</div>
+            <div class="msg msg-user">home cook, faster prep mostly</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pros-cons">
+        <div><strong>Pros</strong> · familiar pattern, zero learning curve, mobile-friendly, smallest cognitive load</div>
+        <div><strong>Cons</strong> · only one mode visible at a time; tabs can feel buried under the page header</div>
+      </div>
+    </section>
+
+    <!-- ─── Option B: Two-card landing → drill in ────────────────── -->
+    <section class="opt">
+      <header class="opt-head">
+        <h2>Option B — Two-card landing</h2>
+        <p class="hint">Landing page = two big cards. Click one to enter that mode (full-screen takeover, or sub-route <code>/demo/replays</code> + <code>/demo/live</code>).</p>
+      </header>
+
+      <div class="mock landing">
+        <p class="lede-mock-small">Pick a way in.</p>
+        <div class="card-grid">
+          <article class="big-card">
+            <div class="big-card-tag" data-role="advisor">Replays</div>
+            <h3>Watch a finished run</h3>
+            <p>Curated skill conversations played end-to-end. Twelve walkthroughs across the eight phases. Step forward, jump back, copy any prompt.</p>
+            <span class="big-card-cta">Enter Replays <Icon name="arrow-right" size={14} /></span>
+          </article>
+          <article class="big-card">
+            <div class="big-card-tag" data-role="workflow">Live</div>
+            <h3>Try one yourself</h3>
+            <p>Five exchanges with a real skill. Pick a starting prompt or write your own. No install, no API key — runs on our credits.</p>
+            <span class="big-card-cta">Enter Live <Icon name="arrow-right" size={14} /></span>
+          </article>
+        </div>
+      </div>
+
+      <div class="pros-cons">
+        <div><strong>Pros</strong> · gives each mode equal weight; users decide deliberately; clean URL split (deep-linkable)</div>
+        <div><strong>Cons</strong> · extra click to reach either mode; can't compare side-by-side; bounces back if user wants to switch</div>
+      </div>
+    </section>
+
+    <!-- ─── Option C: Side-by-side split ─────────────────────────── -->
+    <section class="opt">
+      <header class="opt-head">
+        <h2>Option C — Side-by-side split</h2>
+        <p class="hint">Both modes visible at once. 50/50 columns on desktop, stacked on mobile.</p>
+      </header>
+
+      <div class="mock card-wrap">
+        <p class="lede-mock-small">Two ways to feel it out, side by side.</p>
+        <div class="split">
+          <section class="split-pane">
+            <header class="pane-head"><span class="pane-tag" data-role="advisor">Replays</span><span class="pane-meta">12 walkthroughs</span></header>
+            <select class="fake-select" disabled><option>app-architect — discover phase</option></select>
+            <div class="transcript transcript-mini">
+              <div class="msg msg-user">build me a recipe app for cooks who hate measuring</div>
+              <div class="msg msg-asst">who's the primary user, home cook or pro?</div>
+            </div>
+            <div class="pane-foot"><button type="button" disabled>‹ prev</button><span class="step">3 / 12</span><button type="button" disabled>next ›</button></div>
+          </section>
+          <section class="split-pane">
+            <header class="pane-head"><span class="pane-tag" data-role="workflow">Live</span><span class="pane-meta">5 exchanges left</span></header>
+            <div class="transcript transcript-mini">
+              <div class="msg msg-asst">what should we build?</div>
+            </div>
+            <div class="pane-input">
+              <input type="text" placeholder="describe an app idea…" disabled />
+              <button type="button" disabled>send</button>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="pros-cons">
+        <div><strong>Pros</strong> · everything on one screen; visual contrast between curated vs live makes the difference obvious</div>
+        <div><strong>Cons</strong> · cramped at narrow widths; collapses awkwardly on mobile; halves the active panel size</div>
+      </div>
+    </section>
+
+    <!-- ─── Option D: Stacked w/ in-page nav ─────────────────────── -->
+    <section class="opt">
+      <header class="opt-head">
+        <h2>Option D — Stacked sections + in-page nav</h2>
+        <p class="hint">Both modes rendered in sequence on the page. Sticky in-page nav at top jumps between them. No state to manage.</p>
+      </header>
+
+      <div class="mock card-wrap stacked">
+        <p class="lede-mock-small">Two ways to feel it out. Scroll, or jump.</p>
+        <nav class="inpage-nav">
+          <a href="#replays" class="is-active">Replays</a>
+          <a href="#live">Live</a>
+        </nav>
+
+        <section class="section-mock">
+          <h4>Replays</h4>
+          <p class="hint">Curated skill conversations played end-to-end.</p>
+          <div class="transcript transcript-mini">
+            <div class="msg msg-user">build me a recipe app for cooks who hate measuring</div>
+            <div class="msg msg-asst">who's the primary user, home cook or pro?</div>
+            <div class="msg msg-user">home cook, faster prep mostly</div>
+          </div>
+        </section>
+
+        <hr class="section-divider" />
+
+        <section class="section-mock">
+          <h4>Live</h4>
+          <p class="hint">Five exchanges with a real skill, your prompts.</p>
+          <div class="pane-input">
+            <input type="text" placeholder="describe an app idea…" disabled />
+            <button type="button" disabled>send</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="pros-cons">
+        <div><strong>Pros</strong> · zero switching cost; everything is browseable; deep-link to either via anchor; degrades gracefully (no JS needed)</div>
+        <div><strong>Cons</strong> · longer page; users have to scroll to find the live mode; can feel like two pages glued together</div>
+      </div>
+    </section>
+
+    <!-- ─── Recommendation ────────────────────────────────────────── -->
+    <section class="rec">
+      <h2>My pick</h2>
+      <p>
+        <strong>Option A (Tabs)</strong> — fastest to build, mobile-friendly, matches the rest of the
+        site (the skill library uses tab-pills already), and most users know exactly what tabs mean.
+        Option D is a close second if you'd rather avoid stateful UI altogether.
+      </p>
+      <p class="hint">Tell me which option (A / B / C / D) and which name pair (Replays/Live or one of the alternatives), and I'll do the cutover in one PR — rename the nav, build the combined route, redirect <code>/in-action</code> + <code>/tryit</code> to it.</p>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .preview {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+  }
+  .preview-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0.75rem;
+  }
+  .preview-sub {
+    color: var(--muted);
+    margin: 0 0 2rem;
+    line-height: var(--lh-base);
+  }
+  .preview-sub code,
+  .copy-block code,
+  .opt-head code,
+  .rec code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 0 4px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  /* Section scaffolding ─────────────────────────────────────── */
+  .opt, .copy-block, .rec {
+    margin: 2.5rem 0;
+    padding-top: 2rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .opt h2, .copy-block h2, .rec h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.005em;
+  }
+  .hint {
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    margin: 0 0 1rem;
+    line-height: 1.55;
+  }
+  .hint.inline { display: inline; }
+  .opt-head { margin-bottom: 1rem; }
+
+  .lede-mock {
+    color: var(--text);
+    font-size: var(--fs-base);
+    line-height: 1.55;
+    margin: 0 0 1rem;
+    padding: 1rem 1.25rem;
+    border-left: 2px solid var(--ember);
+    background: color-mix(in srgb, var(--ember) 6%, transparent);
+  }
+  .lede-mock .hl { color: var(--ember); font-weight: 600; }
+
+  .lede-mock-small {
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    margin: 0 0 1rem;
+  }
+  .lede-mock-small .hl { color: var(--ember); font-weight: 600; }
+
+  .alt-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .alt-list code {
+    font-size: 12px;
+  }
+
+  /* Mock canvas — frames each layout option ────────────────── */
+  .mock {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 1.25rem;
+    box-shadow: var(--glow-md);
+  }
+
+  .pros-cons {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+  }
+  .pros-cons strong { color: var(--text); margin-right: 0.4rem; }
+
+  /* Option A — Tabs ─────────────────────────────────────────── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 1rem;
+  }
+  .tab {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: var(--ls-wide);
+    padding: 0.6rem 1rem;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+  }
+  .tab.is-active {
+    color: var(--ember);
+    border-bottom-color: var(--ember);
+  }
+
+  .panel-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+  }
+  .fake-select {
+    appearance: none;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 0.35rem 0.6rem;
+    border-radius: var(--r-xs);
+    flex: 1;
+  }
+  .step {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--subtle);
+  }
+  .step-controls { display: flex; gap: 0.25rem; }
+  .step-controls button,
+  .pane-foot button {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--r-xs);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .transcript {
+    background: var(--obsidian);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .transcript-mini { font-size: 12px; }
+  .msg {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 0.4rem 0.6rem;
+    border-radius: var(--r-xs);
+  }
+  .msg-user { color: var(--ember); }
+  .msg-asst { color: var(--text); }
+
+  /* Option B — Two-card landing ────────────────────────────── */
+  .landing { padding: 1.5rem; }
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+  .big-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: border-color var(--dur-fast) var(--ease-standard);
+  }
+  .big-card:hover { border-color: var(--ember); }
+  .big-card h3 {
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    color: var(--text);
+    margin: 0;
+  }
+  .big-card p {
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .big-card-cta {
+    margin-top: 0.5rem;
+    color: var(--ember);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    display: inline-flex;
+    gap: 0.3rem;
+    align-items: center;
+  }
+  .big-card-tag,
+  .pane-tag {
+    --pill-color: var(--specialist);
+    align-self: flex-start;
+    padding: 2px 7px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border: 0.5px solid var(--pill-color);
+    color: var(--pill-color);
+    background: color-mix(in srgb, var(--pill-color) 15%, transparent);
+    text-transform: lowercase;
+  }
+  .big-card-tag[data-role="workflow"],
+  .pane-tag[data-role="workflow"] { --pill-color: var(--workflow); }
+  .big-card-tag[data-role="advisor"],
+  .pane-tag[data-role="advisor"] { --pill-color: var(--advisor); }
+
+  /* Option C — Side-by-side ────────────────────────────────── */
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .split-pane {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .pane-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .pane-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--subtle);
+  }
+  .pane-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .pane-input {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .pane-input input {
+    flex: 1;
+    background: var(--obsidian);
+    border: 0.5px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 0.4rem 0.6rem;
+    border-radius: var(--r-xs);
+  }
+  .pane-input button {
+    background: var(--ember);
+    color: var(--obsidian);
+    border: 0;
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--r-xs);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  @media (max-width: 640px) {
+    .card-grid, .split { grid-template-columns: 1fr; }
+  }
+
+  /* Option D — Stacked ─────────────────────────────────────── */
+  .inpage-nav {
+    display: flex;
+    gap: 0;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 1rem;
+    position: sticky;
+    top: 56px;
+    background: var(--surface);
+    z-index: 5;
+  }
+  .inpage-nav a {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+    padding: 0.6rem 1rem;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+  }
+  .inpage-nav a.is-active {
+    color: var(--ember);
+    border-bottom-color: var(--ember);
+  }
+  .section-mock h4 {
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    color: var(--text);
+    margin: 0 0 0.4rem;
+  }
+  .section-divider {
+    border: 0;
+    border-top: 0.5px solid var(--border);
+    margin: 1.5rem 0;
+  }
+
+  /* Recommendation ─────────────────────────────────────────── */
+  .rec p { color: var(--muted); line-height: var(--lh-base); margin: 0 0 0.75rem; }
+  .rec strong { color: var(--text); }
+</style>
