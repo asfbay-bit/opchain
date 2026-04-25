@@ -11,14 +11,16 @@ const phases = [
   { step: "02", phase: "spec",      name: "Contract",      skill: "stack-forge + app-architect" },
   { step: "03", phase: "design",    name: "Style book",    skill: "ux-engineer + dash-forge" },
   { step: "04", phase: "build",     name: "Sprint loop",   skill: "app-architect" },
-  { step: "05", phase: "audit",     name: "Quality gate",  skill: "code-auditor" },
+  { step: "05", phase: "audit",     name: "Quality gate",  skill: "code-auditor + security-auditor" },
   { step: "06", phase: "ship",      name: "Deploy",        skill: "git-ops + deploy-ops" },
+  { step: "07", phase: "monitor",   name: "Observe",       skill: "monitoring-ops" },
+  { step: "08", phase: "migrate",   name: "Engine swap",   skill: "migration-ops" },
 ];
 ---
 
 <Base
   title="opchain — skills that ship"
-  description="opchain is 10 Claude Code skills + 1 shared protocol (11 total). A complete software development pipeline: discover, spec, design, build, audit, ship, scale."
+  description="opchain is a set of Claude Code skills + a shared protocol that form an end-to-end software development pipeline: discover, spec, design, build, audit, ship, monitor, migrate, scale."
   active="/"
 >
   <main class="intro">
@@ -30,8 +32,8 @@ const phases = [
     </div>
 
     <div class="intro-tagline">
-      <span>10 skills + 1 shared protocol · 11 total</span>
-      <span>skills that ship — concept to production</span>
+      <span>Claude Code skills + a shared checkpoint protocol</span>
+      <span>skills that ship — concept to production to ops</span>
     </div>
 
     <div class="intro-body">
@@ -42,12 +44,13 @@ const phases = [
         questions it asked an hour ago — opchain is the missing layer.
       </p>
       <p>
-        Ten Claude Code skills + one shared protocol. Each skill owns
-        one phase (discover, spec, design, build, audit, ship, scale)
-        and writes JSON checkpoints to <code>.checkpoints/</code>.
-        Claude reads them back on the next session and picks up where
-        you left off. Skills invoke each other automatically at phase
-        boundaries — no manual handoffs, no copy-paste.
+        A set of Claude Code skills plus a shared checkpoint protocol.
+        Each skill owns one phase (discover, spec, design, build, audit,
+        ship, monitor, migrate, scale) and writes JSON checkpoints to
+        <code>.checkpoints/</code>. Claude reads them back on the next
+        session and picks up where you left off. Skills invoke each
+        other automatically at phase boundaries — no manual handoffs,
+        no copy-paste.
       </p>
       <p>
         Install them, trigger by name, keep going. No API keys. No SaaS.

@@ -1,6 +1,7 @@
-# aidops dev skills ecosystem
+# opchain dev skills ecosystem
 
-10 skills + 1 protocol for building software with Claude.
+A full concept-to-ops software development pipeline for Claude — one skill per
+phase, a shared checkpoint protocol that carries context across sessions.
 
 ## Installation (Claude.ai / Cowork)
 
@@ -15,20 +16,24 @@
 
 ## Skills
 
-| Skill | Role |
-|---|---|
-| checkpoint-protocol | Session persistence (bundled in all skills) |
-| app-architect | Unified planning + build harness |
-| stack-forge | Universal stack advisor |
-| reverse-spec | Code → spec docs |
-| ux-engineer | Tri-design harness |
-| dash-forge | Dashboards + dense data UI (spec + React prototype) |
-| code-auditor | Auditor → Fixer → Verifier |
-| integrations-engineer | API integration harness |
-| git-ops | Git workflow |
-| deploy-ops | Deployment pipeline |
-| scale-ops | Scaling readiness |
+| Skill | Phase | Role |
+|---|---|---|
+| checkpoint-protocol    | foundation  | Session persistence (bundled in all skills) |
+| orchestrator           | foundation  | `/ops` — multi-project registry, status, routing |
+| reverse-spec           | plan        | Code → spec docs |
+| stack-forge            | plan        | Universal stack advisor |
+| ux-engineer            | plan+build  | Tri-design harness |
+| dash-forge             | plan        | Dashboards + dense data UI (spec + React prototype) |
+| scale-ops              | plan        | Scaling readiness |
+| app-architect          | plan+build  | Unified planning + build harness |
+| integrations-engineer  | plan+build  | API integration harness |
+| migration-ops          | plan+build  | `/migrate` — DB / framework / auth / platform migrations |
+| code-auditor           | build       | Auditor → Fixer → Verifier |
+| security-auditor       | build       | Threat modeling, OWASP hardening, attack-surface review |
+| git-ops                | build       | Git workflow |
+| deploy-ops             | build       | Deployment pipeline |
+| monitoring-ops         | build       | Post-deploy observability — uptime, errors, alerts, incidents |
 
 ## More info
 
-https://aidops.dev/dev-skills
+https://opchain.dev

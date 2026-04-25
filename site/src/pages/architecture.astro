@@ -4,23 +4,32 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
 import PipelineDiagram from "../components/PipelineDiagram.astro";
 import Card from "../components/ui/Card.astro";
 import Badge from "../components/ui/Badge.astro";
+import { getAllSkills } from "../lib/skills";
+
+const allSkills = await getAllSkills();
+const totalSkillCount = allSkills.length;
+const triAgents = allSkills.filter((s) => s.data.triAgent).map((s) => s.data.name);
 
 const skillKinds = [
-  { kind: "Foundation",    skills: ["checkpoint-protocol"] },
-  { kind: "Plan",          skills: ["reverse-spec", "stack-forge", "ux-engineer", "dash-forge", "scale-ops"] },
-  { kind: "Plan + Build",  skills: ["app-architect"] },
-  { kind: "Build / quality", skills: ["code-auditor", "integrations-engineer", "git-ops", "deploy-ops"] },
+  { kind: "Foundation",      skills: ["checkpoint-protocol", "orchestrator"] },
+  { kind: "Plan",            skills: ["reverse-spec", "stack-forge", "ux-engineer", "dash-forge", "scale-ops"] },
+  { kind: "Plan + Build",    skills: ["app-architect", "integrations-engineer", "migration-ops"] },
+  { kind: "Build / quality", skills: ["code-auditor", "security-auditor", "git-ops", "deploy-ops", "monitoring-ops"] },
 ];
 
 const handoffs = [
-  { from: "reverse-spec",          to: "app-architect",  trigger: "Existing codebase analyzed; loads specs as Phase 2 baseline" },
-  { from: "app-architect",         to: "stack-forge",    trigger: "Phase 2 — auto-invoked for stack decision" },
-  { from: "app-architect",         to: "ux-engineer",    trigger: "Phase 6 UI sprints — auto-attaches Design Evaluator" },
-  { from: "ux-engineer",           to: "dash-forge",     trigger: "Data-heavy screens — Tufte-density specialist" },
-  { from: "app-architect",         to: "git-ops",        trigger: "All build sprints pass" },
-  { from: "git-ops",               to: "deploy-ops",     trigger: "Post /git-sync" },
-  { from: "deploy-ops",            to: "code-auditor",   trigger: "Audit gate before production" },
-  { from: "integrations-engineer", to: "code-auditor",   trigger: "Verify the integration before merge" },
+  { from: "reverse-spec",          to: "app-architect",   trigger: "Existing codebase analyzed; loads specs as Phase 2 baseline" },
+  { from: "app-architect",         to: "stack-forge",     trigger: "Phase 2 — auto-invoked for stack decision" },
+  { from: "app-architect",         to: "ux-engineer",     trigger: "Phase 6 UI sprints — auto-attaches Design Evaluator" },
+  { from: "ux-engineer",           to: "dash-forge",      trigger: "Data-heavy screens — Tufte-density specialist" },
+  { from: "app-architect",         to: "git-ops",         trigger: "All build sprints pass" },
+  { from: "git-ops",               to: "deploy-ops",      trigger: "Post /git-sync" },
+  { from: "deploy-ops",            to: "code-auditor",    trigger: "Audit gate before production" },
+  { from: "code-auditor",          to: "security-auditor", trigger: "Threat model + hardening review above code-level findings" },
+  { from: "security-auditor",      to: "deploy-ops",      trigger: "Posture check before the production gate" },
+  { from: "deploy-ops",            to: "monitoring-ops",  trigger: "Hand off observability once production is live" },
+  { from: "app-architect",         to: "migration-ops",   trigger: "Live system needs a schema / framework / platform change" },
+  { from: "integrations-engineer", to: "code-auditor",    trigger: "Verify the integration before merge" },
 ];
 ---
 
@@ -130,8 +139,8 @@ const handoffs = [
     <section class="section">
       <h2>Total count</h2>
       <ul class="count-list">
-        <li><strong>11 entries</strong> — 10 working skills + 1 shared protocol</li>
-        <li><strong>4 are tri-agent</strong> — app-architect, ux-engineer, code-auditor, integrations-engineer</li>
+        <li><strong>{totalSkillCount} entries</strong> — every skill owns one phase, plus the shared <code class="ic">checkpoint-protocol</code></li>
+        <li><strong>{triAgents.length} are tri-agent</strong> — {triAgents.join(", ")}</li>
         <li><strong>0 require API keys</strong> — every skill is a prompt package</li>
       </ul>
       <p style="margin-top: 1.5rem;">
