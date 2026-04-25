@@ -39,12 +39,22 @@
   /* Semantic state colours */
   --danger:      #d86464;
   --danger-dim:  rgba(216, 100, 100, 0.12);
-  --success:     #7ec99a;
-  --success-dim: rgba(126, 201, 154, 0.12);
+  --success:     #10B981;
+  --success-dim: rgba(16, 185, 129, 0.12);
   --info:        #6cb2e0;
   --info-dim:    rgba(108, 178, 224, 0.12);
   --warning:     #e8c060;
   --warning-dim: rgba(232, 192, 96, 0.12);
+
+  /* ── Skill role tokens — opchain semantic palette ──
+     One color per skill type. Used by the homepage skill pills
+     and any place a skill needs visual identity. */
+  --workflow:     #E8651E;  /* Ember Orange — workflow / pipeline    */
+  --tri-agent:    #F59E0B;  /* Amber-Gold — tri-agent harness        */
+  --audit-gate:   #F43F5E;  /* Rose — audit / gate failures          */
+  --specialist:   #0D9488;  /* Deep Teal — standalone specialist     */
+  --advisor:      #0EA5E9;  /* Light Blue — advisor                  */
+  --orchestrator: #6D28D9;  /* Deep Plum — orchestrator              */
 
   /* Logo tokens */
   --logo-stroke:    var(--text);

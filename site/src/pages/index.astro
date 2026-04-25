@@ -4,23 +4,88 @@ import Logo from "../components/Logo.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
 import Button from "../components/ui/Button.astro";
 import Icon from "../components/Icon.astro";
-import Card from "../components/ui/Card.astro";
 
-const phases = [
-  { step: "01", phase: "discover",  name: "Interview",     skill: "app-architect" },
-  { step: "02", phase: "spec",      name: "Contract",      skill: "stack-forge + app-architect" },
-  { step: "03", phase: "design",    name: "Style book",    skill: "ux-engineer + dash-forge" },
-  { step: "04", phase: "build",     name: "Sprint loop",   skill: "app-architect" },
-  { step: "05", phase: "audit",     name: "Quality gate",  skill: "code-auditor + security-auditor" },
-  { step: "06", phase: "ship",      name: "Deploy",        skill: "git-ops + deploy-ops" },
-  { step: "07", phase: "monitor",   name: "Observe",       skill: "monitoring-ops" },
-  { step: "08", phase: "migrate",   name: "Engine swap",   skill: "migration-ops" },
+type Role =
+  | "workflow"
+  | "tri-agent"
+  | "audit-gate"
+  | "specialist"
+  | "advisor"
+  | "orchestrator"
+  | "success";
+
+interface SkillPill {
+  id: string;
+  role: Role;
+}
+
+interface Phase {
+  step: string;
+  phase: string;
+  name: string;
+  skills: SkillPill[];
+  blurb: string;
+}
+
+const phases: Phase[] = [
+  {
+    step: "01", phase: "discover", name: "Interview",
+    skills: [{ id: "app-architect", role: "workflow" }],
+    blurb: "Interview — scope the idea, users, success criteria, and MVP boundaries.",
+  },
+  {
+    step: "02", phase: "spec", name: "Contract",
+    skills: [
+      { id: "stack-forge",   role: "advisor" },
+      { id: "app-architect", role: "workflow" },
+    ],
+    blurb: "Contract — translate the idea into a typed spec, stack picks, and integration shape.",
+  },
+  {
+    step: "03", phase: "design", name: "Style book",
+    skills: [
+      { id: "ux-engineer", role: "tri-agent" },
+      { id: "dash-forge",  role: "specialist" },
+    ],
+    blurb: "Style book — design system, screens, components, working prototype.",
+  },
+  {
+    step: "04", phase: "build", name: "Sprint loop",
+    skills: [{ id: "app-architect", role: "workflow" }],
+    blurb: "Sprint loop — Generator/Evaluator build cycle, ship features behind quality gates.",
+  },
+  {
+    step: "05", phase: "audit", name: "Quality gate",
+    skills: [
+      { id: "code-auditor",     role: "audit-gate" },
+      { id: "security-auditor", role: "audit-gate" },
+    ],
+    blurb: "Quality gate — Auditor/Fixer/Verifier loop plus security posture review before ship.",
+  },
+  {
+    step: "06", phase: "ship", name: "Deploy",
+    skills: [
+      { id: "git-ops",    role: "specialist" },
+      { id: "deploy-ops", role: "orchestrator" },
+    ],
+    blurb: "Deploy — branch, PR, audit gate, staging, production, rollback if needed.",
+  },
+  {
+    step: "07", phase: "monitor", name: "Observe",
+    skills: [{ id: "monitoring-ops", role: "specialist" }],
+    blurb: "Observe — uptime, errors, alerts, SLOs, on-call, postmortems.",
+  },
+  {
+    step: "08", phase: "migrate", name: "Engine swap",
+    skills: [{ id: "migration-ops", role: "specialist" }],
+    blurb: "Engine swap — live migrations: database, framework, auth, platform — with rollback.",
+  },
 ];
 ---
 
 <Base
   title="opchain — skills that ship"
-  description="opchain is a set of Claude Code skills + a shared protocol that form an end-to-end software development pipeline: discover, spec, design, build, audit, ship, monitor, migrate, scale."
+  description="opchain is a skillchain and shared checkpoint protocol designed to get you from concept to production to ops."
   active="/"
 >
   <main class="intro">
@@ -31,17 +96,18 @@ const phases = [
       <h1 class="intro-mark">opchain</h1>
     </div>
 
+    <p class="intro-claim">skills that ship.</p>
+
     <div class="intro-tagline">
-      <span>Claude Code skills + a shared checkpoint protocol</span>
-      <span>skills that ship — concept to production to ops</span>
+      <span>a skillchain and shared checkpoint protocol designed to get you from concept to production to ops</span>
     </div>
 
     <div class="intro-body">
       <p>
-        <strong>If you've ever tried to build something real with Claude
-        and watched it lose the plot between chats</strong> — forgetting
-        your spec, redesigning what it already designed, repeating
-        questions it asked an hour ago — opchain is the missing layer.
+        If you've ever tried to build something real with Claude and
+        watched it lose the plot between chats — forgetting your spec,
+        redesigning what it already designed, repeating questions it
+        asked an hour ago — opchain is what you've been looking for.
       </p>
       <p>
         A set of Claude Code skills plus a shared checkpoint protocol.
@@ -60,11 +126,16 @@ const phases = [
 
     <section class="phase-grid" aria-label="Pipeline phases">
       {phases.map((p) => (
-        <Card variant="surface" glow={false}>
+        <article class="phase-card" tabindex="0" aria-label={`${p.name} — ${p.blurb}`}>
           <div class="phase-step">{p.step} · {p.phase}</div>
           <div class="phase-name">{p.name}</div>
-          <div class="phase-skill">{p.skill}</div>
-        </Card>
+          <div class="phase-pills">
+            {p.skills.map((s) => (
+              <span class="phase-pill" data-role={s.role}>{s.id}</span>
+            ))}
+          </div>
+          <div class="phase-blurb">{p.blurb}</div>
+        </article>
       ))}
     </section>
 
@@ -96,12 +167,13 @@ const phases = [
     text-align: center;
   }
 
+  /* Tightened top stack: eyebrow ↔ hero ↔ wordmark ↔ claim. */
   .intro-hero {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.25rem;
-    margin: 1.25rem 0 1.5rem;
+    gap: 0.5rem;            /* Logo ↔ wordmark — was 1.25rem */
+    margin: 0.4rem 0 0.5rem; /* eyebrow ↔ hero / hero ↔ claim — was 1.25rem 0 1.5rem */
   }
 
   .intro-mark {
@@ -112,6 +184,17 @@ const phases = [
     line-height: 1;
     color: var(--text);
     margin: 0;
+  }
+
+  /* "skills that ship." — ember claim line below the wordmark. */
+  .intro-claim {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 1.3;
+    letter-spacing: 0.2px;
+    color: var(--ember);
+    margin: 0 0 1rem;
   }
 
   .intro-tagline {
@@ -137,12 +220,35 @@ const phases = [
 
   .phase-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 0.6rem;
     margin: 2.5rem 0;
     width: 100%;
-    max-width: 720px;
+    max-width: 760px;
     text-align: left;
+  }
+
+  /* Card surface — replaces the previous <Card variant="surface"> so we can
+     style hover/focus locally for the blurb reveal. */
+  .phase-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 0.85rem 0.95rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    cursor: default;
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      box-shadow var(--dur-fast) var(--ease-standard),
+      transform var(--dur-fast) var(--ease-standard);
+  }
+  .phase-card:hover,
+  .phase-card:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-dim);
+    outline: none;
   }
 
   .phase-step {
@@ -151,7 +257,6 @@ const phases = [
     letter-spacing: var(--ls-wider);
     color: var(--subtle);
     text-transform: uppercase;
-    margin-bottom: 0.35rem;
   }
   .phase-name {
     font-family: var(--font-display);
@@ -159,12 +264,68 @@ const phases = [
     font-weight: 600;
     color: var(--text);
     letter-spacing: 0.02em;
-    margin-bottom: 0.25rem;
   }
-  .phase-skill {
+
+  /* Skill pills — square edges, role-colored fill. One pill per skill;
+     multi-skill phases get multiple pills side by side. */
+  .phase-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.15rem;
+  }
+  .phase-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 0;            /* square per spec */
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+    color: #ffffff;              /* default — overridden per role below */
+    background: var(--subtle);
+    white-space: nowrap;
+  }
+  /* Role colors — :root tokens map skill type → fill color.
+     Light backgrounds (amber, success) use dark text for AA contrast. */
+  .phase-pill[data-role="workflow"]     { background: var(--workflow);     color: #ffffff; }
+  .phase-pill[data-role="tri-agent"]    { background: var(--tri-agent);    color: #1a1208; }
+  .phase-pill[data-role="audit-gate"]   { background: var(--audit-gate);   color: #ffffff; }
+  .phase-pill[data-role="specialist"]   { background: var(--specialist);   color: #ffffff; }
+  .phase-pill[data-role="advisor"]      { background: var(--advisor);      color: #06121b; }
+  .phase-pill[data-role="orchestrator"] { background: var(--orchestrator); color: #ffffff; }
+  .phase-pill[data-role="success"]      { background: var(--success);      color: #06120c; }
+
+  /* Blurb — hidden at rest, fades in on hover/focus of the card. */
+  .phase-blurb {
     font-family: var(--font-mono);
     font-size: 11px;
-    color: var(--accent);
+    line-height: 1.45;
+    color: var(--muted);
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition:
+      max-height var(--dur-base) var(--ease-standard),
+      opacity var(--dur-base) var(--ease-standard),
+      margin-top var(--dur-base) var(--ease-standard);
+  }
+  .phase-card:hover .phase-blurb,
+  .phase-card:focus-visible .phase-blurb,
+  .phase-card:focus-within .phase-blurb {
+    max-height: 6rem;
+    opacity: 1;
+    margin-top: 0.35rem;
+  }
+  /* Touch / no-hover devices — always show the blurb. */
+  @media (hover: none) {
+    .phase-blurb {
+      max-height: none;
+      opacity: 1;
+      margin-top: 0.35rem;
+    }
   }
 
   .intro-actions {

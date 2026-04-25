@@ -31,6 +31,7 @@ const { active = "/", links = defaultLinks } = Astro.props;
       <Logo size={28} />
       <span class="logo">opchain</span>
     </a>
+
     <nav class="nav-scroll" aria-label="Primary">
       <div class="nav">
         {links.map((link) => (
@@ -43,9 +44,109 @@ const { active = "/", links = defaultLinks } = Astro.props;
         ))}
       </div>
     </nav>
+
+    <button
+      type="button"
+      class="nav-burger"
+      id="nav-burger"
+      aria-label="Open navigation menu"
+      aria-expanded="false"
+      aria-controls="nav-drawer"
+    >
+      <span class="nav-burger-line" aria-hidden="true"></span>
+      <span class="nav-burger-line" aria-hidden="true"></span>
+      <span class="nav-burger-line" aria-hidden="true"></span>
+    </button>
+
     <ThemeToggle />
   </div>
+
+  <div
+    class="nav-drawer"
+    id="nav-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Navigation menu"
+    hidden
+  >
+    <button
+      type="button"
+      class="nav-drawer-scrim"
+      aria-label="Close navigation menu"
+      tabindex="-1"
+    ></button>
+    <nav class="nav-drawer-panel" aria-label="Primary, mobile">
+      {links.map((link) => (
+        <a
+          href={link.href}
+          class:list={["nav-drawer-link", { active: link.href === active }]}
+        >
+          {link.label}
+        </a>
+      ))}
+    </nav>
+  </div>
 </header>
+
+<script>
+  // Mobile nav drawer: opens on hamburger click, closes on link click,
+  // scrim click, Escape key, or viewport widening past the breakpoint.
+  // Focus is trapped to the drawer panel while open.
+  const burger = document.getElementById("nav-burger") as HTMLButtonElement | null;
+  const drawer = document.getElementById("nav-drawer") as HTMLDivElement | null;
+  if (burger && drawer) {
+    const scrim = drawer.querySelector(".nav-drawer-scrim") as HTMLButtonElement | null;
+    const links = drawer.querySelectorAll<HTMLAnchorElement>(".nav-drawer-link");
+    const firstLink = links[0];
+    const lastLink = links[links.length - 1];
+
+    const open = () => {
+      drawer.hidden = false;
+      requestAnimationFrame(() => drawer.classList.add("is-open"));
+      burger.setAttribute("aria-expanded", "true");
+      document.documentElement.style.overflow = "hidden";
+      firstLink?.focus();
+    };
+    const close = (returnFocus = true) => {
+      drawer.classList.remove("is-open");
+      burger.setAttribute("aria-expanded", "false");
+      document.documentElement.style.overflow = "";
+      // Wait for the slide transition before hiding from a11y tree.
+      window.setTimeout(() => { drawer.hidden = true; }, 180);
+      if (returnFocus) burger.focus();
+    };
+
+    burger.addEventListener("click", () => {
+      drawer.hidden ? open() : close();
+    });
+    scrim?.addEventListener("click", () => close());
+    links.forEach((a) => a.addEventListener("click", () => close(false)));
+
+    document.addEventListener("keydown", (e) => {
+      if (drawer.hidden) return;
+      if (e.key === "Escape") {
+        e.preventDefault();
+        close();
+      } else if (e.key === "Tab") {
+        // Trap focus within the drawer.
+        if (e.shiftKey && document.activeElement === firstLink) {
+          e.preventDefault();
+          lastLink?.focus();
+        } else if (!e.shiftKey && document.activeElement === lastLink) {
+          e.preventDefault();
+          firstLink?.focus();
+        }
+      }
+    });
+
+    // If the user resizes past the breakpoint while the drawer is open,
+    // close it — the inline nav takes over.
+    const mq = window.matchMedia("(min-width: 720px)");
+    mq.addEventListener("change", (e) => {
+      if (e.matches && !drawer.hidden) close(false);
+    });
+  }
+</script>
 
 <style>
   .site-header {
@@ -121,5 +222,115 @@ const { active = "/", links = defaultLinks } = Astro.props;
   .nav-link.active {
     color: var(--accent);
     border-bottom-color: var(--accent);
+  }
+
+  /* ── Hamburger (hidden ≥720px, shown below) ──────────────── */
+  .nav-burger {
+    display: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-sm);
+    width: 36px;
+    height: 32px;
+    padding: 0;
+    cursor: pointer;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard);
+  }
+  .nav-burger:hover {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .nav-burger:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .nav-burger-line {
+    display: block;
+    width: 16px;
+    height: 1.5px;
+    background: var(--text);
+    border-radius: 1px;
+    transition: transform var(--dur-fast) var(--ease-standard);
+  }
+  .nav-burger[aria-expanded="true"] .nav-burger-line:nth-child(1) {
+    transform: translateY(5.5px) rotate(45deg);
+  }
+  .nav-burger[aria-expanded="true"] .nav-burger-line:nth-child(2) {
+    opacity: 0;
+  }
+  .nav-burger[aria-expanded="true"] .nav-burger-line:nth-child(3) {
+    transform: translateY(-5.5px) rotate(-45deg);
+  }
+
+  /* ── Drawer ──────────────────────────────────────────────── */
+  .nav-drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .nav-drawer[hidden] { display: none; }
+  .nav-drawer-scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    border: 0;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-standard);
+  }
+  .nav-drawer.is-open .nav-drawer-scrim { opacity: 1; }
+  .nav-drawer-panel {
+    position: relative;
+    width: min(280px, 80vw);
+    background: var(--ribbon);
+    border-left: 0.5px solid var(--ribbon-edge);
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.35);
+    display: flex;
+    flex-direction: column;
+    padding: 4.5rem 0.75rem 1.5rem;   /* clear the sticky header */
+    transform: translateX(100%);
+    transition: transform var(--dur-base) var(--ease-standard);
+  }
+  .nav-drawer.is-open .nav-drawer-panel { transform: translateX(0); }
+  .nav-drawer-link {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: var(--ls-wide);
+    color: var(--muted);
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    border-radius: var(--r-sm);
+    border-left: 2px solid transparent;
+    transition:
+      color var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+  }
+  .nav-drawer-link:hover {
+    color: var(--text);
+    background: var(--accent-dim);
+  }
+  .nav-drawer-link.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+  }
+  .nav-drawer-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ── Breakpoint swap ─────────────────────────────────────── */
+  @media (max-width: 719px) {
+    .nav-scroll { display: none; }
+    .nav-burger { display: inline-flex; }
   }
 </style>
