@@ -1,14 +1,34 @@
 ---
 import Icon from "./Icon.astro";
 import { walkthroughs } from "../data/walkthroughs";
+import { getSkillRole, type Role } from "../lib/skills";
 
 /**
- * Replays — four scripted end-to-end sessions with opchain.
+ * Replays — six scripted end-to-end sessions with opchain.
  *
  * Used inside the Demo page's Replays tabpanel. The keyboard handler
- * (Enter / Space / R / 1–4) is gated so it only responds when this
+ * (Enter / Space / R / 1–6) is gated so it only responds when this
  * component's hosting tabpanel is visible.
  */
+
+// Role lookup for every skill referenced in any walkthrough — passed to the
+// client script as a JSON island so runtime re-renders can color new pills
+// without a second round-trip to lib/skills.
+const allSkillIds = Array.from(
+  new Set(
+    walkthroughs.flatMap((w) => [
+      ...w.skills,
+      ...w.steps
+        .map((s) => (s.type === "exchange" ? s.skill : s.type === "beat" ? (s.skills ?? []) : []))
+        .flat()
+        .filter((s): s is string => typeof s === "string"),
+    ]),
+  ),
+);
+const skillRoles: Record<string, Role> = Object.fromEntries(
+  allSkillIds.map((id) => [id, getSkillRole(id)]),
+);
+const skillRolesJson = JSON.stringify(skillRoles);
 
 const catalog = JSON.stringify(
   walkthroughs.map((w) => ({
@@ -28,10 +48,10 @@ const catalog = JSON.stringify(
 
 <div class="replays" id="replays-root">
   <p class="kbd-hint">
-    <kbd>Enter</kbd> to live through each exchange ·
-    <kbd>Space</kbd> to skip to the payoff ·
-    <kbd>R</kbd> to restart ·
-    <kbd>1</kbd>–<kbd>4</kbd> to jump between scenarios.
+    <kbd>Enter</kbd> next ·
+    <kbd>Space</kbd> skip ·
+    <kbd>R</kbd> restart ·
+    <kbd>1</kbd>–<kbd>6</kbd> jump
   </p>
 
     <!-- ───────────── Scenario picker — collapsed strip ───────────── -->
@@ -55,7 +75,7 @@ const catalog = JSON.stringify(
     </section>
 
     <!-- ───────────── Detail panel — full width for the active scenario ───────────── -->
-    <section class="detail" aria-live="polite">
+    <section class="detail" id="detail-card" aria-live="polite">
       <div class="detail-head">
         <div>
           <h2 class="detail-title" id="detail-title">{walkthroughs[0].title}</h2>
@@ -64,39 +84,53 @@ const catalog = JSON.stringify(
         <div class="detail-meta">
           <span class="detail-runtime" id="detail-runtime">{walkthroughs[0].runtime}</span>
           <div class="detail-skills" id="detail-skills">
-            {walkthroughs[0].skills.map((s) => (<code class="chip">{s}</code>))}
+            {walkthroughs[0].skills.map((s) => (
+              <span class="role-pill" data-role={getSkillRole(s)}>{s}</span>
+            ))}
           </div>
+          <button
+            type="button"
+            class="detail-toggle"
+            id="detail-toggle"
+            aria-expanded="true"
+            aria-controls="detail-body-wrap"
+            aria-label="Collapse details"
+          >
+            <Icon name="arrow-right" size={12} class="detail-toggle-chev" />
+          </button>
         </div>
       </div>
 
-      <p class="detail-body" id="detail-body">{walkthroughs[0].description}</p>
+      <div class="detail-body-wrap" id="detail-body-wrap">
+        <p class="detail-body" id="detail-body">{walkthroughs[0].description}</p>
 
-      <div class="detail-io">
-        <div class="io-col">
-          <div class="io-head">Inputs</div>
-          <ul class="io-list" id="detail-inputs">
-            {walkthroughs[0].inputs.map((x) => <li>{x}</li>)}
-          </ul>
-        </div>
-        <div class="io-col">
-          <div class="io-head">Outputs <span class="io-hint">click to expand</span></div>
-          <ul class="io-list artifacts" id="detail-outputs">
-            {walkthroughs[0].outputs.map((a) => (
-              <li class="artifact">
-                <button
-                  type="button"
-                  class="artifact-head"
-                  aria-expanded="false"
-                  {...({ "data-artifact-id": a.id } as any)}
-                >
-                  <Icon name="arrow-right" size={10} class="artifact-chevron" />
-                  <span class="artifact-label">{a.label}</span>
-                  {a.kind && <span class="artifact-kind">{a.kind}</span>}
-                </button>
-                <div class="artifact-body markdown" hidden></div>
-              </li>
-            ))}
-          </ul>
+        <div class="detail-io">
+          <div class="io-col">
+            <div class="io-head">Inputs</div>
+            <ul class="io-list" id="detail-inputs">
+              {walkthroughs[0].inputs.map((x) => <li>{x}</li>)}
+            </ul>
+          </div>
+          <div class="io-col">
+            <div class="io-head">Outputs <span class="io-hint">click to expand</span></div>
+            <ul class="io-list artifacts" id="detail-outputs">
+              {walkthroughs[0].outputs.map((a) => (
+                <li class="artifact">
+                  <button
+                    type="button"
+                    class="artifact-head"
+                    aria-expanded="false"
+                    {...({ "data-artifact-id": a.id } as any)}
+                  >
+                    <Icon name="arrow-right" size={10} class="artifact-chevron" />
+                    <span class="artifact-label">{a.label}</span>
+                    {a.kind && <span class="artifact-kind">{a.kind}</span>}
+                  </button>
+                  <div class="artifact-body markdown" hidden></div>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </section>
@@ -139,16 +173,13 @@ const catalog = JSON.stringify(
 
       <div class="start-prompt" id="start-prompt">
         <Icon name="sparkles" />
-        <p>
-          <strong>Press <kbd>Enter</kbd></strong> (or click <em>start</em>) to
-          begin. <kbd>Space</kbd> cuts to the end; <kbd>R</kbd> resets;
-          <kbd>1</kbd>–<kbd>4</kbd> switches scenarios.
-        </p>
+        <p><strong>Press <kbd>Enter</kbd></strong> or click <em>start</em>.</p>
       </div>
     </section>
 </div>
 
 <script is:inline id="walkthrough-data" type="application/json" set:html={catalog}></script>
+<script is:inline id="skill-roles-data" type="application/json" set:html={skillRolesJson}></script>
 
   <script>
     import { renderSafeMarkdown } from "../lib/markdown";
@@ -190,6 +221,16 @@ const catalog = JSON.stringify(
     if (!dataEl) throw new Error("walkthrough data missing");
     const catalog: Walkthrough[] = JSON.parse(dataEl.textContent || "[]");
 
+    // Skill → role map. Pre-rendered server-side from lib/skills.getSkillRole
+    // so runtime DOM updates can color new pills without re-fetching.
+    const rolesEl = document.getElementById("skill-roles-data");
+    const skillRoles: Record<string, string> = rolesEl
+      ? JSON.parse(rolesEl.textContent || "{}")
+      : {};
+    function roleFor(skill: string | undefined): string {
+      return (skill && skillRoles[skill]) || "specialist";
+    }
+
     const picker       = document.getElementById("scenario-picker")!;
     const heading      = document.getElementById("player-heading")!;
     const eyebrow      = document.getElementById("player-eyebrow")!;
@@ -209,9 +250,20 @@ const catalog = JSON.stringify(
     const skipBtn      = document.getElementById("btn-skip")! as HTMLButtonElement;
     const restartBtn   = document.getElementById("btn-restart")! as HTMLButtonElement;
     const startPrompt  = document.getElementById("start-prompt")!;
+    const detailCard   = document.getElementById("detail-card")!;
+    const detailToggle = document.getElementById("detail-toggle")! as HTMLButtonElement;
 
     let currentIdx  = 0;       // which scenario
     let stepIdx     = 0;       // how many steps revealed
+
+    function setDetailCollapsed(collapsed: boolean) {
+      detailCard.classList.toggle("is-collapsed", collapsed);
+      detailToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      detailToggle.setAttribute(
+        "aria-label",
+        collapsed ? "Expand details" : "Collapse details",
+      );
+    }
 
     function currentScenario(): Walkthrough {
       return catalog[currentIdx];
@@ -222,6 +274,9 @@ const catalog = JSON.stringify(
       currentIdx = i;
       stepIdx = 0;
       transcript.innerHTML = "";
+      // New scenario picked → re-expand the detail card so the user sees
+      // its inputs / outputs before starting the new replay.
+      setDetailCollapsed(false);
       const w = currentScenario();
 
       // Player head
@@ -236,7 +291,7 @@ const catalog = JSON.stringify(
       detailSum.textContent   = w.summary;
       detailBody.textContent  = w.description;
       detailRun.textContent   = w.runtime;
-      detailSkills.innerHTML  = w.skills.map((s) => `<code class="chip">${escapeHTML(s)}</code>`).join("");
+      detailSkills.innerHTML  = w.skills.map((s) => `<span class="role-pill" data-role="${escapeHTML(roleFor(s))}">${escapeHTML(s)}</span>`).join("");
       detailInputs.innerHTML  = w.inputs.map((x) => `<li>${escapeHTML(x)}</li>`).join("");
       detailOuts.innerHTML    = w.outputs.map((a) => `
         <li class="artifact">
@@ -319,23 +374,42 @@ const catalog = JSON.stringify(
         return el;
       }
 
-      // User input — bordered terminal box with > prefix.
+      // User input — bordered terminal box with > prefix. If the message
+      // contains " — " or " - " we two-tone-split: the part before becomes
+      // the bold path-a header; the part after becomes the path-b question.
       if (step.role === "user") {
         const wrap = document.createElement("div");
         wrap.className = "cc-user";
-        wrap.innerHTML = `
-          <span class="cc-user-mark" aria-hidden="true">&gt;</span>
-          <span class="cc-user-text"></span>
-        `;
-        const text = wrap.querySelector(".cc-user-text") as HTMLElement;
-        text.textContent = step.content;
+        const splitMatch = step.content.match(/^(.+?)\s+[—-]\s+(.+)$/s);
+        if (splitMatch) {
+          const [, header, question] = splitMatch;
+          wrap.classList.add("cc-user--two-tone");
+          wrap.innerHTML = `
+            <span class="cc-user-mark" aria-hidden="true">&gt;</span>
+            <span class="cc-user-text">
+              <strong class="cc-user-header"></strong>
+              <span class="cc-user-sep" aria-hidden="true"> — </span>
+              <span class="cc-user-question"></span>
+            </span>
+          `;
+          (wrap.querySelector(".cc-user-header") as HTMLElement).textContent = header;
+          (wrap.querySelector(".cc-user-question") as HTMLElement).textContent = question;
+        } else {
+          wrap.innerHTML = `
+            <span class="cc-user-mark" aria-hidden="true">&gt;</span>
+            <span class="cc-user-text"></span>
+          `;
+          (wrap.querySelector(".cc-user-text") as HTMLElement).textContent = step.content;
+        }
         transcript.appendChild(wrap);
         return wrap;
       }
 
       // Assistant turn — `● claude · skill` head, body, optional ⎿ footer.
+      // The head row is colored by the skill's role token (--turn-color).
       const wrap = document.createElement("div");
       wrap.className = "cc-assistant";
+      wrap.dataset.role = roleFor(step.skill);
 
       const head = document.createElement("div");
       head.className = "cc-assistant-head";
@@ -427,6 +501,8 @@ const catalog = JSON.stringify(
       if (stepIdx >= w.steps.length) return;
       renderStep(w.steps[stepIdx]);
       stepIdx++;
+      // First step starts the chat — collapse the detail card to make room.
+      if (stepIdx === 1) setDetailCollapsed(true);
       updateProgress();
       scrollChat();
     }
@@ -437,6 +513,8 @@ const catalog = JSON.stringify(
         renderStep(w.steps[stepIdx]);
         stepIdx++;
       }
+      // Skipping also counts as starting the chat.
+      setDetailCollapsed(true);
       updateProgress();
       scrollChat();
     }
@@ -445,6 +523,7 @@ const catalog = JSON.stringify(
       stepIdx = 0;
       transcript.innerHTML = "";
       startPrompt.hidden = false;
+      setDetailCollapsed(false);
       updateProgress();
     }
 
@@ -452,6 +531,9 @@ const catalog = JSON.stringify(
     playBtn.addEventListener("click", advance);
     skipBtn.addEventListener("click", skipToEnd);
     restartBtn.addEventListener("click", restart);
+    detailToggle.addEventListener("click", () => {
+      setDetailCollapsed(!detailCard.classList.contains("is-collapsed"));
+    });
 
     picker.querySelectorAll<HTMLButtonElement>("[data-scenario]").forEach((el, i) => {
       el.addEventListener("click", () => setScenario(i));
@@ -1296,5 +1378,175 @@ const catalog = JSON.stringify(
 
     @media (max-width: 720px) {
       .player-head { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* ── Role pills for detail card + chat divider ──────────────────
+       Outline + 15% color-mix fill, same visual language as the
+       homepage and skill library. */
+    .role-pill {
+      --pill-color: var(--specialist);
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 7px;
+      border-radius: 0;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      line-height: 1.5;
+      color: var(--pill-color);
+      border: 0.5px solid var(--pill-color);
+      background: color-mix(in srgb, var(--pill-color) 15%, transparent);
+      white-space: nowrap;
+    }
+    .role-pill[data-role="workflow"]     { --pill-color: var(--workflow); }
+    .role-pill[data-role="tri-agent"]    { --pill-color: var(--tri-agent); }
+    .role-pill[data-role="audit-gate"]   { --pill-color: var(--audit-gate); }
+    .role-pill[data-role="specialist"]   { --pill-color: var(--specialist); }
+    .role-pill[data-role="advisor"]      { --pill-color: var(--advisor); }
+    .role-pill[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
+    .role-pill[data-role="success"]      { --pill-color: var(--success); }
+
+    /* ── 1.6.1 Beat divider — info / slate ──────────────────────────
+       The chat's "01 · Discover · app-architect" line. The whole row
+       (rule, label, skill chips) is info-colored so it visually reads
+       as scaffolding rather than content. */
+    .cc-divider,
+    .cc-divider-label,
+    .cc-divider-rule {
+      color: var(--info);
+    }
+    .cc-divider-rule {
+      background: color-mix(in srgb, var(--info) 35%, transparent);
+    }
+    .cc-divider .cc-chip {
+      color: var(--info);
+      border-color: color-mix(in srgb, var(--info) 50%, transparent);
+      background: color-mix(in srgb, var(--info) 12%, transparent);
+    }
+
+    /* ── 1.6.3 Claude assistant header — colored by skill role ──────
+       The wrapper sets data-role; CSS reads it via the same per-role
+       --pill-color block as role-pill, then colors the head row. */
+    .cc-assistant {
+      --turn-color: var(--specialist);
+    }
+    .cc-assistant[data-role="workflow"]     { --turn-color: var(--workflow); }
+    .cc-assistant[data-role="tri-agent"]    { --turn-color: var(--tri-agent); }
+    .cc-assistant[data-role="audit-gate"]   { --turn-color: var(--audit-gate); }
+    .cc-assistant[data-role="specialist"]   { --turn-color: var(--specialist); }
+    .cc-assistant[data-role="advisor"]      { --turn-color: var(--advisor); }
+    .cc-assistant[data-role="orchestrator"] { --turn-color: var(--orchestrator); }
+    .cc-assistant[data-role="success"]      { --turn-color: var(--success); }
+    .cc-assistant-head,
+    .cc-assistant-head .cc-name,
+    .cc-assistant-head .cc-skill,
+    .cc-assistant-head .cc-bullet,
+    .cc-assistant-head .cc-sep {
+      color: var(--turn-color);
+    }
+
+    /* ── 1.6.4 User two-tone — bold path-a header, path-b question ── */
+    .cc-user--two-tone .cc-user-text { color: var(--text); }
+    .cc-user--two-tone .cc-user-header {
+      color: var(--path-a);
+      font-weight: 700;
+    }
+    .cc-user--two-tone .cc-user-sep,
+    .cc-user--two-tone .cc-user-question {
+      color: var(--path-b);
+    }
+
+    /* ── 1.6.5 + 1.7.1 Artifacts (Write tool calls) ─────────────────
+       Warning-lime stripe with dotted top + bottom borders setting the
+       block apart from the surrounding chat. The expanded markdown body
+       below renders as a "fully-formatted markdown file" — generous
+       padding, code/heading rhythm, scrollable. */
+    .cc-tool {
+      --tool-color: var(--warning);
+      margin: 0.6rem 0;
+      padding: 0.55rem 0;
+      border-top: 1px dotted var(--tool-color);
+      border-bottom: 1px dotted var(--tool-color);
+      background: color-mix(in srgb, var(--tool-color) 6%, transparent);
+    }
+    .cc-tool .cc-bullet,
+    .cc-tool .cc-tool-name,
+    .cc-tool .cc-tool-paren,
+    .cc-tool .cc-tool-arg,
+    .cc-tool .cc-tool-elbow,
+    .cc-tool .cc-tool-result-text {
+      color: var(--tool-color);
+    }
+    .cc-tool .cc-tool-hint {
+      color: color-mix(in srgb, var(--tool-color) 70%, var(--muted));
+    }
+    .cc-tool-body {
+      margin-top: 0.5rem;
+      padding: 0.85rem 1rem;
+      background: var(--obsidian);
+      border: 0.5px solid color-mix(in srgb, var(--tool-color) 35%, var(--border));
+      border-radius: var(--r-sm);
+      max-height: 360px;
+      overflow: auto;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--text);
+    }
+    .cc-tool-body :global(p),
+    .cc-tool-body :global(li) { color: var(--text); }
+    .cc-tool-body :global(strong) { color: var(--text); }
+
+    /* ── 1.7 Detail card collapse ─────────────────────────────────── */
+    .detail-toggle {
+      appearance: none;
+      background: transparent;
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-xs);
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      cursor: pointer;
+      display: inline-grid;
+      place-items: center;
+      color: var(--muted);
+      transition:
+        color var(--dur-fast) var(--ease-standard),
+        border-color var(--dur-fast) var(--ease-standard),
+        background var(--dur-fast) var(--ease-standard);
+    }
+    .detail-toggle:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .detail-toggle:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .detail-toggle-chev {
+      transition: transform var(--dur-base) var(--ease-standard);
+      transform: rotate(-90deg);   /* points up when expanded   */
+    }
+    .detail.is-collapsed .detail-toggle-chev {
+      transform: rotate(90deg);    /* points down when collapsed */
+    }
+    .detail-body-wrap {
+      max-height: 2000px;
+      overflow: hidden;
+      transition:
+        max-height var(--dur-slow) var(--ease-standard),
+        opacity var(--dur-base) var(--ease-standard),
+        margin-top var(--dur-base) var(--ease-standard);
+    }
+    .detail.is-collapsed .detail-body-wrap {
+      max-height: 0;
+      opacity: 0;
+      margin-top: 0;
+      pointer-events: none;
+    }
+    .detail.is-collapsed .detail-summary {
+      display: none;
     }
   </style>
