@@ -28,10 +28,10 @@ const preselect = tryable[0]?.id || "";
       <Eyebrow>demo</Eyebrow>
       <h1>Two ways to feel it out.</h1>
       <p class="lede">
-        <strong>Replays</strong> scrub through curated skill conversations
-        end-to-end so you can see the work without setting anything up.
-        <strong>Live</strong> wires you up to a real instance for five
-        exchanges — your prompts, no sign-up.
+        <strong class="lede-replays">Replays</strong> walk you through
+        finished opchain sessions, end to end.
+        <strong class="lede-live">Live</strong> drops you into a real one
+        for five exchanges — your prompts, our instance, no sign-up.
       </p>
     </header>
 
@@ -39,15 +39,15 @@ const preselect = tryable[0]?.id || "";
          Clicking either card switches to that tab. -->
     <section class="mode-cards" aria-label="Demo modes overview">
       <button type="button" class="mode-card" data-mode="replays">
-        <span class="mode-card-tag" data-role="advisor">Replays</span>
+        <span class="mode-card-tag mode-card-tag--replays">Replays</span>
         <span class="mode-card-title">Watch a finished run</span>
         <span class="mode-card-body">
-          Four end-to-end opchain sessions. Step through, skip to the
+          Six end-to-end opchain sessions. Step through, skip to the
           payoff, jump between scenarios.
         </span>
       </button>
       <button type="button" class="mode-card" data-mode="live">
-        <span class="mode-card-tag" data-role="workflow">Live</span>
+        <span class="mode-card-tag mode-card-tag--live">Live</span>
         <span class="mode-card-title">Try one yourself</span>
         <span class="mode-card-body">
           Five exchanges with a real opchain skill. Pick a starting
@@ -178,7 +178,9 @@ const preselect = tryable[0]?.id || "";
     margin: 0;
     line-height: var(--lh-base);
   }
-  .lede strong { color: var(--ember); font-weight: 600; }
+  .lede strong { font-weight: 600; }
+  .lede-replays { color: var(--replays); }
+  .lede-live    { color: var(--live); }
 
   /* Two-card preview strip — both modes always visible. */
   .mode-cards {
@@ -230,8 +232,8 @@ const preselect = tryable[0]?.id || "";
     color: var(--pill-color);
     background: color-mix(in srgb, var(--pill-color) 15%, transparent);
   }
-  .mode-card-tag[data-role="workflow"] { --pill-color: var(--workflow); }
-  .mode-card-tag[data-role="advisor"]  { --pill-color: var(--advisor); }
+  .mode-card-tag--replays { --pill-color: var(--replays); }
+  .mode-card-tag--live    { --pill-color: var(--live); }
   .mode-card-title {
     font-family: var(--font-display);
     font-size: var(--fs-md);

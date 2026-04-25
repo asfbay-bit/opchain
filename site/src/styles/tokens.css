@@ -41,10 +41,14 @@
   --danger-dim:  rgba(216, 100, 100, 0.12);
   --success:     #10B981;
   --success-dim: rgba(16, 185, 129, 0.12);
-  --info:        #6cb2e0;
-  --info-dim:    rgba(108, 178, 224, 0.12);
-  --warning:     #e8c060;
-  --warning-dim: rgba(232, 192, 96, 0.12);
+  --info:        #64748B;
+  --info-dim:    rgba(100, 116, 139, 0.12);
+  --warning:     #84CC16;
+  --warning-dim: rgba(132, 204, 22, 0.12);
+  --in-progress: #F9A8D4;
+  --in-progress-dim: rgba(249, 168, 212, 0.12);
+  --destructive: #991B1B;
+  --destructive-dim: rgba(153, 27, 27, 0.12);
 
   /* ── Skill role tokens — opchain semantic palette ──
      One color per skill type. Used by the homepage skill pills
@@ -55,6 +59,14 @@
   --specialist:   #0D9488;  /* Deep Teal — standalone specialist     */
   --advisor:      #0EA5E9;  /* Light Blue — advisor                  */
   --orchestrator: #6D28D9;  /* Deep Plum — orchestrator              */
+
+  /* ── Path-branch tokens —
+     The two demo modes (Replays / Live) and any other place we
+     visually distinguish "primary path" vs "secondary path". */
+  --path-a:  #38BDF8;  /* Lighter Sky — primary path   */
+  --path-b:  #0369A1;  /* Dark Sky    — secondary path */
+  --replays: var(--path-a);
+  --live:    var(--path-b);
 
   /* Logo tokens */
   --logo-stroke:    var(--text);
@@ -170,12 +182,16 @@
 
   --danger:      #b33a3a;
   --danger-dim:  rgba(179, 58, 58, 0.10);
-  --success:     #3f7a55;
-  --success-dim: rgba(63, 122, 85, 0.10);
-  --info:        #2c6aa0;
-  --info-dim:    rgba(44, 106, 160, 0.10);
-  --warning:     #8a6b18;
-  --warning-dim: rgba(138, 107, 24, 0.10);
+  --success:     #047857;
+  --success-dim: rgba(4, 120, 87, 0.10);
+  --info:        #475569;
+  --info-dim:    rgba(71, 85, 105, 0.10);
+  --warning:     #4d7c0f;
+  --warning-dim: rgba(77, 124, 15, 0.10);
+  --in-progress: #be185d;
+  --in-progress-dim: rgba(190, 24, 93, 0.10);
+  --destructive: #7f1d1d;
+  --destructive-dim: rgba(127, 29, 29, 0.10);
 
   /* Layered shadows — lighter on light grounds to avoid heavy "web 2.0" bevel. */
   --shadow-sm:  0 1px 2px rgba(42, 22, 6, 0.08);
