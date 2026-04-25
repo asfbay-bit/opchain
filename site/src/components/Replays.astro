@@ -1,22 +1,15 @@
 ---
-import Base from "../layouts/Base.astro";
-import Eyebrow from "../components/ui/Eyebrow.astro";
-import Icon from "../components/Icon.astro";
+import Icon from "./Icon.astro";
 import { walkthroughs } from "../data/walkthroughs";
 
 /**
- * In Action — four scripted end-to-end sessions with opchain.
+ * Replays — four scripted end-to-end sessions with opchain.
  *
- * UX:
- *   - Scenario picker pills select one of the four transcripts.
- *   - Enter or "play" reveals the next step.
- *   - Space, "skip", or End reveals everything.
- *   - Backspace / "restart" resets to step 0.
- *   - Numeric keys 1-4 jump between scenarios.
+ * Used inside the Demo page's Replays tabpanel. The keyboard handler
+ * (Enter / Space / R / 1–4) is gated so it only responds when this
+ * component's hosting tabpanel is visible.
  */
 
-// Inline the transcripts as a JSON island the client script can read
-// without a round-trip. Static build, so this is free.
 const catalog = JSON.stringify(
   walkthroughs.map((w) => ({
     id: w.id,
@@ -33,28 +26,13 @@ const catalog = JSON.stringify(
 );
 ---
 
-<Base
-  title="In Action · opchain"
-  description="Four fully-scripted end-to-end sessions showing how opchain skills chain, from concept to deployed app."
-  active="/in-action"
->
-  <main class="page">
-    <header class="page-head">
-      <Eyebrow>in action</Eyebrow>
-      <h1>Proof, not pitches.</h1>
-      <p class="lede">
-        Four full opchain sessions, nothing redacted. A solo founder shipping
-        v1 in a single chat. A rescue on a three-year-old codebase nobody
-        remembers. A dashboard rebuild that halved the noise. Stripe
-        subscriptions gated by a real audit and shipped in a week.
-      </p>
-      <p class="kbd-hint">
-        <kbd>Enter</kbd> to live through each exchange ·
-        <kbd>Space</kbd> to skip to the payoff ·
-        <kbd>R</kbd> to restart ·
-        <kbd>1</kbd>–<kbd>4</kbd> to jump between scenarios.
-      </p>
-    </header>
+<div class="replays" id="replays-root">
+  <p class="kbd-hint">
+    <kbd>Enter</kbd> to live through each exchange ·
+    <kbd>Space</kbd> to skip to the payoff ·
+    <kbd>R</kbd> to restart ·
+    <kbd>1</kbd>–<kbd>4</kbd> to jump between scenarios.
+  </p>
 
     <!-- ───────────── Scenario picker — collapsed strip ───────────── -->
     <section class="scenarios" id="scenario-picker" role="tablist" aria-label="Pick a scenario">
@@ -168,9 +146,9 @@ const catalog = JSON.stringify(
         </p>
       </div>
     </section>
-  </main>
+</div>
 
-  <script is:inline id="walkthrough-data" type="application/json" set:html={catalog}></script>
+<script is:inline id="walkthrough-data" type="application/json" set:html={catalog}></script>
 
   <script>
     import { renderSafeMarkdown } from "../lib/markdown";
@@ -485,7 +463,17 @@ const catalog = JSON.stringify(
       });
     });
 
+    // When this component is mounted inside a tabpanel that's currently
+    // hidden, swallow the global shortcuts — otherwise pressing Enter on
+    // the Live tab would advance the (invisible) Replays transcript.
+    const replaysRoot = document.getElementById("replays-root");
+    function replaysVisible(): boolean {
+      const panel = replaysRoot?.closest("[role=tabpanel]") as HTMLElement | null;
+      return !panel || !panel.hidden;
+    }
+
     window.addEventListener("keydown", (ev) => {
+      if (!replaysVisible()) return;
       // Ignore shortcuts when the user is typing into a field.
       const target = ev.target as HTMLElement | null;
       if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
@@ -506,23 +494,9 @@ const catalog = JSON.stringify(
   </script>
 
   <style>
-    .page {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 3rem 1.5rem 6rem;
-    }
-    .page-head { margin-bottom: 2rem; }
-    .page-head h1 {
-      font-family: var(--font-display);
-      font-size: var(--fs-2xl);
-      font-weight: 600;
-      letter-spacing: var(--ls-tight);
-      color: var(--text);
-      margin: 0.5rem 0 1rem;
-    }
-    .lede { color: var(--muted); max-width: 42rem; margin: 0 0 0.9rem; }
+    .replays { display: block; }
     .kbd-hint {
-      margin: 0;
+      margin: 0 0 1.25rem;
       font-family: var(--font-mono);
       font-size: var(--fs-xs);
       letter-spacing: var(--ls-wide);
@@ -1324,4 +1298,3 @@ const catalog = JSON.stringify(
       .player-head { flex-direction: column; align-items: flex-start; }
     }
   </style>
-</Base>

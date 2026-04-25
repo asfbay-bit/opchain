@@ -36,20 +36,20 @@ describe("legacy .html redirects", () => {
     expect(res.headers.get("Location")).toBe("https://opchain.dev/architecture");
   });
 
-  it("301s /tryit.html to /tryit", async () => {
+  it("301s /tryit.html straight to /demo#live (legacy + folded route, single hop)", async () => {
     const res = await worker.fetch(new Request("https://opchain.dev/tryit.html"), makeEnv());
     expect(res.status).toBe(301);
-    expect(res.headers.get("Location")).toBe("https://opchain.dev/tryit");
+    expect(res.headers.get("Location")).toBe("https://opchain.dev/demo#live");
   });
 
-  it("preserves query string in the redirect", async () => {
+  it("preserves query string when redirecting /tryit.html?skill= to /demo?skill=#live", async () => {
     const res = await worker.fetch(
       new Request("https://opchain.dev/tryit.html?skill=code-auditor"),
       makeEnv(),
     );
     expect(res.status).toBe(301);
     expect(res.headers.get("Location")).toBe(
-      "https://opchain.dev/tryit?skill=code-auditor",
+      "https://opchain.dev/demo?skill=code-auditor#live",
     );
   });
 
@@ -60,5 +60,30 @@ describe("legacy .html redirects", () => {
     );
     // POST falls through to ASSETS, which returns 200 from our mock.
     expect(res.status).not.toBe(301);
+  });
+});
+
+describe("demo route consolidation", () => {
+  it("301s /in-action to /demo", async () => {
+    const res = await worker.fetch(new Request("https://opchain.dev/in-action"), makeEnv());
+    expect(res.status).toBe(301);
+    expect(res.headers.get("Location")).toBe("https://opchain.dev/demo");
+  });
+
+  it("301s /tryit to /demo#live", async () => {
+    const res = await worker.fetch(new Request("https://opchain.dev/tryit"), makeEnv());
+    expect(res.status).toBe(301);
+    expect(res.headers.get("Location")).toBe("https://opchain.dev/demo#live");
+  });
+
+  it("preserves ?skill= when redirecting /tryit to /demo", async () => {
+    const res = await worker.fetch(
+      new Request("https://opchain.dev/tryit?skill=code-auditor"),
+      makeEnv(),
+    );
+    expect(res.status).toBe(301);
+    expect(res.headers.get("Location")).toBe(
+      "https://opchain.dev/demo?skill=code-auditor#live",
+    );
   });
 });

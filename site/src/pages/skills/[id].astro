@@ -71,7 +71,7 @@ const description = `${skill.data.displayName} — ${skill.data.shortDesc}`;
         {skill.data.tryable ? (
           <>
             <p class="quick-body">5 free exchanges with this skill — no install needed.</p>
-            <Button variant="primary" size="sm" href={`/tryit?skill=${skill.data.name}`}>
+            <Button variant="primary" size="sm" href={`/demo?skill=${skill.data.name}#live`}>
               <Icon name="sparkles" size={12} />
               try {skill.data.displayName}
             </Button>

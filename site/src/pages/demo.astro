@@ -1,0 +1,292 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Replays from "../components/Replays.astro";
+import TryIt from "../components/TryIt.astro";
+import { getTryablePrompts } from "../lib/skills";
+
+/**
+ * Demo — folds the previous /in-action and /tryit into one route.
+ *
+ * Layout: two-card preview row at the top so both modes are visible
+ * at a glance, then a tab bar (Replays default, Live secondary), then
+ * the active tabpanel. Hash sync (#replays / #live) makes both modes
+ * deep-linkable; clicking the cards switches tabs.
+ */
+
+const tryable = await getTryablePrompts();
+const preselect = tryable[0]?.id || "";
+---
+
+<Base
+  title="Demo · opchain"
+  description="Two ways to feel out opchain — replay curated skill conversations end-to-end, or take five exchanges live with a real instance."
+  active="/demo"
+>
+  <main class="page">
+    <header class="page-head">
+      <Eyebrow>demo</Eyebrow>
+      <h1>Two ways to feel it out.</h1>
+      <p class="lede">
+        <strong>Replays</strong> scrub through curated skill conversations
+        end-to-end so you can see the work without setting anything up.
+        <strong>Live</strong> wires you up to a real instance for five
+        exchanges — your prompts, no sign-up.
+      </p>
+    </header>
+
+    <!-- Two-card preview strip — both modes visible at a glance.
+         Clicking either card switches to that tab. -->
+    <section class="mode-cards" aria-label="Demo modes overview">
+      <button type="button" class="mode-card" data-mode="replays">
+        <span class="mode-card-tag" data-role="advisor">Replays</span>
+        <span class="mode-card-title">Watch a finished run</span>
+        <span class="mode-card-body">
+          Four end-to-end opchain sessions. Step through, skip to the
+          payoff, jump between scenarios.
+        </span>
+      </button>
+      <button type="button" class="mode-card" data-mode="live">
+        <span class="mode-card-tag" data-role="workflow">Live</span>
+        <span class="mode-card-title">Try one yourself</span>
+        <span class="mode-card-body">
+          Five exchanges with a real opchain skill. Pick a starting
+          prompt or write your own. No install, no API key.
+        </span>
+      </button>
+    </section>
+
+    <!-- Tab bar -->
+    <div class="tabs" role="tablist" aria-label="Demo mode">
+      <button
+        type="button"
+        role="tab"
+        id="tab-replays"
+        class="tab is-active"
+        data-mode="replays"
+        aria-selected="true"
+        aria-controls="panel-replays"
+      >
+        Replays
+      </button>
+      <button
+        type="button"
+        role="tab"
+        id="tab-live"
+        class="tab"
+        data-mode="live"
+        aria-selected="false"
+        aria-controls="panel-live"
+      >
+        Live
+      </button>
+    </div>
+
+    <!-- Panels — only one visible at a time -->
+    <section
+      role="tabpanel"
+      id="panel-replays"
+      class="panel"
+      data-mode="replays"
+      aria-labelledby="tab-replays"
+    >
+      <Replays />
+    </section>
+
+    <section
+      role="tabpanel"
+      id="panel-live"
+      class="panel"
+      data-mode="live"
+      aria-labelledby="tab-live"
+      hidden
+    >
+      <TryIt preselect={preselect} />
+      <p class="footnote">
+        Ready to go deeper?
+        <a href="/install">install opchain</a> for unlimited use in your own Claude Code.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    // Hash-driven tab switching. #live → Live; anything else → Replays.
+    // Cards mirror the tabs (same data-mode), so they share the handler.
+    type Mode = "replays" | "live";
+
+    const tabs   = document.querySelectorAll<HTMLButtonElement>(".tab[data-mode]");
+    const cards  = document.querySelectorAll<HTMLButtonElement>(".mode-card[data-mode]");
+    const panels = document.querySelectorAll<HTMLElement>(".panel[data-mode]");
+
+    function show(mode: Mode, options: { pushHash?: boolean } = { pushHash: true }) {
+      tabs.forEach((t) => {
+        const matched = t.dataset.mode === mode;
+        t.classList.toggle("is-active", matched);
+        t.setAttribute("aria-selected", matched ? "true" : "false");
+      });
+      cards.forEach((c) => {
+        c.classList.toggle("is-active", c.dataset.mode === mode);
+      });
+      panels.forEach((p) => {
+        p.hidden = p.dataset.mode !== mode;
+      });
+      if (options.pushHash) {
+        const target = mode === "live" ? "#live" : "#replays";
+        if (location.hash !== target) {
+          history.replaceState(null, "", target);
+        }
+      }
+    }
+
+    function modeFromHash(): Mode {
+      return location.hash === "#live" ? "live" : "replays";
+    }
+
+    [...tabs, ...cards].forEach((el) => {
+      el.addEventListener("click", () => {
+        const mode = (el.dataset.mode === "live" ? "live" : "replays") as Mode;
+        show(mode);
+      });
+    });
+
+    window.addEventListener("hashchange", () => show(modeFromHash(), { pushHash: false }));
+
+    // Initial render — respect the hash so /demo#live works as a deep link
+    // (and so the /tryit redirect lands users on Live).
+    show(modeFromHash(), { pushHash: false });
+  </script>
+</Base>
+
+<style>
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+  }
+  .page-head { margin-bottom: 1.5rem; }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+    color: var(--text);
+    margin: 0.5rem 0 0.9rem;
+  }
+  .lede {
+    color: var(--muted);
+    max-width: 44rem;
+    margin: 0;
+    line-height: var(--lh-base);
+  }
+  .lede strong { color: var(--ember); font-weight: 600; }
+
+  /* Two-card preview strip — both modes always visible. */
+  .mode-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin: 1.5rem 0 1.25rem;
+  }
+  .mode-card {
+    appearance: none;
+    text-align: left;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    color: var(--text);
+    font: inherit;
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard),
+      transform var(--dur-fast) var(--ease-standard);
+  }
+  .mode-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .mode-card.is-active {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .mode-card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .mode-card-tag {
+    --pill-color: var(--specialist);
+    align-self: flex-start;
+    padding: 2px 7px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+    border: 0.5px solid var(--pill-color);
+    color: var(--pill-color);
+    background: color-mix(in srgb, var(--pill-color) 15%, transparent);
+  }
+  .mode-card-tag[data-role="workflow"] { --pill-color: var(--workflow); }
+  .mode-card-tag[data-role="advisor"]  { --pill-color: var(--advisor); }
+  .mode-card-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.005em;
+  }
+  .mode-card-body {
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+  }
+
+  /* Tabs — sit between cards and the active panel. */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 0.5px solid var(--border);
+    margin: 0 0 1.25rem;
+  }
+  .tab {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: var(--ls-wide);
+    padding: 0.65rem 1rem;
+    cursor: pointer;
+    transition:
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+  }
+  .tab:hover { color: var(--text); }
+  .tab.is-active {
+    color: var(--ember);
+    border-bottom-color: var(--ember);
+  }
+  .tab:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .panel[hidden] { display: none; }
+
+  .footnote {
+    color: var(--subtle);
+    font-size: var(--fs-sm);
+    margin-top: 1.5rem;
+  }
+  .footnote a { color: var(--accent); }
+
+  @media (max-width: 640px) {
+    .mode-cards { grid-template-columns: 1fr; }
+  }
+</style>
