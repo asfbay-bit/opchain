@@ -149,8 +149,14 @@ const catalog = JSON.stringify(
         <span class="progress-label" id="progress-label" aria-live="polite">step 0 of 0</span>
       </div>
 
-      <div id="transcript" class="transcript" aria-live="polite" aria-atomic="false">
-        <!-- Populated by the client script. An initial prompt is shown below. -->
+      <div class="terminal" id="transcript-wrap">
+        <div class="cc-statusline">
+          <span class="cc-cwd" id="cc-cwd">~/sessions/concept-to-shipped</span>
+          <span class="cc-mode">claude-opus-4-7  ·  auto-accept</span>
+        </div>
+        <div id="transcript" class="cc-stream" aria-live="polite" aria-atomic="false">
+          <!-- Populated by the client script. An initial prompt is shown below. -->
+        </div>
       </div>
 
       <div class="start-prompt" id="start-prompt">
@@ -217,6 +223,7 @@ const catalog = JSON.stringify(
     const detailInputs = document.getElementById("detail-inputs")!;
     const detailOuts   = document.getElementById("detail-outputs")!;
     const transcript   = document.getElementById("transcript")!;
+    const cwd          = document.getElementById("cc-cwd")!;
     const progressBar  = document.getElementById("progress-bar")!;
     const progressLbl  = document.getElementById("progress-label")!;
     const playBtn      = document.getElementById("btn-play")! as HTMLButtonElement;
@@ -244,6 +251,7 @@ const catalog = JSON.stringify(
       eyebrow.textContent = `scenario · 0${i + 1}`;
       playLbl.textContent = "start";
       startPrompt.hidden = false;
+      cwd.textContent = `~/sessions/${w.id}`;
 
       // Detail panel — title, summary, body, runtime, skills, I/O, artifacts.
       detailTitle.textContent = w.title;
@@ -316,48 +324,62 @@ const catalog = JSON.stringify(
     function renderStep(step: Step) {
       if (step.type === "beat") {
         const el = document.createElement("div");
-        el.className = "beat";
+        el.className = "cc-divider";
         const skillsHtml = (step.skills ?? [])
-          .map((s) => `<code class="chip">${escapeHTML(s)}</code>`)
+          .map((s) => `<code class="cc-chip">${escapeHTML(s)}</code>`)
           .join("");
+        const labelText = step.caption
+          ? `${step.label} — ${step.caption}`
+          : step.label;
         el.innerHTML = `
-          <div class="beat-rule"></div>
-          <div class="beat-body">
-            <div class="beat-label">${escapeHTML(step.label)}</div>
-            ${step.caption ? `<div class="beat-caption">${escapeHTML(step.caption)}</div>` : ""}
-            ${skillsHtml ? `<div class="beat-skills">${skillsHtml}</div>` : ""}
-          </div>
-          <div class="beat-rule"></div>
+          <span class="cc-divider-rule"></span>
+          <span class="cc-divider-label">${escapeHTML(labelText)}</span>
+          ${skillsHtml ? `<span class="cc-divider-skills">${skillsHtml}</span>` : ""}
+          <span class="cc-divider-rule"></span>
         `;
         transcript.appendChild(el);
         return el;
       }
 
-      const wrap = document.createElement("div");
-      wrap.className = `msg msg--${step.role === "user" ? "user" : "assistant"}`;
+      // User input — bordered terminal box with > prefix.
+      if (step.role === "user") {
+        const wrap = document.createElement("div");
+        wrap.className = "cc-user";
+        wrap.innerHTML = `
+          <span class="cc-user-mark" aria-hidden="true">&gt;</span>
+          <span class="cc-user-text"></span>
+        `;
+        const text = wrap.querySelector(".cc-user-text") as HTMLElement;
+        text.textContent = step.content;
+        transcript.appendChild(wrap);
+        return wrap;
+      }
 
-      const label = document.createElement("div");
-      label.className = "msg-label";
-      label.textContent = step.role === "user"
-        ? "you"
-        : (step.skill ? `claude · ${step.skill}` : "claude");
-      wrap.appendChild(label);
+      // Assistant turn — `● claude · skill` head, body, optional ⎿ footer.
+      const wrap = document.createElement("div");
+      wrap.className = "cc-assistant";
+
+      const head = document.createElement("div");
+      head.className = "cc-assistant-head";
+      const skillBit = step.skill
+        ? `<span class="cc-sep">·</span><span class="cc-skill">${escapeHTML(step.skill)}</span>`
+        : "";
+      head.innerHTML = `
+        <span class="cc-bullet" aria-hidden="true">●</span>
+        <span class="cc-name">claude</span>
+        ${skillBit}
+      `;
+      wrap.appendChild(head);
 
       const body = document.createElement("div");
-      body.className = "msg-content markdown";
-      if (step.role === "user") {
-        body.textContent = step.content;
-      } else {
-        body.innerHTML = renderSafeMarkdown(step.content);
-      }
+      body.className = "cc-assistant-body markdown";
+      body.innerHTML = renderSafeMarkdown(step.content);
       wrap.appendChild(body);
 
-      // Artifact refs — one dotted-outlined "file group" per message.
-      // The tab strip shows the filename (artifact.kind); clicking a tab
-      // expands its body inline. Clicking the active tab again collapses.
-      // If the message produced multiple files, switching tabs swaps the
-      // rendered body without collapsing.
-      if (step.role === "claude" && step.artifacts && step.artifacts.length > 0) {
+      // Tool calls (artifacts produced by this turn). Each artifact renders
+      // as `● Write(filename)` with an indented ⎿ result line; clicking the
+      // result expands the full body inline below.
+      if (step.artifacts && step.artifacts.length > 0) {
         const byId = new Map(
           currentScenario().outputs.map((a) => [a.id, a] as const),
         );
@@ -365,31 +387,42 @@ const catalog = JSON.stringify(
           .map((id) => byId.get(id))
           .filter((a): a is Artifact => !!a);
 
-        if (refs.length > 0) {
-          const group = document.createElement("div");
-          group.className = "file-group";
-
-          const tabstrip = document.createElement("div");
-          tabstrip.className = "file-tabs";
-          tabstrip.setAttribute("role", "tablist");
-
-          const fileBody = document.createElement("div");
-          fileBody.className = "file-body markdown";
-          fileBody.hidden = true;
-
-          let activeIdx = -1;   // -1 = collapsed
-
-          const renderActive = () => {
-            if (activeIdx < 0) {
-              fileBody.hidden = true;
+        for (const a of refs) {
+          const tool = document.createElement("div");
+          tool.className = "cc-tool";
+          const arg = a.kind || a.label;
+          tool.innerHTML = `
+            <div class="cc-tool-head">
+              <span class="cc-bullet cc-bullet--tool" aria-hidden="true">●</span>
+              <span class="cc-tool-name">Write</span><span class="cc-tool-paren" aria-hidden="true">(</span><span class="cc-tool-arg"></span><span class="cc-tool-paren" aria-hidden="true">)</span>
+            </div>
+            <button type="button" class="cc-tool-result" aria-expanded="false">
+              <span class="cc-tool-elbow" aria-hidden="true">⎿</span>
+              <span class="cc-tool-result-text">  </span>
+              <span class="cc-tool-hint">click to expand</span>
+            </button>
+            <div class="cc-tool-body markdown" hidden></div>
+          `;
+          (tool.querySelector(".cc-tool-arg") as HTMLElement).textContent = arg;
+          (tool.querySelector(".cc-tool-result-text") as HTMLElement).textContent = a.label;
+          const btn = tool.querySelector(".cc-tool-result") as HTMLButtonElement;
+          const hint = tool.querySelector(".cc-tool-hint") as HTMLElement;
+          const toolBody = tool.querySelector(".cc-tool-body") as HTMLElement;
+          btn.addEventListener("click", () => {
+            const open = btn.getAttribute("aria-expanded") === "true";
+            if (open) {
+              toolBody.hidden = true;
+              btn.setAttribute("aria-expanded", "false");
+              hint.textContent = "click to expand";
               return;
             }
-            const a = refs[activeIdx];
-            fileBody.innerHTML = renderSafeMarkdown(a.body);
-            fileBody.hidden = false;
+            toolBody.innerHTML = renderSafeMarkdown(a.body);
+            toolBody.hidden = false;
+            btn.setAttribute("aria-expanded", "true");
+            hint.textContent = "click to collapse";
             requestAnimationFrame(() => {
               const tRect = transcript.getBoundingClientRect();
-              const gRect = group.getBoundingClientRect();
+              const gRect = tool.getBoundingClientRect();
               const target =
                 transcript.scrollTop + (gRect.top - tRect.top) - 12;
               transcript.scrollTo({
@@ -397,35 +430,8 @@ const catalog = JSON.stringify(
                 behavior: "smooth",
               });
             });
-          };
-
-          const tabs: HTMLButtonElement[] = refs.map((a, i) => {
-            const tab = document.createElement("button");
-            tab.type = "button";
-            tab.className = "file-tab";
-            tab.setAttribute("role", "tab");
-            tab.setAttribute("aria-selected", "false");
-            tab.innerHTML = `
-              <svg class="file-tab-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              <span class="file-tab-name">${escapeHTML(a.kind || a.label)}</span>
-            `;
-            tab.title = a.label;
-            tab.addEventListener("click", () => {
-              if (activeIdx === i) {
-                // Clicking the open tab collapses the group.
-                activeIdx = -1;
-              } else {
-                activeIdx = i;
-              }
-              tabs.forEach((t, ti) => t.setAttribute("aria-selected", String(ti === activeIdx)));
-              renderActive();
-            });
-            return tab;
           });
-
-          tabs.forEach((t) => tabstrip.appendChild(t));
-          group.append(tabstrip, fileBody);
-          wrap.appendChild(group);
+          wrap.appendChild(tool);
         }
       }
 
@@ -918,328 +924,400 @@ const catalog = JSON.stringify(
       letter-spacing: var(--ls-wide);
     }
 
-    /* ── Transcript + messages ───────────────────────────────── */
-    /* Fixed height so adding messages scrolls inside the chat, not the
-       page. Page is stationary; the chat canvas keeps moving up on its
-       own as exchanges stack. `height` (not max-height) so the container
-       holds its size even when near-empty. `overscroll-behavior: contain`
-       stops a scroll at the chat edge from bubbling to the page. */
-    .transcript {
-      height: 60vh;
-      min-height: 20rem;
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      padding: 1rem 1.1rem;
+    /* ─────────────────────────────────────────────────────────
+       Terminal — Claude Code-styled chat surface.
+
+       Replaces the prior chat-bubble metaphor with a single dark
+       terminal frame: monospace prose flow, > user input box,
+       ● claude · skill assistant turns, ● Write(file) tool calls
+       with ⎿ result lines, and ── beat ── dividers. Tokens scoped
+       to .terminal so they don't leak.
+    ───────────────────────────────────────────────────────── */
+    .terminal {
+      --cc-bg:      #181818;
+      --cc-fg:      #e8e8e8;
+      --cc-dim:     #8a8a8a;
+      --cc-subtle:  #5a5a5a;
+      --cc-cyan:    #62afff;
+      --cc-orange:  #d99155;
+      --cc-purple:  #b294ff;
+      --cc-green:   #9ece6a;
+      --cc-red:     #f7768e;
+      --cc-border:  #2a2a2a;
+      --cc-hover:   #222222;
+
+      font-family: 'JetBrains Mono', 'SF Mono', Menlo, ui-monospace, monospace;
+      background: var(--cc-bg);
+      border: 0.5px solid var(--cc-border);
+      border-radius: var(--r-md);
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: 0.85rem;
-      background: var(--obsidian);
-      border: 0.5px solid var(--slag);
-      border-radius: var(--r-md);
+      height: 60vh;
+      min-height: 22rem;
     }
     @media (max-width: 720px) {
-      .transcript { height: 70vh; }
+      .terminal { height: 70vh; }
     }
 
+    /* Status line — working dir left, model + mode right. */
+    .cc-statusline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.9rem;
+      background: #0f0f0f;
+      border-bottom: 0.5px solid var(--cc-border);
+      font-size: 11px;
+      color: var(--cc-dim);
+      letter-spacing: 0.01em;
+    }
+    .cc-cwd { color: var(--cc-cyan); }
+    .cc-mode { color: var(--cc-dim); white-space: nowrap; }
+
+    /* Scrollable transcript inside the terminal. */
+    .cc-stream {
+      flex: 1;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 0.85rem 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      color: var(--cc-fg);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .cc-stream::-webkit-scrollbar { width: 8px; }
+    .cc-stream::-webkit-scrollbar-track { background: transparent; }
+    .cc-stream::-webkit-scrollbar-thumb {
+      background: var(--cc-border);
+      border-radius: 4px;
+    }
+
+    /* ── User input box ───────────────────────────────────── */
+    .cc-user {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.55rem;
+      padding: 0.6rem 0.85rem;
+      border: 0.5px solid var(--cc-border);
+      border-radius: var(--r-sm);
+      background: #1d1d1d;
+    }
+    .cc-user-mark {
+      color: var(--cc-orange);
+      font-weight: 600;
+      flex: 0 0 auto;
+      user-select: none;
+    }
+    .cc-user-text {
+      color: var(--cc-fg);
+      white-space: pre-wrap;
+      word-break: break-word;
+      flex: 1 1 auto;
+    }
+
+    /* ── Assistant turn — `● claude · <skill>` head + body ── */
+    .cc-assistant {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .cc-assistant-head {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 13px;
+      line-height: 1;
+    }
+    .cc-bullet {
+      color: var(--cc-cyan);
+      font-size: 14px;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+    .cc-bullet--tool { color: var(--cc-cyan); }
+    .cc-name { color: var(--cc-fg); font-weight: 600; }
+    .cc-sep { color: var(--cc-subtle); }
+    .cc-skill { color: var(--cc-purple); }
+
+    .cc-assistant-body {
+      padding-left: 1.25rem;        /* aligns body under the bullet */
+      color: var(--cc-fg);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* Markdown inside the assistant body. Tight, mono prose. */
+    .cc-assistant-body :global(p) { margin: 0 0 0.55rem; }
+    .cc-assistant-body :global(p:last-child) { margin-bottom: 0; }
+    .cc-assistant-body :global(strong) { color: #ffffff; font-weight: 600; }
+    .cc-assistant-body :global(em) { color: var(--cc-fg); font-style: italic; }
+    .cc-assistant-body :global(h1),
+    .cc-assistant-body :global(h2),
+    .cc-assistant-body :global(h3) {
+      font-family: inherit;
+      font-weight: 600;
+      color: #ffffff;
+      margin: 0.65rem 0 0.3rem;
+    }
+    .cc-assistant-body :global(h1) { font-size: 14px; }
+    .cc-assistant-body :global(h2) { font-size: 13px; }
+    .cc-assistant-body :global(h3) { font-size: 12px; color: var(--cc-fg); }
+    .cc-assistant-body :global(ul),
+    .cc-assistant-body :global(ol) {
+      margin: 0.25rem 0 0.55rem 1.25rem;
+      padding: 0;
+    }
+    .cc-assistant-body :global(li) { margin: 0.1rem 0; }
+    .cc-assistant-body :global(code) {
+      font-family: inherit;
+      font-size: 12px;
+      background: rgba(98, 175, 255, 0.08);
+      color: var(--cc-cyan);
+      padding: 0 4px;
+      border-radius: var(--r-xs);
+    }
+    .cc-assistant-body :global(pre) {
+      background: #0f0f0f;
+      color: var(--cc-fg);
+      border: 0.5px solid var(--cc-border);
+      border-radius: var(--r-sm);
+      padding: 0.65rem 0.85rem;
+      overflow-x: auto;
+      font-size: 12px;
+      margin: 0.4rem 0 0.55rem;
+    }
+    .cc-assistant-body :global(pre code) {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      font-size: inherit;
+    }
+    .cc-assistant-body :global(table) {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin: 0.55rem 0;
+    }
+    .cc-assistant-body :global(th),
+    .cc-assistant-body :global(td) {
+      border: 0.5px solid var(--cc-border);
+      padding: 0.3rem 0.55rem;
+      text-align: left;
+      color: var(--cc-fg);
+    }
+    .cc-assistant-body :global(th) {
+      background: #0f0f0f;
+      color: var(--cc-dim);
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    .cc-assistant-body :global(blockquote) {
+      border-left: 2px solid var(--cc-cyan);
+      padding: 0.2rem 0 0.2rem 0.8rem;
+      margin: 0.5rem 0;
+      color: var(--cc-dim);
+    }
+
+    /* ── Tool call — `● Write(file)` + `⎿ result · click` ─── */
+    .cc-tool {
+      margin-top: 0.5rem;
+      padding-left: 1.25rem;        /* aligns under the assistant body */
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .cc-tool-head {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .cc-tool-name { color: var(--cc-cyan); font-weight: 600; }
+    .cc-tool-paren { color: var(--cc-subtle); }
+    .cc-tool-arg { color: var(--cc-fg); }
+
+    .cc-tool-result {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.15rem 0.4rem 0.15rem 0;
+      background: transparent;
+      border: 0;
+      color: var(--cc-dim);
+      font: inherit;
+      font-size: 12px;
+      line-height: 1.4;
+      cursor: pointer;
+      text-align: left;
+      margin-left: 0.4rem;
+    }
+    .cc-tool-result:hover { color: var(--cc-fg); }
+    .cc-tool-result:hover .cc-tool-hint { color: var(--cc-cyan); }
+    .cc-tool-result:focus-visible {
+      outline: 1px solid var(--cc-cyan);
+      outline-offset: 2px;
+      border-radius: var(--r-xs);
+      color: var(--cc-fg);
+    }
+    .cc-tool-elbow {
+      color: var(--cc-subtle);
+      font-size: 13px;
+      line-height: 1;
+      flex: 0 0 auto;
+      transition: color var(--dur-fast) var(--ease-standard);
+    }
+    .cc-tool-result[aria-expanded="true"] .cc-tool-elbow { color: var(--cc-cyan); }
+    .cc-tool-result-text { color: var(--cc-fg); }
+    .cc-tool-hint {
+      color: var(--cc-subtle);
+      font-size: 11px;
+      font-style: italic;
+    }
+
+    .cc-tool-body {
+      margin: 0.35rem 0 0.25rem 1.4rem;
+      padding: 0.7rem 0.9rem;
+      background: #0f0f0f;
+      border: 0.5px solid var(--cc-border);
+      border-radius: var(--r-sm);
+      color: var(--cc-fg);
+      font-size: 12px;
+      line-height: 1.6;
+      max-height: 24rem;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .cc-tool-body[hidden] { display: none; }
+    .cc-tool-body :global(h1),
+    .cc-tool-body :global(h2),
+    .cc-tool-body :global(h3) {
+      font-family: inherit;
+      color: #ffffff;
+      font-weight: 600;
+      margin: 0.5rem 0 0.3rem;
+    }
+    .cc-tool-body :global(h1) { font-size: 13px; }
+    .cc-tool-body :global(h2) { font-size: 12px; }
+    .cc-tool-body :global(h3) { font-size: 12px; color: var(--cc-fg); }
+    .cc-tool-body :global(p) { margin: 0 0 0.45rem; color: var(--cc-fg); }
+    .cc-tool-body :global(ul),
+    .cc-tool-body :global(ol) { margin: 0.2rem 0 0.45rem 1.2rem; padding: 0; color: var(--cc-fg); }
+    .cc-tool-body :global(li) { margin: 0.1rem 0; }
+    .cc-tool-body :global(strong) { color: #ffffff; font-weight: 600; }
+    .cc-tool-body :global(code) {
+      font-family: inherit;
+      font-size: 11px;
+      background: rgba(98, 175, 255, 0.08);
+      color: var(--cc-cyan);
+      padding: 0 4px;
+      border-radius: var(--r-xs);
+    }
+    .cc-tool-body :global(pre) {
+      background: #050505;
+      color: var(--cc-fg);
+      border: 0.5px solid var(--cc-border);
+      border-radius: var(--r-sm);
+      padding: 0.6rem 0.8rem;
+      overflow-x: auto;
+      font-size: 11px;
+      margin: 0.35rem 0 0.5rem;
+    }
+    .cc-tool-body :global(pre code) {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      font-size: inherit;
+    }
+    .cc-tool-body :global(table) {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin: 0.4rem 0;
+    }
+    .cc-tool-body :global(th),
+    .cc-tool-body :global(td) {
+      border: 0.5px solid var(--cc-border);
+      padding: 0.25rem 0.5rem;
+      text-align: left;
+      color: var(--cc-fg);
+    }
+    .cc-tool-body :global(th) {
+      background: #050505;
+      color: var(--cc-dim);
+      font-weight: 600;
+    }
+    .cc-tool-body :global(blockquote) {
+      border-left: 2px solid var(--cc-cyan);
+      padding: 0.2rem 0 0.2rem 0.7rem;
+      margin: 0.4rem 0;
+      color: var(--cc-dim);
+    }
+
+    /* ── Beat divider — `── 02 · Scaffold + wire ──` ──────── */
+    .cc-divider {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 0.5rem 0 0.25rem;
+      padding: 0.25rem 0;
+      font-size: 11px;
+      color: var(--cc-dim);
+    }
+    .cc-divider-rule {
+      flex: 1 1 auto;
+      min-width: 1rem;
+      height: 0;
+      border-top: 0.5px solid var(--cc-border);
+    }
+    .cc-divider-rule:first-child { flex: 0 0 1.5rem; }
+    .cc-divider-label {
+      color: var(--cc-cyan);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+    .cc-divider-skills {
+      display: inline-flex;
+      gap: 0.3rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      flex: 0 0 auto;
+    }
+    .cc-chip {
+      font-family: inherit;
+      font-size: 10px;
+      color: var(--cc-purple);
+      background: rgba(178, 148, 255, 0.08);
+      border: 0.5px solid var(--cc-border);
+      padding: 1px 6px;
+      border-radius: var(--r-xs);
+      letter-spacing: 0.01em;
+    }
+
+    /* ── Start prompt — restyled to match the terminal ────── */
     .start-prompt {
       display: flex;
       align-items: center;
       gap: 0.6rem;
       padding: 0.85rem 1rem;
-      border: 0.5px dashed var(--slag);
+      border: 0.5px dashed var(--cc-border, var(--slag));
       border-radius: var(--r-md);
-      color: var(--sand);
-      background: var(--forge);
-      font-size: var(--fs-sm);
-      margin-top: 0.5rem;
+      color: var(--cc-dim, var(--sand));
+      background: var(--cc-bg, var(--forge));
+      font-family: 'JetBrains Mono', 'SF Mono', Menlo, ui-monospace, monospace;
+      font-size: 12px;
+      margin-top: 0.6rem;
     }
     .start-prompt[hidden] { display: none; }
     .start-prompt kbd {
-      background: var(--obsidian);
-      border: 0.5px solid var(--slag);
-      color: var(--linen);
-    }
-
-    .msg { max-width: 88%; }
-    .msg--assistant { align-self: flex-start; }   /* Claude on the left */
-    .msg--user      { align-self: flex-end;   }   /* user on the right  */
-    .msg-label {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      font-weight: 500;
-      letter-spacing: var(--ls-wider);
-      text-transform: uppercase;
-      color: var(--sand);
-      margin-bottom: 0.3rem;
-      opacity: 0.8;
-    }
-    .msg--user .msg-label { text-align: right; }
-    .msg-content {
-      padding: 0.8rem 1rem;
-      border-radius: var(--r-md);
-      font-size: var(--fs-sm);
-      line-height: var(--lh-base);
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      border: 0.5px solid;
-    }
-    /* Claude (left): muted forge bubble with ember accent edge */
-    .msg--assistant .msg-content {
-      background: var(--forge);
-      border-color: var(--slag);
-      color: var(--linen);
-      border-bottom-left-radius: var(--r-xs);
-    }
-    /* User (right): ember-accent bubble, clearly different from Claude's */
-    .msg--user .msg-content {
-      background: var(--accent);
-      border-color: var(--accent-hover);
-      color: var(--obsidian);
-      border-bottom-right-radius: var(--r-xs);
-      font-weight: 500;
-    }
-
-    /* Markdown prose — scoped to the assistant bubble (dark background). */
-    .msg--assistant .msg-content :global(p) { margin: 0 0 0.55rem; color: var(--linen); }
-    .msg--assistant .msg-content :global(p:last-child) { margin-bottom: 0; }
-    .msg--assistant .msg-content :global(h1),
-    .msg--assistant .msg-content :global(h2),
-    .msg--assistant .msg-content :global(h3) {
-      font-family: var(--font-display);
-      color: var(--parchment);
-      margin: 0.5rem 0 0.35rem;
-    }
-    .msg--assistant .msg-content :global(h2) { font-size: var(--fs-md); }
-    .msg--assistant .msg-content :global(h3) { font-size: var(--fs-sm); }
-    .msg--assistant .msg-content :global(ul),
-    .msg--assistant .msg-content :global(ol) {
-      margin: 0.25rem 0 0.55rem 1.1rem;
-      padding: 0;
-      color: var(--linen);
-    }
-    .msg--assistant .msg-content :global(li) { margin: 0.1rem 0; }
-    .msg--assistant .msg-content :global(code) {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      background: var(--obsidian);
-      border: 0.5px solid var(--slag);
-      color: var(--sand);
-      padding: 1px 5px;
-      border-radius: var(--r-xs);
-    }
-    .msg--assistant .msg-content :global(pre) {
-      background: var(--char);
-      color: var(--linen);
-      border: 0.5px solid var(--obsidian);
-      border-radius: var(--r-sm);
-      padding: 0.75rem 0.95rem;
-      overflow-x: auto;
-      font-size: 11px;
-      margin: 0.35rem 0 0.5rem;
-    }
-    .msg--assistant .msg-content :global(pre code) {
-      background: transparent;
-      border: 0;
-      padding: 0;
-      color: inherit;
-      font-size: inherit;
-    }
-    .msg--assistant .msg-content :global(table) {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11px;
-      margin: 0.5rem 0;
-    }
-    .msg--assistant .msg-content :global(th),
-    .msg--assistant .msg-content :global(td) {
-      border: 0.5px solid var(--slag);
-      padding: 0.3rem 0.55rem;
-      text-align: left;
-      color: var(--linen);
-    }
-    .msg--assistant .msg-content :global(th) {
-      background: var(--char);
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: var(--ls-wide);
-      color: var(--sand);
-    }
-    .msg--assistant .msg-content :global(blockquote) {
-      border-left: 2px solid var(--accent);
-      padding: 0.25rem 0 0.25rem 0.85rem;
-      margin: 0.5rem 0;
-      color: var(--sand);
-      font-style: italic;
-    }
-    .msg--assistant .msg-content :global(strong) { color: var(--parchment); }
-
-    /* ── In-chat file group — dotted outline, filename tabs ──── */
-    .file-group {
-      margin-top: 0.6rem;
-      border: 1px dashed var(--slag);
-      border-radius: var(--r-sm);
-      background: transparent;
-      overflow: hidden;
-    }
-    .file-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0;
-      padding: 0.35rem 0.4rem 0;
-      border-bottom: 1px dashed transparent;
-    }
-    .file-group:has(.file-body:not([hidden])) .file-tabs {
-      border-bottom-color: var(--slag);
-    }
-    .file-tab {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.35rem 0.7rem;
-      background: transparent;
-      border: 0.5px solid transparent;
-      border-bottom: 0;
-      border-top-left-radius: var(--r-xs);
-      border-top-right-radius: var(--r-xs);
-      cursor: pointer;
-      font: inherit;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: var(--ls-wide);
-      color: var(--sand);
-      transition:
-        background var(--dur-fast) var(--ease-standard),
-        color var(--dur-fast) var(--ease-standard),
-        border-color var(--dur-fast) var(--ease-standard);
-      margin-bottom: -0.5px;
-    }
-    .file-tab:hover {
-      color: var(--parchment);
-      background: var(--char);
-    }
-    .file-tab[aria-selected="true"] {
-      color: var(--accent);
-      background: var(--obsidian);
-      border-color: var(--slag);
-    }
-    .file-tab-icon {
-      color: currentColor;
-      flex: 0 0 auto;
-    }
-    .file-tab-name {
-      white-space: nowrap;
-    }
-
-    .file-body {
-      padding: 0.85rem 1rem;
-      background: var(--obsidian);
-      color: var(--linen);
-      font-size: 11px;
-      line-height: 1.55;
-      max-height: 22rem;
-      overflow-y: auto;
-      overscroll-behavior: contain;
-    }
-    .file-body[hidden] { display: none; }
-
-    .file-body :global(h1),
-    .file-body :global(h2),
-    .file-body :global(h3) {
-      font-family: var(--font-display);
-      color: var(--parchment);
-      margin: 0.5rem 0 0.3rem;
-    }
-    .file-body :global(h1) { font-size: var(--fs-sm); }
-    .file-body :global(h2) { font-size: 12px; }
-    .file-body :global(h3) { font-size: 11px; }
-    .file-body :global(p)  { margin: 0 0 0.4rem; color: var(--linen); }
-    .file-body :global(ul),
-    .file-body :global(ol) { margin: 0.2rem 0 0.45rem 1.1rem; padding: 0; color: var(--linen); }
-    .file-body :global(li) { margin: 0.1rem 0; }
-    .file-body :global(strong) { color: var(--parchment); }
-    .file-body :global(code) {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      background: var(--char);
-      border: 0.5px solid var(--slag);
-      color: var(--sand);
-      padding: 0 4px;
-      border-radius: var(--r-xs);
-    }
-    .file-body :global(pre) {
-      background: var(--char);
-      color: var(--linen);
-      border: 0.5px solid var(--slag);
-      border-radius: var(--r-sm);
-      padding: 0.65rem 0.85rem;
-      overflow-x: auto;
-      font-size: 10px;
-      margin: 0.3rem 0 0.45rem;
-    }
-    .file-body :global(pre code) {
-      background: transparent; border: 0; padding: 0; color: inherit; font-size: inherit;
-    }
-    .file-body :global(table) {
-      width: 100%; border-collapse: collapse; font-size: 10px; margin: 0.4rem 0;
-    }
-    .file-body :global(th),
-    .file-body :global(td) {
-      border: 0.5px solid var(--slag);
-      padding: 0.25rem 0.5rem;
-      text-align: left;
-      color: var(--linen);
-    }
-    .file-body :global(th) {
-      background: var(--char);
-      font-family: var(--font-mono);
-      color: var(--sand);
-      letter-spacing: var(--ls-wide);
-    }
-    .file-body :global(blockquote) {
-      border-left: 2px solid var(--accent);
-      padding: 0.2rem 0 0.2rem 0.7rem;
-      margin: 0.35rem 0;
-      color: var(--sand);
-    }
-
-    /* ── Beat divider (inside the dark chat) ─────────────────── */
-    .beat {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      gap: 0.85rem;
-      margin: 0.5rem 0 0.25rem;
-    }
-    .beat-rule { height: 0; border-top: 0.5px solid var(--slag); }
-    .beat-body {
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      gap: 0.2rem;
-      align-items: center;
-    }
-    .beat-label {
-      font-family: var(--font-mono);
-      font-size: var(--fs-xs);
-      letter-spacing: var(--ls-widest);
-      text-transform: uppercase;
-      color: var(--accent);
-    }
-    .beat-caption {
-      font-size: var(--fs-xs);
-      color: var(--sand);
-    }
-    .beat-skills {
-      display: inline-flex;
-      gap: 0.25rem;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 0.2rem;
-    }
-    .beat-skills .chip {
-      background: var(--char);
-      border-color: var(--slag);
-      color: var(--sand);
+      background: #1d1d1d;
+      border: 0.5px solid var(--cc-border, var(--slag));
+      color: var(--cc-fg, var(--linen));
     }
 
     @media (max-width: 720px) {
