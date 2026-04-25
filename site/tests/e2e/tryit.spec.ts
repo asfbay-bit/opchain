@@ -33,7 +33,9 @@ test("tryit: gate → chat → counter decrements", async ({ page }) => {
     });
   });
 
-  await page.goto("/tryit");
+  // /tryit folded into /demo; Live tab via the hash. The demo page's
+  // hash-driven tab switcher reveals the Live panel where TryIt is mounted.
+  await page.goto("/demo#live");
 
   // Gate is visible; chat input is below it (still rendered, just preceded
   // by the gate). Check the gate by its form id.
