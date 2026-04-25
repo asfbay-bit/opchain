@@ -1,7 +1,7 @@
 ---
 /**
- * Pipeline diagram — replaces the Sprint 3 ASCII diagram with a
- * structured SVG of how the 10 skills + 1 protocol chain.
+ * Pipeline diagram — structured SVG of how the opchain skills chain,
+ * from reverse-spec through the post-deploy monitoring + migration loop.
  *
  * Design notes:
  *   - Industrial Utility palette; strokes use `currentColor` + tokens
@@ -10,6 +10,9 @@
  *   - `preserveAspectRatio="xMidYMid meet"` scales to container width
  *     while holding aspect ratio — no awkward squish on mobile.
  *   - Honors `prefers-reduced-motion` via the embedded <style>.
+ *   - Two foundation bars (checkpoint-protocol + orchestrator) sit
+ *     above the pipeline; every skill inherits the checkpoint schema,
+ *     and orchestrator is a read-only coordinator across all of them.
  */
 
 type Node = {
@@ -26,26 +29,30 @@ const W = 64;
 const H = 38;
 
 const nodes: Node[] = [
-  // Top band — foundation spans full width
-  { id: "checkpoint-protocol", label: "checkpoint-protocol", x: 60, y: 28, w: 780, h: 34, kind: "foundation" },
+  // Foundation bars — both span full width above the pipeline
+  { id: "checkpoint-protocol", label: "checkpoint-protocol", x: 60, y: 20, w: 880, h: 24, kind: "foundation" },
+  { id: "orchestrator",        label: "orchestrator",        x: 60, y: 52, w: 880, h: 24, kind: "foundation" },
 
   // Main spine — horizontal, centered vertically
-  { id: "reverse-spec",  label: "reverse-spec",  x: 40,  y: 160, kind: "spine" },
-  { id: "app-architect", label: "app-architect", x: 260, y: 160, kind: "spine", w: 132, h: 46 },
-  { id: "git-ops",       label: "git-ops",       x: 540, y: 160, kind: "spine" },
-  { id: "deploy-ops",    label: "deploy-ops",    x: 700, y: 160, kind: "spine" },
+  { id: "reverse-spec",    label: "reverse-spec",    x: 40,  y: 180, kind: "spine" },
+  { id: "app-architect",   label: "app-architect",   x: 260, y: 180, kind: "spine", w: 132, h: 46 },
+  { id: "git-ops",         label: "git-ops",         x: 540, y: 180, kind: "spine" },
+  { id: "deploy-ops",      label: "deploy-ops",      x: 700, y: 180, kind: "spine" },
+  { id: "monitoring-ops",  label: "monitoring-ops",  x: 860, y: 180, w: 90, h: 38, kind: "spine" },
 
   // Plan branches — above the spine, feeding app-architect
-  { id: "stack-forge",   label: "stack-forge",   x: 210, y: 90,  kind: "plan" },
-  { id: "ux-engineer",   label: "ux-engineer",   x: 310, y: 90,  kind: "plan" },
-  { id: "dash-forge",    label: "dash-forge",    x: 410, y: 90,  kind: "dash" },
-  { id: "scale-ops",     label: "scale-ops",     x: 520, y: 90,  kind: "advisory" },
+  { id: "stack-forge",   label: "stack-forge",   x: 210, y: 110, kind: "plan" },
+  { id: "ux-engineer",   label: "ux-engineer",   x: 310, y: 110, kind: "plan" },
+  { id: "dash-forge",    label: "dash-forge",    x: 410, y: 110, kind: "dash" },
+  { id: "scale-ops",     label: "scale-ops",     x: 520, y: 110, kind: "advisory" },
+  { id: "migration-ops", label: "migration-ops", x: 610, y: 110, w: 90, kind: "advisory" },
 
   // Side chain — below the spine
-  { id: "integrations-engineer", label: "integrations-engineer", x: 200, y: 255, kind: "side", w: 160 },
+  { id: "integrations-engineer", label: "integrations-engineer", x: 200, y: 275, kind: "side", w: 160 },
 
-  // Gate — far-right below the spine
-  { id: "code-auditor",  label: "code-auditor",  x: 620, y: 255, kind: "gate" },
+  // Quality gate pair — below the spine, feeding deploy-ops
+  { id: "security-auditor", label: "security-auditor", x: 540, y: 275, w: 100, kind: "gate" },
+  { id: "code-auditor",     label: "code-auditor",     x: 670, y: 275, kind: "gate" },
 ];
 
 // Helper to find a node by id
@@ -64,23 +71,26 @@ type Edge = {
 };
 
 const edges: Edge[] = [
-  // Main spine
-  { from: "reverse-spec",  to: "app-architect", shape: "arrow", fromSide: "r", toSide: "l" },
-  { from: "app-architect", to: "git-ops",       shape: "arrow", fromSide: "r", toSide: "l" },
-  { from: "git-ops",       to: "deploy-ops",    shape: "arrow", fromSide: "r", toSide: "l" },
+  // Main spine — discover through monitor
+  { from: "reverse-spec",  to: "app-architect",  shape: "arrow", fromSide: "r", toSide: "l" },
+  { from: "app-architect", to: "git-ops",        shape: "arrow", fromSide: "r", toSide: "l" },
+  { from: "git-ops",       to: "deploy-ops",     shape: "arrow", fromSide: "r", toSide: "l" },
+  { from: "deploy-ops",    to: "monitoring-ops", shape: "arrow", fromSide: "r", toSide: "l" },
 
   // app-architect auto-invokes plan-phase skills (upward)
-  { from: "app-architect", to: "stack-forge", shape: "arrow", fromSide: "t", toSide: "b", curve: "elbow" },
-  { from: "app-architect", to: "ux-engineer", shape: "arrow", fromSide: "t", toSide: "b", curve: "elbow" },
-  { from: "ux-engineer",   to: "dash-forge",  shape: "arrow", fromSide: "r", toSide: "l" },
-  { from: "app-architect", to: "scale-ops",   shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
+  { from: "app-architect", to: "stack-forge",   shape: "arrow",  fromSide: "t", toSide: "b", curve: "elbow" },
+  { from: "app-architect", to: "ux-engineer",   shape: "arrow",  fromSide: "t", toSide: "b", curve: "elbow" },
+  { from: "ux-engineer",   to: "dash-forge",    shape: "arrow",  fromSide: "r", toSide: "l" },
+  { from: "app-architect", to: "scale-ops",     shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
+  { from: "app-architect", to: "migration-ops", shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
 
-  // Side chain
-  { from: "integrations-engineer", to: "code-auditor", shape: "arrow", fromSide: "r", toSide: "l" },
+  // Quality gate chain — code-auditor → security-auditor → deploy-ops
+  { from: "integrations-engineer", to: "code-auditor",     shape: "arrow",  fromSide: "r", toSide: "l" },
+  { from: "code-auditor",          to: "security-auditor", shape: "arrow",  fromSide: "l", toSide: "r" },
+  { from: "security-auditor",      to: "deploy-ops",       shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
 
-  // code-auditor gates deploy-ops — arrow points *up* from the auditor
-  // to the deploy node. (Was reversed in the first PR pass; Bugbot caught it.)
-  { from: "code-auditor", to: "deploy-ops", shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
+  // migration-ops feeds deploy-ops on cutover (dotted, on-demand)
+  { from: "migration-ops", to: "deploy-ops", shape: "dotted", fromSide: "b", toSide: "t", curve: "elbow" },
 ];
 
 function edgePath(e: Edge): string {
@@ -116,13 +126,13 @@ function edgePath(e: Edge): string {
 const phaseLabels = [
   { x: 60,  label: "discover" },
   { x: 280, label: "plan + build" },
-  { x: 560, label: "ship" },
+  { x: 560, label: "ship + monitor" },
 ];
 ---
 
 <figure class="pipeline">
   <svg
-    viewBox="0 0 860 320"
+    viewBox="0 0 980 340"
     xmlns="http://www.w3.org/2000/svg"
     role="img"
     aria-labelledby="pipeline-title pipeline-desc"
@@ -130,10 +140,14 @@ const phaseLabels = [
   >
     <title id="pipeline-title">opchain pipeline</title>
     <desc id="pipeline-desc">
-      Ten skills plus the checkpoint-protocol foundation. reverse-spec feeds
-      app-architect, which auto-invokes stack-forge, ux-engineer and dash-forge
-      during the plan phase, then hands off through git-ops to deploy-ops.
-      code-auditor gates deploys and verifies integrations-engineer handoffs.
+      Every skill inherits the checkpoint-protocol JSON schema, and the
+      orchestrator skill reads across all of them for cross-project status and
+      routing. reverse-spec feeds app-architect, which auto-invokes
+      stack-forge, ux-engineer and dash-forge during plan, with scale-ops and
+      migration-ops as advisory plan-phase skills. app-architect hands off
+      through git-ops to deploy-ops, which in turn hands off to monitoring-ops
+      once production is live. The code-auditor → security-auditor chain gates
+      deploys.
     </desc>
 
     <!-- Arrow + dot defs -->
@@ -150,7 +164,7 @@ const phaseLabels = [
 
     <!-- Phase lane labels -->
     {phaseLabels.map((p) => (
-      <text x={p.x} y={148} class="lane-label">{p.label}</text>
+      <text x={p.x} y={168} class="lane-label">{p.label}</text>
     ))}
 
     <!-- Edges drawn first so node boxes sit on top -->
@@ -188,9 +202,9 @@ const phaseLabels = [
   <ul class="legend" aria-label="Legend">
     <li><span class="swatch swatch-spine"></span> main spine</li>
     <li><span class="swatch swatch-plan"></span> auto-invoked by app-architect</li>
-    <li><span class="swatch swatch-gate"></span> code-audit gate</li>
+    <li><span class="swatch swatch-gate"></span> quality gate (code + security)</li>
     <li><span class="swatch swatch-side"></span> side chain</li>
-    <li><span class="swatch swatch-foundation"></span> foundation (every skill inherits)</li>
+    <li><span class="swatch swatch-foundation"></span> foundation (checkpoint + orchestrator)</li>
     <li><span class="swatch swatch-dotted"></span> advisory / dotted = non-blocking</li>
   </ul>
 </figure>
@@ -204,7 +218,7 @@ const phaseLabels = [
   .pipeline-svg {
     width: 100%;
     height: auto;
-    min-width: 640px;      /* keep legible; container scrolls on narrow screens */
+    min-width: 720px;      /* keep legible; container scrolls on narrow screens */
     display: block;
   }
 
