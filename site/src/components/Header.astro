@@ -14,12 +14,11 @@ interface Props {
 }
 
 const defaultLinks: NavLink[] = [
-  { href: "/",              label: "Introduction" },
+  { href: "/",              label: "Home" },
   { href: "/architecture",  label: "Architecture" },
-  { href: "/in-action",     label: "In Action" },
   { href: "/skills",        label: "Skill Library" },
+  { href: "/demo",          label: "Demo" },
   { href: "/install",       label: "Install" },
-  { href: "/tryit",         label: "Try It" },
 ];
 
 const { active = "/", links = defaultLinks } = Astro.props;
