@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "npm run prebuild && wrangler dev",
     "build": "node build.mjs",
-    "deploy": "wrangler deploy",
-    "deploy:staging": "wrangler deploy --env staging",
+    "deploy": "npm run prebuild && wrangler deploy",
+    "deploy:staging": "npm run prebuild && wrangler deploy --env staging",
     "deploy:skip-build": "wrangler deploy --config wrangler.jsonc --no-build",
     "sync-docs": "bash scripts/sync-docs.sh",
     "make-zip": "bash scripts/make-skills-zip.sh",
