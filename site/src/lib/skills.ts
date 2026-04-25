@@ -6,6 +6,58 @@ import { getCollection, type CollectionEntry } from "astro:content";
 
 export type SkillEntry = CollectionEntry<"skills">;
 
+export type Role =
+  | "workflow"
+  | "tri-agent"
+  | "audit-gate"
+  | "specialist"
+  | "advisor"
+  | "orchestrator"
+  | "success";
+
+// Skill → role mapping. Source of truth for the colored role pills shown
+// on the homepage and in the Skill Library. Adjust here, both UIs follow.
+const ROLE_BY_NAME: Record<string, Role> = {
+  "app-architect":        "workflow",
+  "checkpoint-protocol":  "success",
+  "code-auditor":         "audit-gate",
+  "dash-forge":           "specialist",
+  "deploy-ops":           "orchestrator",
+  "git-ops":              "specialist",
+  "integrations-engineer":"tri-agent",
+  "migration-ops":        "specialist",
+  "monitoring-ops":       "specialist",
+  "orchestrator":         "orchestrator",
+  "reverse-spec":         "specialist",
+  "scale-ops":            "advisor",
+  "security-auditor":     "audit-gate",
+  "stack-forge":          "advisor",
+  "ux-engineer":          "tri-agent",
+};
+
+const ROLE_LABEL: Record<Role, string> = {
+  "workflow":     "Workflow",
+  "tri-agent":    "Tri-agent",
+  "audit-gate":   "Audit gate",
+  "specialist":   "Standalone specialist",
+  "advisor":      "Advisor",
+  "orchestrator": "Orchestrator",
+  "success":      "Protocol",
+};
+
+export function getSkillRole(name: string): Role {
+  return ROLE_BY_NAME[name] ?? "specialist";
+}
+
+export function getRoleLabel(role: Role): string {
+  return ROLE_LABEL[role];
+}
+
+// "plan" + "build" → "plan + build". Keeps the original ordering otherwise.
+export function phaseLabel(phases: readonly string[]): string {
+  return phases.join(" + ");
+}
+
 // Inlined at build time by Vite. The pattern is relative to this file.
 // Glob import: { [path]: rawMarkdownString }.
 const tryitFiles = import.meta.glob<string>("../../../skills/*/TRYIT.md", {
