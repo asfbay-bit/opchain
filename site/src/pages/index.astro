@@ -284,19 +284,25 @@ const phases: Phase[] = [
     font-weight: 500;
     letter-spacing: 0.02em;
     line-height: 1.5;
-    color: #ffffff;              /* default — overridden per role below */
-    background: var(--subtle);
+    /* Outline + text in the role color, role color at 15% as fill.
+       Each [data-role] override below sets --pill-color; the box
+       picks up border, text, and fill from that single value. */
+    --pill-color: var(--subtle);
+    color: var(--pill-color);
+    border: 0.5px solid var(--pill-color);
+    background: color-mix(in srgb, var(--pill-color) 15%, transparent);
     white-space: nowrap;
   }
-  /* Role colors — :root tokens map skill type → fill color.
-     Light backgrounds (amber, success) use dark text for AA contrast. */
-  .phase-pill[data-role="workflow"]     { background: var(--workflow);     color: #ffffff; }
-  .phase-pill[data-role="tri-agent"]    { background: var(--tri-agent);    color: #1a1208; }
-  .phase-pill[data-role="audit-gate"]   { background: var(--audit-gate);   color: #ffffff; }
-  .phase-pill[data-role="specialist"]   { background: var(--specialist);   color: #ffffff; }
-  .phase-pill[data-role="advisor"]      { background: var(--advisor);      color: #06121b; }
-  .phase-pill[data-role="orchestrator"] { background: var(--orchestrator); color: #ffffff; }
-  .phase-pill[data-role="success"]      { background: var(--success);      color: #06120c; }
+  /* Role colors — :root tokens map skill type → pill color.
+     Border + text use the token directly; background is the same
+     token at 15% via color-mix. */
+  .phase-pill[data-role="workflow"]     { --pill-color: var(--workflow); }
+  .phase-pill[data-role="tri-agent"]    { --pill-color: var(--tri-agent); }
+  .phase-pill[data-role="audit-gate"]   { --pill-color: var(--audit-gate); }
+  .phase-pill[data-role="specialist"]   { --pill-color: var(--specialist); }
+  .phase-pill[data-role="advisor"]      { --pill-color: var(--advisor); }
+  .phase-pill[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
+  .phase-pill[data-role="success"]      { --pill-color: var(--success); }
 
   /* Blurb — hidden at rest, fades in on hover/focus of the card. */
   .phase-blurb {
