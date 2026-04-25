@@ -272,14 +272,40 @@ async function route(request, env, ctx, url, origin, requestId) {
       return handleOpchainTry(request, tryUrl, env, ctx);
     }
 
+    // The old `/in-action` and `/tryit` routes were folded into `/demo` —
+    // 301 to the combined page. Replays is the default tab; `#live` opens
+    // the Live panel via the demo page's hash-driven tab switcher.
+    const demoRedirects = {
+      "/in-action": "/demo",
+      "/tryit":     "/demo#live",
+    };
+
+    // Builds an absolute redirect target: starts from `target` (which may
+    // include a hash), preserves the original request's query string.
+    // Example: ("/demo#live", url with ?skill=foo) → "https://.../demo?skill=foo#live"
+    const buildRedirect = (target) => {
+      const dest = new URL(target, url.origin);
+      dest.search = url.search;
+      return dest.toString();
+    };
+
     // Sprint 6 — legacy `.html` paths (live until today) now 301 to clean URLs.
-    // `/index.html` → `/`; `/foo.html` → `/foo`. We build the Response by hand
-    // (rather than `Response.redirect`) so the outer baseline-header stamp
-    // can mutate the Headers.
+    // `/index.html` → `/`; `/foo.html` → `/foo`. If the cleaned path is one
+    // of the demo-folded routes, jump straight to the final destination so
+    // we don't make users follow a two-hop redirect chain.
+    // We build the Response by hand (rather than `Response.redirect`) so the
+    // outer baseline-header stamp can mutate the Headers.
     if (request.method === "GET" && url.pathname.endsWith(".html")) {
       const clean = url.pathname === "/index.html" ? "/" : url.pathname.replace(/\.html$/, "");
-      const location = new URL(clean + url.search, url.origin).toString();
-      return new Response(null, { status: 301, headers: { Location: location } });
+      const target = demoRedirects[clean] ?? clean;
+      return new Response(null, { status: 301, headers: { Location: buildRedirect(target) } });
+    }
+
+    if (request.method === "GET") {
+      const target = demoRedirects[url.pathname];
+      if (target) {
+        return new Response(null, { status: 301, headers: { Location: buildRedirect(target) } });
+      }
     }
 
     if (url.pathname.endsWith(".zip")) {

@@ -25,8 +25,8 @@ const ROUTES: RouteSpec[] = [
   { path: "/skills/app-architect", h1: /app architect/i },
   { path: "/skills/code-auditor", h1: /code auditor/i },
   {
-    path: "/in-action",
-    h1: /proof, not pitches/i,
+    path: "/demo",
+    h1: /two ways to feel it out/i,
     disabledRules: [
       {
         id: "region",
@@ -35,7 +35,6 @@ const ROUTES: RouteSpec[] = [
       },
     ],
   },
-  { path: "/tryit", h1: /five free exchanges/i },
   { path: "/privacy", h1: /privacy/i },
   { path: "/styleguide", h1: /styleguide/i },
 ];

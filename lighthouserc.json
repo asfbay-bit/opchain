@@ -6,7 +6,7 @@
       "url": [
         "http://127.0.0.1:4321/",
         "http://127.0.0.1:4321/skills",
-        "http://127.0.0.1:4321/in-action"
+        "http://127.0.0.1:4321/demo"
       ],
       "numberOfRuns": 1,
       "settings": { "preset": "desktop" }
