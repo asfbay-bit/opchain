@@ -47,3 +47,6 @@ npm-debug.log*
 .vscode/
 .idea/
 .DS_Store
+
+# Local Claude Code skill install (symlinks into skills/)
+.claude/skills/
