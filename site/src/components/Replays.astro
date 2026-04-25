@@ -1419,26 +1419,25 @@ const catalog = JSON.stringify(
        parent (which DOES have the cid) to win specificity vs. the
        existing `.cc-name { color: var(--cc-fg); }`-style rules above. */
 
-    /* 1.6.1 Beat divider — ember (brand orange). The "01 · Discover ·
-       skill" section header reads as a primary-brand marker between
-       phases, with a faint ember-tinted highlight on the row. */
+    /* 1.6.1 Beat divider — solid ember row, obsidian text. A strong
+       brand band marks each phase change in the transcript. */
     :global(.cc-stream .cc-divider),
     :global(.cc-stream .cc-divider-label),
     :global(.cc-stream .cc-divider-rule) {
-      color: var(--ember);
+      color: var(--obsidian);
     }
     :global(.cc-stream .cc-divider) {
-      background: color-mix(in srgb, var(--ember) 8%, transparent);
+      background: var(--ember);
       padding: 0.3rem 0.6rem;
       border-radius: var(--r-xs);
     }
     :global(.cc-stream .cc-divider-rule) {
-      background: color-mix(in srgb, var(--ember) 35%, transparent);
+      background: color-mix(in srgb, var(--obsidian) 35%, transparent);
     }
     :global(.cc-stream .cc-divider .cc-chip) {
-      color: var(--ember);
-      border-color: color-mix(in srgb, var(--ember) 50%, transparent);
-      background: color-mix(in srgb, var(--ember) 12%, transparent);
+      color: var(--obsidian);
+      border-color: color-mix(in srgb, var(--obsidian) 60%, transparent);
+      background: color-mix(in srgb, var(--obsidian) 18%, transparent);
     }
 
     /* 1.6.3 Claude assistant header — colored by skill role. The wrapper
