@@ -1407,62 +1407,64 @@ const catalog = JSON.stringify(
     .role-pill[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
     .role-pill[data-role="success"]      { --pill-color: var(--success); }
 
-    /* ── 1.6.1 Beat divider — info / slate ──────────────────────────
-       The chat's "01 · Discover · app-architect" line. The whole row
-       (rule, label, skill chips) is info-colored so it visually reads
-       as scaffolding rather than content. */
-    .cc-divider,
-    .cc-divider-label,
-    .cc-divider-rule {
+    /* ── Chat content rules ─────────────────────────────────────────
+       The chat is rendered by JS at runtime (createElement), so its
+       elements never get Astro's `data-astro-cid-X` scoping attribute.
+       Rules below use :global() and anchor on the SSR'd `.cc-stream`
+       parent (which DOES have the cid) to win specificity vs. the
+       existing `.cc-name { color: var(--cc-fg); }`-style rules above. */
+
+    /* 1.6.1 Beat divider — info / slate. Whole row reads as scaffolding. */
+    :global(.cc-stream .cc-divider),
+    :global(.cc-stream .cc-divider-label),
+    :global(.cc-stream .cc-divider-rule) {
       color: var(--info);
     }
-    .cc-divider-rule {
+    :global(.cc-stream .cc-divider-rule) {
       background: color-mix(in srgb, var(--info) 35%, transparent);
     }
-    .cc-divider .cc-chip {
+    :global(.cc-stream .cc-divider .cc-chip) {
       color: var(--info);
       border-color: color-mix(in srgb, var(--info) 50%, transparent);
       background: color-mix(in srgb, var(--info) 12%, transparent);
     }
 
-    /* ── 1.6.3 Claude assistant header — colored by skill role ──────
-       The wrapper sets data-role; CSS reads it via the same per-role
-       --pill-color block as role-pill, then colors the head row. */
-    .cc-assistant {
+    /* 1.6.3 Claude assistant header — colored by skill role. The wrapper
+       sets data-role; CSS maps it to a per-turn --turn-color, then the
+       head row reads that variable. */
+    :global(.cc-stream .cc-assistant) {
       --turn-color: var(--specialist);
     }
-    .cc-assistant[data-role="workflow"]     { --turn-color: var(--workflow); }
-    .cc-assistant[data-role="tri-agent"]    { --turn-color: var(--tri-agent); }
-    .cc-assistant[data-role="audit-gate"]   { --turn-color: var(--audit-gate); }
-    .cc-assistant[data-role="specialist"]   { --turn-color: var(--specialist); }
-    .cc-assistant[data-role="advisor"]      { --turn-color: var(--advisor); }
-    .cc-assistant[data-role="orchestrator"] { --turn-color: var(--orchestrator); }
-    .cc-assistant[data-role="success"]      { --turn-color: var(--success); }
-    .cc-assistant-head,
-    .cc-assistant-head .cc-name,
-    .cc-assistant-head .cc-skill,
-    .cc-assistant-head .cc-bullet,
-    .cc-assistant-head .cc-sep {
+    :global(.cc-stream .cc-assistant[data-role="workflow"])     { --turn-color: var(--workflow); }
+    :global(.cc-stream .cc-assistant[data-role="tri-agent"])    { --turn-color: var(--tri-agent); }
+    :global(.cc-stream .cc-assistant[data-role="audit-gate"])   { --turn-color: var(--audit-gate); }
+    :global(.cc-stream .cc-assistant[data-role="specialist"])   { --turn-color: var(--specialist); }
+    :global(.cc-stream .cc-assistant[data-role="advisor"])      { --turn-color: var(--advisor); }
+    :global(.cc-stream .cc-assistant[data-role="orchestrator"]) { --turn-color: var(--orchestrator); }
+    :global(.cc-stream .cc-assistant[data-role="success"])      { --turn-color: var(--success); }
+    :global(.cc-stream .cc-assistant .cc-assistant-head),
+    :global(.cc-stream .cc-assistant-head .cc-name),
+    :global(.cc-stream .cc-assistant-head .cc-skill),
+    :global(.cc-stream .cc-assistant-head .cc-bullet),
+    :global(.cc-stream .cc-assistant-head .cc-sep) {
       color: var(--turn-color);
     }
 
-    /* ── 1.6.4 User two-tone — bold path-a header, path-b question ── */
-    .cc-user--two-tone .cc-user-text { color: var(--text); }
-    .cc-user--two-tone .cc-user-header {
+    /* 1.6.4 User two-tone — bold path-a header, path-b question. */
+    :global(.cc-stream .cc-user--two-tone .cc-user-text) { color: var(--text); }
+    :global(.cc-stream .cc-user--two-tone .cc-user-header) {
       color: var(--path-a);
       font-weight: 700;
     }
-    .cc-user--two-tone .cc-user-sep,
-    .cc-user--two-tone .cc-user-question {
+    :global(.cc-stream .cc-user--two-tone .cc-user-sep),
+    :global(.cc-stream .cc-user--two-tone .cc-user-question) {
       color: var(--path-b);
     }
 
-    /* ── 1.6.5 + 1.7.1 Artifacts (Write tool calls) ─────────────────
-       Warning-lime stripe with dotted top + bottom borders setting the
-       block apart from the surrounding chat. The expanded markdown body
-       below renders as a "fully-formatted markdown file" — generous
-       padding, code/heading rhythm, scrollable. */
-    .cc-tool {
+    /* 1.6.5 + 1.7.1 Artifacts (Write tool calls). Warning-lime stripe with
+       dotted top + bottom. Expanded body renders as a markdown-file viewer:
+       obsidian background, scrollable, monospace, generous padding. */
+    :global(.cc-stream .cc-tool) {
       --tool-color: var(--warning);
       margin: 0.6rem 0;
       padding: 0.55rem 0;
@@ -1470,22 +1472,22 @@ const catalog = JSON.stringify(
       border-bottom: 1px dotted var(--tool-color);
       background: color-mix(in srgb, var(--tool-color) 6%, transparent);
     }
-    .cc-tool .cc-bullet,
-    .cc-tool .cc-tool-name,
-    .cc-tool .cc-tool-paren,
-    .cc-tool .cc-tool-arg,
-    .cc-tool .cc-tool-elbow,
-    .cc-tool .cc-tool-result-text {
+    :global(.cc-stream .cc-tool .cc-bullet),
+    :global(.cc-stream .cc-tool .cc-tool-name),
+    :global(.cc-stream .cc-tool .cc-tool-paren),
+    :global(.cc-stream .cc-tool .cc-tool-arg),
+    :global(.cc-stream .cc-tool .cc-tool-elbow),
+    :global(.cc-stream .cc-tool .cc-tool-result-text) {
       color: var(--tool-color);
     }
-    .cc-tool .cc-tool-hint {
+    :global(.cc-stream .cc-tool .cc-tool-hint) {
       color: color-mix(in srgb, var(--tool-color) 70%, var(--muted));
     }
-    .cc-tool-body {
+    :global(.cc-stream .cc-tool-body) {
       margin-top: 0.5rem;
       padding: 0.85rem 1rem;
       background: var(--obsidian);
-      border: 0.5px solid color-mix(in srgb, var(--tool-color) 35%, var(--border));
+      border: 0.5px solid color-mix(in srgb, var(--warning) 35%, var(--border));
       border-radius: var(--r-sm);
       max-height: 360px;
       overflow: auto;
@@ -1494,9 +1496,9 @@ const catalog = JSON.stringify(
       line-height: 1.55;
       color: var(--text);
     }
-    .cc-tool-body :global(p),
-    .cc-tool-body :global(li) { color: var(--text); }
-    .cc-tool-body :global(strong) { color: var(--text); }
+    :global(.cc-stream .cc-tool-body p),
+    :global(.cc-stream .cc-tool-body li) { color: var(--text); }
+    :global(.cc-stream .cc-tool-body strong) { color: var(--text); }
 
     /* ── 1.7 Detail card collapse ─────────────────────────────────── */
     .detail-toggle {
