@@ -1383,7 +1383,12 @@ const catalog = JSON.stringify(
     /* ── Role pills for detail card + chat divider ──────────────────
        Outline + 15% color-mix fill, same visual language as the
        homepage and skill library. */
-    .role-pill {
+    /* The detail-skills row is rebuilt via innerHTML on every scenario
+       change, so the new pills don't carry Astro's cid attribute. Scope
+       these rules with :global(.detail-skills …) so they match runtime-
+       replaced pills too (and don't leak to homepage / skill-library
+       role-pills, which live outside .detail-skills). */
+    :global(.detail-skills .role-pill) {
       --pill-color: var(--specialist);
       display: inline-flex;
       align-items: center;
@@ -1399,13 +1404,13 @@ const catalog = JSON.stringify(
       background: color-mix(in srgb, var(--pill-color) 15%, transparent);
       white-space: nowrap;
     }
-    .role-pill[data-role="workflow"]     { --pill-color: var(--workflow); }
-    .role-pill[data-role="tri-agent"]    { --pill-color: var(--tri-agent); }
-    .role-pill[data-role="audit-gate"]   { --pill-color: var(--audit-gate); }
-    .role-pill[data-role="specialist"]   { --pill-color: var(--specialist); }
-    .role-pill[data-role="advisor"]      { --pill-color: var(--advisor); }
-    .role-pill[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
-    .role-pill[data-role="success"]      { --pill-color: var(--success); }
+    :global(.detail-skills .role-pill[data-role="workflow"])     { --pill-color: var(--workflow); }
+    :global(.detail-skills .role-pill[data-role="tri-agent"])    { --pill-color: var(--tri-agent); }
+    :global(.detail-skills .role-pill[data-role="audit-gate"])   { --pill-color: var(--audit-gate); }
+    :global(.detail-skills .role-pill[data-role="specialist"])   { --pill-color: var(--specialist); }
+    :global(.detail-skills .role-pill[data-role="advisor"])      { --pill-color: var(--advisor); }
+    :global(.detail-skills .role-pill[data-role="orchestrator"]) { --pill-color: var(--orchestrator); }
+    :global(.detail-skills .role-pill[data-role="success"])      { --pill-color: var(--success); }
 
     /* ── Chat content rules ─────────────────────────────────────────
        The chat is rendered by JS at runtime (createElement), so its
@@ -1414,11 +1419,17 @@ const catalog = JSON.stringify(
        parent (which DOES have the cid) to win specificity vs. the
        existing `.cc-name { color: var(--cc-fg); }`-style rules above. */
 
-    /* 1.6.1 Beat divider — info / slate. Whole row reads as scaffolding. */
+    /* 1.6.1 Beat divider — info / slate. Whole row reads as scaffolding,
+       with a faint info-tinted highlight matching the artifact treatment. */
     :global(.cc-stream .cc-divider),
     :global(.cc-stream .cc-divider-label),
     :global(.cc-stream .cc-divider-rule) {
       color: var(--info);
+    }
+    :global(.cc-stream .cc-divider) {
+      background: color-mix(in srgb, var(--info) 8%, transparent);
+      padding: 0.3rem 0.6rem;
+      border-radius: var(--r-xs);
     }
     :global(.cc-stream .cc-divider-rule) {
       background: color-mix(in srgb, var(--info) 35%, transparent);
@@ -1449,8 +1460,26 @@ const catalog = JSON.stringify(
     :global(.cc-stream .cc-assistant-head .cc-sep) {
       color: var(--turn-color);
     }
+    /* Only the header line is colored on an assistant turn (body below
+       stays default white), so the same-color highlight stays on the
+       head row — full row width, matching the artifact treatment. */
+    :global(.cc-stream .cc-assistant-head) {
+      background: color-mix(in srgb, var(--turn-color) 8%, transparent);
+      padding: 0.3rem 0.5rem;
+      border-radius: var(--r-xs);
+    }
 
-    /* 1.6.4 User two-tone — bold path-a header, path-b question. */
+    /* 1.6.4 User two-tone — bold path-a header, path-b question, plus a
+       faint left→right gradient matching the two text colors so the line
+       reads as a single highlighted unit. */
+    :global(.cc-stream .cc-user--two-tone) {
+      background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--path-a) 12%, #1d1d1d),
+        color-mix(in srgb, var(--path-b) 12%, #1d1d1d)
+      );
+      border-color: color-mix(in srgb, var(--path-a) 35%, var(--cc-border));
+    }
     :global(.cc-stream .cc-user--two-tone .cc-user-text) { color: var(--text); }
     :global(.cc-stream .cc-user--two-tone .cc-user-header) {
       color: var(--path-a);
