@@ -87,7 +87,7 @@ opchain/
 │   ├── make-skills-zip.sh          # skills/ → public/opchain-skills.zip
 │   └── gen-skills-catalog.mjs      # skills/<id>/SKILL.md + TRYIT.md → public/skills.js + src/generated/skill-prompts.js
 ├── tests/                  # Vitest unit + handler tests
-├── .github/workflows/      # ci.yml + deploy.yml
+├── .github/workflows/      # ci.yml + lighthouse.yml (no deploy workflows — manual)
 ├── wrangler.jsonc           # Worker config (prod + env.staging)
 ├── build.mjs               # esbuild: src/index.js → dist/index.js, injects __OPCHAIN_VERSION__
 ├── vitest.config.js        # test runner config (defines __OPCHAIN_VERSION__ = "test")
