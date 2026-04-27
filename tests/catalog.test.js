@@ -15,8 +15,9 @@ import {
 // fails after adding a skill — good, that's the point. Update both lists.
 
 describe("generated skill catalog", () => {
-  it("lists all 15 skills in SKILL_NAMES", () => {
+  it("lists all 16 skills in SKILL_NAMES", () => {
     expect(Object.keys(SKILL_NAMES).sort()).toEqual([
+      "api-dev",
       "app-architect",
       "checkpoint-protocol",
       "code-auditor",
@@ -35,8 +36,9 @@ describe("generated skill catalog", () => {
     ]);
   });
 
-  it("exposes 13 tryable skills (checkpoint-protocol + security-auditor excluded)", () => {
+  it("exposes 14 tryable skills (checkpoint-protocol + security-auditor excluded)", () => {
     expect(VALID_SKILLS.sort()).toEqual([
+      "api-dev",
       "app-architect",
       "code-auditor",
       "dash-forge",

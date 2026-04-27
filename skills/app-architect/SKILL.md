@@ -598,7 +598,8 @@ project-dir/
 | **code-auditor** | Evaluator reads code-auditor checkpoint for pre-existing issues. Phase 7 suggests `/audit pre-deploy`. |
 | **git-ops** | Suggested after each sprint passes. Phase 7 suggests `/git-sync`. |
 | **deploy-ops** | Phase 7 hands off to deploy pipeline. |
-| **integrations-engineer** | Phase 2 spec `04-integrations.md` can trigger integration planning. |
+| **integrations-engineer** | Phase 2 spec `04-integrations.md` can trigger integration planning (third-party APIs we *consume*). |
+| **api-dev** | Phase 2 spec `02-architecture.md` "API Design" + `03-architecture.md` data model trigger api-dev to elaborate the first-party API contract (OpenAPI/GraphQL, versioning, SDK). |
 | **scale-ops** | Phase 2 spec `09-cost-estimate.md` uses scale-ops projections. |
 | **reverse-spec** | For existing projects: reverse-spec produces the spec docs, then app-architect picks up at Phase 4 (sprint plan) or Phase 6 (build). |
 

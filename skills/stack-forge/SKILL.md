@@ -227,6 +227,11 @@ DB Schema → ORM Types → API Types → API Spec (OpenAPI) → Generated Clien
 
 Read `references/typed-pipeline.md` for detailed implementation per stack.
 
+stack-forge *recommends* the typed pipeline. The `api-dev` skill *materialises*
+it: authoring the OpenAPI / GraphQL contract, scaffolding typed handlers, and
+generating the SDK. When app-architect Phase 2 detects a first-party API
+surface, it auto-invokes api-dev with the stack chosen here.
+
 ---
 
 ## Testing Strategy (Universal)
