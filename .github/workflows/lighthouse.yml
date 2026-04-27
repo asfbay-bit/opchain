@@ -52,21 +52,5 @@ jobs:
             echo "no LHCI manifest — collect step likely failed"
             exit 0
           fi
-          node <<'NODE' > /tmp/lhci-comment.md
-          const m = require('./.lighthouseci/manifest.json');
-          const byUrl = {};
-          for (const r of m) (byUrl[r.url] ||= []).push(r.summary);
-          const cats = ['performance','accessibility','best-practices','seo'];
-          const median = a => [...a].sort((x,y)=>x-y)[Math.floor(a.length/2)];
-          const fmt = n => n.toFixed(2);
-          const runs = m.length / Object.keys(byUrl).length;
-          let out = `## LHCI scores (median of ${runs} runs)\n\n`;
-          out += '| Route | Perf | A11y | Best | SEO |\n|---|---|---|---|---|\n';
-          for (const url in byUrl) {
-            const path = new URL(url).pathname || '/';
-            const row = cats.map(c => fmt(median(byUrl[url].map(r=>r[c]))));
-            out += `| \`${path}\` | ${row.join(' | ')} |\n`;
-          }
-          process.stdout.write(out);
-          NODE
+          node ../scripts/lhci-summary.mjs .lighthouseci/manifest.json > /tmp/lhci-comment.md
           gh pr comment "$PR_NUMBER" --body-file /tmp/lhci-comment.md
