@@ -50,3 +50,4 @@ npm-debug.log*
 
 # Local Claude Code skill install (symlinks into skills/)
 .claude/skills/
+site/public/dev-preview/
