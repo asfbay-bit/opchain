@@ -60,17 +60,48 @@ function buildComment(dir) {
     if (!fs.existsSync(dir)) {
       return `## Axe violations — directory missing\n\nExpected attachments under \`${dir}\`, not found.`;
     }
-    const listing = listTopLevel(dir).slice(0, 50);
-    return (
-      `## Axe violations — no attachments found\n\n` +
-      `Searched \`${dir}\` recursively for \`axe-violations-*.json\`. Either ` +
-      `the suite errored out before any axe test wrote an attachment, or ` +
-      `Playwright is writing them somewhere unexpected. First ${listing.length} ` +
-      `entries under that path:\n\n` +
-      "```\n" +
-      (listing.join("\n") || "(empty)") +
-      "\n```"
-    );
+    // No axe attachments — but the e2e likely failed in some other way.
+    // Surface the first non-empty error-context.md the suite produced so
+    // the failure mode is visible without downloading the artifact zip.
+    const errorContexts = [];
+    function walk(d, depth = 0) {
+      if (depth > 3 || errorContexts.length >= 3) return;
+      let entries;
+      try { entries = fs.readdirSync(d, { withFileTypes: true }); }
+      catch { return; }
+      for (const ent of entries) {
+        const p = path.join(d, ent.name);
+        if (ent.isDirectory()) walk(p, depth + 1);
+        else if (ent.name === "error-context.md") {
+          try {
+            const txt = fs.readFileSync(p, "utf8");
+            const route = path.basename(path.dirname(p));
+            errorContexts.push({ route, txt: txt.slice(0, 1500) });
+          } catch { /* skip */ }
+        }
+        if (errorContexts.length >= 3) return;
+      }
+    }
+    walk(dir);
+
+    let body = `## Axe violations — no attachments found\n\n`;
+    body +=
+      `Searched \`${dir}\` for \`axe-violations-*.json\`; the e2e job ` +
+      `failed but the axe \`testInfo.attach\` branch never ran (the test ` +
+      `errored before reaching it).\n`;
+    if (errorContexts.length > 0) {
+      body += `\nFirst ${errorContexts.length} error-context.md sample(s):\n`;
+      for (const ec of errorContexts) {
+        body += `\n<details><summary><code>${ec.route}</code></summary>\n\n`;
+        body += "```\n" + ec.txt + "\n```\n</details>\n";
+      }
+    } else {
+      const listing = listTopLevel(dir).slice(0, 30);
+      body +=
+        `\nNo error-context.md found either. First entries under that path:\n\n` +
+        "```\n" + (listing.join("\n") || "(empty)") + "\n```";
+    }
+    return body;
   }
 
   // Each test's attachment is a snapshot of that single test run. If the same
