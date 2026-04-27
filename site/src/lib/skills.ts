@@ -19,6 +19,7 @@ export type Role =
 // on the homepage and in the Skill Library. Adjust here, both UIs follow.
 const ROLE_BY_NAME: Record<string, Role> = {
   "app-architect":        "workflow",
+  "bug-check":            "audit-gate",
   "checkpoint-protocol":  "success",
   "code-auditor":         "audit-gate",
   "dash-forge":           "specialist",

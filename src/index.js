@@ -311,7 +311,11 @@ async function route(request, env, ctx, url, origin, requestId) {
     if (url.pathname.endsWith(".zip")) {
       const res = await fetchAsset(env, request, url.origin);
       const dlRes = new Response(res.body, res);
-      dlRes.headers.set("Content-Disposition", 'attachment; filename="opchain-skills.zip"');
+      // Use the actual filename from the URL so per-skill bundles
+      // (`/skills/<id>.zip`) download as `<id>.zip` and the combined
+      // bundle still downloads as `opchain-skills.zip`.
+      const filename = url.pathname.split("/").pop() || "opchain-skills.zip";
+      dlRes.headers.set("Content-Disposition", `attachment; filename="${filename}"`);
       dlRes.headers.set("Cache-Control", "public, max-age=3600");
       if (res.ok) {
         try {
