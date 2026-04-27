@@ -43,14 +43,40 @@ jobs:
 
       - name: Post LHCI score summary as PR comment
         if: always() && github.event_name == 'pull_request'
-        working-directory: site
+        uses: actions/github-script@v7
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          if [ ! -f .lighthouseci/manifest.json ]; then
-            echo "no LHCI manifest — collect step likely failed"
-            exit 0
-          fi
-          node ../scripts/lhci-summary.mjs .lighthouseci/manifest.json > /tmp/lhci-comment.md
-          gh pr comment "$PR_NUMBER" --body-file /tmp/lhci-comment.md
+          MANIFEST_PATH: site/.lighthouseci/manifest.json
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const manifestPath = process.env.MANIFEST_PATH;
+            const dir = path.dirname(manifestPath);
+
+            let body;
+            if (fs.existsSync(manifestPath)) {
+              const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+              const byUrl = {};
+              for (const r of manifest) (byUrl[r.url] ??= []).push(r.summary);
+              const cats = ['performance', 'accessibility', 'best-practices', 'seo'];
+              const median = (a) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
+              const runs = manifest.length / Object.keys(byUrl).length;
+              body = `## LHCI scores (median of ${runs} run${runs === 1 ? '' : 's'})\n\n`;
+              body += '| Route | Perf | A11y | Best | SEO |\n|---|---|---|---|---|\n';
+              for (const url of Object.keys(byUrl)) {
+                const p = new URL(url).pathname || '/';
+                const row = cats.map((c) => median(byUrl[url].map((s) => s[c])).toFixed(2));
+                body += `| \`${p}\` | ${row.join(' | ')} |\n`;
+              }
+            } else {
+              const files = fs.existsSync(dir) ? fs.readdirSync(dir) : [];
+              body = `## LHCI scores — manifest missing\n\n`
+                + `Expected at \`${manifestPath}\`. Files in \`${dir}\`:\n\n`
+                + '```\n' + (files.join('\n') || '(empty)') + '\n```';
+            }
+
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.payload.pull_request.number,
+              body,
+            });
