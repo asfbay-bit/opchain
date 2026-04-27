@@ -1,5 +1,16 @@
 # Drift Report — `/rev-diff`
 
+> ⚠️ **Dated snapshot.** Captured at commit `8f3edf8`. Commit `6511b1d`
+> (merged shortly after this report) fully deleted the Try-It / Live chat
+> surface — including `src/opchain-try.js`, `src/lib/kv.js`, `src/lib/retry.js`,
+> `site/src/components/TryIt.astro`, KV bindings, and the Anthropic
+> integration. Sections of this report that describe Try-It hardening
+> (`schemas.js` for Try endpoints, fail-closed HMAC, Anthropic retry,
+> lead TTL) are now historical. The reverse-spec section list at the
+> bottom flagged several specs as "partially stale and not refreshed" —
+> after the deletion, those specs are stale plus describe deleted
+> code. Re-run `/rev-full` to regenerate from the current commit.
+
 **Source spec generated:** 2026-04-17
 **This report:** 2026-04-27
 **Window:** 10 days

@@ -7,6 +7,15 @@ pass through the opchain pipeline (`reverse-spec → app-architect → code-audi
 The directory was previously `reverse-spec-output/`; renamed to `specs/` on
 2026-04-27.
 
+> ⚠️ **Dated snapshot.** Captured at commit `8f3edf8`. Shortly after, commit
+> `6511b1d` deleted the entire Try-It / Live chat surface. Anything in here
+> that mentions `src/opchain-try.js`, `src/lib/kv.js`, `src/lib/retry.js`,
+> `site/src/components/TryIt.astro`, KV bindings, the Anthropic integration,
+> or the email-gated demo flow is now historical — those files no longer
+> exist. Re-run `/rev-full` to regenerate against the current commit when a
+> fresh baseline is wanted. See `drift-report.md` and `audit-2026-04-27.md`
+> for per-doc impact.
+
 ## Contents
 
 ```
