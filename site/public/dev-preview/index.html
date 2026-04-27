@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<title>/demo prototype index</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --card: #161616;
+    --text: #e8e8e8;
+    --muted: #b0b0b0;
+    --dim: #5a5450;
+    --border: #232323;
+    --ember: #e89e5b;
+    --rose: #f7768e;
+    --teal: #4ec9b0;
+    --advisor: #6e8cd0;
+    --tri: #d4b35c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.6;
+    padding: 4rem 2rem;
+  }
+  .wrap { max-width: 60rem; margin: 0 auto; }
+  h1 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 2.2rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.5rem;
+  }
+  .lede {
+    color: var(--muted);
+    margin: 0 0 2.6rem;
+    max-width: 44rem;
+  }
+  .lede strong { color: var(--ember); }
+
+  .grid {
+    display: grid;
+    gap: 1px;
+    background: var(--border);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .row {
+    background: var(--bg);
+    padding: 1.4rem 1.6rem;
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    gap: 1.6rem;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    transition: background 220ms ease;
+  }
+  .row:hover { background: var(--card); }
+  .row .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ember);
+  }
+  .row .label .tone {
+    display: block;
+    color: var(--dim);
+    font-size: 9.5px;
+    margin-top: 0.25rem;
+    letter-spacing: 0.14em;
+  }
+  .row .name {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem;
+    letter-spacing: -0.01em;
+  }
+  .row .desc {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin: 0;
+  }
+  .row .arrow {
+    color: var(--dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    transition: color 220ms ease, transform 220ms ease;
+  }
+  .row:hover .arrow {
+    color: var(--ember);
+    transform: translateX(4px);
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.6rem;
+    border-top: 0.5px solid var(--border);
+    color: var(--dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>opchain · /demo prototype gallery</h1>
+  <p class="lede">
+    Five different design directions for the redesigned <strong>/demo</strong>
+    page, after the Try-It / Live surface was removed. Same scenario
+    (audit-gate-before-deploy) so they're easy to compare apples-to-apples.
+    Pick one (or a mash-up) — I'll build it.
+  </p>
+
+  <div class="grid">
+    <a class="row" href="./demo-A-editorial-docs.html">
+      <div class="label">A<span class="tone">editorial · docs</span></div>
+      <div>
+        <h2 class="name">Three-pane docs reading room</h2>
+        <p class="desc">Stripe / Linear / Vercel docs aesthetic. Left rail = scenarios + on-this-page nav. Center = wide reading transcript. Right rail = inputs / outputs / skills inspector. Content-first; production-ready.</p>
+      </div>
+      <div class="arrow">→</div>
+    </a>
+    <a class="row" href="./demo-B-editorial-poster.html">
+      <div class="label">B<span class="tone">editorial · poster</span></div>
+      <div>
+        <h2 class="name">Magazine cover &amp; 6-up scene grid</h2>
+        <p class="desc">WIRED / Apple keynote vibe. Big serif typography poster as the hero, then a 6-up grid of scenario "covers", then a deck-style transcript. Wow-factor; scrolls like an issue.</p>
+      </div>
+      <div class="arrow">→</div>
+    </a>
+    <a class="row" href="./demo-C-tool-ide.html">
+      <div class="label">C<span class="tone">tool · IDE</span></div>
+      <div>
+        <h2 class="name">Workbench / IDE chrome</h2>
+        <p class="desc">VS Code-style activity rail + sidebar (file tree of scenarios) + tabbed editor (transcript) + inspector + status bar. Looks like a real dev tool. Pro-user feel; dense + utilitarian.</p>
+      </div>
+      <div class="arrow">→</div>
+    </a>
+    <a class="row" href="./demo-D-playful-interactive.html">
+      <div class="label">D<span class="tone">playful · interactive</span></div>
+      <div>
+        <h2 class="name">Scrubbable timeline + draggable cards</h2>
+        <p class="desc">Game / playground feel. Carousel of scenario cards (hover lifts + tilts), scrubbable timeline with markers, transcript turns with hover-reveal annotations, draggable input/output chips. Highest delight; least docs-y.</p>
+      </div>
+      <div class="arrow">→</div>
+    </a>
+    <a class="row" href="./demo-E-hybrid-wow.html">
+      <div class="label">E<span class="tone">hybrid · wow</span></div>
+      <div>
+        <h2 class="name">Cinematic intro → workbench reveal</h2>
+        <p class="desc">Best of B + C. Full-bleed magazine-cover hero (fixed 100vh), scrolls into a workbench layout (scenarios / transcript / inspector). Tour pills pinned bottom. Combines wow-factor entry with pro-user inspection underneath.</p>
+      </div>
+      <div class="arrow">→</div>
+    </a>
+  </div>
+
+  <footer>
+    Reply with <span style="color: var(--ember)">A / B / C / D / E</span> (or a mashup like "C, but with B's hero and D's scrubber"). I'll port the chosen direction onto /demo.
+  </footer>
+</div>
+</body>
+</html>
