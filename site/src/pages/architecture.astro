@@ -52,6 +52,11 @@ const handoffs = [
   { from: "deploy-ops",            to: "monitoring-ops",  trigger: "Hand off observability once production is live" },
   { from: "app-architect",         to: "migration-ops",   trigger: "Live system needs a schema / framework / platform change" },
   { from: "integrations-engineer", to: "code-auditor",    trigger: "Verify the integration before merge" },
+  { from: "app-architect",         to: "api-dev",         trigger: "Phase 2 — first-party API surface in spec; elaborate into OpenAPI/GraphQL" },
+  { from: "api-dev",               to: "code-auditor",    trigger: "Audit the scaffolded handlers before merge" },
+  { from: "api-dev",               to: "security-auditor", trigger: "CORS, rate-limit, and authn/authz posture review" },
+  { from: "api-dev",               to: "deploy-ops",      trigger: "Drift gate — fail the deploy if runtime contract drifts from the OpenAPI source" },
+  { from: "api-dev",               to: "monitoring-ops",  trigger: "Hand off the SLO + drift manifest to observability" },
 ];
 ---
 
