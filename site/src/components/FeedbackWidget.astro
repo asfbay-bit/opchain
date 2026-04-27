@@ -32,17 +32,17 @@ import Icon from "./Icon.astro";
     </label>
 
     <label class="field">
-      <span class="label">Title</span>
-      <Input name="title" required placeholder="What happened?" />
+      <span class="label">Subject</span>
+      <Input name="title" required placeholder="Tell us what you're writing about…" />
     </label>
 
     <label class="field">
       <span class="label">Details</span>
-      <Textarea name="description" rows={4} placeholder="Steps to reproduce, expected vs actual, anything useful." />
+      <Textarea name="description" rows={4} placeholder="Give us as much or as little detail as you'd like…" />
     </label>
 
     <label class="field">
-      <span class="label">Email <span class="opt">(optional)</span></span>
+      <span class="label">Email <span class="opt">(required if you'd like a response)</span></span>
       <Input type="email" name="email" placeholder="you@example.com" autocomplete="email" />
     </label>
 
@@ -68,6 +68,14 @@ import Icon from "./Icon.astro";
     launcher.addEventListener("click", () => {
       if (statusEl) statusEl.hidden = true;
       form.reset();
+      // When the modal is opened from a /skills/<id> detail page, prefill
+      // the Subject with [<id>] so the resulting Linear issue is grouped
+      // with the right skill at a glance. The user can edit / delete it.
+      const skillMatch = location.pathname.match(/^\/skills\/([^/]+)\/?$/);
+      if (skillMatch) {
+        const subjectInput = form.querySelector('input[name="title"]') as HTMLInputElement | null;
+        if (subjectInput) subjectInput.value = `[${skillMatch[1]}] `;
+      }
       if (typeof dialog.showModal === "function") dialog.showModal();
       else dialog.setAttribute("open", "");
     });
@@ -135,6 +143,13 @@ import Icon from "./Icon.astro";
   }
 
   .feedback-dialog {
+    /* Lock to viewport center regardless of scroll position or surrounding
+       layout. `<dialog>::showModal` centers by default in spec, but some
+       browsers / page contexts (large pages, sticky headers) can drift —
+       inset:0 + margin:auto pins it explicitly. */
+    position: fixed;
+    inset: 0;
+    margin: auto;
     border: 0.5px solid var(--border);
     border-radius: var(--r-lg);
     background: var(--surface);
@@ -142,6 +157,7 @@ import Icon from "./Icon.astro";
     padding: 0;
     max-width: 32rem;
     width: calc(100% - 2rem);
+    max-height: calc(100vh - 2rem);
     box-shadow: var(--shadow-xl);
   }
   .feedback-dialog::backdrop {
