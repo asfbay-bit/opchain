@@ -7,7 +7,7 @@ import { AxeBuilder } from "@axe-core/playwright";
  * For each route we assert:
  *   - expected HTTP status (200 or listed)
  *   - an h1 matches the page (regex)
- *   - optional Axe pass (artifacts in CI; baseline does not fail the job)
+ *   - Axe finds zero violations after per-route disables (B-02)
  */
 
 interface RouteSpec {
@@ -17,17 +17,28 @@ interface RouteSpec {
   disabledRules?: { id: string; reason: string }[];
 }
 
+// Color-contrast is tracked separately under B-10 — affects shared tokens
+// (.nav-link, .eyebrow, .btn etc.) on every route. Disabling per-route per
+// the B-02 DoD instead of globally so each disable carries its own
+// pointer; the disables are removed in lockstep with the B-10 fix.
+const COLOR_CONTRAST_DISABLE = {
+  id: "color-contrast",
+  reason:
+    "shared tokens (.nav-link, .eyebrow, .btn, .pill); tracked in roadmap B-10",
+};
+
 const ROUTES: RouteSpec[] = [
-  { path: "/", h1: /opchain/i },
-  { path: "/architecture", h1: /how opchain skills chain/i },
-  { path: "/install", h1: /three flows/i },
-  { path: "/skills", h1: /every skill, filterable/i },
-  { path: "/skills/app-architect", h1: /app architect/i },
-  { path: "/skills/code-auditor", h1: /code auditor/i },
+  { path: "/",                     h1: /opchain/i,                  disabledRules: [COLOR_CONTRAST_DISABLE] },
+  { path: "/architecture",         h1: /how opchain skills chain/i, disabledRules: [COLOR_CONTRAST_DISABLE] },
+  { path: "/install",              h1: /three flows/i,              disabledRules: [COLOR_CONTRAST_DISABLE] },
+  { path: "/skills",               h1: /every skill, filterable/i,  disabledRules: [COLOR_CONTRAST_DISABLE] },
+  { path: "/skills/app-architect", h1: /app architect/i,            disabledRules: [COLOR_CONTRAST_DISABLE] },
+  { path: "/skills/code-auditor",  h1: /code auditor/i,             disabledRules: [COLOR_CONTRAST_DISABLE] },
   {
     path: "/demo",
     h1: /two ways to feel it out/i,
     disabledRules: [
+      COLOR_CONTRAST_DISABLE,
       {
         id: "region",
         reason:
@@ -35,8 +46,8 @@ const ROUTES: RouteSpec[] = [
       },
     ],
   },
-  { path: "/privacy", h1: /privacy/i },
-  { path: "/styleguide", h1: /styleguide/i },
+  { path: "/privacy",              h1: /privacy/i,                  disabledRules: [COLOR_CONTRAST_DISABLE] },
+  { path: "/styleguide",           h1: /styleguide/i,               disabledRules: [COLOR_CONTRAST_DISABLE] },
 ];
 
 test.describe("routes render", () => {
@@ -48,7 +59,7 @@ test.describe("routes render", () => {
       await expect(page.locator("h1").first()).toHaveText(h1);
     });
 
-    test(`Axe ${path} reports any a11y violations as artifacts`, async ({
+    test(`Axe ${path} reports zero a11y violations`, async ({
       page,
     }, testInfo) => {
       await page.goto(path, { waitUntil: "domcontentloaded" });
@@ -63,6 +74,9 @@ test.describe("routes render", () => {
         builder = builder.disableRules(disabledRules.map((r) => r.id));
       }
       const { violations } = await builder.analyze();
+      // Always attach the JSON when there are violations — the assertion
+      // below makes the test fail, and the attachment lets a maintainer
+      // see which rule fired against which node without rerunning.
       if (violations.length > 0) {
         const slug =
           path === "/" ? "root" : path.replace(/^\//, "").replace(/\//g, "_");
@@ -70,9 +84,11 @@ test.describe("routes render", () => {
           body: JSON.stringify(violations, null, 2),
           contentType: "application/json",
         });
-        // eslint-disable-next-line no-console
-        console.warn(`Axe ${path}: ${violations.length} violation(s) — see attached artifact`);
       }
+      expect(
+        violations.map((v) => ({ id: v.id, nodes: v.nodes.length })),
+        `Axe ${path}: unexpected violations — see attached artifact, then either fix in source or add to disabledRules in routes.spec.ts with a reason`,
+      ).toEqual([]);
     });
   }
 
