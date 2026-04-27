@@ -153,9 +153,20 @@ const catalog = JSON.stringify(
 
         <div class="detail-io">
           <div class="io-col">
-            <div class="io-head">Inputs</div>
-            <ul class="io-list" id="detail-inputs">
-              {walkthroughs[0].inputs.map((x) => <li>{x}</li>)}
+            <div class="io-head">Inputs <span class="io-hint">click to open</span></div>
+            <ul class="io-list artifacts" id="detail-inputs">
+              {walkthroughs[0].inputs.map((x, i) => (
+                <li class="artifact">
+                  <button
+                    type="button"
+                    class="input-head"
+                    {...({ "data-input-idx": String(i) } as any)}
+                  >
+                    <Icon name="arrow-right" size={10} class="artifact-chevron" />
+                    <span class="artifact-label">{x}</span>
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
           <div class="io-col">
@@ -236,7 +247,11 @@ const catalog = JSON.stringify(
     <!-- 5.4 — Output drawer. Slides in from the right when the user
          clicks an output in the detail card. Renders the artifact body
          as fully-formatted markdown, framed in an amber stripe with
-         dotted top + bottom borders. -->
+         dotted top + bottom borders.
+         Round-3 2.0 — drawer header tightened so eyebrow, title, and
+         kind sit on a single visual row (no awkward stack).
+         Round-3 3.0 — sister .input-drawer below mirrors this from
+         the LEFT edge so inputs get the same drawer affordance. -->
     <aside class="output-drawer" id="output-drawer" aria-hidden="true">
       <button
         type="button"
@@ -247,14 +262,33 @@ const catalog = JSON.stringify(
       ></button>
       <div class="output-drawer-panel" role="dialog" aria-labelledby="output-drawer-title">
         <header class="output-drawer-head">
-          <div>
-            <span class="output-drawer-eyebrow">output</span>
-            <h3 class="output-drawer-title" id="output-drawer-title">—</h3>
-            <span class="output-drawer-kind" id="output-drawer-kind"></span>
-          </div>
+          <span class="output-drawer-eyebrow">output</span>
+          <h3 class="output-drawer-title" id="output-drawer-title">—</h3>
+          <span class="output-drawer-kind" id="output-drawer-kind"></span>
           <button type="button" class="output-drawer-close" id="output-drawer-close" aria-label="Close">×</button>
         </header>
         <div class="output-drawer-body markdown" id="output-drawer-body"></div>
+      </div>
+    </aside>
+
+    <!-- Round-3 3.0 — Input drawer. Mirrors output-drawer but slides
+         in from the LEFT. Inputs are short by nature; the body just
+         renders the input string in a roomy reading frame. -->
+    <aside class="input-drawer" id="input-drawer" aria-hidden="true">
+      <button
+        type="button"
+        class="input-drawer-scrim"
+        id="input-drawer-scrim"
+        aria-label="Close input"
+        tabindex="-1"
+      ></button>
+      <div class="input-drawer-panel" role="dialog" aria-labelledby="input-drawer-title">
+        <header class="input-drawer-head">
+          <button type="button" class="input-drawer-close" id="input-drawer-close" aria-label="Close">×</button>
+          <span class="input-drawer-eyebrow">input</span>
+          <h3 class="input-drawer-title" id="input-drawer-title">—</h3>
+        </header>
+        <div class="input-drawer-body" id="input-drawer-body"></div>
       </div>
     </aside>
 </div>
@@ -373,7 +407,15 @@ const catalog = JSON.stringify(
       detailBody.textContent  = w.description;
       detailRun.textContent   = w.runtime;
       detailSkills.innerHTML  = w.skills.map((s) => `<span class="role-pill" data-role="${escapeHTML(roleFor(s))}">${escapeHTML(s)}</span>`).join("");
-      detailInputs.innerHTML  = w.inputs.map((x) => `<li>${escapeHTML(x)}</li>`).join("");
+      // Round-3 3.0 — inputs render as clickable buttons (mirrors outputs).
+      detailInputs.innerHTML  = w.inputs.map((x, i) => `
+        <li class="artifact">
+          <button type="button" class="input-head" data-input-idx="${i}">
+            <svg class="artifact-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <span class="artifact-label">${escapeHTML(x)}</span>
+          </button>
+        </li>
+      `).join("");
       detailOuts.innerHTML    = w.outputs.map((a) => `
         <li class="artifact">
           <button type="button" class="artifact-head" data-artifact-id="${escapeHTML(a.id)}">
@@ -409,6 +451,16 @@ const catalog = JSON.stringify(
           openOutputDrawer(artifact);
         });
       });
+
+      // Round-3 3.0 — Inputs open the LEFT drawer.
+      detailInputs.querySelectorAll<HTMLButtonElement>(".input-head").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const idx = Number(btn.dataset.inputIdx ?? "-1");
+          const text = w.inputs[idx];
+          if (typeof text !== "string") return;
+          openInputDrawer(text);
+        });
+      });
     }
 
     // ── Output drawer wiring ─────────────────────────────────────
@@ -433,10 +485,36 @@ const catalog = JSON.stringify(
     }
     drawerScrim.addEventListener("click", closeOutputDrawer);
     drawerClose.addEventListener("click", closeOutputDrawer);
+
+    // ── Round-3 3.0 — Input drawer wiring (mirrors output drawer) ──
+    const inputDrawer       = document.getElementById("input-drawer")!;
+    const inputDrawerScrim  = document.getElementById("input-drawer-scrim")!;
+    const inputDrawerClose  = document.getElementById("input-drawer-close")!;
+    const inputDrawerTitle  = document.getElementById("input-drawer-title")!;
+    const inputDrawerBody   = document.getElementById("input-drawer-body")!;
+
+    function openInputDrawer(text: string) {
+      inputDrawerTitle.textContent = "What the user said";
+      inputDrawerBody.textContent = text;
+      inputDrawer.setAttribute("aria-hidden", "false");
+      requestAnimationFrame(() => inputDrawer.classList.add("is-open"));
+      inputDrawerClose.focus();
+    }
+    function closeInputDrawer() {
+      inputDrawer.classList.remove("is-open");
+      inputDrawer.setAttribute("aria-hidden", "true");
+    }
+    inputDrawerScrim.addEventListener("click", closeInputDrawer);
+    inputDrawerClose.addEventListener("click", closeInputDrawer);
+
     document.addEventListener("keydown", (ev) => {
-      if (ev.key === "Escape" && drawer.classList.contains("is-open")) {
+      if (ev.key !== "Escape") return;
+      if (drawer.classList.contains("is-open")) {
         ev.preventDefault();
         closeOutputDrawer();
+      } else if (inputDrawer.classList.contains("is-open")) {
+        ev.preventDefault();
+        closeInputDrawer();
       }
     });
 
@@ -1803,37 +1881,45 @@ const catalog = JSON.stringify(
       transition: transform var(--dur-base) var(--ease-standard);
     }
     .output-drawer.is-open .output-drawer-panel { transform: translateX(0); }
+    /* Round-3 2.0 — header is a single horizontal row. eyebrow + title +
+       kind sit side-by-side; the close button anchors the right. No
+       leading line break above the title. */
     .output-drawer-head {
       display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 0.75rem;
-      padding: 1rem 1.25rem;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.55rem 0.75rem;
+      padding: 0.85rem 1.1rem;
       border-top: 1px dotted var(--tri-agent);
       border-bottom: 1px dotted var(--tri-agent);
       background: color-mix(in srgb, var(--tri-agent) 10%, transparent);
     }
     .output-drawer-eyebrow {
-      display: block;
       font-family: var(--font-mono);
       font-size: var(--fs-xs);
       letter-spacing: var(--ls-widest);
       text-transform: uppercase;
       color: var(--tri-agent);
+      flex: 0 0 auto;
     }
     .output-drawer-title {
-      margin: 0.1rem 0 0;
+      margin: 0;
+      flex: 1 1 auto;
       font-family: var(--font-display);
       font-size: var(--fs-md);
       font-weight: 600;
       color: var(--text);
+      line-height: 1.2;
     }
     .output-drawer-kind {
-      display: inline-block;
-      margin-top: 0.2rem;
+      flex: 0 0 auto;
       font-family: var(--font-mono);
       font-size: 11px;
       color: var(--muted);
+      padding: 1px 6px;
+      border: 0.5px solid color-mix(in srgb, var(--tri-agent) 35%, var(--border));
+      border-radius: var(--r-xs);
+      background: color-mix(in srgb, var(--tri-agent) 6%, transparent);
     }
     .output-drawer-close {
       appearance: none;
@@ -1922,6 +2008,122 @@ const catalog = JSON.stringify(
       margin: 1rem 0;
       color: var(--muted);
       font-style: italic;
+    }
+    /* Round-3 2.0 — drop the leading-margin spacer on the body's first
+       child so it sits flush against the dotted header divider. */
+    .output-drawer-body > :global(:first-child) { margin-top: 0; }
+
+    /* Round-3 3.0 — Input drawer (mirrors output-drawer, slides from
+       left). Body is plain-text rendering of the input string. */
+    .input-drawer {
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      pointer-events: none;
+    }
+    .input-drawer[aria-hidden="false"] { pointer-events: auto; }
+    .input-drawer-scrim {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      border: 0;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity var(--dur-base) var(--ease-standard);
+    }
+    .input-drawer.is-open .input-drawer-scrim { opacity: 1; }
+    .input-drawer-panel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: min(480px, 92vw);
+      background: var(--surface);
+      border-right: 1px dotted var(--advisor);
+      box-shadow: 8px 0 24px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform var(--dur-base) var(--ease-standard);
+    }
+    .input-drawer.is-open .input-drawer-panel { transform: translateX(0); }
+    .input-drawer-head {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.85rem 1.1rem;
+      border-top: 1px dotted var(--advisor);
+      border-bottom: 1px dotted var(--advisor);
+      background: color-mix(in srgb, var(--advisor) 10%, transparent);
+    }
+    .input-drawer-close {
+      appearance: none;
+      background: transparent;
+      border: 0.5px solid var(--border);
+      color: var(--muted);
+      width: 28px;
+      height: 28px;
+      border-radius: var(--r-xs);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+    .input-drawer-close:hover { color: var(--accent); border-color: var(--accent); }
+    .input-drawer-eyebrow {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--advisor);
+      flex: 0 0 auto;
+    }
+    .input-drawer-title {
+      margin: 0;
+      flex: 1 1 auto;
+      font-family: var(--font-display);
+      font-size: var(--fs-md);
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .input-drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem 1.5rem 2rem;
+      color: var(--text);
+      font-size: var(--fs-base);
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    /* Round-3 3.0 — input-head shares look-and-feel with artifact-head
+       so inputs and outputs read as siblings. */
+    .input-head {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      width: 100%;
+      padding: 0.55rem 0.8rem;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      color: var(--muted);
+      border-radius: var(--r-xs);
+      transition: background var(--dur-fast) var(--ease-standard),
+                  color var(--dur-fast) var(--ease-standard);
+    }
+    .input-head:hover {
+      background: var(--accent-dim);
+      color: var(--text);
+    }
+    .input-head .artifact-chevron { color: var(--accent); }
+    .input-head .artifact-label {
+      flex: 1;
+      font-size: var(--fs-sm);
+      color: inherit;
     }
 
     /* 5.2 — Scenario chip accordion. Numbered chips in a single row at
