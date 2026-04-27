@@ -85,7 +85,7 @@ const phases: Phase[] = [
 
 <Base
   title="opchain — skills that ship"
-  description="opchain is a skillchain and shared checkpoint protocol designed to get you from concept to production to ops."
+  description="opchain is a skillchain and checkpoint protocol designed to get you from concept to production to ops."
   active="/"
 >
   <main class="intro">
@@ -99,7 +99,7 @@ const phases: Phase[] = [
     <p class="intro-claim">skills that ship.</p>
 
     <div class="intro-tagline">
-      <span>a skillchain and shared checkpoint protocol designed to get you from concept to production to ops</span>
+      <span>a skillchain and checkpoint protocol designed to get you from concept to production to ops</span>
     </div>
 
     <div class="intro-body">
@@ -110,13 +110,13 @@ const phases: Phase[] = [
         asked an hour ago — opchain is what you've been looking for.
       </p>
       <p>
-        A set of Claude Code skills plus a shared checkpoint protocol.
-        Each skill owns one phase (discover, spec, design, build, audit,
-        ship, monitor, migrate, scale) and writes JSON checkpoints to
-        <code>.checkpoints/</code>. Claude reads them back on the next
-        session and picks up where you left off. Skills invoke each
-        other automatically at phase boundaries — no manual handoffs,
-        no copy-paste.
+        A set of Claude Code skills plus a checkpoint protocol. Each
+        skill specializes in one piece of the puzzle (discovery, spec,
+        design, build, audit, ship, monitor, migrate, scale). At the
+        beginning of the next session, Claude reads them back to pick
+        up right where you left off. A central orchestrator routes
+        between them so you never have to think about which skill to
+        call.
       </p>
       <p>
         Install them, trigger by name, keep going. No API keys. No SaaS.
