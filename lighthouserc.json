@@ -8,7 +8,7 @@
         "http://127.0.0.1:4321/skills",
         "http://127.0.0.1:4321/demo"
       ],
-      "numberOfRuns": 1,
+      "numberOfRuns": 3,
       "settings": { "preset": "desktop" }
     },
     "assert": {
@@ -16,10 +16,10 @@
         {
           "matchingUrlPattern": ".*",
           "assertions": {
-            "categories:performance":    ["error", { "minScore": 0.85 }],
-            "categories:accessibility":  ["error", { "minScore": 0.85 }],
-            "categories:best-practices": ["error", { "minScore": 0.85 }],
-            "categories:seo":            ["error", { "minScore": 0.85 }]
+            "categories:performance":    ["error", { "minScore": 0.95 }],
+            "categories:accessibility":  ["error", { "minScore": 0.95 }],
+            "categories:best-practices": ["error", { "minScore": 0.95 }],
+            "categories:seo":            ["error", { "minScore": 0.95 }]
           }
         }
       ]
