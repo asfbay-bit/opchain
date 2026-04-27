@@ -33,6 +33,13 @@ const skillRolesJson = JSON.stringify(
     allSkills.map((s) => [s.data.name, getSkillRole(s.data.name) as Role]),
   ),
 );
+
+// Reading-time estimate, computed at build time from the SKILL.md body.
+// 220 wpm is the conservative end of adult silent-reading speed for
+// technical prose (range 200–250). Ceil so a 30-second skill still
+// reads "1 min" instead of "0 min".
+const wordCount = (skill.body || "").trim().split(/\s+/).filter(Boolean).length;
+const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
 ---
 
 <Base
@@ -131,7 +138,12 @@ const skillRolesJson = JSON.stringify(
     <!-- ───────────── Full SKILL.md (model-facing) ───────────── -->
     <section class="prose-wrap">
       <div class="prose-head">
-        <span class="prose-eyebrow">SKILL.md</span>
+        <div class="prose-head-row">
+          <span class="prose-eyebrow">SKILL.md</span>
+          <span class="prose-readtime" title={`${wordCount.toLocaleString()} words`}>
+            ≈ {readingMinutes} min read
+          </span>
+        </div>
         <span class="prose-note">
           Below is the file Claude reads on invocation. It's written in
           the model's voice — "read this", "do that" — not a user guide.
@@ -144,36 +156,245 @@ const skillRolesJson = JSON.stringify(
       </section>
     </section>
 
+    <!-- 5. Progress rail — fixed to the right edge of the viewport,
+         tracks scroll position through the SKILL.md body. -->
+    <div class="progress-rail" id="progress-rail" aria-hidden="true">
+      <div class="progress-rail-fill" id="progress-rail-fill"></div>
+    </div>
+
     <script is:inline id="skill-roles-data" type="application/json" set:html={skillRolesJson}></script>
     <script>
-      // Post-render UX pass on the SKILL.md prose:
-      //   · inline <code> matching a skill name → role-coloured pill
-      //   · inline <code> starting with `/`     → ember command pill
-      // Runs once on load; the prose is static, so no re-runs needed.
+      // Post-render UX pass on the SKILL.md prose. Runs once on load.
+      // Tags inline elements with semantic data-* attributes so CSS owns
+      // every visual decision; this script never sets inline styles.
+      type Role = "workflow" | "tri-agent" | "audit-gate" | "specialist" | "advisor" | "orchestrator" | "success";
+
       const rolesEl = document.getElementById("skill-roles-data");
-      const skillRoles: Record<string, string> = rolesEl
+      const skillRoles: Record<string, Role> = rolesEl
         ? JSON.parse(rolesEl.textContent || "{}")
         : {};
 
+      const PHASE_ROLE: Record<string, Role> = {
+        discover:  "advisor",
+        spec:      "advisor",
+        design:    "tri-agent",
+        build:     "workflow",
+        audit:     "audit-gate",
+        ship:      "orchestrator",
+        monitor:   "specialist",
+        migrate:   "specialist",
+        scale:     "advisor",
+      };
+
+      const STATUS_TOKENS: Array<[RegExp, string]> = [
+        [/^(critical|blocker|fail|failed|rejected|error)$/i, "danger"],
+        [/^(warning|caution|warn)$/i,                        "warn"],
+        [/^(verified|complete|completed|success|passed|ok|approved|ready)$/i, "ok"],
+        [/^(in[_\s-]?progress|wip|pending|queued|blocked|paused)$/i,          "progress"],
+      ];
+
       const prose = document.getElementById("skill-md");
-      if (prose) {
-        prose.querySelectorAll<HTMLElement>("code").forEach((el) => {
-          // Skip code inside <pre> — those are full code blocks, not inline mentions.
+      if (prose) wireProse(prose);
+
+      function wireProse(root: HTMLElement) {
+        // 1 + 8 — inline <code> classification.
+        root.querySelectorAll<HTMLElement>("code").forEach((el) => {
           if (el.closest("pre")) return;
           const text = (el.textContent || "").trim();
 
-          // 1. Slash commands: /audit, /deploy, /git, /uxe ...
+          // a) Slash commands: /audit, /deploy, /uxe …
           if (/^\/[a-z][\w-]*(\s|$)/i.test(text)) {
             el.setAttribute("data-cmd", "true");
             return;
           }
-
-          // 2. Skill mentions — exact match against the catalog.
+          // b) Skill mentions — exact match against the catalog.
           if (skillRoles[text]) {
             el.setAttribute("data-role", skillRoles[text]);
             return;
           }
+          // c) Phase keywords.
+          if (PHASE_ROLE[text.toLowerCase()]) {
+            el.setAttribute("data-phase", text.toLowerCase());
+            el.setAttribute("data-role", PHASE_ROLE[text.toLowerCase()]);
+            return;
+          }
+          // d) Status / severity verbs in inline code (e.g. `CRITICAL`).
+          for (const [pat, status] of STATUS_TOKENS) {
+            if (pat.test(text)) {
+              el.setAttribute("data-status", status);
+              return;
+            }
+          }
         });
+
+        // 6 — Status / severity verbs in plain prose. Walk text nodes,
+        // wrap matched tokens in <mark data-status="…"> so CSS can paint
+        // them. Skip headings, code blocks, links, and table cells (we
+        // don't want to double-emphasise things that already pop).
+        const SKIP = new Set(["CODE", "PRE", "A", "MARK", "H1", "H2", "H3", "H4"]);
+        const STATUS_PROSE = [
+          { rx: /\b(CRITICAL|BLOCKER|FAIL(?:ED)?|REJECTED|ERROR)\b/g,           status: "danger"   },
+          { rx: /\b(WARNING|CAUTION)\b/g,                                       status: "warn"     },
+          { rx: /\b(VERIFIED|COMPLETE(?:D)?|SUCCESS|PASSED|APPROVED|READY)\b/g, status: "ok"       },
+          { rx: /\b(IN[_\s-]?PROGRESS|WIP|PENDING|BLOCKED|PAUSED)\b/g,          status: "progress" },
+        ];
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        const replacements: Array<{ node: Text; html: string }> = [];
+        let node: Node | null;
+        while ((node = walker.nextNode())) {
+          const t = node as Text;
+          if (!t.parentElement || SKIP.has(t.parentElement.tagName)) continue;
+          const original = t.nodeValue || "";
+          if (!/[A-Z]/.test(original)) continue; // status tokens are uppercase
+          let html = escapeHtml(original);
+          let dirty = false;
+          for (const { rx, status } of STATUS_PROSE) {
+            if (rx.test(html)) {
+              html = html.replace(new RegExp(rx.source, rx.flags), (m) => {
+                dirty = true;
+                return `<mark data-status="${status}">${m}</mark>`;
+              });
+            }
+          }
+          if (dirty) replacements.push({ node: t, html });
+        }
+        for (const { node, html } of replacements) {
+          const span = document.createElement("span");
+          span.innerHTML = html;
+          node.replaceWith(...Array.from(span.childNodes));
+        }
+
+        // 7 — Typed callout blockquotes. Detect the leading "Note:" /
+        // "Warning:" / "Critical:" / "Tip:" / "Principle:" marker on
+        // the first paragraph and stamp the blockquote with data-callout.
+        const CALLOUT_PAT = /^(Note|Tip|Hint|Warning|Caution|Critical|Danger|Important|Principle|Rule|Constraint)\s*:\s*/i;
+        const CALLOUT_KIND: Record<string, string> = {
+          note:        "info",   tip:       "info",  hint:        "info",
+          warning:     "warn",   caution:   "warn",
+          critical:    "danger", danger:    "danger", important:  "danger",
+          principle:   "ok",     rule:      "ok",     constraint: "ok",
+        };
+        root.querySelectorAll<HTMLElement>("blockquote").forEach((bq) => {
+          const first = bq.querySelector("p, li");
+          if (!first) return;
+          const text = (first.textContent || "").trim();
+          const m = text.match(CALLOUT_PAT);
+          if (!m) return;
+          const word = m[1].toLowerCase();
+          const kind = CALLOUT_KIND[word] || "info";
+          bq.setAttribute("data-callout", kind);
+          // Replace the leading marker with a styled label span so the
+          // colon doesn't render as plain prose.
+          first.innerHTML = first.innerHTML.replace(
+            CALLOUT_PAT,
+            `<span class="callout-label" data-kind="${kind}">${m[1]}</span> `,
+          );
+        });
+
+        // 9 — Cross-skill links: <a href="/skills/<id>">…</a> picks up
+        // the destination skill's role colour.
+        root.querySelectorAll<HTMLAnchorElement>("a[href^='/skills/']").forEach((a) => {
+          const m = a.getAttribute("href")?.match(/^\/skills\/([^/?#]+)/);
+          if (!m) return;
+          const role = skillRoles[m[1]];
+          if (role) a.setAttribute("data-role", role);
+        });
+
+        // 10 — Failure-mode / blocker line prefixes. Scan paragraphs
+        // and list items for a leading "BLOCKER:" / "FAIL:" / "WARNING:"
+        // and wrap the prefix in <strong data-status="…"> so only the
+        // prefix gets the role colour, not the whole sentence.
+        const PREFIX_PAT = /^(BLOCKER|FAIL(?:ED)?|WARNING|CRITICAL|REJECTED)\s*:/;
+        const PREFIX_STATUS: Record<string, string> = {
+          BLOCKER:   "danger",
+          FAIL:      "danger",
+          FAILED:    "danger",
+          CRITICAL:  "danger",
+          REJECTED:  "danger",
+          WARNING:   "warn",
+        };
+        root.querySelectorAll<HTMLElement>("p, li").forEach((el) => {
+          // Skip elements inside callouts (already labelled) and tables.
+          if (el.closest("blockquote[data-callout], table")) return;
+          const first = el.firstChild;
+          if (!first || first.nodeType !== Node.TEXT_NODE) return;
+          const txt = (first.nodeValue || "").trimStart();
+          const m = txt.match(PREFIX_PAT);
+          if (!m) return;
+          const status = PREFIX_STATUS[m[1]] || "danger";
+          const after = txt.slice(m[0].length);
+          const label = document.createElement("strong");
+          label.dataset.status = status;
+          label.className = "prefix-label";
+          label.textContent = m[0];
+          first.nodeValue = "";
+          el.insertBefore(label, first);
+          if (after) el.insertBefore(document.createTextNode(after), label.nextSibling);
+        });
+
+        // 4 — Anchor link affordance on h2 / h3. We render an "#" glyph
+        // that's invisible by default and reveals on heading hover; click
+        // copies the absolute URL to the clipboard.
+        let anchorIdx = 0;
+        root.querySelectorAll<HTMLElement>("h2, h3").forEach((h) => {
+          if (!h.id) {
+            const slug = (h.textContent || "")
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-+|-+$/g, "")
+              || `section-${++anchorIdx}`;
+            h.id = slug;
+          }
+          const a = document.createElement("a");
+          a.className = "heading-anchor";
+          a.href = `#${h.id}`;
+          a.setAttribute("aria-label", `Link to ${h.textContent}`);
+          a.textContent = "#";
+          a.addEventListener("click", (ev) => {
+            ev.preventDefault();
+            const url = `${location.origin}${location.pathname}#${h.id}`;
+            history.replaceState(null, "", `#${h.id}`);
+            navigator.clipboard?.writeText(url).catch(() => {});
+            a.classList.add("is-copied");
+            setTimeout(() => a.classList.remove("is-copied"), 1200);
+          });
+          h.appendChild(a);
+        });
+      }
+
+      // Progress rail (5). Fills from 0% → 100% as the user scrolls
+      // through the SKILL.md section. Uses requestAnimationFrame to keep
+      // the scroll handler cheap on long pages.
+      const rail = document.getElementById("progress-rail");
+      const fill = document.getElementById("progress-rail-fill");
+      if (rail && fill && prose) {
+        let pending = false;
+        function update() {
+          pending = false;
+          if (!prose || !fill) return;
+          const top = prose.getBoundingClientRect().top + window.scrollY;
+          const height = prose.offsetHeight;
+          const viewportBottom = window.scrollY + window.innerHeight;
+          const progress = Math.max(0, Math.min(1, (viewportBottom - top) / height));
+          fill.style.height = `${progress * 100}%`;
+        }
+        function onScroll() {
+          if (pending) return;
+          pending = true;
+          requestAnimationFrame(update);
+        }
+        update();
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onScroll);
+      }
+
+      function escapeHtml(s: string): string {
+        return s
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
       }
     </script>
 
@@ -317,8 +538,8 @@ const skillRolesJson = JSON.stringify(
   .prose-wrap { margin-top: 1rem; }
   .prose-head {
     display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
+    flex-direction: column;
+    gap: 0.4rem;
     padding: 0.75rem 1rem;
     background: var(--surface);
     border: 0.5px solid var(--border);
@@ -327,6 +548,12 @@ const skillRolesJson = JSON.stringify(
     border-top-right-radius: var(--r-md);
     margin-bottom: 0;
   }
+  .prose-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
   .prose-eyebrow {
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
@@ -334,7 +561,14 @@ const skillRolesJson = JSON.stringify(
     text-transform: uppercase;
     color: var(--accent);
     flex: 0 0 auto;
-    padding-top: 0.1rem;
+  }
+  /* 3 — Reading time, computed at build time. Help-text via title attr. */
+  .prose-readtime {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    color: var(--subtle);
+    cursor: help;
   }
   .prose-note {
     font-size: var(--fs-xs);
@@ -342,16 +576,20 @@ const skillRolesJson = JSON.stringify(
     color: var(--subtle);
   }
   .prose-note a { color: var(--accent); }
+
+  /* 1 — Body measure tuning. Bumped to 16px / 1.7 line-height with a
+     tighter character measure (~70ch) so long technical paragraphs
+     don't outrun the eye. */
   .prose {
-    padding: 1rem 1.25rem 0.5rem;
+    padding: 1.5rem 1.6rem 1rem;
     border: 0.5px solid var(--border);
     border-top: 0;
     border-bottom-left-radius: var(--r-md);
     border-bottom-right-radius: var(--r-md);
     background: var(--bg);
-    font-size: var(--fs-base);
+    font-size: var(--fs-md);
     color: var(--muted);
-    line-height: var(--lh-base);
+    line-height: 1.7;
   }
   .prose :global(h1) { display: none; } /* SKILL.md repeats the title */
   .prose :global(h2) {
@@ -359,22 +597,66 @@ const skillRolesJson = JSON.stringify(
     font-size: var(--fs-lg);
     font-weight: 600;
     color: var(--text);
-    margin: 2rem 0 0.6rem;
+    margin: 2.25rem 0 0.6rem;
     letter-spacing: var(--ls-tight);
+    position: relative;
+    scroll-margin-top: 1rem;
   }
   .prose :global(h3) {
     font-family: var(--font-display);
     font-size: var(--fs-md);
     font-weight: 600;
     color: var(--text);
-    margin: 1.5rem 0 0.5rem;
+    margin: 1.6rem 0 0.5rem;
+    position: relative;
+    scroll-margin-top: 1rem;
   }
-  .prose :global(p) { margin: 0 0 0.85rem; max-width: 42rem; color: var(--muted); }
+  .prose :global(p) {
+    margin: 0 0 0.95rem;
+    max-width: 70ch;
+    color: var(--muted);
+  }
+  /* 2 — Drop intro. The first paragraph after every h2 reads slightly
+     larger and brighter so each section has a visible lead-in. */
+  .prose :global(h2 + p) {
+    font-size: 1.05em;
+    color: var(--text);
+  }
   .prose :global(ul), .prose :global(ol) {
     margin: 0.5rem 0 1rem;
-    padding-left: 1.25rem;
+    padding-left: 1.4rem;
   }
-  .prose :global(li) { margin-bottom: 0.3rem; color: var(--muted); }
+  .prose :global(li) { margin-bottom: 0.4rem; color: var(--muted); }
+
+  /* 4 — Heading anchor links. Visible only on hover/focus of the
+     containing heading; click copies the absolute URL. */
+  .prose :global(.heading-anchor) {
+    margin-left: 0.5rem;
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: 0.75em;
+    color: var(--subtle);
+    text-decoration: none;
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease-standard),
+                color var(--dur-fast) var(--ease-standard);
+  }
+  .prose :global(h2:hover .heading-anchor),
+  .prose :global(h2:focus-within .heading-anchor),
+  .prose :global(h3:hover .heading-anchor),
+  .prose :global(h3:focus-within .heading-anchor),
+  .prose :global(.heading-anchor:focus-visible) {
+    opacity: 1;
+    color: var(--accent);
+  }
+  .prose :global(.heading-anchor.is-copied) {
+    color: var(--success);
+    opacity: 1;
+  }
+  .prose :global(.heading-anchor.is-copied)::after {
+    content: " copied";
+    font-size: 0.85em;
+  }
   .prose :global(code) {
     font-family: var(--font-mono);
     font-size: 12px;
@@ -454,19 +736,156 @@ const skillRolesJson = JSON.stringify(
     font-weight: 500;
     letter-spacing: var(--ls-wide);
   }
+  /* Default blockquote — generic accent stripe + italic. Typed callouts
+     (7) override below. */
   .prose :global(blockquote) {
     border-left: 2px solid var(--accent);
-    padding: 0.25rem 0 0.25rem 1rem;
+    padding: 0.45rem 0.75rem 0.45rem 1rem;
     margin: 1rem 0;
     color: var(--muted);
     font-style: italic;
   }
+  /* 7 — Typed callout blockquotes. data-callout values: info, warn,
+     danger, ok. Each gets a role-coloured left bar, tinted background,
+     small uppercase label, and (importantly) the italic is dropped so
+     long callouts don't fatigue the eye. */
+  .prose :global(blockquote[data-callout]) {
+    --callout-color: var(--accent);
+    border-left: 3px solid var(--callout-color);
+    background: color-mix(in srgb, var(--callout-color) 8%, transparent);
+    padding: 0.7rem 0.95rem 0.7rem 1.1rem;
+    border-radius: 0 var(--r-xs) var(--r-xs) 0;
+    color: var(--text);
+    font-style: normal;
+  }
+  .prose :global(blockquote[data-callout="info"])   { --callout-color: var(--advisor); }
+  .prose :global(blockquote[data-callout="warn"])   { --callout-color: var(--in-progress); }
+  .prose :global(blockquote[data-callout="danger"]) { --callout-color: var(--audit-gate); }
+  .prose :global(blockquote[data-callout="ok"])     { --callout-color: var(--success); }
+  .prose :global(.callout-label) {
+    display: inline-block;
+    margin-right: 0.4em;
+    font-family: var(--font-mono);
+    font-size: 0.75em;
+    font-weight: 600;
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--callout-color);
+  }
+  .prose :global(blockquote[data-callout]) :global(.callout-label) {
+    color: var(--callout-color);
+  }
+
   .prose :global(hr) {
     border: 0;
     border-top: 0.5px solid var(--border);
     margin: 2rem 0;
   }
+
+  /* Plain links — accent-coloured by default. */
   .prose :global(a) { color: var(--accent); }
+  /* 9 — Cross-skill links pick up the destination skill's role colour
+     (set by the post-render script). Underline added so they read as
+     links, not pill mentions. */
+  .prose :global(a[data-role]) {
+    --link-color: var(--specialist);
+    color: var(--link-color);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--link-color) 50%, transparent);
+    text-underline-offset: 0.18em;
+  }
+  .prose :global(a[data-role="workflow"])     { --link-color: var(--workflow); }
+  .prose :global(a[data-role="tri-agent"])    { --link-color: var(--tri-agent); }
+  .prose :global(a[data-role="audit-gate"])   { --link-color: var(--audit-gate); }
+  .prose :global(a[data-role="specialist"])   { --link-color: var(--specialist); }
+  .prose :global(a[data-role="advisor"])      { --link-color: var(--advisor); }
+  .prose :global(a[data-role="orchestrator"]) { --link-color: var(--orchestrator); }
+  .prose :global(a[data-role="success"])      { --link-color: var(--success); }
+
+  /* 6 — Status / severity verbs in plain prose. <mark data-status="…">
+     wraps tokens detected by the client script. Background-less so they
+     don't flag-bait the page; colour + small letter-spacing gets the job
+     done. */
+  .prose :global(mark[data-status]) {
+    --status-color: var(--accent);
+    background: transparent;
+    color: var(--status-color);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .prose :global(mark[data-status="danger"])    { --status-color: var(--audit-gate); }
+  .prose :global(mark[data-status="warn"])      { --status-color: var(--in-progress); }
+  .prose :global(mark[data-status="ok"])        { --status-color: var(--success); }
+  .prose :global(mark[data-status="progress"])  { --status-color: var(--advisor); }
+
+  /* Inline <code data-status="…"> — like a status verb in a code span.
+     Painted as a coloured pill (matches the data-cmd / data-role
+     treatment above). */
+  .prose :global(code[data-status]) {
+    --pill-color: var(--accent);
+    color: var(--pill-color);
+    border-color: color-mix(in srgb, var(--pill-color) 50%, transparent);
+    background: color-mix(in srgb, var(--pill-color) 12%, transparent);
+    font-weight: 500;
+  }
+  .prose :global(code[data-status="danger"])   { --pill-color: var(--audit-gate); }
+  .prose :global(code[data-status="warn"])     { --pill-color: var(--in-progress); }
+  .prose :global(code[data-status="ok"])       { --pill-color: var(--success); }
+  .prose :global(code[data-status="progress"]) { --pill-color: var(--advisor); }
+
+  /* 8 — Phase-keyword <code data-phase="…"> already styled by the
+     existing data-role rule (the script sets both attributes). The
+     small letter-spacing tweak below makes phases read as a vocabulary
+     class, not a one-off pill. */
+  .prose :global(code[data-phase]) {
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+  }
+
+  /* 10 — Failure-mode line prefixes. <strong data-status="…"> appears
+     at the start of paragraphs / list items. Slightly chunkier letter
+     spacing + monospace so the prefix reads as a tag, not bold prose. */
+  .prose :global(.prefix-label) {
+    --prefix-color: var(--audit-gate);
+    display: inline-block;
+    margin-right: 0.4em;
+    padding: 0 0.4em;
+    border-radius: var(--r-xs);
+    font-family: var(--font-mono);
+    font-size: 0.78em;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--prefix-color);
+    background: color-mix(in srgb, var(--prefix-color) 12%, transparent);
+    border: 0.5px solid color-mix(in srgb, var(--prefix-color) 40%, transparent);
+    vertical-align: 0.05em;
+  }
+  .prose :global(.prefix-label[data-status="warn"])     { --prefix-color: var(--in-progress); }
+  .prose :global(.prefix-label[data-status="ok"])       { --prefix-color: var(--success); }
+  .prose :global(.prefix-label[data-status="progress"]) { --prefix-color: var(--advisor); }
+
+  /* 5 — Progress rail. Fixed to the right edge of the viewport, only
+     visible while the user is looking at a SKILL detail page. The fill
+     element grows from 0% → 100% as the user scrolls through the prose. */
+  .progress-rail {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 2px;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 30;
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  .progress-rail-fill {
+    width: 100%;
+    height: 0;
+    background: var(--accent);
+    transition: height 80ms linear;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .progress-rail-fill { transition: none; }
+  }
 
   .cta {
     margin-top: 3rem;
