@@ -6,6 +6,7 @@ import Badge from "../../components/ui/Badge.astro";
 import Button from "../../components/ui/Button.astro";
 import Card from "../../components/ui/Card.astro";
 import Icon from "../../components/Icon.astro";
+import CaptureModal from "../../components/CaptureModal.astro";
 import { getAllSkills, getSkill, getSkillRole, type Role } from "../../lib/skills";
 
 export async function getStaticPaths() {
@@ -136,7 +137,12 @@ const consumers = isFoundational
           </p>
         )}
         <div class="try-actions">
-          <Button variant="outline" size="sm" href={`/skills/${skill.data.name}.zip`}>
+          <Button
+            variant="outline"
+            size="sm"
+            href={`/skills/${skill.data.name}.zip`}
+            {...{ "data-capture-trigger": true, "data-capture-source": "skill-download" } as any}
+          >
             <Icon name="download" size={12} />
             download skill
           </Button>
@@ -720,6 +726,8 @@ const consumers = isFoundational
       </div>
     </section>
   </main>
+
+  <CaptureModal />
 </Base>
 
 <style>

@@ -1,0 +1,379 @@
+---
+/**
+ * Soft-gate capture modal at the install / download moment.
+ *
+ * Mounted once per page; any link/button that needs the gate adds
+ * `data-capture-trigger` plus `data-capture-source="install"` (or
+ * "skill-download" / "bundle-download"). The modal intercepts the click,
+ * shows the form, then either:
+ *   · POSTs /api/notify and continues to the original href (submit), or
+ *   · skips and continues to the original href ("no thanks, just download")
+ *
+ * The gate is **soft** by design — the user can always skip. Capture rate
+ * is best-effort.
+ */
+---
+
+<div class="capture" id="capture-modal" hidden aria-hidden="true">
+  <button class="capture-scrim" id="capture-scrim" tabindex="-1" aria-label="Skip and continue"></button>
+
+  <div class="capture-card" role="dialog" aria-labelledby="capture-title" aria-modal="true">
+    <div class="capture-head">
+      <span class="capture-eyebrow">before you go</span>
+      <button class="capture-close" id="capture-close" aria-label="Skip and continue">×</button>
+    </div>
+
+    <div class="capture-body">
+      <h2 class="capture-title" id="capture-title">Send me when v2 ships?</h2>
+      <p class="capture-sub">
+        Drop your email and a couple of details — totally optional, totally
+        skippable. We'll only ping you when something's actually shipped.
+      </p>
+
+      <form class="capture-form" id="capture-form" autocomplete="on">
+        <label class="field">
+          <span class="label">Email</span>
+          <input
+            type="email"
+            name="email"
+            id="capture-email"
+            placeholder="you@example.com"
+            required
+            autocomplete="email"
+            inputmode="email"
+          />
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="label">Role <span class="opt">(optional)</span></span>
+            <select name="role" id="capture-role">
+              <option value="">—</option>
+              <option value="engineer">Engineer</option>
+              <option value="engineering-manager">Engineering Manager</option>
+              <option value="product-manager">Product Manager</option>
+              <option value="designer">Designer</option>
+              <option value="founder">Founder</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="label">Team size <span class="opt">(optional)</span></span>
+            <select name="teamSize" id="capture-team-size">
+              <option value="">—</option>
+              <option value="solo">Solo</option>
+              <option value="2-5">2–5</option>
+              <option value="6-20">6–20</option>
+              <option value="21-plus">21+</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="label">What are you building? <span class="opt">(optional)</span></span>
+          <input
+            type="text"
+            name="building"
+            id="capture-building"
+            placeholder="One-liner — saas, internal tool, side project, …"
+            maxlength="280"
+          />
+        </label>
+
+        <div class="capture-status" id="capture-status" hidden>
+          <span id="capture-status-msg"></span>
+        </div>
+
+        <div class="capture-foot">
+          <button type="button" class="capture-skip" id="capture-skip">no thanks, just download</button>
+          <button type="submit" class="capture-submit" id="capture-submit">notify me + download</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  type Source = "install" | "skill-download" | "bundle-download" | "homepage" | "other";
+
+  const modal      = document.getElementById("capture-modal")!;
+  const scrim      = document.getElementById("capture-scrim")!;
+  const closeBtn   = document.getElementById("capture-close")!;
+  const skipBtn    = document.getElementById("capture-skip")!;
+  const submitBtn  = document.getElementById("capture-submit")! as HTMLButtonElement;
+  const form       = document.getElementById("capture-form")! as HTMLFormElement;
+  const statusEl   = document.getElementById("capture-status")!;
+  const statusMsg  = document.getElementById("capture-status-msg")!;
+  const emailInput = document.getElementById("capture-email")! as HTMLInputElement;
+
+  // Pending continuation: where the user was originally going. Set by the
+  // trigger click; consumed by submit / skip / close.
+  let pendingHref: string | null = null;
+  let pendingSource: Source = "other";
+
+  function open(href: string, source: Source) {
+    pendingHref = href;
+    pendingSource = source;
+    statusEl.hidden = true;
+    form.reset();
+    modal.hidden = false;
+    modal.removeAttribute("aria-hidden");
+    requestAnimationFrame(() => {
+      modal.classList.add("is-open");
+      emailInput.focus();
+    });
+  }
+
+  function continueTo(href: string | null) {
+    if (!href) return;
+    // Same-tab navigation; download URLs (e.g. /skills/<id>.zip) trigger
+    // the browser's download flow via the Worker's Content-Disposition
+    // header without leaving the page.
+    window.location.href = href;
+  }
+
+  function close(skipNavigate = false) {
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+    setTimeout(() => { modal.hidden = true; }, 220);
+    const href = pendingHref;
+    pendingHref = null;
+    if (!skipNavigate) continueTo(href);
+  }
+
+  scrim.addEventListener("click", () => close());
+  closeBtn.addEventListener("click", () => close());
+  skipBtn.addEventListener("click", () => close());
+
+  document.addEventListener("keydown", (ev) => {
+    if (modal.hidden) return;
+    if (ev.key === "Escape") {
+      ev.preventDefault();
+      close();
+    }
+  });
+
+  form.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const data = new FormData(form);
+    const payload: Record<string, unknown> = {
+      email: String(data.get("email") || "").trim(),
+      source: pendingSource,
+    };
+    const role = String(data.get("role") || "").trim();
+    const teamSize = String(data.get("teamSize") || "").trim();
+    const building = String(data.get("building") || "").trim();
+    if (role)     payload.role = role;
+    if (teamSize) payload.teamSize = teamSize;
+    if (building) payload.building = building;
+
+    submitBtn.disabled = true;
+    statusEl.hidden = false;
+    statusMsg.textContent = "Sending…";
+    statusMsg.style.color = "var(--muted)";
+
+    try {
+      const res = await fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        statusMsg.textContent = body.error || `Couldn't save (HTTP ${res.status}). Continuing anyway.`;
+        statusMsg.style.color = "var(--in-progress)";
+        // Still continue to the download — capture failure is not the
+        // user's problem.
+        setTimeout(() => close(), 800);
+        return;
+      }
+      statusMsg.textContent = "Got it — heading there now.";
+      statusMsg.style.color = "var(--success)";
+      setTimeout(() => close(), 600);
+    } catch {
+      statusMsg.textContent = "Network error — continuing anyway.";
+      statusMsg.style.color = "var(--in-progress)";
+      setTimeout(() => close(), 600);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  // Wire any element with [data-capture-trigger] to open the modal.
+  document.querySelectorAll<HTMLElement>("[data-capture-trigger]").forEach((el) => {
+    el.addEventListener("click", (ev) => {
+      const href = (el as HTMLAnchorElement).href || el.dataset.captureHref || "";
+      if (!href) return;
+      ev.preventDefault();
+      const source = (el.dataset.captureSource || "other") as Source;
+      open(href, source);
+    });
+  });
+</script>
+
+<style>
+  .capture {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+  }
+  .capture:not([hidden]) { pointer-events: auto; }
+  .capture-scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    border: 0;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-standard);
+  }
+  .capture.is-open .capture-scrim { opacity: 1; }
+
+  .capture-card {
+    position: relative;
+    width: min(34rem, calc(100vw - 2rem));
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-xl);
+    transform: translateY(8px);
+    opacity: 0;
+    transition:
+      opacity var(--dur-base) var(--ease-standard),
+      transform var(--dur-base) var(--ease-standard);
+  }
+  .capture.is-open .capture-card {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .capture-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.1rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .capture-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .capture-close {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+    width: 28px;
+    height: 28px;
+    border-radius: var(--r-xs);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+  }
+  .capture-close:hover { color: var(--accent); border-color: var(--accent); }
+
+  .capture-body { padding: 1.1rem 1.2rem 1.2rem; }
+  .capture-title {
+    margin: 0 0 0.55rem;
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+    color: var(--text);
+  }
+  .capture-sub {
+    margin: 0 0 1.1rem;
+    color: var(--muted);
+    font-size: var(--fs-base);
+    line-height: 1.55;
+  }
+
+  .capture-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1;
+  }
+  .field .label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+  .field .opt { text-transform: none; font-style: italic; color: var(--dim); }
+  .field input,
+  .field select {
+    appearance: none;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--fs-base);
+    padding: 0.55rem 0.85rem;
+  }
+  .field input:focus,
+  .field select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+  }
+  .field-row {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .capture-status {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    padding: 0.3rem 0;
+  }
+
+  .capture-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+  }
+  .capture-skip,
+  .capture-submit {
+    appearance: none;
+    font: inherit;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    padding: 0.55rem 1rem;
+    border-radius: var(--r-xs);
+    cursor: pointer;
+  }
+  .capture-skip {
+    background: transparent;
+    border: 0;
+    color: var(--subtle);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--subtle) 50%, transparent);
+  }
+  .capture-skip:hover { color: var(--muted); }
+  .capture-submit {
+    background: var(--accent);
+    color: #1c1710;
+    border: 0.5px solid var(--accent);
+    font-weight: 600;
+  }
+  .capture-submit:hover { filter: brightness(1.05); }
+  .capture-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+</style>

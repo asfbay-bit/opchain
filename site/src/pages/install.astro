@@ -4,6 +4,7 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
 import Button from "../components/ui/Button.astro";
 import Card from "../components/ui/Card.astro";
 import Icon from "../components/Icon.astro";
+import CaptureModal from "../components/CaptureModal.astro";
 
 const cliCmd = `curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
 unzip opchain-skills.zip -d .claude/skills/
@@ -26,7 +27,11 @@ git push`;
         <Eyebrow>install</Eyebrow>
         <h1>Three flows.</h1>
       </div>
-      <Button variant="primary" href="/opchain-skills.zip">
+      <Button
+        variant="primary"
+        href="/opchain-skills.zip"
+        {...{ "data-capture-trigger": true, "data-capture-source": "bundle-download" } as any}
+      >
         <Icon name="download" />
         download bundle
       </Button>
@@ -140,6 +145,8 @@ git push`;
       </p>
     </section>
   </main>
+
+  <CaptureModal />
 
   <script>
     import { track } from "../lib/analytics";
