@@ -78,7 +78,45 @@ const catalog = JSON.stringify(
       ))}
     </div>
 
-    <!-- ───────────── Detail panel — full width for the active scenario ───────────── -->
+    <!-- 1.4 — Tab bar. Splits the panel into Scenario / Chat tabs so
+         the chat is never blocked by the scenario detail. Default tab
+         is Scenario at rest; advance() auto-switches to Chat on the
+         first user input; restart() sends focus back to Scenario. -->
+    <div class="replays-tabs" role="tablist" aria-label="Replays panel">
+      <button
+        type="button"
+        role="tab"
+        id="rtab-detail"
+        class="replays-tab is-active"
+        data-rtab="detail"
+        aria-selected="true"
+        aria-controls="rpanel-detail"
+      >
+        scenario
+      </button>
+      <button
+        type="button"
+        role="tab"
+        id="rtab-chat"
+        class="replays-tab"
+        data-rtab="chat"
+        aria-selected="false"
+        aria-controls="rpanel-chat"
+      >
+        chat
+        <span class="replays-tab-dot" id="rtab-chat-dot" aria-hidden="true"></span>
+      </button>
+      <span class="replays-tab-hint" aria-hidden="true">↳ click to switch</span>
+    </div>
+
+    <!-- ───────────── Detail tabpanel — scenario card ───────────── -->
+    <section
+      class="replays-panel"
+      id="rpanel-detail"
+      role="tabpanel"
+      aria-labelledby="rtab-detail"
+      data-rtab="detail"
+    >
     <section class="detail" id="detail-card" aria-live="polite">
       <!-- 5.3 — Toggle pinned to the top-right of the card, above the
            runtime / "= X exchanges" line. Renders an X when expanded
@@ -141,7 +179,17 @@ const catalog = JSON.stringify(
         </div>
       </div>
     </section>
+    </section><!-- /rpanel-detail -->
 
+    <!-- ───────────── Chat tabpanel — player + terminal ───────────── -->
+    <section
+      class="replays-panel"
+      id="rpanel-chat"
+      role="tabpanel"
+      aria-labelledby="rtab-chat"
+      data-rtab="chat"
+      hidden
+    >
     <!-- ───────────── Player ───────────── -->
     <section class="player" aria-label="Walkthrough player">
       <div class="player-head">
@@ -183,6 +231,7 @@ const catalog = JSON.stringify(
         <p><strong>Press <kbd>Enter</kbd></strong> or click <em>start</em>.</p>
       </div>
     </section>
+    </section><!-- /rpanel-chat -->
 
     <!-- 5.4 — Output drawer. Slides in from the right when the user
          clicks an output in the detail card. Renders the artifact body
@@ -538,8 +587,19 @@ const catalog = JSON.stringify(
       if (stepIdx >= w.steps.length) return;
       renderStep(w.steps[stepIdx]);
       stepIdx++;
-      // First step starts the chat — collapse the detail card to make room.
-      if (stepIdx === 1) setDetailCollapsed(true);
+      // First step starts the chat — collapse the detail card to make
+      // room AND auto-switch to the Chat tab so the user sees the
+      // transcript immediately.
+      if (stepIdx === 1) {
+        setDetailCollapsed(true);
+        switchTab("chat");
+        notifyChatStarted();
+      } else {
+        // Subsequent advances: if the user has switched back to Scenario
+        // since starting the chat, flash a small dot on the Chat tab so
+        // they know there's new content.
+        flashChatDot();
+      }
       updateProgress();
       scrollChat();
     }
@@ -552,6 +612,8 @@ const catalog = JSON.stringify(
       }
       // Skipping also counts as starting the chat.
       setDetailCollapsed(true);
+      switchTab("chat");
+      notifyChatStarted();
       updateProgress();
       scrollChat();
     }
@@ -561,7 +623,56 @@ const catalog = JSON.stringify(
       transcript.innerHTML = "";
       startPrompt.hidden = false;
       setDetailCollapsed(false);
+      switchTab("detail");
+      notifyChatEnded();
       updateProgress();
+    }
+
+    // ── 1.4 — Tab switching (Scenario / Chat) ──────────────────
+    const tabButtons   = document.querySelectorAll<HTMLButtonElement>(".replays-tab[data-rtab]");
+    const tabPanels    = document.querySelectorAll<HTMLElement>(".replays-panel[data-rtab]");
+    const chatTabDot   = document.getElementById("rtab-chat-dot");
+    let chatStartedOnce = false;
+
+    function switchTab(name: "detail" | "chat") {
+      tabButtons.forEach((b) => {
+        const matched = b.dataset.rtab === name;
+        b.classList.toggle("is-active", matched);
+        b.setAttribute("aria-selected", matched ? "true" : "false");
+      });
+      tabPanels.forEach((p) => {
+        p.hidden = p.dataset.rtab !== name;
+      });
+      if (name === "chat" && chatTabDot) chatTabDot.classList.remove("is-on");
+    }
+    function flashChatDot() {
+      // Show a tiny pulse on the Chat tab if the user is on Scenario when
+      // a new chat step lands. They can switch over at their own pace.
+      const activeTab = document.querySelector<HTMLButtonElement>(".replays-tab.is-active");
+      if (activeTab?.dataset.rtab === "detail" && chatTabDot) {
+        chatTabDot.classList.add("is-on");
+      }
+    }
+
+    tabButtons.forEach((b) => {
+      b.addEventListener("click", () => {
+        switchTab(b.dataset.rtab === "chat" ? "chat" : "detail");
+      });
+    });
+
+    // 1.6 — Notify the parent demo page so it can hide / restore the
+    // mode-cards strip up top. Custom-event approach replaces the
+    // CSS-only :has(.detail.is-collapsed) selector (which wasn't firing
+    // reliably across browsers).
+    function notifyChatStarted() {
+      if (chatStartedOnce) return;
+      chatStartedOnce = true;
+      window.dispatchEvent(new CustomEvent("replays:start"));
+    }
+    function notifyChatEnded() {
+      if (!chatStartedOnce) return;
+      chatStartedOnce = false;
+      window.dispatchEvent(new CustomEvent("replays:end"));
     }
 
     // ── wire up ────────────────────────────────────────────────
@@ -1634,22 +1745,29 @@ const catalog = JSON.stringify(
     /* 5.7 — Claude assistant turn rendered as a 1-column 2-row "table":
        outer dotted border in the role colour, plus a thin dotted divider
        between the head row (skill name) and the body. */
+    /* 1.5 — Body uses overflow-x:auto instead of clipping at the parent.
+       Long markdown / <pre> blocks scroll horizontally inside the body
+       row instead of being silently cropped (the previous overflow:hidden
+       cut content off as the chat grew). The head row keeps its
+       background sitting flush with the dotted border via flex layout. */
     :global(.cc-stream .cc-assistant) {
       border: 1px dotted var(--turn-color);
       border-radius: var(--r-xs);
       padding: 0;
-      overflow: hidden;
       margin: 0.55rem 0;
+      display: flex;
+      flex-direction: column;
     }
     :global(.cc-stream .cc-assistant .cc-assistant-head) {
       padding: 0.45rem 0.75rem;
       border-bottom: 1px dotted var(--turn-color);
       background: color-mix(in srgb, var(--turn-color) 8%, transparent);
-      align-self: stretch;
-      border-radius: 0;
+      border-radius: var(--r-xs) var(--r-xs) 0 0;
     }
     :global(.cc-stream .cc-assistant .cc-assistant-body) {
       padding: 0.65rem 0.85rem;
+      overflow-x: auto;
+      max-width: 100%;
     }
 
     /* 5.4 — Output drawer, slides in from the right of the chat. */
@@ -1808,13 +1926,20 @@ const catalog = JSON.stringify(
 
     /* 5.2 — Scenario chip accordion. Numbered chips in a single row at
        rest; the active or hovered chip expands to reveal its tagline.
-       Row is horizontally scrollable on narrow viewports. */
+       Row is horizontally scrollable on narrow viewports.
+       1.1 — `padding-top` + visible overflow on Y so the focus ring /
+       hover lift on the active chip doesn't get clipped by the
+       scrollable row's edge.
+       1.2 — Tagline expansion is now slower and softer (cubic-bezier
+       0.32, 0.72, 0, 1 — a gentle ease-out) so the chip feels like
+       it's breathing, not snapping. */
     .scenarios {
       display: flex;
       flex-wrap: nowrap;
       overflow-x: auto;
+      overflow-y: visible;
       gap: 0.4rem;
-      padding-bottom: 0.4rem;
+      padding: 0.5rem 0.1rem 0.6rem;
       scrollbar-width: thin;
     }
     .scenario {
@@ -1822,16 +1947,21 @@ const catalog = JSON.stringify(
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      padding: 0.45rem 0.6rem;
+      padding: 0.5rem 0.7rem;
       background: var(--surface);
       border: 0.5px solid var(--border);
       border-radius: var(--r-md);
       cursor: pointer;
       font: inherit;
       color: var(--text);
+      /* Reset the inherited transform from the original .scenario rule
+         further up the file — the previous translateY(-1px) on hover
+         was getting clipped at the scroll-row edge (1.1). */
+      transform: none;
       transition:
-        background var(--dur-fast) var(--ease-standard),
-        border-color var(--dur-fast) var(--ease-standard);
+        background 320ms cubic-bezier(0.32, 0.72, 0, 1),
+        border-color 220ms var(--ease-standard),
+        box-shadow 220ms var(--ease-standard);
     }
     .scenario .scenario-tagline {
       max-width: 0;
@@ -1839,21 +1969,100 @@ const catalog = JSON.stringify(
       white-space: nowrap;
       opacity: 0;
       transition:
-        max-width var(--dur-base) var(--ease-standard),
-        opacity var(--dur-base) var(--ease-standard);
+        max-width 420ms cubic-bezier(0.32, 0.72, 0, 1),
+        opacity 280ms cubic-bezier(0.32, 0.72, 0, 1);
     }
     .scenario:hover .scenario-tagline,
     .scenario:focus-visible .scenario-tagline,
     .scenario[aria-selected="true"] .scenario-tagline {
-      max-width: 18rem;
+      max-width: 22rem;
       opacity: 1;
     }
     .scenario:hover {
       border-color: var(--accent);
       background: var(--accent-dim);
+      transform: none; /* belt-and-braces against the inherited rule */
     }
     .scenario[aria-selected="true"] {
       border-color: var(--accent);
       background: var(--accent-dim);
     }
+
+    /* 1.4 — Tab bar separating Scenario / Chat panels. Sits above the
+       active panel; mirrors the look-and-feel of the .tab pattern in
+       site/src/pages/demo.astro for visual consistency between the
+       outer (Replays / Live) and inner (Scenario / Chat) tab bars. */
+    .replays-tabs {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin: 0 0 0.85rem;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .replays-tab {
+      appearance: none;
+      background: transparent;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      padding: 0.55rem 1rem;
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-wide);
+      text-transform: uppercase;
+      color: var(--subtle);
+      cursor: pointer;
+      transition:
+        color var(--dur-fast) var(--ease-standard),
+        border-color var(--dur-fast) var(--ease-standard);
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .replays-tab:hover { color: var(--text); }
+    .replays-tab.is-active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .replays-tab:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: var(--r-xs);
+    }
+    .replays-tab-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: transparent;
+      transition: background var(--dur-fast) var(--ease-standard),
+                  transform 220ms cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .replays-tab-dot.is-on {
+      background: var(--accent);
+      animation: replays-pulse 1.4s ease-out infinite;
+    }
+    @keyframes replays-pulse {
+      0%, 100% { transform: scale(1);   opacity: 1;   }
+      50%      { transform: scale(1.4); opacity: 0.6; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .replays-tab-dot.is-on { animation: none; }
+    }
+    .replays-tab-hint {
+      margin-left: auto;
+      padding-right: 0.4rem;
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      color: var(--dim);
+      letter-spacing: var(--ls-wide);
+    }
+    @media (max-width: 640px) {
+      .replays-tab-hint { display: none; }
+    }
+
+    /* Hidden panels still occupy zero space (Astro/HTML default for
+       [hidden]). Active panel takes the full available width. */
+    .replays-panel { display: block; }
+    .replays-panel[hidden] { display: none; }
   </style>

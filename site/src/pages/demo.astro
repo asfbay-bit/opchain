@@ -151,6 +151,21 @@ const preselect = tryable[0]?.id || "";
 
     window.addEventListener("hashchange", () => show(modeFromHash(), { pushHash: false }));
 
+    // 1.6 — JS-driven mode-cards collapse. The previous CSS
+    // `.page:has(.detail.is-collapsed) .mode-cards` selector wasn't
+    // firing in some browsers, so Replays.astro now dispatches
+    // `replays:start` / `replays:end` CustomEvents on the window when
+    // the user advances the chat for the first time / restarts. We
+    // toggle a class on the .mode-cards strip in response. Hovering the
+    // collapsed strip still expands it (CSS rule below).
+    const modeCards = document.querySelector<HTMLElement>(".mode-cards");
+    window.addEventListener("replays:start", () => {
+      modeCards?.classList.add("is-collapsed");
+    });
+    window.addEventListener("replays:end", () => {
+      modeCards?.classList.remove("is-collapsed");
+    });
+
     // Initial render — respect the hash so /demo#live works as a deep link
     // (and so the /tryit redirect lands users on Live).
     show(modeFromHash(), { pushHash: false });
@@ -196,18 +211,19 @@ const preselect = tryable[0]?.id || "";
       opacity var(--dur-fast) var(--ease-standard),
       margin var(--dur-base) var(--ease-standard);
   }
-  /* 5.1.1 — When the user starts a replay (the Replays panel collapses
-     its detail card), the mode cards collapse too so the chat has more
-     room. We piggyback on .detail.is-collapsed via :has(). */
-  .page:has(.detail.is-collapsed) .mode-cards {
+  /* 5.1.1 / 1.6 — When the user starts a replay, the mode cards
+     collapse so the chat has more room. Now driven by a class
+     toggled in response to the replays:start CustomEvent (the
+     previous :has(.detail.is-collapsed) wasn't reliable). */
+  .mode-cards.is-collapsed {
     max-height: 12px;
     opacity: 0;
     margin: 0;
   }
-  /* 5.1.2 — When the cursor returns to where the cards were, expand
-     them again on hover. The collapsed strip retains a small hoverable
-     height (see max-height above) so :hover can fire. */
-  .page:has(.detail.is-collapsed) .mode-cards:hover {
+  /* 5.1.2 — Hover the (now-thin) strip → cards expand again. The
+     12px collapsed height keeps a hover target available even with
+     opacity: 0. */
+  .mode-cards.is-collapsed:hover {
     max-height: 16rem;
     opacity: 1;
     margin: 1.5rem 0 1.25rem;
