@@ -147,54 +147,91 @@ notifies but does not block (production is already live by then).
 
 ---
 
-## B-08: Raise `/demo` accessibility back to 0.95
+## B-08: Raise `/demo` accessibility back to 0.95 — **closed (PR #94)**
 
-**Why deferred:** B-01 (PR #86) calibrated LHCI thresholds back to
-0.95 across the board for `/` and `/skills`, but `/demo` accessibility
-runs ~0.91 (median of 3 LHCI runs — verified against PR #86's own
-LHCI run). That's a 0.04 miss from the canonical 0.95 target — too
-big to silently relax under the strict B-01 DoD. Per-route override
-is in place (see `lighthouserc.cjs:46`) so the gate doesn't block
-on it.
+**Why deferred originally:** B-01 (PR #86) calibrated LHCI thresholds
+back to 0.95 across the board for `/` and `/skills`, but `/demo`
+accessibility ran ~0.91. Per-route override sat at 0.91 to keep the
+gate green.
 
-**Definition of done:**
+**What landed:** PR #94 fixed two ARIA audits surfaced by PR #90's
+enriched LHCI comment:
 
-- Pull `/demo`'s axe-violations attachment from a recent CI run's
-  Playwright report.
-- Identify the failing audits responsible for the 0.91 score. Likely
-  candidates given the Claude-Code-styled chat UI:
-  - `button-name` on icon-only role pills / scenario buttons
-  - `color-contrast` on the dark chat surface or amber-gold artifact
-    stripes (`--tri-agent` token)
-  - `aria-allowed-role` on the role-pill spans
-- Fix in `site/src/pages/demo.astro` (and the components it pulls in,
-  e.g. role pills in `site/src/components/`).
-- Verify locally with axe via Playwright (B-02 is the related axe
-  hardening backlog item).
-- Raise `lighthouserc.cjs`'s `/demo` accessibility threshold back to
-  0.95 — drop the inline reason comment.
+- `aria-allowed-role` on `section#scenario-picker` — switched the
+  wrapper to a `<div>` so the explicit `role="tablist"` doesn't
+  collide with `<section>`'s implicit `role="region"` (which gets
+  applied as soon as `aria-label` is present).
+- `aria-allowed-attr` on `button.scenario` — removed `aria-pressed`
+  (only valid for `role="button"`); kept `aria-selected` (the
+  canonical state for `role="tab"`). Renamed the matching CSS
+  selectors to `[aria-selected="true"]`.
 
-**Effort:** ~2 h Claude depending on what audits surface. Coordinate
-with the in-flight UX session if /demo is being touched there.
+`/demo` jumped from 0.91 → 0.96. The per-route threshold was lifted
+back to 0.95.
+
+**Outstanding (deferred to a separate item, not B-08):** every route
+still flags `color-contrast` on a long list of nodes (`.nav-link`,
+`.eyebrow`, `.btn`, `.phase-pill`, `.lede-replays`, `.mode-card-tag`,
+`.tab` etc.). Lighthouse weights these such that scores still land
+at 0.96, but they're real WCAG misses worth fixing. Likely a single
+sweep at the design-token level (`--muted`, `--accent` on `--ribbon`/
+`--bg` in dark mode) — best paired with the in-flight UX-pass session
+on the colour core. **Tracked as a new item below.**
 
 ---
 
-## B-09: Surface LHCI report URLs in the PR comment
+## B-09: Surface LHCI report URLs in the PR comment — **partial (PR #90); regressed**
 
-**Why deferred:** PR #86 added an `actions/github-script` step that
-posts per-route LHCI scores as a PR comment, but the "Report" column
-shows `—` for every row — the lookup against `links.json` (which
-maps absolute HTML paths to temporary-public-storage URLs) isn't
-matching. Probably an absolute-vs-relative path mismatch or a key
-format I haven't traced yet.
+**Original status:** PR #86 added an `actions/github-script` step
+that posts per-route LHCI scores as a PR comment, but the Report
+column showed `—`. PR #90 made the lookup robust (try URL key,
+absolute path, relative path, basename), added a debug-fallback
+block when nothing matches, and added node-selector detail under
+each failing audit.
+
+**Where it stands:** the audit-detail and debug-fallback half is
+solid (working through PR #92 and PR #94). The Report URL column
+flipped back to `—` somewhere between PR #90 and PR #92 — possibly
+a different LHCI/temporary-public-storage version writing
+`links.json` with yet another key shape. The debug-fallback block
+no longer fires either, which is its own small bug.
 
 **Definition of done:**
 
-- Add a debug log step that prints the first key of `links.json`
-  alongside the path the script computed (one CI run is enough).
-- Adjust the lookup to match.
-- Verify the next LHCI PR comment renders a clickable `[link]` per
-  route.
+- Make the script log `links.json`'s first 3 keys to the action's
+  step output unconditionally (not only on miss) — one CI run gives
+  us the actual format.
+- Adjust the multi-key lookup once the format is known.
+- Restore clickable `[link]` cells in the comment table.
+- Tests cover whatever the new key shape turns out to be.
 
-**Effort:** ~30 min Claude. Low value individually but compounds —
-clickable reports speed up future calibration cycles.
+**Effort:** ~30 min Claude.
+
+---
+
+## B-10: Color-contrast sweep across `/`, `/skills`, `/demo`
+
+**Why deferred:** PR #94 closed B-08 by fixing the ARIA audits on
+`/demo`, but `color-contrast` still flags 11+ nodes on `/`, 13+ on
+`/skills`, and 19+ on `/demo`. Lighthouse weighting keeps the
+scores at 0.96 each — they pass the 0.95 LHCI threshold — but
+they're real WCAG AA misses (`--muted` on `--ribbon`, `--accent` on
+`--bg`, etc.).
+
+**Definition of done:**
+
+- For each failing selector listed in the most recent LHCI PR
+  comment, identify whether the offender is a token (`--muted`,
+  `--accent`, `--info` etc.) or a component-local color choice.
+- Token offenders: coordinate with the UX-pass session on the colour
+  core. Don't unilaterally darken/lighten — tokens drive the whole
+  site.
+- Component-local offenders: tighten in the component's `<style>`
+  scope with a comment naming the audit.
+- Restore the LHCI assertion to `error` instead of accepting the 0.96
+  median (delete the inline calibration comment in `lighthouserc.cjs`).
+- Re-run LHCI; expect the failing-audits sections under each route
+  to be empty.
+
+**Effort:** Hard to bound until token vs component-local is sorted —
+probably 2–4 h.
