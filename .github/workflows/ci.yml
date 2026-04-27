@@ -119,6 +119,10 @@ jobs:
               path.resolve(process.env.GITHUB_WORKSPACE, 'scripts/axe-comment.cjs')
             );
             const body = buildComment(process.env.AXE_RESULTS_DIR);
+            if (body == null) {
+              console.log('axe: nothing to report (suite green or no attachments) — skipping comment');
+              return;
+            }
             await github.rest.issues.createComment({
               ...context.repo,
               issue_number: context.payload.pull_request.number,

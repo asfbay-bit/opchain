@@ -60,9 +60,16 @@ function buildComment(dir) {
     if (!fs.existsSync(dir)) {
       return `## Axe violations — directory missing\n\nExpected attachments under \`${dir}\`, not found.`;
     }
-    // No axe attachments — but the e2e likely failed in some other way.
-    // Surface the first non-empty error-context.md the suite produced so
-    // the failure mode is visible without downloading the artifact zip.
+    // Tests passed cleanly — Playwright leaves only .last-run.json behind
+    // for green runs. Stay silent so the PR comment stream stays focused
+    // on actionable signals.
+    const entries = fs.readdirSync(dir);
+    if (entries.length === 0 || (entries.length === 1 && entries[0] === ".last-run.json")) {
+      return null;
+    }
+    // Otherwise the suite errored in some way other than the axe
+    // assertion — surface error-context.md content so the failure mode
+    // is visible without downloading the artifact zip.
     const errorContexts = [];
     function walk(d, depth = 0) {
       if (depth > 3 || errorContexts.length >= 3) return;
