@@ -71,6 +71,12 @@ const preselect = preselectProp || tryable[0]?.id || "";
         </Pill>
       ))}
     </div>
+    <!-- 5.6.2 — One-line starter copy in lieu of the auto-played skill
+         intro prompt. Tells the user how to begin. -->
+    <p class="starter-hint">
+      Pick a skill, then describe what you're trying to do — like
+      <em>“build me a recipe app”</em> or <em>“audit this code”</em> — and Claude takes it from there.
+    </p>
   </div>
 
   <!-- Transcript. Client script populates the initial assistant message
@@ -167,14 +173,10 @@ const preselect = preselectProp || tryable[0]?.id || "";
     let inFlight: AbortController | null = null;
     let lastUserMessage = "";
 
-    // Render the initial skill intro with the same markdown pipeline used
-    // client-side. Avoids SSR/CSR drift (Bugbot PR23#L83).
-    const activePill = pills.find((p) => p.getAttribute("aria-pressed") === "true") ?? pills[0];
-    if (activePill) {
-      const intro = activePill.dataset.skillPrompt || "";
-      const label = activePill.dataset.skillName || "assistant";
-      if (intro) renderMessage("assistant", intro, label).classList.add("intro");
-    }
+    // 5.6.1 — No auto-played intro prompt anymore; the transcript starts
+    // empty. The starter-hint above the input tells the user what to type.
+    // We still keep the skill-prompt data-attributes around in case we
+    // wire it back as an opt-in later.
 
     function setCounter() {
       counter.textContent = `${remaining} of ${MAX} exchanges remaining`;
@@ -262,15 +264,9 @@ const preselect = preselectProp || tryable[0]?.id || "";
         pills.forEach((x) => x.setAttribute("aria-pressed", "false"));
         p.setAttribute("aria-pressed", "true");
         currentSkill = p.dataset.skillId || "";
-        // Reset transcript so a fresh skill gets its own intro.
+        // Reset transcript on skill switch — no auto-intro (5.6.1).
         transcript.length = 0;
         messagesEl.innerHTML = "";
-        const intro = p.dataset.skillPrompt || "";
-        const label = p.dataset.skillName || "assistant";
-        if (intro) {
-          const el = renderMessage("assistant", intro, label);
-          el.classList.add("intro");
-        }
       });
     });
 
@@ -435,6 +431,16 @@ const preselect = preselectProp || tryable[0]?.id || "";
 
   .picker-head { margin-bottom: 0.75rem; }
   .skill-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .starter-hint {
+    margin: 0.75rem 0 0;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    line-height: var(--lh-base);
+  }
+  .starter-hint em {
+    color: var(--ember);
+    font-style: italic;
+  }
 
   .chat-shell {
     background: var(--surface);
