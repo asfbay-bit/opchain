@@ -18,6 +18,7 @@ export type Role =
 // Skill → role mapping. Source of truth for the colored role pills shown
 // on the homepage and in the Skill Library. Adjust here, both UIs follow.
 const ROLE_BY_NAME: Record<string, Role> = {
+  "api-dev":              "tri-agent",
   "app-architect":        "workflow",
   "bug-check":            "audit-gate",
   "checkpoint-protocol":  "success",
