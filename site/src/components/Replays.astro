@@ -76,8 +76,23 @@ const catalog = JSON.stringify(
 
     <!-- ───────────── Detail panel — full width for the active scenario ───────────── -->
     <section class="detail" id="detail-card" aria-live="polite">
+      <!-- 5.3 — Toggle pinned to the top-right of the card, above the
+           runtime / "= X exchanges" line. Renders an X when expanded
+           and a down chevron when collapsed (CSS uses :is-collapsed). -->
+      <button
+        type="button"
+        class="detail-toggle"
+        id="detail-toggle"
+        aria-expanded="true"
+        aria-controls="detail-body-wrap"
+        aria-label="Collapse details"
+      >
+        <span class="detail-toggle-x" aria-hidden="true">×</span>
+        <span class="detail-toggle-chev" aria-hidden="true">▾</span>
+      </button>
+
       <div class="detail-head">
-        <div>
+        <div class="detail-title-block">
           <h2 class="detail-title" id="detail-title">{walkthroughs[0].title}</h2>
           <p class="detail-summary" id="detail-summary">{walkthroughs[0].summary}</p>
         </div>
@@ -88,16 +103,6 @@ const catalog = JSON.stringify(
               <span class="role-pill" data-role={getSkillRole(s)}>{s}</span>
             ))}
           </div>
-          <button
-            type="button"
-            class="detail-toggle"
-            id="detail-toggle"
-            aria-expanded="true"
-            aria-controls="detail-body-wrap"
-            aria-label="Collapse details"
-          >
-            <Icon name="arrow-right" size={12} class="detail-toggle-chev" />
-          </button>
         </div>
       </div>
 
@@ -112,21 +117,19 @@ const catalog = JSON.stringify(
             </ul>
           </div>
           <div class="io-col">
-            <div class="io-head">Outputs <span class="io-hint">click to expand</span></div>
+            <div class="io-head">Outputs <span class="io-hint">click to open</span></div>
             <ul class="io-list artifacts" id="detail-outputs">
               {walkthroughs[0].outputs.map((a) => (
                 <li class="artifact">
                   <button
                     type="button"
                     class="artifact-head"
-                    aria-expanded="false"
                     {...({ "data-artifact-id": a.id } as any)}
                   >
                     <Icon name="arrow-right" size={10} class="artifact-chevron" />
                     <span class="artifact-label">{a.label}</span>
                     {a.kind && <span class="artifact-kind">{a.kind}</span>}
                   </button>
-                  <div class="artifact-body markdown" hidden></div>
                 </li>
               ))}
             </ul>
@@ -176,6 +179,31 @@ const catalog = JSON.stringify(
         <p><strong>Press <kbd>Enter</kbd></strong> or click <em>start</em>.</p>
       </div>
     </section>
+
+    <!-- 5.4 — Output drawer. Slides in from the right when the user
+         clicks an output in the detail card. Renders the artifact body
+         as fully-formatted markdown, framed in an amber stripe with
+         dotted top + bottom borders. -->
+    <aside class="output-drawer" id="output-drawer" aria-hidden="true">
+      <button
+        type="button"
+        class="output-drawer-scrim"
+        id="output-drawer-scrim"
+        aria-label="Close output"
+        tabindex="-1"
+      ></button>
+      <div class="output-drawer-panel" role="dialog" aria-labelledby="output-drawer-title">
+        <header class="output-drawer-head">
+          <div>
+            <span class="output-drawer-eyebrow">output</span>
+            <h3 class="output-drawer-title" id="output-drawer-title">—</h3>
+            <span class="output-drawer-kind" id="output-drawer-kind"></span>
+          </div>
+          <button type="button" class="output-drawer-close" id="output-drawer-close" aria-label="Close">×</button>
+        </header>
+        <div class="output-drawer-body markdown" id="output-drawer-body"></div>
+      </div>
+    </aside>
 </div>
 
 <script is:inline id="walkthrough-data" type="application/json" set:html={catalog}></script>
@@ -295,12 +323,11 @@ const catalog = JSON.stringify(
       detailInputs.innerHTML  = w.inputs.map((x) => `<li>${escapeHTML(x)}</li>`).join("");
       detailOuts.innerHTML    = w.outputs.map((a) => `
         <li class="artifact">
-          <button type="button" class="artifact-head" aria-expanded="false" data-artifact-id="${escapeHTML(a.id)}">
+          <button type="button" class="artifact-head" data-artifact-id="${escapeHTML(a.id)}">
             <svg class="artifact-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             <span class="artifact-label">${escapeHTML(a.label)}</span>
             ${a.kind ? `<span class="artifact-kind">${escapeHTML(a.kind)}</span>` : ""}
           </button>
-          <div class="artifact-body markdown" hidden></div>
         </li>
       `).join("");
       wireArtifactToggles();
@@ -315,6 +342,10 @@ const catalog = JSON.stringify(
       });
     }
 
+    // 5.4.1 — Clicking an output in the detail card opens the side
+    // drawer with the rendered markdown. Replaces the inline expand
+    // behaviour. Each scenario rebuilds the list, so we re-wire on
+    // every setScenario() call.
     function wireArtifactToggles() {
       const w = currentScenario();
       const byId = new Map(w.outputs.map((a) => [a.id, a] as const));
@@ -323,20 +354,39 @@ const catalog = JSON.stringify(
           const id = btn.dataset.artifactId || "";
           const artifact = byId.get(id);
           if (!artifact) return;
-          const body = btn.nextElementSibling as HTMLElement | null;
-          if (!body) return;
-          const open = btn.getAttribute("aria-expanded") === "true";
-          if (open) {
-            body.hidden = true;
-            btn.setAttribute("aria-expanded", "false");
-          } else {
-            body.innerHTML = renderSafeMarkdown(artifact.body);
-            body.hidden = false;
-            btn.setAttribute("aria-expanded", "true");
-          }
+          openOutputDrawer(artifact);
         });
       });
     }
+
+    // ── Output drawer wiring ─────────────────────────────────────
+    const drawer       = document.getElementById("output-drawer")!;
+    const drawerScrim  = document.getElementById("output-drawer-scrim")!;
+    const drawerClose  = document.getElementById("output-drawer-close")!;
+    const drawerTitle  = document.getElementById("output-drawer-title")!;
+    const drawerKind   = document.getElementById("output-drawer-kind")!;
+    const drawerBody   = document.getElementById("output-drawer-body")!;
+
+    function openOutputDrawer(artifact: Artifact) {
+      drawerTitle.textContent = artifact.label;
+      drawerKind.textContent = artifact.kind || "";
+      drawerBody.innerHTML = renderSafeMarkdown(artifact.body);
+      drawer.setAttribute("aria-hidden", "false");
+      requestAnimationFrame(() => drawer.classList.add("is-open"));
+      drawerClose.focus();
+    }
+    function closeOutputDrawer() {
+      drawer.classList.remove("is-open");
+      drawer.setAttribute("aria-hidden", "true");
+    }
+    drawerScrim.addEventListener("click", closeOutputDrawer);
+    drawerClose.addEventListener("click", closeOutputDrawer);
+    document.addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape" && drawer.classList.contains("is-open")) {
+        ev.preventDefault();
+        closeOutputDrawer();
+      }
+    });
 
     function updateProgress() {
       const total = currentScenario().steps.length;
@@ -374,33 +424,17 @@ const catalog = JSON.stringify(
         return el;
       }
 
-      // User input — bordered terminal box with > prefix. If the message
-      // contains " — " or " - " we two-tone-split: the part before becomes
-      // the bold path-a header; the part after becomes the path-b question.
+      // User input — bordered terminal box with > prefix. Single-tone
+      // (5.5: blue path-a / path-b two-tone removed); the cream highlight
+      // on the row comes from .cc-user CSS (5.6).
       if (step.role === "user") {
         const wrap = document.createElement("div");
         wrap.className = "cc-user";
-        const splitMatch = step.content.match(/^(.+?)\s+[—-]\s+(.+)$/s);
-        if (splitMatch) {
-          const [, header, question] = splitMatch;
-          wrap.classList.add("cc-user--two-tone");
-          wrap.innerHTML = `
-            <span class="cc-user-mark" aria-hidden="true">&gt;</span>
-            <span class="cc-user-text">
-              <strong class="cc-user-header"></strong>
-              <span class="cc-user-sep" aria-hidden="true"> — </span>
-              <span class="cc-user-question"></span>
-            </span>
-          `;
-          (wrap.querySelector(".cc-user-header") as HTMLElement).textContent = header;
-          (wrap.querySelector(".cc-user-question") as HTMLElement).textContent = question;
-        } else {
-          wrap.innerHTML = `
-            <span class="cc-user-mark" aria-hidden="true">&gt;</span>
-            <span class="cc-user-text"></span>
-          `;
-          (wrap.querySelector(".cc-user-text") as HTMLElement).textContent = step.content;
-        }
+        wrap.innerHTML = `
+          <span class="cc-user-mark" aria-hidden="true">&gt;</span>
+          <span class="cc-user-text"></span>
+        `;
+        (wrap.querySelector(".cc-user-text") as HTMLElement).textContent = step.content;
         transcript.appendChild(wrap);
         return wrap;
       }
@@ -1469,25 +1503,18 @@ const catalog = JSON.stringify(
       border-radius: var(--r-xs);
     }
 
-    /* 1.6.4 User two-tone — bold path-a header, path-b question, plus a
-       faint left→right gradient matching the two text colors so the line
-       reads as a single highlighted unit. */
-    :global(.cc-stream .cc-user--two-tone) {
-      background: linear-gradient(
-        90deg,
-        color-mix(in srgb, var(--path-a) 12%, #1d1d1d),
-        color-mix(in srgb, var(--path-b) 12%, #1d1d1d)
-      );
-      border-color: color-mix(in srgb, var(--path-a) 35%, var(--cc-border));
+    /* 5.5 + 5.6 — User input rows. Single-tone (no path-a / path-b
+       blue), faint cream-tinted background so the row stands apart
+       from claude turns and dividers without leaning on a brand colour. */
+    :global(.cc-stream .cc-user) {
+      background: color-mix(in srgb, var(--linen) 10%, #1d1d1d);
+      border-color: color-mix(in srgb, var(--linen) 25%, var(--cc-border));
     }
-    :global(.cc-stream .cc-user--two-tone .cc-user-text) { color: var(--text); }
-    :global(.cc-stream .cc-user--two-tone .cc-user-header) {
-      color: var(--path-a);
-      font-weight: 700;
+    :global(.cc-stream .cc-user .cc-user-text) {
+      color: var(--linen);
     }
-    :global(.cc-stream .cc-user--two-tone .cc-user-sep),
-    :global(.cc-stream .cc-user--two-tone .cc-user-question) {
-      color: var(--path-b);
+    :global(.cc-stream .cc-user .cc-user-mark) {
+      color: var(--linen);
     }
 
     /* 1.6.5 + 1.7.1 Artifacts (Write tool calls). Warning-lime stripe with
@@ -1530,39 +1557,7 @@ const catalog = JSON.stringify(
     :global(.cc-stream .cc-tool-body strong) { color: var(--text); }
 
     /* ── 1.7 Detail card collapse ─────────────────────────────────── */
-    .detail-toggle {
-      appearance: none;
-      background: transparent;
-      border: 0.5px solid var(--border);
-      border-radius: var(--r-xs);
-      width: 24px;
-      height: 24px;
-      padding: 0;
-      cursor: pointer;
-      display: inline-grid;
-      place-items: center;
-      color: var(--muted);
-      transition:
-        color var(--dur-fast) var(--ease-standard),
-        border-color var(--dur-fast) var(--ease-standard),
-        background var(--dur-fast) var(--ease-standard);
-    }
-    .detail-toggle:hover {
-      color: var(--accent);
-      border-color: var(--accent);
-      background: var(--accent-dim);
-    }
-    .detail-toggle:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-    .detail-toggle-chev {
-      transition: transform var(--dur-base) var(--ease-standard);
-      transform: rotate(-90deg);   /* points up when expanded   */
-    }
-    .detail.is-collapsed .detail-toggle-chev {
-      transform: rotate(90deg);    /* points down when collapsed */
-    }
+    /* Toggle styling now lives further down (see 5.3) — reposition.   */
     .detail-body-wrap {
       max-height: 2000px;
       overflow: hidden;
@@ -1579,5 +1574,283 @@ const catalog = JSON.stringify(
     }
     .detail.is-collapsed .detail-summary {
       display: none;
+    }
+
+    /* 5.3 — Detail toggle pinned to the top-right corner of the card,
+       above the runtime line. Renders × when expanded, ▾ when collapsed. */
+    .detail { position: relative; }
+    .detail-toggle {
+      position: absolute;
+      top: 0.6rem;
+      right: 0.6rem;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      background: transparent;
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-xs);
+      color: var(--muted);
+      cursor: pointer;
+      display: inline-grid;
+      place-items: center;
+      font-family: var(--font-mono);
+      font-size: 16px;
+      line-height: 1;
+      z-index: 2;
+      transition:
+        color var(--dur-fast) var(--ease-standard),
+        border-color var(--dur-fast) var(--ease-standard),
+        background var(--dur-fast) var(--ease-standard);
+    }
+    .detail-toggle:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .detail-toggle:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .detail-toggle-x,
+    .detail-toggle-chev {
+      display: inline-block;
+    }
+    .detail-toggle-chev { display: none; }
+    .detail.is-collapsed .detail-toggle-x { display: none; }
+    .detail.is-collapsed .detail-toggle-chev { display: inline-block; }
+
+    /* 5.3.1 — Title + summary + skill pills scale with viewport width. */
+    .detail-title {
+      font-size: clamp(1rem, 2.4vw, 1.35rem);
+      line-height: 1.25;
+    }
+    .detail-summary { font-size: clamp(0.78rem, 1.6vw, 0.92rem); }
+    .detail-skills { flex-wrap: wrap; max-width: 100%; }
+    .detail-meta { flex-wrap: wrap; }
+
+    /* 5.7 — Claude assistant turn rendered as a 1-column 2-row "table":
+       outer dotted border in the role colour, plus a thin dotted divider
+       between the head row (skill name) and the body. */
+    :global(.cc-stream .cc-assistant) {
+      border: 1px dotted var(--turn-color);
+      border-radius: var(--r-xs);
+      padding: 0;
+      overflow: hidden;
+      margin: 0.55rem 0;
+    }
+    :global(.cc-stream .cc-assistant .cc-assistant-head) {
+      padding: 0.45rem 0.75rem;
+      border-bottom: 1px dotted var(--turn-color);
+      background: color-mix(in srgb, var(--turn-color) 8%, transparent);
+      align-self: stretch;
+      border-radius: 0;
+    }
+    :global(.cc-stream .cc-assistant .cc-assistant-body) {
+      padding: 0.65rem 0.85rem;
+    }
+
+    /* 5.4 — Output drawer, slides in from the right of the chat. */
+    .output-drawer {
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      pointer-events: none;
+    }
+    .output-drawer[aria-hidden="false"] { pointer-events: auto; }
+    .output-drawer-scrim {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      border: 0;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity var(--dur-base) var(--ease-standard);
+    }
+    .output-drawer.is-open .output-drawer-scrim { opacity: 1; }
+    .output-drawer-panel {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: min(560px, 92vw);
+      background: var(--surface);
+      border-left: 1px dotted var(--tri-agent);
+      box-shadow: -8px 0 24px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform var(--dur-base) var(--ease-standard);
+    }
+    .output-drawer.is-open .output-drawer-panel { transform: translateX(0); }
+    .output-drawer-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px dotted var(--tri-agent);
+      border-bottom: 1px dotted var(--tri-agent);
+      background: color-mix(in srgb, var(--tri-agent) 10%, transparent);
+    }
+    .output-drawer-eyebrow {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--tri-agent);
+    }
+    .output-drawer-title {
+      margin: 0.1rem 0 0;
+      font-family: var(--font-display);
+      font-size: var(--fs-md);
+      font-weight: 600;
+      color: var(--text);
+    }
+    .output-drawer-kind {
+      display: inline-block;
+      margin-top: 0.2rem;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .output-drawer-close {
+      appearance: none;
+      background: transparent;
+      border: 0.5px solid var(--border);
+      color: var(--muted);
+      width: 28px;
+      height: 28px;
+      border-radius: var(--r-xs);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .output-drawer-close:hover { color: var(--accent); border-color: var(--accent); }
+    .output-drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem 1.5rem 2rem;
+      color: var(--text);
+      font-size: var(--fs-base);
+      line-height: var(--lh-base);
+    }
+    .output-drawer-body :global(h1),
+    .output-drawer-body :global(h2),
+    .output-drawer-body :global(h3) {
+      font-family: var(--font-display);
+      font-weight: 600;
+      color: var(--text);
+      margin: 1.5rem 0 0.5rem;
+    }
+    .output-drawer-body :global(h1) { font-size: var(--fs-lg); }
+    .output-drawer-body :global(h2) { font-size: var(--fs-md); }
+    .output-drawer-body :global(h3) { font-size: var(--fs-base); }
+    .output-drawer-body :global(p) { margin: 0 0 0.85rem; color: var(--muted); }
+    .output-drawer-body :global(ul),
+    .output-drawer-body :global(ol) { margin: 0.5rem 0 1rem 1.25rem; color: var(--muted); }
+    .output-drawer-body :global(li) { margin-bottom: 0.3rem; }
+    .output-drawer-body :global(code) {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      padding: 1px 5px;
+      border-radius: var(--r-xs);
+      color: var(--text);
+    }
+    .output-drawer-body :global(pre) {
+      background: var(--card);
+      color: var(--text);
+      border: 0.5px solid var(--border);
+      padding: 0.85rem 1.1rem;
+      border-radius: var(--r-md);
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: var(--lh-base);
+      margin: 0.75rem 0;
+    }
+    .output-drawer-body :global(pre code) {
+      background: transparent;
+      border: 0;
+      padding: 0;
+    }
+    .output-drawer-body :global(table) {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--fs-sm);
+      margin: 1rem 0;
+    }
+    .output-drawer-body :global(th),
+    .output-drawer-body :global(td) {
+      border: 0.5px solid var(--border);
+      padding: 0.45rem 0.65rem;
+      text-align: left;
+    }
+    .output-drawer-body :global(th) {
+      background: var(--card);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      font-weight: 500;
+    }
+    .output-drawer-body :global(blockquote) {
+      border-left: 2px solid var(--tri-agent);
+      padding: 0.25rem 0 0.25rem 1rem;
+      margin: 1rem 0;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* 5.2 — Scenario chip accordion. Numbered chips in a single row at
+       rest; the active or hovered chip expands to reveal its tagline.
+       Row is horizontally scrollable on narrow viewports. */
+    .scenarios {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 0.4rem;
+      padding-bottom: 0.4rem;
+      scrollbar-width: thin;
+    }
+    .scenario {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.6rem;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      font: inherit;
+      color: var(--text);
+      transition:
+        background var(--dur-fast) var(--ease-standard),
+        border-color var(--dur-fast) var(--ease-standard);
+    }
+    .scenario .scenario-tagline {
+      max-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      opacity: 0;
+      transition:
+        max-width var(--dur-base) var(--ease-standard),
+        opacity var(--dur-base) var(--ease-standard);
+    }
+    .scenario:hover .scenario-tagline,
+    .scenario:focus-visible .scenario-tagline,
+    .scenario[aria-pressed="true"] .scenario-tagline {
+      max-width: 18rem;
+      opacity: 1;
+    }
+    .scenario:hover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .scenario[aria-pressed="true"] {
+      border-color: var(--accent);
+      background: var(--accent-dim);
     }
   </style>

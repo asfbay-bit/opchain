@@ -188,6 +188,29 @@ const preselect = tryable[0]?.id || "";
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
     margin: 1.5rem 0 1.25rem;
+    overflow: hidden;
+    max-height: 16rem;
+    opacity: 1;
+    transition:
+      max-height var(--dur-base) var(--ease-standard),
+      opacity var(--dur-fast) var(--ease-standard),
+      margin var(--dur-base) var(--ease-standard);
+  }
+  /* 5.1.1 — When the user starts a replay (the Replays panel collapses
+     its detail card), the mode cards collapse too so the chat has more
+     room. We piggyback on .detail.is-collapsed via :has(). */
+  .page:has(.detail.is-collapsed) .mode-cards {
+    max-height: 12px;
+    opacity: 0;
+    margin: 0;
+  }
+  /* 5.1.2 — When the cursor returns to where the cards were, expand
+     them again on hover. The collapsed strip retains a small hoverable
+     height (see max-height above) so :hover can fire. */
+  .page:has(.detail.is-collapsed) .mode-cards:hover {
+    max-height: 16rem;
+    opacity: 1;
+    margin: 1.5rem 0 1.25rem;
   }
   .mode-card {
     appearance: none;
