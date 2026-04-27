@@ -28,33 +28,19 @@
     "not_found_handling": "404-page",
     "run_worker_first": true
   },
-  "kv_namespaces": [
-    {
-      "binding": "DATA",
-      "id": "7574667e560c4727bae2da069c9d6f52",
-      // Preview namespace — used by `wrangler dev` so local development
-      // never touches the production KV data.
-      "preview_id": "93c4a01577774dd2864581ba6444df8c"
-    }
-  ],
+  // The `DATA` KV namespace was used by the email-gated Try-It chat for
+  // session-token storage and lead-tracking. The Try-It surface was
+  // removed in `claude/remove-try-it`; the binding is gone with it.
+  // Cloudflare keeps the underlying namespaces around in case you want
+  // to inspect old leads — they're just no longer attached to the
+  // Worker. Delete via `wrangler kv:namespace delete --namespace-id <id>`
+  // when you're sure.
   "env": {
     "staging": {
       "name": "opchain-staging",
       // Staging custom domain. Same shape as the prod `routes` above —
       // see that comment for DNS / wrangler-login notes.
-      "routes": [{ "pattern": "staging.opchain.dev", "custom_domain": true }],
-      "kv_namespaces": [
-        {
-          "binding": "DATA",
-          // Dedicated staging KV namespace — isolates staging traffic from
-          // production lead + rate-limit data.
-          "id": "6156bc3d5a5c4bd780f3d2667950e703",
-          // Preview for staging shares the same namespace as the prod preview.
-          // That's fine because preview is only used by `wrangler dev`, which
-          // is a local-only sandbox.
-          "preview_id": "93c4a01577774dd2864581ba6444df8c"
-        }
-      ]
+      "routes": [{ "pattern": "staging.opchain.dev", "custom_domain": true }]
     }
   }
 }

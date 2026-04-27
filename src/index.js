@@ -4,13 +4,12 @@
  * Routes:
  *   GET  /api/health    → health check
  *   POST /api/feedback  → Linear issue creation
- *   POST /api/try/start → email-gated demo session
- *   POST /api/try/chat  → streaming AI chat
  *   GET  /*             → static assets (public/)
+ *
+ * The `/api/try/*` chat surface and the email-gated session flow were
+ * removed in `claude/remove-try-it`. Old links (/tryit) now 301 to /demo.
  */
 
-import { handleOpchainTry } from "./opchain-try.js";
-import { SKILL_NAMES } from "./generated/skill-prompts.js";
 import { FeedbackSchema, parseBody } from "./lib/schemas.js";
 import { capture, hashDistinctId } from "./lib/analytics.js";
 import { bindLogger, newRequestId, EVENTS } from "./lib/request-id.js";
@@ -176,7 +175,11 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
   const projectId = env.LINEAR_PROJECT_ID || DEFAULT_PROJECT_ID;
   const labelIds = LABEL_MAP[type] ? [LABEL_MAP[type]] : [];
   const linearPriority = PRIORITY_MAP[priority] ?? 0;
-  const skillName = skill ? SKILL_NAMES[skill] || skill : null;
+  // SKILL_NAMES used to map ids → display names from skill-prompts.js;
+  // that file went away with the Try-It removal. The raw slug (e.g.
+  // `code-auditor`) still carries enough signal to triage feedback in
+  // Linear, so we surface the id directly.
+  const skillName = skill || null;
 
   const descParts = [];
   if (description) descParts.push(description);
@@ -266,18 +269,20 @@ async function route(request, env, ctx, url, origin, requestId) {
       return handleFeedback(request, env, ctx, origin, requestId);
     }
 
-    if (url.pathname.startsWith("/api/try") && request.method === "POST") {
-      const tryUrl = new URL(url);
-      tryUrl.pathname = url.pathname.replace("/api/try", "/api/opchain/try");
-      return handleOpchainTry(request, tryUrl, env, ctx);
+    // /api/try/* is gone. Reject with a clean 410 so any cached client
+    // gets the right semantic ("the resource is gone") instead of a 404
+    // that suggests a typo.
+    if (url.pathname.startsWith("/api/try")) {
+      return new Response(
+        JSON.stringify({ error: "The Try-It chat has been removed." }),
+        { status: 410, headers: { "Content-Type": "application/json" } },
+      );
     }
 
-    // The old `/in-action` and `/tryit` routes were folded into `/demo` —
-    // 301 to the combined page. Replays is the default tab; `#live` opens
-    // the Live panel via the demo page's hash-driven tab switcher.
+    // /tryit + /in-action both 301 to the combined /demo page.
     const demoRedirects = {
       "/in-action": "/demo",
-      "/tryit":     "/demo#live",
+      "/tryit":     "/demo",
     };
 
     // Builds an absolute redirect target: starts from `target` (which may
