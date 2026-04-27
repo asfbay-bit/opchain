@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -105,3 +106,25 @@ jobs:
           name: playwright-report
           path: site/playwright-report/
           retention-days: 7
+
+      - name: Post axe violation summary as PR comment
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          AXE_RESULTS_DIR: site/test-results
+        with:
+          script: |
+            const path = require('path');
+            const { buildComment } = require(
+              path.resolve(process.env.GITHUB_WORKSPACE, 'scripts/axe-comment.cjs')
+            );
+            const body = buildComment(process.env.AXE_RESULTS_DIR);
+            if (!body) {
+              console.log('no axe violations attached — skipping PR comment');
+              return;
+            }
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.payload.pull_request.number,
+              body,
+            });
