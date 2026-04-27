@@ -211,6 +211,39 @@ no longer fires either, which is its own small bug.
 
 ---
 
+## B-11: Axe disables surfaced by B-02 — fix in source
+
+**Why opened:** PR #101 (B-02) re-asserted `expect(violations).toEqual([])`
+in `routes.spec.ts`. Six routes still flag axe violations beyond
+color-contrast (which is in B-10). Each is disabled per-route with a
+pointer to this entry; removing the disable closes a real WCAG miss.
+
+**Audits and routes:**
+
+- `link-in-text-block` (serious) — links inside body text need a
+  non-colour distinction. Affects `/architecture`, `/install`,
+  `/privacy`, `/skills/<id>`, `/styleguide`. Single global fix:
+  `a` inside `p`, `li`, `td` etc. gets a default `text-decoration:
+  underline` — site-wide CSS rule, scoped to prose contexts so chrome
+  links (`.nav-link`, `.btn`) opt out.
+- `nested-interactive` (serious) — `.pipeline-svg` on `/architecture`
+  has a focusable container with interactive child `<g>` elements.
+  Either remove `tabindex` from the container or refactor child
+  interactivity into anchor wrappers.
+- `label` (critical) — GFM task-list checkboxes rendered from skill
+  `SKILL.md` content. The Astro markdown pipeline currently emits
+  bare `<input type="checkbox">` without an associated `<label>`
+  (because the markdown is `- [ ] item`, not `<label><input>...`).
+  Fix at the renderer level: a small rehype plugin that wraps the
+  checkbox in a `<label>` paired with the list-item text.
+
+**Removal trigger per audit:** drop the matching constant
+(`LINK_IN_TEXT_BLOCK_DISABLE`, `LABEL_TASK_LIST_DISABLE`) and the
+inline `nested-interactive` entry from `routes.spec.ts`'s `ROUTES`
+table. CI then enforces.
+
+---
+
 ## B-10: Color-contrast sweep across `/`, `/skills`, `/demo`
 
 **Why deferred:** PR #94 closed B-08 by fixing the ARIA audits on
