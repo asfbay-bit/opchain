@@ -132,18 +132,30 @@ review would have caught.
 
 ---
 
-## B-07: Lighthouse against production URL
+## B-07: Lighthouse against production URL — **closed**
 
-**Why deferred:** Sprint 7b runs LHCI against a local `astro preview`
-server for determinism. Catches code/build issues but not
-CDN/headers/Cloudflare behaviour.
+**Original ask:** A second Lighthouse workflow that runs after the
+production deploy hitting `https://opchain.dev/`, `/skills`,
+`/in-action`. Failure notifies but does not block.
 
-**Approach:** A second Lighthouse workflow that runs after the
-production deploy (`.github/workflows/deploy.yml` `production` job),
-hitting `https://opchain.dev/`, `/skills`, `/in-action`. Failure
-notifies but does not block (production is already live by then).
+**What landed:** `.github/workflows/lighthouse-prod.yml` plus
+`lighthouserc.prod.cjs`. Two adjustments from the original ask:
 
-**Effort:** ~2 h Claude.
+- **Trigger.** The original assumed a CI deploy workflow we could
+  hook off of, but deploys went manual after PR #58. Replaced with a
+  daily cron (`17 7 * * *` UTC) plus `workflow_dispatch` for ad-hoc
+  runs after a release.
+- **Routes.** `/in-action` was merged into `/demo` in PR #71. Live
+  surface is `/`, `/skills`, `/demo`.
+
+Assertions use `warn` (not `error`) so the run never fails — output
+goes to the action's step summary via the same
+`scripts/lhci-comment.cjs` builder used by the PR comment, so the
+format is consistent across both surfaces. Production thresholds are
+slightly looser on Performance and Best Practices than the PR gate
+(0.85 / 0.90 vs. 0.95) to absorb CDN + analytics + real-network
+variance; Accessibility and SEO are held at the PR floor (0.95 each)
+because those don't change between staging and prod.
 
 ---
 
