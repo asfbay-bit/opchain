@@ -26,7 +26,7 @@ const ROUTES: RouteSpec[] = [
   { path: "/skills/code-auditor", h1: /code auditor/i },
   {
     path: "/demo",
-    h1: /two ways to feel it out/i,
+    h1: /watch a finished run/i,
     disabledRules: [
       {
         id: "region",
