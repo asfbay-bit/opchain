@@ -40,6 +40,36 @@ const skillRolesJson = JSON.stringify(
 // reads "1 min" instead of "0 min".
 const wordCount = (skill.body || "").trim().split(/\s+/).filter(Boolean).length;
 const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
+
+// 18 — Prev / next skill nav. Catalog ordered by role (the same
+// ROLE_ORDER used on /architecture) then by skill name within group,
+// so siblings sit together and you can fan through a category quickly.
+const ROLE_ORDER: Role[] = [
+  "workflow", "tri-agent", "audit-gate", "specialist", "advisor", "orchestrator", "success",
+];
+const orderedSkills = [...allSkills].sort((a, b) => {
+  const ra = ROLE_ORDER.indexOf(getSkillRole(a.data.name));
+  const rb = ROLE_ORDER.indexOf(getSkillRole(b.data.name));
+  if (ra !== rb) return ra - rb;
+  return a.data.name.localeCompare(b.data.name);
+});
+const currentIdx = orderedSkills.findIndex((s) => s.data.name === id);
+const prevSkill  = currentIdx > 0 ? orderedSkills[currentIdx - 1] : null;
+const nextSkill  = currentIdx >= 0 && currentIdx < orderedSkills.length - 1
+  ? orderedSkills[currentIdx + 1]
+  : null;
+
+// 20 — Foundational empty state. checkpoint-protocol (and any other
+// non-tryable success-role skill) is consumed BY other skills, not
+// invoked directly. Surface a few of those consumers so the page
+// shows what the protocol actually drives.
+const isFoundational = !skill.data.tryable && getSkillRole(skill.data.name) === "success";
+const consumers = isFoundational
+  ? allSkills
+      .filter((s) => s.data.name !== skill.data.name)
+      .map((s) => ({ name: s.data.name, role: getSkillRole(s.data.name) }))
+      .slice(0, 8)
+  : [];
 ---
 
 <Base
@@ -102,9 +132,19 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
         ) : (
           <>
             <p class="quick-body">
-              This skill is a foundational protocol — not invoked directly. Every
-              other opchain skill implements its checkpoint contract.
+              {isFoundational
+                ? "Foundational protocol — every other opchain skill reads / writes its checkpoint contract."
+                : "This skill is a foundational protocol — not invoked directly. Every other opchain skill implements its checkpoint contract."}
             </p>
+            {isFoundational && consumers.length > 0 && (
+              <div class="protocol-consumers" aria-label="Skills that implement this protocol">
+                {consumers.map((c) => (
+                  <a href={`/skills/${c.name}`} class="protocol-consumer-pill" data-role={c.role}>
+                    {c.name}
+                  </a>
+                ))}
+              </div>
+            )}
             <div class="try-actions">
               <Button variant="outline" size="sm" href={`/skills/${skill.data.name}.zip`}>
                 <Icon name="download" size={12} />
@@ -500,6 +540,73 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
           wrap.appendChild(pre);
         });
 
+        // 16 — Smart quotes. Walk text nodes (already filtered above
+        // for code/pre/a/heading skips) and replace ASCII quotes with
+        // proper typographic glyphs. Apostrophes are matched on word
+        // boundaries to avoid mangling `'foo'` quoted strings inside
+        // narrative prose. We re-use the same SKIP set as the status-
+        // verb walker so we never touch code or links.
+        const QUOTE_SKIP = new Set(["CODE", "PRE", "A", "MARK", "H1", "H2", "H3", "H4", "KBD"]);
+        const qWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        const qReplacements: Array<{ node: Text; text: string }> = [];
+        let qNode: Node | null;
+        while ((qNode = qWalker.nextNode())) {
+          const t = qNode as Text;
+          if (!t.parentElement || QUOTE_SKIP.has(t.parentElement.tagName)) continue;
+          const v = t.nodeValue || "";
+          if (!/["']/.test(v)) continue;
+          const next = v
+            // Apostrophes inside words: don't / it's / we're.
+            .replace(/(\w)'(\w)/g, "$1’$2")
+            // Trailing apostrophes: ops' / sessions'.
+            .replace(/(\w)'(?=\s|[.,;:!?])/g, "$1’")
+            // Opening single quote at word start.
+            .replace(/(^|[\s(\[{])'(\w)/g, "$1‘$2")
+            // Closing single quote at word end.
+            .replace(/(\w)'(?=$|[\s).,;:!?])/g, "$1’")
+            // Double quotes — open after whitespace / start, close otherwise.
+            .replace(/(^|[\s(\[{])"(\w)/g, "$1“$2")
+            .replace(/(\w)"(?=$|[\s).,;:!?])/g, "$1”")
+            // Symmetric pairs not caught by the heuristics above.
+            .replace(/"([^"]+?)"/g, "“$1”");
+          if (next !== v) qReplacements.push({ node: t, text: next });
+        }
+        for (const { node, text } of qReplacements) node.nodeValue = text;
+
+        // 17 — Compact tables. Tables with ≤4 body rows render with
+        // tighter padding and no zebra; longer tables keep the existing
+        // generous spacing.
+        root.querySelectorAll<HTMLTableElement>("table").forEach((tbl) => {
+          const bodyRows = tbl.querySelectorAll("tbody > tr").length
+                        || tbl.querySelectorAll("tr").length - 1; // header-less tables
+          if (bodyRows > 0 && bodyRows <= 4) {
+            tbl.setAttribute("data-density", "compact");
+          } else {
+            tbl.setAttribute("data-density", "comfortable");
+          }
+        });
+
+        // 19 — Section TL;DR. Auto-detect the explicit prefix
+        // "TL;DR:" / "Summary:" / "tl;dr:" on the first paragraph
+        // immediately after an <h2>. Strip the marker, wrap the
+        // paragraph in <aside class="section-tldr"> with a small
+        // pill label.
+        const TLDR_PAT = /^(TL;?DR|Summary)\s*:\s*/i;
+        root.querySelectorAll<HTMLElement>("h2").forEach((h) => {
+          const p = h.nextElementSibling as HTMLElement | null;
+          if (!p || p.tagName !== "P") return;
+          const txt = (p.textContent || "").trim();
+          const m = txt.match(TLDR_PAT);
+          if (!m) return;
+          // Replace the leading marker with an inline label span and
+          // class the <p>; CSS does the rest.
+          p.classList.add("section-tldr");
+          p.innerHTML = p.innerHTML.replace(
+            TLDR_PAT,
+            `<span class="tldr-label">tl;dr</span> `,
+          );
+        });
+
         // 11 — Build the table of contents. After all headings have IDs
         // (set above), walk h2 / h3 and emit a nested <ol>. Render into
         // both the desktop rail and the mobile <details>; both share the
@@ -588,6 +695,23 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
           .replace(/'/g, "&#39;");
       }
     </script>
+
+    <!-- 18 — Prev / next skill nav. Sticky bottom strip with the
+         catalog-adjacent skills (ordered by role group → name). -->
+    <nav class="skill-nav" aria-label="Adjacent skills">
+      {prevSkill ? (
+        <a href={`/skills/${prevSkill.data.name}`} class="skill-nav-link skill-nav-prev" data-role={getSkillRole(prevSkill.data.name)}>
+          <span class="skill-nav-eyebrow">← previous</span>
+          <span class="skill-nav-name">{prevSkill.data.displayName}</span>
+        </a>
+      ) : <span class="skill-nav-empty"></span>}
+      {nextSkill ? (
+        <a href={`/skills/${nextSkill.data.name}`} class="skill-nav-link skill-nav-next" data-role={getSkillRole(nextSkill.data.name)}>
+          <span class="skill-nav-eyebrow">next →</span>
+          <span class="skill-nav-name">{nextSkill.data.displayName}</span>
+        </a>
+      ) : <span class="skill-nav-empty"></span>}
+    </nav>
 
     <!-- ───────────── Footer CTA ───────────── -->
     <section class="cta">
@@ -1302,6 +1426,136 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
       display: none;
     }
   }
+
+  /* 17 — Density-aware table styling. Compact for ≤4 body rows
+     (matches the homepage phase-card density), comfortable otherwise.
+     The tag is set by the post-render walker. */
+  .prose :global(table[data-density="compact"]) :global(th),
+  .prose :global(table[data-density="compact"]) :global(td) {
+    padding: 0.3rem 0.5rem;
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+  }
+  .prose :global(table[data-density="comfortable"]) :global(tbody tr:nth-child(even)) {
+    background: color-mix(in srgb, var(--accent) 4%, transparent);
+  }
+
+  /* 19 — Section TL;DR pill. Tiny mono label leading the paragraph,
+     plus a slightly larger / brighter paragraph so the summary reads
+     as the section's takeaway. */
+  .prose :global(p.section-tldr) {
+    font-size: 1.05em;
+    color: var(--text);
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
+    border-left: 2px solid var(--accent);
+    padding: 0.55rem 0.85rem;
+    border-radius: 0 var(--r-xs) var(--r-xs) 0;
+    margin-top: 0;
+  }
+  .prose :global(.tldr-label) {
+    display: inline-block;
+    margin-right: 0.4em;
+    padding: 0 0.45em;
+    font-family: var(--font-mono);
+    font-size: 0.7em;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 0.5px solid var(--accent);
+    border-radius: var(--r-xs);
+    vertical-align: 0.1em;
+  }
+
+  /* 20 — Foundational empty state. The "consumers" pill grid in the
+     Try-it card on /skills/checkpoint-protocol etc. lists the skills
+     that read / write the protocol's checkpoint contract. */
+  .protocol-consumers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin: 0.4rem 0 0.65rem;
+  }
+  .protocol-consumer-pill {
+    --pill-color: var(--specialist);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    padding: 1px 7px;
+    color: var(--pill-color);
+    background: color-mix(in srgb, var(--pill-color) 12%, transparent);
+    border: 0.5px solid color-mix(in srgb, var(--pill-color) 40%, transparent);
+    border-radius: var(--r-xs);
+    text-decoration: none;
+    transition:
+      background var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+  }
+  .protocol-consumer-pill:hover {
+    background: color-mix(in srgb, var(--pill-color) 22%, transparent);
+    border-color: var(--pill-color);
+  }
+  .protocol-consumer-pill[data-role="workflow"]     { --pill-color: var(--workflow); }
+  .protocol-consumer-pill[data-role="tri-agent"]    { --pill-color: var(--tri-agent); }
+  .protocol-consumer-pill[data-role="audit-gate"]   { --pill-color: var(--audit-gate); }
+  .protocol-consumer-pill[data-role="specialist"]   { --pill-color: var(--specialist); }
+  .protocol-consumer-pill[data-role="advisor"]      { --pill-color: var(--advisor); }
+  .protocol-consumer-pill[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
+  .protocol-consumer-pill[data-role="success"]      { --pill-color: var(--success); }
+
+  /* 18 — Prev / next skill nav strip. Sticky at the bottom of the
+     viewport on tall screens, wraps to two cards on narrow screens. */
+  .skill-nav {
+    margin: 2.5rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+  .skill-nav-empty { display: block; }
+  .skill-nav-link {
+    --pill-color: var(--accent);
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.65rem 0.85rem;
+    border: 0.5px solid var(--border);
+    border-left: 2px solid var(--pill-color);
+    border-radius: var(--r-xs);
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    transition:
+      background var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+  }
+  .skill-nav-link:hover {
+    background: color-mix(in srgb, var(--pill-color) 6%, var(--surface));
+    border-color: var(--pill-color);
+  }
+  .skill-nav-prev { text-align: left; }
+  .skill-nav-next { text-align: right; align-items: flex-end; }
+  .skill-nav-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--pill-color);
+  }
+  .skill-nav-name {
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .skill-nav-link[data-role="workflow"]     { --pill-color: var(--workflow); }
+  .skill-nav-link[data-role="tri-agent"]    { --pill-color: var(--tri-agent); }
+  .skill-nav-link[data-role="audit-gate"]   { --pill-color: var(--audit-gate); }
+  .skill-nav-link[data-role="specialist"]   { --pill-color: var(--specialist); }
+  .skill-nav-link[data-role="advisor"]      { --pill-color: var(--advisor); }
+  .skill-nav-link[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
+  .skill-nav-link[data-role="success"]      { --pill-color: var(--success); }
 
   .cta {
     margin-top: 3rem;
