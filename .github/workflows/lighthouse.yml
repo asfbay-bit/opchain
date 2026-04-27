@@ -37,7 +37,7 @@ jobs:
         run: npm run build
       - name: Run LHCI
         working-directory: site
-        run: npx --no -- lhci autorun --config=../lighthouserc.json
+        run: npx --no -- lhci autorun --config=../lighthouserc.cjs
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
 
