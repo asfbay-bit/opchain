@@ -54,11 +54,11 @@ test("tryit: gate → chat → counter decrements", async ({ page }) => {
   await page.locator("#tryit-message").fill("ping");
   await page.locator("#tryit-input-form button[type=submit]").click();
 
-  // Assistant bubble eventually contains the mocked text.
-  // The mock flushes the SSE in one chunk; the client parses it into the bubble.
-  // Match the second-to-last assistant bubble (index 1 after the intro at index 0).
+  // Assistant bubble eventually contains the mocked text. The intro
+  // prompt was removed (PR-E 5.6.1), so the assistant response to "ping"
+  // is the FIRST assistant bubble in the transcript now.
   const assistantBubbles = page.locator(".msg--assistant .msg-content");
-  await expect(assistantBubbles.nth(1)).toContainText("Hello from the e2e mock.", { timeout: 5_000 });
+  await expect(assistantBubbles.nth(0)).toContainText("Hello from the e2e mock.", { timeout: 5_000 });
 
   // Counter decremented.
   await expect(page.locator("#tryit-counter")).toHaveText(/4 of 5 exchanges remaining/);
