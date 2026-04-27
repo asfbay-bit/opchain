@@ -12,7 +12,9 @@ commands:
 description: >
   Third-party API integrations with Planner/Builder/Tester loop. Use for /integrate,
   "connect to Salesforce", "webhook", "OAuth", "API integration", "connect to Slack",
-  or any external service connection. Trigger liberally.
+  or any external service connection. For designing or building your *own* first-party
+  API (OpenAPI/GraphQL authoring, versioning, SDK generation), use api-dev instead.
+  Trigger liberally.
 ---
 
 # Integrations Engineer
