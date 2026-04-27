@@ -17,6 +17,12 @@ site/blob-report/
 public/
 src/generated/
 
+# Allow ad-hoc layout-preview HTML pages under site/public/dev-preview/. These
+# are static-asset files Astro will serve at /dev-preview/* and are committed
+# only while a design review is in progress; remove once the choice is made.
+!site/public/dev-preview/
+!site/public/dev-preview/**
+
 # Cloudflare
 .wrangler/
 .dev.vars
