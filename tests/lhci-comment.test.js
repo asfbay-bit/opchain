@@ -104,6 +104,55 @@ describe("buildComment", () => {
     expect(out).not.toContain("`image-alt`");
   });
 
+  it("nests failing-audit node selectors as bullet sub-items", () => {
+    const lhrWithNodes = lhr(
+      "http://h/demo",
+      { performance: 1, accessibility: 0.9, "best-practices": 1, seo: 1 },
+      {
+        "color-contrast": {
+          score: 0,
+          title: "Background and foreground colors do not have a sufficient contrast ratio.",
+        },
+      }
+    );
+    lhrWithNodes.audits["color-contrast"].details = {
+      type: "table",
+      items: [
+        { node: { selector: "footer > p.copyright" } },
+        { node: { selector: "header > nav > a.subdued" } },
+      ],
+    };
+    write("lhr-1.json", lhrWithNodes);
+
+    const out = buildComment(dir);
+    expect(out).toContain("`footer > p.copyright`");
+    expect(out).toContain("`header > nav > a.subdued`");
+  });
+
+  it("unions node selectors across runs and caps the listing at 5 with overflow note", () => {
+    function lhrWithContrastNodes(nodeSelectors) {
+      const result = lhr(
+        "http://h/demo",
+        { performance: 1, accessibility: 0.9, "best-practices": 1, seo: 1 },
+        {
+          "color-contrast": { score: 0, title: "Color contrast" },
+        }
+      );
+      result.audits["color-contrast"].details = {
+        type: "table",
+        items: nodeSelectors.map((s) => ({ node: { selector: s } })),
+      };
+      return result;
+    }
+    write("lhr-1.json", lhrWithContrastNodes(["a", "b", "c"]));
+    write("lhr-2.json", lhrWithContrastNodes(["d", "e", "f", "g"]));
+
+    const out = buildComment(dir);
+    // 7 unique selectors total, 5 displayed, 2 collapsed
+    expect(out).toContain("…and 2 more");
+    expect((out.match(/^\s+- `[a-g]`$/gm) || []).length).toBe(5);
+  });
+
   it("returns a friendly message when the directory has no lhr-*.json", () => {
     const out = buildComment(dir);
     expect(out).toContain("no reports found");

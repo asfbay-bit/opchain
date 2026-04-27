@@ -22,7 +22,11 @@ function failingA11yAudits(lhr) {
     if (ref.weight === 0) continue;
     const audit = lhr.audits?.[ref.id];
     if (audit && audit.score !== null && audit.score < 1) {
-      out.push({ id: ref.id, title: audit.title });
+      const items = audit.details?.items ?? [];
+      const nodes = items
+        .map((it) => it.node?.selector || it.node?.snippet)
+        .filter(Boolean);
+      out.push({ id: ref.id, title: audit.title, nodes });
     }
   }
   return out;
@@ -102,15 +106,32 @@ function buildComment(dir) {
 
     body += `| \`${routePath}\` | ${row.join(" | ")} | ${reportCell} |\n`;
 
-    // Aggregate a11y failures across the URL's runs (union of audit ids)
+    // Aggregate a11y failures across the URL's runs (union of audit ids,
+    // union of failing nodes per audit — Lighthouse is non-deterministic
+    // about which nodes get reported per run).
     const seen = new Map();
     for (const r of byUrl[url]) {
-      for (const f of r.a11yFailures) seen.set(f.id, f);
+      for (const f of r.a11yFailures) {
+        const prev = seen.get(f.id);
+        if (prev) {
+          for (const n of f.nodes) prev.nodes.add(n);
+        } else {
+          seen.set(f.id, { id: f.id, title: f.title, nodes: new Set(f.nodes) });
+        }
+      }
     }
     if (seen.size > 0) {
       a11ySections.push(`\n### \`${routePath}\` — failing accessibility audits\n`);
       for (const f of seen.values()) {
         a11ySections.push(`- \`${f.id}\` — ${f.title}`);
+        const NODE_LIMIT = 5;
+        const nodes = [...f.nodes].slice(0, NODE_LIMIT);
+        for (const n of nodes) {
+          a11ySections.push(`  - \`${n}\``);
+        }
+        if (f.nodes.size > NODE_LIMIT) {
+          a11ySections.push(`  - …and ${f.nodes.size - NODE_LIMIT} more`);
+        }
       }
     }
   }
