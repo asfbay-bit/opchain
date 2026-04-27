@@ -19,6 +19,37 @@ export const FeedbackSchema = z.object({
 });
 
 /**
+ * POST /api/notify
+ *
+ * Soft-gate capture at the install / download moment. Email required;
+ * the qualitative fields (role, teamSize, building) are optional to
+ * keep friction low.
+ */
+export const NotifySchema = z.object({
+  email,
+  role: z.enum([
+    "engineer",
+    "engineering-manager",
+    "product-manager",
+    "designer",
+    "founder",
+    "other",
+  ]).optional(),
+  teamSize: z.enum(["solo", "2-5", "6-20", "21-plus"]).optional(),
+  building: z.string().trim().max(280).optional(),
+  // Where on the site the user submitted from. Useful for funnel
+  // analysis ("install vs per-skill download conversion") without
+  // needing a separate event.
+  source: z.enum([
+    "install",
+    "skill-download",
+    "bundle-download",
+    "homepage",
+    "other",
+  ]).optional().default("other"),
+});
+
+/**
  * Parse a JSON body against a schema. Returns either
  * `{ ok: true, data }` or `{ ok: false, error, code, issues }`.
  */

@@ -49,4 +49,7 @@ export const EVENTS = {
   RATE_LIMIT_HIT:     "rate_limit_hit",
   UPSTREAM_FAILED:    "upstream_failed",
   VALIDATION_FAILED:  "validation_failed",
+  NOTIFY_CAPTURED:    "notify_captured",
+  NOTIFY_RATELIMITED: "notify_ratelimited",
+  NOTIFY_NO_KV:       "notify_no_kv",
 };

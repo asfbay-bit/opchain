@@ -28,19 +28,38 @@
     "not_found_handling": "404-page",
     "run_worker_first": true
   },
-  // The `DATA` KV namespace was used by the email-gated Try-It chat for
-  // session-token storage and lead-tracking. The Try-It surface was
-  // removed in `claude/remove-try-it`; the binding is gone with it.
-  // Cloudflare keeps the underlying namespaces around in case you want
-  // to inspect old leads — they're just no longer attached to the
-  // Worker. Delete via `wrangler kv:namespace delete --namespace-id <id>`
-  // when you're sure.
+  // /api/notify writes lead records here. Provision with:
+  //   wrangler kv:namespace create NOTIFY            (production)
+  //   wrangler kv:namespace create NOTIFY --preview  (local `wrangler dev`)
+  //   wrangler kv:namespace create NOTIFY-staging    (staging env, see below)
+  // then drop the returned IDs into the empty strings below.
+  // The handler degrades gracefully when this binding is missing — the
+  // submission is accepted, persistence skipped — so deploys without
+  // KV provisioned won't break.
+  //
+  // The previous `DATA` namespace was used by the now-removed Try-It chat;
+  // Cloudflare keeps the underlying namespaces around if you want to read
+  // old leads. Delete via `wrangler kv:namespace delete --namespace-id <id>`.
+  "kv_namespaces": [
+    {
+      "binding": "NOTIFY",
+      "id": "",
+      "preview_id": ""
+    }
+  ],
   "env": {
     "staging": {
       "name": "opchain-staging",
       // Staging custom domain. Same shape as the prod `routes` above —
       // see that comment for DNS / wrangler-login notes.
-      "routes": [{ "pattern": "staging.opchain.dev", "custom_domain": true }]
+      "routes": [{ "pattern": "staging.opchain.dev", "custom_domain": true }],
+      "kv_namespaces": [
+        {
+          "binding": "NOTIFY",
+          "id": "",
+          "preview_id": ""
+        }
+      ]
     }
   }
 }

@@ -4,13 +4,14 @@
  * Routes:
  *   GET  /api/health    → health check
  *   POST /api/feedback  → Linear issue creation
+ *   POST /api/notify    → install/download soft-gate capture (KV-backed)
  *   GET  /*             → static assets (public/)
  *
  * The `/api/try/*` chat surface and the email-gated session flow were
  * removed in `claude/remove-try-it`. Old links (/tryit) now 301 to /demo.
  */
 
-import { FeedbackSchema, parseBody } from "./lib/schemas.js";
+import { FeedbackSchema, NotifySchema, parseBody } from "./lib/schemas.js";
 import { capture, hashDistinctId } from "./lib/analytics.js";
 import { bindLogger, newRequestId, EVENTS } from "./lib/request-id.js";
 
@@ -245,6 +246,107 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
   );
 }
 
+// ── Notify (install/download soft-gate capture) ─────────────────────────────
+//
+// The user lands at the install page or clicks "download skill" / "download
+// bundle". A modal opens asking for email + role + team size + free-text
+// "what are you building". Submit (or skip) — submit posts here.
+//
+// Stored in env.NOTIFY (KV) under `lead:<sha256(email)>`. Hashing the email
+// keeps the key opaque if KV is ever exfiltrated *and* gives us idempotent
+// upserts (re-submitting the same email overwrites instead of accumulating).
+//
+// Rate-limited per IP at 3 submissions / 60s. Bots that try to spam are
+// silently 429'd; legitimate users will never hit it.
+//
+// If env.NOTIFY isn't bound (local dev without `wrangler kv:namespace
+// create`), the handler accepts the submission and returns 200 — the lead
+// is just not persisted. Logs an event so missing-binding misconfigurations
+// are visible in Cloudflare's dashboard.
+
+const NOTIFY_RATELIMIT_MAX = 3;
+const NOTIFY_RATELIMIT_TTL_S = 60;
+
+async function handleNotify(request, env, ctx, origin, requestId) {
+  const log = bindLogger({ requestId, route: "/api/notify" });
+
+  const parsed = await parseBody(request, NotifySchema);
+  if (!parsed.ok) {
+    return new Response(
+      JSON.stringify({ error: parsed.error, code: parsed.code, issues: parsed.issues }),
+      { status: 400, headers: corsHeaders(origin, requestId) },
+    );
+  }
+  const { email, role, teamSize, building, source } = parsed.data;
+
+  const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
+
+  // Rate-limit per IP. KV is best-effort — if NOTIFY isn't bound we
+  // skip the limit and let the submission through.
+  if (env.NOTIFY) {
+    const rlKey = `ratelimit:notify:${ip}`;
+    const current = Number(await env.NOTIFY.get(rlKey)) || 0;
+    if (current >= NOTIFY_RATELIMIT_MAX) {
+      log.event(EVENTS.NOTIFY_RATELIMITED, { ip });
+      return new Response(
+        JSON.stringify({ error: "Too many submissions, slow down.", code: "rate_limited" }),
+        { status: 429, headers: corsHeaders(origin, requestId) },
+      );
+    }
+    await env.NOTIFY.put(rlKey, String(current + 1), {
+      expirationTtl: NOTIFY_RATELIMIT_TTL_S,
+    });
+  }
+
+  const emailHash = await sha256Hex(email.toLowerCase());
+  const record = {
+    email,
+    role: role ?? null,
+    teamSize: teamSize ?? null,
+    building: building ?? null,
+    source,
+    ip,
+    userAgent: request.headers.get("User-Agent") || null,
+    submittedAt: new Date().toISOString(),
+    requestId,
+  };
+
+  if (env.NOTIFY) {
+    await env.NOTIFY.put(`lead:${emailHash}`, JSON.stringify(record));
+    log.event(EVENTS.NOTIFY_CAPTURED, { source, hasRole: !!role, hasTeamSize: !!teamSize, hasBuilding: !!building });
+  } else {
+    log.event(EVENTS.NOTIFY_NO_KV, { source });
+  }
+
+  // Fire-and-forget PostHog event so funnel-analytics still works even
+  // when KV is unbound.
+  try {
+    const distinctId = await hashDistinctId(email);
+    ctx?.waitUntil?.(capture(env, {
+      distinctId,
+      event: "notify_submitted",
+      properties: {
+        source,
+        role: role ?? null,
+        team_size: teamSize ?? null,
+        has_building: !!building,
+        request_id: requestId,
+      },
+    }));
+  } catch { /* analytics never breaks a submission */ }
+
+  return new Response(
+    JSON.stringify({ ok: true }),
+    { status: 200, headers: corsHeaders(origin, requestId) },
+  );
+}
+
+async function sha256Hex(input) {
+  const bytes = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 // ── Main Router ─────────────────────────────────────────────────────────────
 
 async function route(request, env, ctx, url, origin, requestId) {
@@ -267,6 +369,10 @@ async function route(request, env, ctx, url, origin, requestId) {
 
     if (url.pathname === "/api/feedback" && request.method === "POST") {
       return handleFeedback(request, env, ctx, origin, requestId);
+    }
+
+    if (url.pathname === "/api/notify" && request.method === "POST") {
+      return handleNotify(request, env, ctx, origin, requestId);
     }
 
     // /api/try/* is gone. Reject with a clean 410 so any cached client
