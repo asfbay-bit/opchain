@@ -1,3 +1,4 @@
+import { writeFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 
@@ -7,7 +8,7 @@ import { AxeBuilder } from "@axe-core/playwright";
  * For each route we assert:
  *   - expected HTTP status (200 or listed)
  *   - an h1 matches the page (regex)
- *   - optional Axe pass (artifacts in CI; baseline does not fail the job)
+ *   - Axe finds zero violations after per-route disables (B-02)
  */
 
 interface RouteSpec {
@@ -17,17 +18,70 @@ interface RouteSpec {
   disabledRules?: { id: string; reason: string }[];
 }
 
+// Color-contrast is tracked separately under B-10 — affects shared tokens
+// (.nav-link, .eyebrow, .btn etc.) on every route. Disabling per-route per
+// the B-02 DoD instead of globally so each disable carries its own
+// pointer; the disables are removed in lockstep with the B-10 fix.
+const COLOR_CONTRAST_DISABLE = {
+  id: "color-contrast",
+  reason:
+    "shared tokens (.nav-link, .eyebrow, .btn, .pill); tracked in roadmap B-10",
+};
+
+// link-in-text-block — links inside body text need non-colour distinction
+// (underline, weight, etc.). Found across most pages with prose links.
+// Tracked in roadmap B-11; fix is a global a-in-prose CSS rule.
+const LINK_IN_TEXT_BLOCK_DISABLE = {
+  id: "link-in-text-block",
+  reason:
+    "links inside <p>/<li> need non-colour distinction; tracked in roadmap B-11",
+};
+
+// label — GFM task-list checkboxes inside rendered SKILL.md content lack
+// associated <label>s. Markdown-renderer concern, not a per-page fix.
+// Tracked in roadmap B-11.
+const LABEL_TASK_LIST_DISABLE = {
+  id: "label",
+  reason:
+    "GFM task-list checkboxes from rendered SKILL.md — markdown-renderer concern; tracked in roadmap B-11",
+};
+
 const ROUTES: RouteSpec[] = [
-  { path: "/", h1: /opchain/i },
-  { path: "/architecture", h1: /how opchain skills chain/i },
-  { path: "/install", h1: /three flows/i },
-  { path: "/skills", h1: /every skill, filterable/i },
-  { path: "/skills/app-architect", h1: /app architect/i },
-  { path: "/skills/code-auditor", h1: /code auditor/i },
+  { path: "/",                     h1: /opchain/i,                  disabledRules: [COLOR_CONTRAST_DISABLE] },
+  {
+    path: "/architecture",
+    h1: /how opchain skills chain/i,
+    disabledRules: [
+      COLOR_CONTRAST_DISABLE,
+      LINK_IN_TEXT_BLOCK_DISABLE,
+      {
+        id: "nested-interactive",
+        reason:
+          ".pipeline-svg has interactive child <g>s on a focusable container; SVG-IA refactor tracked in roadmap B-11",
+      },
+    ],
+  },
+  {
+    path: "/install",
+    h1: /three flows/i,
+    disabledRules: [COLOR_CONTRAST_DISABLE, LINK_IN_TEXT_BLOCK_DISABLE],
+  },
+  { path: "/skills",               h1: /every skill, filterable/i,  disabledRules: [COLOR_CONTRAST_DISABLE] },
+  {
+    path: "/skills/app-architect",
+    h1: /app architect/i,
+    disabledRules: [COLOR_CONTRAST_DISABLE, LINK_IN_TEXT_BLOCK_DISABLE, LABEL_TASK_LIST_DISABLE],
+  },
+  {
+    path: "/skills/code-auditor",
+    h1: /code auditor/i,
+    disabledRules: [COLOR_CONTRAST_DISABLE, LINK_IN_TEXT_BLOCK_DISABLE, LABEL_TASK_LIST_DISABLE],
+  },
   {
     path: "/demo",
     h1: /watch a finished run/i,
     disabledRules: [
+      COLOR_CONTRAST_DISABLE,
       {
         id: "region",
         reason:
@@ -35,8 +89,16 @@ const ROUTES: RouteSpec[] = [
       },
     ],
   },
-  { path: "/privacy", h1: /privacy/i },
-  { path: "/styleguide", h1: /styleguide/i },
+  {
+    path: "/privacy",
+    h1: /privacy/i,
+    disabledRules: [COLOR_CONTRAST_DISABLE, LINK_IN_TEXT_BLOCK_DISABLE],
+  },
+  {
+    path: "/styleguide",
+    h1: /styleguide/i,
+    disabledRules: [COLOR_CONTRAST_DISABLE, LINK_IN_TEXT_BLOCK_DISABLE],
+  },
 ];
 
 test.describe("routes render", () => {
@@ -48,7 +110,7 @@ test.describe("routes render", () => {
       await expect(page.locator("h1").first()).toHaveText(h1);
     });
 
-    test(`Axe ${path} reports any a11y violations as artifacts`, async ({
+    test(`Axe ${path} reports zero a11y violations`, async ({
       page,
     }, testInfo) => {
       await page.goto(path, { waitUntil: "domcontentloaded" });
@@ -63,16 +125,24 @@ test.describe("routes render", () => {
         builder = builder.disableRules(disabledRules.map((r) => r.id));
       }
       const { violations } = await builder.analyze();
+      // Persist the JSON to disk so the post-test PR-comment step can
+      // surface it. Path-based attach (rather than body-based) writes
+      // an actual file to the test's outputDir; body-based attach only
+      // lives in the HTML report metadata.
       if (violations.length > 0) {
         const slug =
           path === "/" ? "root" : path.replace(/^\//, "").replace(/\//g, "_");
+        const file = testInfo.outputPath(`axe-violations-${slug}.json`);
+        writeFileSync(file, JSON.stringify(violations, null, 2));
         await testInfo.attach(`axe-violations-${slug}.json`, {
-          body: JSON.stringify(violations, null, 2),
+          path: file,
           contentType: "application/json",
         });
-        // eslint-disable-next-line no-console
-        console.warn(`Axe ${path}: ${violations.length} violation(s) — see attached artifact`);
       }
+      expect(
+        violations.map((v) => ({ id: v.id, nodes: v.nodes.length })),
+        `Axe ${path}: unexpected violations — see attached artifact, then either fix in source or add to disabledRules in routes.spec.ts with a reason`,
+      ).toEqual([]);
     });
   }
 

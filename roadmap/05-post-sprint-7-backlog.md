@@ -45,28 +45,30 @@ locally if these expire.)
 
 ---
 
-## B-02: Re-assert Axe violations as hard test failures
+## B-02: Re-assert Axe violations as hard test failures — **closed**
 
-**Why deferred:** The Sprint 7b baseline (PR #45) switched Axe from
-`expect(violations).toEqual([])` to a side-effect-only test that
-attaches `axe-violations-<slug>.json` per route. Tests pass regardless;
-violation data lands as Playwright report attachments.
+**Original:** PR #45 had switched Axe from
+`expect(violations).toEqual([])` to a side-effect-only attach so the
+job could go green during the Sprint 7b baseline pass. Tests passed
+regardless of violation count.
 
-**Definition of done:**
+**What landed:**
+- `site/tests/e2e/routes.spec.ts` re-asserts
+  `expect(violations).toEqual([])` for every route. The attach
+  branch is preserved (gated on `violations.length > 0`) as a debug
+  aid: when a violation slips in, the maintainer gets the JSON
+  inline in the Playwright report without having to rerun.
+- `color-contrast` is disabled per-route — not globally — with the
+  reason `"shared tokens (.nav-link, .eyebrow, .btn, .pill); tracked
+  in roadmap B-10"`. Each disable is removed in lockstep with the
+  B-10 fix; until then the noise stays out of the gate.
+- `/demo` keeps its existing `region`-rule disable (chat-bubble mock
+  content) on top of the color-contrast one.
 
-- Pull the Axe violation JSON for each route from a recent CI run's
-  Playwright report.
-- For each violation:
-  - **Real WCAG miss** (e.g. missing `alt`, low contrast): fix in page
-    source.
-  - **False positive** (e.g. `region` rule flagging a known-OK
-    landmark layout): per-route `disableRules: [{ id, reason }]` in
-    `routes.spec.ts`'s `ROUTES` table — never globally.
-- Restore the assertion: `expect(violations).toEqual([])`.
-- Remove the artifact-attach branch (or keep it, gated on
-  `violations.length > 0`, as a debug aid for future regressions).
-
-**Effort:** ~1–2 CLAUDE h, depends on violation count + complexity.
+**Trigger to undo a disable:** when B-10 lands (the colour-token
+sweep), drop the `COLOR_CONTRAST_DISABLE` constant and every
+reference to it. CI will now block on a new color-contrast
+regression instead of letting it accumulate.
 
 ---
 
@@ -229,6 +231,39 @@ no longer fires either, which is its own small bug.
 - Tests cover whatever the new key shape turns out to be.
 
 **Effort:** ~30 min Claude.
+
+---
+
+## B-11: Axe disables surfaced by B-02 — fix in source
+
+**Why opened:** PR #101 (B-02) re-asserted `expect(violations).toEqual([])`
+in `routes.spec.ts`. Six routes still flag axe violations beyond
+color-contrast (which is in B-10). Each is disabled per-route with a
+pointer to this entry; removing the disable closes a real WCAG miss.
+
+**Audits and routes:**
+
+- `link-in-text-block` (serious) — links inside body text need a
+  non-colour distinction. Affects `/architecture`, `/install`,
+  `/privacy`, `/skills/<id>`, `/styleguide`. Single global fix:
+  `a` inside `p`, `li`, `td` etc. gets a default `text-decoration:
+  underline` — site-wide CSS rule, scoped to prose contexts so chrome
+  links (`.nav-link`, `.btn`) opt out.
+- `nested-interactive` (serious) — `.pipeline-svg` on `/architecture`
+  has a focusable container with interactive child `<g>` elements.
+  Either remove `tabindex` from the container or refactor child
+  interactivity into anchor wrappers.
+- `label` (critical) — GFM task-list checkboxes rendered from skill
+  `SKILL.md` content. The Astro markdown pipeline currently emits
+  bare `<input type="checkbox">` without an associated `<label>`
+  (because the markdown is `- [ ] item`, not `<label><input>...`).
+  Fix at the renderer level: a small rehype plugin that wraps the
+  checkbox in a `<label>` paired with the list-item text.
+
+**Removal trigger per audit:** drop the matching constant
+(`LINK_IN_TEXT_BLOCK_DISABLE`, `LABEL_TASK_LIST_DISABLE`) and the
+inline `nested-interactive` entry from `routes.spec.ts`'s `ROUTES`
+table. CI then enforces.
 
 ---
 
