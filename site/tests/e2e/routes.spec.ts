@@ -1,3 +1,4 @@
+import { writeFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 
@@ -74,14 +75,17 @@ test.describe("routes render", () => {
         builder = builder.disableRules(disabledRules.map((r) => r.id));
       }
       const { violations } = await builder.analyze();
-      // Always attach the JSON when there are violations — the assertion
-      // below makes the test fail, and the attachment lets a maintainer
-      // see which rule fired against which node without rerunning.
+      // Persist the JSON to disk so the post-test PR-comment step can
+      // surface it. Path-based attach (rather than body-based) writes
+      // an actual file to the test's outputDir; body-based attach only
+      // lives in the HTML report metadata.
       if (violations.length > 0) {
         const slug =
           path === "/" ? "root" : path.replace(/^\//, "").replace(/\//g, "_");
+        const file = testInfo.outputPath(`axe-violations-${slug}.json`);
+        writeFileSync(file, JSON.stringify(violations, null, 2));
         await testInfo.attach(`axe-violations-${slug}.json`, {
-          body: JSON.stringify(violations, null, 2),
+          path: file,
           contentType: "application/json",
         });
       }
