@@ -2,11 +2,13 @@
 import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
 import Replays from "../components/Replays.astro";
+import OnboardingTour from "../components/OnboardingTour.astro";
 
 /**
  * Demo — Replays only. The Live (Try-It) chat was removed in
  * `claude/remove-try-it`; the page now opens straight into the
- * curated walkthrough catalog.
+ * curated walkthrough catalog. A first-visit overlay tour
+ * (OnboardingTour) explains the page on first load.
  */
 ---
 
@@ -23,11 +25,16 @@ import Replays from "../components/Replays.astro";
         Six end-to-end opchain sessions — concept to ship, audit to
         deploy, migration to monitor. Step through, skip to the payoff,
         or jump between scenarios.
+        <button class="help-btn" data-tour-trigger type="button" aria-label="Open intro tour">
+          (?) tour
+        </button>
       </p>
     </header>
 
     <Replays />
   </main>
+
+  <OnboardingTour />
 </Base>
 
 <style>
@@ -50,5 +57,25 @@ import Replays from "../components/Replays.astro";
     max-width: 44rem;
     margin: 0;
     line-height: var(--lh-base);
+  }
+  .help-btn {
+    margin-left: 0.4rem;
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+    color: var(--subtle);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    padding: 1px 8px;
+    cursor: pointer;
+    transition:
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+  }
+  .help-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
   }
 </style>
