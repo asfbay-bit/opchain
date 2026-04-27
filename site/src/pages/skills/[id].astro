@@ -40,6 +40,36 @@ const skillRolesJson = JSON.stringify(
 // reads "1 min" instead of "0 min".
 const wordCount = (skill.body || "").trim().split(/\s+/).filter(Boolean).length;
 const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
+
+// 18 — Prev / next skill nav. Catalog ordered by role (the same
+// ROLE_ORDER used on /architecture) then by skill name within group,
+// so siblings sit together and you can fan through a category quickly.
+const ROLE_ORDER: Role[] = [
+  "workflow", "tri-agent", "audit-gate", "specialist", "advisor", "orchestrator", "success",
+];
+const orderedSkills = [...allSkills].sort((a, b) => {
+  const ra = ROLE_ORDER.indexOf(getSkillRole(a.data.name));
+  const rb = ROLE_ORDER.indexOf(getSkillRole(b.data.name));
+  if (ra !== rb) return ra - rb;
+  return a.data.name.localeCompare(b.data.name);
+});
+const currentIdx = orderedSkills.findIndex((s) => s.data.name === id);
+const prevSkill  = currentIdx > 0 ? orderedSkills[currentIdx - 1] : null;
+const nextSkill  = currentIdx >= 0 && currentIdx < orderedSkills.length - 1
+  ? orderedSkills[currentIdx + 1]
+  : null;
+
+// 20 — Foundational empty state. checkpoint-protocol (and any other
+// non-tryable success-role skill) is consumed BY other skills, not
+// invoked directly. Surface a few of those consumers so the page
+// shows what the protocol actually drives.
+const isFoundational = !skill.data.tryable && getSkillRole(skill.data.name) === "success";
+const consumers = isFoundational
+  ? allSkills
+      .filter((s) => s.data.name !== skill.data.name)
+      .map((s) => ({ name: s.data.name, role: getSkillRole(s.data.name) }))
+      .slice(0, 8)
+  : [];
 ---
 
 <Base
@@ -102,9 +132,19 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
         ) : (
           <>
             <p class="quick-body">
-              This skill is a foundational protocol — not invoked directly. Every
-              other opchain skill implements its checkpoint contract.
+              {isFoundational
+                ? "Foundational protocol — every other opchain skill reads / writes its checkpoint contract."
+                : "This skill is a foundational protocol — not invoked directly. Every other opchain skill implements its checkpoint contract."}
             </p>
+            {isFoundational && consumers.length > 0 && (
+              <div class="protocol-consumers" aria-label="Skills that implement this protocol">
+                {consumers.map((c) => (
+                  <a href={`/skills/${c.name}`} class="protocol-consumer-pill" data-role={c.role}>
+                    {c.name}
+                  </a>
+                ))}
+              </div>
+            )}
             <div class="try-actions">
               <Button variant="outline" size="sm" href={`/skills/${skill.data.name}.zip`}>
                 <Icon name="download" size={12} />
@@ -151,10 +191,30 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
           the one for you.
         </span>
       </div>
+
+      <!-- 11 — Mobile TOC (≤1279px). Built client-side from h2 / h3. -->
+      <details class="toc-collapse" id="toc-collapse">
+        <summary>
+          <span>On this page</span>
+          <span class="toc-collapse-chev" aria-hidden="true">▾</span>
+        </summary>
+        <ol class="toc-list" id="toc-list-mobile" aria-label="Table of contents"></ol>
+      </details>
+
       <section class="prose" id="skill-md">
         <Content />
       </section>
     </section>
+
+    <!-- 11 — Desktop sticky TOC rail (≥1280px). Floats in the right
+         margin alongside the centered .page column. Hidden on narrow
+         viewports; the .toc-collapse <details> above takes over. -->
+    <aside class="toc-rail" aria-label="Table of contents">
+      <div class="toc-rail-inner">
+        <span class="toc-rail-eyebrow">on this page</span>
+        <ol class="toc-list" id="toc-list-desktop"></ol>
+      </div>
+    </aside>
 
     <!-- 5. Progress rail — fixed to the right edge of the viewport,
          tracks scroll position through the SKILL.md body. -->
@@ -332,10 +392,12 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
           if (after) el.insertBefore(document.createTextNode(after), label.nextSibling);
         });
 
-        // 4 — Anchor link affordance on h2 / h3. We render an "#" glyph
-        // that's invisible by default and reveals on heading hover; click
-        // copies the absolute URL to the clipboard.
+        // 4 + 12 — Anchor links + numbered h2 eyebrows. Walk h2 / h3
+        // once and emit (a) a slug-derived id when missing, (b) a "#"
+        // anchor that reveals on hover/focus, and (c) for h2s, a small
+        // mono "01 / 02 / …" prefix so sections gain a visual rhythm.
         let anchorIdx = 0;
+        let h2Counter = 0;
         root.querySelectorAll<HTMLElement>("h2, h3").forEach((h) => {
           if (!h.id) {
             const slug = (h.textContent || "")
@@ -344,6 +406,14 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
               .replace(/^-+|-+$/g, "")
               || `section-${++anchorIdx}`;
             h.id = slug;
+          }
+          if (h.tagName === "H2") {
+            h2Counter += 1;
+            const num = document.createElement("span");
+            num.className = "h-num";
+            num.setAttribute("aria-hidden", "true");
+            num.textContent = String(h2Counter).padStart(2, "0");
+            h.insertBefore(num, h.firstChild);
           }
           const a = document.createElement("a");
           a.className = "heading-anchor";
@@ -360,6 +430,234 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
           });
           h.appendChild(a);
         });
+
+        // 13 — Pattern cards. Headings whose text matches a known
+        // reference-pattern (Inputs / Outputs / Failure modes / etc.)
+        // get the section from heading→next-h2/h3 wrapped in a
+        // bordered card with a role-coloured accent stripe.
+        const PATTERNS: Array<{ rx: RegExp; kind: string; role: Role }> = [
+          { rx: /^inputs?$/i,                     kind: "inputs",   role: "advisor"      },
+          { rx: /^outputs?$/i,                    kind: "outputs",  role: "tri-agent"    },
+          { rx: /^(failure modes?|when (it|this) fails)$/i,
+                                                  kind: "failure",  role: "audit-gate"   },
+          { rx: /^(when to use|use cases?)$/i,    kind: "use",      role: "success"      },
+          { rx: /^(not suitable for|do not use|when not to use|anti[- ]patterns?)$/i,
+                                                  kind: "antiuse",  role: "audit-gate"   },
+          { rx: /^examples?$/i,                   kind: "examples", role: "specialist"   },
+          { rx: /^principles?$/i,                 kind: "principles", role: "advisor"    },
+          { rx: /^(constraints?|guarantees?)$/i,  kind: "constraints", role: "orchestrator" },
+        ];
+        const headings = Array.from(root.querySelectorAll<HTMLElement>("h2, h3"));
+        for (const h of headings) {
+          const txt = (h.firstChild?.nodeValue || h.textContent || "").trim();
+          // Strip the numeric prefix we just inserted so we match on the
+          // semantic heading text only.
+          const semantic = txt.replace(/^\d{2}\s+/, "").trim();
+          const match = PATTERNS.find((p) => p.rx.test(semantic));
+          if (!match) continue;
+
+          const card = document.createElement("section");
+          card.className = "pattern-card";
+          card.setAttribute("data-pattern", match.kind);
+          card.setAttribute("data-role", match.role);
+
+          // Move the heading into the card and follow with siblings until
+          // we hit the next heading of the same or higher level.
+          const stopAtLevel = h.tagName === "H2" ? 2 : 3;
+          const stopRx = stopAtLevel === 2 ? /^H[12]$/ : /^H[123]$/;
+          const parent = h.parentElement!;
+          parent.insertBefore(card, h);
+          card.appendChild(h);
+          while (card.nextSibling) {
+            const next = card.nextSibling as HTMLElement;
+            if (next.nodeType === Node.ELEMENT_NODE && stopRx.test(next.tagName || "")) break;
+            card.appendChild(next);
+          }
+        }
+
+        // 14 — Code-block toolbar: language label (top-left) + copy
+        // button (top-right) on every <pre>. Language is sniffed from
+        // the first child <code class="language-…"> (Astro's renderer
+        // emits these from the fence info-string).
+        // 15 — ASCII-diagram surface. If the pre body contains
+        // box-drawing characters, mark it data-ascii so CSS can
+        // swap to the blueprint surface.
+        const ASCII_RX = /[─━│┃┌┍┎┏┐┑┒┓└┕┖┗┘┙┚┛├┝┞┟┠┡┢┣┤┥┦┧┨┩┪┫┬┭┮┯┰┱┲┳┴┵┶┷┸┹┺┻┼┽┾┿╀╁╂╃╄╅╆╇╈╉╊╋▶▼◀▲]/;
+        root.querySelectorAll<HTMLPreElement>("pre").forEach((pre) => {
+          const code = pre.querySelector("code");
+          const text = pre.textContent || "";
+          if (ASCII_RX.test(text)) pre.setAttribute("data-ascii", "true");
+
+          const cls = code?.getAttribute("class") || "";
+          const langMatch = cls.match(/language-([\w+-]+)/i);
+          const lang = langMatch ? langMatch[1] : "";
+
+          const bar = document.createElement("div");
+          bar.className = "code-bar";
+          bar.setAttribute("aria-hidden", "false");
+
+          if (lang) {
+            const tag = document.createElement("span");
+            tag.className = "code-bar-lang";
+            tag.textContent = lang;
+            bar.appendChild(tag);
+          }
+          // Spacer so copy is anchored to the right even when no lang tag.
+          const spacer = document.createElement("span");
+          spacer.className = "code-bar-spacer";
+          bar.appendChild(spacer);
+
+          const copy = document.createElement("button");
+          copy.type = "button";
+          copy.className = "code-bar-copy";
+          copy.setAttribute("aria-label", "Copy code");
+          copy.textContent = "copy";
+          copy.addEventListener("click", () => {
+            navigator.clipboard?.writeText(text).then(
+              () => {
+                copy.textContent = "copied";
+                copy.classList.add("is-copied");
+                setTimeout(() => {
+                  copy.textContent = "copy";
+                  copy.classList.remove("is-copied");
+                }, 1200);
+              },
+              () => {
+                copy.textContent = "failed";
+                setTimeout(() => (copy.textContent = "copy"), 1200);
+              },
+            );
+          });
+          bar.appendChild(copy);
+
+          // Wrap pre in a relative container so the bar can be positioned
+          // and the pre can keep its overflow scrolling.
+          const wrap = document.createElement("div");
+          wrap.className = "code-block";
+          if (pre.getAttribute("data-ascii")) wrap.setAttribute("data-ascii", "true");
+          pre.parentNode?.insertBefore(wrap, pre);
+          wrap.appendChild(bar);
+          wrap.appendChild(pre);
+        });
+
+        // 16 — Smart quotes. Walk text nodes (already filtered above
+        // for code/pre/a/heading skips) and replace ASCII quotes with
+        // proper typographic glyphs. Apostrophes are matched on word
+        // boundaries to avoid mangling `'foo'` quoted strings inside
+        // narrative prose. We re-use the same SKIP set as the status-
+        // verb walker so we never touch code or links.
+        const QUOTE_SKIP = new Set(["CODE", "PRE", "A", "MARK", "H1", "H2", "H3", "H4", "KBD"]);
+        const qWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        const qReplacements: Array<{ node: Text; text: string }> = [];
+        let qNode: Node | null;
+        while ((qNode = qWalker.nextNode())) {
+          const t = qNode as Text;
+          if (!t.parentElement || QUOTE_SKIP.has(t.parentElement.tagName)) continue;
+          const v = t.nodeValue || "";
+          if (!/["']/.test(v)) continue;
+          const next = v
+            // Apostrophes inside words: don't / it's / we're.
+            .replace(/(\w)'(\w)/g, "$1’$2")
+            // Trailing apostrophes: ops' / sessions'.
+            .replace(/(\w)'(?=\s|[.,;:!?])/g, "$1’")
+            // Opening single quote at word start.
+            .replace(/(^|[\s(\[{])'(\w)/g, "$1‘$2")
+            // Closing single quote at word end.
+            .replace(/(\w)'(?=$|[\s).,;:!?])/g, "$1’")
+            // Double quotes — open after whitespace / start, close otherwise.
+            .replace(/(^|[\s(\[{])"(\w)/g, "$1“$2")
+            .replace(/(\w)"(?=$|[\s).,;:!?])/g, "$1”")
+            // Symmetric pairs not caught by the heuristics above.
+            .replace(/"([^"]+?)"/g, "“$1”");
+          if (next !== v) qReplacements.push({ node: t, text: next });
+        }
+        for (const { node, text } of qReplacements) node.nodeValue = text;
+
+        // 17 — Compact tables. Tables with ≤4 body rows render with
+        // tighter padding and no zebra; longer tables keep the existing
+        // generous spacing.
+        root.querySelectorAll<HTMLTableElement>("table").forEach((tbl) => {
+          const bodyRows = tbl.querySelectorAll("tbody > tr").length
+                        || tbl.querySelectorAll("tr").length - 1; // header-less tables
+          if (bodyRows > 0 && bodyRows <= 4) {
+            tbl.setAttribute("data-density", "compact");
+          } else {
+            tbl.setAttribute("data-density", "comfortable");
+          }
+        });
+
+        // 19 — Section TL;DR. Auto-detect the explicit prefix
+        // "TL;DR:" / "Summary:" / "tl;dr:" on the first paragraph
+        // immediately after an <h2>. Strip the marker, wrap the
+        // paragraph in <aside class="section-tldr"> with a small
+        // pill label.
+        const TLDR_PAT = /^(TL;?DR|Summary)\s*:\s*/i;
+        root.querySelectorAll<HTMLElement>("h2").forEach((h) => {
+          const p = h.nextElementSibling as HTMLElement | null;
+          if (!p || p.tagName !== "P") return;
+          const txt = (p.textContent || "").trim();
+          const m = txt.match(TLDR_PAT);
+          if (!m) return;
+          // Replace the leading marker with an inline label span and
+          // class the <p>; CSS does the rest.
+          p.classList.add("section-tldr");
+          p.innerHTML = p.innerHTML.replace(
+            TLDR_PAT,
+            `<span class="tldr-label">tl;dr</span> `,
+          );
+        });
+
+        // 11 — Build the table of contents. After all headings have IDs
+        // (set above), walk h2 / h3 and emit a nested <ol>. Render into
+        // both the desktop rail and the mobile <details>; both share the
+        // same active-section IntersectionObserver.
+        buildTOC(root);
+      }
+
+      function buildTOC(root: HTMLElement) {
+        const headings = Array.from(root.querySelectorAll<HTMLElement>("h2, h3"));
+        if (headings.length === 0) return;
+        const desktop = document.getElementById("toc-list-desktop") as HTMLOListElement | null;
+        const mobile  = document.getElementById("toc-list-mobile")  as HTMLOListElement | null;
+        if (!desktop && !mobile) return;
+
+        // Render a flat list with .toc-h3 visually indenting the level-3
+        // entries. Two clones so each TOC has its own DOM (active
+        // highlighting needs distinct nodes).
+        function render(into: HTMLOListElement) {
+          headings.forEach((h) => {
+            const li = document.createElement("li");
+            li.className = h.tagName === "H3" ? "toc-h3" : "toc-h2";
+            const a = document.createElement("a");
+            a.href = `#${h.id}`;
+            a.textContent = (h.textContent || "")
+              .replace(/^\d{2}\s+/, "")
+              .replace(/#$/, "")
+              .trim();
+            a.dataset.tocId = h.id;
+            li.appendChild(a);
+            into.appendChild(li);
+          });
+        }
+        if (desktop) render(desktop);
+        if (mobile)  render(mobile);
+
+        // Active-section highlighting. Observe each heading's vertical
+        // position; the topmost heading inside the viewport wins.
+        const active = new Set<string>();
+        const io = new IntersectionObserver((entries) => {
+          for (const e of entries) {
+            const id = (e.target as HTMLElement).id;
+            if (e.isIntersecting) active.add(id);
+            else active.delete(id);
+          }
+          // Pick the first heading (in document order) that's currently
+          // intersecting; if none, fall back to the last one we passed.
+          const topId = headings.map((h) => h.id).find((id) => active.has(id));
+          const allLinks = document.querySelectorAll<HTMLAnchorElement>(".toc-list a[data-toc-id]");
+          allLinks.forEach((a) => a.classList.toggle("is-active", a.dataset.tocId === topId));
+        }, { rootMargin: "-30% 0px -55% 0px", threshold: 0 });
+        headings.forEach((h) => io.observe(h));
       }
 
       // Progress rail (5). Fills from 0% → 100% as the user scrolls
@@ -397,6 +695,23 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
           .replace(/'/g, "&#39;");
       }
     </script>
+
+    <!-- 18 — Prev / next skill nav. Sticky bottom strip with the
+         catalog-adjacent skills (ordered by role group → name). -->
+    <nav class="skill-nav" aria-label="Adjacent skills">
+      {prevSkill ? (
+        <a href={`/skills/${prevSkill.data.name}`} class="skill-nav-link skill-nav-prev" data-role={getSkillRole(prevSkill.data.name)}>
+          <span class="skill-nav-eyebrow">← previous</span>
+          <span class="skill-nav-name">{prevSkill.data.displayName}</span>
+        </a>
+      ) : <span class="skill-nav-empty"></span>}
+      {nextSkill ? (
+        <a href={`/skills/${nextSkill.data.name}`} class="skill-nav-link skill-nav-next" data-role={getSkillRole(nextSkill.data.name)}>
+          <span class="skill-nav-eyebrow">next →</span>
+          <span class="skill-nav-name">{nextSkill.data.displayName}</span>
+        </a>
+      ) : <span class="skill-nav-empty"></span>}
+    </nav>
 
     <!-- ───────────── Footer CTA ───────────── -->
     <section class="cta">
@@ -886,6 +1201,361 @@ const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
   @media (prefers-reduced-motion: reduce) {
     .progress-rail-fill { transition: none; }
   }
+
+  /* 12 — Numbered h2 eyebrow. A small mono "01" prefix that hangs in
+     the gutter on desktop and sits inline at narrower widths. */
+  .prose :global(.h-num) {
+    display: inline-block;
+    margin-right: 0.6em;
+    font-family: var(--font-mono);
+    font-size: 0.55em;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    vertical-align: 0.35em;
+  }
+  @media (min-width: 768px) {
+    .prose :global(h2) > :global(.h-num) {
+      position: absolute;
+      left: -3.2em;
+      margin-right: 0;
+      vertical-align: baseline;
+    }
+  }
+
+  /* 13 — Pattern cards: bordered panels around recognized reference
+     sections. Role colour drives the accent stripe + heading hue. */
+  .prose :global(.pattern-card) {
+    --pc-color: var(--accent);
+    margin: 1.6rem 0;
+    padding: 0.85rem 1.1rem 0.4rem;
+    border: 0.5px solid var(--border);
+    border-left: 3px solid var(--pc-color);
+    border-radius: var(--r-xs);
+    background: color-mix(in srgb, var(--pc-color) 5%, transparent);
+  }
+  .prose :global(.pattern-card[data-role="workflow"])     { --pc-color: var(--workflow); }
+  .prose :global(.pattern-card[data-role="tri-agent"])    { --pc-color: var(--tri-agent); }
+  .prose :global(.pattern-card[data-role="audit-gate"])   { --pc-color: var(--audit-gate); }
+  .prose :global(.pattern-card[data-role="specialist"])   { --pc-color: var(--specialist); }
+  .prose :global(.pattern-card[data-role="advisor"])      { --pc-color: var(--advisor); }
+  .prose :global(.pattern-card[data-role="orchestrator"]) { --pc-color: var(--orchestrator); }
+  .prose :global(.pattern-card[data-role="success"])      { --pc-color: var(--success); }
+  .prose :global(.pattern-card) > :global(h2),
+  .prose :global(.pattern-card) > :global(h3) {
+    margin-top: 0;
+    color: var(--pc-color);
+  }
+  .prose :global(.pattern-card) > :global(h2) > :global(.h-num) {
+    color: var(--pc-color);
+  }
+
+  /* 14 — Code-block toolbar. Wraps each <pre> in a code-block container
+     with a thin top bar containing a language tag and a copy button. */
+  .prose :global(.code-block) {
+    position: relative;
+    margin: 0.85rem 0;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: var(--card);
+  }
+  :root[data-theme="light"] .prose :global(.code-block) {
+    background: var(--parchment);
+    border-color: var(--sand);
+  }
+  .prose :global(.code-block) > :global(pre) {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .prose :global(.code-bar) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+    border-bottom: 0.5px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .prose :global(.code-bar-lang) {
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .prose :global(.code-bar-spacer) { flex: 1; }
+  .prose :global(.code-bar-copy) {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+    color: var(--muted);
+    font: inherit;
+    padding: 1px 8px;
+    cursor: pointer;
+    transition:
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+  }
+  .prose :global(.code-bar-copy:hover) {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .prose :global(.code-bar-copy.is-copied) {
+    color: var(--success);
+    border-color: var(--success);
+  }
+
+  /* 15 — ASCII-diagram surface. Pre blocks containing box-drawing
+     characters get a blueprint surface: subtle grid background, a hint
+     more padding, and the language/copy bar tinted with --tri-agent so
+     the diagram reads as "art" instead of "code to copy". */
+  .prose :global(.code-block[data-ascii]) {
+    background: var(--card);
+    background-image:
+      linear-gradient(0deg, color-mix(in srgb, var(--tri-agent) 6%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--tri-agent) 6%, transparent) 1px, transparent 1px);
+    background-size: 16px 16px;
+    border-color: color-mix(in srgb, var(--tri-agent) 25%, var(--border));
+  }
+  .prose :global(.code-block[data-ascii]) > :global(.code-bar) {
+    background: color-mix(in srgb, var(--tri-agent) 8%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--tri-agent) 25%, var(--border));
+  }
+  .prose :global(.code-block[data-ascii]) :global(.code-bar-lang) {
+    color: var(--tri-agent);
+  }
+  .prose :global(.code-block[data-ascii]) > :global(pre) {
+    padding: 1.1rem 1.25rem;
+    line-height: 1.5;
+  }
+
+  /* 11 — Table of contents.
+     Mobile (<1280px): top-of-prose <details> collapse.
+     Desktop (≥1280px): fixed sticky rail in the right margin. */
+  .toc-collapse {
+    margin: 0.6rem 0 1rem;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+    background: var(--surface);
+  }
+  .toc-collapse > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 0.6rem 0.85rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .toc-collapse > summary::-webkit-details-marker { display: none; }
+  .toc-collapse-chev {
+    transition: transform var(--dur-fast) var(--ease-standard);
+  }
+  .toc-collapse[open] .toc-collapse-chev { transform: rotate(180deg); }
+
+  .toc-list {
+    margin: 0;
+    padding: 0.4rem 0.4rem 0.6rem 1.5rem;
+    list-style: none;
+    counter-reset: toc;
+  }
+  .toc-collapse[open] .toc-list { padding-top: 0.4rem; }
+  .toc-list li {
+    margin: 0.2rem 0;
+    font-size: var(--fs-sm);
+    line-height: 1.4;
+  }
+  .toc-list li.toc-h3 { padding-left: 0.9rem; }
+  .toc-list a {
+    color: var(--muted);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    padding-left: 0.55rem;
+    margin-left: -0.55rem;
+    display: inline-block;
+    transition:
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+  }
+  .toc-list a:hover { color: var(--accent); }
+  .toc-list a.is-active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+  }
+
+  .toc-rail {
+    display: none;
+  }
+  @media (min-width: 1280px) {
+    .toc-rail {
+      display: block;
+      position: fixed;
+      top: 5.5rem;
+      right: max(1.5rem, calc((100vw - 1080px) / 2 - 240px));
+      width: 220px;
+      max-height: calc(100vh - 7rem);
+      overflow-y: auto;
+      pointer-events: auto;
+      z-index: 20;
+    }
+    .toc-rail-inner {
+      padding: 0.75rem 0.5rem 0.75rem 0.85rem;
+      border-left: 0.5px solid var(--border);
+    }
+    .toc-rail-eyebrow {
+      display: block;
+      margin: 0 0 0.5rem 0.55rem;
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+    .toc-rail .toc-list {
+      padding: 0;
+    }
+    .toc-collapse {
+      display: none;
+    }
+  }
+
+  /* 17 — Density-aware table styling. Compact for ≤4 body rows
+     (matches the homepage phase-card density), comfortable otherwise.
+     The tag is set by the post-render walker. */
+  .prose :global(table[data-density="compact"]) :global(th),
+  .prose :global(table[data-density="compact"]) :global(td) {
+    padding: 0.3rem 0.5rem;
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+  }
+  .prose :global(table[data-density="comfortable"]) :global(tbody tr:nth-child(even)) {
+    background: color-mix(in srgb, var(--accent) 4%, transparent);
+  }
+
+  /* 19 — Section TL;DR pill. Tiny mono label leading the paragraph,
+     plus a slightly larger / brighter paragraph so the summary reads
+     as the section's takeaway. */
+  .prose :global(p.section-tldr) {
+    font-size: 1.05em;
+    color: var(--text);
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
+    border-left: 2px solid var(--accent);
+    padding: 0.55rem 0.85rem;
+    border-radius: 0 var(--r-xs) var(--r-xs) 0;
+    margin-top: 0;
+  }
+  .prose :global(.tldr-label) {
+    display: inline-block;
+    margin-right: 0.4em;
+    padding: 0 0.45em;
+    font-family: var(--font-mono);
+    font-size: 0.7em;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 0.5px solid var(--accent);
+    border-radius: var(--r-xs);
+    vertical-align: 0.1em;
+  }
+
+  /* 20 — Foundational empty state. The "consumers" pill grid in the
+     Try-it card on /skills/checkpoint-protocol etc. lists the skills
+     that read / write the protocol's checkpoint contract. */
+  .protocol-consumers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin: 0.4rem 0 0.65rem;
+  }
+  .protocol-consumer-pill {
+    --pill-color: var(--specialist);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    padding: 1px 7px;
+    color: var(--pill-color);
+    background: color-mix(in srgb, var(--pill-color) 12%, transparent);
+    border: 0.5px solid color-mix(in srgb, var(--pill-color) 40%, transparent);
+    border-radius: var(--r-xs);
+    text-decoration: none;
+    transition:
+      background var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+  }
+  .protocol-consumer-pill:hover {
+    background: color-mix(in srgb, var(--pill-color) 22%, transparent);
+    border-color: var(--pill-color);
+  }
+  .protocol-consumer-pill[data-role="workflow"]     { --pill-color: var(--workflow); }
+  .protocol-consumer-pill[data-role="tri-agent"]    { --pill-color: var(--tri-agent); }
+  .protocol-consumer-pill[data-role="audit-gate"]   { --pill-color: var(--audit-gate); }
+  .protocol-consumer-pill[data-role="specialist"]   { --pill-color: var(--specialist); }
+  .protocol-consumer-pill[data-role="advisor"]      { --pill-color: var(--advisor); }
+  .protocol-consumer-pill[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
+  .protocol-consumer-pill[data-role="success"]      { --pill-color: var(--success); }
+
+  /* 18 — Prev / next skill nav strip. Sticky at the bottom of the
+     viewport on tall screens, wraps to two cards on narrow screens. */
+  .skill-nav {
+    margin: 2.5rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+  .skill-nav-empty { display: block; }
+  .skill-nav-link {
+    --pill-color: var(--accent);
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.65rem 0.85rem;
+    border: 0.5px solid var(--border);
+    border-left: 2px solid var(--pill-color);
+    border-radius: var(--r-xs);
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    transition:
+      background var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+  }
+  .skill-nav-link:hover {
+    background: color-mix(in srgb, var(--pill-color) 6%, var(--surface));
+    border-color: var(--pill-color);
+  }
+  .skill-nav-prev { text-align: left; }
+  .skill-nav-next { text-align: right; align-items: flex-end; }
+  .skill-nav-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--pill-color);
+  }
+  .skill-nav-name {
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .skill-nav-link[data-role="workflow"]     { --pill-color: var(--workflow); }
+  .skill-nav-link[data-role="tri-agent"]    { --pill-color: var(--tri-agent); }
+  .skill-nav-link[data-role="audit-gate"]   { --pill-color: var(--audit-gate); }
+  .skill-nav-link[data-role="specialist"]   { --pill-color: var(--specialist); }
+  .skill-nav-link[data-role="advisor"]      { --pill-color: var(--advisor); }
+  .skill-nav-link[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
+  .skill-nav-link[data-role="success"]      { --pill-color: var(--success); }
 
   .cta {
     margin-top: 3rem;

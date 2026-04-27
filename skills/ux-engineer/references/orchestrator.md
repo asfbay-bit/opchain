@@ -83,6 +83,7 @@ post-deploy:
   monitoring-ops ──► uptime, errors, alerts, incidents
 
 cross-cutting:
+  api-dev ──► runs when designing/building the app's own first-party API
   integrations-engineer ──► runs when external APIs needed
   migration-ops ──► runs when a live system's engine changes (DB / framework / platform)
   scale-ops ──► runs when scaling questions arise
@@ -101,6 +102,7 @@ cross-cutting:
 | **code-auditor** | reverse-spec, app-architect | security-auditor (posture review above code-level findings), deploy-ops (pre-deploy gate) |
 | **security-auditor** | code-auditor (findings), reverse-spec, app-architect, deploy-ops | deploy-ops (posture check before prod gate) |
 | **integrations-engineer** | app-architect (integration spec) | code-auditor (verify integration) |
+| **api-dev** | app-architect (`02-architecture.md`, `03-data-model.md`), stack-forge (typed pipeline), reverse-spec (existing-endpoint inventory) | code-auditor (audits scaffolded handlers), security-auditor (CORS/rate-limit posture), monitoring-ops (SLO + drift manifest), deploy-ops (drift gate) |
 | **migration-ops** | app-architect (spec), reverse-spec (current state) | deploy-ops (cutover), monitoring-ops (verify post-migration) |
 | **git-ops** | app-architect (sprint context), bug-check (gate result) | bug-check (pre-commit gate, auto-invoked), deploy-ops (post-push) |
 | **bug-check** | git-ops (gate trigger) | git-ops (returns pass / fail / bypass; failure blocks the commit) |
@@ -139,6 +141,7 @@ RIGHT (active invocation):
 | Launch phase starts | app-architect | code-auditor → deploy-ops | Run /audit pre-deploy first, then /deploy staging |
 | Existing codebase analyzed | reverse-spec | app-architect | Invoke app-architect, load reverse-spec's output as Phase 2 baseline |
 | Integration needed | app-architect (Phase 2) | integrations-engineer | Invoke integrations-engineer for the specific service |
+| First-party API surface in spec | app-architect (Phase 2) | api-dev | Invoke api-dev `/api design` to elaborate `02-architecture.md` API Design into an OpenAPI/GraphQL contract |
 | Stack decision needed | app-architect (Phase 2) | stack-forge | Auto-invoke (already wired in app-architect) |
 | UI sprint detected | app-architect (Phase 6) | ux-engineer | Auto-attach Design Evaluator (already wired) |
 | Data-heavy screen flagged | ux-engineer (Phase 1 intake) or app-architect (Phase 3 design) | dash-forge | Package tokens + design spec into dash-forge context, invoke /data-forge; hand the resulting spec + prototype back to the caller |
@@ -211,6 +214,7 @@ right skill and phase based on the request.
 | "Review this code" / "Is this code good?" | code-auditor | /audit full |
 | "Fix the UX" / "The design is inconsistent" | ux-engineer | /uxe eval |
 | "Connect to Salesforce" / "Set up webhooks" | integrations-engineer | /integrate plan |
+| "Design our API" / "Write the OpenAPI" / "Versioning strategy" / "Generate an SDK" | api-dev | /api design |
 | "Deploy this" / "Ship it" | deploy-ops | /deploy staging |
 | "Commit my changes" / "Push to git" | git-ops | /git-sync |
 | "Can this handle more users?" | scale-ops | /scale audit |
@@ -324,7 +328,20 @@ description: >
 description: >
   Third-party API integrations with Planner/Builder/Tester loop. Use for /integrate,
   "connect to Salesforce", "webhook", "OAuth", "API integration", "connect to Slack",
-  or any external service connection. Trigger liberally.
+  or any external service connection. For designing or building your *own* first-party
+  API (OpenAPI/GraphQL authoring, versioning, SDK generation), use api-dev instead.
+  Trigger liberally.
+
+# api-dev
+description: >
+  First-party API design and build harness with Designer/Builder/Conformance loop.
+  Owns OpenAPI/GraphQL authoring, schema↔code parity, versioning + sunset strategy,
+  pagination/error/idempotency conventions, typed handler scaffolding, and SDK
+  generation for the API your own clients consume. Use for /api, /api design,
+  /api spec, /api scaffold, /api version, /api lint, /api sdk, "design our API",
+  "OpenAPI", "GraphQL schema", "versioning strategy", "deprecate endpoint",
+  "generate SDK", "schema drift". For consuming someone else's API (Stripe, Slack,
+  OAuth) use integrations-engineer instead. Trigger liberally.
 
 # migration-ops
 description: >
@@ -381,7 +398,7 @@ Every skill should know these facts:
   `orchestrator` (multi-project registry + router via `/ops`).
 - **Tri-agent skills:** app-architect (Generator/Evaluator), ux-engineer (Design
   Planner/Generator/Evaluator), code-auditor (Auditor/Fixer/Verifier),
-  integrations-engineer (Planner/Builder/Tester).
+  integrations-engineer (Planner/Builder/Tester), api-dev (Designer/Builder/Conformance).
 - **Auto-invocations:** stack-forge during app-architect Phase 2; ux-engineer during
   app-architect UI sprints; dash-forge from ux-engineer or app-architect on data-heavy
   screens; bug-check from git-ops before every `/git-commit` and `/git-sync`.
@@ -390,9 +407,9 @@ Every skill should know these facts:
   build / dep scan in <2 min; blocks the commit on failure).
 - **Quality gates (pre-deploy):** code-auditor → security-auditor (runs above code-auditor
   for threat model / hardening).
-- **Cross-cutting skills:** integrations-engineer (external APIs), migration-ops (live
-  system changes — DB, framework, platform), scale-ops (advisory), dash-forge (dense
-  data UIs).
+- **Cross-cutting skills:** api-dev (first-party APIs — OpenAPI/GraphQL, versioning,
+  SDKs), integrations-engineer (external APIs), migration-ops (live system changes —
+  DB, framework, platform), scale-ops (advisory), dash-forge (dense data UIs).
 - **Checkpoint protocol:** every skill writes to `.checkpoints/[skill].checkpoint.json`.
 - **Tri-dev is retired.** Its build harness lives inside app-architect Phase 6.
   If a user asks for tri-dev, route to app-architect /build.
