@@ -79,7 +79,7 @@ const ROUTES: RouteSpec[] = [
   },
   {
     path: "/demo",
-    h1: /two ways to feel it out/i,
+    h1: /watch a finished run/i,
     disabledRules: [
       COLOR_CONTRAST_DISABLE,
       {

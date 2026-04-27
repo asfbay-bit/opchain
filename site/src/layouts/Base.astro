@@ -14,6 +14,14 @@ interface Props {
   bare?: boolean;
   /** Override the OpenGraph type (default: website). */
   ogType?: "website" | "article";
+  /**
+   * Override the OpenGraph image. Path relative to site root (e.g.
+   * `/og/skills.png`) or a fully-qualified URL. If unset, the route →
+   * asset map below picks one; if no entry matches, the global
+   * `/og-image.png` is used as a fallback. See B-03 in
+   * `roadmap/05-post-sprint-7-backlog.md`.
+   */
+  ogImage?: string;
 }
 
 const {
@@ -22,10 +30,38 @@ const {
   active = "/",
   bare = false,
   ogType = "website",
+  ogImage: ogImageProp,
 } = Astro.props;
 
+// Route → OG image map. Per-page images lift social-share CTR over the
+// single global asset. Drop new PNGs into `site/public/og/` and add the
+// mapping here; pages without an explicit entry fall through to
+// `/og-image.png` so nothing breaks for routes still on the global asset.
+// Kept as a static map (rather than per-page props) so the source of
+// truth is in one place — easier to audit which routes have a dedicated
+// share card and which don't.
+const ROUTE_OG_IMAGES: Record<string, string> = {
+  "/":              "/og/home.png",
+  "/skills":        "/og/skills.png",
+  "/architecture":  "/og/architecture.png",
+  "/install":       "/og/install.png",
+  "/demo":          "/og/demo.png",
+  "/privacy":       "/og/privacy.png",
+};
+
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
-const ogImage = new URL("/og-image.png", Astro.site).toString();
+
+// Resolution order: explicit prop → route map → global fallback. Each
+// route page can pass `ogImage="/og/custom.png"` to override the static
+// map (e.g. skill detail pages picking per-skill cards down the road).
+const pathname = Astro.url.pathname.replace(/\/$/, "") || "/";
+const skillDetailMatch = pathname.match(/^\/skills\/[^/]+$/);
+const ogImagePath =
+  ogImageProp ??
+  ROUTE_OG_IMAGES[pathname] ??
+  // Skill detail pages share the /skills card until each skill earns its own.
+  (skillDetailMatch ? "/og/skills.png" : "/og-image.png");
+const ogImage = new URL(ogImagePath, Astro.site).toString();
 ---
 
 <!doctype html>

@@ -72,23 +72,34 @@ regression instead of letting it accumulate.
 
 ---
 
-## B-03: Per-page OpenGraph images
+## B-03: Per-page OpenGraph images — **wiring done; designs pending**
 
-**Why deferred:** Carried over from `roadmap/04-sprint-7-revised.md` →
-"Backlog" table B1.
+**Original:** `Base.astro:28` served one global `/og-image.png` for
+every route. Per-page images lift social-share CTR.
 
-`Base.astro:28` serves a single `/og-image.png` for every route. Per-
-page images (`/og/skills.png`, `/og/in-action.png`, `/og/<skill>.png`,
-…) would lift social CTR.
+**What landed (wiring):**
+- `site/src/layouts/Base.astro` now has a `ROUTE_OG_IMAGES` map
+  (pathname → asset path) plus an `ogImage` prop for explicit
+  overrides. Skill-detail pages fall through to `/og/skills.png`
+  until each skill earns its own.
+- `site/public/og/{home,skills,architecture,install,demo,privacy}.png`
+  are seeded as copies of the existing `/og-image.png`. Each route
+  already serves a real asset — no 404s on social-card fetch — so
+  the design hand-off is "drop a 1200×630 PNG at the existing path"
+  with no code changes required.
+- `site/public/og/README.md` documents the setup and lists which
+  files are still placeholders.
 
-**Approach options:**
-- Static set: design 4–8 PNGs, put them under `site/public/og/`,
-  branch the `<meta>` tag in `Base.astro` from a route → asset map.
-- Dynamic via `@vercel/og` or Astro's built-in image services: more
-  flexible, more moving parts.
-
-**Effort:** Static set ~3 h Claude + ~1 h user (design review).
-Dynamic ~5 h Claude.
+**Pending — design hand-off:**
+- Replace the six placeholder PNGs with actual share-card designs.
+  Sizing target is 1200×630 (Open Graph standard). Suggested visual
+  direction: brand wordmark + per-route headline pulled from the
+  page itself (e.g. "skills that ship" on `/`, "Every skill,
+  filterable." on `/skills`, "How opchain skills chain." on
+  `/architecture`).
+- Optional follow-up: per-skill OG cards under
+  `/og/skills/<skill-id>.png` keyed off `Astro.params.id` — currently
+  every `/skills/<id>` shares one card.
 
 ---
 
@@ -134,18 +145,30 @@ review would have caught.
 
 ---
 
-## B-07: Lighthouse against production URL
+## B-07: Lighthouse against production URL — **closed**
 
-**Why deferred:** Sprint 7b runs LHCI against a local `astro preview`
-server for determinism. Catches code/build issues but not
-CDN/headers/Cloudflare behaviour.
+**Original ask:** A second Lighthouse workflow that runs after the
+production deploy hitting `https://opchain.dev/`, `/skills`,
+`/in-action`. Failure notifies but does not block.
 
-**Approach:** A second Lighthouse workflow that runs after the
-production deploy (`.github/workflows/deploy.yml` `production` job),
-hitting `https://opchain.dev/`, `/skills`, `/in-action`. Failure
-notifies but does not block (production is already live by then).
+**What landed:** `.github/workflows/lighthouse-prod.yml` plus
+`lighthouserc.prod.cjs`. Two adjustments from the original ask:
 
-**Effort:** ~2 h Claude.
+- **Trigger.** The original assumed a CI deploy workflow we could
+  hook off of, but deploys went manual after PR #58. Replaced with a
+  daily cron (`17 7 * * *` UTC) plus `workflow_dispatch` for ad-hoc
+  runs after a release.
+- **Routes.** `/in-action` was merged into `/demo` in PR #71. Live
+  surface is `/`, `/skills`, `/demo`.
+
+Assertions use `warn` (not `error`) so the run never fails — output
+goes to the action's step summary via the same
+`scripts/lhci-comment.cjs` builder used by the PR comment, so the
+format is consistent across both surfaces. Production thresholds are
+slightly looser on Performance and Best Practices than the PR gate
+(0.85 / 0.90 vs. 0.95) to absorb CDN + analytics + real-network
+variance; Accessibility and SEO are held at the PR floor (0.95 each)
+because those don't change between staging and prod.
 
 ---
 

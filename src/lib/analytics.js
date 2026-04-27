@@ -4,11 +4,12 @@
  * Workers. Failures are swallowed so analytics never breaks a user flow.
  *
  * Events:
- *   demo_email_submitted   — /api/try/start success
- *   demo_chat_started      — first /api/try/chat per session
- *   demo_chat_completed    — Anthropic `message_stop`
  *   zip_downloaded         — GET *.zip
  *   feedback_submitted     — /api/feedback 2xx
+ *
+ * (The Try-It chat events `demo_email_submitted` / `demo_chat_started` /
+ * `demo_chat_completed` were removed with the surface in
+ * `claude/remove-try-it`.)
  */
 
 /**

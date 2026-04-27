@@ -56,12 +56,11 @@ If a manual deploy breaks production:
 ```
 opchain/
 ├── src/                    # Cloudflare Worker source
-│   ├── index.js            # Router: static assets, feedback API, try-it API, 301 redirects
-│   ├── opchain-try.js      # Email-gated AI chat demo (SSE streaming)
+│   ├── index.js            # Router: static assets, feedback API, 301 redirects
 │   └── lib/                # Shared worker libs (schemas, kv, retry, analytics, request-id)
 ├── site/                   # Astro 5 app — the whole site lives here now.
-│   ├── src/pages/          # Every route: /, /architecture, /skills, /skills/[id], /install, /tryit, /privacy, /404
-│   ├── src/components/     # TryIt, FeedbackWidget, ConsentBanner, Header, Footer, UI kit
+│   ├── src/pages/          # Every route: /, /architecture, /skills, /skills/[id], /install, /demo, /privacy, /404
+│   ├── src/components/     # FeedbackWidget, ConsentBanner, Header, Footer, Replays, UI kit
 │   ├── src/layouts/        # Base.astro (head, theme init, analytics beacon)
 │   └── dist/               # Built static HTML — gitignored
 ├── public/                 # BUILD OUTPUT — gitignored. Materialized by scripts/build-site.sh.
@@ -85,7 +84,7 @@ opchain/
 ├── scripts/
 │   ├── sync-docs.sh                # skills/ → public/docs/ sync
 │   ├── make-skills-zip.sh          # skills/ → public/opchain-skills.zip
-│   └── gen-skills-catalog.mjs      # skills/<id>/SKILL.md + TRYIT.md → public/skills.js + src/generated/skill-prompts.js
+│   └── gen-skills-catalog.mjs      # validates skills/<id>/SKILL.md frontmatter at build time
 ├── tests/                  # Vitest unit + handler tests
 ├── .github/workflows/      # ci.yml + lighthouse.yml (no deploy workflows — manual)
 ├── wrangler.jsonc           # Worker config (prod + env.staging)
@@ -104,7 +103,7 @@ npm run build            # prebuild (gen-catalog + sync-docs + make-zip) → esb
 npm run deploy           # wrangler deploy (production)
 npm run deploy:staging   # wrangler deploy --env staging (staging.opchain.dev)
 npm test                 # vitest unit + integration-ish suite
-npm run gen-catalog      # skills/<id>/SKILL.md + TRYIT.md → public/skills.js + src/generated/skill-prompts.js
+npm run gen-catalog      # validates skills/<id>/SKILL.md frontmatter at build time
 npm run sync-docs        # skills/ → public/docs/ (runs in prebuild)
 npm run make-zip         # skills/ → public/opchain-skills.zip (runs in prebuild)
 
@@ -120,9 +119,11 @@ npm run site:build       # astro build → site/dist
 |--------|------|---------|
 | GET | `/api/health` | Health check |
 | POST | `/api/feedback` | Create Linear issue (bug/feature/improvement) |
-| POST | `/api/try/start` | Email submission → session token |
-| POST | `/api/try/chat` | Streaming AI chat (SSE, 5 exchanges max) |
 | GET | `/*` | Static assets from `public/` |
+
+The email-gated Try-It chat (`POST /api/try/start` + `POST /api/try/chat`)
+was removed in `claude/remove-try-it`. Old client requests now get a 410
+Gone response; legacy `/tryit` and `/tryit.html` paths 301 to `/demo`.
 
 ## Environment Variables
 
@@ -130,12 +131,8 @@ Template lives in `.env.example`. Copy to `.dev.vars` for local dev; set in the 
 
 - `LINEAR_API_KEY` — Linear API key for feedback endpoint
 - `LINEAR_TEAM_ID`, `LINEAR_PROJECT_ID` — optional overrides for the default team/project
-- `ANTHROPIC_API_KEY` — Claude API key for Try It chat
-- `ANTHROPIC_MODEL` — optional override, defaults to `claude-haiku-4-5-20251001`
-- `DEPLOY_API_TOKEN` — HMAC secret for session token signing. **Required.** If unset, `/api/try/start` and `/api/try/chat` return 503 (fail-closed, no fallback).
 - `POSTHOG_PROJECT_API_KEY`, `POSTHOG_HOST` — server-side analytics capture. Env-gated; unset → no-op.
 - `PUBLIC_POSTHOG_KEY`, `PUBLIC_POSTHOG_HOST` — client-side PostHog (consent-gated via `ConsentBanner.astro`).
-- `LEAD_TTL_DAYS` — optional, defaults to 365. Controls KV TTL for Try-It lead records.
 
 CI deploy needs two GitHub Actions secrets at the repo level:
 
@@ -145,17 +142,13 @@ CI deploy needs two GitHub Actions secrets at the repo level:
 ## Important Notes
 
 - **The site is Astro 5 in static mode** (Sprint 6). Pages, components, content collection for skills live in `site/`. `npm run prebuild` runs `astro build` and copies `site/dist/` into `public/`, then the Worker serves everything through the ASSETS binding. Nothing in `public/` is source-of-truth any more — it's gitignored.
-- **Skill catalog is regenerated on every build.** `scripts/gen-skills-catalog.mjs` reads `skills/<id>/SKILL.md` frontmatter + `skills/<id>/TRYIT.md` and emits:
-    - `public/skills.js` — consumed by `public/skills.html` + `public/tryit.html`.
-    - `src/generated/skill-prompts.js` — consumed by the Worker for Try-It system prompts + display names.
-  Adding or renaming a skill requires edits in **one** place: the `skills/` directory. Both generated files are gitignored.
-- **Skill docs** in `public/docs/` are synced from `skills/` via `sync-docs.sh`. Same rule — edit the source in `skills/`, the copy regenerates on build.
-- **The Try It API** uses KV (`DATA` binding) for rate limiting and lead tracking.
+- **Skill catalog validation runs on every build.** `scripts/gen-skills-catalog.mjs` reads `skills/<id>/SKILL.md` frontmatter and asserts required fields are present and the directory name matches `frontmatter.name`. The Astro site reads `skills/` directly via `site/src/content.config.ts`; there is no longer a separate codegen step.
+- **Skill docs** in `public/docs/` are synced from `skills/` via `sync-docs.sh`. Edit the source in `skills/`, the copy regenerates on build.
 - **styles.css** has all component styles inline — no CSS modules, no preprocessor.
 - **URL paths in HTML** use root-relative paths (e.g., `/styles.css`, `/docs/app-architect/SKILL.md`). These were previously `/opchain/styles.css` etc. when hosted under aidops.dev — they've been updated for standalone hosting.
 
 ## Relationship to aidops
 
-This repo was extracted from `aidops/platform/public/opchain/` + `aidops/platform/src/opchain-try.js`. 
+This repo was extracted from `aidops/platform/public/opchain/`. 
 The aidops repo no longer owns opchain code. Changes to opchain.dev happen here and deploy via 
 `npm run deploy` directly to the `opchain-dev` worker.

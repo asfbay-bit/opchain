@@ -18,23 +18,6 @@ export const FeedbackSchema = z.object({
   email: email.optional(),
 });
 
-/** POST /api/try/start */
-export const TryStartSchema = z.object({
-  email,
-});
-
-const ChatMessage = z.object({
-  role: z.enum(["user", "assistant"]),
-  content: z.string().min(1).max(4000),
-});
-
-/** POST /api/try/chat */
-export const TryChatSchema = z.object({
-  session_token: z.string().min(10).max(2000),
-  skill: z.string().min(1).max(60),
-  messages: z.array(ChatMessage).min(1).max(20),
-});
-
 /**
  * Parse a JSON body against a schema. Returns either
  * `{ ok: true, data }` or `{ ok: false, error, code, issues }`.

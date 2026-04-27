@@ -17,8 +17,7 @@ export type ClientEvent =
   | "install_copy_clicked"
   | "skill_filter_used"
   | "skill_detail_viewed"
-  | "in_action_scenario_opened"
-  | "tryit_prompt_selected";
+  | "in_action_scenario_opened";
 
 type PostHog = {
   capture: (event: string, properties?: Record<string, unknown>) => void;
