@@ -109,7 +109,7 @@ jobs:
 
       - name: Post axe violation summary as PR comment
         if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           AXE_RESULTS_DIR: site/test-results
         with:
