@@ -4,8 +4,6 @@ import worker from "../src/index.js";
 function makeEnv(htmlBody = "<!doctype html><html><head></head><body></body></html>", overrides = {}) {
   return {
     LINEAR_API_KEY: "test",
-    ANTHROPIC_API_KEY: "test",
-    DEPLOY_API_TOKEN: "test-secret",
     ASSETS: {
       async fetch() {
         return new Response(htmlBody, {
@@ -14,7 +12,6 @@ function makeEnv(htmlBody = "<!doctype html><html><head></head><body></body></ht
         });
       },
     },
-    DATA: { async get() { return null; }, async put() {} },
     ...overrides,
   };
 }

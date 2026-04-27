@@ -8,8 +8,6 @@ import worker, {
 function makeEnv(htmlBody) {
   return {
     LINEAR_API_KEY: "test",
-    ANTHROPIC_API_KEY: "test",
-    DEPLOY_API_TOKEN: "test-secret",
     ASSETS: {
       async fetch() {
         return new Response(htmlBody, {
@@ -18,7 +16,6 @@ function makeEnv(htmlBody) {
         });
       },
     },
-    DATA: { async get() { return null; }, async put() {} },
   };
 }
 

@@ -4,10 +4,7 @@ import worker from "../src/index.js";
 function makeEnv() {
   return {
     LINEAR_API_KEY: "test",
-    ANTHROPIC_API_KEY: "test",
-    DEPLOY_API_TOKEN: "test-secret",
     ASSETS: { async fetch() { return new Response("", { status: 200 }); } },
-    DATA: { async get() { return null; }, async put() {} },
   };
 }
 
@@ -36,20 +33,20 @@ describe("legacy .html redirects", () => {
     expect(res.headers.get("Location")).toBe("https://opchain.dev/architecture");
   });
 
-  it("301s /tryit.html straight to /demo#live (legacy + folded route, single hop)", async () => {
+  it("301s /tryit.html to /demo (Try-It chat removed)", async () => {
     const res = await worker.fetch(new Request("https://opchain.dev/tryit.html"), makeEnv());
     expect(res.status).toBe(301);
-    expect(res.headers.get("Location")).toBe("https://opchain.dev/demo#live");
+    expect(res.headers.get("Location")).toBe("https://opchain.dev/demo");
   });
 
-  it("preserves query string when redirecting /tryit.html?skill= to /demo?skill=#live", async () => {
+  it("preserves query string when redirecting /tryit.html?skill= to /demo?skill=", async () => {
     const res = await worker.fetch(
       new Request("https://opchain.dev/tryit.html?skill=code-auditor"),
       makeEnv(),
     );
     expect(res.status).toBe(301);
     expect(res.headers.get("Location")).toBe(
-      "https://opchain.dev/demo?skill=code-auditor#live",
+      "https://opchain.dev/demo?skill=code-auditor",
     );
   });
 
@@ -70,10 +67,10 @@ describe("demo route consolidation", () => {
     expect(res.headers.get("Location")).toBe("https://opchain.dev/demo");
   });
 
-  it("301s /tryit to /demo#live", async () => {
+  it("301s /tryit to /demo (Try-It chat removed)", async () => {
     const res = await worker.fetch(new Request("https://opchain.dev/tryit"), makeEnv());
     expect(res.status).toBe(301);
-    expect(res.headers.get("Location")).toBe("https://opchain.dev/demo#live");
+    expect(res.headers.get("Location")).toBe("https://opchain.dev/demo");
   });
 
   it("preserves ?skill= when redirecting /tryit to /demo", async () => {
@@ -83,7 +80,7 @@ describe("demo route consolidation", () => {
     );
     expect(res.status).toBe(301);
     expect(res.headers.get("Location")).toBe(
-      "https://opchain.dev/demo?skill=code-auditor#live",
+      "https://opchain.dev/demo?skill=code-auditor",
     );
   });
 });

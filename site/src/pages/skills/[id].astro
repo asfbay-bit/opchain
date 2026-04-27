@@ -60,10 +60,10 @@ const nextSkill  = currentIdx >= 0 && currentIdx < orderedSkills.length - 1
   : null;
 
 // 20 — Foundational empty state. checkpoint-protocol (and any other
-// non-tryable success-role skill) is consumed BY other skills, not
-// invoked directly. Surface a few of those consumers so the page
-// shows what the protocol actually drives.
-const isFoundational = !skill.data.tryable && getSkillRole(skill.data.name) === "success";
+// success-role skill) is consumed BY other skills, not invoked
+// directly. Surface a few of those consumers so the page shows what
+// the protocol actually drives.
+const isFoundational = getSkillRole(skill.data.name) === "success";
 const consumers = isFoundational
   ? allSkills
       .filter((s) => s.data.name !== skill.data.name)
@@ -89,7 +89,6 @@ const consumers = isFoundational
       <div class="tags">
         {skill.data.phases.map((p: string) => <Badge variant="accent">{p}</Badge>)}
         {skill.data.triAgent && <Badge variant="accent">Tri-agent</Badge>}
-        {skill.data.tryable && <Badge variant="success">Tryable</Badge>}
         <Badge variant="neutral">v{skill.data.version}</Badge>
       </div>
     </header>
@@ -114,29 +113,13 @@ const consumers = isFoundational
       </Card>
 
       <Card variant="surface" glow={false}>
-        <div class="quick-head">Try it</div>
-        {skill.data.tryable ? (
-          <>
-            <p class="quick-body">5 free exchanges with this skill — no install needed.</p>
-            <div class="try-actions">
-              <Button variant="primary" size="sm" href={`/demo?skill=${skill.data.name}#live`}>
-                <Icon name="sparkles" size={12} />
-                try {skill.data.displayName}
-              </Button>
-              <Button variant="outline" size="sm" href={`/skills/${skill.data.name}.zip`}>
-                <Icon name="download" size={12} />
-                download skill
-              </Button>
-            </div>
-          </>
-        ) : (
+        <div class="quick-head">Get this skill</div>
+        {isFoundational && (
           <>
             <p class="quick-body">
-              {isFoundational
-                ? "Foundational protocol — every other opchain skill reads / writes its checkpoint contract."
-                : "This skill is a foundational protocol — not invoked directly. Every other opchain skill implements its checkpoint contract."}
+              Foundational protocol — every other opchain skill reads / writes its checkpoint contract.
             </p>
-            {isFoundational && consumers.length > 0 && (
+            {consumers.length > 0 && (
               <div class="protocol-consumers" aria-label="Skills that implement this protocol">
                 {consumers.map((c) => (
                   <a href={`/skills/${c.name}`} class="protocol-consumer-pill" data-role={c.role}>
@@ -145,14 +128,19 @@ const consumers = isFoundational
                 ))}
               </div>
             )}
-            <div class="try-actions">
-              <Button variant="outline" size="sm" href={`/skills/${skill.data.name}.zip`}>
-                <Icon name="download" size={12} />
-                download skill
-              </Button>
-            </div>
           </>
         )}
+        {!isFoundational && (
+          <p class="quick-body">
+            Drop the bundle into <code class="ic">.claude/skills/</code> and Claude Code auto-discovers it on the next session.
+          </p>
+        )}
+        <div class="try-actions">
+          <Button variant="outline" size="sm" href={`/skills/${skill.data.name}.zip`}>
+            <Icon name="download" size={12} />
+            download skill
+          </Button>
+        </div>
       </Card>
     </section>
 
@@ -803,7 +791,7 @@ const consumers = isFoundational
     padding: 1px 6px;
     border-radius: var(--r-xs);
   }
-  /* Stack the Try-It primary + outline download buttons. */
+  /* Container for the download button(s) in the "Get this skill" card. */
   .try-actions {
     display: flex;
     flex-wrap: wrap;
