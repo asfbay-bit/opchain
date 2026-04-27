@@ -54,14 +54,18 @@ const catalog = JSON.stringify(
     <kbd>1</kbd>–<kbd>6</kbd> jump
   </p>
 
-    <!-- ───────────── Scenario picker — collapsed strip ───────────── -->
-    <section class="scenarios" id="scenario-picker" role="tablist" aria-label="Pick a scenario">
+    <!-- ───────────── Scenario picker — collapsed strip ─────────────
+         <div role="tablist"> rather than <section role="tablist">: <section>
+         carries an implicit "region" role when given an aria-label, and an
+         explicit "tablist" override on top of that fails axe's
+         aria-allowed-role audit. Tabs also use aria-selected only — not
+         aria-pressed (which is for role="button"). -->
+    <div class="scenarios" id="scenario-picker" role="tablist" aria-label="Pick a scenario">
       {walkthroughs.map((w, i) => (
         <button
           type="button"
           class="scenario"
           role="tab"
-          aria-pressed={i === 0 ? "true" : "false"}
           aria-selected={i === 0 ? "true" : "false"}
           {...({
             "data-scenario": w.id,
@@ -72,7 +76,7 @@ const catalog = JSON.stringify(
           <span class="scenario-tagline">{w.tagline}</span>
         </button>
       ))}
-    </section>
+    </div>
 
     <!-- ───────────── Detail panel — full width for the active scenario ───────────── -->
     <section class="detail" id="detail-card" aria-live="polite">
@@ -337,7 +341,6 @@ const catalog = JSON.stringify(
       // Toggle pressed state on the scenario cards.
       picker.querySelectorAll<HTMLElement>("[data-scenario]").forEach((el) => {
         const matched = el.dataset.scenario === w.id;
-        el.setAttribute("aria-pressed", matched ? "true" : "false");
         el.setAttribute("aria-selected", matched ? "true" : "false");
       });
     }
@@ -657,7 +660,7 @@ const catalog = JSON.stringify(
       border-color: var(--accent);
       transform: translateY(-1px);
     }
-    .scenario[aria-pressed="true"] {
+    .scenario[aria-selected="true"] {
       border-color: var(--accent);
       background: var(--accent-dim);
       box-shadow: var(--glow-md);
@@ -1841,7 +1844,7 @@ const catalog = JSON.stringify(
     }
     .scenario:hover .scenario-tagline,
     .scenario:focus-visible .scenario-tagline,
-    .scenario[aria-pressed="true"] .scenario-tagline {
+    .scenario[aria-selected="true"] .scenario-tagline {
       max-width: 18rem;
       opacity: 1;
     }
@@ -1849,7 +1852,7 @@ const catalog = JSON.stringify(
       border-color: var(--accent);
       background: var(--accent-dim);
     }
-    .scenario[aria-pressed="true"] {
+    .scenario[aria-selected="true"] {
       border-color: var(--accent);
       background: var(--accent-dim);
     }
