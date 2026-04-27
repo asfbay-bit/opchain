@@ -119,10 +119,6 @@ jobs:
               path.resolve(process.env.GITHUB_WORKSPACE, 'scripts/axe-comment.cjs')
             );
             const body = buildComment(process.env.AXE_RESULTS_DIR);
-            if (!body) {
-              console.log('no axe violations attached — skipping PR comment');
-              return;
-            }
             await github.rest.issues.createComment({
               ...context.repo,
               issue_number: context.payload.pull_request.number,

@@ -32,9 +32,46 @@ function slugToRoute(slug) {
   return "/" + slug.replace(/_/g, "/");
 }
 
+function listTopLevel(dir, depth = 2) {
+  // Diagnostic: shallow listing of `dir` to figure out where Playwright
+  // actually wrote attachments when our recursive lookup misses.
+  const out = [];
+  function walk(d, indent) {
+    if (indent > depth) return;
+    let entries;
+    try {
+      entries = fs.readdirSync(d, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const ent of entries) {
+      const p = path.join(d, ent.name);
+      out.push("  ".repeat(indent) + (ent.isDirectory() ? `${ent.name}/` : ent.name));
+      if (ent.isDirectory()) walk(p, indent + 1);
+    }
+  }
+  walk(dir, 0);
+  return out;
+}
+
 function buildComment(dir) {
   const files = findViolationFiles(dir);
-  if (files.length === 0) return null;
+  if (files.length === 0) {
+    if (!fs.existsSync(dir)) {
+      return `## Axe violations — directory missing\n\nExpected attachments under \`${dir}\`, not found.`;
+    }
+    const listing = listTopLevel(dir).slice(0, 50);
+    return (
+      `## Axe violations — no attachments found\n\n` +
+      `Searched \`${dir}\` recursively for \`axe-violations-*.json\`. Either ` +
+      `the suite errored out before any axe test wrote an attachment, or ` +
+      `Playwright is writing them somewhere unexpected. First ${listing.length} ` +
+      `entries under that path:\n\n` +
+      "```\n" +
+      (listing.join("\n") || "(empty)") +
+      "\n```"
+    );
+  }
 
   // Each test's attachment is a snapshot of that single test run. If the same
   // route's axe test ran more than once (retries, sharding) we'd see duplicates;
