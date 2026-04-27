@@ -17,10 +17,13 @@
   <button class="tour-scrim" id="demo-tour-scrim" tabindex="-1" aria-label="Skip tour"></button>
 
   <div class="tour-card" role="dialog" aria-labelledby="demo-tour-title" aria-modal="true">
-    <header class="tour-head">
+    <!-- Plain <div>s, not <header>/<footer>, so Axe doesn't flag them
+         as duplicate banner / contentinfo landmarks alongside the site
+         header + footer. -->
+    <div class="tour-head">
       <span class="tour-eyebrow"><span id="demo-tour-step">1</span> / 4</span>
       <button class="tour-close" id="demo-tour-close" aria-label="Skip tour">×</button>
-    </header>
+    </div>
 
     <div class="tour-body">
       <h2 class="tour-title" id="demo-tour-title">What is this?</h2>
@@ -32,13 +35,13 @@
       </p>
     </div>
 
-    <footer class="tour-foot">
+    <div class="tour-foot">
       <button class="tour-btn tour-btn-ghost" id="demo-tour-skip" type="button">Skip</button>
       <div class="tour-foot-right">
         <button class="tour-btn tour-btn-outline" id="demo-tour-prev" type="button" disabled>Back</button>
         <button class="tour-btn tour-btn-primary" id="demo-tour-next" type="button">Next →</button>
       </div>
-    </footer>
+    </div>
   </div>
 </div>
 
