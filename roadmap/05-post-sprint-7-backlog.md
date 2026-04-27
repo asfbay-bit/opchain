@@ -144,3 +144,57 @@ hitting `https://opchain.dev/`, `/skills`, `/in-action`. Failure
 notifies but does not block (production is already live by then).
 
 **Effort:** ~2 h Claude.
+
+---
+
+## B-08: Raise `/demo` accessibility back to 0.95
+
+**Why deferred:** B-01 (PR #86) calibrated LHCI thresholds back to
+0.95 across the board for `/` and `/skills`, but `/demo` accessibility
+runs ~0.91 (median of 3 LHCI runs — verified against PR #86's own
+LHCI run). That's a 0.04 miss from the canonical 0.95 target — too
+big to silently relax under the strict B-01 DoD. Per-route override
+is in place (see `lighthouserc.cjs:46`) so the gate doesn't block
+on it.
+
+**Definition of done:**
+
+- Pull `/demo`'s axe-violations attachment from a recent CI run's
+  Playwright report.
+- Identify the failing audits responsible for the 0.91 score. Likely
+  candidates given the Claude-Code-styled chat UI:
+  - `button-name` on icon-only role pills / scenario buttons
+  - `color-contrast` on the dark chat surface or amber-gold artifact
+    stripes (`--tri-agent` token)
+  - `aria-allowed-role` on the role-pill spans
+- Fix in `site/src/pages/demo.astro` (and the components it pulls in,
+  e.g. role pills in `site/src/components/`).
+- Verify locally with axe via Playwright (B-02 is the related axe
+  hardening backlog item).
+- Raise `lighthouserc.cjs`'s `/demo` accessibility threshold back to
+  0.95 — drop the inline reason comment.
+
+**Effort:** ~2 h Claude depending on what audits surface. Coordinate
+with the in-flight UX session if /demo is being touched there.
+
+---
+
+## B-09: Surface LHCI report URLs in the PR comment
+
+**Why deferred:** PR #86 added an `actions/github-script` step that
+posts per-route LHCI scores as a PR comment, but the "Report" column
+shows `—` for every row — the lookup against `links.json` (which
+maps absolute HTML paths to temporary-public-storage URLs) isn't
+matching. Probably an absolute-vs-relative path mismatch or a key
+format I haven't traced yet.
+
+**Definition of done:**
+
+- Add a debug log step that prints the first key of `links.json`
+  alongside the path the script computed (one CI run is enough).
+- Adjust the lookup to match.
+- Verify the next LHCI PR comment renders a clickable `[link]` per
+  route.
+
+**Effort:** ~30 min Claude. Low value individually but compounds —
+clickable reports speed up future calibration cycles.
