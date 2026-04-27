@@ -19,6 +19,7 @@ describe("generated skill catalog", () => {
     expect(Object.keys(SKILL_NAMES).sort()).toEqual([
       "api-dev",
       "app-architect",
+      "bug-check",
       "checkpoint-protocol",
       "code-auditor",
       "dash-forge",
@@ -40,6 +41,7 @@ describe("generated skill catalog", () => {
     expect(VALID_SKILLS.sort()).toEqual([
       "api-dev",
       "app-architect",
+      "bug-check",
       "code-auditor",
       "dash-forge",
       "deploy-ops",

@@ -6,7 +6,7 @@ import Badge from "../../components/ui/Badge.astro";
 import Button from "../../components/ui/Button.astro";
 import Card from "../../components/ui/Card.astro";
 import Icon from "../../components/Icon.astro";
-import { getAllSkills, getSkill } from "../../lib/skills";
+import { getAllSkills, getSkill, getSkillRole, type Role } from "../../lib/skills";
 
 export async function getStaticPaths() {
   const skills = await getAllSkills();
@@ -23,6 +23,16 @@ const { Content } = await render(skill);
 
 const phaseLabel = skill.data.phases.join(" + ");
 const description = `${skill.data.displayName} — ${skill.data.shortDesc}`;
+
+// Skill→role lookup shipped to the client as a small JSON island so a
+// post-render script can paint inline `<code>` mentions of known skills
+// with their role colour. Same map every other surface uses.
+const allSkills = await getAllSkills();
+const skillRolesJson = JSON.stringify(
+  Object.fromEntries(
+    allSkills.map((s) => [s.data.name, getSkillRole(s.data.name) as Role]),
+  ),
+);
 ---
 
 <Base
@@ -71,16 +81,30 @@ const description = `${skill.data.displayName} — ${skill.data.shortDesc}`;
         {skill.data.tryable ? (
           <>
             <p class="quick-body">5 free exchanges with this skill — no install needed.</p>
-            <Button variant="primary" size="sm" href={`/demo?skill=${skill.data.name}#live`}>
-              <Icon name="sparkles" size={12} />
-              try {skill.data.displayName}
-            </Button>
+            <div class="try-actions">
+              <Button variant="primary" size="sm" href={`/demo?skill=${skill.data.name}#live`}>
+                <Icon name="sparkles" size={12} />
+                try {skill.data.displayName}
+              </Button>
+              <Button variant="outline" size="sm" href={`/skills/${skill.data.name}.zip`}>
+                <Icon name="download" size={12} />
+                download skill
+              </Button>
+            </div>
           </>
         ) : (
-          <p class="quick-body">
-            This skill is a foundational protocol — not invoked directly. Every
-            other opchain skill implements its checkpoint contract.
-          </p>
+          <>
+            <p class="quick-body">
+              This skill is a foundational protocol — not invoked directly. Every
+              other opchain skill implements its checkpoint contract.
+            </p>
+            <div class="try-actions">
+              <Button variant="outline" size="sm" href={`/skills/${skill.data.name}.zip`}>
+                <Icon name="download" size={12} />
+                download skill
+              </Button>
+            </div>
+          </>
         )}
       </Card>
     </section>
@@ -119,6 +143,39 @@ const description = `${skill.data.displayName} — ${skill.data.shortDesc}`;
         <Content />
       </section>
     </section>
+
+    <script is:inline id="skill-roles-data" type="application/json" set:html={skillRolesJson}></script>
+    <script>
+      // Post-render UX pass on the SKILL.md prose:
+      //   · inline <code> matching a skill name → role-coloured pill
+      //   · inline <code> starting with `/`     → ember command pill
+      // Runs once on load; the prose is static, so no re-runs needed.
+      const rolesEl = document.getElementById("skill-roles-data");
+      const skillRoles: Record<string, string> = rolesEl
+        ? JSON.parse(rolesEl.textContent || "{}")
+        : {};
+
+      const prose = document.getElementById("skill-md");
+      if (prose) {
+        prose.querySelectorAll<HTMLElement>("code").forEach((el) => {
+          // Skip code inside <pre> — those are full code blocks, not inline mentions.
+          if (el.closest("pre")) return;
+          const text = (el.textContent || "").trim();
+
+          // 1. Slash commands: /audit, /deploy, /git, /uxe ...
+          if (/^\/[a-z][\w-]*(\s|$)/i.test(text)) {
+            el.setAttribute("data-cmd", "true");
+            return;
+          }
+
+          // 2. Skill mentions — exact match against the catalog.
+          if (skillRoles[text]) {
+            el.setAttribute("data-role", skillRoles[text]);
+            return;
+          }
+        });
+      }
+    </script>
 
     <!-- ───────────── Footer CTA ───────────── -->
     <section class="cta">
@@ -209,6 +266,13 @@ const description = `${skill.data.displayName} — ${skill.data.shortDesc}`;
     border: 0.5px solid var(--border);
     padding: 1px 6px;
     border-radius: var(--r-xs);
+  }
+  /* Stack the Try-It primary + outline download buttons. */
+  .try-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.25rem;
   }
 
   .usage {
@@ -320,10 +384,37 @@ const description = `${skill.data.displayName} — ${skill.data.shortDesc}`;
     border-radius: var(--r-xs);
     color: var(--text);
   }
+  /* UX pass — inline code is post-classified by client script:
+       · [data-cmd]   → ember pill for slash commands (/audit, /deploy, …)
+       · [data-role=…] → role-coloured pill for skill-name mentions
+     Same outline + 15% colour-mix language used everywhere else on the
+     site. Works in both themes via the design tokens. */
+  .prose :global(code[data-cmd]) {
+    color: var(--ember);
+    border-color: color-mix(in srgb, var(--ember) 50%, transparent);
+    background: color-mix(in srgb, var(--ember) 12%, transparent);
+    font-weight: 500;
+  }
+  .prose :global(code[data-role]) {
+    --pill-color: var(--specialist);
+    color: var(--pill-color);
+    border-color: color-mix(in srgb, var(--pill-color) 50%, transparent);
+    background: color-mix(in srgb, var(--pill-color) 12%, transparent);
+  }
+  .prose :global(code[data-role="workflow"])     { --pill-color: var(--workflow); }
+  .prose :global(code[data-role="tri-agent"])    { --pill-color: var(--tri-agent); }
+  .prose :global(code[data-role="audit-gate"])   { --pill-color: var(--audit-gate); }
+  .prose :global(code[data-role="specialist"])   { --pill-color: var(--specialist); }
+  .prose :global(code[data-role="advisor"])      { --pill-color: var(--advisor); }
+  .prose :global(code[data-role="orchestrator"]) { --pill-color: var(--orchestrator); }
+  .prose :global(code[data-role="success"])      { --pill-color: var(--success); }
+  /* Code blocks pick up theme-aware tokens so light mode gets a parchment
+     surface with dark text instead of the brand obsidian + linen pair —
+     punchlist 3.4. The dark default is unchanged. */
   .prose :global(pre) {
-    background: var(--obsidian);
-    color: var(--linen);
-    border: 0.5px solid var(--slag);
+    background: var(--card);
+    color: var(--text);
+    border: 0.5px solid var(--border);
     padding: 0.85rem 1.1rem;
     border-radius: var(--r-md);
     overflow-x: auto;
@@ -331,6 +422,12 @@ const description = `${skill.data.displayName} — ${skill.data.shortDesc}`;
     font-size: 12px;
     line-height: var(--lh-base);
     margin: 0.75rem 0;
+  }
+  :root[data-theme="light"] .prose :global(pre) {
+    /* Lighter parchment surface, darker border so the block reads as a
+       distinct code panel rather than a subtle inset. */
+    background: var(--parchment);
+    border-color: var(--sand);
   }
   .prose :global(pre code) {
     background: transparent;

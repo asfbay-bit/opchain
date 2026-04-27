@@ -3,19 +3,41 @@ import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
 import PipelineDiagram from "../components/PipelineDiagram.astro";
 import Card from "../components/ui/Card.astro";
-import Badge from "../components/ui/Badge.astro";
-import { getAllSkills } from "../lib/skills";
+import { getAllSkills, getSkillRole, getRoleLabel, type Role } from "../lib/skills";
 
 const allSkills = await getAllSkills();
 const totalSkillCount = allSkills.length;
 const triAgents = allSkills.filter((s) => s.data.triAgent).map((s) => s.data.name);
 
-const skillKinds = [
-  { kind: "Foundation",      skills: ["checkpoint-protocol", "orchestrator"] },
-  { kind: "Plan",            skills: ["reverse-spec", "stack-forge", "ux-engineer", "dash-forge", "scale-ops"] },
-  { kind: "Plan + Build",    skills: ["app-architect", "integrations-engineer", "migration-ops"] },
-  { kind: "Build / quality", skills: ["code-auditor", "security-auditor", "git-ops", "deploy-ops", "monitoring-ops"] },
+// Group skills by their semantic role from lib/skills.ts. The same role
+// vocabulary that drives every other coloured pill on the site (homepage,
+// skill library, demo) — so colours are consistent across surfaces.
+const ROLE_ORDER: Role[] = [
+  "workflow",
+  "tri-agent",
+  "audit-gate",
+  "specialist",
+  "advisor",
+  "orchestrator",
+  "success",
 ];
+
+type Kind = { role: Role; label: string; skills: string[] };
+
+const byRole = new Map<Role, string[]>();
+for (const s of allSkills) {
+  const role = getSkillRole(s.data.name);
+  if (!byRole.has(role)) byRole.set(role, []);
+  byRole.get(role)!.push(s.data.name);
+}
+
+const skillKinds: Kind[] = ROLE_ORDER
+  .filter((r) => byRole.has(r))
+  .map((r) => ({
+    role: r,
+    label: getRoleLabel(r),
+    skills: (byRole.get(r) ?? []).sort(),
+  }));
 
 const handoffs = [
   { from: "reverse-spec",          to: "app-architect",   trigger: "Existing codebase analyzed; loads specs as Phase 2 baseline" },
@@ -43,10 +65,11 @@ const handoffs = [
       <Eyebrow>architecture</Eyebrow>
       <h1>How opchain skills chain.</h1>
       <p class="lede">
-        Every opchain skill owns one phase of the development pipeline and
-        communicates with the others through a single JSON file at
-        <code class="ic">.checkpoints/&lt;skill&gt;.checkpoint.json</code>.
-        There's no central orchestrator, no message bus, no framework — each
+        Every opchain skill specialises in one phase of the development
+        pipeline, communicates with the others through a single JSON file at
+        <code class="ic">.checkpoints/&lt;skill&gt;.checkpoint.json</code>,
+        and is routed by a central orchestrator
+        (<code class="ic">/ops</code>). No message bus, no framework — each
         skill is a self-contained prompt package that reads its upstream
         checkpoints and writes its own.
       </p>
@@ -67,11 +90,16 @@ const handoffs = [
     <!-- ───────────── Skill kinds ───────────── -->
     <section class="section">
       <h2>Skill kinds</h2>
+      <p class="caption">
+        Grouped by the same role vocabulary that colours every pill on the
+        site — Workflow, Tri-agent, Audit-gate, Standalone specialist,
+        Advisor, Orchestrator, Protocol.
+      </p>
       <div class="kind-grid">
         {skillKinds.map((k) => (
           <Card variant="surface">
             <div class="kind-head">
-              <Badge variant="accent">{k.kind}</Badge>
+              <span class="kind-pill" data-role={k.role}>{k.label}</span>
             </div>
             <ul class="kind-list">
               {k.skills.map((s) => (
@@ -98,11 +126,16 @@ const handoffs = [
       </p>
       <p>
         This is how context flows forward without manual copy-paste.
-        <code class="ic">deploy-ops</code> reads
-        <code class="ic">code-auditor</code> to gate on audit grade.
+        <code class="ic">deploy-ops</code> reads both
+        <code class="ic">code-auditor</code> and
+        <code class="ic">security-auditor</code> to gate on code-level and
+        posture findings before the production push.
         <code class="ic">git-ops</code> reads
-        <code class="ic">app-architect</code> to name branches by sprint. The
-        UX Evaluator reads the approved style book to grade frontend sprints.
+        <code class="ic">app-architect</code> to name branches by sprint.
+        The UX Evaluator reads the approved style book to grade frontend
+        sprints. <code class="ic">migration-ops</code> reads
+        <code class="ic">app-architect</code>'s spec to sequence database,
+        framework, or platform migrations safely.
       </p>
     </section>
 
@@ -111,13 +144,19 @@ const handoffs = [
       <h2>Active chaining</h2>
       <p>
         Skills don't just <em>suggest</em> the next step — they actively
-        invoke it. When <code class="ic">app-architect</code> finishes a build
-        sprint, it reads <code class="ic">git-ops</code>'s
+        invoke it, and a central orchestrator
+        (<code class="ic">/ops</code>) tracks which checkpoint is current
+        so the next call is always routed to the right skill. When
+        <code class="ic">app-architect</code> finishes a build sprint, it
+        reads <code class="ic">git-ops</code>'s
         <code class="ic">SKILL.md</code> and runs
-        <code class="ic">/git-sync</code> with the sprint context. When
-        <code class="ic">git-ops</code> completes, it invokes
-        <code class="ic">deploy-ops</code>. The user sees one continuous
-        flow, not a series of handoffs.
+        <code class="ic">/git-sync</code> with the sprint context.
+        <code class="ic">git-ops</code> invokes
+        <code class="ic">deploy-ops</code>, which gates the production push
+        behind <code class="ic">code-auditor</code> and
+        <code class="ic">security-auditor</code> and then hands off to
+        <code class="ic">monitoring-ops</code> once the deploy is green.
+        The user sees one continuous flow, not a series of handoffs.
       </p>
 
       <h3 class="h3">Handoff matrix</h3>
@@ -214,6 +253,32 @@ const handoffs = [
     margin-top: 1rem;
   }
   .kind-head { margin-bottom: 0.65rem; }
+  /* Role-coloured pill for the skill-kinds grid header. Same outline +
+     15% colour-mix fill as the homepage skill pills; one source of truth
+     for role colours via lib/skills.ts. */
+  .kind-pill {
+    --pill-color: var(--specialist);
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 9px;
+    border-radius: 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+    color: var(--pill-color);
+    border: 0.5px solid var(--pill-color);
+    background: color-mix(in srgb, var(--pill-color) 15%, transparent);
+    white-space: nowrap;
+  }
+  .kind-pill[data-role="workflow"]     { --pill-color: var(--workflow); }
+  .kind-pill[data-role="tri-agent"]    { --pill-color: var(--tri-agent); }
+  .kind-pill[data-role="audit-gate"]   { --pill-color: var(--audit-gate); }
+  .kind-pill[data-role="specialist"]   { --pill-color: var(--specialist); }
+  .kind-pill[data-role="advisor"]      { --pill-color: var(--advisor); }
+  .kind-pill[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
+  .kind-pill[data-role="success"]      { --pill-color: var(--success); }
   .kind-list {
     list-style: none;
     padding: 0;
