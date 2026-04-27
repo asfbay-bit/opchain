@@ -12,7 +12,9 @@ commands:
 description: >
   Third-party API integrations with Planner/Builder/Tester loop. Use for /integrate,
   "connect to Salesforce", "webhook", "OAuth", "API integration", "connect to Slack",
-  or any external service connection. Trigger liberally.
+  or any external service connection. For designing or building your *own* first-party
+  API (OpenAPI/GraphQL authoring, versioning, SDK generation), use api-dev instead.
+  Trigger liberally.
 ---
 
 # Integrations Engineer
@@ -22,6 +24,13 @@ description: >
 Tri-agent integration harness: Planner designs the connection architecture → Builder
 implements the client, auth, and error handling → Tester verifies the integration works
 against the real (sandbox) API with edge cases the Builder didn't consider.
+
+**Boundary:** this skill is the *consumer* side — building clients for someone else's
+API (Stripe, Slack, Salesforce, Google APIs, OAuth providers). For designing or
+building **your own** first-party API that other clients will consume (OpenAPI /
+GraphQL authoring, versioning, SDK generation), use `api-dev` instead. Webhook
+*receivers* tied to a single integration (`POST /webhooks/stripe`) stay here;
+public/product API surfaces belong in `api-dev`.
 
 ## /integrate — Command Reference
 
@@ -495,6 +504,7 @@ Check every integration's secrets:
 | code-auditor | Integration health → security context |
 | deploy-ops | Integration status → deploy confidence |
 | scale-ops | API rate limits → scaling constraints |
+| api-dev | When this app's first-party API needs to call out to a third-party that integrations-engineer wired up |
 
 ---
 

@@ -26,7 +26,8 @@ phase, a shared checkpoint protocol that carries context across sessions.
 | dash-forge             | plan        | Dashboards + dense data UI (spec + React prototype) |
 | scale-ops              | plan        | Scaling readiness |
 | app-architect          | plan+build  | Unified planning + build harness |
-| integrations-engineer  | plan+build  | API integration harness |
+| integrations-engineer  | plan+build  | API integration harness (third-party APIs you consume) |
+| api-dev                | plan+build  | First-party API design + build harness (OpenAPI, versioning, SDKs) |
 | migration-ops          | plan+build  | `/migrate` — DB / framework / auth / platform migrations |
 | code-auditor           | build       | Auditor → Fixer → Verifier |
 | security-auditor       | build       | Threat modeling, OWASP hardening, attack-surface review |

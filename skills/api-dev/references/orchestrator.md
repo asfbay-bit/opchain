@@ -43,7 +43,6 @@ clarifying question to determine which phase they're in:
 
 - Have an idea but no specs? → Start with `/discover`
 - Have specs but no code? → Start with `/build`
-- About to commit code? → Start with `/bugcheck`
 - Have code but need quality check? → Start with `/audit`
 - Have code ready to ship? → Start with `/git-sync` then `/deploy`
 - Have existing code, no docs? → Start with reverse-spec
@@ -58,8 +57,7 @@ This is the canonical flow. Every skill knows where it sits and what comes befor
 
 ```
 reverse-spec ──► app-architect ──► git-ops ──► deploy-ops ──► monitoring-ops
-                      │                │
-                      │                └── auto-invokes bug-check before /commit + /sync
+                      │
                       ├── Phase 2: auto-invokes stack-forge
                       ├── Phase 3: design pipeline
                       │     ├── auto-attaches ux-engineer on UI sprints
@@ -71,9 +69,6 @@ reverse-spec ──► app-architect ──► git-ops ──► deploy-ops ─�
 foundation:
   checkpoint-protocol ──► schema bundled in every skill
   orchestrator ──► cross-project registry, status, routing (/ops)
-
-pre-commit gate:
-  bug-check ──► fast type/lint/test/secret/build/dep checks (<2 min, blocks commit)
 
 quality gates (run before deploy):
   code-auditor ──► finds code-level issues
@@ -104,8 +99,7 @@ cross-cutting:
 | **integrations-engineer** | app-architect (integration spec) | code-auditor (verify integration) |
 | **api-dev** | app-architect (`02-architecture.md`, `03-data-model.md`), stack-forge (typed pipeline), reverse-spec (existing-endpoint inventory) | code-auditor (audits scaffolded handlers), security-auditor (CORS/rate-limit posture), monitoring-ops (SLO + drift manifest), deploy-ops (drift gate) |
 | **migration-ops** | app-architect (spec), reverse-spec (current state) | deploy-ops (cutover), monitoring-ops (verify post-migration) |
-| **git-ops** | app-architect (sprint context), bug-check (gate result) | bug-check (pre-commit gate, auto-invoked), deploy-ops (post-push) |
-| **bug-check** | git-ops (gate trigger) | git-ops (returns pass / fail / bypass; failure blocks the commit) |
+| **git-ops** | app-architect (sprint context) | deploy-ops (post-push) |
 | **deploy-ops** | code-auditor (audit grade), security-auditor (posture), git-ops (branch status) | monitoring-ops (post-ship observability) |
 | **monitoring-ops** | deploy-ops (what shipped) | — (incident loops back to app-architect / code-auditor as needed) |
 | **scale-ops** | stack-forge (platform limits) | — (advisory, no chain) |
@@ -136,7 +130,6 @@ RIGHT (active invocation):
 | Trigger | From | To | What to do |
 |---|---|---|---|
 | All build sprints pass | app-architect | git-ops | Invoke git-ops, run /git-sync with sprint context |
-| /git-commit or /git-sync starts | git-ops | bug-check | Auto-invoke bug-check; pass → proceed with commit; fail → block, surface report, offer `/bugcheck fix` or `/bugcheck bypass` |
 | git-sync completes | git-ops | deploy-ops | Invoke deploy-ops, run /deploy audit then /deploy staging |
 | Launch phase starts | app-architect | code-auditor → deploy-ops | Run /audit pre-deploy first, then /deploy staging |
 | Existing codebase analyzed | reverse-spec | app-architect | Invoke app-architect, load reverse-spec's output as Phase 2 baseline |
@@ -210,7 +203,6 @@ right skill and phase based on the request.
 | "Build me an app" / "I have an idea for..." | app-architect | /discover |
 | "Here's my codebase, document it" | reverse-spec | /rev-full |
 | "What stack should I use for..." | stack-forge | /stack-decide |
-| "Check this before I commit" / "Pre-commit" / "Lint and test" / "Quick audit" | bug-check | /bugcheck |
 | "Review this code" / "Is this code good?" | code-auditor | /audit full |
 | "Fix the UX" / "The design is inconsistent" | ux-engineer | /uxe eval |
 | "Connect to Salesforce" / "Set up webhooks" | integrations-engineer | /integrate plan |
@@ -285,22 +277,12 @@ description: >
   "document this codebase", "generate specs from code", "backfill specs", or when
   pointing at existing code that needs documentation. Trigger liberally.
 
-# bug-check
-description: >
-  Pre-commit QA gate that runs on every commit. Fast, opinionated checks: type
-  safety, lint, tests, anti-pattern scan, secret detection, build verification,
-  and dependency vulnerability scan. Blocks commits on failures, warns on cautions,
-  passes silently on clean code. Auto-invoked by git-ops before every /git-commit
-  and /git-sync. Use for /bugcheck, "check this before I commit", "run the checks",
-  "is this safe to commit", "pre-commit", "quick audit", "lint and test", "any bugs
-  in this?", "sanity check". Trigger liberally.
-
 # code-auditor
 description: >
   Code quality auditor with Auditor/Fixer/Verifier loop. Use for /audit, "audit this",
   "find bugs", "code review", "pre-deploy check", "what's wrong with this code", or any
-  code-level quality question. For fast pre-commit checks, escalate to bug-check. For
-  architecture- or infra-level security, escalate to security-auditor. Trigger liberally.
+  code-level quality question. For architecture- or infra-level security, escalate to
+  security-auditor. Trigger liberally.
 
 # security-auditor
 description: >
@@ -401,10 +383,8 @@ Every skill should know these facts:
   integrations-engineer (Planner/Builder/Tester), api-dev (Designer/Builder/Conformance).
 - **Auto-invocations:** stack-forge during app-architect Phase 2; ux-engineer during
   app-architect UI sprints; dash-forge from ux-engineer or app-architect on data-heavy
-  screens; bug-check from git-ops before every `/git-commit` and `/git-sync`.
+  screens.
 - **Pipeline flow:** reverse-spec → app-architect → git-ops → deploy-ops → monitoring-ops.
-- **Pre-commit gate:** bug-check (fast metal-detector — type / lint / tests / secrets /
-  build / dep scan in <2 min; blocks the commit on failure).
 - **Quality gates (pre-deploy):** code-auditor → security-auditor (runs above code-auditor
   for threat model / hardening).
 - **Cross-cutting skills:** api-dev (first-party APIs — OpenAPI/GraphQL, versioning,
