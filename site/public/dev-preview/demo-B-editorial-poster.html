@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<title>B — editorial / poster · /demo prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --card: #141414;
+    --text: #f5f1ea;
+    --muted: #b6ada1;
+    --subtle: #7a7568;
+    --dim: #4a4541;
+    --border: #1f1f1d;
+    --ember: #e89e5b;
+    --ember-2: #c97138;
+    --ink: #1a1612;
+    --linen: #f5f1ea;
+    --rose: #f7768e;
+    --teal: #4ec9b0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Newsreader', Georgia, serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; }
+
+  /* ── 1. Hero poster ─────────────────────────────────────────── */
+  .hero {
+    min-height: 90vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 2.4rem 4vw 3.6rem;
+    position: relative;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(232, 158, 91, 0.18), transparent 60%),
+      radial-gradient(800px 400px at 0% 100%, rgba(247, 118, 142, 0.10), transparent 70%),
+      var(--bg);
+  }
+  .hero-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+  .hero-top a { color: inherit; text-decoration: none; }
+  .hero-mid { align-self: center; max-width: 1200px; margin: 0 auto; }
+  .hero-issue {
+    color: var(--ember);
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 1.2rem;
+  }
+  .hero-h {
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(2.5rem, 8vw, 7rem);
+    line-height: 0.92;
+    letter-spacing: -0.025em;
+    margin: 0 0 1.4rem;
+  }
+  .hero-h em {
+    font-style: italic;
+    color: var(--ember);
+  }
+  .hero-h .strike {
+    text-decoration: line-through;
+    text-decoration-color: var(--ember-2);
+    color: var(--muted);
+    font-style: normal;
+  }
+  .hero-sub {
+    font-size: clamp(1rem, 1.6vw, 1.4rem);
+    max-width: 50rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 0 0 2rem;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.6rem;
+    font: inherit;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    border-radius: 0;
+  }
+  .btn-primary {
+    background: var(--ember);
+    color: var(--ink);
+    border: 0;
+    font-weight: 600;
+  }
+  .btn-primary:hover { background: var(--linen); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 0.5px solid var(--text);
+  }
+  .btn-ghost:hover { color: var(--ember); border-color: var(--ember); }
+
+  .hero-bot {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2rem;
+    border-top: 0.5px solid var(--border);
+    padding-top: 1.6rem;
+    color: var(--subtle);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+  .hero-bot strong { color: var(--text); font-weight: 500; }
+
+  /* ── 2. Scenarios — 6 poster cards ──────────────────────────── */
+  .scenes {
+    background: var(--bg);
+    padding: 6rem 4vw;
+    border-top: 0.5px solid var(--border);
+  }
+  .scenes-h {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: clamp(1.6rem, 3vw, 2.6rem);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin: 0 0 3rem;
+    max-width: 60rem;
+  }
+  .scenes-h em { color: var(--ember); font-style: italic; }
+  .scene-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 0.5px solid var(--border);
+  }
+  .scene {
+    background: var(--bg);
+    padding: 2rem 1.6rem;
+    cursor: pointer;
+    transition: background 240ms ease, color 240ms ease;
+    position: relative;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+  }
+  .scene:hover { background: var(--card); }
+  .scene-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--ember);
+    margin-bottom: 0.55rem;
+  }
+  .scene-h {
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.6rem;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+    margin: 0 0 0.6rem;
+  }
+  .scene-tag {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.45;
+    flex: 1;
+  }
+  .scene-foot {
+    margin-top: 1.2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--subtle);
+    letter-spacing: 0.06em;
+  }
+  .scene:hover .scene-foot { color: var(--ember); }
+
+  /* ── 3. Mini transcript poster ─────────────────────────────── */
+  .deck {
+    background: linear-gradient(180deg, var(--card) 0%, var(--bg) 100%);
+    padding: 6rem 4vw;
+    border-top: 0.5px solid var(--border);
+  }
+  .deck-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 4rem;
+  }
+  .deck-side {
+    border-right: 0.5px solid var(--border);
+    padding-right: 2rem;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .deck-side h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ember);
+    margin: 0 0 0.7rem;
+    font-weight: 500;
+  }
+  .deck-side p { margin: 0 0 1rem; line-height: 1.55; }
+  .deck-side ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--subtle);
+  }
+  .deck-side li::before { content: "› "; color: var(--ember); }
+  .deck-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+  }
+  .turn {
+    border-left: 3px solid var(--border);
+    padding: 0.4rem 0 0.4rem 1.4rem;
+  }
+  .turn[data-role="user"]      { border-left-color: var(--ember); }
+  .turn[data-role="auditor"]   { border-left-color: var(--rose); }
+  .turn[data-role="security"]  { border-left-color: var(--rose); }
+  .turn[data-role="deploy"]    { border-left-color: var(--teal); }
+  .turn-head {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--subtle);
+    margin-bottom: 0.45rem;
+  }
+  .turn-head strong { color: var(--text); font-weight: 500; }
+  .turn-body {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+  .turn-body code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85em;
+    background: var(--card);
+    padding: 1px 5px;
+    border: 0.5px solid var(--border);
+  }
+
+  .deck-foot {
+    max-width: 1100px;
+    margin: 4rem auto 0;
+    border-top: 0.5px solid var(--border);
+    padding-top: 1.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--subtle);
+    letter-spacing: 0.06em;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+  <!-- 1. HERO POSTER -->
+  <header class="hero">
+    <div class="hero-top">
+      <a href="/">opchain · <span style="color: var(--ember)">demo</span></a>
+      <span>vol 1 · concept→shipped · audit gate · migrations</span>
+      <a href="/install">install →</a>
+    </div>
+
+    <div class="hero-mid">
+      <div class="hero-issue">issue 03 · audit gate before deploy</div>
+      <h1 class="hero-h">
+        Catch a <em>SQL injection</em><br/>
+        at the <span class="strike">last possible</span><br/>
+        production <em>gate.</em>
+      </h1>
+      <p class="hero-sub">
+        A solo founder pushes a Stripe-checkout patch on a Friday at 14:22.
+        opchain runs both auditors before the deploy fires — finds an injection,
+        hands her the one-line patch, and ships. Two minutes, fourteen seconds,
+        zero pages out.
+      </p>
+      <div class="hero-actions">
+        <button class="btn btn-primary">▶ play scenario 03</button>
+        <button class="btn btn-ghost">← scenarios index</button>
+      </div>
+    </div>
+
+    <div class="hero-bot">
+      <div><strong>opchain</strong><br/>open-source · MIT · <a href="https://opchain.dev" style="color: var(--ember)">opchain.dev</a></div>
+      <div><strong>scenario 03 of 6</strong><br/>2m 14s runtime · 3 skills · 7 turns</div>
+      <div><strong>↵ play · ␣ skip · 1–6 jump</strong><br/>R restart · ↑↓ tour · esc close</div>
+    </div>
+  </header>
+
+  <!-- 2. SCENARIOS POSTER GRID -->
+  <section class="scenes">
+    <h2 class="scenes-h">
+      Six finished sessions. Real transcripts, <em>not</em> faked-up demos.
+    </h2>
+    <div class="scene-grid">
+      <article class="scene">
+        <div class="scene-num">01</div>
+        <h3 class="scene-h">Concept&nbsp;→ shipped, in one chat</h3>
+        <p class="scene-tag">A solo founder types an idea and walks out with a live app — nothing cherry-picked.</p>
+        <div class="scene-foot">▶ 4m 48s · 32 turns</div>
+      </article>
+      <article class="scene">
+        <div class="scene-num">02</div>
+        <h3 class="scene-h">Dashboard rescue</h3>
+        <p class="scene-tag">A half-finished metrics dashboard turned into a Tufte-density UI that ships.</p>
+        <div class="scene-foot">▶ 3m 02s · 18 turns</div>
+      </article>
+      <article class="scene" style="background: var(--card);">
+        <div class="scene-num">03 · now playing</div>
+        <h3 class="scene-h">Audit gate before deploy</h3>
+        <p class="scene-tag">Both auditors run before deploy fires — catches a critical at the last gate.</p>
+        <div class="scene-foot" style="color: var(--ember)">▶ 2m 14s · 7 turns</div>
+      </article>
+      <article class="scene">
+        <div class="scene-num">04</div>
+        <h3 class="scene-h">Postgres migration</h3>
+        <p class="scene-tag">PG13&nbsp;→ PG16 with online-only writes; rollback rehearsed before cutover.</p>
+        <div class="scene-foot">▶ 5m 11s · 24 turns</div>
+      </article>
+      <article class="scene">
+        <div class="scene-num">05</div>
+        <h3 class="scene-h">Legacy revive</h3>
+        <p class="scene-tag">An eight-year-old app gets a typed spec and a sprint plan in 90 seconds.</p>
+        <div class="scene-foot">▶ 1m 38s · 9 turns</div>
+      </article>
+      <article class="scene">
+        <div class="scene-num">06</div>
+        <h3 class="scene-h">Stripe ship</h3>
+        <p class="scene-tag">Webhook signing → idempotency keys → audit → deploy with checkout in &lt; 6 min.</p>
+        <div class="scene-foot">▶ 5m 41s · 28 turns</div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 3. DECK / MINI TRANSCRIPT -->
+  <section class="deck">
+    <div class="deck-grid">
+      <aside class="deck-side">
+        <h3>What you'll see</h3>
+        <p>
+          opchain hands the founder a one-liner patch, re-audits, and clears
+          the gate. No paging the security on-call. No reading 12 files.
+        </p>
+        <h3 style="margin-top: 1.4rem">Skills in this scene</h3>
+        <ul>
+          <li>code-auditor</li>
+          <li>security-auditor</li>
+          <li>deploy-ops</li>
+        </ul>
+        <h3 style="margin-top: 1.4rem">Inputs (3) · Outputs (4)</h3>
+        <p>Click any line in the transcript to open it as a side drawer with the full content.</p>
+      </aside>
+
+      <div class="deck-main">
+        <article class="turn" data-role="user">
+          <div class="turn-head">› <strong>you</strong> · 14:22</div>
+          <div class="turn-body">run <code>/audit</code> before shipping</div>
+        </article>
+
+        <article class="turn" data-role="auditor">
+          <div class="turn-head">● <strong>claude</strong> · code-auditor · 14:22</div>
+          <div class="turn-body">
+            Scanning 12 files. Found <strong style="color: var(--rose)">1 critical</strong>,
+            <strong>3 medium</strong>. Critical is F-001 — SQL injection in
+            <code>/api/users/[id]</code>.
+          </div>
+        </article>
+
+        <article class="turn" data-role="user">
+          <div class="turn-head">› <strong>you</strong> · 14:23</div>
+          <div class="turn-body">Show me F-001.</div>
+        </article>
+
+        <article class="turn" data-role="security">
+          <div class="turn-head">● <strong>claude</strong> · security-auditor · 14:23</div>
+          <div class="turn-body">
+            Path param interpolated into <code>db.raw()</code>.
+            Three-line parameterise-the-id fix. Preview the diff?
+          </div>
+        </article>
+
+        <article class="turn" data-role="user">
+          <div class="turn-head">› <strong>you</strong> · 14:23</div>
+          <div class="turn-body">Yes — apply and re-audit.</div>
+        </article>
+
+        <article class="turn" data-role="deploy">
+          <div class="turn-head">● <strong>claude</strong> · deploy-ops · 14:24</div>
+          <div class="turn-body">
+            Patch applied. Re-audit: <strong style="color: var(--teal)">0 critical</strong>,
+            <strong>0 medium</strong>. Audit gate clear. Deploy to staging now?
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div class="deck-foot">
+      <span>scenario 03 — page 1 of 1</span>
+      <span>scroll → next scene</span>
+    </div>
+  </section>
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<title>C — tool / IDE · /demo prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg: #0d1117;
+    --pane: #161b22;
+    --gutter: #0b0f14;
+    --line: #21262d;
+    --text: #e6edf3;
+    --muted: #8d96a0;
+    --dim: #5e6770;
+    --ember: #e89e5b;
+    --rose: #f7768e;
+    --teal: #4ec9b0;
+    --advisor: #6e8cd0;
+    --tri: #d4b35c;
+    --ink: #1c1812;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ── App chrome — top bar / status bar / activity rail ── */
+  .ide {
+    display: grid;
+    grid-template-rows: 28px 1fr 22px;
+    grid-template-columns: 44px 240px 1fr 280px;
+    grid-template-areas:
+      "topbar topbar topbar topbar"
+      "activity sidebar editor inspector"
+      "status status status status";
+    height: 100vh;
+  }
+  .topbar {
+    grid-area: topbar;
+    display: flex;
+    align-items: center;
+    background: #0a0e14;
+    border-bottom: 0.5px solid var(--line);
+    padding: 0 12px;
+    gap: 16px;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+  .topbar-dots { display: flex; gap: 6px; }
+  .topbar-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--line); }
+  .topbar-dot:nth-child(1) { background: #ff5f57; }
+  .topbar-dot:nth-child(2) { background: #febc2e; }
+  .topbar-dot:nth-child(3) { background: #28c840; }
+  .topbar-title { color: var(--text); font-weight: 500; }
+  .topbar-meta { margin-left: auto; }
+
+  .activity {
+    grid-area: activity;
+    background: #0a0e14;
+    border-right: 0.5px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 10px;
+    gap: 4px;
+  }
+  .act {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    color: var(--dim);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    margin-left: -2px;
+    font-size: 14px;
+  }
+  .act:hover { color: var(--text); }
+  .act.is-active {
+    color: var(--text);
+    border-left-color: var(--ember);
+  }
+
+  /* ── Sidebar (file-explorer style scenarios) ── */
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--gutter);
+    border-right: 0.5px solid var(--line);
+    overflow-y: auto;
+    font-size: 12px;
+  }
+  .side-head {
+    padding: 6px 12px 6px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 10px;
+    border-bottom: 0.5px solid var(--line);
+    background: #0a0e14;
+    position: sticky;
+    top: 0;
+  }
+  .tree-group {
+    padding: 4px 0;
+  }
+  .tree-row {
+    padding: 2px 12px 2px 22px;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tree-row:hover { background: #1c2128; color: var(--text); }
+  .tree-row.is-open {
+    color: var(--text);
+    background: rgba(232, 158, 91, 0.10);
+  }
+  .tree-folder {
+    padding: 2px 12px;
+    color: var(--muted);
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tree-icon { color: var(--dim); width: 14px; flex: 0 0 auto; }
+  .tree-row.is-open .tree-icon { color: var(--ember); }
+  .tree-num { color: var(--dim); font-size: 11px; flex: 0 0 auto; width: 1.2em; }
+  .tree-name { flex: 1; }
+  .tree-badge {
+    font-size: 10px;
+    color: var(--rose);
+    margin-left: auto;
+  }
+
+  /* ── Editor (transcript) ── */
+  .editor {
+    grid-area: editor;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .tabs {
+    display: flex;
+    background: var(--pane);
+    border-bottom: 0.5px solid var(--line);
+    height: 32px;
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+  .tab {
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    font-size: 12px;
+    color: var(--muted);
+    border-right: 0.5px solid var(--line);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tab.is-active {
+    color: var(--text);
+    background: var(--bg);
+    box-shadow: inset 0 -2px 0 var(--ember);
+  }
+  .tab-close { opacity: 0.5; margin-left: 4px; }
+  .tab-close:hover { opacity: 1; color: var(--rose); }
+
+  .breadcrumb {
+    height: 26px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 14px;
+    color: var(--muted);
+    font-size: 11px;
+    border-bottom: 0.5px solid var(--line);
+    background: var(--bg);
+  }
+  .breadcrumb span { color: var(--ember); }
+
+  .stream {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0 60px;
+    background: var(--bg);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 12px;
+    padding: 6px 14px 6px 0;
+    color: var(--text);
+  }
+  .row:hover { background: rgba(232, 158, 91, 0.04); }
+  .row-num {
+    text-align: right;
+    color: var(--dim);
+    user-select: none;
+    font-variant-numeric: tabular-nums;
+    padding-right: 6px;
+    border-right: 0.5px solid var(--line);
+  }
+  .row-text { padding-left: 4px; }
+  .turn-head {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 2px;
+    font-size: 11px;
+  }
+  .turn-who { color: var(--muted); }
+  .turn-skill[data-role="rose"]   { color: var(--rose); }
+  .turn-skill[data-role="teal"]   { color: var(--teal); }
+  .turn-skill[data-role="ember"]  { color: var(--ember); }
+  .turn-time { color: var(--dim); margin-left: 4px; font-size: 10px; }
+  .row-body { line-height: 1.55; color: var(--text); }
+  .row-body code {
+    background: var(--pane);
+    padding: 1px 5px;
+    border: 0.5px solid var(--line);
+    font-size: 11.5px;
+  }
+  .row.user .row-text::before { content: "> "; color: var(--ember); }
+  .row.tool .row-body { color: var(--muted); padding-left: 1.4em; }
+  .row.tool .row-body::before { content: "⎿ "; color: var(--teal); }
+
+  /* ── Inspector (right) ── */
+  .inspector {
+    grid-area: inspector;
+    background: var(--pane);
+    border-left: 0.5px solid var(--line);
+    overflow-y: auto;
+    font-size: 12px;
+  }
+  .insp-section {
+    border-bottom: 0.5px solid var(--line);
+  }
+  .insp-section-head {
+    padding: 8px 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 10px;
+    background: #0e1318;
+    display: flex;
+    justify-content: space-between;
+  }
+  .insp-section-head .insp-count { color: var(--ember); }
+  .insp-section-body { padding: 6px 12px 10px; }
+  .insp-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 3px 0;
+    cursor: pointer;
+    color: var(--muted);
+  }
+  .insp-row:hover { color: var(--text); }
+  .insp-row .ico { color: var(--ember); flex: 0 0 auto; }
+  .insp-row .ico[data-c="rose"] { color: var(--rose); }
+  .insp-row .ico[data-c="teal"] { color: var(--teal); }
+  .insp-kind { margin-left: auto; color: var(--dim); font-size: 11px; }
+
+  /* ── Status bar ── */
+  .status {
+    grid-area: status;
+    background: #0a0e14;
+    border-top: 0.5px solid var(--line);
+    color: var(--muted);
+    font-size: 10.5px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 14px;
+    letter-spacing: 0.04em;
+  }
+  .status .ok { color: var(--teal); }
+  .status .warn { color: var(--ember); }
+  .status .right { margin-left: auto; }
+
+  .key { color: var(--ember); font-weight: 500; }
+</style>
+</head>
+<body>
+  <div class="ide">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="topbar-dots"><span class="topbar-dot"></span><span class="topbar-dot"></span><span class="topbar-dot"></span></div>
+      <span class="topbar-title">opchain · /demo</span>
+      <span>·</span>
+      <span>scenarios.workspace</span>
+      <span class="topbar-meta">claude-opus-4-7 · auto-accept · ↵ play · ␣ skip · R restart · 1–6 jump</span>
+    </div>
+
+    <!-- Activity rail -->
+    <nav class="activity">
+      <div class="act is-active" title="Scenarios">▦</div>
+      <div class="act" title="Search">⌕</div>
+      <div class="act" title="Inputs/Outputs">⊞</div>
+      <div class="act" title="Skills">●</div>
+      <div class="act" title="Help">?</div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="side-head">scenarios · 6</div>
+
+      <div class="tree-group">
+        <div class="tree-folder"><span class="tree-icon">▾</span>concept-to-shipped</div>
+        <div class="tree-row"><span class="tree-num">01</span><span class="tree-name">Concept&nbsp;→ shipped</span></div>
+      </div>
+
+      <div class="tree-group">
+        <div class="tree-folder"><span class="tree-icon">▾</span>dashboard-rescue</div>
+        <div class="tree-row"><span class="tree-num">02</span><span class="tree-name">Dashboard rescue</span></div>
+      </div>
+
+      <div class="tree-group">
+        <div class="tree-folder"><span class="tree-icon">▾</span>audit-gate</div>
+        <div class="tree-row is-open"><span class="tree-num">03</span><span class="tree-name">Audit gate before deploy</span><span class="tree-badge">●</span></div>
+      </div>
+
+      <div class="tree-group">
+        <div class="tree-folder"><span class="tree-icon">▾</span>postgres-migration</div>
+        <div class="tree-row"><span class="tree-num">04</span><span class="tree-name">Postgres migration</span></div>
+      </div>
+
+      <div class="tree-group">
+        <div class="tree-folder"><span class="tree-icon">▾</span>legacy-revive</div>
+        <div class="tree-row"><span class="tree-num">05</span><span class="tree-name">Legacy revive</span></div>
+      </div>
+
+      <div class="tree-group">
+        <div class="tree-folder"><span class="tree-icon">▾</span>stripe-ship</div>
+        <div class="tree-row"><span class="tree-num">06</span><span class="tree-name">Stripe ship</span></div>
+      </div>
+    </aside>
+
+    <!-- Editor -->
+    <main class="editor">
+      <div class="tabs">
+        <div class="tab is-active">audit-gate.session.md<span class="tab-close">×</span></div>
+        <div class="tab">audit-report.md<span class="tab-close">×</span></div>
+        <div class="tab">F-001.diff<span class="tab-close">×</span></div>
+        <div class="tab">deploy-plan.yaml<span class="tab-close">×</span></div>
+      </div>
+      <div class="breadcrumb">scenarios <span>›</span> audit-gate <span>›</span> session <span>›</span> step 4 of 7</div>
+
+      <div class="stream">
+        <div class="row user"><div class="row-num">14:22</div><div class="row-text"><div class="row-body">run <code>/audit</code> before shipping</div></div></div>
+
+        <div class="row"><div class="row-num">14:22</div><div class="row-text">
+          <div class="turn-head"><span class="turn-who">claude</span><span class="turn-skill" data-role="rose">code-auditor</span></div>
+          <div class="row-body">Scanning 12 files. Found <strong style="color: var(--rose)">1 critical</strong>, <strong>3 medium</strong>. Critical is F-001 — SQL injection in <code>/api/users/[id]</code>.</div>
+        </div></div>
+
+        <div class="row tool"><div class="row-num">14:22</div><div class="row-text"><div class="row-body">Wrote <code>audit-report.md</code> · 234 lines · 12 findings</div></div></div>
+
+        <div class="row user"><div class="row-num">14:23</div><div class="row-text"><div class="row-body">Show me F-001.</div></div></div>
+
+        <div class="row"><div class="row-num">14:23</div><div class="row-text">
+          <div class="turn-head"><span class="turn-who">claude</span><span class="turn-skill" data-role="rose">security-auditor</span></div>
+          <div class="row-body">Path param interpolated into <code>db.raw()</code>. Three-line parameterise-the-id fix. Preview the diff?</div>
+        </div></div>
+
+        <div class="row user"><div class="row-num">14:23</div><div class="row-text"><div class="row-body">Yes — apply and re-audit.</div></div></div>
+
+        <div class="row"><div class="row-num">14:24</div><div class="row-text">
+          <div class="turn-head"><span class="turn-who">claude</span><span class="turn-skill" data-role="teal">deploy-ops</span></div>
+          <div class="row-body">Patch applied. Re-audit: <strong style="color: var(--teal)">0 critical</strong>, <strong>0 medium</strong>. Audit gate clear.</div>
+        </div></div>
+
+        <div class="row tool"><div class="row-num">14:24</div><div class="row-text"><div class="row-body">Wrote <code>F-001.diff</code> · +14 / −6 lines</div></div></div>
+
+        <div class="row tool"><div class="row-num">14:24</div><div class="row-text"><div class="row-body">Wrote <code>deploy-plan.yaml</code> · staging then prod</div></div></div>
+      </div>
+    </main>
+
+    <!-- Inspector -->
+    <aside class="inspector">
+      <div class="insp-section">
+        <div class="insp-section-head"><span>inputs</span><span class="insp-count">3</span></div>
+        <div class="insp-section-body">
+          <div class="insp-row"><span class="ico">›</span><span>"run /audit before shipping"</span></div>
+          <div class="insp-row"><span class="ico">›</span><span>"Show me F-001."</span></div>
+          <div class="insp-row"><span class="ico">›</span><span>"Yes — apply and re-audit."</span></div>
+        </div>
+      </div>
+
+      <div class="insp-section">
+        <div class="insp-section-head"><span>outputs</span><span class="insp-count">4</span></div>
+        <div class="insp-section-body">
+          <div class="insp-row"><span class="ico">⊞</span><span>audit-report.md</span><span class="insp-kind">spec</span></div>
+          <div class="insp-row"><span class="ico">⊞</span><span>F-001.diff</span><span class="insp-kind">patch</span></div>
+          <div class="insp-row"><span class="ico">⊞</span><span>posture-review.md</span><span class="insp-kind">spec</span></div>
+          <div class="insp-row"><span class="ico">⊞</span><span>deploy-plan.yaml</span><span class="insp-kind">config</span></div>
+        </div>
+      </div>
+
+      <div class="insp-section">
+        <div class="insp-section-head"><span>skills</span><span class="insp-count">3</span></div>
+        <div class="insp-section-body">
+          <div class="insp-row"><span class="ico" data-c="rose">●</span><span>code-auditor</span><span class="insp-kind">audit-gate</span></div>
+          <div class="insp-row"><span class="ico" data-c="rose">●</span><span>security-auditor</span><span class="insp-kind">audit-gate</span></div>
+          <div class="insp-row"><span class="ico" data-c="teal">●</span><span>deploy-ops</span><span class="insp-kind">orchestrator</span></div>
+        </div>
+      </div>
+
+      <div class="insp-section">
+        <div class="insp-section-head"><span>checkpoint</span><span class="insp-count" style="color: var(--teal)">●</span></div>
+        <div class="insp-section-body">
+          <div style="color: var(--muted); line-height: 1.55">
+            .checkpoints/<br/>
+            ├─ code-auditor.json<br/>
+            ├─ security-auditor.json<br/>
+            └─ deploy-ops.json
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Status bar -->
+    <div class="status">
+      <span>scenario 03 · audit-gate</span>
+      <span>·</span>
+      <span>step 4 / 7</span>
+      <span>·</span>
+      <span class="ok">✓ checkpoint synced</span>
+      <span>·</span>
+      <span class="warn">1 critical caught at gate</span>
+      <span class="right"><span class="key">↵</span> play · <span class="key">␣</span> skip · <span class="key">R</span> restart</span>
+    </div>
+
+  </div>
+</body>
+</html>
