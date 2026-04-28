@@ -28,14 +28,6 @@ const COLOR_CONTRAST_DISABLE = {
     "shared tokens (.nav-link, .eyebrow, .btn, .pill); tracked in roadmap B-10",
 };
 
-// label — GFM task-list checkboxes inside rendered SKILL.md content lack
-// associated <label>s. Markdown-renderer concern, not a per-page fix.
-// Tracked in roadmap B-11.
-const LABEL_TASK_LIST_DISABLE = {
-  id: "label",
-  reason:
-    "GFM task-list checkboxes from rendered SKILL.md — markdown-renderer concern; tracked in roadmap B-11",
-};
 
 const ROUTES: RouteSpec[] = [
   { path: "/",                     h1: /opchain/i,                  disabledRules: [COLOR_CONTRAST_DISABLE] },
@@ -60,12 +52,12 @@ const ROUTES: RouteSpec[] = [
   {
     path: "/skills/app-architect",
     h1: /app architect/i,
-    disabledRules: [COLOR_CONTRAST_DISABLE, LABEL_TASK_LIST_DISABLE],
+    disabledRules: [COLOR_CONTRAST_DISABLE],
   },
   {
     path: "/skills/code-auditor",
     h1: /code auditor/i,
-    disabledRules: [COLOR_CONTRAST_DISABLE, LABEL_TASK_LIST_DISABLE],
+    disabledRules: [COLOR_CONTRAST_DISABLE],
   },
   {
     path: "/demo",
