@@ -72,7 +72,7 @@ const catalog = JSON.stringify(
             "data-index": String(i),
           } as any)}
         >
-          <span class="scenario-num">0{i + 1}</span>
+          <span class="scenario-num">{String(i + 1).padStart(2, "0")}</span>
           <span class="scenario-tagline">{w.tagline}</span>
         </button>
       ))}
@@ -396,7 +396,7 @@ const catalog = JSON.stringify(
 
       // Player head
       heading.textContent = w.title;
-      eyebrow.textContent = `scenario · 0${i + 1}`;
+      eyebrow.textContent = `scenario · ${String(i + 1).padStart(2, "0")}`;
       playLbl.textContent = "start";
       startPrompt.hidden = false;
       cwd.textContent = `~/sessions/${w.id}`;
@@ -429,10 +429,12 @@ const catalog = JSON.stringify(
 
       updateProgress();
 
-      // Toggle pressed state on the scenario cards.
+      // Toggle pressed state + roving tabindex on the scenario chips
+      // so only the active chip is in the keyboard tab order (I6).
       picker.querySelectorAll<HTMLElement>("[data-scenario]").forEach((el) => {
         const matched = el.dataset.scenario === w.id;
         el.setAttribute("aria-selected", matched ? "true" : "false");
+        el.setAttribute("tabindex", matched ? "0" : "-1");
       });
     }
 
@@ -448,7 +450,7 @@ const catalog = JSON.stringify(
           const id = btn.dataset.artifactId || "";
           const artifact = byId.get(id);
           if (!artifact) return;
-          openOutputDrawer(artifact);
+          openOutputDrawer(artifact, btn);
         });
       });
 
@@ -458,65 +460,118 @@ const catalog = JSON.stringify(
           const idx = Number(btn.dataset.inputIdx ?? "-1");
           const text = w.inputs[idx];
           if (typeof text !== "string") return;
-          openInputDrawer(text);
+          openInputDrawer(text, btn);
         });
       });
     }
 
-    // ── Output drawer wiring ─────────────────────────────────────
+    // ── Drawer wiring (output + input) ───────────────────────────
+    // I1–I4 — Both drawers are modal dialogs. Shared open/close logic
+    // gives each: focus trap (Tab + Shift+Tab cycle within the drawer),
+    // focus restore to the trigger that opened it, scoped Escape
+    // handler (attached on open, removed on close), and synchronous
+    // aria-hidden + .is-open class so AT and visual states stay in
+    // sync. aria-modal lives on the role="dialog" panel, not the
+    // outer container.
     const drawer       = document.getElementById("output-drawer")!;
     const drawerScrim  = document.getElementById("output-drawer-scrim")!;
     const drawerClose  = document.getElementById("output-drawer-close")!;
     const drawerTitle  = document.getElementById("output-drawer-title")!;
     const drawerKind   = document.getElementById("output-drawer-kind")!;
     const drawerBody   = document.getElementById("output-drawer-body")!;
+    const drawerPanel  = drawer.querySelector<HTMLElement>(".output-drawer-panel");
 
-    function openOutputDrawer(artifact: Artifact) {
-      drawerTitle.textContent = artifact.label;
-      drawerKind.textContent = artifact.kind || "";
-      drawerBody.innerHTML = renderSafeMarkdown(artifact.body);
-      drawer.setAttribute("aria-hidden", "false");
-      requestAnimationFrame(() => drawer.classList.add("is-open"));
-      drawerClose.focus();
-    }
-    function closeOutputDrawer() {
-      drawer.classList.remove("is-open");
-      drawer.setAttribute("aria-hidden", "true");
-    }
-    drawerScrim.addEventListener("click", closeOutputDrawer);
-    drawerClose.addEventListener("click", closeOutputDrawer);
-
-    // ── Round-3 3.0 — Input drawer wiring (mirrors output drawer) ──
     const inputDrawer       = document.getElementById("input-drawer")!;
     const inputDrawerScrim  = document.getElementById("input-drawer-scrim")!;
     const inputDrawerClose  = document.getElementById("input-drawer-close")!;
     const inputDrawerTitle  = document.getElementById("input-drawer-title")!;
     const inputDrawerBody   = document.getElementById("input-drawer-body")!;
+    const inputDrawerPanel  = inputDrawer.querySelector<HTMLElement>(".input-drawer-panel");
 
-    function openInputDrawer(text: string) {
+    type DrawerHandle = {
+      root: HTMLElement;
+      panel: HTMLElement | null;
+      close: HTMLElement;
+      keydown: ((ev: KeyboardEvent) => void) | null;
+      lastTrigger: HTMLElement | null;
+    };
+
+    const outputHandle: DrawerHandle = {
+      root: drawer, panel: drawerPanel, close: drawerClose,
+      keydown: null, lastTrigger: null,
+    };
+    const inputHandle: DrawerHandle = {
+      root: inputDrawer, panel: inputDrawerPanel, close: inputDrawerClose,
+      keydown: null, lastTrigger: null,
+    };
+
+    function getDrawerFocusables(root: HTMLElement): HTMLElement[] {
+      const sel = 'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      return Array.from(root.querySelectorAll<HTMLElement>(sel));
+    }
+
+    function makeDrawerKeydown(h: DrawerHandle, close: () => void) {
+      return (ev: KeyboardEvent) => {
+        if (ev.key === "Escape") {
+          ev.preventDefault();
+          close();
+          return;
+        }
+        if (ev.key !== "Tab") return;
+        const focusables = getDrawerFocusables(h.root);
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement as HTMLElement | null;
+        if (ev.shiftKey && active === first) {
+          ev.preventDefault();
+          last.focus();
+        } else if (!ev.shiftKey && active === last) {
+          ev.preventDefault();
+          first.focus();
+        }
+      };
+    }
+
+    function openDrawer(h: DrawerHandle, trigger: HTMLElement | null, close: () => void) {
+      h.lastTrigger = trigger;
+      h.root.classList.add("is-open");
+      h.root.setAttribute("aria-hidden", "false");
+      h.panel?.setAttribute("aria-modal", "true");
+      h.keydown = makeDrawerKeydown(h, close);
+      document.addEventListener("keydown", h.keydown);
+      h.close.focus();
+    }
+    function closeDrawer(h: DrawerHandle) {
+      h.root.classList.remove("is-open");
+      h.root.setAttribute("aria-hidden", "true");
+      h.panel?.removeAttribute("aria-modal");
+      if (h.keydown) {
+        document.removeEventListener("keydown", h.keydown);
+        h.keydown = null;
+      }
+      h.lastTrigger?.focus();
+      h.lastTrigger = null;
+    }
+
+    function openOutputDrawer(artifact: Artifact, trigger: HTMLElement | null) {
+      drawerTitle.textContent = artifact.label;
+      drawerKind.textContent = artifact.kind || "";
+      drawerBody.innerHTML = renderSafeMarkdown(artifact.body);
+      openDrawer(outputHandle, trigger, closeOutputDrawer);
+    }
+    function closeOutputDrawer() { closeDrawer(outputHandle); }
+    drawerScrim.addEventListener("click", closeOutputDrawer);
+    drawerClose.addEventListener("click", closeOutputDrawer);
+
+    function openInputDrawer(text: string, trigger: HTMLElement | null) {
       inputDrawerTitle.textContent = "What the user said";
       inputDrawerBody.textContent = text;
-      inputDrawer.setAttribute("aria-hidden", "false");
-      requestAnimationFrame(() => inputDrawer.classList.add("is-open"));
-      inputDrawerClose.focus();
+      openDrawer(inputHandle, trigger, closeInputDrawer);
     }
-    function closeInputDrawer() {
-      inputDrawer.classList.remove("is-open");
-      inputDrawer.setAttribute("aria-hidden", "true");
-    }
+    function closeInputDrawer() { closeDrawer(inputHandle); }
     inputDrawerScrim.addEventListener("click", closeInputDrawer);
     inputDrawerClose.addEventListener("click", closeInputDrawer);
-
-    document.addEventListener("keydown", (ev) => {
-      if (ev.key !== "Escape") return;
-      if (drawer.classList.contains("is-open")) {
-        ev.preventDefault();
-        closeOutputDrawer();
-      } else if (inputDrawer.classList.contains("is-open")) {
-        ev.preventDefault();
-        closeInputDrawer();
-      }
-    });
 
     function updateProgress() {
       const total = currentScenario().steps.length;
@@ -671,7 +726,6 @@ const catalog = JSON.stringify(
       if (stepIdx === 1) {
         setDetailCollapsed(true);
         switchTab("chat");
-        notifyChatStarted();
       } else {
         // Subsequent advances: if the user has switched back to Scenario
         // since starting the chat, flash a small dot on the Chat tab so
@@ -691,18 +745,20 @@ const catalog = JSON.stringify(
       // Skipping also counts as starting the chat.
       setDetailCollapsed(true);
       switchTab("chat");
-      notifyChatStarted();
       updateProgress();
       scrollChat();
     }
 
     function restart() {
+      // I7 — Switch tab first so the slow detail-expand animation
+      // happens on the now-visible panel rather than under the chat
+      // panel. Then reset transcript + startPrompt + detail collapse
+      // state in a single frame.
+      switchTab("detail");
       stepIdx = 0;
       transcript.innerHTML = "";
       startPrompt.hidden = false;
       setDetailCollapsed(false);
-      switchTab("detail");
-      notifyChatEnded();
       updateProgress();
     }
 
@@ -710,13 +766,14 @@ const catalog = JSON.stringify(
     const tabButtons   = document.querySelectorAll<HTMLButtonElement>(".replays-tab[data-rtab]");
     const tabPanels    = document.querySelectorAll<HTMLElement>(".replays-panel[data-rtab]");
     const chatTabDot   = document.getElementById("rtab-chat-dot");
-    let chatStartedOnce = false;
 
     function switchTab(name: "detail" | "chat") {
       tabButtons.forEach((b) => {
         const matched = b.dataset.rtab === name;
         b.classList.toggle("is-active", matched);
         b.setAttribute("aria-selected", matched ? "true" : "false");
+        // I6 — roving tabindex: only the active tab is in the tab order.
+        b.setAttribute("tabindex", matched ? "0" : "-1");
       });
       tabPanels.forEach((p) => {
         p.hidden = p.dataset.rtab !== name;
@@ -738,20 +795,30 @@ const catalog = JSON.stringify(
       });
     });
 
-    // 1.6 — Notify the parent demo page so it can hide / restore the
-    // mode-cards strip up top. Custom-event approach replaces the
-    // CSS-only :has(.detail.is-collapsed) selector (which wasn't firing
-    // reliably across browsers).
-    function notifyChatStarted() {
-      if (chatStartedOnce) return;
-      chatStartedOnce = true;
-      window.dispatchEvent(new CustomEvent("replays:start"));
+    // I6 — ARIA tablist keyboard pattern for the Scenario / Chat bar.
+    // Left/Right + Home/End cycle and auto-activate; Enter/Space
+    // activate via the native button click. Roving tabindex (above)
+    // keeps a single tabstop in the bar.
+    function focusTab(name: "detail" | "chat") {
+      const target = Array.from(tabButtons).find((b) => b.dataset.rtab === name);
+      target?.focus();
     }
-    function notifyChatEnded() {
-      if (!chatStartedOnce) return;
-      chatStartedOnce = false;
-      window.dispatchEvent(new CustomEvent("replays:end"));
-    }
+    tabButtons.forEach((b) => {
+      b.addEventListener("keydown", (ev) => {
+        const key = ev.key;
+        if (key === "ArrowLeft" || key === "ArrowUp" || key === "Home") {
+          ev.preventDefault();
+          switchTab("detail");
+          focusTab("detail");
+        } else if (key === "ArrowRight" || key === "ArrowDown" || key === "End") {
+          ev.preventDefault();
+          switchTab("chat");
+          focusTab("chat");
+        } else if (key === "Enter" || key === " ") {
+          ev.stopPropagation();
+        }
+      });
+    });
 
     // ── wire up ────────────────────────────────────────────────
     playBtn.addEventListener("click", advance);
@@ -761,13 +828,51 @@ const catalog = JSON.stringify(
       setDetailCollapsed(!detailCard.classList.contains("is-collapsed"));
     });
 
-    picker.querySelectorAll<HTMLButtonElement>("[data-scenario]").forEach((el, i) => {
+    // I6 — ARIA tablist keyboard pattern for the scenario chip strip.
+    // Roving tabindex (set inside setScenario) keeps a single tabstop
+    // in the picker; arrow keys + Home/End cycle and auto-activate
+    // the focused chip.
+    const scenarioChips = Array.from(
+      picker.querySelectorAll<HTMLButtonElement>("[data-scenario]"),
+    );
+    function focusScenarioChip(i: number) {
+      const target = scenarioChips[i];
+      target?.focus();
+    }
+    scenarioChips.forEach((el, i) => {
+      // Initial roving tabindex: 0 on the active chip, -1 on the rest.
+      el.setAttribute("tabindex", i === 0 ? "0" : "-1");
       el.addEventListener("click", () => setScenario(i));
-      // Native <button> Enter/Space → click. Stop the keydown from also
-      // bubbling to the window player handler, which would otherwise
-      // advance/skip the transcript on the same keystroke.
       el.addEventListener("keydown", (ev) => {
-        if (ev.key === "Enter" || ev.key === " ") ev.stopPropagation();
+        const key = ev.key;
+        if (key === "Enter" || key === " ") {
+          ev.stopPropagation();
+          return;
+        }
+        if (key === "ArrowLeft" || key === "ArrowUp") {
+          ev.preventDefault();
+          ev.stopPropagation();
+          const next = (i - 1 + scenarioChips.length) % scenarioChips.length;
+          setScenario(next);
+          focusScenarioChip(next);
+        } else if (key === "ArrowRight" || key === "ArrowDown") {
+          ev.preventDefault();
+          ev.stopPropagation();
+          const next = (i + 1) % scenarioChips.length;
+          setScenario(next);
+          focusScenarioChip(next);
+        } else if (key === "Home") {
+          ev.preventDefault();
+          ev.stopPropagation();
+          setScenario(0);
+          focusScenarioChip(0);
+        } else if (key === "End") {
+          ev.preventDefault();
+          ev.stopPropagation();
+          const last = scenarioChips.length - 1;
+          setScenario(last);
+          focusScenarioChip(last);
+        }
       });
     });
 
@@ -794,6 +899,10 @@ const catalog = JSON.stringify(
       if (!Number.isNaN(n) && n >= 1 && n <= catalog.length) {
         ev.preventDefault();
         setScenario(n - 1);
+        // I5 — Send keyboard focus to the picked chip so AT users
+        // hear the new scenario announced via the role="tab" +
+        // aria-selected change.
+        focusScenarioChip(n - 1);
       }
     });
 
@@ -803,12 +912,23 @@ const catalog = JSON.stringify(
 
   <style>
     .replays { display: block; }
+    /* V6 — Kbd hint is the first thing a visitor sees. Lift it from a
+       barely-visible 11px subtle row to a dotted-bordered surface card
+       that reads at a glance. Still mono, still tight; just visible. */
     .kbd-hint {
-      margin: 0 0 1.25rem;
+      margin: 0 0 1.5rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--surface);
+      border: 0.5px dashed var(--border);
+      border-radius: var(--r-sm);
       font-family: var(--font-mono);
       font-size: var(--fs-xs);
       letter-spacing: var(--ls-wide);
-      color: var(--subtle);
+      color: var(--muted);
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      align-items: center;
     }
     .kbd-hint kbd { margin: 0 0.15rem; }
     kbd {
@@ -821,39 +941,7 @@ const catalog = JSON.stringify(
       color: var(--text);
     }
 
-    /* ── Scenario picker — compact strip ─────────────────────── */
-    .scenarios {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 0.45rem;
-      margin-bottom: 1.5rem;
-    }
-    .scenario {
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-      padding: 0.8rem 1rem;
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: var(--r-md);
-      cursor: pointer;
-      text-align: left;
-      font: inherit;
-      color: var(--text);
-      transition:
-        border-color var(--dur-fast) var(--ease-standard),
-        background var(--dur-fast) var(--ease-standard),
-        transform var(--dur-fast) var(--ease-standard);
-    }
-    .scenario:hover {
-      border-color: var(--accent);
-      transform: translateY(-1px);
-    }
-    .scenario[aria-selected="true"] {
-      border-color: var(--accent);
-      background: var(--accent-dim);
-      box-shadow: var(--glow-md);
-    }
+    /* ── Scenario picker — chip accordion (see 5.2 below) ───── */
     .scenario-num {
       flex: 0 0 auto;
       font-family: var(--font-mono);
@@ -872,24 +960,16 @@ const catalog = JSON.stringify(
       letter-spacing: -0.005em;
       line-height: 1.25;
     }
-    .chip {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text);
-      background: var(--card);
-      border: 0.5px solid var(--border);
-      padding: 1px 6px;
-      border-radius: var(--r-xs);
-    }
 
     /* ── Detail panel — full width under the card strip ─────── */
+    /* V2 — No box-shadow here. The Player below carries the page's
+       single glow accent; stacking two glows reads as a halo. */
     .detail {
       background: var(--surface);
       border: 0.5px solid var(--border);
       border-radius: var(--r-lg);
       padding: 1.5rem 1.75rem;
       margin-bottom: 1.5rem;
-      box-shadow: var(--glow-md);
     }
     .detail-head {
       display: flex;
@@ -1017,9 +1097,6 @@ const catalog = JSON.stringify(
       color: var(--accent);
       transition: transform var(--dur-fast) var(--ease-standard);
     }
-    .artifact-head[aria-expanded="true"] .artifact-chevron {
-      transform: rotate(90deg);
-    }
     .artifact-label {
       flex: 1;
       font-size: var(--fs-sm);
@@ -1034,77 +1111,6 @@ const catalog = JSON.stringify(
       padding: 1px 6px;
       border-radius: var(--r-xs);
       letter-spacing: var(--ls-wide);
-    }
-    .artifact-body {
-      padding: 0.9rem 1.1rem;
-      border-top: 0.5px solid var(--border);
-      background: var(--ribbon);
-      font-size: 12px;
-      line-height: 1.55;
-      color: var(--text);
-      max-height: 28rem;
-      overflow-y: auto;
-    }
-    .artifact-body[hidden] { display: none; }
-    .artifact-body :global(h1),
-    .artifact-body :global(h2),
-    .artifact-body :global(h3) {
-      font-family: var(--font-display);
-      color: var(--text);
-      margin: 0.6rem 0 0.35rem;
-    }
-    .artifact-body :global(h1) { font-size: var(--fs-md); }
-    .artifact-body :global(h2) { font-size: var(--fs-sm); }
-    .artifact-body :global(h3) { font-size: 12px; }
-    .artifact-body :global(p)  { margin: 0 0 0.5rem; color: var(--muted); }
-    .artifact-body :global(ul),
-    .artifact-body :global(ol) { margin: 0.25rem 0 0.5rem 1.2rem; padding: 0; color: var(--muted); }
-    .artifact-body :global(li) { margin: 0.1rem 0; }
-    .artifact-body :global(code) {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      padding: 0 4px;
-      border-radius: var(--r-xs);
-    }
-    .artifact-body :global(pre) {
-      background: var(--obsidian);
-      color: var(--linen);
-      border: 0.5px solid var(--slag);
-      border-radius: var(--r-sm);
-      padding: 0.75rem 0.95rem;
-      overflow-x: auto;
-      font-size: 11px;
-      margin: 0.35rem 0 0.5rem;
-    }
-    .artifact-body :global(pre code) {
-      background: transparent; border: 0; padding: 0;
-    }
-    .artifact-body :global(table) {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11px;
-      margin: 0.5rem 0;
-    }
-    .artifact-body :global(th),
-    .artifact-body :global(td) {
-      border: 0.5px solid var(--border);
-      padding: 0.3rem 0.55rem;
-      text-align: left;
-    }
-    .artifact-body :global(th) {
-      background: var(--surface);
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: var(--ls-wide);
-      color: var(--muted);
-    }
-    .artifact-body :global(blockquote) {
-      border-left: 2px solid var(--accent);
-      padding: 0.2rem 0 0.2rem 0.8rem;
-      margin: 0.4rem 0;
-      color: var(--muted);
     }
 
     /* ── Player ──────────────────────────────────────────────── */
@@ -1695,18 +1701,23 @@ const catalog = JSON.stringify(
       border-radius: var(--r-xs);
     }
 
-    /* 5.5 + 5.6 — User input rows. Single-tone (no path-a / path-b
-       blue), faint cream-tinted background so the row stands apart
-       from claude turns and dividers without leaning on a brand colour. */
+    /* V3 — Transcript rhythm: only assistant turns and tool calls
+       carry a box. User input collapses to a left-stripe + cream row
+       so beats / claude turns / user input read as three different
+       weights rather than three competing boxes. */
     :global(.cc-stream .cc-user) {
-      background: color-mix(in srgb, var(--linen) 10%, #1d1d1d);
-      border-color: color-mix(in srgb, var(--linen) 25%, var(--cc-border));
+      background: transparent;
+      border: 0;
+      border-left: 2px solid color-mix(in srgb, var(--linen) 35%, transparent);
+      border-radius: 0;
+      padding: 0.45rem 0.5rem 0.45rem 0.75rem;
     }
     :global(.cc-stream .cc-user .cc-user-text) {
       color: var(--linen);
     }
     :global(.cc-stream .cc-user .cc-user-mark) {
       color: var(--linen);
+      opacity: 0.75;
     }
 
     /* 1.6.5 + 1.7.1 Artifacts (Write tool calls). Warning-lime stripe with
@@ -1766,6 +1777,17 @@ const catalog = JSON.stringify(
     }
     .detail.is-collapsed .detail-summary {
       display: none;
+    }
+    /* V7 — Honour prefers-reduced-motion on the long collapse + drawer
+       transitions. The chat-tab-dot pulse already opted out further
+       down. */
+    @media (prefers-reduced-motion: reduce) {
+      .detail-body-wrap { transition: none; }
+      .output-drawer-scrim,
+      .output-drawer-panel,
+      .input-drawer-scrim,
+      .input-drawer-panel { transition: none; }
+      .progress-bar { transition: none; }
     }
 
     /* 5.3 — Detail toggle pinned to the top-right corner of the card,
@@ -2174,11 +2196,31 @@ const catalog = JSON.stringify(
         max-width 420ms cubic-bezier(0.32, 0.72, 0, 1),
         opacity 280ms cubic-bezier(0.32, 0.72, 0, 1);
     }
+    /* V1 — Active chip + neighbours show their tagline at rest, so a
+       first-time visitor sees three labels even without hovering.
+       Hover/focus still expands a single chip to its full label. */
+    .scenario:hover .scenario-tagline,
+    .scenario:focus-visible .scenario-tagline,
+    .scenario[aria-selected="true"] .scenario-tagline,
+    .scenario[aria-selected="true"] + .scenario .scenario-tagline,
+    .scenario:has(+ .scenario[aria-selected="true"]) .scenario-tagline {
+      max-width: 22rem;
+      opacity: 1;
+    }
+    /* The two neighbours render dimmer + slightly truncated so the
+       active chip stays the obvious focus. */
+    .scenario[aria-selected="true"] + .scenario .scenario-tagline,
+    .scenario:has(+ .scenario[aria-selected="true"]) .scenario-tagline {
+      max-width: 12rem;
+      opacity: 0.65;
+    }
     .scenario:hover .scenario-tagline,
     .scenario:focus-visible .scenario-tagline,
     .scenario[aria-selected="true"] .scenario-tagline {
-      max-width: 22rem;
       opacity: 1;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .scenario .scenario-tagline { transition: none; }
     }
     .scenario:hover {
       border-color: var(--accent);
@@ -2256,7 +2298,7 @@ const catalog = JSON.stringify(
       padding-right: 0.4rem;
       font-family: var(--font-mono);
       font-size: var(--fs-xs);
-      color: var(--dim);
+      color: var(--subtle);
       letter-spacing: var(--ls-wide);
     }
     @media (max-width: 640px) {
