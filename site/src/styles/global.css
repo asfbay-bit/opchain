@@ -102,6 +102,17 @@ body {
 a { color: var(--accent); text-decoration: none; }
 a:hover { color: var(--accent-hover); }
 
+/* Prose anchor underline — links inside body text need a non-colour
+   distinction to satisfy axe's `link-in-text-block` rule (WCAG 1.4.1).
+   Scoped to text-block parents (p, li, td, dd, blockquote, .alert) so
+   chrome anchors styled with .btn / .nav-link / .pill etc. stay
+   undecorated. Tracked under B-11 in roadmap/05-post-sprint-7-backlog.md. */
+:where(p, li, td, dd, blockquote, .alert) a:not(.btn, .nav-link, .phase-pill, .pill, [role="button"]) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;

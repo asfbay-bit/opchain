@@ -28,15 +28,6 @@ const COLOR_CONTRAST_DISABLE = {
     "shared tokens (.nav-link, .eyebrow, .btn, .pill); tracked in roadmap B-10",
 };
 
-// link-in-text-block — links inside body text need non-colour distinction
-// (underline, weight, etc.). Found across most pages with prose links.
-// Tracked in roadmap B-11; fix is a global a-in-prose CSS rule.
-const LINK_IN_TEXT_BLOCK_DISABLE = {
-  id: "link-in-text-block",
-  reason:
-    "links inside <p>/<li> need non-colour distinction; tracked in roadmap B-11",
-};
-
 // label — GFM task-list checkboxes inside rendered SKILL.md content lack
 // associated <label>s. Markdown-renderer concern, not a per-page fix.
 // Tracked in roadmap B-11.
@@ -53,7 +44,6 @@ const ROUTES: RouteSpec[] = [
     h1: /how opchain skills chain/i,
     disabledRules: [
       COLOR_CONTRAST_DISABLE,
-      LINK_IN_TEXT_BLOCK_DISABLE,
       {
         id: "nested-interactive",
         reason:
@@ -64,18 +54,18 @@ const ROUTES: RouteSpec[] = [
   {
     path: "/install",
     h1: /three flows/i,
-    disabledRules: [COLOR_CONTRAST_DISABLE, LINK_IN_TEXT_BLOCK_DISABLE],
+    disabledRules: [COLOR_CONTRAST_DISABLE],
   },
   { path: "/skills",               h1: /every skill, filterable/i,  disabledRules: [COLOR_CONTRAST_DISABLE] },
   {
     path: "/skills/app-architect",
     h1: /app architect/i,
-    disabledRules: [COLOR_CONTRAST_DISABLE, LINK_IN_TEXT_BLOCK_DISABLE, LABEL_TASK_LIST_DISABLE],
+    disabledRules: [COLOR_CONTRAST_DISABLE, LABEL_TASK_LIST_DISABLE],
   },
   {
     path: "/skills/code-auditor",
     h1: /code auditor/i,
-    disabledRules: [COLOR_CONTRAST_DISABLE, LINK_IN_TEXT_BLOCK_DISABLE, LABEL_TASK_LIST_DISABLE],
+    disabledRules: [COLOR_CONTRAST_DISABLE, LABEL_TASK_LIST_DISABLE],
   },
   {
     path: "/demo",
@@ -92,12 +82,12 @@ const ROUTES: RouteSpec[] = [
   {
     path: "/privacy",
     h1: /privacy/i,
-    disabledRules: [COLOR_CONTRAST_DISABLE, LINK_IN_TEXT_BLOCK_DISABLE],
+    disabledRules: [COLOR_CONTRAST_DISABLE],
   },
   {
     path: "/styleguide",
     h1: /styleguide/i,
-    disabledRules: [COLOR_CONTRAST_DISABLE, LINK_IN_TEXT_BLOCK_DISABLE],
+    disabledRules: [COLOR_CONTRAST_DISABLE],
   },
 ];
 
