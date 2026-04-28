@@ -130,16 +130,20 @@ const phaseLabels = [
 ];
 ---
 
-<figure class="pipeline">
+<figure class="pipeline" aria-label="opchain pipeline diagram">
   <svg
     viewBox="0 0 980 340"
     xmlns="http://www.w3.org/2000/svg"
-    role="img"
-    aria-labelledby="pipeline-title pipeline-desc"
     class="pipeline-svg"
   >
-    <title id="pipeline-title">opchain pipeline</title>
-    <desc id="pipeline-desc">
+    {/* role="img" + aria-labelledby would declare the SVG as an atomic
+        image, which conflicts with the <a> link nodes inside (axe's
+        nested-interactive rule). Dropping those attributes keeps the
+        node-links interactive; <title> and <desc> are still announced by
+        screen readers natively and the parent <figure> carries an
+        aria-label for the diagram as a whole. */}
+    <title>opchain pipeline</title>
+    <desc>
       Every skill inherits the checkpoint-protocol JSON schema, and the
       orchestrator skill reads across all of them for cross-project status and
       routing. reverse-spec feeds app-architect, which auto-invokes

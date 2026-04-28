@@ -42,14 +42,7 @@ const ROUTES: RouteSpec[] = [
   {
     path: "/architecture",
     h1: /how opchain skills chain/i,
-    disabledRules: [
-      COLOR_CONTRAST_DISABLE,
-      {
-        id: "nested-interactive",
-        reason:
-          ".pipeline-svg has interactive child <g>s on a focusable container; SVG-IA refactor tracked in roadmap B-11",
-      },
-    ],
+    disabledRules: [COLOR_CONTRAST_DISABLE],
   },
   {
     path: "/install",
