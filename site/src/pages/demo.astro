@@ -1,60 +1,208 @@
 ---
 import Base from "../layouts/Base.astro";
-import Eyebrow from "../components/ui/Eyebrow.astro";
 import Replays from "../components/Replays.astro";
 import OnboardingTour from "../components/OnboardingTour.astro";
 
 /**
- * Demo — Replays only. The Live (Try-It) chat was removed in
- * `claude/remove-try-it`; the page now opens straight into the
- * curated walkthrough catalog. A first-visit overlay tour
- * (OnboardingTour) explains the page on first load.
+ * Demo — magazine-style intro + interactive workbench.
+ *
+ * The intro is the editorial "cover" (capped at ~45vh so it never
+ * dominates the viewport). The workbench below hosts <Replays /> — the
+ * real scenario engine. Clicking inside the workbench promotes it to a
+ * centered focus overlay (backdrop, locked scroll); clicking the
+ * backdrop or pressing Escape releases it back into normal flow.
  */
 ---
 
 <Base
   title="Demo · opchain"
-  description="Replay curated opchain skill conversations end-to-end — one tab per phase, six scenarios."
+  description="Replay curated opchain skill conversations end-to-end — six scenarios, real transcripts, click to inspect."
   active="/demo"
 >
-  <main class="page">
-    <header class="page-head">
-      <Eyebrow>demo</Eyebrow>
-      <h1>Watch a finished run.</h1>
-      <p class="lede">
-        Six end-to-end opchain sessions — concept to ship, audit to
-        deploy, migration to monitor. Step through, skip to the payoff,
-        or jump between scenarios.
+  <!-- 1 · Magazine cover — capped at ~45vh -->
+  <section class="stage">
+    <div class="stage-mid">
+      <div class="stage-issue">opchain · scenario 03 · audit gate</div>
+      <h1 class="stage-h">
+        Friday, 14:22.
+        A <em>SQL injection</em>
+        finds the <span class="ghosted">production</span> gate <em>first</em>.
+      </h1>
+      <p class="stage-sub">
+        The transcript below is a real opchain run — both auditors catch
+        a critical, hand back a one-line patch, and clear the deploy
+        gate inside two minutes. No live chat, no email. Scroll on.
+      </p>
+      <div class="stage-actions">
+        <a class="btn btn-primary" href="#workbench">▶ open the workbench</a>
+        <a class="btn btn-ghost" href="/install">install opchain</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Workbench -->
+  <section class="workbench" id="workbench">
+    <div class="work-head">
+      <div class="work-eyebrow">workbench</div>
+      <h2 class="work-h">Inspect the same run, end to end.</h2>
+      <p class="work-sub">
+        Pick a scenario. Step through, scrub, or jump to the payoff.
         <button class="help-btn" data-tour-trigger type="button" aria-label="Open intro tour">
           (?) tour
         </button>
       </p>
-    </header>
+    </div>
 
-    <Replays />
-  </main>
+    <div class="work-frame" data-workbench tabindex="-1">
+      <button
+        class="work-release"
+        type="button"
+        data-workbench-release
+        aria-label="Exit workbench focus mode"
+        title="Press Esc to exit"
+      >
+        ✕ exit
+      </button>
+      <Replays />
+    </div>
+  </section>
+
+  <div class="workbench-backdrop" data-workbench-backdrop hidden></div>
 
   <OnboardingTour />
 </Base>
 
 <style>
-  .page {
-    max-width: 960px;
+  /* ── 1. Magazine cover ── */
+  .stage {
+    position: relative;
+    max-height: 45vh;
+    min-height: 280px;
+    overflow: hidden;
+    padding: clamp(1.6rem, 4vw, 2.4rem) clamp(1rem, 4vw, 2.4rem);
+    background:
+      radial-gradient(700px 400px at 75% 30%, var(--ember-glow), transparent 70%),
+      radial-gradient(500px 300px at 15% 80%, var(--ember-dim), transparent 70%),
+      var(--bg);
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+  }
+  .stage-mid {
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 3rem 1.5rem 6rem;
+    width: 100%;
   }
-  .page-head { margin-bottom: 1.5rem; }
-  .page-head h1 {
+  .stage-issue {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .stage-h {
     font-family: var(--font-display);
-    font-size: var(--fs-2xl);
     font-weight: 600;
+    /* Capped so the headline never bursts the 45vh ceiling. */
+    font-size: clamp(1.5rem, 3.4vw, 2.6rem);
+    line-height: 1.05;
     letter-spacing: var(--ls-tight);
+    margin: 0 0 0.6rem;
+    max-width: 28ch;
     color: var(--text);
-    margin: 0.5rem 0 0.9rem;
   }
-  .lede {
+  .stage-h em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .stage-h .ghosted {
+    color: var(--subtle);
+    font-style: normal;
+  }
+  .stage-sub {
+    font-size: var(--fs-md);
     color: var(--muted);
     max-width: 44rem;
+    margin: 0 0 1rem;
+    line-height: var(--lh-snug);
+  }
+  .stage-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.1rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    cursor: pointer;
+    text-decoration: none;
+    border-radius: var(--r-xs);
+    transition:
+      transform var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard),
+      box-shadow var(--dur-base) var(--ease-standard);
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--obsidian);
+    border: 0;
+    font-weight: 600;
+  }
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--glow-md);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 0.5px solid var(--border);
+  }
+  .btn-ghost:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* ── 2. Workbench section ── */
+  .workbench {
+    padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem) 5rem;
+    background: var(--bg);
+  }
+  .work-head {
+    max-width: 1100px;
+    margin: 0 auto 1.6rem;
+  }
+  .work-eyebrow {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .work-h {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+    margin: 0 0 0.5rem;
+    max-width: 40ch;
+    color: var(--text);
+  }
+  .work-sub {
+    color: var(--muted);
+    font-size: var(--fs-md);
+    max-width: 50rem;
     margin: 0;
     line-height: var(--lh-base);
   }
@@ -78,4 +226,158 @@ import OnboardingTour from "../components/OnboardingTour.astro";
     color: var(--accent);
     border-color: var(--accent);
   }
+
+  /* ── 3. Workbench frame ── */
+  .work-frame {
+    position: relative;
+    max-width: 1180px;
+    margin: 0 auto;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 1.4rem;
+    cursor: zoom-in;
+    transition:
+      transform var(--dur-base) var(--ease-emphasized),
+      box-shadow var(--dur-base) var(--ease-standard),
+      border-color var(--dur-base) var(--ease-standard);
+  }
+  .work-frame:hover:not(.is-focused) {
+    border-color: var(--accent);
+    box-shadow: var(--glow-md);
+  }
+  .work-frame:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  .work-release {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 2;
+    display: none;
+    appearance: none;
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    padding: 4px 10px;
+    cursor: pointer;
+    transition:
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+  }
+  .work-release:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* ── 4. Focus mode — locks the workbench centered until released ── */
+  .work-frame.is-focused {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(96vw, 1280px);
+    height: min(92vh, 900px);
+    max-width: none;
+    margin: 0;
+    z-index: 100;
+    cursor: default;
+    overflow: auto;
+    box-shadow: var(--shadow-xl), var(--glow-lg);
+    border-color: var(--accent);
+  }
+  .work-frame.is-focused .work-release { display: inline-flex; }
+
+  .workbench-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgba(12, 8, 4, 0.7);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-base) var(--ease-standard);
+  }
+  .workbench-backdrop.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .workbench-backdrop[hidden] { display: none; }
+
+  body.workbench-locked {
+    overflow: hidden;
+  }
+
+  /* Don't trap mobile users in a fixed overlay — focus mode is
+     desktop-only. On narrow viewports the workbench just stays in flow. */
+  @media (max-width: 767px) {
+    .work-frame { cursor: auto; }
+    .work-frame.is-focused {
+      position: static;
+      transform: none;
+      width: auto;
+      height: auto;
+      box-shadow: none;
+    }
+    .work-frame.is-focused .work-release { display: none; }
+    .workbench-backdrop.is-visible {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
 </style>
+
+<script is:inline>
+  (() => {
+    const frame = document.querySelector('[data-workbench]');
+    const backdrop = document.querySelector('[data-workbench-backdrop]');
+    const release = document.querySelector('[data-workbench-release]');
+    if (!frame || !backdrop || !release) return;
+
+    const desktop = () => window.matchMedia('(min-width: 768px)').matches;
+    let focused = false;
+
+    function lock() {
+      if (focused || !desktop()) return;
+      focused = true;
+      frame.classList.add('is-focused');
+      backdrop.hidden = false;
+      // Force layout so the transition fires from opacity:0.
+      void backdrop.offsetWidth;
+      backdrop.classList.add('is-visible');
+      document.body.classList.add('workbench-locked');
+      frame.focus({ preventScroll: true });
+    }
+    function unlock() {
+      if (!focused) return;
+      focused = false;
+      frame.classList.remove('is-focused');
+      backdrop.classList.remove('is-visible');
+      document.body.classList.remove('workbench-locked');
+      // Hide backdrop after the fade-out so it doesn't block clicks.
+      setTimeout(() => { if (!focused) backdrop.hidden = true; }, 220);
+    }
+
+    frame.addEventListener('click', (e) => {
+      if (focused) return;
+      // Don't intercept link / button clicks inside the frame on first
+      // engagement — but otherwise any click promotes to focus mode.
+      const interactive = e.target.closest('a, button, [role="button"], input, textarea, select');
+      if (interactive) return;
+      lock();
+    });
+
+    backdrop.addEventListener('click', unlock);
+    release.addEventListener('click', (e) => { e.stopPropagation(); unlock(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && focused) unlock();
+    });
+  })();
+</script>
