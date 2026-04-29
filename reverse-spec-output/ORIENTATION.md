@@ -1,15 +1,19 @@
 # Orientation Summary — opchain
 
+_Refreshed 2026-04-28 by `/reverse-spec` targeted update. Replaces the
+2026-04-17 summary, which counted 10 skills, no tests, and called out
+the email-gated Try-It chat (since removed)._
+
 ```
 ORIENTATION SUMMARY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Project:        opchain-dev
-Type:           Hybrid — (a) static marketing site + (b) skill product catalog + (c) Cloudflare Worker API
-Stack:          Cloudflare Workers + Workers Assets + KV + esbuild + vanilla HTML/CSS/JS
-Deploy target:  Cloudflare (worker name: opchain-dev, custom domain: opchain.dev)
-Size:           src/: 2 files, 685 LOC · public/: 9 files, 1,633 LOC · skills/: 10 SKILL.md files, 4,950 LOC
-Existing docs:  README.md (top-level), CLAUDE.md (project instructions), per-skill SKILL.md
-Test coverage: NONE — no test runner, no test files, no CI step (HIGH confidence)
+Type:           Hybrid — (a) Astro 5 marketing site + (b) skill product catalog + (c) Cloudflare Worker API
+Stack:          Cloudflare Workers + Workers Assets + KV NOTIFY + Astro 5 + Tailwind 4 + esbuild + Zod
+Deploy targets: opchain.dev (worker: opchain-dev) + staging.opchain.dev (worker: opchain-staging)
+Size:           src/: 4 files, 660 LOC · site/src/: 12,146 LOC · skills/: 17 SKILL.md, 9,136 LOC
+Existing docs:  README.md, CLAUDE.md, per-skill SKILL.md, this reverse-spec output
+Test coverage: 11 Vitest files (Worker) + 3 Playwright e2e specs (site) + axe + Lighthouse, all in CI
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -17,33 +21,47 @@ Test coverage: NONE — no test runner, no test files, no CI step (HIGH confiden
 
 opchain is **two things in one repo**:
 
-1. **A product** — 10 Claude Code skills (`skills/*/SKILL.md`) forming a dev pipeline
-   (reverse-spec → app-architect → stack-forge/ux-engineer → code-auditor →
-   integrations-engineer → git-ops → deploy-ops, with scale-ops as advisory and
-   checkpoint-protocol as the persistence layer). The product ships as raw `SKILL.md`
-   files, bundled into `opchain-skills.zip`.
+1. **A product** — 17 Claude Code skills (`skills/<id>/SKILL.md`)
+   forming a dev pipeline. The `checkpoint-protocol` and
+   `orchestrator` skills are the protocol substrate; the other 15
+   cover plan / build / quality / ship phases. Skills chain by reading
+   each other's JSON checkpoints from `.checkpoints/`. Distribution:
+   raw `SKILL.md` files, per-skill `<id>.zip`, or the combined
+   `opchain-skills.zip`.
 
-2. **A showcase website** (opchain.dev) — a 5-page static site served by a Cloudflare
-   Worker, with two dynamic endpoints: feedback-to-Linear and an email-gated "Try It"
-   AI chat demo that streams responses from the Anthropic API.
+2. **A showcase website** (`opchain.dev`, plus `staging.opchain.dev`)
+   — an Astro 5 static site (`site/`) served by a Cloudflare Worker
+   (`src/`), with three live API endpoints: `/api/health`,
+   `/api/feedback` (Linear issue creation), and `/api/notify`
+   (install-moment soft-gate email capture, KV-backed). The previous
+   email-gated Try-It chat was removed in `claude/remove-try-it`;
+   `/api/try/*` now responds `410 Gone`.
 
 ## Scope for this reverse-spec run
 
-Single-app scope with **mixed outputs**: the Worker has its own architecture (routes,
-KV, streaming), while the skills ecosystem has its own shape (checkpoint protocol,
-orchestrator, pipeline topology). Both are documented below.
+Single-repo scope with **mixed outputs**: the Worker has its own
+architecture (router, KV, security headers, CSP nonce), the Astro site
+has its own component tree and content collection, and the skills
+ecosystem has its own shape (checkpoint protocol, orchestrator,
+pipeline topology). All three are documented below.
 
-Scoped skipped outputs: `05-monetization.md` (no payment code), `08-analytics.md`
-(no tracking/analytics code), `09-documentation-plan.md` (no docs infra beyond
-markdown files), `10-cost-estimate.md` (folded into 07-devops).
+Scoped skipped outputs (unchanged from the original run): `05-monetization.md`
+(no payment code), `08-analytics.md` (folded into `04-integrations.md`),
+`09-documentation-plan.md` (no docs infra beyond markdown files),
+`10-cost-estimate.md` (folded into `07-devops.md`).
 
 ## Recommended read order
 
 1. `spec/00-project-overview.md` — what opchain is, who it's for, dual product/site framing
-2. `spec/02-architecture.md` — the Worker router, the skills pipeline topology, checkpoint protocol
-3. `spec/01-tech-stack.md` — inferred stack rationale
-4. `spec/03-security-auth.md` — session token HMAC, rate limits, CORS
-5. `spec/04-integrations.md` — Linear GraphQL, Anthropic Messages API
-6. `design/design-system.md` — tokens and components extracted from styles.css
-7. `stack-forge-audit.md` — typed pipeline gap analysis
-8. `gap-analysis.md` — everything that's missing or risky
+2. `spec/02-architecture.md` — the Worker router, the Astro asset pipeline, the skills topology
+3. `spec/01-tech-stack.md` — Astro 5, Tailwind 4, Vitest, Playwright, Zod
+4. `spec/03-security-auth.md` — no auth, CSP nonce, rate limits, lead-PII handling
+5. `spec/04-integrations.md` — Linear GraphQL, PostHog server + client
+6. `spec/06-testing.md` — Vitest + Playwright + axe + LHCI (all in CI)
+7. `spec/07-devops.md` — manual deploy posture, version stamp, env matrix
+8. `gap-analysis.md` — current punch list (the 2026-04-17 HIGHs are all resolved)
+
+The `design/`, `stack-forge-audit.md`, and `tri-dev-ready/spec.md`
+artifacts in this folder were generated against the pre-Sprint-6
+codebase (vanilla HTML site, Try-It chat) and have **not** been
+refreshed in this pass — treat them as stale until a follow-up run.
