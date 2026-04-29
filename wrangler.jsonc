@@ -28,38 +28,41 @@
     "not_found_handling": "404-page",
     "run_worker_first": true
   },
-  // /api/notify writes lead records when a NOTIFY KV binding is present.
-  // The handler degrades gracefully when the binding is missing — the
-  // submission is accepted, persistence is skipped — so deploys without
-  // KV provisioned won't break.
+  // /api/notify writes lead records to the NOTIFY KV namespace. The
+  // handler in src/index.js degrades gracefully if the binding is
+  // unset — submission accepted, persistence skipped — so removing
+  // these blocks doesn't break deploys; it only disables persistence.
   //
-  // To enable persistence, provision the namespaces and add back a
-  // `kv_namespaces` array here (and inside `env.staging` below):
-  //
+  // Wrangler 4.x rejects `id: ""` at config-parse time, so the entries
+  // must contain real namespace IDs (or the arrays must be omitted
+  // entirely). Provision via the Cloudflare dashboard (Workers & Pages →
+  // KV → Create namespace) or:
   //   wrangler kv namespace create NOTIFY            (production)
   //   wrangler kv namespace create NOTIFY --preview  (local `wrangler dev`)
-  //   wrangler kv namespace create NOTIFY-staging    (staging env)
+  //   wrangler kv namespace create NOTIFY-staging    (staging)
   //
-  // Then add (top-level, prod):
-  //   "kv_namespaces": [
-  //     { "binding": "NOTIFY", "id": "<prod-id>", "preview_id": "<preview-id>" }
-  //   ],
-  // And inside env.staging:
-  //   "kv_namespaces": [
-  //     { "binding": "NOTIFY", "id": "<staging-id>", "preview_id": "<preview-id>" }
-  //   ]
-  //
-  // Wrangler 4.x rejects `id: ""` at parse time, so the blocks must be
-  // omitted entirely until real IDs exist. The previous `DATA` namespace
-  // was used by the now-removed Try-It chat; Cloudflare keeps the
-  // underlying namespaces around if you want to read old leads. Delete via
-  // `wrangler kv namespace delete --namespace-id <id>`.
+  // The previous `DATA` namespace was used by the now-removed Try-It
+  // chat; Cloudflare retains it if you need to read old leads.
+  "kv_namespaces": [
+    {
+      "binding": "NOTIFY",
+      "id": "6a7121cf34354a9991727187311b6264",
+      "preview_id": "2b5cb8f0733e4cb88a89b0dc8b1dd3d7"
+    }
+  ],
   "env": {
     "staging": {
       "name": "opchain-staging",
       // Staging custom domain. Same shape as the prod `routes` above —
       // see that comment for DNS / wrangler-login notes.
-      "routes": [{ "pattern": "staging.opchain.dev", "custom_domain": true }]
+      "routes": [{ "pattern": "staging.opchain.dev", "custom_domain": true }],
+      "kv_namespaces": [
+        {
+          "binding": "NOTIFY",
+          "id": "a76010c99fc346f4b3fe0e532ff4398f",
+          "preview_id": "2b5cb8f0733e4cb88a89b0dc8b1dd3d7"
+        }
+      ]
     }
   }
 }
