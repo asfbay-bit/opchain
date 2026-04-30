@@ -206,6 +206,8 @@
     text-transform: uppercase;
     color: var(--accent);
   }
+  /* B-10: --accent on light --surface = 3.05:1 ✗. --accent-hover = 4.56:1 ✓. */
+  :global([data-theme="light"]) .tour-eyebrow { color: var(--accent-hover); }
   .tour-close {
     appearance: none;
     background: transparent;
@@ -284,6 +286,9 @@
     color: #1c1710;
     font-weight: 600;
   }
+  /* B-10: light --accent (#d95010, L=0.206) + --obsidian text = 4.34:1 ✗.
+     --ember (#e05c18, L=0.235) gives 4.83:1 ✓. */
+  :global([data-theme="light"]) .tour-btn-primary { background: var(--ember); border-color: var(--ember); }
   .tour-btn-primary:hover:not(:disabled) {
     filter: brightness(1.05);
   }

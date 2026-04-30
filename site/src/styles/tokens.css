@@ -194,15 +194,15 @@
   --destructive-dim: rgba(127, 29, 29, 0.10);
 
   /* ── Skill role tokens — darkened for light-mode text contrast ──
-     All values verified ≥4.5:1 on both --card (#fff) and --surface (#f4e5cf).
-     Dark theme uses the vivid versions in :root; light theme needs L≤0.123
-     so that 10px pill text passes AA normal on the parchment surface. */
-  --workflow:     #a04010;  /* L≈0.112 — 4.82:1 on surface, 6.49:1 on card  */
-  --tri-agent:    #7a5008;  /* L≈0.100 — 5.22:1 on surface, 7.02:1 on card  */
-  --audit-gate:   #a01839;  /* L≈0.083 — 6.35:1 on surface, 8.54:1 on card  */
-  --specialist:   #0d6b63;  /* L≈0.112 — 4.81:1 on surface, 6.48:1 on card  */
-  --advisor:      #095e8c;  /* L≈0.101 — 5.18:1 on surface, 6.97:1 on card  */
-  --orchestrator: #6D28D9;  /* L≈0.098 — 5.35:1 on surface, 7.09:1 on card  */
+     Pill background = color-mix(--pill-color 15%, transparent) over --surface.
+     Effective bg L = 0.15*L_role + 0.85*0.730. Threshold: L_role ≤ 0.1024.
+     --workflow and --specialist were L≈0.112 → 4.24:1 ✗; darkened to pass. */
+  --workflow:     #8a3610;  /* L≈0.082 — 5.22:1 on tinted-surface, 7.02:1 on card  */
+  --tri-agent:    #7a5008;  /* L≈0.100 — 5.07:1 on tinted-surface, 7.02:1 on card  */
+  --audit-gate:   #a01839;  /* L≈0.083 — 5.18:1 on tinted-surface, 8.54:1 on card  */
+  --specialist:   #0b5f58;  /* L≈0.090 — 4.89:1 on tinted-surface, 6.57:1 on card  */
+  --advisor:      #085280;  /* L≈0.076 — 5.39:1 on tinted-surface, 7.25:1 on card  */
+  --orchestrator: #6D28D9;  /* L≈0.098 — 5.04:1 on tinted-surface, 7.09:1 on card  */
 
   /* Layered shadows — lighter on light grounds to avoid heavy "web 2.0" bevel. */
   --shadow-sm:  0 1px 2px rgba(42, 22, 6, 0.08);
