@@ -46,4 +46,6 @@ const {
     border-color: var(--accent);
     background: var(--accent-dim);
   }
+  /* B-10: pressed pill on light --surface with --accent text = 3.05:1 ✗. */
+  :global([data-theme="light"]) .pill[aria-pressed="true"] { color: var(--text); }
 </style>

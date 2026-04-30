@@ -358,6 +358,11 @@ const phaseFilters = [
   .card-role-tag[data-role="advisor"]      { --pill-color: var(--advisor); }
   .card-role-tag[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
   .card-role-tag[data-role="success"]      { --pill-color: var(--success); }
+  /* B-10: color-mix(..., transparent) produces rgba — Axe can't composite
+     it reliably. Light mode: resolve to an opaque surface-tinted color. */
+  :global([data-theme="light"]) .card-role-tag {
+    background: color-mix(in srgb, var(--pill-color) 15%, var(--surface));
+  }
 
   /* Phase tag — neutral, distinguishes from role visually. */
   .card-phase-tag {
@@ -414,6 +419,8 @@ const phaseFilters = [
     align-items: center;
     gap: 0.3rem;
   }
+  /* B-10: --accent on light --surface = 3.05:1 ✗. --accent-hover = 4.55:1 ✓. */
+  :global([data-theme="light"]) .link { color: var(--accent-hover); }
 
   .empty {
     text-align: center;

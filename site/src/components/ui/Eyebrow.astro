@@ -28,4 +28,8 @@ const { class: className = "" } = Astro.props;
     height: 1px;
     background: var(--accent);
   }
+  /* B-10: --accent as 10px text on light backgrounds fails AA (3.50:1 on --bg).
+     --accent-hover (#ab3e08, L≈0.121) gives 5.22:1 on --bg, 4.55:1 on --surface.
+     :global() needed so [data-theme="light"] targets <html>, not the component root. */
+  :global([data-theme="light"]) .eyebrow { color: var(--accent-hover); }
 </style>

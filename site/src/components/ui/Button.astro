@@ -65,6 +65,10 @@ const classes = ["btn", `btn-${variant}`, `btn-${size}`, className]
     background: var(--accent-hover);
     color: var(--obsidian);
   }
+  /* B-10: light --accent (#d95010, L=0.206) only gives 4.33:1 with --obsidian.
+     --ember (#e05c18, L=0.235) is the constant dark-mode value — gives 4.84:1 ✓.
+     :global() needed so [data-theme="light"] targets <html>, not the component root. */
+  :global([data-theme="light"]) .btn-primary { background: var(--ember); }
 
   .btn-outline {
     background: transparent;
@@ -74,6 +78,8 @@ const classes = ["btn", `btn-${variant}`, `btn-${size}`, className]
   .btn-outline:hover:not([disabled]):not([aria-disabled="true"]) {
     background: var(--accent-dim);
   }
+  /* B-10: --accent as text on light bg = 3.50:1 ✗. --accent-hover = 5.22:1 ✓. */
+  :global([data-theme="light"]) .btn-outline { color: var(--accent-hover); border-color: var(--accent-hover); }
 
   .btn-ghost {
     background: transparent;
