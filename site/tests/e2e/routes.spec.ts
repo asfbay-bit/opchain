@@ -54,7 +54,7 @@ const ROUTES: RouteSpec[] = [
   },
   {
     path: "/demo",
-    h1: /watch a finished run/i,
+    h1: /sql injection/i,
     disabledRules: [
       COLOR_CONTRAST_DISABLE,
       {
