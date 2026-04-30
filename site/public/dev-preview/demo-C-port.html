@@ -304,6 +304,7 @@
     padding: 8px 0 60px;
     background: var(--bg);
   }
+  .stream-pane[hidden] { display: none; }
   .beat {
     display: grid;
     grid-template-columns: 56px 1fr;
@@ -392,6 +393,14 @@
   }
   .insp-section { border-bottom: 0.5px solid var(--border); }
   .insp-section:last-child { border-bottom: 0; }
+  .insp-section.is-collapsed .insp-section-body { display: none; }
+  .insp-section .insp-caret {
+    color: var(--subtle);
+    font-size: 9px;
+    margin-right: 6px;
+    transition: transform 120ms;
+  }
+  .insp-section.is-collapsed .insp-caret { transform: rotate(-90deg); }
   .insp-section-head {
     padding: 8px 12px;
     background: var(--ribbon);
@@ -512,7 +521,7 @@
 
       <!-- 01 · concept-to-shipped — expanded, active -->
       <div class="tree-group">
-        <div class="tree-folder is-open is-active">
+        <div class="tree-folder is-open is-active" data-scenario="concept-to-shipped">
           <span class="tree-arrow">▾</span>
           <span class="tree-num">01</span>
           <span class="tree-name">concept-to-shipped</span>
@@ -529,7 +538,7 @@
 
       <!-- 02 · dashboard-rescue — expanded -->
       <div class="tree-group">
-        <div class="tree-folder is-open">
+        <div class="tree-folder is-open" data-scenario="dashboard-rescue">
           <span class="tree-arrow">▾</span>
           <span class="tree-num">02</span>
           <span class="tree-name">dashboard-rescue</span>
@@ -543,7 +552,7 @@
 
       <!-- 03 · legacy-revive — collapsed -->
       <div class="tree-group">
-        <div class="tree-folder">
+        <div class="tree-folder" data-scenario="legacy-revive">
           <span class="tree-arrow">▸</span>
           <span class="tree-num">03</span>
           <span class="tree-name">legacy-revive</span>
@@ -553,7 +562,7 @@
 
       <!-- 04 · stripe-ship — collapsed -->
       <div class="tree-group">
-        <div class="tree-folder">
+        <div class="tree-folder" data-scenario="stripe-ship">
           <span class="tree-arrow">▸</span>
           <span class="tree-num">04</span>
           <span class="tree-name">stripe-ship</span>
@@ -563,7 +572,7 @@
 
       <!-- 05 · postgres-migration — collapsed -->
       <div class="tree-group">
-        <div class="tree-folder">
+        <div class="tree-folder" data-scenario="postgres-migration">
           <span class="tree-arrow">▸</span>
           <span class="tree-num">05</span>
           <span class="tree-name">postgres-migration</span>
@@ -573,7 +582,7 @@
 
       <!-- 06 · security-hardening — collapsed -->
       <div class="tree-group">
-        <div class="tree-folder">
+        <div class="tree-folder" data-scenario="security-hardening">
           <span class="tree-arrow">▸</span>
           <span class="tree-num">06</span>
           <span class="tree-name">security-hardening</span>
@@ -585,11 +594,11 @@
     <!-- Editor — tabs + breadcrumb + transcript -->
     <main class="editor" aria-label="Transcript">
       <div class="tabs" role="tablist">
-        <div class="tab is-active" role="tab" aria-selected="true">
+        <div class="tab is-active" role="tab" aria-selected="true" data-tab="concept-to-shipped">
           concept-to-shipped.session.md
           <span class="tab-close" aria-hidden="true">×</span>
         </div>
-        <div class="tab" role="tab" aria-selected="false">
+        <div class="tab" role="tab" aria-selected="false" data-tab="dashboard-rescue">
           dashboard-rescue.session.md
           <span class="tab-close" aria-hidden="true">×</span>
         </div>
@@ -598,14 +607,16 @@
       <div class="breadcrumb">
         <span>scenarios</span>
         <span class="crumb-sep">›</span>
-        <span>concept-to-shipped</span>
+        <span data-crumb-name>concept-to-shipped</span>
         <span class="crumb-sep">›</span>
         <span>session</span>
         <span class="crumb-sep">›</span>
-        <span class="crumb-active">step 4 of 22</span>
+        <span class="crumb-active" data-crumb-step>step 4 of 22</span>
       </div>
 
       <div class="stream">
+        <!-- Stream pane: concept-to-shipped -->
+        <div class="stream-pane" data-pane="concept-to-shipped">
         <!-- Beat 01 · Discover -->
         <div class="beat">
           <div class="row-num">·</div>
@@ -712,14 +723,113 @@
             </div>
           </div>
         </div>
+        </div><!-- /stream-pane concept-to-shipped -->
+
+        <!-- Stream pane: dashboard-rescue (hidden until tab clicked) -->
+        <div class="stream-pane" data-pane="dashboard-rescue" hidden>
+          <div class="beat">
+            <div class="row-num">·</div>
+            <div class="beat-text">
+              01 · Triage
+              <div class="beat-caption">ux-engineer reads the screen</div>
+            </div>
+          </div>
+
+          <div class="row user">
+            <div class="row-num">09:14</div>
+            <div class="row-text">
+              <div class="row-body">
+                My analytics dashboard is a mess. 14 charts, 4 tabs, users say
+                they "don't know where to look." Can we make this actually
+                usable?
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-num">09:15</div>
+            <div class="row-text">
+              <div class="turn-head">
+                <span class="turn-who">claude</span>
+                <span class="turn-skill" data-role="tri-agent">ux-engineer</span>
+              </div>
+              <div class="row-body">
+                Recognising this as a <strong>data-density problem</strong>,
+                not a visual-design problem — so ux-engineer drives the
+                overall system but I'll invoke <strong>dash-forge</strong>
+                for the screen redesign in a moment.
+              </div>
+            </div>
+          </div>
+
+          <div class="row user">
+            <div class="row-num">09:18</div>
+            <div class="row-text">
+              <div class="row-body">
+                Primary question: "Is my team on track to hit this quarter's
+                OKRs?" Primary user: founders + team leads, weekly check-in,
+                mobile 30% of the time.
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-num">09:19</div>
+            <div class="row-text">
+              <div class="turn-head">
+                <span class="turn-who">claude</span>
+                <span class="turn-skill" data-role="tri-agent">ux-engineer</span>
+              </div>
+              <div class="row-body">
+                Clear brief. This is tri-agent territory — invoking
+                <strong>dash-forge</strong> (the density specialist) with
+                the OKR-focused framing, then I'll grade the output against
+                the style book.
+              </div>
+            </div>
+          </div>
+
+          <div class="row tool">
+            <div class="row-num">09:20</div>
+            <div class="row-text">
+              <div class="row-body">
+                Wrote <code>.checkpoints/ux-engineer.checkpoint.json</code>
+                · brief + handoff complete
+              </div>
+            </div>
+          </div>
+
+          <div class="beat">
+            <div class="row-num">·</div>
+            <div class="beat-text">
+              02 · dash-forge
+              <div class="beat-caption">density specialist takes over</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-num">09:24</div>
+            <div class="row-text">
+              <div class="turn-head">
+                <span class="turn-who">claude</span>
+                <span class="turn-skill" data-role="specialist">dash-forge</span>
+              </div>
+              <div class="row-body">
+                Reading 14-chart screenshot. Output target: a 3-layer pyramid
+                — Layer 0 (the OKR answer in 2s), Layer 1 (per-OKR rows),
+                Layer 2 (small-multiple drill-down).
+              </div>
+            </div>
+          </div>
+        </div><!-- /stream-pane dashboard-rescue -->
       </div>
     </main>
 
     <!-- Inspector — scenario 01 i/o/skills/checkpoint -->
     <aside class="inspector" aria-label="Scenario inspector">
       <div class="insp-section">
-        <div class="insp-section-head">
-          <span>inputs</span>
+        <div class="insp-section-head" data-collapsible>
+          <span><span class="insp-caret">▾</span>inputs</span>
           <span class="insp-count">4</span>
         </div>
         <div class="insp-section-body">
@@ -743,8 +853,8 @@
       </div>
 
       <div class="insp-section">
-        <div class="insp-section-head">
-          <span>outputs</span>
+        <div class="insp-section-head" data-collapsible>
+          <span><span class="insp-caret">▾</span>outputs</span>
           <span class="insp-count">5</span>
         </div>
         <div class="insp-section-body">
@@ -777,8 +887,8 @@
       </div>
 
       <div class="insp-section">
-        <div class="insp-section-head">
-          <span>skills</span>
+        <div class="insp-section-head" data-collapsible>
+          <span><span class="insp-caret">▾</span>skills</span>
           <span class="insp-count">5</span>
         </div>
         <div class="insp-section-body">
@@ -811,8 +921,8 @@
       </div>
 
       <div class="insp-section">
-        <div class="insp-section-head">
-          <span>checkpoint</span>
+        <div class="insp-section-head" data-collapsible>
+          <span><span class="insp-caret">▾</span>checkpoint</span>
           <span class="insp-count is-ok">●</span>
         </div>
         <div class="insp-section-body">
@@ -829,9 +939,9 @@
     <div class="status">
       <span>workbench</span>
       <span class="topbar-sep">·</span>
-      <span>piece 4 of 5 · inspector populated</span>
+      <span>piece 5 of 5 · interactivity wired</span>
       <span class="topbar-sep">·</span>
-      <span class="ok">✓ 4 inputs · 5 outputs · 5 skills · checkpoint synced</span>
+      <span class="ok">✓ folder toggle · tab swap · inspector collapse · light/dark</span>
       <span class="right">
         <span class="key">↵</span> play ·
         <span class="key">␣</span> skip ·
@@ -842,12 +952,79 @@
   </div>
 
   <script>
+    /* Theme toggle */
     (() => {
       const btn = document.querySelector('[data-theme-toggle]');
       if (!btn) return;
       btn.addEventListener('click', () => {
         const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
         document.documentElement.dataset.theme = next;
+      });
+    })();
+
+    /* Sidebar folder toggle + scenario activation.
+       Click a folder anywhere → toggle its open state. If the folder maps
+       to a tab in the editor (concept-to-shipped or dashboard-rescue),
+       also activate that tab + transcript. Other scenarios just toggle
+       their open state in the tree (no tab exists for them yet — the real
+       port will lazy-open one). */
+    (() => {
+      const folders = document.querySelectorAll('.tree-folder[data-scenario]');
+      const TABBED = new Set(['concept-to-shipped', 'dashboard-rescue']);
+
+      folders.forEach((folder) => {
+        folder.addEventListener('click', () => {
+          folder.classList.toggle('is-open');
+          const arrow = folder.querySelector('.tree-arrow');
+          if (arrow) arrow.textContent = folder.classList.contains('is-open') ? '▾' : '▸';
+
+          const id = folder.dataset.scenario;
+          if (TABBED.has(id)) {
+            folders.forEach((f) => f.classList.remove('is-active'));
+            folder.classList.add('is-active');
+            activateTab(id);
+          }
+        });
+      });
+    })();
+
+    /* Tab switching — also driven by sidebar via activateTab() above. */
+    function activateTab(id) {
+      document.querySelectorAll('.tab[data-tab]').forEach((tab) => {
+        const on = tab.dataset.tab === id;
+        tab.classList.toggle('is-active', on);
+        tab.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      document.querySelectorAll('.stream-pane[data-pane]').forEach((pane) => {
+        const on = pane.dataset.pane === id;
+        if (on) { pane.removeAttribute('hidden'); }
+        else    { pane.setAttribute('hidden', '');  }
+      });
+      // Update the breadcrumb scenario name + step count.
+      const crumbName = document.querySelector('[data-crumb-name]');
+      const crumbStep = document.querySelector('[data-crumb-step]');
+      if (crumbName) crumbName.textContent = id;
+      if (crumbStep) {
+        crumbStep.textContent = id === 'concept-to-shipped'
+          ? 'step 4 of 22'
+          : 'step 6 of 12';
+      }
+    }
+    (() => {
+      document.querySelectorAll('.tab[data-tab]').forEach((tab) => {
+        tab.addEventListener('click', (e) => {
+          if (e.target.closest('.tab-close')) return;  // close X is no-op for now
+          activateTab(tab.dataset.tab);
+        });
+      });
+    })();
+
+    /* Inspector section collapse */
+    (() => {
+      document.querySelectorAll('[data-collapsible]').forEach((head) => {
+        head.addEventListener('click', () => {
+          head.parentElement.classList.toggle('is-collapsed');
+        });
       });
     })();
   </script>
