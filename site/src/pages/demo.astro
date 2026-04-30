@@ -2,16 +2,30 @@
 import Base from "../layouts/Base.astro";
 import Replays from "../components/Replays.astro";
 import OnboardingTour from "../components/OnboardingTour.astro";
+import { walkthroughs } from "../data/walkthroughs";
 
 /**
  * Demo — magazine-style intro + interactive workbench.
  *
- * The intro is the editorial "cover" (capped at ~45vh so it never
- * dominates the viewport). The workbench below hosts <Replays /> — the
- * real scenario engine. Clicking inside the workbench promotes it to a
- * centered focus overlay (backdrop, locked scroll); clicking the
- * backdrop or pressing Escape releases it back into normal flow.
+ * The intro is a compact editorial "cover" capped at ~32vh. Its
+ * headline rotates through all six walkthroughs on a deterministic
+ * 2-minute slot tied to wall-clock time (12-min full cycle), so every
+ * visitor in the same 2-minute window sees the same scenario. Server-
+ * renders the first walkthrough; client JS overrides to whichever slot
+ * is current and schedules the next swap on the slot boundary.
+ *
+ * The workbench below hosts <Replays /> — the real scenario engine.
+ * Clicking inside it promotes the frame to a centered focus overlay;
+ * clicking the backdrop / pressing Escape releases it.
  */
+
+const covers = walkthroughs.map((w, i) => ({
+  num: String(i + 1).padStart(2, "0"),
+  id: w.id,
+  title: w.title,
+  tagline: w.tagline,
+}));
+const initial = covers[0];
 ---
 
 <Base
@@ -19,26 +33,22 @@ import OnboardingTour from "../components/OnboardingTour.astro";
   description="Replay curated opchain skill conversations end-to-end — six scenarios, real transcripts, click to inspect."
   active="/demo"
 >
-  <!-- 1 · Magazine cover — capped at ~45vh -->
-  <section class="stage">
+  <!-- 1 · Magazine cover — capped at ~32vh, rotates every 30 min -->
+  <section class="stage" data-cover>
     <div class="stage-mid">
-      <div class="stage-issue">opchain · scenario 03 · audit gate</div>
-      <h1 class="stage-h">
-        Friday, 14:22.
-        A <em>SQL injection</em>
-        finds the <span class="ghosted">production</span> gate <em>first</em>.
-      </h1>
-      <p class="stage-sub">
-        The transcript below is a real opchain run — both auditors catch
-        a critical, hand back a one-line patch, and clear the deploy
-        gate inside two minutes. No live chat, no email. Scroll on.
-      </p>
+      <div class="stage-issue">
+        opchain · scenario <span data-cover-num>{initial.num}</span>
+      </div>
+      <h1 class="stage-h" data-cover-title>{initial.title}</h1>
+      <p class="stage-sub" data-cover-tagline>{initial.tagline}</p>
       <div class="stage-actions">
         <a class="btn btn-primary" href="#workbench">▶ open the workbench</a>
         <a class="btn btn-ghost" href="/install">install opchain</a>
       </div>
     </div>
   </section>
+
+  <script is:inline type="application/json" id="cover-data" set:html={JSON.stringify(covers)} />
 
   <!-- 2 · Workbench -->
   <section class="workbench" id="workbench">
@@ -73,16 +83,16 @@ import OnboardingTour from "../components/OnboardingTour.astro";
 </Base>
 
 <style>
-  /* ── 1. Magazine cover ── */
+  /* ── 1. Magazine cover — compact, data-driven, rotates every 30 min ── */
   .stage {
     position: relative;
-    max-height: 45vh;
-    min-height: 280px;
+    max-height: 32vh;
+    min-height: 200px;
     overflow: hidden;
-    padding: clamp(1.6rem, 4vw, 2.4rem) clamp(1rem, 4vw, 2.4rem);
+    padding: clamp(1.1rem, 2.5vw, 1.8rem) clamp(1rem, 4vw, 2.4rem);
     background:
-      radial-gradient(700px 400px at 75% 30%, var(--ember-glow), transparent 70%),
-      radial-gradient(500px 300px at 15% 80%, var(--ember-dim), transparent 70%),
+      radial-gradient(640px 320px at 75% 30%, var(--ember-glow), transparent 70%),
+      radial-gradient(420px 240px at 15% 80%, var(--ember-dim), transparent 70%),
       var(--bg);
     border-bottom: 0.5px solid var(--border);
     display: flex;
@@ -99,34 +109,32 @@ import OnboardingTour from "../components/OnboardingTour.astro";
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-widest);
     text-transform: uppercase;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
   }
   .stage-h {
     font-family: var(--font-display);
     font-weight: 600;
-    /* Capped so the headline never bursts the 45vh ceiling. */
-    font-size: clamp(1.5rem, 3.4vw, 2.6rem);
-    line-height: 1.05;
+    /* Tighter cap than the old hero — the headline now feeds from
+       walkthrough.title which is generally short and scannable. */
+    font-size: clamp(1.15rem, 2.2vw, 1.7rem);
+    line-height: 1.15;
     letter-spacing: var(--ls-tight);
-    margin: 0 0 0.6rem;
-    max-width: 28ch;
+    margin: 0 0 0.4rem;
+    max-width: 36ch;
     color: var(--text);
-  }
-  .stage-h em {
-    font-style: italic;
-    color: var(--accent);
-  }
-  .stage-h .ghosted {
-    color: var(--subtle);
-    font-style: normal;
+    transition: opacity var(--dur-base) var(--ease-standard);
   }
   .stage-sub {
-    font-size: var(--fs-md);
+    font-size: var(--fs-base);
     color: var(--muted);
     max-width: 44rem;
-    margin: 0 0 1rem;
+    margin: 0 0 0.85rem;
     line-height: var(--lh-snug);
+    transition: opacity var(--dur-base) var(--ease-standard);
   }
+  .stage[data-swapping] .stage-h,
+  .stage[data-swapping] .stage-sub,
+  .stage[data-swapping] .stage-issue { opacity: 0; }
   .stage-actions {
     display: flex;
     gap: 0.5rem;
@@ -379,5 +387,56 @@ import OnboardingTour from "../components/OnboardingTour.astro";
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && focused) unlock();
     });
+  })();
+
+  /* Magazine cover — 2-minute slot rotation (6 covers × 2 min = 12 min
+     cycle). The slot is keyed to wall-clock time (epoch ms / 2min) modulo
+     the number of covers, so every visitor in the same 2-minute window
+     sees the same headline.
+
+     If the page is open across a slot boundary, the cover fades out, swaps
+     content, and fades back in. */
+  (() => {
+    const stage = document.querySelector('[data-cover]');
+    const dataNode = document.getElementById('cover-data');
+    if (!stage || !dataNode) return;
+
+    let covers;
+    try { covers = JSON.parse(dataNode.textContent || '[]'); }
+    catch { return; }
+    if (!Array.isArray(covers) || covers.length === 0) return;
+
+    const SLOT_MS = 2 * 60 * 1000;
+    const numEl = stage.querySelector('[data-cover-num]');
+    const titleEl = stage.querySelector('[data-cover-title]');
+    const taglineEl = stage.querySelector('[data-cover-tagline]');
+
+    function slotIndex() {
+      return Math.floor(Date.now() / SLOT_MS) % covers.length;
+    }
+    function paint(c) {
+      if (numEl) numEl.textContent = c.num;
+      if (titleEl) titleEl.textContent = c.title;
+      if (taglineEl) taglineEl.textContent = c.tagline;
+    }
+    function swap(animated) {
+      const c = covers[slotIndex()];
+      if (!animated) { paint(c); return; }
+      stage.setAttribute('data-swapping', '');
+      setTimeout(() => {
+        paint(c);
+        stage.removeAttribute('data-swapping');
+      }, 200);
+    }
+
+    // Initial paint — overrides the SSR default with the current slot.
+    swap(false);
+
+    // Schedule the next swap at the slot boundary, then every SLOT_MS.
+    const msUntilNext = SLOT_MS - (Date.now() % SLOT_MS);
+    setTimeout(() => {
+      swap(true);
+      setInterval(() => swap(true), SLOT_MS);
+    }, msUntilNext);
   })();
 </script>

@@ -54,7 +54,10 @@ const ROUTES: RouteSpec[] = [
   },
   {
     path: "/demo",
-    h1: /sql injection/i,
+    // The magazine cover rotates through all six walkthrough titles on
+    // a 2-minute slot, so the h1 is non-deterministic across CI runs.
+    // Widen to any of the six known titles.
+    h1: /(concept → shipped|dashboard rescue|legacy rails|swap d1|security review|stripe subscriptions)/i,
     disabledRules: [
       COLOR_CONTRAST_DISABLE,
       {

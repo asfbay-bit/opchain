@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<title>C-port · IDE workbench mockup · /demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  /* ─────────────────────────────────────────────────────────────
+     Inlined opchain tokens (dark default, light via [data-theme="light"]).
+     Mirrors site/src/styles/tokens.css so this mockup is standalone
+     and can be opened directly without the site build. The real port
+     into demo.astro will use the same vars from the canonical token
+     file — nothing here will need to be re-authored.
+     ───────────────────────────────────────────────────────────── */
+  :root {
+    --obsidian:  #1c1710;
+    --forge:     #2a2218;
+    --slag:      #5a5040;
+    --sand:      #c4b89e;
+    --linen:     #e8dfd0;
+    --ember:     #e05c18;
+    --char:      #b84510;
+    --ember-dim: rgba(224, 92, 24, 0.10);
+    --ember-glow: rgba(224, 92, 24, 0.22);
+
+    --bg:          var(--obsidian);
+    --ribbon:      #231b13;
+    --surface:     var(--forge);
+    --card:        #241C15;
+    --border:      var(--slag);
+    --text:        var(--linen);
+    --muted:       var(--sand);
+    --subtle:      #8A7868;
+    --accent:      #e05c18;
+    --accent-hover:#b84510;
+
+    --rose:        #F43F5E;
+    --teal:        #0D9488;
+    --advisor:     #0EA5E9;
+    --workflow:    #E8651E;
+    --tri-agent:   #F59E0B;
+    --orchestrator:#6D28D9;
+
+    --font-display: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  [data-theme="light"] {
+    --bg:          #f8ebda;
+    --ribbon:      #eed8bc;
+    --surface:     #f4e5cf;
+    --card:        #ffffff;
+    --border:      #ccb390;
+    --text:        #1c1710;
+    --muted:       #5a4a30;
+    --subtle:      #8c7657;
+    --accent:      #d95010;
+    --accent-hover:#ab3e08;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.5;
+    transition: background 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ── App grid: top bar / [activity | sidebar | editor | inspector] / status ── */
+  .ide {
+    display: grid;
+    grid-template-rows: 32px 1fr 24px;
+    grid-template-columns: 44px 248px 1fr 288px;
+    grid-template-areas:
+      "topbar topbar topbar topbar"
+      "activity sidebar editor inspector"
+      "status status status status";
+    height: 100vh;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    grid-area: topbar;
+    display: flex;
+    align-items: center;
+    background: var(--ribbon);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 14px;
+    gap: 14px;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+  .topbar-dots { display: flex; gap: 6px; }
+  .topbar-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: var(--border);
+  }
+  .topbar-dot:nth-child(1) { background: #ff5f57; }
+  .topbar-dot:nth-child(2) { background: #febc2e; }
+  .topbar-dot:nth-child(3) { background: #28c840; }
+  .topbar-title { color: var(--text); font-weight: 500; }
+  .topbar-sep { color: var(--subtle); }
+  .topbar-meta { color: var(--subtle); }
+  .topbar-spacer { flex: 1; }
+  .theme-toggle {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: color 120ms, border-color 120ms;
+  }
+  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ── Activity rail ── */
+  .activity {
+    grid-area: activity;
+    background: var(--ribbon);
+    border-right: 0.5px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 10px;
+    gap: 4px;
+  }
+  .act {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    color: var(--subtle);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    margin-left: -2px;
+    font-size: 14px;
+    transition: color 120ms, border-color 120ms;
+  }
+  .act:hover { color: var(--text); }
+  .act.is-active {
+    color: var(--text);
+    border-left-color: var(--accent);
+  }
+
+  /* ── Sidebar / Editor / Inspector — empty placeholders for piece 1 ── */
+  .sidebar, .editor, .inspector {
+    overflow-y: auto;
+  }
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--surface);
+    border-right: 0.5px solid var(--border);
+  }
+  .editor {
+    grid-area: editor;
+    background: var(--bg);
+  }
+  .inspector {
+    grid-area: inspector;
+    background: var(--surface);
+    border-left: 0.5px solid var(--border);
+  }
+  .placeholder {
+    color: var(--subtle);
+    padding: 14px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  /* ── Status bar ── */
+  .status {
+    grid-area: status;
+    background: var(--ribbon);
+    border-top: 0.5px solid var(--border);
+    color: var(--muted);
+    font-size: 10.5px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 14px;
+    letter-spacing: 0.04em;
+  }
+  .status .ok { color: var(--teal); }
+  .status .warn { color: var(--accent); }
+  .status .right { margin-left: auto; }
+  .status .key { color: var(--accent); font-weight: 500; }
+</style>
+</head>
+<body>
+  <div class="ide">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="topbar-dots">
+        <span class="topbar-dot"></span>
+        <span class="topbar-dot"></span>
+        <span class="topbar-dot"></span>
+      </div>
+      <span class="topbar-title">opchain · /demo</span>
+      <span class="topbar-sep">·</span>
+      <span>scenarios.workspace</span>
+      <span class="topbar-spacer"></span>
+      <span class="topbar-meta">claude-opus-4-7 · auto-accept</span>
+      <button class="theme-toggle" data-theme-toggle type="button" aria-label="Toggle theme">
+        ◐ theme
+      </button>
+    </div>
+
+    <!-- Activity rail -->
+    <nav class="activity" aria-label="Activity">
+      <div class="act is-active" title="Scenarios">▦</div>
+      <div class="act" title="Search">⌕</div>
+      <div class="act" title="Inputs / Outputs">⊞</div>
+      <div class="act" title="Skills">●</div>
+      <div class="act" title="Help">?</div>
+    </nav>
+
+    <!-- Sidebar (empty in piece 1) -->
+    <aside class="sidebar"><div class="placeholder">scenarios → piece 2</div></aside>
+
+    <!-- Editor (empty in piece 1) -->
+    <main class="editor"><div class="placeholder">transcript → piece 3</div></main>
+
+    <!-- Inspector (empty in piece 1) -->
+    <aside class="inspector"><div class="placeholder">i / o / skills → piece 4</div></aside>
+
+    <!-- Status bar -->
+    <div class="status">
+      <span>workbench</span>
+      <span class="topbar-sep">·</span>
+      <span>piece 1 of 5 · IDE shell</span>
+      <span class="topbar-sep">·</span>
+      <span class="ok">✓ tokens applied</span>
+      <span class="right">
+        <span class="key">↵</span> play ·
+        <span class="key">␣</span> skip ·
+        <span class="key">R</span> restart
+      </span>
+    </div>
+
+  </div>
+
+  <script>
+    (() => {
+      const btn = document.querySelector('[data-theme-toggle]');
+      if (!btn) return;
+      btn.addEventListener('click', () => {
+        const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+        document.documentElement.dataset.theme = next;
+      });
+    })();
+  </script>
+</body>
+</html>
