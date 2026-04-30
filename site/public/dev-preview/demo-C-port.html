@@ -383,19 +383,80 @@
   .row.tool .row-body { color: var(--muted); padding-left: 1.4em; font-size: 11px; }
   .row.tool .row-body::before { content: "⎿ "; color: var(--teal); }
 
-  /* ── Inspector — placeholder for piece 4 ── */
+  /* ── Inspector — collapsible sections of i/o/skills/checkpoint ── */
   .inspector {
     grid-area: inspector;
     background: var(--surface);
     border-left: 0.5px solid var(--border);
+    font-size: 12px;
   }
-  .placeholder {
+  .insp-section { border-bottom: 0.5px solid var(--border); }
+  .insp-section:last-child { border-bottom: 0; }
+  .insp-section-head {
+    padding: 8px 12px;
+    background: var(--ribbon);
     color: var(--subtle);
-    padding: 14px;
-    font-size: 11px;
-    letter-spacing: 0.16em;
     text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    transition: color 120ms;
   }
+  .insp-section-head:hover { color: var(--text); }
+  .insp-section-head .insp-count {
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .insp-section-head .insp-count.is-ok { color: var(--teal); }
+  .insp-section-body {
+    padding: 6px 12px 10px;
+  }
+  .insp-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 3px 0;
+    cursor: pointer;
+    color: var(--muted);
+    transition: color 120ms;
+  }
+  .insp-row:hover { color: var(--text); }
+  .insp-row .ico {
+    color: var(--accent);
+    flex: 0 0 auto;
+    font-size: 11px;
+  }
+  .insp-row .ico-role {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    transform: translateY(-1px);
+  }
+  .insp-row .insp-label {
+    flex: 1;
+    line-height: 1.4;
+  }
+  .insp-kind {
+    color: var(--subtle);
+    font-size: 10.5px;
+    font-family: var(--font-mono);
+    margin-left: 8px;
+    flex: 0 0 auto;
+  }
+
+  .insp-tree {
+    color: var(--muted);
+    line-height: 1.6;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    white-space: pre;
+  }
+  .insp-tree .ok { color: var(--teal); }
 
   /* ── Status bar ── */
   .status {
@@ -654,16 +715,123 @@
       </div>
     </main>
 
-    <!-- Inspector (empty in piece 1) -->
-    <aside class="inspector"><div class="placeholder">i / o / skills → piece 4</div></aside>
+    <!-- Inspector — scenario 01 i/o/skills/checkpoint -->
+    <aside class="inspector" aria-label="Scenario inspector">
+      <div class="insp-section">
+        <div class="insp-section-head">
+          <span>inputs</span>
+          <span class="insp-count">4</span>
+        </div>
+        <div class="insp-section-body">
+          <div class="insp-row">
+            <span class="ico">›</span>
+            <span class="insp-label">One-sentence product idea</span>
+          </div>
+          <div class="insp-row">
+            <span class="ico">›</span>
+            <span class="insp-label">No existing code · no stack decision · no design system</span>
+          </div>
+          <div class="insp-row">
+            <span class="ico">›</span>
+            <span class="insp-label">No CI/CD · no cloud account picked</span>
+          </div>
+          <div class="insp-row">
+            <span class="ico">›</span>
+            <span class="insp-label">A few preferences (mobile-first, self-serve signup, Slack someday)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="insp-section">
+        <div class="insp-section-head">
+          <span>outputs</span>
+          <span class="insp-count">5</span>
+        </div>
+        <div class="insp-section-body">
+          <div class="insp-row">
+            <span class="ico">⊞</span>
+            <span class="insp-label">Master spec (18 pages, export-ready)</span>
+            <span class="insp-kind">spec.md</span>
+          </div>
+          <div class="insp-row">
+            <span class="ico">⊞</span>
+            <span class="insp-label">Stack decision + scorecards</span>
+            <span class="insp-kind">decision.md</span>
+          </div>
+          <div class="insp-row">
+            <span class="ico">⊞</span>
+            <span class="insp-label">Sprint ledger (Generator/Evaluator scores)</span>
+            <span class="insp-kind">ledger</span>
+          </div>
+          <div class="insp-row">
+            <span class="ico">⊞</span>
+            <span class="insp-label">Six draft PRs, one per sprint</span>
+            <span class="insp-kind">pull-request</span>
+          </div>
+          <div class="insp-row">
+            <span class="ico">⊞</span>
+            <span class="insp-label">Deploy + rollback runbook</span>
+            <span class="insp-kind">runbook</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="insp-section">
+        <div class="insp-section-head">
+          <span>skills</span>
+          <span class="insp-count">5</span>
+        </div>
+        <div class="insp-section-body">
+          <div class="insp-row">
+            <span class="ico-role role-workflow"></span>
+            <span class="insp-label">app-architect</span>
+            <span class="insp-kind">workflow</span>
+          </div>
+          <div class="insp-row">
+            <span class="ico-role role-advisor"></span>
+            <span class="insp-label">stack-forge</span>
+            <span class="insp-kind">advisor</span>
+          </div>
+          <div class="insp-row">
+            <span class="ico-role role-tri-agent"></span>
+            <span class="insp-label">ux-engineer</span>
+            <span class="insp-kind">tri-agent</span>
+          </div>
+          <div class="insp-row">
+            <span class="ico-role role-specialist"></span>
+            <span class="insp-label">git-ops</span>
+            <span class="insp-kind">specialist</span>
+          </div>
+          <div class="insp-row">
+            <span class="ico-role role-orchestrator"></span>
+            <span class="insp-label">deploy-ops</span>
+            <span class="insp-kind">orchestrator</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="insp-section">
+        <div class="insp-section-head">
+          <span>checkpoint</span>
+          <span class="insp-count is-ok">●</span>
+        </div>
+        <div class="insp-section-body">
+<div class="insp-tree">.checkpoints/
+├─ <span class="ok">app-architect.json</span>
+├─ <span class="ok">stack-forge.json</span>
+├─ <span class="ok">ux-engineer.json</span>
+└─ <span class="ok">deploy-ops.json</span></div>
+        </div>
+      </div>
+    </aside>
 
     <!-- Status bar -->
     <div class="status">
       <span>workbench</span>
       <span class="topbar-sep">·</span>
-      <span>piece 3 of 5 · editor + transcript</span>
+      <span>piece 4 of 5 · inspector populated</span>
       <span class="topbar-sep">·</span>
-      <span class="ok">✓ scenario 01 loaded · 2 beats · 6 turns</span>
+      <span class="ok">✓ 4 inputs · 5 outputs · 5 skills · checkpoint synced</span>
       <span class="right">
         <span class="key">↵</span> play ·
         <span class="key">␣</span> skip ·
