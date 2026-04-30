@@ -414,6 +414,8 @@ const phaseFilters = [
     align-items: center;
     gap: 0.3rem;
   }
+  /* B-10: --accent on light --surface = 3.05:1 ✗. --accent-hover = 4.55:1 ✓. */
+  [data-theme="light"] .link { color: var(--accent-hover); }
 
   .empty {
     text-align: center;
