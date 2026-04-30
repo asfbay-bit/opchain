@@ -2237,6 +2237,12 @@ const catalog = JSON.stringify(
       border-color: var(--accent);
       background: var(--accent-dim);
     }
+    /* B-10: --accent-dim is rgba(0.12 alpha) — Axe can't composite it.
+       Light mode: opaque equivalent = 12% accent over --bg. */
+    :global([data-theme="light"]) .scenario:hover,
+    :global([data-theme="light"]) .scenario[aria-selected="true"] {
+      background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+    }
 
     /* 1.4 — Tab bar separating Scenario / Chat panels. Sits above the
        active panel; mirrors the look-and-feel of the .tab pattern in
