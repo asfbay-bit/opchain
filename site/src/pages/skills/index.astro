@@ -358,11 +358,21 @@ const phaseFilters = [
   .card-role-tag[data-role="advisor"]      { --pill-color: var(--advisor); }
   .card-role-tag[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
   .card-role-tag[data-role="success"]      { --pill-color: var(--success); }
-  /* B-10: color-mix(..., transparent) produces rgba — Axe can't composite
-     it reliably. Light mode: resolve to an opaque surface-tinted color. */
+  /* B-10/B-11: Axe can't evaluate color-mix() when operands are CSS custom
+     properties (two-level chain: --pill-color → --role-token → hex). Light
+     mode: pre-computed equivalents of color-mix(role 15%, --surface #f4e5cf).
+     The generic fallback covers any unlisted roles; per-role rules give Axe
+     a static value it can evaluate without traversing the var() chain. */
   :global([data-theme="light"]) .card-role-tag {
     background: color-mix(in srgb, var(--pill-color) 15%, var(--surface));
   }
+  :global([data-theme="light"]) .card-role-tag[data-role="workflow"]     { background: #e4cbb2; }
+  :global([data-theme="light"]) .card-role-tag[data-role="tri-agent"]    { background: #e2cfb1; }
+  :global([data-theme="light"]) .card-role-tag[data-role="audit-gate"]   { background: #e7c6b9; }
+  :global([data-theme="light"]) .card-role-tag[data-role="specialist"]   { background: #d1d1bd; }
+  :global([data-theme="light"]) .card-role-tag[data-role="advisor"]      { background: #d1cfc3; }
+  :global([data-theme="light"]) .card-role-tag[data-role="orchestrator"] { background: #e0c9d1; }
+  :global([data-theme="light"]) .card-role-tag[data-role="success"]      { background: #d0d5bd; }
 
   /* Phase tag — neutral, distinguishes from role visually. */
   .card-phase-tag {

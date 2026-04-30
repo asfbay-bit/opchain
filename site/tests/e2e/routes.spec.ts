@@ -8,7 +8,7 @@ import { AxeBuilder } from "@axe-core/playwright";
  * For each route we assert:
  *   - expected HTTP status (200 or listed)
  *   - an h1 matches the page (regex)
- *   - Axe finds zero violations after per-route disables (B-02)
+ *   - Axe finds zero violations (B-02, B-11)
  */
 
 interface RouteSpec {
@@ -18,40 +18,13 @@ interface RouteSpec {
   disabledRules?: { id: string; reason: string }[];
 }
 
-// Color-contrast is tracked separately under B-10 — affects shared tokens
-// (.nav-link, .eyebrow, .btn etc.) on every route. Disabling per-route per
-// the B-02 DoD instead of globally so each disable carries its own
-// pointer; the disables are removed in lockstep with the B-10 fix.
-const COLOR_CONTRAST_DISABLE = {
-  id: "color-contrast",
-  reason:
-    "shared tokens (.nav-link, .eyebrow, .btn, .pill); tracked in roadmap B-10",
-};
-
-
 const ROUTES: RouteSpec[] = [
-  { path: "/",                     h1: /opchain/i,                  disabledRules: [COLOR_CONTRAST_DISABLE] },
-  {
-    path: "/architecture",
-    h1: /how opchain skills chain/i,
-    disabledRules: [COLOR_CONTRAST_DISABLE],
-  },
-  {
-    path: "/install",
-    h1: /three flows/i,
-    disabledRules: [COLOR_CONTRAST_DISABLE],
-  },
-  { path: "/skills",               h1: /every skill, filterable/i,  disabledRules: [COLOR_CONTRAST_DISABLE] },
-  {
-    path: "/skills/app-architect",
-    h1: /app architect/i,
-    disabledRules: [COLOR_CONTRAST_DISABLE],
-  },
-  {
-    path: "/skills/code-auditor",
-    h1: /code auditor/i,
-    disabledRules: [COLOR_CONTRAST_DISABLE],
-  },
+  { path: "/",              h1: /opchain/i },
+  { path: "/architecture",  h1: /how opchain skills chain/i },
+  { path: "/install",       h1: /three flows/i },
+  { path: "/skills",        h1: /every skill, filterable/i },
+  { path: "/skills/app-architect", h1: /app architect/i },
+  { path: "/skills/code-auditor",  h1: /code auditor/i },
   {
     path: "/demo",
     // The magazine cover rotates through all six walkthrough titles on
@@ -59,7 +32,6 @@ const ROUTES: RouteSpec[] = [
     // Widen to any of the six known titles.
     h1: /(concept → shipped|dashboard rescue|legacy rails|swap d1|security review|stripe subscriptions)/i,
     disabledRules: [
-      COLOR_CONTRAST_DISABLE,
       {
         id: "region",
         reason:
@@ -67,16 +39,8 @@ const ROUTES: RouteSpec[] = [
       },
     ],
   },
-  {
-    path: "/privacy",
-    h1: /privacy/i,
-    disabledRules: [COLOR_CONTRAST_DISABLE],
-  },
-  {
-    path: "/styleguide",
-    h1: /styleguide/i,
-    disabledRules: [COLOR_CONTRAST_DISABLE],
-  },
+  { path: "/privacy",    h1: /privacy/i },
+  { path: "/styleguide", h1: /styleguide/i },
 ];
 
 test.describe("routes render", () => {
