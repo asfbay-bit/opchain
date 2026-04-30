@@ -222,6 +222,9 @@ const { active = "/", links = defaultLinks } = Astro.props;
     color: var(--accent);
     border-bottom-color: var(--accent);
   }
+  /* B-10: --accent on light --ribbon fails AA normal at 11px. Use --text for the
+     active label; the ember border-bottom is sufficient as the selection indicator. */
+  [data-theme="light"] .nav-link.active { color: var(--text); }
 
   /* ── Hamburger (hidden ≥720px, shown below) ──────────────── */
   .nav-burger {

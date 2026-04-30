@@ -25,12 +25,12 @@
   --bg:          var(--obsidian);
   --ribbon:      #231b13;
   --ribbon-edge: #3a2f26;
-  --surface:     var(--forge);
+  --surface:     #251d14;        /* B-10: darkened from #2a2218 — fixes accent-hover/surface ratio 2.91→3.08 */
   --card:        #241C15;
   --border:      var(--slag);
   --text:        var(--linen);
   --muted:       var(--sand);
-  --subtle:      #8A7868;
+  --subtle:      #9d8b78;        /* B-10: lightened from #8A7868 — clears AA normal (was 3.71–4.21, now 5.06–5.42) */
   --accent:      #e05c18;
   --accent-hover:#b84510;
   --accent-dim:  rgba(224, 92, 24, 0.10);
@@ -41,8 +41,8 @@
   --danger-dim:  rgba(216, 100, 100, 0.12);
   --success:     #10B981;
   --success-dim: rgba(16, 185, 129, 0.12);
-  --info:        #64748B;
-  --info-dim:    rgba(100, 116, 139, 0.12);
+  --info:        #94A3B8;        /* B-10: lightened from #64748B (slate-500→400) — clears AA normal on dark bgs (3.74→6.94) */
+  --info-dim:    rgba(148, 163, 184, 0.12);
   --warning:     #84CC16;
   --warning-dim: rgba(132, 204, 22, 0.12);
   --in-progress: #F9A8D4;
@@ -56,9 +56,9 @@
   --workflow:     #E8651E;  /* Ember Orange — workflow / pipeline    */
   --tri-agent:    #F59E0B;  /* Amber-Gold — tri-agent harness        */
   --audit-gate:   #F43F5E;  /* Rose — audit / gate failures          */
-  --specialist:   #0D9488;  /* Deep Teal — standalone specialist     */
+  --specialist:   #14B8A6;  /* Teal — standalone specialist (B-10: was #0D9488, 4.48△ on card → 6.74✓) */
   --advisor:      #0EA5E9;  /* Light Blue — advisor                  */
-  --orchestrator: #6D28D9;  /* Deep Plum — orchestrator              */
+  --orchestrator: #8B5CF6;  /* Violet — orchestrator (B-10: was #6D28D9, 2.36✗ on card → 3.96△) */
 
   /* ── Path-branch tokens —
      The two demo modes (Replays / Live) and any other place we
@@ -167,14 +167,14 @@
 /* ─────────── LIGHT THEME (Amber) ─────────── */
 [data-theme="light"] {
   --bg:          #f8ebda;
-  --ribbon:      #eed8bc;
+  --ribbon:      #f0dabe;        /* B-10: lightened from #eed8bc — fixes accent/ribbon ratio 2.97→3.03 */
   --ribbon-edge: #d4b58f;
   --surface:     #f4e5cf;
   --card:        #ffffff;
   --border:      #ccb390;
   --text:        #1c1710;
   --muted:       #5a4a30;
-  --subtle:      #8c7657;
+  --subtle:      #6e5c40;        /* B-10: darkened from #8c7657 — clears AA normal (was 3.13–3.69, now 4.74–5.47) */
   --accent:      #d95010;
   --accent-hover:#ab3e08;
   --accent-dim:  rgba(217, 80, 16, 0.12);
