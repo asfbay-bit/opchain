@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<title>C-port · IDE workbench mockup · /demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  /* ─────────────────────────────────────────────────────────────
+     Inlined opchain tokens (dark default, light via [data-theme="light"]).
+     Mirrors site/src/styles/tokens.css so this mockup is standalone
+     and can be opened directly without the site build. The real port
+     into demo.astro will use the same vars from the canonical token
+     file — nothing here will need to be re-authored.
+     ───────────────────────────────────────────────────────────── */
+  :root {
+    --obsidian:  #1c1710;
+    --forge:     #2a2218;
+    --slag:      #5a5040;
+    --sand:      #c4b89e;
+    --linen:     #e8dfd0;
+    --ember:     #e05c18;
+    --char:      #b84510;
+    --ember-dim: rgba(224, 92, 24, 0.10);
+    --ember-glow: rgba(224, 92, 24, 0.22);
+
+    --bg:          var(--obsidian);
+    --ribbon:      #231b13;
+    --surface:     var(--forge);
+    --card:        #241C15;
+    --border:      var(--slag);
+    --text:        var(--linen);
+    --muted:       var(--sand);
+    --subtle:      #8A7868;
+    --accent:      #e05c18;
+    --accent-hover:#b84510;
+
+    --rose:        #F43F5E;
+    --teal:        #0D9488;
+    --advisor:     #0EA5E9;
+    --workflow:    #E8651E;
+    --tri-agent:   #F59E0B;
+    --orchestrator:#6D28D9;
+
+    --font-display: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  [data-theme="light"] {
+    --bg:          #f8ebda;
+    --ribbon:      #eed8bc;
+    --surface:     #f4e5cf;
+    --card:        #ffffff;
+    --border:      #ccb390;
+    --text:        #1c1710;
+    --muted:       #5a4a30;
+    --subtle:      #8c7657;
+    --accent:      #d95010;
+    --accent-hover:#ab3e08;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.5;
+    transition: background 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ── App grid: top bar / [activity | sidebar | editor | inspector] / status ── */
+  .ide {
+    display: grid;
+    grid-template-rows: 32px 1fr 24px;
+    grid-template-columns: 44px 248px 1fr 288px;
+    grid-template-areas:
+      "topbar topbar topbar topbar"
+      "activity sidebar editor inspector"
+      "status status status status";
+    height: 100vh;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    grid-area: topbar;
+    display: flex;
+    align-items: center;
+    background: var(--ribbon);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 14px;
+    gap: 14px;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+  .topbar-dots { display: flex; gap: 6px; }
+  .topbar-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: var(--border);
+  }
+  .topbar-dot:nth-child(1) { background: #ff5f57; }
+  .topbar-dot:nth-child(2) { background: #febc2e; }
+  .topbar-dot:nth-child(3) { background: #28c840; }
+  .topbar-title { color: var(--text); font-weight: 500; }
+  .topbar-sep { color: var(--subtle); }
+  .topbar-meta { color: var(--subtle); }
+  .topbar-spacer { flex: 1; }
+  .theme-toggle {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: color 120ms, border-color 120ms;
+  }
+  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ── Activity rail ── */
+  .activity {
+    grid-area: activity;
+    background: var(--ribbon);
+    border-right: 0.5px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 10px;
+    gap: 4px;
+  }
+  .act {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    color: var(--subtle);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    margin-left: -2px;
+    font-size: 14px;
+    transition: color 120ms, border-color 120ms;
+  }
+  .act:hover { color: var(--text); }
+  .act.is-active {
+    color: var(--text);
+    border-left-color: var(--accent);
+  }
+
+  /* ── Sidebar — scenario tree ── */
+  .sidebar, .editor, .inspector {
+    overflow-y: auto;
+  }
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--surface);
+    border-right: 0.5px solid var(--border);
+    font-size: 12px;
+  }
+  .side-head {
+    position: sticky;
+    top: 0;
+    padding: 8px 12px;
+    background: var(--ribbon);
+    border-bottom: 0.5px solid var(--border);
+    color: var(--subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 10px;
+    z-index: 1;
+  }
+  .tree-group { padding: 2px 0; }
+  .tree-folder {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 12px;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+    transition: color 120ms, background 120ms;
+  }
+  .tree-folder:hover { color: var(--text); background: var(--card); }
+  .tree-folder.is-active { color: var(--text); }
+  .tree-arrow {
+    color: var(--subtle);
+    width: 10px;
+    flex: 0 0 auto;
+    text-align: center;
+    font-size: 9px;
+  }
+  .tree-folder.is-open .tree-arrow { color: var(--accent); }
+  .tree-num {
+    color: var(--subtle);
+    font-size: 10.5px;
+    width: 1.4em;
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .tree-name { flex: 1; }
+  .tree-count {
+    color: var(--subtle);
+    font-size: 10px;
+    margin-left: auto;
+  }
+
+  .tree-children {
+    display: none;
+    padding: 1px 0 4px;
+  }
+  .tree-folder.is-open + .tree-children { display: block; }
+  .tree-skill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 12px 2px 32px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 120ms, background 120ms;
+  }
+  .tree-skill:hover { color: var(--text); background: var(--card); }
+  .role-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+  }
+  .role-workflow     { background: var(--workflow); }
+  .role-tri-agent    { background: var(--tri-agent); }
+  .role-audit-gate   { background: var(--rose); }
+  .role-specialist   { background: var(--teal); }
+  .role-advisor      { background: var(--advisor); }
+  .role-orchestrator { background: var(--orchestrator); }
+
+  /* ── Editor / Inspector — placeholders for pieces 3 + 4 ── */
+  .editor {
+    grid-area: editor;
+    background: var(--bg);
+  }
+  .inspector {
+    grid-area: inspector;
+    background: var(--surface);
+    border-left: 0.5px solid var(--border);
+  }
+  .placeholder {
+    color: var(--subtle);
+    padding: 14px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  /* ── Status bar ── */
+  .status {
+    grid-area: status;
+    background: var(--ribbon);
+    border-top: 0.5px solid var(--border);
+    color: var(--muted);
+    font-size: 10.5px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 14px;
+    letter-spacing: 0.04em;
+  }
+  .status .ok { color: var(--teal); }
+  .status .warn { color: var(--accent); }
+  .status .right { margin-left: auto; }
+  .status .key { color: var(--accent); font-weight: 500; }
+</style>
+</head>
+<body>
+  <div class="ide">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="topbar-dots">
+        <span class="topbar-dot"></span>
+        <span class="topbar-dot"></span>
+        <span class="topbar-dot"></span>
+      </div>
+      <span class="topbar-title">opchain · /demo</span>
+      <span class="topbar-sep">·</span>
+      <span>scenarios.workspace</span>
+      <span class="topbar-spacer"></span>
+      <span class="topbar-meta">claude-opus-4-7 · auto-accept</span>
+      <button class="theme-toggle" data-theme-toggle type="button" aria-label="Toggle theme">
+        ◐ theme
+      </button>
+    </div>
+
+    <!-- Activity rail -->
+    <nav class="activity" aria-label="Activity">
+      <div class="act is-active" title="Scenarios">▦</div>
+      <div class="act" title="Search">⌕</div>
+      <div class="act" title="Inputs / Outputs">⊞</div>
+      <div class="act" title="Skills">●</div>
+      <div class="act" title="Help">?</div>
+    </nav>
+
+    <!-- Sidebar — scenario tree, first 2 expanded -->
+    <aside class="sidebar" aria-label="Scenarios">
+      <div class="side-head">scenarios · 6</div>
+
+      <!-- 01 · concept-to-shipped — expanded, active -->
+      <div class="tree-group">
+        <div class="tree-folder is-open is-active">
+          <span class="tree-arrow">▾</span>
+          <span class="tree-num">01</span>
+          <span class="tree-name">concept-to-shipped</span>
+          <span class="tree-count">5</span>
+        </div>
+        <div class="tree-children">
+          <div class="tree-skill"><span class="role-dot role-workflow"></span>app-architect</div>
+          <div class="tree-skill"><span class="role-dot role-advisor"></span>stack-forge</div>
+          <div class="tree-skill"><span class="role-dot role-tri-agent"></span>ux-engineer</div>
+          <div class="tree-skill"><span class="role-dot role-specialist"></span>git-ops</div>
+          <div class="tree-skill"><span class="role-dot role-orchestrator"></span>deploy-ops</div>
+        </div>
+      </div>
+
+      <!-- 02 · dashboard-rescue — expanded -->
+      <div class="tree-group">
+        <div class="tree-folder is-open">
+          <span class="tree-arrow">▾</span>
+          <span class="tree-num">02</span>
+          <span class="tree-name">dashboard-rescue</span>
+          <span class="tree-count">2</span>
+        </div>
+        <div class="tree-children">
+          <div class="tree-skill"><span class="role-dot role-tri-agent"></span>ux-engineer</div>
+          <div class="tree-skill"><span class="role-dot role-specialist"></span>dash-forge</div>
+        </div>
+      </div>
+
+      <!-- 03 · legacy-revive — collapsed -->
+      <div class="tree-group">
+        <div class="tree-folder">
+          <span class="tree-arrow">▸</span>
+          <span class="tree-num">03</span>
+          <span class="tree-name">legacy-revive</span>
+          <span class="tree-count">3</span>
+        </div>
+      </div>
+
+      <!-- 04 · stripe-ship — collapsed -->
+      <div class="tree-group">
+        <div class="tree-folder">
+          <span class="tree-arrow">▸</span>
+          <span class="tree-num">04</span>
+          <span class="tree-name">stripe-ship</span>
+          <span class="tree-count">2</span>
+        </div>
+      </div>
+
+      <!-- 05 · postgres-migration — collapsed -->
+      <div class="tree-group">
+        <div class="tree-folder">
+          <span class="tree-arrow">▸</span>
+          <span class="tree-num">05</span>
+          <span class="tree-name">postgres-migration</span>
+          <span class="tree-count">4</span>
+        </div>
+      </div>
+
+      <!-- 06 · security-hardening — collapsed -->
+      <div class="tree-group">
+        <div class="tree-folder">
+          <span class="tree-arrow">▸</span>
+          <span class="tree-num">06</span>
+          <span class="tree-name">security-hardening</span>
+          <span class="tree-count">3</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Editor (empty in piece 1) -->
+    <main class="editor"><div class="placeholder">transcript → piece 3</div></main>
+
+    <!-- Inspector (empty in piece 1) -->
+    <aside class="inspector"><div class="placeholder">i / o / skills → piece 4</div></aside>
+
+    <!-- Status bar -->
+    <div class="status">
+      <span>workbench</span>
+      <span class="topbar-sep">·</span>
+      <span>piece 2 of 5 · sidebar populated</span>
+      <span class="topbar-sep">·</span>
+      <span class="ok">✓ 6 scenarios · first 2 expanded</span>
+      <span class="right">
+        <span class="key">↵</span> play ·
+        <span class="key">␣</span> skip ·
+        <span class="key">R</span> restart
+      </span>
+    </div>
+
+  </div>
+
+  <script>
+    (() => {
+      const btn = document.querySelector('[data-theme-toggle]');
+      if (!btn) return;
+      btn.addEventListener('click', () => {
+        const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+        document.documentElement.dataset.theme = next;
+      });
+    })();
+  </script>
+</body>
+</html>
