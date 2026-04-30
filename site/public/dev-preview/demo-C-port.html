@@ -155,7 +155,7 @@
     border-left-color: var(--accent);
   }
 
-  /* ── Sidebar / Editor / Inspector — empty placeholders for piece 1 ── */
+  /* ── Sidebar — scenario tree ── */
   .sidebar, .editor, .inspector {
     overflow-y: auto;
   }
@@ -163,7 +163,84 @@
     grid-area: sidebar;
     background: var(--surface);
     border-right: 0.5px solid var(--border);
+    font-size: 12px;
   }
+  .side-head {
+    position: sticky;
+    top: 0;
+    padding: 8px 12px;
+    background: var(--ribbon);
+    border-bottom: 0.5px solid var(--border);
+    color: var(--subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 10px;
+    z-index: 1;
+  }
+  .tree-group { padding: 2px 0; }
+  .tree-folder {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 12px;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+    transition: color 120ms, background 120ms;
+  }
+  .tree-folder:hover { color: var(--text); background: var(--card); }
+  .tree-folder.is-active { color: var(--text); }
+  .tree-arrow {
+    color: var(--subtle);
+    width: 10px;
+    flex: 0 0 auto;
+    text-align: center;
+    font-size: 9px;
+  }
+  .tree-folder.is-open .tree-arrow { color: var(--accent); }
+  .tree-num {
+    color: var(--subtle);
+    font-size: 10.5px;
+    width: 1.4em;
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .tree-name { flex: 1; }
+  .tree-count {
+    color: var(--subtle);
+    font-size: 10px;
+    margin-left: auto;
+  }
+
+  .tree-children {
+    display: none;
+    padding: 1px 0 4px;
+  }
+  .tree-folder.is-open + .tree-children { display: block; }
+  .tree-skill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 12px 2px 32px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 120ms, background 120ms;
+  }
+  .tree-skill:hover { color: var(--text); background: var(--card); }
+  .role-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+  }
+  .role-workflow     { background: var(--workflow); }
+  .role-tri-agent    { background: var(--tri-agent); }
+  .role-audit-gate   { background: var(--rose); }
+  .role-specialist   { background: var(--teal); }
+  .role-advisor      { background: var(--advisor); }
+  .role-orchestrator { background: var(--orchestrator); }
+
+  /* ── Editor / Inspector — placeholders for pieces 3 + 4 ── */
   .editor {
     grid-area: editor;
     background: var(--bg);
@@ -229,8 +306,81 @@
       <div class="act" title="Help">?</div>
     </nav>
 
-    <!-- Sidebar (empty in piece 1) -->
-    <aside class="sidebar"><div class="placeholder">scenarios → piece 2</div></aside>
+    <!-- Sidebar — scenario tree, first 2 expanded -->
+    <aside class="sidebar" aria-label="Scenarios">
+      <div class="side-head">scenarios · 6</div>
+
+      <!-- 01 · concept-to-shipped — expanded, active -->
+      <div class="tree-group">
+        <div class="tree-folder is-open is-active">
+          <span class="tree-arrow">▾</span>
+          <span class="tree-num">01</span>
+          <span class="tree-name">concept-to-shipped</span>
+          <span class="tree-count">5</span>
+        </div>
+        <div class="tree-children">
+          <div class="tree-skill"><span class="role-dot role-workflow"></span>app-architect</div>
+          <div class="tree-skill"><span class="role-dot role-advisor"></span>stack-forge</div>
+          <div class="tree-skill"><span class="role-dot role-tri-agent"></span>ux-engineer</div>
+          <div class="tree-skill"><span class="role-dot role-specialist"></span>git-ops</div>
+          <div class="tree-skill"><span class="role-dot role-orchestrator"></span>deploy-ops</div>
+        </div>
+      </div>
+
+      <!-- 02 · dashboard-rescue — expanded -->
+      <div class="tree-group">
+        <div class="tree-folder is-open">
+          <span class="tree-arrow">▾</span>
+          <span class="tree-num">02</span>
+          <span class="tree-name">dashboard-rescue</span>
+          <span class="tree-count">2</span>
+        </div>
+        <div class="tree-children">
+          <div class="tree-skill"><span class="role-dot role-tri-agent"></span>ux-engineer</div>
+          <div class="tree-skill"><span class="role-dot role-specialist"></span>dash-forge</div>
+        </div>
+      </div>
+
+      <!-- 03 · legacy-revive — collapsed -->
+      <div class="tree-group">
+        <div class="tree-folder">
+          <span class="tree-arrow">▸</span>
+          <span class="tree-num">03</span>
+          <span class="tree-name">legacy-revive</span>
+          <span class="tree-count">3</span>
+        </div>
+      </div>
+
+      <!-- 04 · stripe-ship — collapsed -->
+      <div class="tree-group">
+        <div class="tree-folder">
+          <span class="tree-arrow">▸</span>
+          <span class="tree-num">04</span>
+          <span class="tree-name">stripe-ship</span>
+          <span class="tree-count">2</span>
+        </div>
+      </div>
+
+      <!-- 05 · postgres-migration — collapsed -->
+      <div class="tree-group">
+        <div class="tree-folder">
+          <span class="tree-arrow">▸</span>
+          <span class="tree-num">05</span>
+          <span class="tree-name">postgres-migration</span>
+          <span class="tree-count">4</span>
+        </div>
+      </div>
+
+      <!-- 06 · security-hardening — collapsed -->
+      <div class="tree-group">
+        <div class="tree-folder">
+          <span class="tree-arrow">▸</span>
+          <span class="tree-num">06</span>
+          <span class="tree-name">security-hardening</span>
+          <span class="tree-count">3</span>
+        </div>
+      </div>
+    </aside>
 
     <!-- Editor (empty in piece 1) -->
     <main class="editor"><div class="placeholder">transcript → piece 3</div></main>
@@ -242,9 +392,9 @@
     <div class="status">
       <span>workbench</span>
       <span class="topbar-sep">·</span>
-      <span>piece 1 of 5 · IDE shell</span>
+      <span>piece 2 of 5 · sidebar populated</span>
       <span class="topbar-sep">·</span>
-      <span class="ok">✓ tokens applied</span>
+      <span class="ok">✓ 6 scenarios · first 2 expanded</span>
       <span class="right">
         <span class="key">↵</span> play ·
         <span class="key">␣</span> skip ·
