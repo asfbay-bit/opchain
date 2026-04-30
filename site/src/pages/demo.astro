@@ -92,7 +92,7 @@ const sidebar = walkthroughs.map((w, i) => ({
       </nav>
 
       <!-- Sidebar — scenario tree -->
-      <aside class="ide-sidebar" aria-label="Scenarios">
+      <div class="ide-sidebar" role="region" aria-label="Scenarios">
         <div class="side-head">scenarios · 6</div>
         {sidebar.map((s) => (
           <div class="tree-group">
@@ -115,17 +115,17 @@ const sidebar = walkthroughs.map((w, i) => ({
             </div>
           </div>
         ))}
-      </aside>
+      </div>
 
       <!-- Editor — populated in chunk 2 -->
-      <main class="ide-editor" aria-label="Transcript">
+      <div class="ide-editor" role="region" aria-label="Transcript">
         <div class="ide-placeholder">editor &amp; transcript → port chunk 2</div>
-      </main>
+      </div>
 
       <!-- Inspector — populated in chunk 3 -->
-      <aside class="ide-inspector" aria-label="Scenario inspector">
+      <div class="ide-inspector" role="region" aria-label="Scenario inspector">
         <div class="ide-placeholder">i / o / skills → port chunk 3</div>
-      </aside>
+      </div>
 
       <!-- Status bar -->
       <div class="ide-status">
