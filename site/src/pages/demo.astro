@@ -1,11 +1,11 @@
 ---
 import Base from "../layouts/Base.astro";
-import Replays from "../components/Replays.astro";
 import OnboardingTour from "../components/OnboardingTour.astro";
 import { walkthroughs } from "../data/walkthroughs";
+import { getSkillRole } from "../lib/skills";
 
 /**
- * Demo — magazine-style intro + interactive workbench.
+ * Demo — magazine-style intro + IDE workbench.
  *
  * The intro is a compact editorial "cover" capped at ~32vh. Its
  * headline rotates through all six walkthroughs on a deterministic
@@ -14,9 +14,13 @@ import { walkthroughs } from "../data/walkthroughs";
  * renders the first walkthrough; client JS overrides to whichever slot
  * is current and schedules the next swap on the slot boundary.
  *
- * The workbench below hosts <Replays /> — the real scenario engine.
- * Clicking inside it promotes the frame to a centered focus overlay;
- * clicking the backdrop / pressing Escape releases it.
+ * Below the cover sits a VS Code-style workbench: top bar, activity
+ * rail, scenario sidebar, editor + transcript, inspector with i/o/
+ * skills/checkpoint, status bar. Ported from /dev-preview/demo-C-port
+ * after sign-off across the 5 mockup pieces. Sidebar + tabs are
+ * data-driven from the walkthroughs collection; the editor and
+ * inspector are populated for scenario 01 in the first port chunk and
+ * hydrated for 02–06 in a follow-up chunk.
  */
 
 const covers = walkthroughs.map((w, i) => ({
@@ -26,6 +30,14 @@ const covers = walkthroughs.map((w, i) => ({
   tagline: w.tagline,
 }));
 const initial = covers[0];
+
+const sidebar = walkthroughs.map((w, i) => ({
+  num: String(i + 1).padStart(2, "0"),
+  id: w.id,
+  active: i === 0,
+  open: i < 2,
+  skills: w.skills.map((id) => ({ id, role: getSkillRole(id) })),
+}));
 ---
 
 <Base
@@ -50,34 +62,86 @@ const initial = covers[0];
 
   <script is:inline type="application/json" id="cover-data" set:html={JSON.stringify(covers)} />
 
-  <!-- 2 · Workbench -->
-  <section class="workbench" id="workbench">
-    <div class="work-head">
-      <div class="work-eyebrow">workbench</div>
-      <h2 class="work-h">Inspect the same run, end to end.</h2>
-      <p class="work-sub">
-        Pick a scenario. Step through, scrub, or jump to the payoff.
+  <!-- 2 · IDE workbench -->
+  <section class="workbench" id="workbench" aria-label="Workbench">
+    <div class="ide">
+      <!-- Top bar -->
+      <div class="ide-topbar">
+        <div class="ide-dots">
+          <span class="ide-dot"></span>
+          <span class="ide-dot"></span>
+          <span class="ide-dot"></span>
+        </div>
+        <span class="ide-title">opchain · /demo</span>
+        <span class="ide-sep">·</span>
+        <span>scenarios.workspace</span>
+        <span class="ide-spacer"></span>
+        <span class="ide-meta">claude-opus-4-7 · auto-accept</span>
         <button class="help-btn" data-tour-trigger type="button" aria-label="Open intro tour">
           (?) tour
         </button>
-      </p>
-    </div>
+      </div>
 
-    <div class="work-frame" data-workbench tabindex="-1">
-      <button
-        class="work-release"
-        type="button"
-        data-workbench-release
-        aria-label="Exit workbench focus mode"
-        title="Press Esc to exit"
-      >
-        ✕ exit
-      </button>
-      <Replays />
+      <!-- Activity rail -->
+      <nav class="ide-activity" aria-label="Activity">
+        <div class="act is-active" title="Scenarios">▦</div>
+        <div class="act" title="Search">⌕</div>
+        <div class="act" title="Inputs / Outputs">⊞</div>
+        <div class="act" title="Skills">●</div>
+        <div class="act" title="Help">?</div>
+      </nav>
+
+      <!-- Sidebar — scenario tree -->
+      <div class="ide-sidebar" role="region" aria-label="Scenarios">
+        <div class="side-head">scenarios · 6</div>
+        {sidebar.map((s) => (
+          <div class="tree-group">
+            <div
+              class:list={["tree-folder", { "is-open": s.open, "is-active": s.active }]}
+              data-scenario={s.id}
+            >
+              <span class="tree-arrow">{s.open ? "▾" : "▸"}</span>
+              <span class="tree-num">{s.num}</span>
+              <span class="tree-name">{s.id}</span>
+              <span class="tree-count">{s.skills.length}</span>
+            </div>
+            <div class="tree-children">
+              {s.skills.map((sk) => (
+                <div class="tree-skill">
+                  <span class:list={["role-dot", `role-${sk.role}`]}></span>
+                  {sk.id}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- Editor — populated in chunk 2 -->
+      <div class="ide-editor" role="region" aria-label="Transcript">
+        <div class="ide-placeholder">editor &amp; transcript → port chunk 2</div>
+      </div>
+
+      <!-- Inspector — populated in chunk 3 -->
+      <div class="ide-inspector" role="region" aria-label="Scenario inspector">
+        <div class="ide-placeholder">i / o / skills → port chunk 3</div>
+      </div>
+
+      <!-- Status bar -->
+      <div class="ide-status">
+        <span>workbench</span>
+        <span class="ide-sep">·</span>
+        <span>port chunk 1 of 5 · IDE shell + sidebar</span>
+        <span class="ide-sep">·</span>
+        <span class="ok">✓ {sidebar.length} scenarios loaded</span>
+        <span class="right">
+          <span class="key">↵</span> play ·
+          <span class="key">␣</span> skip ·
+          <span class="key">R</span> restart
+        </span>
+      </div>
     </div>
   </section>
-
-  <div class="workbench-backdrop" data-workbench-backdrop hidden></div>
 
   <OnboardingTour />
 </Base>
@@ -181,214 +245,244 @@ const initial = covers[0];
     border-color: var(--accent);
   }
 
-  /* ── 2. Workbench section ── */
+  /* ── 2. IDE workbench section ── */
   .workbench {
-    padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem) 5rem;
+    padding: clamp(1rem, 3vw, 2rem) clamp(0.5rem, 2vw, 1.5rem) 4rem;
     background: var(--bg);
   }
-  .work-head {
-    max-width: 1100px;
-    margin: 0 auto 1.6rem;
-  }
-  .work-eyebrow {
-    color: var(--accent);
+  .ide {
+    max-width: 1320px;
+    margin: 0 auto;
+    height: min(78vh, 820px);
+    min-height: 560px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: 32px 1fr 24px;
+    grid-template-columns: 44px 248px 1fr 288px;
+    grid-template-areas:
+      "topbar topbar topbar topbar"
+      "activity sidebar editor inspector"
+      "status status status status";
+    background: var(--bg);
     font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    letter-spacing: var(--ls-widest);
-    text-transform: uppercase;
-    margin-bottom: 0.4rem;
+    font-size: 13px;
+    line-height: 1.5;
   }
-  .work-h {
-    font-family: var(--font-display);
-    font-size: var(--fs-xl);
-    font-weight: 600;
-    letter-spacing: var(--ls-tight);
-    margin: 0 0 0.5rem;
-    max-width: 40ch;
-    color: var(--text);
-  }
-  .work-sub {
+
+  /* Top bar */
+  .ide-topbar {
+    grid-area: topbar;
+    display: flex;
+    align-items: center;
+    background: var(--ribbon);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 14px;
+    gap: 14px;
     color: var(--muted);
-    font-size: var(--fs-md);
-    max-width: 50rem;
-    margin: 0;
-    line-height: var(--lh-base);
+    font-size: 11px;
+    letter-spacing: 0.04em;
   }
+  .ide-dots { display: flex; gap: 6px; }
+  .ide-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: var(--border);
+  }
+  .ide-dot:nth-child(1) { background: #ff5f57; }
+  .ide-dot:nth-child(2) { background: #febc2e; }
+  .ide-dot:nth-child(3) { background: #28c840; }
+  .ide-title { color: var(--text); font-weight: 500; }
+  .ide-sep   { color: var(--subtle); }
+  .ide-meta  { color: var(--subtle); }
+  .ide-spacer { flex: 1; }
   .help-btn {
-    margin-left: 0.4rem;
     appearance: none;
     background: transparent;
     border: 0.5px solid var(--border);
-    border-radius: var(--r-xs);
-    color: var(--subtle);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    letter-spacing: var(--ls-wide);
-    padding: 1px 8px;
-    cursor: pointer;
-    transition:
-      color var(--dur-fast) var(--ease-standard),
-      border-color var(--dur-fast) var(--ease-standard);
-  }
-  .help-btn:hover {
-    color: var(--accent);
-    border-color: var(--accent);
-  }
-
-  /* ── 3. Workbench frame ── */
-  .work-frame {
-    position: relative;
-    max-width: 1180px;
-    margin: 0 auto;
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--r-lg);
-    padding: 1.4rem;
-    cursor: zoom-in;
-    transition:
-      transform var(--dur-base) var(--ease-emphasized),
-      box-shadow var(--dur-base) var(--ease-standard),
-      border-color var(--dur-base) var(--ease-standard);
-  }
-  .work-frame:hover:not(.is-focused) {
-    border-color: var(--accent);
-    box-shadow: var(--glow-md);
-  }
-  .work-frame:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-
-  .work-release {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    z-index: 2;
-    display: none;
-    appearance: none;
-    background: var(--bg);
-    border: 0.5px solid var(--border);
-    border-radius: var(--r-xs);
     color: var(--muted);
     font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    letter-spacing: var(--ls-wide);
-    padding: 4px 10px;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 3px;
     cursor: pointer;
-    transition:
-      color var(--dur-fast) var(--ease-standard),
-      border-color var(--dur-fast) var(--ease-standard);
+    transition: color 120ms, border-color 120ms;
   }
-  .work-release:hover {
-    color: var(--accent);
-    border-color: var(--accent);
+  .help-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* Activity rail */
+  .ide-activity {
+    grid-area: activity;
+    background: var(--ribbon);
+    border-right: 0.5px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 10px;
+    gap: 4px;
+  }
+  .act {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    color: var(--subtle);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    margin-left: -2px;
+    font-size: 14px;
+    transition: color 120ms, border-color 120ms;
+  }
+  .act:hover { color: var(--text); }
+  .act.is-active {
+    color: var(--text);
+    border-left-color: var(--accent);
   }
 
-  /* ── 4. Focus mode — locks the workbench centered until released ── */
-  .work-frame.is-focused {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: min(96vw, 1280px);
-    height: min(92vh, 900px);
-    max-width: none;
-    margin: 0;
-    z-index: 100;
-    cursor: default;
-    overflow: auto;
-    box-shadow: var(--shadow-xl), var(--glow-lg);
-    border-color: var(--accent);
+  /* Sidebar — scenario tree */
+  .ide-sidebar {
+    grid-area: sidebar;
+    background: var(--surface);
+    border-right: 0.5px solid var(--border);
+    overflow-y: auto;
+    font-size: 12px;
   }
-  .work-frame.is-focused .work-release { display: inline-flex; }
+  .side-head {
+    position: sticky;
+    top: 0;
+    padding: 8px 12px;
+    background: var(--ribbon);
+    border-bottom: 0.5px solid var(--border);
+    color: var(--subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 10px;
+    z-index: 1;
+  }
+  .tree-group { padding: 2px 0; }
+  .tree-folder {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 12px;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+    transition: color 120ms, background 120ms;
+  }
+  .tree-folder:hover { color: var(--text); background: var(--card); }
+  .tree-folder.is-active { color: var(--text); }
+  .tree-arrow {
+    color: var(--subtle);
+    width: 10px;
+    flex: 0 0 auto;
+    text-align: center;
+    font-size: 9px;
+  }
+  .tree-folder.is-open .tree-arrow { color: var(--accent); }
+  .tree-num {
+    color: var(--subtle);
+    font-size: 10.5px;
+    width: 1.4em;
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .tree-name { flex: 1; }
+  .tree-count {
+    color: var(--subtle);
+    font-size: 10px;
+    margin-left: auto;
+  }
+  .tree-children {
+    display: none;
+    padding: 1px 0 4px;
+  }
+  .tree-folder.is-open + .tree-children { display: block; }
+  .tree-skill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 12px 2px 32px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 120ms, background 120ms;
+  }
+  .tree-skill:hover { color: var(--text); background: var(--card); }
+  .role-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+  }
+  .role-workflow     { background: var(--workflow); }
+  .role-tri-agent    { background: var(--tri-agent); }
+  .role-audit-gate   { background: var(--rose, var(--audit-gate)); }
+  .role-specialist   { background: var(--teal, var(--specialist)); }
+  .role-advisor      { background: var(--advisor); }
+  .role-orchestrator { background: var(--orchestrator); }
+  .role-success      { background: var(--success); }
 
-  .workbench-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 90;
-    background: rgba(12, 8, 4, 0.7);
-    backdrop-filter: blur(4px);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--dur-base) var(--ease-standard);
+  /* Editor + Inspector — placeholders for chunks 2 & 3 */
+  .ide-editor {
+    grid-area: editor;
+    background: var(--bg);
+    overflow-y: auto;
   }
-  .workbench-backdrop.is-visible {
-    opacity: 1;
-    pointer-events: auto;
+  .ide-inspector {
+    grid-area: inspector;
+    background: var(--surface);
+    border-left: 0.5px solid var(--border);
+    overflow-y: auto;
+    font-size: 12px;
   }
-  .workbench-backdrop[hidden] { display: none; }
+  .ide-placeholder {
+    color: var(--subtle);
+    padding: 14px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
 
-  body.workbench-locked {
-    overflow: hidden;
+  /* Status bar */
+  .ide-status {
+    grid-area: status;
+    background: var(--ribbon);
+    border-top: 0.5px solid var(--border);
+    color: var(--muted);
+    font-size: 10.5px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 14px;
+    letter-spacing: 0.04em;
   }
+  .ide-status .ok { color: var(--teal, var(--specialist)); }
+  .ide-status .right { margin-left: auto; }
+  .ide-status .key { color: var(--accent); font-weight: 500; }
 
-  /* Don't trap mobile users in a fixed overlay — focus mode is
-     desktop-only. On narrow viewports the workbench just stays in flow. */
+  /* Mobile: stack the IDE columns into a single column. The sidebar
+     scrolls horizontally above the editor; inspector hides. */
   @media (max-width: 767px) {
-    .work-frame { cursor: auto; }
-    .work-frame.is-focused {
-      position: static;
-      transform: none;
-      width: auto;
+    .ide {
       height: auto;
-      box-shadow: none;
+      min-height: 0;
+      grid-template-rows: 32px auto auto 24px;
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "topbar"
+        "sidebar"
+        "editor"
+        "status";
     }
-    .work-frame.is-focused .work-release { display: none; }
-    .workbench-backdrop.is-visible {
-      opacity: 0;
-      pointer-events: none;
-    }
+    .ide-activity { display: none; }
+    .ide-sidebar { max-height: 220px; }
+    .ide-inspector { display: none; }
   }
 </style>
 
 <script is:inline>
-  (() => {
-    const frame = document.querySelector('[data-workbench]');
-    const backdrop = document.querySelector('[data-workbench-backdrop]');
-    const release = document.querySelector('[data-workbench-release]');
-    if (!frame || !backdrop || !release) return;
-
-    const desktop = () => window.matchMedia('(min-width: 768px)').matches;
-    let focused = false;
-
-    function lock() {
-      if (focused || !desktop()) return;
-      focused = true;
-      frame.classList.add('is-focused');
-      backdrop.hidden = false;
-      // Force layout so the transition fires from opacity:0.
-      void backdrop.offsetWidth;
-      backdrop.classList.add('is-visible');
-      document.body.classList.add('workbench-locked');
-      frame.focus({ preventScroll: true });
-    }
-    function unlock() {
-      if (!focused) return;
-      focused = false;
-      frame.classList.remove('is-focused');
-      backdrop.classList.remove('is-visible');
-      document.body.classList.remove('workbench-locked');
-      // Hide backdrop after the fade-out so it doesn't block clicks.
-      setTimeout(() => { if (!focused) backdrop.hidden = true; }, 220);
-    }
-
-    frame.addEventListener('click', (e) => {
-      if (focused) return;
-      // Don't intercept link / button clicks inside the frame on first
-      // engagement — but otherwise any click promotes to focus mode.
-      const interactive = e.target.closest('a, button, [role="button"], input, textarea, select');
-      if (interactive) return;
-      lock();
-    });
-
-    backdrop.addEventListener('click', unlock);
-    release.addEventListener('click', (e) => { e.stopPropagation(); unlock(); });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && focused) unlock();
-    });
-  })();
-
   /* Magazine cover — 2-minute slot rotation (6 covers × 2 min = 12 min
      cycle). The slot is keyed to wall-clock time (epoch ms / 2min) modulo
      the number of covers, so every visitor in the same 2-minute window
