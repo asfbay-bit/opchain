@@ -952,7 +952,7 @@ const catalog = JSON.stringify(
       min-width: 1.75rem;
     }
     /* B-10: --accent on light --surface at 16px/600 = 3.05:1 ✗. --accent-hover = 4.55:1 ✓. */
-    [data-theme="light"] .scenario-num { color: var(--accent-hover); }
+    :global([data-theme="light"]) .scenario-num { color: var(--accent-hover); }
     .scenario-tagline {
       flex: 1;
       font-family: var(--font-display);
@@ -1115,7 +1115,7 @@ const catalog = JSON.stringify(
       letter-spacing: var(--ls-wide);
     }
     /* B-10: --accent at 10px on light --surface = 3.05:1 ✗. --accent-hover = 4.55:1 ✓. */
-    [data-theme="light"] .artifact-kind { color: var(--accent-hover); }
+    :global([data-theme="light"]) .artifact-kind { color: var(--accent-hover); }
 
     /* ── Player ──────────────────────────────────────────────── */
     .player {
@@ -1183,7 +1183,7 @@ const catalog = JSON.stringify(
     }
     .ctl-primary:hover:not(:disabled) { background: var(--accent-hover); }
     /* B-10: light --accent bg with --obsidian text = 4.33:1 ✗. --ember = 4.84:1 ✓. */
-    [data-theme="light"] .ctl-primary { background: var(--ember); }
+    :global([data-theme="light"]) .ctl-primary { background: var(--ember); }
     .ctl:disabled { opacity: 0.45; cursor: not-allowed; }
 
     /* ── Progress ────────────────────────────────────────────── */
@@ -2275,7 +2275,7 @@ const catalog = JSON.stringify(
       border-bottom-color: var(--accent);
     }
     /* B-10: --accent at 10px on light bg = 3.50:1 ✗. --accent-hover = 5.22:1 ✓. */
-    [data-theme="light"] .replays-tab.is-active { color: var(--accent-hover); border-bottom-color: var(--accent-hover); }
+    :global([data-theme="light"]) .replays-tab.is-active { color: var(--accent-hover); border-bottom-color: var(--accent-hover); }
     .replays-tab:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
