@@ -17,6 +17,14 @@ const FIRST_PANE   = '[data-scenario-pane="concept-to-shipped"]';
 const FIRST_INSP   = '[data-inspector-pane="concept-to-shipped"]';
 
 test.describe("demo workbench", () => {
+  // Pre-set the OnboardingTour "already-seen" flag so the auto-open scrim
+  // doesn't intercept pointer events. Runs before any page script.
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      try { localStorage.setItem("opchain-demo-tour-seen", "1"); } catch { /* ignore */ }
+    });
+  });
+
   test("sidebar folder click shows the scenario summary", async ({ page }) => {
     await page.goto("/demo");
 
