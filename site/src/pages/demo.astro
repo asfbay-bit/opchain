@@ -81,6 +81,16 @@ const artifacts = walkthroughs.flatMap((w) =>
         <span>scenarios.workspace</span>
         <span class="ide-spacer"></span>
         <span class="ide-meta">claude-opus-4-7 · auto-accept</span>
+        <button
+          class="help-btn fullscreen-btn"
+          data-fullscreen-toggle
+          type="button"
+          aria-label="Expand workbench to full screen"
+          aria-pressed="false"
+        >
+          <span data-fs-label-off>⛶ expand</span>
+          <span data-fs-label-on hidden>⛶ exit</span>
+        </button>
         <button class="help-btn" data-tour-trigger type="button" aria-label="Open intro tour">
           (?) tour
         </button>
@@ -198,10 +208,13 @@ const artifacts = walkthroughs.flatMap((w) =>
       <div class="ide-status">
         <span>workbench</span>
         <span class="ide-sep">·</span>
-        <span>port chunk 5 of 9 · output lightbox wired</span>
+        <span>port chunk 6 of 9 · fullscreen toggle</span>
         <span class="ide-sep">·</span>
         <span class="ok">✓ {sidebar.length} scenarios loaded</span>
         <span class="right">
+          <span class="fs-hint" data-fs-hint hidden>
+            <span class="key">Esc</span> exit fullscreen ·
+          </span>
           <span class="key">↵</span> play ·
           <span class="key">␣</span> skip ·
           <span class="key">R</span> restart
@@ -718,6 +731,43 @@ const artifacts = walkthroughs.flatMap((w) =>
     .ide-inspector { display: none; }
   }
 
+  /* ── Fullscreen workbench (chunk 6) ──
+        Toggle expands .workbench to fill the viewport. Implemented as
+        a CSS class swap rather than the Fullscreen API — avoids the
+        permission prompt + iframe edge cases, gives us full styling
+        control, and degrades gracefully if JS is off (the button is
+        hidden until JS wires it). Click .fullscreen-btn or press Esc
+        to exit. The output-modal still owns its own Esc behavior since
+        it's a native <dialog>; the global Esc handler bails when a
+        modal is open. */
+  .fullscreen-btn { letter-spacing: 0.06em; }
+  .fs-hint { color: var(--accent); margin-right: 0.4rem; }
+  .workbench.is-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    padding: 0;
+    margin: 0;
+    background: var(--bg);
+  }
+  .workbench.is-fullscreen .ide {
+    height: 100dvh;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+  }
+  /* Hide page chrome behind the fullscreen workbench. */
+  body:has(.workbench.is-fullscreen) {
+    overflow: hidden;
+  }
+  /* Reposition the topbar mac-style dots so they double as a "minimize"
+     hint — clicking the red dot also exits fullscreen. */
+  .workbench.is-fullscreen .ide-dot:nth-child(1) {
+    cursor: pointer;
+  }
+
   /* ── Output modal lightbox (chunk 5) ── */
   .output-modal {
     position: fixed;
@@ -996,6 +1046,53 @@ const artifacts = walkthroughs.flatMap((w) =>
     // Close: click on the backdrop (the <dialog> element itself, outside modal-inner).
     modal.addEventListener('click', (e) => {
       if (e.target === modal) modal.close();
+    });
+  })();
+
+  /* Fullscreen workbench — chunk 6.
+
+     Toggle expands the .workbench section to fill the viewport via a CSS
+     class swap (no Fullscreen API). Exit on the button, the macOS-style
+     red dot, or Escape (when no modal is open). */
+  (() => {
+    const workbench = document.querySelector('.workbench');
+    const btn       = document.querySelector('[data-fullscreen-toggle]');
+    const labelOff  = btn && btn.querySelector('[data-fs-label-off]');
+    const labelOn   = btn && btn.querySelector('[data-fs-label-on]');
+    const hint      = document.querySelector('[data-fs-hint]');
+    const redDot    = document.querySelector('.ide-dots .ide-dot:nth-child(1)');
+    if (!workbench || !btn) return;
+
+    function setFullscreen(on) {
+      workbench.classList.toggle('is-fullscreen', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.setAttribute('aria-label', on ? 'Exit fullscreen workbench' : 'Expand workbench to full screen');
+      if (labelOff) { if (on) labelOff.setAttribute('hidden', ''); else labelOff.removeAttribute('hidden'); }
+      if (labelOn)  { if (on) labelOn.removeAttribute('hidden');     else labelOn.setAttribute('hidden', ''); }
+      if (hint)     { if (on) hint.removeAttribute('hidden');        else hint.setAttribute('hidden', ''); }
+    }
+
+    function isFullscreen() {
+      return workbench.classList.contains('is-fullscreen');
+    }
+
+    btn.addEventListener('click', () => setFullscreen(!isFullscreen()));
+
+    if (redDot) {
+      redDot.setAttribute('role', 'button');
+      redDot.setAttribute('tabindex', '0');
+      redDot.setAttribute('aria-label', 'Exit fullscreen workbench');
+      redDot.addEventListener('click', () => { if (isFullscreen()) setFullscreen(false); });
+    }
+
+    // Escape exits fullscreen — but only if no native <dialog> is open
+    // (the dialog owns Escape inside its own showModal lifecycle).
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (!isFullscreen()) return;
+      const openDialog = document.querySelector('dialog[open]');
+      if (openDialog) return;
+      setFullscreen(false);
     });
   })();
 </script>
