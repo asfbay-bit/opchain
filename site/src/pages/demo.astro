@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import OnboardingTour from "../components/OnboardingTour.astro";
 import { walkthroughs } from "../data/walkthroughs";
 import { getSkillRole } from "../lib/skills";
+import { renderSafeMarkdown } from "../lib/markdown";
 
 /**
  * Demo — short tour summary + IDE workbench.
@@ -24,6 +25,17 @@ const sidebar = walkthroughs.map((w, i) => ({
   id: w.id,
   skills: w.skills.map((id) => ({ id, role: getSkillRole(id) })),
 }));
+
+/** Pre-rendered artifact bodies — avoids client-side markdown parsing. */
+const artifacts = walkthroughs.flatMap((w) =>
+  w.outputs.map((o) => ({
+    scenarioId: w.id,
+    artifactId: o.id,
+    label: o.label,
+    kind: o.kind ?? "",
+    html: renderSafeMarkdown(o.body),
+  }))
+);
 ---
 
 <Base
@@ -69,6 +81,16 @@ const sidebar = walkthroughs.map((w, i) => ({
         <span>scenarios.workspace</span>
         <span class="ide-spacer"></span>
         <span class="ide-meta">claude-opus-4-7 · auto-accept</span>
+        <button
+          class="help-btn fullscreen-btn"
+          data-fullscreen-toggle
+          type="button"
+          aria-label="Expand workbench to full screen"
+          aria-pressed="false"
+        >
+          <span data-fs-label-off>⛶ expand</span>
+          <span data-fs-label-on hidden>⛶ exit</span>
+        </button>
         <button class="help-btn" data-tour-trigger type="button" aria-label="Open intro tour">
           (?) tour
         </button>
@@ -111,9 +133,69 @@ const sidebar = walkthroughs.map((w, i) => ({
         ))}
       </div>
 
-      <!-- Editor — populated in chunk 4 (summary + outputs list) -->
-      <div class="ide-editor" role="region" aria-label="Transcript">
-        <div class="ide-placeholder">editor &amp; summary → port chunk 4</div>
+      <!-- Editor — per-scenario summary panes. Default state shows
+           the prompt; opening a scenario in the sidebar swaps in that
+           scenario's pane via the click handler at the bottom of the
+           file. Output rows are wired to a modal lightbox in chunk 5. -->
+      <div class="ide-editor" role="region" aria-label="Scenario summary">
+        <div class="editor-prompt" data-editor-prompt>
+          <div class="editor-prompt-eyebrow">scenario summary</div>
+          <p class="editor-prompt-h">Pick a scenario on the left.</p>
+          <p class="editor-prompt-sub">
+            Each scenario shows a one-paragraph brief, the inputs the
+            user brought, and the outputs Claude produced — each output
+            opens to its full body.
+          </p>
+        </div>
+
+        {walkthroughs.map((w, i) => (
+          <article
+            class="scenario-pane"
+            data-scenario-pane={w.id}
+            aria-label={`${w.title} summary`}
+            hidden
+          >
+            <header class="scenario-head">
+              <div class="scenario-num">scenario {String(i + 1).padStart(2, "0")}</div>
+              <h2 class="scenario-title">{w.title}</h2>
+              <p class="scenario-tagline">{w.tagline} · {w.runtime}</p>
+            </header>
+
+            <p class="scenario-summary">{w.summary}</p>
+
+            <div class="scenario-cols">
+              <section class="scenario-col">
+                <div class="col-head">inputs · {w.inputs.length}</div>
+                <ul class="col-list">
+                  {w.inputs.map((line) => (
+                    <li>{line}</li>
+                  ))}
+                </ul>
+              </section>
+
+              <section class="scenario-col">
+                <div class="col-head">outputs · {w.outputs.length}</div>
+                <ul class="col-list outputs-list">
+                  {w.outputs.map((o) => (
+                    <li>
+                      <button
+                        type="button"
+                        class="output-row"
+                        data-output-scenario={w.id}
+                        data-output-id={o.id}
+                        aria-label={`Open ${o.label}`}
+                      >
+                        <span class="output-ico">⊞</span>
+                        <span class="output-label">{o.label}</span>
+                        {o.kind && <span class="output-kind">{o.kind}</span>}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </div>
+          </article>
+        ))}
       </div>
 
       <!-- Inspector — populated in chunk 8 (transcript mode moves
@@ -126,10 +208,13 @@ const sidebar = walkthroughs.map((w, i) => ({
       <div class="ide-status">
         <span>workbench</span>
         <span class="ide-sep">·</span>
-        <span>port chunk 3 of 9 · sidebar interactive</span>
+        <span>port chunk 6 of 9 · fullscreen toggle</span>
         <span class="ide-sep">·</span>
         <span class="ok">✓ {sidebar.length} scenarios loaded</span>
         <span class="right">
+          <span class="fs-hint" data-fs-hint hidden>
+            <span class="key">Esc</span> exit fullscreen ·
+          </span>
           <span class="key">↵</span> play ·
           <span class="key">␣</span> skip ·
           <span class="key">R</span> restart
@@ -139,6 +224,38 @@ const sidebar = walkthroughs.map((w, i) => ({
   </section>
 
   <OnboardingTour />
+
+  <!-- Hidden artifact store — pre-rendered markdown bodies, one div per artifact.
+       The JS lightbox reads innerHTML from here and injects it into the modal. -->
+  <div class="artifact-store" aria-hidden="true" hidden>
+    {artifacts.map((a) => (
+      <div
+        data-artifact-scenario={a.scenarioId}
+        data-artifact-id={a.artifactId}
+        set:html={a.html}
+      />
+    ))}
+  </div>
+
+  <!-- Output modal lightbox — opened by chunk 5 click handler below. -->
+  <dialog
+    class="output-modal"
+    id="output-modal"
+    aria-modal="true"
+    aria-labelledby="modal-title"
+  >
+    <div class="modal-inner">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <span class="modal-ico" aria-hidden="true">⊞</span>
+          <h2 id="modal-title" class="modal-title">Output preview</h2>
+          <span class="modal-kind"></span>
+        </div>
+        <button class="modal-close" aria-label="Close output" type="button">✕</button>
+      </div>
+      <div class="modal-body prose"></div>
+    </div>
+  </dialog>
 </Base>
 
 <style>
@@ -161,18 +278,22 @@ const sidebar = walkthroughs.map((w, i) => ({
   }
   .page-summary-eyebrow {
     display: inline-block;
-    color: var(--accent);
+    /* Inline ember pair so the small mono-cap eyebrow clears AA-Normal
+       (4.5:1) on the surface card in both themes:
+       - Dark:  #f5894d on --surface #2a2218 → 6.39:1
+       - Light: #993505 on --surface #f4e5cf → 5.92:1 (overridden below)
+       Site tokens didn't have a value that hit the threshold in both
+       directions: var(--accent) was 4.26 dark / 3.32 light, var(--char)
+       was 2.91 dark / 4.35 light. */
+    color: #f5894d;
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-widest);
     text-transform: uppercase;
     margin-bottom: 0.55rem;
   }
-  /* Light-mode contrast bump — var(--accent) (#d95010) on var(--surface)
-     (#f4e5cf) only hits 3.32:1, below AA-Normal. var(--char) (#ab3e08)
-     is the brand-constant deep ember and clears AA at 4.87:1. */
   :global([data-theme="light"]) .page-summary-eyebrow {
-    color: var(--char);
+    color: #993505;
   }
   .page-summary h1 {
     font-family: var(--font-display);
@@ -399,11 +520,12 @@ const sidebar = walkthroughs.map((w, i) => ({
   .role-orchestrator { background: var(--orchestrator); }
   .role-success      { background: var(--success); }
 
-  /* Editor + Inspector — placeholders for chunks 2 & 3 */
+  /* Editor — per-scenario summary panes (chunk 4) */
   .ide-editor {
     grid-area: editor;
     background: var(--bg);
     overflow-y: auto;
+    font-family: var(--font-display);
   }
   .ide-inspector {
     grid-area: inspector;
@@ -411,6 +533,159 @@ const sidebar = walkthroughs.map((w, i) => ({
     border-left: 0.5px solid var(--border);
     overflow-y: auto;
     font-size: 12px;
+  }
+
+  .editor-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: clamp(1rem, 3vw, 2rem);
+    height: 100%;
+    color: var(--muted);
+  }
+  .editor-prompt[hidden] { display: none; }
+  .editor-prompt-eyebrow {
+    /* Brighter ember — see .page-summary-eyebrow comment for rationale. */
+    color: #f5894d;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  :global([data-theme="light"]) .editor-prompt-eyebrow { color: #993505; }
+  .editor-prompt-h {
+    font-size: var(--fs-lg);
+    color: var(--text);
+    margin: 0 0 0.5rem;
+    font-weight: 500;
+  }
+  .editor-prompt-sub {
+    margin: 0;
+    max-width: 36rem;
+    line-height: var(--lh-base);
+  }
+
+  .scenario-pane {
+    padding: clamp(1rem, 3vw, 1.8rem);
+  }
+  .scenario-pane[hidden] { display: none; }
+  .scenario-head { margin-bottom: 1rem; }
+  .scenario-num {
+    /* Brighter ember — see .page-summary-eyebrow comment for rationale. */
+    color: #f5894d;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  :global([data-theme="light"]) .scenario-num,
+  :global([data-theme="light"]) .col-head { color: #993505; }
+  .scenario-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+    line-height: 1.2;
+    letter-spacing: var(--ls-tight);
+    margin: 0 0 0.4rem;
+    color: var(--text);
+  }
+  .scenario-tagline {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    margin: 0;
+  }
+  .scenario-summary {
+    color: var(--text);
+    font-size: var(--fs-md);
+    line-height: var(--lh-base);
+    margin: 0 0 1.4rem;
+    max-width: 60rem;
+  }
+
+  .scenario-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem;
+  }
+  .scenario-col { min-width: 0; }
+  .col-head {
+    /* Brighter ember — see .page-summary-eyebrow comment for rationale. */
+    color: #f5894d;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .col-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .col-list li {
+    color: var(--muted);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    padding-left: 1rem;
+    position: relative;
+  }
+  .col-list li::before {
+    content: "›";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+  .outputs-list li { padding-left: 0; }
+  .outputs-list li::before { content: none; }
+  .output-row {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+    color: var(--text);
+    font-family: inherit;
+    font-size: var(--fs-base);
+    padding: 0.55rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    cursor: pointer;
+    text-align: left;
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard);
+  }
+  .output-row:hover {
+    border-color: var(--accent);
+    background: var(--ember-dim);
+  }
+  .output-row:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  .output-ico { color: var(--accent); flex: 0 0 auto; }
+  .output-label { flex: 1; }
+  .output-kind {
+    color: var(--subtle);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    flex: 0 0 auto;
+  }
+
+  /* Single column on narrow viewports inside the editor pane. */
+  @media (max-width: 1100px) {
+    .scenario-cols { grid-template-columns: 1fr; gap: 1rem; }
   }
   .ide-placeholder {
     color: var(--subtle);
@@ -455,23 +730,369 @@ const sidebar = walkthroughs.map((w, i) => ({
     .ide-sidebar { max-height: 220px; }
     .ide-inspector { display: none; }
   }
+
+  /* ── Fullscreen workbench (chunk 6) ──
+        Toggle expands .workbench to fill the viewport. Implemented as
+        a CSS class swap rather than the Fullscreen API — avoids the
+        permission prompt + iframe edge cases, gives us full styling
+        control, and degrades gracefully if JS is off (the button is
+        hidden until JS wires it). Click .fullscreen-btn or press Esc
+        to exit. The output-modal still owns its own Esc behavior since
+        it's a native <dialog>; the global Esc handler bails when a
+        modal is open. */
+  .fullscreen-btn { letter-spacing: 0.06em; }
+  .fs-hint { color: var(--accent); margin-right: 0.4rem; }
+  .workbench.is-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    padding: 0;
+    margin: 0;
+    background: var(--bg);
+  }
+  .workbench.is-fullscreen .ide {
+    height: 100dvh;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+  }
+  /* Hide page chrome behind the fullscreen workbench. */
+  body:has(.workbench.is-fullscreen) {
+    overflow: hidden;
+  }
+  /* Reposition the topbar mac-style dots so they double as a "minimize"
+     hint — clicking the red dot also exits fullscreen. */
+  .workbench.is-fullscreen .ide-dot:nth-child(1) {
+    cursor: pointer;
+  }
+
+  /* ── Output modal lightbox (chunk 5) ── */
+  .output-modal {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: min(90vw, 820px);
+    max-height: min(88vh, 900px);
+    padding: 0;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    background: var(--bg);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.45),
+      0 2px 8px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .output-modal[open] { display: flex; }
+  .output-modal::backdrop {
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(3px);
+  }
+  .modal-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+  .modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem 0.75rem;
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    flex: 0 0 auto;
+  }
+  .modal-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .modal-ico {
+    color: var(--accent);
+    font-size: 1rem;
+    flex: 0 0 auto;
+  }
+  .modal-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-md);
+    line-height: 1.3;
+    color: var(--text);
+    margin: 0;
+    min-width: 0;
+  }
+  .modal-kind {
+    color: var(--subtle);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    flex: 0 0 auto;
+    padding: 2px 6px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+  }
+  .modal-close {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--r-xs);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    transition: color 120ms, border-color 120ms;
+  }
+  .modal-close:hover { color: var(--text); border-color: var(--text); }
+  .modal-close:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .modal-body {
+    padding: 1.5rem 1.6rem;
+    overflow-y: auto;
+    flex: 1 1 0;
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    color: var(--text);
+  }
+  /* Prose resets inside the modal body */
+  .modal-body :global(h1),
+  .modal-body :global(h2),
+  .modal-body :global(h3) {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--text);
+    margin: 1.4rem 0 0.5rem;
+    line-height: 1.25;
+  }
+  .modal-body :global(h1) { font-size: clamp(1.1rem, 2vw, 1.4rem); }
+  .modal-body :global(h2) { font-size: clamp(1rem, 1.8vw, 1.2rem); }
+  .modal-body :global(h3) { font-size: var(--fs-md); }
+  .modal-body :global(p)  { margin: 0 0 0.75rem; }
+  .modal-body :global(ul),
+  .modal-body :global(ol) { padding-left: 1.4rem; margin: 0 0 0.75rem; }
+  .modal-body :global(li) { margin-bottom: 0.25rem; }
+  .modal-body :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 3px;
+    padding: 0.1em 0.35em;
+    color: var(--accent);
+  }
+  .modal-body :global(pre) {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    margin: 0 0 1rem;
+  }
+  .modal-body :global(pre code) {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+  }
+  .modal-body :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 1rem;
+    font-size: var(--fs-sm);
+  }
+  .modal-body :global(th),
+  .modal-body :global(td) {
+    border: 0.5px solid var(--border);
+    padding: 0.45rem 0.75rem;
+    text-align: left;
+  }
+  .modal-body :global(th) {
+    background: var(--surface);
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .modal-body :global(strong) { color: var(--text); font-weight: 600; }
+  .modal-body :global(a) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .modal-body :global(blockquote) {
+    border-left: 3px solid var(--accent);
+    margin: 0 0 1rem;
+    padding: 0.4rem 0 0.4rem 1rem;
+    color: var(--muted);
+  }
+  .modal-body :global(hr) {
+    border: none;
+    border-top: 0.5px solid var(--border);
+    margin: 1.2rem 0;
+  }
+  @media (max-width: 600px) {
+    .output-modal { width: 100vw; max-height: 100dvh; border-radius: 0; border-left: none; border-right: none; }
+  }
 </style>
 
 <script is:inline>
-  /* Sidebar — chunk 3 of the workbench port.
-     All folders start collapsed. Clicking a .tree-folder toggles its
-     .is-open state independently (multi-expand): selecting a scenario
-     does not collapse the others. The arrow flips ▸ ↔ ▾ and the
-     aria-expanded attribute tracks the visible state. */
+  /* Sidebar + editor swap — chunks 3 + 4 of the workbench port.
+
+     Sidebar: folders start collapsed. Click toggles .is-open on the
+     folder (▸ ↔ ▾ arrow flip, aria-expanded). Multi-expand — opening
+     one does not collapse the others.
+
+     Editor: a single "active scenario" controls which .scenario-pane
+     is visible. Opening a sidebar folder makes that scenario the
+     active one. Closing the active scenario falls back to whichever
+     other folder is still open, or shows the welcome prompt. */
   (() => {
     const folders = document.querySelectorAll('.tree-folder[data-scenario]');
+    const panes   = document.querySelectorAll('[data-scenario-pane]');
+    const prompt  = document.querySelector('[data-editor-prompt]');
+
+    function showEditor(activeId) {
+      let any = false;
+      panes.forEach((pane) => {
+        const on = pane.dataset.scenarioPane === activeId;
+        if (on) { pane.removeAttribute('hidden'); any = true; }
+        else    { pane.setAttribute('hidden', ''); }
+      });
+      if (prompt) {
+        if (any) prompt.setAttribute('hidden', '');
+        else     prompt.removeAttribute('hidden');
+      }
+    }
+
+    function pickActiveFromOpenFolders() {
+      const openFolder = document.querySelector('.tree-folder.is-open[data-scenario]');
+      return openFolder ? openFolder.dataset.scenario : null;
+    }
+
     folders.forEach((folder) => {
       folder.addEventListener('click', () => {
         const open = folder.classList.toggle('is-open');
         folder.setAttribute('aria-expanded', open ? 'true' : 'false');
         const arrow = folder.querySelector('.tree-arrow');
         if (arrow) arrow.textContent = open ? '▾' : '▸';
+
+        if (open) {
+          // Newly opened — make this the active editor scenario.
+          showEditor(folder.dataset.scenario);
+        } else {
+          // Closed — fall back to another open folder, else clear.
+          showEditor(pickActiveFromOpenFolders());
+        }
       });
+    });
+  })();
+
+  /* Output modal lightbox — chunk 5.
+
+     Clicking any .output-row button looks up the pre-rendered artifact
+     body from the hidden .artifact-store, populates the <dialog>, and
+     calls showModal(). The <dialog> element handles the focus trap and
+     Escape key automatically. Backdrop click and the ✕ button also close. */
+  (() => {
+    const modal     = /** @type {HTMLDialogElement|null} */ (document.getElementById('output-modal'));
+    const titleEl   = document.getElementById('modal-title');
+    const kindEl    = modal && modal.querySelector('.modal-kind');
+    const bodyEl    = modal && modal.querySelector('.modal-body');
+    const closeBtn  = modal && modal.querySelector('.modal-close');
+    const store     = document.querySelector('.artifact-store');
+    if (!modal || !titleEl || !kindEl || !bodyEl || !store) return;
+
+    function openArtifact(scenarioId, artifactId) {
+      const src = store.querySelector(
+        `[data-artifact-scenario="${CSS.escape(scenarioId)}"][data-artifact-id="${CSS.escape(artifactId)}"]`
+      );
+      if (!src) return;
+
+      // Read label + kind from the clicked output-row for DRY display.
+      const btn   = document.querySelector(
+        `[data-output-scenario="${CSS.escape(scenarioId)}"][data-output-id="${CSS.escape(artifactId)}"]`
+      );
+      const label = btn && btn.querySelector('.output-label')
+        ? btn.querySelector('.output-label').textContent.trim()
+        : artifactId;
+      const kind  = btn && btn.querySelector('.output-kind')
+        ? btn.querySelector('.output-kind').textContent.trim()
+        : '';
+
+      titleEl.textContent  = label;
+      kindEl.textContent   = kind;
+      bodyEl.innerHTML     = src.innerHTML;
+      modal.showModal();
+    }
+
+    // Wire every output row in all scenario panes.
+    document.querySelectorAll('.output-row[data-output-scenario]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        openArtifact(btn.dataset.outputScenario, btn.dataset.outputId);
+      });
+    });
+
+    // Close: ✕ button.
+    closeBtn && closeBtn.addEventListener('click', () => modal.close());
+
+    // Close: click on the backdrop (the <dialog> element itself, outside modal-inner).
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.close();
+    });
+  })();
+
+  /* Fullscreen workbench — chunk 6.
+
+     Toggle expands the .workbench section to fill the viewport via a CSS
+     class swap (no Fullscreen API). Exit on the button, the macOS-style
+     red dot, or Escape (when no modal is open). */
+  (() => {
+    const workbench = document.querySelector('.workbench');
+    const btn       = document.querySelector('[data-fullscreen-toggle]');
+    const labelOff  = btn && btn.querySelector('[data-fs-label-off]');
+    const labelOn   = btn && btn.querySelector('[data-fs-label-on]');
+    const hint      = document.querySelector('[data-fs-hint]');
+    const redDot    = document.querySelector('.ide-dots .ide-dot:nth-child(1)');
+    if (!workbench || !btn) return;
+
+    function setFullscreen(on) {
+      workbench.classList.toggle('is-fullscreen', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.setAttribute('aria-label', on ? 'Exit fullscreen workbench' : 'Expand workbench to full screen');
+      if (labelOff) { if (on) labelOff.setAttribute('hidden', ''); else labelOff.removeAttribute('hidden'); }
+      if (labelOn)  { if (on) labelOn.removeAttribute('hidden');     else labelOn.setAttribute('hidden', ''); }
+      if (hint)     { if (on) hint.removeAttribute('hidden');        else hint.setAttribute('hidden', ''); }
+    }
+
+    function isFullscreen() {
+      return workbench.classList.contains('is-fullscreen');
+    }
+
+    btn.addEventListener('click', () => setFullscreen(!isFullscreen()));
+
+    if (redDot) {
+      redDot.setAttribute('role', 'button');
+      redDot.setAttribute('tabindex', '0');
+      redDot.setAttribute('aria-label', 'Exit fullscreen workbench');
+      redDot.addEventListener('click', () => { if (isFullscreen()) setFullscreen(false); });
+    }
+
+    // Escape exits fullscreen — but only if no native <dialog> is open
+    // (the dialog owns Escape inside its own showModal lifecycle).
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (!isFullscreen()) return;
+      const openDialog = document.querySelector('dialog[open]');
+      if (openDialog) return;
+      setFullscreen(false);
     });
   })();
 </script>
