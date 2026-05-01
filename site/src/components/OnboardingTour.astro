@@ -146,9 +146,12 @@
   });
 
   // First-visit auto-open. Skip if the visitor has dismissed it before.
+  // Also skip on mobile — the tour copy is desktop-anchored ("activity rail",
+  // "inspector"), and the MobileWorkbench has its own empty-state guidance.
+  const isMobile = window.matchMedia("(max-width: 767px)").matches;
   let seen = "0";
   try { seen = localStorage.getItem(STORAGE_KEY) || "0"; } catch { /* ignore */ }
-  if (seen !== "1") open();
+  if (seen !== "1" && !isMobile) open();
 </script>
 
 <style>
