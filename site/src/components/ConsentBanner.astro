@@ -96,6 +96,14 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || "https://eu.i.posthog
     padding: 1rem 1.1rem;
   }
   .consent-banner[hidden] { display: none; }
+  /* When the MobileWorkbench's fixed bottom tab bar is mounted on the
+     page (i.e. /demo at ≤767px), shift this banner above the tabs so
+     it doesn't cover them or intercept tab clicks. .mw-tab min-height
+     is 52px + 1px border = 53px, plus the device safe-area inset, plus
+     the existing 1rem gap. */
+  body:has(.mw-tabbar) .consent-banner {
+    bottom: calc(53px + env(safe-area-inset-bottom) + 1rem);
+  }
   .consent-inner {
     max-width: 960px;
     margin: 0 auto;
