@@ -174,7 +174,7 @@
 
   --danger:      #b33a3a;
   --danger-dim:  rgba(179, 58, 58, 0.10);
-  --success:     #047857;
+  --success:     #065F46;        /* B-10: darkened from #047857 (emerald-700→800) — clears AA normal on every canonical bg, role-tag mix 3.64→5.10 */
   --success-dim: rgba(4, 120, 87, 0.10);
   --info:        #475569;
   --info-dim:    rgba(71, 85, 105, 0.10);

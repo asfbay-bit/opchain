@@ -30,7 +30,7 @@ const ROUTES: RouteSpec[] = [
   { path: "/",              h1: /opchain/i },
   { path: "/architecture",  h1: /how opchain skills chain/i,  disabledRules: [COLOR_CONTRAST_DISABLE] },
   { path: "/install",       h1: /three flows/i,               disabledRules: [COLOR_CONTRAST_DISABLE] },
-  { path: "/skills",        h1: /every skill, filterable/i,   disabledRules: [COLOR_CONTRAST_DISABLE] },
+  { path: "/skills",        h1: /every skill, filterable/i },
   { path: "/skills/app-architect", h1: /app architect/i,      disabledRules: [COLOR_CONTRAST_DISABLE] },
   { path: "/skills/code-auditor",  h1: /code auditor/i,       disabledRules: [COLOR_CONTRAST_DISABLE] },
   {
