@@ -455,6 +455,13 @@ const initialCover = covers[0];
     border: 0;
     font-weight: 600;
   }
+  /* Light-theme contrast bump — mirrors Button.astro's primary
+     variant. var(--accent) (#d95010) on --obsidian only hits 4.46:1
+     in light mode, just below AA-Normal; var(--ember) (#e05c18) is
+     the brand-constant ember and clears AA. */
+  :global([data-theme="light"]) .stage .btn-primary {
+    background: var(--ember);
+  }
   .stage .btn-primary:hover {
     background: var(--accent-hover);
     transform: translateY(-1px);
