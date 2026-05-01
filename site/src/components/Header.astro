@@ -1,6 +1,7 @@
 ---
 import Logo from "./Logo.astro";
 import ThemeToggle from "./ThemeToggle.astro";
+import Icon from "./Icon.astro";
 
 interface NavLink {
   href: string;
@@ -55,6 +56,15 @@ const { active = "/", links = defaultLinks } = Astro.props;
       <span class="nav-burger-line" aria-hidden="true"></span>
       <span class="nav-burger-line" aria-hidden="true"></span>
       <span class="nav-burger-line" aria-hidden="true"></span>
+    </button>
+
+    <button
+      type="button"
+      class="header-feedback"
+      data-feedback-launcher
+      aria-label="Send feedback"
+    >
+      <Icon name="message-square" size={14} />
     </button>
 
     <ThemeToggle />
@@ -332,9 +342,46 @@ const { active = "/", links = defaultLinks } = Astro.props;
     outline-offset: 2px;
   }
 
+  /* ── Mobile feedback launcher ─────────────────────────────
+     Sits between .nav-burger and <ThemeToggle /> on mobile. Hidden at
+     ≥768px (the floating pill in FeedbackWidget covers desktop). The
+     existing FeedbackWidget script binds click to every
+     [data-feedback-launcher] in the document. */
+  .header-feedback {
+    display: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-sm);
+    width: 36px;
+    height: 32px;
+    padding: 0;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    transition:
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard);
+  }
+  .header-feedback:hover {
+    color: var(--text);
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .header-feedback:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
   /* ── Breakpoint swap ─────────────────────────────────────── */
   @media (max-width: 719px) {
     .nav-scroll { display: none; }
     .nav-burger { display: inline-flex; }
+  }
+  /* Mirror MobileWorkbench's breakpoint (767px) so the feedback icon
+     appears wherever the floating pill is hidden. See FeedbackWidget. */
+  @media (max-width: 767px) {
+    .header-feedback { display: inline-flex; }
   }
 </style>
