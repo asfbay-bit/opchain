@@ -53,12 +53,12 @@
   /* ── Skill role tokens — opchain semantic palette ──
      One color per skill type. Used by the homepage skill pills
      and any place a skill needs visual identity. */
-  --workflow:     #E8651E;  /* Ember Orange — workflow / pipeline    */
+  --workflow:     #FB923C;  /* Ember Orange — workflow / pipeline    (B-12: was #E8651E, 3.81✗ → 5.43✓) */
   --tri-agent:    #F59E0B;  /* Amber-Gold — tri-agent harness        */
-  --audit-gate:   #F43F5E;  /* Rose — audit / gate failures          */
+  --audit-gate:   #FB7185;  /* Rose — audit / gate failures          (B-12: was #F43F5E, 3.80✗ → 4.75✓) */
   --specialist:   #14B8A6;  /* Teal — standalone specialist (B-10: was #0D9488, 4.48△ on card → 6.74✓) */
   --advisor:      #0EA5E9;  /* Light Blue — advisor                  */
-  --orchestrator: #8B5CF6;  /* Violet — orchestrator (B-10: was #6D28D9, 2.36✗ on card → 3.96△) */
+  --orchestrator: #A78BFA;  /* Violet — orchestrator (B-10: was #6D28D9, 2.36✗ → 3.96△; B-12: #8B5CF6 → 4.68✓) */
 
   /* Logo tokens */
   --logo-stroke:    var(--text);
