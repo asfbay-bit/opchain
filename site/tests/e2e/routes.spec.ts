@@ -35,10 +35,10 @@ const ROUTES: RouteSpec[] = [
   { path: "/skills/code-auditor",  h1: /code auditor/i,       disabledRules: [COLOR_CONTRAST_DISABLE] },
   {
     path: "/demo",
-    // The magazine cover rotates through all six walkthrough titles on
-    // a 2-minute slot, so the h1 is non-deterministic across CI runs.
-    // Widen to any of the six known titles.
-    h1: /(concept → shipped|dashboard rescue|legacy rails|swap d1|security review|stripe subscriptions)/i,
+    // The page intro h1 is "Watch a finished run." after the magazine
+    // cover relocated to the homepage (port chunk 2). The rotating
+    // scenario title now lives on / as an <h2>.
+    h1: /watch a finished run/i,
     disabledRules: [
       COLOR_CONTRAST_DISABLE,
       {

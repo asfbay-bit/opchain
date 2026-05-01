@@ -5,31 +5,19 @@ import { walkthroughs } from "../data/walkthroughs";
 import { getSkillRole } from "../lib/skills";
 
 /**
- * Demo — magazine-style intro + IDE workbench.
+ * Demo — short tour summary + IDE workbench.
  *
- * The intro is a compact editorial "cover" capped at ~32vh. Its
- * headline rotates through all six walkthroughs on a deterministic
- * 2-minute slot tied to wall-clock time (12-min full cycle), so every
- * visitor in the same 2-minute window sees the same scenario. Server-
- * renders the first walkthrough; client JS overrides to whichever slot
- * is current and schedules the next swap on the slot boundary.
+ * The page opens with a small intro distilled from the OnboardingTour
+ * first step, then drops the user straight into the IDE-style
+ * workbench. The previous magazine cover relocated to the homepage in
+ * port chunk 2.
  *
- * Below the cover sits a VS Code-style workbench: top bar, activity
- * rail, scenario sidebar, editor + transcript, inspector with i/o/
- * skills/checkpoint, status bar. Ported from /dev-preview/demo-C-port
- * after sign-off across the 5 mockup pieces. Sidebar + tabs are
- * data-driven from the walkthroughs collection; the editor and
- * inspector are populated for scenario 01 in the first port chunk and
- * hydrated for 02–06 in a follow-up chunk.
+ * The workbench is a VS Code-style layout: top bar, activity rail,
+ * scenario sidebar, editor + transcript, inspector with i/o/skills/
+ * checkpoint, status bar. Sidebar + tabs are data-driven from the
+ * walkthroughs collection; the editor + inspector are progressively
+ * hydrated across port chunks 3-7.
  */
-
-const covers = walkthroughs.map((w, i) => ({
-  num: String(i + 1).padStart(2, "0"),
-  id: w.id,
-  title: w.title,
-  tagline: w.tagline,
-}));
-const initial = covers[0];
 
 const sidebar = walkthroughs.map((w, i) => ({
   num: String(i + 1).padStart(2, "0"),
@@ -45,22 +33,18 @@ const sidebar = walkthroughs.map((w, i) => ({
   description="Replay curated opchain skill conversations end-to-end — six scenarios, real transcripts, click to inspect."
   active="/demo"
 >
-  <!-- 1 · Magazine cover — capped at ~32vh, rotates every 30 min -->
-  <section class="stage" data-cover>
-    <div class="stage-mid">
-      <div class="stage-issue">
-        opchain · scenario <span data-cover-num>{initial.num}</span>
-      </div>
-      <h1 class="stage-h" data-cover-title>{initial.title}</h1>
-      <p class="stage-sub" data-cover-tagline>{initial.tagline}</p>
-      <div class="stage-actions">
-        <a class="btn btn-primary" href="#workbench">▶ open the workbench</a>
-        <a class="btn btn-ghost" href="/install">install opchain</a>
-      </div>
-    </div>
-  </section>
-
-  <script is:inline type="application/json" id="cover-data" set:html={JSON.stringify(covers)} />
+  <!-- 1 · Page intro — distilled from the OnboardingTour first step.
+       The magazine cover that used to live here moved to the homepage
+       in chunk 2 of the workbench port. -->
+  <header class="page-head">
+    <h1>Watch a finished run.</h1>
+    <p class="lede">
+      A live walkthrough of six finished opchain sessions — from
+      idea-in-a-chat to deployed-to-production, end to end. Every line
+      below is actual transcript, not a faked-up demo. No live chat,
+      no email gate, no install required.
+    </p>
+  </header>
 
   <!-- 2 · IDE workbench -->
   <section class="workbench" id="workbench" aria-label="Workbench">
@@ -147,102 +131,27 @@ const sidebar = walkthroughs.map((w, i) => ({
 </Base>
 
 <style>
-  /* ── 1. Magazine cover — compact, data-driven, rotates every 30 min ── */
-  .stage {
-    position: relative;
-    max-height: 32vh;
-    min-height: 200px;
-    overflow: hidden;
-    padding: clamp(1.1rem, 2.5vw, 1.8rem) clamp(1rem, 4vw, 2.4rem);
-    background:
-      radial-gradient(640px 320px at 75% 30%, var(--ember-glow), transparent 70%),
-      radial-gradient(420px 240px at 15% 80%, var(--ember-dim), transparent 70%),
-      var(--bg);
-    border-bottom: 0.5px solid var(--border);
-    display: flex;
-    align-items: center;
-  }
-  .stage-mid {
+  /* ── 1. Page intro — short distilled tour summary above the IDE.
+        Magazine cover that used to live here moved to the homepage. ── */
+  .page-head {
     max-width: 1100px;
-    margin: 0 auto;
-    width: 100%;
+    margin: clamp(1.6rem, 4vw, 2.4rem) auto 1rem;
+    padding: 0 clamp(1rem, 4vw, 2.4rem);
   }
-  .stage-issue {
-    color: var(--accent);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    letter-spacing: var(--ls-widest);
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-  }
-  .stage-h {
+  .page-head h1 {
     font-family: var(--font-display);
     font-weight: 600;
-    /* Tighter cap than the old hero — the headline now feeds from
-       walkthrough.title which is generally short and scannable. */
-    font-size: clamp(1.15rem, 2.2vw, 1.7rem);
+    font-size: clamp(1.4rem, 3vw, 2rem);
     line-height: 1.15;
     letter-spacing: var(--ls-tight);
-    margin: 0 0 0.4rem;
-    max-width: 36ch;
+    margin: 0 0 0.6rem;
     color: var(--text);
-    transition: opacity var(--dur-base) var(--ease-standard);
   }
-  .stage-sub {
-    font-size: var(--fs-base);
+  .page-head .lede {
     color: var(--muted);
-    max-width: 44rem;
-    margin: 0 0 0.85rem;
-    line-height: var(--lh-snug);
-    transition: opacity var(--dur-base) var(--ease-standard);
-  }
-  .stage[data-swapping] .stage-h,
-  .stage[data-swapping] .stage-sub,
-  .stage[data-swapping] .stage-issue { opacity: 0; }
-  .stage-actions {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 1.1rem;
-    font-family: var(--font-mono);
-    font-size: var(--fs-sm);
-    letter-spacing: var(--ls-wide);
-    text-transform: uppercase;
-    cursor: pointer;
-    text-decoration: none;
-    border-radius: var(--r-xs);
-    transition:
-      transform var(--dur-fast) var(--ease-standard),
-      background var(--dur-fast) var(--ease-standard),
-      color var(--dur-fast) var(--ease-standard),
-      border-color var(--dur-fast) var(--ease-standard),
-      box-shadow var(--dur-base) var(--ease-standard);
-  }
-  .btn-primary {
-    background: var(--accent);
-    color: var(--obsidian);
-    border: 0;
-    font-weight: 600;
-  }
-  .btn-primary:hover {
-    background: var(--accent-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--glow-md);
-  }
-  .btn-ghost {
-    background: transparent;
-    color: var(--text);
-    border: 0.5px solid var(--border);
-  }
-  .btn-ghost:hover {
-    color: var(--accent);
-    border-color: var(--accent);
+    max-width: 56rem;
+    margin: 0;
+    line-height: var(--lh-base);
   }
 
   /* ── 2. IDE workbench section ── */
@@ -481,56 +390,3 @@ const sidebar = walkthroughs.map((w, i) => ({
     .ide-inspector { display: none; }
   }
 </style>
-
-<script is:inline>
-  /* Magazine cover — 2-minute slot rotation (6 covers × 2 min = 12 min
-     cycle). The slot is keyed to wall-clock time (epoch ms / 2min) modulo
-     the number of covers, so every visitor in the same 2-minute window
-     sees the same headline.
-
-     If the page is open across a slot boundary, the cover fades out, swaps
-     content, and fades back in. */
-  (() => {
-    const stage = document.querySelector('[data-cover]');
-    const dataNode = document.getElementById('cover-data');
-    if (!stage || !dataNode) return;
-
-    let covers;
-    try { covers = JSON.parse(dataNode.textContent || '[]'); }
-    catch { return; }
-    if (!Array.isArray(covers) || covers.length === 0) return;
-
-    const SLOT_MS = 2 * 60 * 1000;
-    const numEl = stage.querySelector('[data-cover-num]');
-    const titleEl = stage.querySelector('[data-cover-title]');
-    const taglineEl = stage.querySelector('[data-cover-tagline]');
-
-    function slotIndex() {
-      return Math.floor(Date.now() / SLOT_MS) % covers.length;
-    }
-    function paint(c) {
-      if (numEl) numEl.textContent = c.num;
-      if (titleEl) titleEl.textContent = c.title;
-      if (taglineEl) taglineEl.textContent = c.tagline;
-    }
-    function swap(animated) {
-      const c = covers[slotIndex()];
-      if (!animated) { paint(c); return; }
-      stage.setAttribute('data-swapping', '');
-      setTimeout(() => {
-        paint(c);
-        stage.removeAttribute('data-swapping');
-      }, 200);
-    }
-
-    // Initial paint — overrides the SSR default with the current slot.
-    swap(false);
-
-    // Schedule the next swap at the slot boundary, then every SLOT_MS.
-    const msUntilNext = SLOT_MS - (Date.now() % SLOT_MS);
-    setTimeout(() => {
-      swap(true);
-      setInterval(() => swap(true), SLOT_MS);
-    }, msUntilNext);
-  })();
-</script>
