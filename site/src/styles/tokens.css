@@ -60,14 +60,6 @@
   --advisor:      #0EA5E9;  /* Light Blue — advisor                  */
   --orchestrator: #8B5CF6;  /* Violet — orchestrator (B-10: was #6D28D9, 2.36✗ on card → 3.96△) */
 
-  /* ── Path-branch tokens —
-     The two demo modes (Replays / Live) and any other place we
-     visually distinguish "primary path" vs "secondary path". */
-  --path-a:  #38BDF8;  /* Lighter Sky — primary path   */
-  --path-b:  #0369A1;  /* Dark Sky    — secondary path */
-  --replays: var(--path-a);
-  --live:    var(--in-progress);   /* baby pink #F9A8D4 — Live mode signal */
-
   /* Logo tokens */
   --logo-stroke:    var(--text);
   --logo-spine:     var(--subtle);

@@ -10,14 +10,15 @@ import { renderSafeMarkdown } from "../lib/markdown";
  *
  * The page opens with a small intro distilled from the OnboardingTour
  * first step, then drops the user straight into the IDE-style
- * workbench. The previous magazine cover relocated to the homepage in
- * port chunk 2.
+ * workbench: top bar, activity rail, scenario sidebar, editor +
+ * transcript, inspector, status bar.
  *
- * The workbench is a VS Code-style layout: top bar, activity rail,
- * scenario sidebar, editor + transcript, inspector with i/o/skills/
- * checkpoint, status bar. Sidebar + tabs are data-driven from the
- * walkthroughs collection; the editor + inspector are progressively
- * hydrated across port chunks 3-7.
+ * Each scenario has two editor views — a static summary card (title,
+ * tagline, inputs, clickable output rows) and a transcript mode that
+ * renders the full Claude-Code-styled chat. Output rows and inline
+ * artifact chips both open a shared <dialog> lightbox with the
+ * pre-rendered markdown body. The whole workbench has a fullscreen
+ * toggle that promotes it to the viewport.
  */
 
 const sidebar = walkthroughs.map((w, i) => ({
@@ -38,10 +39,9 @@ const artifacts = walkthroughs.flatMap((w) =>
 );
 
 /** Per-scenario transcript steps with claude exchange bodies pre-rendered.
-    Used by chunk 8's transcript mode — the editor pane swaps from the
-    summary card to a Claude-Code terminal-styled stream of beats +
-    user/claude exchanges. Artifact chips inline reference output ids
-    and dispatch the same modal lightbox wired in chunk 5. */
+    Renders the Claude-Code terminal-styled stream of beats + user/claude
+    exchanges in transcript mode. Inline artifact chips reference output
+    ids and dispatch the same modal lightbox the summary's output rows do. */
 const transcripts = walkthroughs.map((w) => ({
   id: w.id,
   title: w.title,
@@ -77,11 +77,9 @@ const transcripts = walkthroughs.map((w) => ({
   description="Replay curated opchain skill conversations end-to-end — six scenarios, real transcripts, click to inspect."
   active="/demo"
 >
-  <!-- 1 · Summary block — distilled from the OnboardingTour modals.
-       Restyled in chunk 3.5 as a visibly distinct card with an ember
-       eyebrow + side bar so it reads as "this is the page summary"
-       rather than a regular page heading. The magazine cover that used
-       to live here moved to the homepage in chunk 2. -->
+  <!-- Page summary — distilled from the OnboardingTour modals, styled
+       as a card with an ember eyebrow + side bar so it reads as a
+       summary panel rather than a regular page heading. -->
   <section class="page-summary" aria-label="What this demo is">
     <span class="page-summary-eyebrow">demo · what this is</span>
     <h1>Watch a finished run.</h1>
@@ -167,14 +165,11 @@ const transcripts = walkthroughs.map((w) => ({
         ))}
       </div>
 
-      <!-- Editor — per-scenario summary panes. Default state shows
-           the prompt; opening a scenario in the sidebar swaps in that
-           scenario's pane via the click handler at the bottom of the
-           file. Output rows are wired to a modal lightbox in chunk 5.
-           Each pane has two modes (chunk 8): "summary" (default) and
-           "transcript" (Claude-Code terminal stream). The "▶ play
-           transcript" button toggles the mode and the .ide-inspector
-           swaps to a compact summary copy on the right. -->
+      <!-- Editor — per-scenario summary panes with two modes. Default
+           shows the welcome prompt; opening a scenario in the sidebar
+           swaps in that scenario's pane (data-pane-mode="summary").
+           "▶ play transcript" flips the pane to data-pane-mode="transcript"
+           and the inspector swaps to a compact side-summary copy. -->
       <div class="ide-editor" role="region" aria-label="Scenario editor">
         <div class="editor-prompt" data-editor-prompt>
           <div class="editor-prompt-eyebrow">scenario summary</div>
@@ -196,7 +191,7 @@ const transcripts = walkthroughs.map((w) => ({
               aria-label={`${w.title}`}
               hidden
             >
-              <!-- ── Summary view (chunks 4 + 5) ── -->
+              <!-- ── Summary view ── -->
               <div class="pane-view" data-view="summary">
                 <header class="scenario-head">
                   <div class="scenario-num">scenario {String(i + 1).padStart(2, "0")}</div>
@@ -248,7 +243,7 @@ const transcripts = walkthroughs.map((w) => ({
                 </div>
               </div>
 
-              <!-- ── Transcript view (chunk 8) ── -->
+              <!-- ── Transcript view ── -->
               <div class="pane-view cc-stream" data-view="transcript" hidden>
                 <header class="transcript-head">
                   <button
@@ -335,7 +330,7 @@ const transcripts = walkthroughs.map((w) => ({
         })}
       </div>
 
-      <!-- Inspector — chunk 8 swaps from the placeholder to a compact
+      <!-- Inspector — placeholder by default, swaps to a compact
            scenario summary when the editor enters transcript mode. -->
       <div class="ide-inspector" role="region" aria-label="Scenario inspector">
         <div class="ide-placeholder" data-inspector-placeholder>
@@ -386,7 +381,7 @@ const transcripts = walkthroughs.map((w) => ({
       <div class="ide-status">
         <span>workbench</span>
         <span class="ide-sep">·</span>
-        <span>port chunk 8 of 9 · transcript mode</span>
+        <span>workbench · summary + transcript + lightbox</span>
         <span class="ide-sep">·</span>
         <span class="ok">✓ {sidebar.length} scenarios loaded</span>
         <span class="right">
@@ -415,7 +410,7 @@ const transcripts = walkthroughs.map((w) => ({
     ))}
   </div>
 
-  <!-- Output modal lightbox — opened by chunk 5 click handler below. -->
+  <!-- Output modal lightbox — opened by the click handler below. -->
   <dialog
     class="output-modal"
     id="output-modal"
@@ -698,7 +693,7 @@ const transcripts = walkthroughs.map((w) => ({
   .role-orchestrator { background: var(--orchestrator); }
   .role-success      { background: var(--success); }
 
-  /* Editor — per-scenario summary panes (chunk 4) */
+  /* Editor — per-scenario summary panes */
   .ide-editor {
     grid-area: editor;
     background: var(--bg);
@@ -909,10 +904,10 @@ const transcripts = walkthroughs.map((w) => ({
     .ide-inspector { display: none; }
   }
 
-  /* ── Transcript mode (chunk 8) ──
-        The editor pane has two child views: the summary card (chunks
-        4-5) and the terminal-styled chat stream below. Mode is driven
-        by .scenario-pane[data-pane-mode] and a JS toggle. The inspector
+  /* ── Transcript mode ──
+        The editor pane has two child views: the summary card and the
+        terminal-styled chat stream below. Mode is driven by
+        .scenario-pane[data-pane-mode] and a JS toggle. The inspector
         gets a compact side-summary when transcript is on so the user
         keeps brief context while reading the chat. */
   .pane-view[hidden] { display: none; }
@@ -1159,7 +1154,7 @@ const transcripts = walkthroughs.map((w) => ({
   .cc-artifact-chip .output-ico   { color: var(--cc-orange); }
   .cc-artifact-chip .output-kind  { color: var(--cc-dim); }
 
-  /* Inspector side-summary (chunk 8). */
+  /* Inspector side-summary. */
   .inspector-pane {
     padding: 0.9rem 1rem 1.2rem;
     color: var(--muted);
@@ -1223,7 +1218,7 @@ const transcripts = walkthroughs.map((w) => ({
      on whether the active scenario is in transcript mode. */
   [data-inspector-placeholder][hidden] { display: none; }
 
-  /* ── Fullscreen workbench (chunk 6) ──
+  /* ── Fullscreen workbench ──
         Toggle expands .workbench to fill the viewport. Implemented as
         a CSS class swap rather than the Fullscreen API — avoids the
         permission prompt + iframe edge cases, gives us full styling
@@ -1260,7 +1255,12 @@ const transcripts = walkthroughs.map((w) => ({
     cursor: pointer;
   }
 
-  /* ── Output modal lightbox (chunk 5) ── */
+  /* ── Output modal lightbox ── */
+  /* Base rule deliberately omits `display` — Astro's CSS scoping adds
+     a data-astro-cid attribute that would bump specificity above the
+     UA `dialog:not([open]) { display: none }` default and force the
+     modal visible on page load. The [open] rule below provides the
+     in-use layout. */
   .output-modal {
     position: fixed;
     inset: 0;
@@ -1275,7 +1275,6 @@ const transcripts = walkthroughs.map((w) => ({
       0 8px 32px rgba(0, 0, 0, 0.45),
       0 2px 8px rgba(0, 0, 0, 0.3);
     overflow: hidden;
-    display: flex;
     flex-direction: column;
   }
   .output-modal[open] { display: flex; }
@@ -1436,7 +1435,7 @@ const transcripts = walkthroughs.map((w) => ({
 </style>
 
 <script is:inline>
-  /* Sidebar + editor swap — chunks 3 + 4 of the workbench port.
+  /* Sidebar + editor swap.
 
      Sidebar: folders start collapsed. Click toggles .is-open on the
      folder (▸ ↔ ▾ arrow flip, aria-expanded). Multi-expand — opening
@@ -1520,7 +1519,7 @@ const transcripts = walkthroughs.map((w) => ({
       });
     });
 
-    /* Transcript mode toggle — chunk 8.
+    /* Transcript mode toggle.
        "▶ play transcript" swaps the editor pane to the cc-stream view
        and surfaces the scenario summary in the inspector. "← back to
        summary" reverts. */
@@ -1548,8 +1547,7 @@ const transcripts = walkthroughs.map((w) => ({
     });
   })();
 
-  /* Output modal lightbox — chunk 5.
-
+  /* Output modal lightbox.
      Clicking any .output-row button looks up the pre-rendered artifact
      body from the hidden .artifact-store, populates the <dialog>, and
      calls showModal(). The <dialog> element handles the focus trap and
@@ -1602,8 +1600,7 @@ const transcripts = walkthroughs.map((w) => ({
     });
   })();
 
-  /* Fullscreen workbench — chunk 6.
-
+  /* Fullscreen workbench.
      Toggle expands the .workbench section to fill the viewport via a CSS
      class swap (no Fullscreen API). Exit on the button, the macOS-style
      red dot, or Escape (when no modal is open). */
