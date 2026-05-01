@@ -7,7 +7,7 @@ import Base from "../layouts/Base.astro";
   description="Checkpoint-driven pipeline of 17 opchain skills across 5 phases — interactive diagram of how skills chain through .checkpoints/<skill>.json."
   active="/architecture"
 >
-  <div class="arch-v2">
+  <main class="arch-v2">
     <!-- Shared SVG defs (filters + arrowhead markers) -->
     <svg class="arch-v2-defs" aria-hidden="true">
       <defs>
@@ -816,7 +816,7 @@ import Base from "../layouts/Base.astro";
         <div class="card">
           <div class="card-header">
             <div class="card-dot" style="background:var(--success)"></div>
-            <h3>Spine Ordinals</h3>
+            <h2>Spine Ordinals</h2>
           </div>
           <ul>
             <li>· Ember chips on the 5 spine skills mark the handoff sequence</li>
@@ -831,7 +831,7 @@ import Base from "../layouts/Base.astro";
         <div class="card">
           <div class="card-header">
             <div class="card-dot" style="background:var(--warning)"></div>
-            <h3>Tri-Agent Patterns (5)</h3>
+            <h2>Tri-Agent Patterns (5)</h2>
           </div>
           <ul>
             <li>· app-architect: Generator / Evaluator</li>
@@ -844,7 +844,7 @@ import Base from "../layouts/Base.astro";
         <div class="card">
           <div class="card-header">
             <div class="card-dot" style="background:var(--auditor)"></div>
-            <h3>Audit Gates (3)</h3>
+            <h2>Audit Gates (3)</h2>
           </div>
           <ul>
             <li>· bug-check — pre-commit type/lint/secret scan</li>
@@ -856,7 +856,7 @@ import Base from "../layouts/Base.astro";
         <div class="card">
           <div class="card-header">
             <div class="card-dot" style="background:var(--ember)"></div>
-            <h3>Checkpoint Protocol</h3>
+            <h2>Checkpoint Protocol</h2>
           </div>
           <ul>
             <li>· JSON files at .checkpoints/&lt;skill&gt;.json</li>
@@ -869,7 +869,7 @@ import Base from "../layouts/Base.astro";
         <div class="card">
           <div class="card-header">
             <div class="card-dot" style="background:var(--sand)"></div>
-            <h3>Routing Key</h3>
+            <h2>Routing Key</h2>
           </div>
           <ul>
             <li>· <strong>Bus pattern</strong>: 1 trunk + N branches for fan-outs/fan-ins</li>
@@ -885,7 +885,7 @@ import Base from "../layouts/Base.astro";
 
       <p class="footer">opchain skills ecosystem v2 · asfbay-bit/opchain · 17 skills · 5 phases · 5 tri-agent · 3 audit gates · spine ordinals · checkpoint-driven</p>
     </div>
-  </div>
+  </main>
 
   <script is:inline>
     /* ══ Architecture v2 — interactive diagram ══ */
@@ -1776,7 +1776,7 @@ import Base from "../layouts/Base.astro";
   }
   .arch-v2 .card-header { display: flex; align-items: center; gap: .5rem; margin-bottom: .6rem; }
   .arch-v2 .card-dot { width: 6px; height: 6px; border-radius: 50%; }
-  .arch-v2 .card h3 {
+  .arch-v2 .card h2 {
     font-family: 'Outfit', system-ui, sans-serif;
     font-size: .8rem; font-weight: 600; color: var(--linen);
   }
