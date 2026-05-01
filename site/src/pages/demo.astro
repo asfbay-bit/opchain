@@ -221,16 +221,18 @@ const sidebar = walkthroughs.map((w, i) => ({
   }
   .page-summary-eyebrow {
     display: inline-block;
-    color: var(--accent);
+    /* Brighter ember than --accent so the small mono-cap eyebrow
+       clears AA-Normal (4.5:1) against --surface (#2a2218 dark /
+       #f4e5cf light). var(--accent) on dark surface is only 4.26:1;
+       var(--accent) on light surface is 3.32:1. The light theme then
+       overrides to var(--char) below for the matching contrast bump. */
+    color: #f0773a;
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-widest);
     text-transform: uppercase;
     margin-bottom: 0.55rem;
   }
-  /* Light-mode contrast bump — var(--accent) (#d95010) on var(--surface)
-     (#f4e5cf) only hits 3.32:1, below AA-Normal. var(--char) (#ab3e08)
-     is the brand-constant deep ember and clears AA at 4.87:1. */
   :global([data-theme="light"]) .page-summary-eyebrow {
     color: var(--char);
   }
@@ -484,13 +486,15 @@ const sidebar = walkthroughs.map((w, i) => ({
   }
   .editor-prompt[hidden] { display: none; }
   .editor-prompt-eyebrow {
-    color: var(--accent);
+    /* Brighter ember — see .page-summary-eyebrow comment for rationale. */
+    color: #f0773a;
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-widest);
     text-transform: uppercase;
     margin-bottom: 0.6rem;
   }
+  :global([data-theme="light"]) .editor-prompt-eyebrow { color: var(--char); }
   .editor-prompt-h {
     font-size: var(--fs-lg);
     color: var(--text);
@@ -509,14 +513,14 @@ const sidebar = walkthroughs.map((w, i) => ({
   .scenario-pane[hidden] { display: none; }
   .scenario-head { margin-bottom: 1rem; }
   .scenario-num {
-    color: var(--accent);
+    /* Brighter ember — see .page-summary-eyebrow comment for rationale. */
+    color: #f0773a;
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-widest);
     text-transform: uppercase;
     margin-bottom: 0.4rem;
   }
-  /* Light-mode contrast on the eyebrow — same fix as .page-summary */
   :global([data-theme="light"]) .scenario-num,
   :global([data-theme="light"]) .col-head { color: var(--char); }
   .scenario-title {
@@ -550,7 +554,8 @@ const sidebar = walkthroughs.map((w, i) => ({
   }
   .scenario-col { min-width: 0; }
   .col-head {
-    color: var(--accent);
+    /* Brighter ember — see .page-summary-eyebrow comment for rationale. */
+    color: #f0773a;
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-widest);
