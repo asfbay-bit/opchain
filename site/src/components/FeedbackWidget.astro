@@ -10,7 +10,7 @@ import Alert from "./ui/Alert.astro";
 import Icon from "./Icon.astro";
 ---
 
-<button type="button" class="feedback-launcher" id="feedback-launcher" aria-label="Send feedback">
+<button type="button" class="feedback-launcher" id="feedback-launcher" data-feedback-launcher aria-label="Send feedback">
   <Icon name="message-square" size={14} /> feedback
 </button>
 
@@ -57,15 +57,18 @@ import Icon from "./Icon.astro";
 </dialog>
 
 <script>
-  const launcher = document.getElementById("feedback-launcher") as HTMLButtonElement | null;
+  // Bind to every [data-feedback-launcher] in the document so multiple
+  // entry points (the floating pill in this component AND the mobile
+  // feedback icon in Header.astro) open the same dialog.
+  const launchers = document.querySelectorAll<HTMLButtonElement>("[data-feedback-launcher]");
   const dialog   = document.getElementById("feedback-dialog") as HTMLDialogElement | null;
   const form     = document.getElementById("feedback-form")  as HTMLFormElement | null;
   const closeBtn = document.getElementById("feedback-close") as HTMLButtonElement | null;
   const statusEl = document.getElementById("feedback-status") as HTMLElement | null;
   const statusMsg= document.getElementById("feedback-status-msg") as HTMLElement | null;
 
-  if (launcher && dialog && form) {
-    launcher.addEventListener("click", () => {
+  if (launchers.length && dialog && form) {
+    const open = () => {
       if (statusEl) statusEl.hidden = true;
       form.reset();
       // When the modal is opened from a /skills/<id> detail page, prefill
@@ -78,7 +81,8 @@ import Icon from "./Icon.astro";
       }
       if (typeof dialog.showModal === "function") dialog.showModal();
       else dialog.setAttribute("open", "");
-    });
+    };
+    launchers.forEach((btn) => btn.addEventListener("click", open));
 
     closeBtn?.addEventListener("click", () => dialog.close());
 
@@ -158,6 +162,12 @@ import Icon from "./Icon.astro";
   .feedback-launcher:hover {
     color: var(--text);
     border-color: var(--accent);
+  }
+  /* On mobile the launcher moves into the site header (Header.astro
+     ships a [data-feedback-launcher] button there); hide the floating
+     pill so it doesn't cover the MobileWorkbench bottom tab bar. */
+  @media (max-width: 767px) {
+    .feedback-launcher { display: none; }
   }
 
   .feedback-dialog {

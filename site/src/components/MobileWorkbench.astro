@@ -294,24 +294,26 @@ const transcripts = walkthroughs.map((w) => ({
 </section>
 
 <style>
-  /* ── Mobile workbench shell ── */
+  /* ── Mobile workbench shell ──
+     Natural-flow column: the page is the scroll context (not the shell),
+     so the topbar can stick below the sticky site header and the bottom
+     tabbar can pin to the viewport edge with safe-area inset. */
   .mw {
     display: flex;
     flex-direction: column;
     background: var(--bg);
-    border: 0.5px solid var(--border);
-    border-left: 0;
-    border-right: 0;
-    /* Fill the visual frame: viewport minus header (~64px) and footer
-       (~variable). 80vh keeps a stable bottom-tab anchor without quirky
-       100dvh + outer-scroll interactions. min height ensures usable
-       content space on small phones. */
-    height: min(80vh, 720px);
-    min-height: 520px;
-    overflow: hidden;
+    border-top: 0.5px solid var(--border);
+    /* Bottom border lives on .mw-tabbar (fixed) so the workbench reads
+       as a single visual frame anchored to the viewport edge. */
+    /* Reserve space at the bottom of the column equal to the fixed
+       tabbar's intrinsic height + the device's safe-area inset, so
+       the last item in any panel can scroll into view above the bar. */
+    padding-bottom: calc(53px + env(safe-area-inset-bottom));
   }
 
-  /* Topbar */
+  /* Topbar — sticks below the sticky site header (top: 56px from
+     .site-header-inner). z-index just under the site header (50) and
+     just over the tabbar (40) so neither covers it during scroll. */
   .mw-topbar {
     display: flex;
     align-items: center;
@@ -320,6 +322,9 @@ const transcripts = walkthroughs.map((w) => ({
     background: var(--ribbon);
     border-bottom: 0.5px solid var(--border);
     min-height: 44px;
+    position: sticky;
+    top: 56px;
+    z-index: 30;
   }
   .mw-brand {
     font-family: var(--font-display);
@@ -341,18 +346,15 @@ const transcripts = walkthroughs.map((w) => ({
     white-space: nowrap;
   }
 
-  /* Panels — exactly one is .is-active at a time */
+  /* Panels — exactly one is .is-active at a time. Natural block flow:
+     the page (not the panel) is the scroll context, so the section
+     eyebrow flows below the sticky topbar and the bottom of the panel
+     clears the fixed tabbar via .mw's padding-bottom. */
   .mw-panels {
-    flex: 1;
-    position: relative;
-    overflow: hidden;
+    display: block;
   }
   .mw-panel {
-    position: absolute;
-    inset: 0;
-    overflow-y: auto;
     overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
     padding: 14px clamp(12px, 4vw, 18px) 24px;
     display: none;
   }
@@ -841,12 +843,22 @@ const transcripts = walkthroughs.map((w) => ({
   .mw-insp-beat-label   { color: var(--text); font-weight: 500; }
   .mw-insp-beat-caption { color: var(--muted); }
 
-  /* ── Bottom tab bar ── */
+  /* ── Bottom tab bar ──
+     Fixed to the viewport bottom with safe-area inset so the bar sits
+     flush against the iOS / Android browser chrome (URL bar, gesture
+     bar) without being clipped. .mw reserves equivalent padding-bottom
+     so the last row of content scrolls into view above the bar. */
   .mw-tabbar {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     background: var(--ribbon);
     border-top: 0.5px solid var(--border);
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 40;
   }
   .mw-tab {
     appearance: none;

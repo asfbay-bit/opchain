@@ -28,6 +28,10 @@ test.describe("mobile workbench (Pixel 5)", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
       try { localStorage.setItem("opchain-demo-tour-seen", "1"); } catch { /* ignore */ }
+      // Pre-decline the consent banner so it never renders. With the
+      // workbench tab bar now position:fixed at bottom 0, an open
+      // consent banner can intercept clicks on the bottom tabs.
+      try { localStorage.setItem("opchain-consent", "declined"); } catch { /* ignore */ }
     });
   });
 
