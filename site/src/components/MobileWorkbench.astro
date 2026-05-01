@@ -1,0 +1,938 @@
+---
+import { walkthroughs } from "../data/walkthroughs";
+import { getSkillRole } from "../lib/skills";
+import { renderSafeMarkdown } from "../lib/markdown";
+
+/**
+ * Mobile workbench — Direction A: Bottom-Tab IDE.
+ *
+ * The desktop workbench's four panels (sidebar · editor summary · editor
+ * transcript · inspector) become four bottom-tab views (Scenarios ·
+ * Stream · I/O · Inspector). Touch-friendly: every tap target is ≥44px,
+ * the topbar shows the active scenario name, and selecting a scenario
+ * from the Scenarios tab auto-switches to Stream.
+ *
+ * The shared <dialog> lightbox in demo.astro picks up clicks on
+ * `.output-row[data-output-scenario][data-output-id]` via document-level
+ * event delegation — this component just needs to emit the same buttons
+ * with the same data attributes that DesktopWorkbench does. No mobile-
+ * specific modal logic needed.
+ *
+ * All class names are prefixed `mw-` and all interactive selectors are
+ * scoped under `[data-mobile-workbench]` so the desktop component's JS
+ * never reaches into this subtree (and vice versa).
+ */
+
+const transcripts = walkthroughs.map((w) => ({
+  id: w.id,
+  title: w.title,
+  tagline: w.tagline,
+  summary: w.summary,
+  runtime: w.runtime,
+  inputs: w.inputs,
+  outputs: w.outputs,
+  skills: w.skills.map((id) => ({ id, role: getSkillRole(id) })),
+  stepCount: w.steps.length,
+  beatCount: w.steps.filter((s) => s.type === "beat").length,
+  steps: w.steps.map((step) => {
+    if (step.type === "beat") {
+      return {
+        kind: "beat" as const,
+        label: step.label,
+        caption: step.caption ?? "",
+        skills: (step.skills ?? []).map((id) => ({ id, role: getSkillRole(id) })),
+      };
+    }
+    if (step.role === "user") {
+      return { kind: "user" as const, content: step.content };
+    }
+    return {
+      kind: "claude" as const,
+      skill: step.skill ?? "",
+      skillRole: step.skill ? getSkillRole(step.skill) : null,
+      html: renderSafeMarkdown(step.content),
+      artifacts: (step.artifacts ?? []).map((aid) => {
+        const a = w.outputs.find((o) => o.id === aid);
+        return { id: aid, label: a?.label ?? aid, kind: a?.kind ?? "" };
+      }),
+    };
+  }),
+}));
+---
+
+<section class="mw" data-mobile-workbench aria-label="Mobile workbench">
+  <header class="mw-topbar">
+    <span class="mw-brand">opchain</span>
+    <span class="mw-scn-label" data-mw-active-label>scenarios</span>
+  </header>
+
+  <div class="mw-panels">
+    <!-- Scenarios tab — the picker -->
+    <section class="mw-panel is-active" data-mw-panel="scenarios" aria-label="Scenarios">
+      <h2 class="mw-section-eyebrow">Scenarios · {transcripts.length}</h2>
+      <div class="mw-scn-list">
+        {transcripts.map((w, i) => (
+          <button
+            type="button"
+            class="mw-scn-card"
+            data-mw-scenario={w.id}
+            aria-pressed="false"
+          >
+            <div class="mw-scn-num">{String(i + 1).padStart(2, "0")} · {w.runtime}</div>
+            <div class="mw-scn-title">{w.title}</div>
+            <div class="mw-scn-tagline">{w.tagline}</div>
+            <div class="mw-scn-summary">{w.summary}</div>
+            <div class="mw-scn-meta">
+              {w.skills.slice(0, 4).map((sk) => (
+                <span class:list={["mw-skill-pill", `mw-role-${sk.role}`]}>{sk.id}</span>
+              ))}
+              {w.skills.length > 4 && (
+                <span class="mw-skill-more">+{w.skills.length - 4}</span>
+              )}
+            </div>
+          </button>
+        ))}
+      </div>
+    </section>
+
+    <!-- Stream tab — transcript -->
+    <section class="mw-panel" data-mw-panel="stream" aria-label="Transcript stream">
+      <div class="mw-empty" data-mw-empty>
+        <div class="mw-empty-eyebrow">no scenario picked</div>
+        <p class="mw-empty-h">Pick a scenario.</p>
+        <p class="mw-empty-sub">
+          Tap any card on the <strong>Scenarios</strong> tab to load its
+          transcript here.
+        </p>
+      </div>
+
+      {transcripts.map((w) => (
+        <article
+          class="mw-stream"
+          data-mw-stream={w.id}
+          aria-label={`${w.title} transcript`}
+          hidden
+        >
+          <header class="mw-stream-head">
+            <div class="mw-stream-eyebrow">{w.tagline}</div>
+            <h3 class="mw-stream-title">{w.title}</h3>
+            <div class="mw-stream-meta">{w.stepCount} steps · {w.beatCount} stages · {w.runtime}</div>
+          </header>
+
+          <div class="mw-cc-stream">
+            {w.steps.map((step) => {
+              if (step.kind === "beat") {
+                return (
+                  <div class="mw-beat">
+                    <div class="mw-beat-label">{step.label}</div>
+                    {step.caption && <div class="mw-beat-caption">{step.caption}</div>}
+                    {step.skills.length > 0 && (
+                      <div class="mw-beat-skills">
+                        {step.skills.map((sk) => (
+                          <span class:list={["mw-skill-pill", "mw-skill-pill--xs", `mw-role-${sk.role}`]}>{sk.id}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              if (step.kind === "user") {
+                return (
+                  <div class="mw-user">
+                    <span class="mw-user-mark" aria-hidden="true">&gt;</span>
+                    <span class="mw-user-text">{step.content}</span>
+                  </div>
+                );
+              }
+              return (
+                <div class="mw-claude">
+                  <div class="mw-claude-head">
+                    <span class="mw-claude-bullet" aria-hidden="true">●</span>
+                    <span class="mw-claude-name">claude</span>
+                    {step.skill && (
+                      <>
+                        <span class="mw-claude-sep" aria-hidden="true">·</span>
+                        <code class:list={[
+                          "mw-claude-skill",
+                          step.skillRole && `mw-role-${step.skillRole}`,
+                        ]}>{step.skill}</code>
+                      </>
+                    )}
+                  </div>
+                  <div class="mw-claude-body" set:html={step.html} />
+                  {step.artifacts.length > 0 && (
+                    <div class="mw-artifacts" aria-label="Outputs from this exchange">
+                      {step.artifacts.map((a) => (
+                        <button
+                          type="button"
+                          class="output-row mw-artifact-chip"
+                          data-output-scenario={w.id}
+                          data-output-id={a.id}
+                          aria-label={`Open ${a.label}`}
+                        >
+                          <span class="output-ico" aria-hidden="true">⊞</span>
+                          <span class="output-label">{a.label}</span>
+                          {a.kind && <span class="output-kind">{a.kind}</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </article>
+      ))}
+    </section>
+
+    <!-- I/O tab — inputs + outputs -->
+    <section class="mw-panel" data-mw-panel="io" aria-label="Inputs and outputs">
+      <div class="mw-empty" data-mw-empty-io>
+        <div class="mw-empty-eyebrow">no scenario picked</div>
+        <p class="mw-empty-h">Pick a scenario.</p>
+        <p class="mw-empty-sub">Inputs and outputs land here.</p>
+      </div>
+
+      {transcripts.map((w) => (
+        <div class="mw-io" data-mw-io={w.id} hidden>
+          <h3 class="mw-section-eyebrow">Inputs · {w.inputs.length}</h3>
+          <ul class="mw-input-list">
+            {w.inputs.map((line) => (<li>{line}</li>))}
+          </ul>
+
+          <h3 class="mw-section-eyebrow">Outputs · {w.outputs.length}</h3>
+          <ul class="mw-output-list">
+            {w.outputs.map((o) => (
+              <li>
+                <button
+                  type="button"
+                  class="output-row mw-output-row"
+                  data-output-scenario={w.id}
+                  data-output-id={o.id}
+                  aria-label={`Open ${o.label}`}
+                >
+                  <span class="output-ico" aria-hidden="true">⊞</span>
+                  <span class="output-label">{o.label}</span>
+                  {o.kind && <span class="output-kind">{o.kind}</span>}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </section>
+
+    <!-- Inspector tab — scenario meta -->
+    <section class="mw-panel" data-mw-panel="inspector" aria-label="Inspector">
+      <div class="mw-empty" data-mw-empty-insp>
+        <div class="mw-empty-eyebrow">no scenario picked</div>
+        <p class="mw-empty-h">Pick a scenario.</p>
+        <p class="mw-empty-sub">Skills, runtime, and a summary land here.</p>
+      </div>
+
+      {transcripts.map((w, i) => (
+        <div class="mw-insp" data-mw-insp={w.id} hidden>
+          <div class="mw-insp-card">
+            <div class="mw-insp-eyebrow">scenario {String(i + 1).padStart(2, "0")}</div>
+            <div class="mw-insp-title">{w.title}</div>
+            <div class="mw-insp-tagline">{w.tagline}</div>
+          </div>
+
+          <div class="mw-insp-card">
+            <div class="mw-insp-eyebrow">runtime</div>
+            <div class="mw-insp-value">{w.runtime}</div>
+          </div>
+
+          <div class="mw-insp-card">
+            <div class="mw-insp-eyebrow">skills · {w.skills.length}</div>
+            <div class="mw-insp-skills">
+              {w.skills.map((sk) => (
+                <span class:list={["mw-skill-pill", `mw-role-${sk.role}`]}>{sk.id}</span>
+              ))}
+            </div>
+          </div>
+
+          <div class="mw-insp-card">
+            <div class="mw-insp-eyebrow">summary</div>
+            <p class="mw-insp-body">{w.summary}</p>
+          </div>
+
+          <div class="mw-insp-card">
+            <div class="mw-insp-eyebrow">stages · {w.beatCount}</div>
+            <ol class="mw-insp-beats">
+              {w.steps.map((s) => s.kind === "beat" ? (
+                <li>
+                  <span class="mw-insp-beat-label">{s.label}</span>
+                  {s.caption && <span class="mw-insp-beat-caption"> · {s.caption}</span>}
+                </li>
+              ) : null)}
+            </ol>
+          </div>
+        </div>
+      ))}
+    </section>
+  </div>
+
+  <nav class="mw-tabbar" role="tablist" aria-label="Workbench tabs">
+    <button class="mw-tab" role="tab" type="button" aria-selected="true" data-mw-tab="scenarios">
+      <span class="mw-tab-ico" aria-hidden="true">▦</span>
+      <span class="mw-tab-label">Scenarios</span>
+    </button>
+    <button class="mw-tab" role="tab" type="button" aria-selected="false" data-mw-tab="stream">
+      <span class="mw-tab-ico" aria-hidden="true">⏵</span>
+      <span class="mw-tab-label">Stream</span>
+    </button>
+    <button class="mw-tab" role="tab" type="button" aria-selected="false" data-mw-tab="io">
+      <span class="mw-tab-ico" aria-hidden="true">⇄</span>
+      <span class="mw-tab-label">I/O</span>
+    </button>
+    <button class="mw-tab" role="tab" type="button" aria-selected="false" data-mw-tab="inspector">
+      <span class="mw-tab-ico" aria-hidden="true">●</span>
+      <span class="mw-tab-label">Inspector</span>
+    </button>
+  </nav>
+</section>
+
+<style>
+  /* ── Mobile workbench shell ── */
+  .mw {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-left: 0;
+    border-right: 0;
+    /* Fill the visual frame: viewport minus header (~64px) and footer
+       (~variable). 80vh keeps a stable bottom-tab anchor without quirky
+       100dvh + outer-scroll interactions. min height ensures usable
+       content space on small phones. */
+    height: min(80vh, 720px);
+    min-height: 520px;
+    overflow: hidden;
+  }
+
+  /* Topbar */
+  .mw-topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--ribbon);
+    border-bottom: 0.5px solid var(--border);
+    min-height: 44px;
+  }
+  .mw-brand {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: var(--ls-display);
+    color: var(--text);
+  }
+  .mw-scn-label {
+    flex: 1;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--accent);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Panels — exactly one is .is-active at a time */
+  .mw-panels {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .mw-panel {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 14px clamp(12px, 4vw, 18px) 24px;
+    display: none;
+  }
+  .mw-panel.is-active { display: block; }
+
+  /* Empty states */
+  .mw-empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .mw-empty[hidden] { display: none; }
+  .mw-empty-eyebrow {
+    color: #f5894d;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-widest);
+    margin-bottom: 8px;
+  }
+  :global([data-theme="light"]) .mw-empty-eyebrow { color: #993505; }
+  .mw-empty-h {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    color: var(--text);
+    margin: 0 0 6px;
+  }
+  .mw-empty-sub {
+    font-size: var(--fs-sm);
+    line-height: var(--lh-base);
+    margin: 0;
+    max-width: 22rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .mw-empty-sub strong { color: var(--accent); font-weight: 500; }
+
+  /* Section eyebrow */
+  .mw-section-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-widest);
+    color: var(--subtle);
+    font-weight: 500;
+    margin: 0 0 10px;
+  }
+  .mw-section-eyebrow + .mw-section-eyebrow { margin-top: 18px; }
+
+  /* Skill pill — namespaced for the mobile workbench */
+  .mw-skill-pill {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    padding: 3px 7px;
+    border-radius: var(--r-pill);
+    border: 0.5px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--muted);
+  }
+  .mw-skill-pill--xs { font-size: 9px; padding: 2px 6px; }
+  .mw-skill-more {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--subtle);
+    padding: 3px 0;
+  }
+  .mw-role-workflow     { color: var(--workflow);     border-color: var(--workflow); }
+  .mw-role-tri-agent    { color: var(--tri-agent);    border-color: var(--tri-agent); }
+  .mw-role-audit-gate   { color: var(--audit-gate);   border-color: var(--audit-gate); }
+  .mw-role-specialist   { color: var(--specialist);   border-color: var(--specialist); }
+  .mw-role-advisor      { color: var(--advisor);      border-color: var(--advisor); }
+  .mw-role-orchestrator { color: var(--orchestrator); border-color: var(--orchestrator); }
+  .mw-role-success      { color: var(--success);      border-color: var(--success); }
+
+  /* ── Scenarios panel ── */
+  .mw-scn-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .mw-scn-card {
+    appearance: none;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 14px 14px 12px;
+    text-align: left;
+    color: var(--text);
+    font-family: inherit;
+    width: 100%;
+    cursor: pointer;
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard),
+      box-shadow var(--dur-base) var(--ease-standard);
+  }
+  .mw-scn-card:hover { border-color: var(--accent); }
+  .mw-scn-card[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--ember-dim);
+    box-shadow: var(--glow-md);
+  }
+  .mw-scn-card:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  .mw-scn-num {
+    color: #f5894d;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-widest);
+    margin-bottom: 4px;
+  }
+  :global([data-theme="light"]) .mw-scn-num { color: #993505; }
+  .mw-scn-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    line-height: var(--lh-tight);
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .mw-scn-tagline {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: var(--ls-wide);
+  }
+  .mw-scn-summary {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    line-height: var(--lh-snug);
+    margin-bottom: 10px;
+  }
+  .mw-scn-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* ── Stream panel ── */
+  .mw-stream[hidden] { display: none; }
+  .mw-stream-head {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .mw-stream-eyebrow {
+    color: #f5894d;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-widest);
+    margin-bottom: 4px;
+  }
+  :global([data-theme="light"]) .mw-stream-eyebrow { color: #993505; }
+  .mw-stream-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-lg);
+    line-height: var(--lh-tight);
+    margin: 0 0 6px;
+    color: var(--text);
+  }
+  .mw-stream-meta {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--subtle);
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+  }
+
+  .mw-cc-stream {
+    /* Same Claude-Code terminal palette as desktop, just sized for phones. */
+    --mw-cc-bg:      #181818;
+    --mw-cc-fg:      #e8e8e8;
+    --mw-cc-dim:     #8a8a8a;
+    --mw-cc-subtle:  #5a5a5a;
+    --mw-cc-cyan:    #62afff;
+    --mw-cc-orange:  #d99155;
+    --mw-cc-border:  #2a2a2a;
+
+    background: var(--mw-cc-bg);
+    color: var(--mw-cc-fg);
+    font-family: var(--font-mono);
+    font-size: clamp(12px, 3.4vw, 13px);
+    line-height: var(--lh-base);
+    padding: 12px 12px 16px;
+    border: 0.5px solid var(--mw-cc-border);
+    border-radius: var(--r-md);
+  }
+
+  .mw-beat {
+    margin: 14px 0 10px;
+    padding-bottom: 8px;
+    border-bottom: 0.5px dashed var(--mw-cc-border);
+  }
+  .mw-beat:first-child { margin-top: 0; }
+  .mw-beat-label {
+    color: var(--mw-cc-fg);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .mw-beat-caption {
+    color: var(--mw-cc-dim);
+    font-size: 10.5px;
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .mw-beat-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .mw-user {
+    display: flex;
+    gap: 8px;
+    margin: 10px 0;
+    color: var(--mw-cc-fg);
+  }
+  .mw-user-mark { color: var(--mw-cc-cyan); flex: 0 0 auto; }
+  .mw-user-text { white-space: pre-wrap; }
+
+  .mw-claude { margin: 10px 0 14px; }
+  .mw-claude-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+    color: var(--mw-cc-dim);
+    font-size: 11px;
+  }
+  .mw-claude-bullet { color: var(--mw-cc-orange); }
+  .mw-claude-name   { color: var(--mw-cc-fg); font-weight: 600; }
+  .mw-claude-sep    { color: var(--mw-cc-subtle); }
+  .mw-claude-skill {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 0.5px solid var(--mw-cc-border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    color: var(--mw-cc-fg);
+  }
+  .mw-claude-skill.mw-role-workflow     { color: var(--workflow); }
+  .mw-claude-skill.mw-role-tri-agent    { color: var(--tri-agent); }
+  .mw-claude-skill.mw-role-audit-gate   { color: var(--audit-gate); }
+  .mw-claude-skill.mw-role-specialist   { color: var(--specialist); }
+  .mw-claude-skill.mw-role-advisor      { color: var(--advisor); }
+  .mw-claude-skill.mw-role-orchestrator { color: var(--orchestrator); }
+  .mw-claude-skill.mw-role-success      { color: var(--success); }
+
+  .mw-claude-body {
+    color: var(--mw-cc-fg);
+    padding-left: 10px;
+    border-left: 1px solid var(--mw-cc-border);
+  }
+  .mw-claude-body :global(p) { margin: 0 0 8px; }
+  .mw-claude-body :global(p:last-child) { margin-bottom: 0; }
+  .mw-claude-body :global(strong) { color: #fff; font-weight: 600; }
+  .mw-claude-body :global(em)     { font-style: italic; }
+  .mw-claude-body :global(h1),
+  .mw-claude-body :global(h2),
+  .mw-claude-body :global(h3) {
+    margin: 10px 0 6px;
+    color: var(--mw-cc-fg);
+    font-family: var(--font-mono);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .mw-claude-body :global(h1) { font-size: 13px; }
+  .mw-claude-body :global(h2) { font-size: 12.5px; }
+  .mw-claude-body :global(h3) { font-size: 12px; }
+  .mw-claude-body :global(ul),
+  .mw-claude-body :global(ol) { margin: 0 0 8px; padding-left: 18px; }
+  .mw-claude-body :global(li) { margin: 2px 0; }
+  .mw-claude-body :global(code) {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--mw-cc-cyan);
+    background: rgba(98, 175, 255, 0.08);
+    border-radius: 2px;
+    padding: 0 4px;
+  }
+  .mw-claude-body :global(pre) {
+    background: rgba(255, 255, 255, 0.03);
+    border: 0.5px solid var(--mw-cc-border);
+    border-radius: 3px;
+    padding: 8px 10px;
+    overflow-x: auto;
+    margin: 0 0 8px;
+    font-size: 11.5px;
+    line-height: var(--lh-snug);
+  }
+  .mw-claude-body :global(pre code) { background: none; padding: 0; color: var(--mw-cc-fg); }
+  .mw-claude-body :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    margin: 0 0 8px;
+    display: block;
+    overflow-x: auto;
+  }
+  .mw-claude-body :global(th),
+  .mw-claude-body :global(td) {
+    border: 0.5px solid var(--mw-cc-border);
+    padding: 4px 8px;
+    text-align: left;
+  }
+  .mw-claude-body :global(th)   { background: rgba(255, 255, 255, 0.03); font-weight: 500; }
+  .mw-claude-body :global(blockquote) {
+    border-left: 2px solid var(--mw-cc-orange);
+    margin: 0 0 8px;
+    padding: 0 0 0 10px;
+    color: var(--mw-cc-dim);
+  }
+  .mw-claude-body :global(a) {
+    color: var(--mw-cc-cyan);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .mw-artifacts {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+    padding-left: 10px;
+  }
+  .mw-artifact-chip {
+    appearance: none;
+    background: rgba(255, 255, 255, 0.03);
+    border: 0.5px solid var(--mw-cc-border);
+    border-radius: var(--r-xs);
+    color: var(--mw-cc-fg);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    padding: 8px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+    width: 100%;
+    min-height: 36px;
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard);
+  }
+  .mw-artifact-chip:hover,
+  .mw-artifact-chip:focus-visible {
+    border-color: var(--mw-cc-orange);
+    background: rgba(217, 145, 85, 0.08);
+    outline: none;
+  }
+  .mw-artifact-chip .output-ico  { color: var(--mw-cc-orange); flex: 0 0 auto; }
+  .mw-artifact-chip .output-label{ flex: 1; }
+  .mw-artifact-chip .output-kind { color: var(--mw-cc-dim); flex: 0 0 auto; font-size: 10px; }
+
+  /* ── I/O panel ── */
+  .mw-io[hidden] { display: none; }
+  .mw-input-list {
+    list-style: none;
+    margin: 0 0 18px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .mw-input-list li {
+    background: var(--card);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 var(--r-md) var(--r-md) 0;
+    padding: 9px 12px;
+    color: var(--text);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+  }
+  .mw-output-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .mw-output-row {
+    appearance: none;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    color: var(--text);
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    cursor: pointer;
+    text-align: left;
+    min-height: 44px;
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard);
+  }
+  .mw-output-row:hover,
+  .mw-output-row:focus-visible {
+    border-color: var(--accent);
+    background: var(--ember-dim);
+    outline: none;
+  }
+  .mw-output-row .output-ico   { color: var(--accent); flex: 0 0 auto; }
+  .mw-output-row .output-label { flex: 1; }
+  .mw-output-row .output-kind  { color: var(--subtle); font-family: var(--font-mono); font-size: 10.5px; flex: 0 0 auto; }
+
+  /* ── Inspector panel ── */
+  .mw-insp[hidden] { display: none; }
+  .mw-insp-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .mw-insp-eyebrow {
+    color: #f5894d;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-widest);
+    margin-bottom: 6px;
+  }
+  :global([data-theme="light"]) .mw-insp-eyebrow { color: #993505; }
+  .mw-insp-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    line-height: var(--lh-tight);
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .mw-insp-tagline {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: var(--ls-wide);
+  }
+  .mw-insp-value {
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    color: var(--text);
+    font-weight: 500;
+  }
+  .mw-insp-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .mw-insp-body {
+    margin: 0;
+    color: var(--text);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-base);
+  }
+  .mw-insp-beats {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--muted);
+    font-size: 11.5px;
+    line-height: var(--lh-snug);
+  }
+  .mw-insp-beats li { margin: 4px 0; }
+  .mw-insp-beat-label   { color: var(--text); font-weight: 500; }
+  .mw-insp-beat-caption { color: var(--muted); }
+
+  /* ── Bottom tab bar ── */
+  .mw-tabbar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: var(--ribbon);
+    border-top: 0.5px solid var(--border);
+  }
+  .mw-tab {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--subtle);
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    padding: 8px 4px;
+    min-height: 52px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    box-shadow: inset 0 0 0 transparent;
+    transition: color var(--dur-fast) var(--ease-standard);
+  }
+  .mw-tab[aria-selected="true"] {
+    color: var(--accent);
+    box-shadow: inset 0 2px 0 var(--accent);
+  }
+  .mw-tab:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--accent);
+  }
+  .mw-tab-ico  { font-size: 16px; line-height: 1; }
+  .mw-tab-label { line-height: 1; }
+</style>
+
+<script is:inline>
+  /* MobileWorkbench wiring — scoped to its own subtree via [data-mobile-workbench]. */
+  (() => {
+    const root = document.querySelector('[data-mobile-workbench]');
+    if (!root) return;
+
+    const tabs = root.querySelectorAll('[data-mw-tab]');
+    const panels = root.querySelectorAll('[data-mw-panel]');
+    const cards = root.querySelectorAll('[data-mw-scenario]');
+    const streams = root.querySelectorAll('[data-mw-stream]');
+    const ios = root.querySelectorAll('[data-mw-io]');
+    const insps = root.querySelectorAll('[data-mw-insp]');
+    const emptyStream = root.querySelector('[data-mw-empty]');
+    const emptyIo = root.querySelector('[data-mw-empty-io]');
+    const emptyInsp = root.querySelector('[data-mw-empty-insp]');
+    const activeLabel = root.querySelector('[data-mw-active-label]');
+
+    function show(name) {
+      tabs.forEach((t) => t.setAttribute('aria-selected', t.dataset.mwTab === name));
+      panels.forEach((p) => p.classList.toggle('is-active', p.dataset.mwPanel === name));
+      const ap = root.querySelector(`[data-mw-panel="${name}"]`);
+      if (ap) ap.scrollTop = 0;
+    }
+
+    function selectScenario(id) {
+      cards.forEach((c) => c.setAttribute('aria-pressed', c.dataset.mwScenario === id ? 'true' : 'false'));
+      streams.forEach((s) => {
+        if (s.dataset.mwStream === id) s.removeAttribute('hidden');
+        else                            s.setAttribute('hidden', '');
+      });
+      ios.forEach((s) => {
+        if (s.dataset.mwIo === id) s.removeAttribute('hidden');
+        else                       s.setAttribute('hidden', '');
+      });
+      insps.forEach((s) => {
+        if (s.dataset.mwInsp === id) s.removeAttribute('hidden');
+        else                         s.setAttribute('hidden', '');
+      });
+      if (emptyStream) emptyStream.setAttribute('hidden', '');
+      if (emptyIo) emptyIo.setAttribute('hidden', '');
+      if (emptyInsp) emptyInsp.setAttribute('hidden', '');
+
+      const card = root.querySelector(`[data-mw-scenario="${CSS.escape(id)}"]`);
+      const title = card && card.querySelector('.mw-scn-title');
+      if (activeLabel && title) activeLabel.textContent = title.textContent || id;
+    }
+
+    tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.mwTab)));
+    cards.forEach((c) => c.addEventListener('click', () => {
+      selectScenario(c.dataset.mwScenario);
+      show('stream');
+    }));
+
+    show('scenarios');
+  })();
+</script>
