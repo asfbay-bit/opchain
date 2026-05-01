@@ -111,9 +111,69 @@ const sidebar = walkthroughs.map((w, i) => ({
         ))}
       </div>
 
-      <!-- Editor — populated in chunk 4 (summary + outputs list) -->
-      <div class="ide-editor" role="region" aria-label="Transcript">
-        <div class="ide-placeholder">editor &amp; summary → port chunk 4</div>
+      <!-- Editor — per-scenario summary panes. Default state shows
+           the prompt; opening a scenario in the sidebar swaps in that
+           scenario's pane via the click handler at the bottom of the
+           file. Output rows are wired to a modal lightbox in chunk 5. -->
+      <div class="ide-editor" role="region" aria-label="Scenario summary">
+        <div class="editor-prompt" data-editor-prompt>
+          <div class="editor-prompt-eyebrow">scenario summary</div>
+          <p class="editor-prompt-h">Pick a scenario on the left.</p>
+          <p class="editor-prompt-sub">
+            Each scenario shows a one-paragraph brief, the inputs the
+            user brought, and the outputs Claude produced — each output
+            opens to its full body.
+          </p>
+        </div>
+
+        {walkthroughs.map((w, i) => (
+          <article
+            class="scenario-pane"
+            data-scenario-pane={w.id}
+            aria-label={`${w.title} summary`}
+            hidden
+          >
+            <header class="scenario-head">
+              <div class="scenario-num">scenario {String(i + 1).padStart(2, "0")}</div>
+              <h2 class="scenario-title">{w.title}</h2>
+              <p class="scenario-tagline">{w.tagline} · {w.runtime}</p>
+            </header>
+
+            <p class="scenario-summary">{w.summary}</p>
+
+            <div class="scenario-cols">
+              <section class="scenario-col">
+                <div class="col-head">inputs · {w.inputs.length}</div>
+                <ul class="col-list">
+                  {w.inputs.map((line) => (
+                    <li>{line}</li>
+                  ))}
+                </ul>
+              </section>
+
+              <section class="scenario-col">
+                <div class="col-head">outputs · {w.outputs.length}</div>
+                <ul class="col-list outputs-list">
+                  {w.outputs.map((o) => (
+                    <li>
+                      <button
+                        type="button"
+                        class="output-row"
+                        data-output-scenario={w.id}
+                        data-output-id={o.id}
+                        aria-label={`Open ${o.label}`}
+                      >
+                        <span class="output-ico">⊞</span>
+                        <span class="output-label">{o.label}</span>
+                        {o.kind && <span class="output-kind">{o.kind}</span>}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </div>
+          </article>
+        ))}
       </div>
 
       <!-- Inspector — populated in chunk 8 (transcript mode moves
@@ -126,7 +186,7 @@ const sidebar = walkthroughs.map((w, i) => ({
       <div class="ide-status">
         <span>workbench</span>
         <span class="ide-sep">·</span>
-        <span>port chunk 3 of 9 · sidebar interactive</span>
+        <span>port chunk 4 of 9 · summary panes wired</span>
         <span class="ide-sep">·</span>
         <span class="ok">✓ {sidebar.length} scenarios loaded</span>
         <span class="right">
@@ -399,11 +459,12 @@ const sidebar = walkthroughs.map((w, i) => ({
   .role-orchestrator { background: var(--orchestrator); }
   .role-success      { background: var(--success); }
 
-  /* Editor + Inspector — placeholders for chunks 2 & 3 */
+  /* Editor — per-scenario summary panes (chunk 4) */
   .ide-editor {
     grid-area: editor;
     background: var(--bg);
     overflow-y: auto;
+    font-family: var(--font-display);
   }
   .ide-inspector {
     grid-area: inspector;
@@ -411,6 +472,156 @@ const sidebar = walkthroughs.map((w, i) => ({
     border-left: 0.5px solid var(--border);
     overflow-y: auto;
     font-size: 12px;
+  }
+
+  .editor-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: clamp(1rem, 3vw, 2rem);
+    height: 100%;
+    color: var(--muted);
+  }
+  .editor-prompt[hidden] { display: none; }
+  .editor-prompt-eyebrow {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .editor-prompt-h {
+    font-size: var(--fs-lg);
+    color: var(--text);
+    margin: 0 0 0.5rem;
+    font-weight: 500;
+  }
+  .editor-prompt-sub {
+    margin: 0;
+    max-width: 36rem;
+    line-height: var(--lh-base);
+  }
+
+  .scenario-pane {
+    padding: clamp(1rem, 3vw, 1.8rem);
+  }
+  .scenario-pane[hidden] { display: none; }
+  .scenario-head { margin-bottom: 1rem; }
+  .scenario-num {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  /* Light-mode contrast on the eyebrow — same fix as .page-summary */
+  :global([data-theme="light"]) .scenario-num,
+  :global([data-theme="light"]) .col-head { color: var(--char); }
+  .scenario-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+    line-height: 1.2;
+    letter-spacing: var(--ls-tight);
+    margin: 0 0 0.4rem;
+    color: var(--text);
+  }
+  .scenario-tagline {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    margin: 0;
+  }
+  .scenario-summary {
+    color: var(--text);
+    font-size: var(--fs-md);
+    line-height: var(--lh-base);
+    margin: 0 0 1.4rem;
+    max-width: 60rem;
+  }
+
+  .scenario-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem;
+  }
+  .scenario-col { min-width: 0; }
+  .col-head {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .col-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .col-list li {
+    color: var(--muted);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    padding-left: 1rem;
+    position: relative;
+  }
+  .col-list li::before {
+    content: "›";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+  .outputs-list li { padding-left: 0; }
+  .outputs-list li::before { content: none; }
+  .output-row {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+    color: var(--text);
+    font-family: inherit;
+    font-size: var(--fs-base);
+    padding: 0.55rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    cursor: pointer;
+    text-align: left;
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard);
+  }
+  .output-row:hover {
+    border-color: var(--accent);
+    background: var(--ember-dim);
+  }
+  .output-row:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  .output-ico { color: var(--accent); flex: 0 0 auto; }
+  .output-label { flex: 1; }
+  .output-kind {
+    color: var(--subtle);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    flex: 0 0 auto;
+  }
+
+  /* Single column on narrow viewports inside the editor pane. */
+  @media (max-width: 1100px) {
+    .scenario-cols { grid-template-columns: 1fr; gap: 1rem; }
   }
   .ide-placeholder {
     color: var(--subtle);
@@ -458,19 +669,53 @@ const sidebar = walkthroughs.map((w, i) => ({
 </style>
 
 <script is:inline>
-  /* Sidebar — chunk 3 of the workbench port.
-     All folders start collapsed. Clicking a .tree-folder toggles its
-     .is-open state independently (multi-expand): selecting a scenario
-     does not collapse the others. The arrow flips ▸ ↔ ▾ and the
-     aria-expanded attribute tracks the visible state. */
+  /* Sidebar + editor swap — chunks 3 + 4 of the workbench port.
+
+     Sidebar: folders start collapsed. Click toggles .is-open on the
+     folder (▸ ↔ ▾ arrow flip, aria-expanded). Multi-expand — opening
+     one does not collapse the others.
+
+     Editor: a single "active scenario" controls which .scenario-pane
+     is visible. Opening a sidebar folder makes that scenario the
+     active one. Closing the active scenario falls back to whichever
+     other folder is still open, or shows the welcome prompt. */
   (() => {
     const folders = document.querySelectorAll('.tree-folder[data-scenario]');
+    const panes   = document.querySelectorAll('[data-scenario-pane]');
+    const prompt  = document.querySelector('[data-editor-prompt]');
+
+    function showEditor(activeId) {
+      let any = false;
+      panes.forEach((pane) => {
+        const on = pane.dataset.scenarioPane === activeId;
+        if (on) { pane.removeAttribute('hidden'); any = true; }
+        else    { pane.setAttribute('hidden', ''); }
+      });
+      if (prompt) {
+        if (any) prompt.setAttribute('hidden', '');
+        else     prompt.removeAttribute('hidden');
+      }
+    }
+
+    function pickActiveFromOpenFolders() {
+      const openFolder = document.querySelector('.tree-folder.is-open[data-scenario]');
+      return openFolder ? openFolder.dataset.scenario : null;
+    }
+
     folders.forEach((folder) => {
       folder.addEventListener('click', () => {
         const open = folder.classList.toggle('is-open');
         folder.setAttribute('aria-expanded', open ? 'true' : 'false');
         const arrow = folder.querySelector('.tree-arrow');
         if (arrow) arrow.textContent = open ? '▾' : '▸';
+
+        if (open) {
+          // Newly opened — make this the active editor scenario.
+          showEditor(folder.dataset.scenario);
+        } else {
+          // Closed — fall back to another open folder, else clear.
+          showEditor(pickActiveFromOpenFolders());
+        }
       });
     });
   })();
