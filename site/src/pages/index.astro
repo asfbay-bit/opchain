@@ -138,7 +138,7 @@ const initialCover = covers[0];
       </p>
     </div>
 
-    <!-- Featured-scenario magazine cover — rotates every 2 min through
+    <!-- Featured-scenario magazine cover — rotates every 10 s through
          the six walkthroughs. "Open the workbench" deep-links into
          /demo so the click lands directly on the IDE workbench. -->
     <section class="stage" data-cover>
@@ -479,9 +479,7 @@ const initialCover = covers[0];
 </style>
 
 <script is:inline>
-  /* Magazine cover — 2-minute slot rotation (6 covers × 2 min = 12 min
-     cycle). Mirrors the previous /demo behaviour after the chunk-2
-     relocation. */
+  /* Magazine cover — 10-second slot rotation (6 covers × 10 s = 60 s cycle). */
   (() => {
     const stage = document.querySelector('[data-cover]');
     const dataNode = document.getElementById('cover-data');
@@ -492,7 +490,7 @@ const initialCover = covers[0];
     catch { return; }
     if (!Array.isArray(covers) || covers.length === 0) return;
 
-    const SLOT_MS = 2 * 60 * 1000;
+    const SLOT_MS = 10 * 1000;
     const numEl = stage.querySelector('[data-cover-num]');
     const titleEl = stage.querySelector('[data-cover-title]');
     const taglineEl = stage.querySelector('[data-cover-tagline]');
