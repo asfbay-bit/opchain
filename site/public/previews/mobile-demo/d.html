@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>opchain · Mobile demo · D — Pipeline Timeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+<link rel="stylesheet" href="./_shared/tokens.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--obsidian);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+  .phone {
+    width: 390px;
+    height: min(844px, calc(100dvh - 48px));
+    background: var(--bg);
+    border-radius: 44px;
+    border: 8px solid #000;
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+  @media (max-width: 480px) {
+    body { padding: 0; }
+    .phone {
+      width: 100%; height: 100dvh;
+      border-radius: 0; border: 0; box-shadow: none;
+    }
+  }
+
+  /* ── Sticky scenario rail ── */
+  .scn-bar {
+    background: var(--ribbon);
+    border-bottom: 0.5px solid var(--border);
+    padding-top: env(safe-area-inset-top);
+  }
+  .scn-bar-inner {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 10px 14px;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+  .scn-bar-inner::-webkit-scrollbar { display: none; }
+  .scn-pill {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    padding: 6px 12px;
+    border-radius: var(--r-pill);
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .scn-pill[aria-selected="true"] {
+    background: var(--ember-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── Scrollable body ── */
+  .scroll {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 16px 14px 32px;
+  }
+
+  /* Hero header */
+  .hero { margin-bottom: 16px; }
+  .hero .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .hero .title {
+    font-size: 22px;
+    font-weight: 600;
+    line-height: var(--lh-tight);
+    letter-spacing: var(--ls-tight);
+    margin-bottom: 6px;
+  }
+  .hero .summary {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: var(--lh-snug);
+  }
+  .hero .meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--subtle);
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+  }
+  .hero .meta strong { color: var(--accent); font-weight: 600; }
+
+  /* Section labels */
+  .section-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+    color: var(--subtle);
+    margin: 18px 0 8px;
+    font-weight: 500;
+  }
+
+  /* Inputs strip (above timeline) */
+  .inputs-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    background: var(--card);
+    border-radius: var(--r-md);
+    border-left: 2px solid var(--accent);
+    font-size: 12px;
+    color: var(--text);
+  }
+  .inputs-strip .row { padding: 4px 0; line-height: var(--lh-snug); }
+  .inputs-strip .row + .row { border-top: 0.5px solid var(--border); }
+
+  /* ── Timeline ── */
+  .timeline {
+    position: relative;
+    padding-left: 28px;
+  }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 9px;
+    top: 12px;
+    bottom: 12px;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--accent), var(--border) 30%, var(--border) 80%, var(--accent));
+  }
+  .station {
+    position: relative;
+    margin-bottom: 6px;
+  }
+  .station::before {
+    content: "";
+    position: absolute;
+    left: -24px;
+    top: 14px;
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 0 4px var(--bg);
+    transition: background var(--dur-fast) var(--ease-standard);
+  }
+  .station[open]::before { background: var(--accent); }
+
+  .station > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 10px 0;
+    display: block;
+  }
+  .station > summary::-webkit-details-marker { display: none; }
+  .station .lbl {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .station .cap {
+    font-size: 13px;
+    color: var(--text);
+    line-height: var(--lh-snug);
+    margin-top: 2px;
+  }
+  .station .skills-mini {
+    margin-top: 6px;
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .skill-pill {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    padding: 2px 6px;
+    border-radius: var(--r-pill);
+    background: var(--ember-dim);
+    color: var(--accent);
+    border: 0.5px solid var(--accent);
+  }
+  .station > summary::after {
+    content: "expand";
+    float: right;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--subtle);
+    margin-top: 2px;
+  }
+  .station[open] > summary::after { content: "collapse"; color: var(--accent); }
+
+  /* Nested exchanges */
+  .station-body {
+    padding: 4px 0 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ex {
+    border-radius: var(--r-md);
+    padding: 9px 11px;
+    font-size: 12.5px;
+    line-height: var(--lh-base);
+    white-space: pre-wrap;
+  }
+  .ex .role {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    margin-bottom: 4px;
+  }
+  .ex.user {
+    background: var(--ember-dim);
+    border-left: 2px solid var(--accent);
+  }
+  .ex.user .role { color: var(--accent); }
+  .ex.claude {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+  }
+  .ex.claude .role { color: var(--specialist); }
+  .artifact-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--ember-dim);
+    border: 0.5px solid var(--accent);
+    padding: 3px 8px;
+    border-radius: var(--r-pill);
+    margin: 6px 4px 0 0;
+  }
+  .artifact-chip::before { content: "⌬"; }
+
+  /* Outputs grid */
+  .outputs-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  details.output {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 10px 12px;
+  }
+  details.output[open] { border-color: var(--accent); }
+  details.output > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  details.output > summary::-webkit-details-marker { display: none; }
+  details.output > summary::after {
+    content: "+";
+    margin-left: auto;
+    color: var(--subtle);
+    font-size: 16px;
+  }
+  details.output[open] > summary::after { content: "−"; color: var(--accent); }
+  .out-lbl { font-size: 12px; font-weight: 600; }
+  .out-knd { font-family: var(--font-mono); font-size: 9px; color: var(--subtle); margin-left: 6px; }
+  .out-body {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 0.5px solid var(--border);
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: var(--lh-base);
+    white-space: pre-wrap;
+  }
+
+  /* Inspector strip at bottom */
+  .insp {
+    margin-top: 18px;
+    padding: 12px;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+  }
+  .insp .row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; font-size: 12px; }
+  .insp .row + .row { border-top: 0.5px solid var(--border); }
+  .insp .row span:first-child { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; color: var(--subtle); letter-spacing: var(--ls-wide); }
+  .insp .row span:last-child { color: var(--text); font-weight: 500; }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="scn-bar">
+      <div class="scn-bar-inner" id="scn-bar" role="tablist"></div>
+    </div>
+    <div class="scroll">
+      <div class="hero">
+        <div class="eyebrow" id="hero-eyebrow">Concept → shipped</div>
+        <h1 class="title" id="hero-title"></h1>
+        <p class="summary" id="hero-summary"></p>
+        <div class="meta">
+          <span><strong id="hero-runtime"></strong> runtime</span>
+          <span><strong id="hero-skills"></strong> skills</span>
+          <span><strong id="hero-stages"></strong> stages</span>
+        </div>
+      </div>
+
+      <div class="section-eyebrow">Inputs</div>
+      <div class="inputs-strip" id="inputs-strip"></div>
+
+      <div class="section-eyebrow">Pipeline</div>
+      <div class="timeline" id="timeline"></div>
+
+      <div class="section-eyebrow">Outputs</div>
+      <div class="outputs-grid" id="outputs-grid"></div>
+
+      <div class="section-eyebrow">Inspector</div>
+      <div class="insp" id="insp"></div>
+    </div>
+  </div>
+
+  <script src="./_shared/data.js"></script>
+  <script>
+    const ws = window.WALKTHROUGHS;
+    let activeId = ws[0].id;
+    const $ = (s) => document.querySelector(s);
+
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[c]);
+    }
+    function current() { return ws.find((w) => w.id === activeId); }
+
+    function renderBar() {
+      $('#scn-bar').innerHTML = ws.map((w) => `
+        <button class="scn-pill" data-id="${w.id}" aria-selected="${w.id === activeId}">${escape(w.tagline)}</button>
+      `).join('');
+      $('#scn-bar').querySelectorAll('.scn-pill').forEach((p) => {
+        p.addEventListener('click', () => { activeId = p.dataset.id; render(); });
+      });
+    }
+
+    function exchHTML(ex, w) {
+      const skill = ex.skill || (ex.role === 'user' ? 'you' : 'claude');
+      const arts = (ex.artifacts || []).map((id) => {
+        const a = w.outputs.find((o) => o.id === id);
+        return a ? `<button class="artifact-chip" data-art="${a.id}">${escape(a.label)}</button>` : '';
+      }).join('');
+      return `<div class="ex ${ex.role}">
+        <div class="role">${escape(skill)}</div>
+        <div>${escape(ex.content)}</div>
+        ${arts ? `<div>${arts}</div>` : ''}
+      </div>`;
+    }
+
+    function buildStations(w) {
+      const stations = [];
+      let beat = null;
+      let exs = [];
+      const flush = () => {
+        if (!beat) return;
+        stations.push({ beat, exs });
+        beat = null; exs = [];
+      };
+      for (const step of w.steps) {
+        if (step.type === 'beat') { flush(); beat = step; }
+        else exs.push(step);
+      }
+      flush();
+      return stations;
+    }
+
+    function render() {
+      const w = current();
+      $('#hero-eyebrow').textContent = w.tagline;
+      $('#hero-title').textContent = w.title;
+      $('#hero-summary').textContent = w.summary;
+      const stations = buildStations(w);
+      $('#hero-runtime').textContent = w.runtime;
+      $('#hero-skills').textContent = w.skills.length;
+      $('#hero-stages').textContent = stations.length;
+
+      $('#inputs-strip').innerHTML = w.inputs.map((i) => `<div class="row">${escape(i)}</div>`).join('');
+
+      $('#timeline').innerHTML = stations.map((st, idx) => `
+        <details class="station" ${idx === 0 ? 'open' : ''}>
+          <summary>
+            <div class="lbl">${escape(st.beat.label)}</div>
+            <div class="cap">${escape(st.beat.caption || '')}</div>
+            <div class="skills-mini">
+              ${(st.beat.skills || []).map((s) => `<span class="skill-pill">${escape(s)}</span>`).join('')}
+            </div>
+          </summary>
+          <div class="station-body">${st.exs.map((ex) => exchHTML(ex, w)).join('')}</div>
+        </details>
+      `).join('');
+
+      $('#outputs-grid').innerHTML = w.outputs.map((o) => `
+        <details class="output" data-id="${o.id}">
+          <summary>
+            <span class="out-lbl">${escape(o.label)}</span>
+            <span class="out-knd">${escape(o.kind || '')}</span>
+          </summary>
+          <div class="out-body">${escape(o.body)}</div>
+        </details>
+      `).join('');
+
+      $('#insp').innerHTML = `
+        <div class="row"><span>Scenario</span><span>${escape(w.title)}</span></div>
+        <div class="row"><span>Runtime</span><span>${escape(w.runtime)}</span></div>
+        <div class="row"><span>Skills</span><span>${w.skills.join(' · ')}</span></div>
+        <div class="row"><span>Outputs</span><span>${w.outputs.length} artifacts</span></div>
+      `;
+
+      // Wire artifact chips → expand the matching output
+      document.querySelectorAll('.artifact-chip').forEach((b) => {
+        b.addEventListener('click', () => {
+          const t = document.querySelector(`details.output[data-id="${b.dataset.art}"]`);
+          if (t) { t.open = true; t.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+        });
+      });
+
+      renderBar();
+      $('.scroll')?.scrollTo?.(0, 0);
+    }
+
+    render();
+  </script>
+</body>
+</html>

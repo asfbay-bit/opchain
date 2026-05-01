@@ -1,0 +1,214 @@
+/* ─────────────────────────────────────────────────────────────
+   opchain — design tokens (Sprint 2)
+   Canonical source of truth. Shared with public/styles.css.
+   Consumed by the Astro site via global.css @theme block
+   (exposes tokens as Tailwind 4 utilities) and directly in
+   component <style> scopes.
+
+   Theme switching: [data-theme="light"] on <html>.
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Brand constants (never themed) ── */
+  --obsidian:  #1c1710;
+  --forge:     #2a2218;
+  --slag:      #5a5040;
+  --sand:      #c4b89e;
+  --linen:     #e8dfd0;
+  --parchment: #f6f0e8;
+  --ember:     #e05c18;
+  --char:      #b84510;
+  --ember-dim: rgba(224, 92, 24, 0.10);
+  --ember-glow: rgba(224, 92, 24, 0.22);
+
+  /* ── Dark theme (default — Obsidian) ── */
+  --bg:          var(--obsidian);
+  --ribbon:      #231b13;
+  --ribbon-edge: #3a2f26;
+  --surface:     #251d14;        /* B-10: darkened from #2a2218 — fixes accent-hover/surface ratio 2.91→3.08 */
+  --card:        #241C15;
+  --border:      var(--slag);
+  --text:        var(--linen);
+  --muted:       var(--sand);
+  --subtle:      #9d8b78;        /* B-10: lightened from #8A7868 — clears AA normal (was 3.71–4.21, now 5.06–5.42) */
+  --accent:      #e05c18;
+  --accent-hover:#b84510;
+  --accent-dim:  rgba(224, 92, 24, 0.10);
+  --glow:        rgba(224, 92, 24, 0.14);
+
+  /* Semantic state colours */
+  --danger:      #d86464;
+  --danger-dim:  rgba(216, 100, 100, 0.12);
+  --success:     #10B981;
+  --success-dim: rgba(16, 185, 129, 0.12);
+  --info:        #94A3B8;        /* B-10: lightened from #64748B (slate-500→400) — clears AA normal on dark bgs (3.74→6.94) */
+  --info-dim:    rgba(148, 163, 184, 0.12);
+  --warning:     #84CC16;
+  --warning-dim: rgba(132, 204, 22, 0.12);
+  --in-progress: #F9A8D4;
+  --in-progress-dim: rgba(249, 168, 212, 0.12);
+  --destructive: #991B1B;
+  --destructive-dim: rgba(153, 27, 27, 0.12);
+
+  /* ── Skill role tokens — opchain semantic palette ──
+     One color per skill type. Used by the homepage skill pills
+     and any place a skill needs visual identity. */
+  --workflow:     #FB923C;  /* Ember Orange — workflow / pipeline    (B-12: was #E8651E, 3.81✗ → 5.43✓) */
+  --tri-agent:    #F59E0B;  /* Amber-Gold — tri-agent harness        */
+  --audit-gate:   #FB7185;  /* Rose — audit / gate failures          (B-12: was #F43F5E, 3.80✗ → 4.75✓) */
+  --specialist:   #14B8A6;  /* Teal — standalone specialist (B-10: was #0D9488, 4.48△ on card → 6.74✓) */
+  --advisor:      #0EA5E9;  /* Light Blue — advisor                  */
+  --orchestrator: #A78BFA;  /* Violet — orchestrator (B-10: was #6D28D9, 2.36✗ → 3.96△; B-12: #8B5CF6 → 4.68✓) */
+
+  /* Logo tokens */
+  --logo-stroke:    var(--text);
+  --logo-spine:     var(--subtle);
+  --logo-filled:    var(--accent);
+  --logo-dot-dark:  var(--bg);
+
+  /* ── Typography ── */
+  --font-display: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body:    "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Type scale (modular, Outfit-tuned) */
+  --fs-xs:    10px;
+  --fs-sm:    12px;
+  --fs-base:  14px;
+  --fs-md:    16px;
+  --fs-lg:    20px;
+  --fs-xl:    28px;
+  --fs-2xl:   36px;
+  --fs-3xl:   48px;
+  --fs-hero:  clamp(2.25rem, 7vw, 3.75rem);
+
+  /* Line-heights */
+  --lh-tight:   1.1;
+  --lh-snug:    1.35;
+  --lh-base:    1.55;
+  --lh-loose:   1.75;
+
+  /* Letter-spacing */
+  --ls-tight:   -0.015em;
+  --ls-base:    0;
+  --ls-wide:    0.05em;
+  --ls-wider:   0.1em;
+  --ls-widest:  0.15em;
+  --ls-display: 0.22em;   /* wordmark */
+
+  /* Wordmark convenience */
+  --wordmark-weight:   600;
+  --wordmark-tracking: var(--ls-display);
+
+  /* ── Space scale (4px base) ── */
+  --space-0:    0;
+  --space-px:   1px;
+  --space-1:    4px;
+  --space-2:    8px;
+  --space-3:    12px;
+  --space-4:    16px;
+  --space-5:    20px;
+  --space-6:    24px;
+  --space-8:    32px;
+  --space-10:   40px;
+  --space-12:   48px;
+  --space-16:   64px;
+  --space-20:   80px;
+  --space-24:   96px;
+
+  /* Logo spacing */
+  --logo-clear-space: 16px;
+  --logo-min-width:   80px;
+  --icon-min-size:    16px;
+
+  /* ── Radii ── */
+  --r-xs:   3px;
+  --r-sm:   4px;
+  --r-md:   6px;
+  --r-lg:   8px;
+  --r-xl:   12px;
+  --r-pill: 999px;
+
+  /* ── Shadows (layered elevation) ── */
+  --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-md:  0 2px 6px -1px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.12);
+  --shadow-lg:  0 8px 24px -6px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.12);
+  --shadow-xl:  0 16px 40px -8px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.18);
+
+  /* Accent glow — the themed halo under cards + ribbon */
+  --glow-sm:    0 0 16px -4px var(--glow, transparent);
+  --glow-md:    0 0 24px -6px var(--glow, transparent);
+  --glow-lg:    0 0 32px -6px var(--glow, transparent);
+  --glow-ribbon:0 8px 24px -8px var(--glow, transparent);
+
+  /* ── Motion ── */
+  --ease-standard:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in:        cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:       cubic-bezier(0, 0, 0.2, 1);
+  --dur-fast:       120ms;
+  --dur-base:       200ms;
+  --dur-slow:       320ms;
+  --dur-slower:     480ms;
+
+  /* ── Focus ring ── */
+  --focus-ring:       0 0 0 2px var(--accent);
+  --focus-ring-inset: inset 0 0 0 2px var(--accent);
+}
+
+/* ─────────── LIGHT THEME (Amber) ─────────── */
+[data-theme="light"] {
+  --bg:          #f8ebda;
+  --ribbon:      #f0dabe;        /* B-10: lightened from #eed8bc — fixes accent/ribbon ratio 2.97→3.03 */
+  --ribbon-edge: #d4b58f;
+  --surface:     #f4e5cf;
+  --card:        #ffffff;
+  --border:      #ccb390;
+  --text:        #1c1710;
+  --muted:       #5a4a30;
+  --subtle:      #6e5c40;        /* B-10: darkened from #8c7657 — clears AA normal (was 3.13–3.69, now 4.74–5.47) */
+  --accent:      #d95010;
+  --accent-hover:#ab3e08;
+  --accent-dim:  rgba(217, 80, 16, 0.12);
+  --glow:        rgba(217, 80, 16, 0.10);
+
+  --danger:      #b33a3a;
+  --danger-dim:  rgba(179, 58, 58, 0.10);
+  --success:     #065F46;        /* B-10: darkened from #047857 (emerald-700→800) — clears AA normal on every canonical bg, role-tag mix 3.64→5.10 */
+  --success-dim: rgba(4, 120, 87, 0.10);
+  --info:        #475569;
+  --info-dim:    rgba(71, 85, 105, 0.10);
+  --warning:     #4d7c0f;
+  --warning-dim: rgba(77, 124, 15, 0.10);
+  --in-progress: #be185d;
+  --in-progress-dim: rgba(190, 24, 93, 0.10);
+  --destructive: #7f1d1d;
+  --destructive-dim: rgba(127, 29, 29, 0.10);
+
+  /* ── Skill role tokens — darkened for light-mode text contrast ──
+     Pill background = color-mix(--pill-color 15%, transparent) over --surface.
+     Effective bg L = 0.15*L_role + 0.85*0.730. Threshold: L_role ≤ 0.1024.
+     --workflow and --specialist were L≈0.112 → 4.24:1 ✗; darkened to pass. */
+  --workflow:     #8a3610;  /* L≈0.082 — 5.22:1 on tinted-surface, 7.02:1 on card  */
+  --tri-agent:    #7a5008;  /* L≈0.100 — 5.07:1 on tinted-surface, 7.02:1 on card  */
+  --audit-gate:   #a01839;  /* L≈0.083 — 5.18:1 on tinted-surface, 8.54:1 on card  */
+  --specialist:   #0b5f58;  /* L≈0.090 — 4.89:1 on tinted-surface, 6.57:1 on card  */
+  --advisor:      #085280;  /* L≈0.076 — 5.39:1 on tinted-surface, 7.25:1 on card  */
+  --orchestrator: #6D28D9;  /* L≈0.098 — 5.04:1 on tinted-surface, 7.09:1 on card  */
+
+  /* Layered shadows — lighter on light grounds to avoid heavy "web 2.0" bevel. */
+  --shadow-sm:  0 1px 2px rgba(42, 22, 6, 0.08);
+  --shadow-md:  0 2px 6px -1px rgba(42, 22, 6, 0.12), 0 1px 2px rgba(42, 22, 6, 0.06);
+  --shadow-lg:  0 8px 24px -6px rgba(42, 22, 6, 0.14), 0 2px 4px rgba(42, 22, 6, 0.06);
+  --shadow-xl:  0 16px 40px -8px rgba(42, 22, 6, 0.18), 0 4px 8px rgba(42, 22, 6, 0.08);
+}
+
+/* ── prefers-reduced-motion ── */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast:   0ms;
+    --dur-base:   0ms;
+    --dur-slow:   0ms;
+    --dur-slower: 0ms;
+  }
+}

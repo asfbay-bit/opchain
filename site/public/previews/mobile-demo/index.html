@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>opchain · Mobile demo previews — pick a direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+<link rel="stylesheet" href="./_shared/tokens.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--obsidian);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    min-height: 100dvh;
+    padding: clamp(20px, 4vw, 48px);
+  }
+  a { color: inherit; text-decoration: none; }
+
+  .wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  header {
+    margin-bottom: clamp(24px, 5vw, 48px);
+    max-width: 720px;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  h1 {
+    margin: 0 0 12px;
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+    line-height: var(--lh-tight);
+  }
+  .lede {
+    color: var(--muted);
+    font-size: clamp(14px, 1.6vw, 16px);
+    line-height: var(--lh-base);
+  }
+  .lede strong { color: var(--text); }
+  .meta {
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--subtle);
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: clamp(16px, 2vw, 24px);
+  }
+
+  .card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 18px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-base) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
+  }
+  .card:hover, .card:focus-visible {
+    border-color: var(--accent);
+    box-shadow: var(--glow-md);
+    transform: translateY(-2px);
+  }
+
+  .card-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--ember-dim);
+    border: 0.5px solid var(--accent);
+    border-radius: var(--r-sm);
+    padding: 2px 7px;
+    line-height: 1.4;
+  }
+  .name {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: var(--lh-tight);
+    color: var(--text);
+  }
+  .tagline {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--subtle);
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    margin-top: 2px;
+  }
+
+  /* Thumbnail — CSS-only phone mockup */
+  .thumb {
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    background: linear-gradient(160deg, var(--obsidian), #14100b);
+    border-radius: 18px;
+    border: 4px solid #000;
+    box-shadow: var(--shadow-md);
+    display: grid;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* A — Bottom-Tab IDE */
+  .thumb-a {
+    grid-template-rows: 14% 1fr 14%;
+  }
+  .thumb-a .top { background: var(--ribbon); border-bottom: 0.5px solid var(--border); }
+  .thumb-a .body {
+    padding: 8% 10% 6%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .thumb-a .body span {
+    height: 14%;
+    background: var(--surface);
+    border-radius: 4px;
+    border: 0.5px solid var(--border);
+  }
+  .thumb-a .body span:nth-child(2) { background: var(--ember-dim); border-color: var(--accent); }
+  .thumb-a .tabs {
+    background: var(--ribbon);
+    border-top: 0.5px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    align-items: center;
+    padding: 0 6%;
+  }
+  .thumb-a .tabs i {
+    height: 30%;
+    background: var(--subtle);
+    opacity: 0.5;
+    border-radius: 999px;
+    margin: 0 18%;
+  }
+  .thumb-a .tabs i:first-child { background: var(--accent); opacity: 1; box-shadow: 0 -8px 0 var(--accent); }
+
+  /* B — Reels */
+  .thumb-b {
+    grid-template-rows: 10% 1fr;
+  }
+  .thumb-b .pills {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8%;
+    background: var(--obsidian);
+  }
+  .thumb-b .pills i {
+    height: 50%;
+    width: 26%;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 999px;
+  }
+  .thumb-b .pills i:first-child { background: var(--ember-dim); border-color: var(--accent); }
+  .thumb-b .reel {
+    background: linear-gradient(180deg, var(--surface), var(--obsidian));
+    padding: 12% 10%;
+    display: flex;
+    flex-direction: column;
+    gap: 6%;
+    position: relative;
+  }
+  .thumb-b .reel .title {
+    height: 16%;
+    background: var(--text);
+    opacity: 0.7;
+    border-radius: 4px;
+    width: 70%;
+  }
+  .thumb-b .reel .body {
+    height: 14%;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+  }
+  .thumb-b .reel .body.user {
+    background: var(--ember-dim);
+    border-color: var(--accent);
+    width: 80%;
+  }
+  .thumb-b .reel .dots {
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .thumb-b .reel .dots i {
+    width: 3px; height: 3px;
+    background: var(--subtle);
+    border-radius: 999px;
+    opacity: 0.4;
+  }
+  .thumb-b .reel .dots i:nth-child(2) {
+    background: var(--accent);
+    height: 10px;
+    opacity: 1;
+  }
+
+  /* C — iMessage */
+  .thumb-c {
+    grid-template-rows: 16% 1fr 12%;
+  }
+  .thumb-c .top {
+    background: var(--ribbon);
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 8%;
+    gap: 5%;
+  }
+  .thumb-c .top .pic {
+    width: 16%;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--ember), var(--char));
+  }
+  .thumb-c .top .nm {
+    flex: 1;
+    height: 18%;
+    background: var(--text);
+    opacity: 0.6;
+    border-radius: 3px;
+  }
+  .thumb-c .body {
+    padding: 8% 8%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .thumb-c .body i {
+    height: 13%;
+    border-radius: 14px;
+  }
+  .thumb-c .body i.claude {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    width: 70%;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+  }
+  .thumb-c .body i.user {
+    background: var(--accent);
+    width: 60%;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+  .thumb-c .scrub {
+    background: var(--ribbon);
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8%;
+  }
+  .thumb-c .scrub .play {
+    width: 20%;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: var(--accent);
+  }
+  .thumb-c .scrub .bar {
+    flex: 1;
+    height: 14%;
+    background: var(--surface);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .thumb-c .scrub .bar i {
+    display: block;
+    width: 40%;
+    height: 100%;
+    background: var(--accent);
+  }
+
+  /* D — Timeline */
+  .thumb-d {
+    grid-template-rows: 10% 1fr;
+  }
+  .thumb-d .top { background: var(--ribbon); border-bottom: 0.5px solid var(--border); }
+  .thumb-d .body {
+    padding: 6% 8% 6% 14%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8%;
+  }
+  .thumb-d .body::before {
+    content: "";
+    position: absolute;
+    left: 8%;
+    top: 8%;
+    bottom: 8%;
+    width: 1px;
+    background: var(--accent);
+    opacity: 0.4;
+  }
+  .thumb-d .stage {
+    height: 16%;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    position: relative;
+  }
+  .thumb-d .stage::before {
+    content: "";
+    position: absolute;
+    left: -10%;
+    top: 30%;
+    width: 8%;
+    aspect-ratio: 1;
+    background: var(--bg);
+    border: 1.5px solid var(--accent);
+    border-radius: 999px;
+  }
+  .thumb-d .stage:first-child {
+    background: var(--ember-dim);
+    border-color: var(--accent);
+  }
+  .thumb-d .stage:first-child::before { background: var(--accent); }
+
+  /* E — Stacked */
+  .thumb-e {
+    grid-template-rows: 14% 1fr;
+  }
+  .thumb-e .top {
+    background: var(--ribbon);
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    padding: 0 6% 5%;
+    gap: 4px;
+  }
+  .thumb-e .top i {
+    height: 24%;
+    flex: 1;
+    background: var(--surface);
+    border-radius: 999px;
+    border: 0.5px solid var(--border);
+  }
+  .thumb-e .body {
+    padding: 5% 6%;
+    display: flex;
+    flex-direction: column;
+    gap: 5%;
+  }
+  .thumb-e .body i {
+    height: 16%;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+  }
+  .thumb-e .body i.open {
+    background: var(--ember-dim);
+    border-color: var(--accent);
+    height: 30%;
+  }
+
+  .desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: var(--lh-snug);
+  }
+  .tradeoff {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--subtle);
+    line-height: var(--lh-snug);
+    border-top: 0.5px solid var(--border);
+    padding-top: 10px;
+  }
+  .tradeoff strong { color: var(--accent); font-weight: 500; text-transform: uppercase; letter-spacing: var(--ls-wide); margin-right: 4px; }
+
+  .open-btn {
+    margin-top: auto;
+    align-self: flex-start;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--accent);
+    border: 0.5px solid var(--accent);
+    border-radius: var(--r-sm);
+    padding: 6px 12px;
+    background: var(--ember-dim);
+    transition: background var(--dur-fast) var(--ease-standard);
+  }
+  .card:hover .open-btn { background: var(--accent); color: #fff; }
+
+  footer {
+    margin-top: clamp(32px, 5vw, 56px);
+    border-top: 0.5px solid var(--border);
+    padding-top: 16px;
+    font-size: 12px;
+    color: var(--subtle);
+    line-height: var(--lh-base);
+  }
+  footer code {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    background: var(--ember-dim);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="eyebrow">opchain · mobile demo previews</div>
+      <h1>Five directions for the mobile workbench. Pick one.</h1>
+      <p class="lede">
+        The current <code style="font-family:var(--font-mono);background:var(--ember-dim);color:var(--accent);padding:1px 6px;border-radius:3px;font-size:13px">/demo</code> page is a 4-column desktop IDE that gets cramped on phones. These five directions each compact the same six replay scenarios into a thumb-first shape — same data, different metaphor. Open each on a phone (or in a 390-wide DevTools frame) and see which feels right.
+      </p>
+      <p class="meta">5 directions · same data · standalone HTML · no build step</p>
+    </header>
+
+    <div class="grid">
+
+      <a class="card" href="./a.html">
+        <div class="card-head">
+          <span class="badge">A</span>
+          <div>
+            <div class="name">Bottom-Tab IDE</div>
+            <div class="tagline">the workbench, but thumb-first</div>
+          </div>
+        </div>
+        <div class="thumb thumb-a">
+          <div class="top"></div>
+          <div class="body"><span></span><span></span><span></span><span></span></div>
+          <div class="tabs"><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="desc">Native-app tab bar. The 4 desktop panels become 4 swipeable tabs: Scenarios · Stream · I/O · Inspector. Topbar keeps the scenario chip visible.</div>
+        <div class="tradeoff"><strong>Trade-off</strong> Preserves all desktop info, learnable. Loses side-by-side context.</div>
+        <span class="open-btn">Open A →</span>
+      </a>
+
+      <a class="card" href="./b.html">
+        <div class="card-head">
+          <span class="badge">B</span>
+          <div>
+            <div class="name">Reels / Vertical Snap</div>
+            <div class="tagline">scroll the replay like a story</div>
+          </div>
+        </div>
+        <div class="thumb thumb-b">
+          <div class="pills"><i></i><i></i><i></i></div>
+          <div class="reel">
+            <div class="title"></div>
+            <div class="body user"></div>
+            <div class="body"></div>
+            <div class="dots"><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+        </div>
+        <div class="desc">TikTok-shaped vertical-snap cards. Each beat = one snap card with the user prompt + Claude reply + artifact chip. Horizontal pill carousel switches scenarios.</div>
+        <div class="tradeoff"><strong>Trade-off</strong> Cinematic, brand-on. Loses random-access scanning.</div>
+        <span class="open-btn">Open B →</span>
+      </a>
+
+      <a class="card" href="./c.html">
+        <div class="card-head">
+          <span class="badge">C</span>
+          <div>
+            <div class="name">iMessage Replay</div>
+            <div class="tagline">watch Claude work, conversational</div>
+          </div>
+        </div>
+        <div class="thumb thumb-c">
+          <div class="top"><div class="pic"></div><div class="nm"></div></div>
+          <div class="body">
+            <i class="claude"></i>
+            <i class="user"></i>
+            <i class="claude"></i>
+          </div>
+          <div class="scrub"><div class="play"></div><div class="bar"><i></i></div></div>
+        </div>
+        <div class="desc">Auto-replaying chat thread. User bubbles right (ember), Claude bubbles left, beats centered as system dividers. Sticky play/pause/scrub footer.</div>
+        <div class="tradeoff"><strong>Trade-off</strong> Lowest friction, brand-true voice. Auto-play timing needs care.</div>
+        <span class="open-btn">Open C →</span>
+      </a>
+
+      <a class="card" href="./d.html">
+        <div class="card-head">
+          <span class="badge">D</span>
+          <div>
+            <div class="name">Pipeline Timeline</div>
+            <div class="tagline">the build log as a hike</div>
+          </div>
+        </div>
+        <div class="thumb thumb-d">
+          <div class="top"></div>
+          <div class="body">
+            <div class="stage"></div>
+            <div class="stage"></div>
+            <div class="stage"></div>
+            <div class="stage"></div>
+          </div>
+        </div>
+        <div class="desc">Vertical step-tracker. Beats are stations on a left-edge rail; tap one to expand the user/Claude exchanges beneath. Inputs above, outputs grid below.</div>
+        <div class="tradeoff"><strong>Trade-off</strong> Scannable, respects long transcripts. Less "live IDE" feel.</div>
+        <span class="open-btn">Open D →</span>
+      </a>
+
+      <a class="card" href="./e.html">
+        <div class="card-head">
+          <span class="badge">E</span>
+          <div>
+            <div class="name">Stacked Workbench</div>
+            <div class="tagline">same panels, just stacked</div>
+          </div>
+        </div>
+        <div class="thumb thumb-e">
+          <div class="top"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="body">
+            <i></i>
+            <i class="open"></i>
+            <i></i>
+            <i></i>
+          </div>
+        </div>
+        <div class="desc">Every desktop panel becomes a <code style="font-family:var(--font-mono);font-size:11px;background:var(--surface);padding:0 4px;border-radius:3px">&lt;details&gt;</code> accordion with a sticky mini-toc. Scenario picker → Inputs → Transcript (open) → Outputs → Inspector.</div>
+        <div class="tradeoff"><strong>Trade-off</strong> Smallest engineering lift, fully a11y-native. Least distinctive.</div>
+        <span class="open-btn">Open E →</span>
+      </a>
+
+    </div>
+
+    <footer>
+      <p>Each preview is standalone HTML — open at <code>./a.html</code> through <code>./e.html</code>. Real scenario data lives in <code>./_shared/data.js</code>; tokens in <code>./_shared/tokens.css</code>. After you pick a direction I'll build the production component at <code>site/src/components/MobileWorkbench.astro</code> and wire it into <code>/demo</code> via a CSS-breakpoint swap with the existing desktop workbench.</p>
+    </footer>
+  </div>
+</body>
+</html>
