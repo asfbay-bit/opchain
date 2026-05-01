@@ -48,12 +48,15 @@ ENFORCED_SKILLS=(
   ux-engineer
 )
 
-# Find skills invoked in this session's transcript. The harness logs a
-# "Launching skill: <name>" line when a skill loads, and Skill tool-use
-# entries also include the skill name. Either signal counts.
+# Find skills invoked in this session's transcript. Match only real Skill
+# tool-use entries — JSONL lines that contain BOTH `"name":"Skill"` (the
+# tool-use kind) AND `"skill":"<name>"` (the input field). This avoids
+# false positives from bash command text, prose, PR descriptions, or
+# checkpoint files that mention a skill name in passing.
 INVOKED=()
 for skill in "${ENFORCED_SKILLS[@]}"; do
-  if grep -q -E "(Launching skill: ${skill}\b|\"skill\"[[:space:]]*:[[:space:]]*\"${skill}\")" "$TRANSCRIPT_PATH" 2>/dev/null; then
+  if grep -F '"name":"Skill"' "$TRANSCRIPT_PATH" 2>/dev/null \
+     | grep -q -F "\"skill\":\"${skill}\""; then
     INVOKED+=("$skill")
   fi
 done
