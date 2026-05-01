@@ -22,8 +22,6 @@ import { getSkillRole } from "../lib/skills";
 const sidebar = walkthroughs.map((w, i) => ({
   num: String(i + 1).padStart(2, "0"),
   id: w.id,
-  active: i === 0,
-  open: i < 2,
   skills: w.skills.map((id) => ({ id, role: getSkillRole(id) })),
 }));
 ---
@@ -80,15 +78,17 @@ const sidebar = walkthroughs.map((w, i) => ({
         <div class="side-head">scenarios · 6</div>
         {sidebar.map((s) => (
           <div class="tree-group">
-            <div
-              class:list={["tree-folder", { "is-open": s.open, "is-active": s.active }]}
+            <button
+              type="button"
+              class="tree-folder"
               data-scenario={s.id}
+              aria-expanded="false"
             >
-              <span class="tree-arrow">{s.open ? "▾" : "▸"}</span>
+              <span class="tree-arrow">▸</span>
               <span class="tree-num">{s.num}</span>
               <span class="tree-name">{s.id}</span>
               <span class="tree-count">{s.skills.length}</span>
-            </div>
+            </button>
             <div class="tree-children">
               {s.skills.map((sk) => (
                 <div class="tree-skill">
@@ -101,21 +101,22 @@ const sidebar = walkthroughs.map((w, i) => ({
         ))}
       </div>
 
-      <!-- Editor — populated in chunk 2 -->
+      <!-- Editor — populated in chunk 4 (summary + outputs list) -->
       <div class="ide-editor" role="region" aria-label="Transcript">
-        <div class="ide-placeholder">editor &amp; transcript → port chunk 2</div>
+        <div class="ide-placeholder">editor &amp; summary → port chunk 4</div>
       </div>
 
-      <!-- Inspector — populated in chunk 3 -->
+      <!-- Inspector — populated in chunk 8 (transcript mode moves
+           the summary here when transcript starts) -->
       <div class="ide-inspector" role="region" aria-label="Scenario inspector">
-        <div class="ide-placeholder">i / o / skills → port chunk 3</div>
+        <div class="ide-placeholder">summary panel → port chunk 8</div>
       </div>
 
       <!-- Status bar -->
       <div class="ide-status">
         <span>workbench</span>
         <span class="ide-sep">·</span>
-        <span>port chunk 1 of 5 · IDE shell + sidebar</span>
+        <span>port chunk 3 of 9 · sidebar interactive</span>
         <span class="ide-sep">·</span>
         <span class="ok">✓ {sidebar.length} scenarios loaded</span>
         <span class="right">
@@ -275,22 +276,51 @@ const sidebar = walkthroughs.map((w, i) => ({
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 3px 12px;
+    width: 100%;
+    padding: 4px 12px;
+    background: transparent;
+    border: 0;
     color: var(--muted);
+    font: inherit;
+    text-align: left;
     cursor: pointer;
     user-select: none;
     transition: color 120ms, background 120ms;
   }
-  .tree-folder:hover { color: var(--text); background: var(--card); }
-  .tree-folder.is-active { color: var(--text); }
+  .tree-folder:not(.is-open):hover {
+    color: var(--text);
+    background: var(--card);
+  }
+  /* Selected scenario — ember bg + obsidian text. Light theme overrides
+     to var(--ember) (brand-constant) so the contrast clears AA-Normal
+     against --obsidian (var(--accent) = #d95010 in light only hits
+     4.46:1, just below threshold). */
+  .tree-folder.is-open {
+    background: var(--accent);
+    color: var(--obsidian);
+    font-weight: 500;
+  }
+  :global([data-theme="light"]) .tree-folder.is-open {
+    background: var(--ember);
+  }
+  .tree-folder.is-open .tree-arrow,
+  .tree-folder.is-open .tree-num,
+  .tree-folder.is-open .tree-count { color: var(--obsidian); }
+  .tree-folder:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring-inset);
+  }
   .tree-arrow {
     color: var(--subtle);
     width: 10px;
     flex: 0 0 auto;
     text-align: center;
     font-size: 9px;
+    transition: transform 120ms var(--ease-standard);
   }
-  .tree-folder.is-open .tree-arrow { color: var(--accent); }
+  .tree-folder.is-open .tree-arrow {
+    transform: rotate(0deg);
+  }
   .tree-num {
     color: var(--subtle);
     font-size: 10.5px;
@@ -390,3 +420,22 @@ const sidebar = walkthroughs.map((w, i) => ({
     .ide-inspector { display: none; }
   }
 </style>
+
+<script is:inline>
+  /* Sidebar — chunk 3 of the workbench port.
+     All folders start collapsed. Clicking a .tree-folder toggles its
+     .is-open state independently (multi-expand): selecting a scenario
+     does not collapse the others. The arrow flips ▸ ↔ ▾ and the
+     aria-expanded attribute tracks the visible state. */
+  (() => {
+    const folders = document.querySelectorAll('.tree-folder[data-scenario]');
+    folders.forEach((folder) => {
+      folder.addEventListener('click', () => {
+        const open = folder.classList.toggle('is-open');
+        folder.setAttribute('aria-expanded', open ? 'true' : 'false');
+        const arrow = folder.querySelector('.tree-arrow');
+        if (arrow) arrow.textContent = open ? '▾' : '▸';
+      });
+    });
+  })();
+</script>
