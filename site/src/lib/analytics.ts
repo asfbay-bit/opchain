@@ -8,9 +8,9 @@
  *   - Keeps the event taxonomy in one place so new callers don't invent
  *     ad-hoc event names.
  *
- * Server-side events (demo_email_submitted, demo_chat_*, zip_downloaded,
- * feedback_submitted) are emitted by the Worker — see `src/lib/analytics.js`.
- * Client-side events here are UI-only signals that never touch the Worker.
+ * Server-side events (zip_downloaded, feedback_submitted, notify_submitted)
+ * are emitted by the Worker — see `src/lib/analytics.js`. Client-side events
+ * here are UI-only signals that never touch the Worker.
  */
 
 export type ClientEvent =
