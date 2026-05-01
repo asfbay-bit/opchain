@@ -43,7 +43,7 @@ jobs:
 
       - name: Post LHCI score summary as PR comment
         if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           LHCI_DIR: site/.lighthouseci
         with:
