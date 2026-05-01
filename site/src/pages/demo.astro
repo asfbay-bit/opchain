@@ -221,12 +221,14 @@ const sidebar = walkthroughs.map((w, i) => ({
   }
   .page-summary-eyebrow {
     display: inline-block;
-    /* Brighter ember than --accent so the small mono-cap eyebrow
-       clears AA-Normal (4.5:1) against --surface (#2a2218 dark /
-       #f4e5cf light). var(--accent) on dark surface is only 4.26:1;
-       var(--accent) on light surface is 3.32:1. The light theme then
-       overrides to var(--char) below for the matching contrast bump. */
-    color: #f0773a;
+    /* Inline ember pair so the small mono-cap eyebrow clears AA-Normal
+       (4.5:1) on the surface card in both themes:
+       - Dark:  #f5894d on --surface #2a2218 → 6.39:1
+       - Light: #993505 on --surface #f4e5cf → 5.92:1 (overridden below)
+       Site tokens didn't have a value that hit the threshold in both
+       directions: var(--accent) was 4.26 dark / 3.32 light, var(--char)
+       was 2.91 dark / 4.35 light. */
+    color: #f5894d;
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-widest);
@@ -234,7 +236,7 @@ const sidebar = walkthroughs.map((w, i) => ({
     margin-bottom: 0.55rem;
   }
   :global([data-theme="light"]) .page-summary-eyebrow {
-    color: var(--char);
+    color: #993505;
   }
   .page-summary h1 {
     font-family: var(--font-display);
@@ -487,14 +489,14 @@ const sidebar = walkthroughs.map((w, i) => ({
   .editor-prompt[hidden] { display: none; }
   .editor-prompt-eyebrow {
     /* Brighter ember — see .page-summary-eyebrow comment for rationale. */
-    color: #f0773a;
+    color: #f5894d;
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-widest);
     text-transform: uppercase;
     margin-bottom: 0.6rem;
   }
-  :global([data-theme="light"]) .editor-prompt-eyebrow { color: var(--char); }
+  :global([data-theme="light"]) .editor-prompt-eyebrow { color: #993505; }
   .editor-prompt-h {
     font-size: var(--fs-lg);
     color: var(--text);
@@ -514,7 +516,7 @@ const sidebar = walkthroughs.map((w, i) => ({
   .scenario-head { margin-bottom: 1rem; }
   .scenario-num {
     /* Brighter ember — see .page-summary-eyebrow comment for rationale. */
-    color: #f0773a;
+    color: #f5894d;
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-widest);
@@ -522,7 +524,7 @@ const sidebar = walkthroughs.map((w, i) => ({
     margin-bottom: 0.4rem;
   }
   :global([data-theme="light"]) .scenario-num,
-  :global([data-theme="light"]) .col-head { color: var(--char); }
+  :global([data-theme="light"]) .col-head { color: #993505; }
   .scenario-title {
     font-family: var(--font-display);
     font-weight: 600;
@@ -555,7 +557,7 @@ const sidebar = walkthroughs.map((w, i) => ({
   .scenario-col { min-width: 0; }
   .col-head {
     /* Brighter ember — see .page-summary-eyebrow comment for rationale. */
-    color: #f0773a;
+    color: #f5894d;
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-widest);
