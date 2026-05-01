@@ -56,8 +56,15 @@ test.describe("demo workbench", () => {
     await expect(page.locator(FIRST_INSP)).toBeVisible();
     await expect(page.locator("[data-inspector-placeholder]")).toBeHidden();
 
-    // Stream renders beats + claude exchanges.
-    await expect(page.locator(`${FIRST_PANE} .cc-beat`).first()).toBeVisible();
+    // Steps start hidden in step-by-step playback mode.
+    await expect(page.locator(`${FIRST_PANE} .cc-beat`).first()).toBeHidden();
+
+    // ↵ reveals the first step.
+    await page.keyboard.press("Enter");
+    await expect(page.locator(`${FIRST_PANE} [data-step-index="0"]`).first()).toBeVisible();
+
+    // ␣ reveals all remaining steps — at least one .cc-assistant should be visible.
+    await page.keyboard.press(" ");
     await expect(page.locator(`${FIRST_PANE} .cc-assistant`).first()).toBeVisible();
 
     // Back button reverts.
