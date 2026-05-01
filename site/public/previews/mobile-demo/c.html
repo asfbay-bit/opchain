@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>opchain · Mobile demo · C — iMessage Replay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+<link rel="stylesheet" href="./_shared/tokens.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--obsidian);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+  .phone {
+    width: 390px;
+    height: min(844px, calc(100dvh - 48px));
+    background: var(--bg);
+    border-radius: 44px;
+    border: 8px solid #000;
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+  @media (max-width: 480px) {
+    body { padding: 0; }
+    .phone {
+      width: 100%; height: 100dvh;
+      border-radius: 0; border: 0; box-shadow: none;
+    }
+  }
+
+  /* ── Header ── */
+  .hdr {
+    background: var(--ribbon);
+    border-bottom: 0.5px solid var(--border);
+    padding: 10px 14px;
+    padding-top: max(10px, env(safe-area-inset-top));
+  }
+  .hdr-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hdr-pic {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--ember), var(--char));
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--obsidian);
+    letter-spacing: var(--ls-display);
+  }
+  .hdr-text { flex: 1; min-width: 0; }
+  .hdr-title {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hdr-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--subtle);
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    margin-top: 1px;
+  }
+  .hdr-toggle {
+    color: var(--accent);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+  }
+  .hdr-info {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height var(--dur-slow) var(--ease-standard);
+  }
+  .hdr-info.is-open { max-height: 400px; }
+  .hdr-info-inner { padding-top: 12px; }
+  .hdr-skill-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .hdr-skill-row .skill-pill {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    padding: 2px 6px;
+    border-radius: var(--r-pill);
+    background: var(--ember-dim);
+    color: var(--accent);
+    border: 0.5px solid var(--accent);
+  }
+  .hdr-summary {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: var(--lh-snug);
+    margin-bottom: 8px;
+  }
+  .hdr-inputs {
+    background: var(--surface);
+    border-radius: var(--r-md);
+    padding: 8px 10px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .hdr-inputs ul { margin: 0; padding-left: 14px; }
+  .hdr-inputs li { margin: 2px 0; }
+
+  /* Scenario chip rail */
+  .chip-rail {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 8px 0 0;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+  .chip-rail::-webkit-scrollbar { display: none; }
+  .scn-chip {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    padding: 5px 10px;
+    border-radius: var(--r-pill);
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .scn-chip[aria-selected="true"] {
+    background: var(--ember-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── Thread ── */
+  .thread {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 14px 12px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .beat {
+    align-self: center;
+    text-align: center;
+    margin: 14px 0 4px;
+    max-width: 80%;
+  }
+  .beat .lbl {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .beat .cap {
+    font-size: 11px;
+    color: var(--subtle);
+    margin-top: 2px;
+  }
+
+  .bubble {
+    max-width: 82%;
+    padding: 9px 12px;
+    border-radius: 18px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    animation: bubble-in var(--dur-base) var(--ease-emphasized);
+  }
+  @keyframes bubble-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .row.user { align-self: flex-end; max-width: 100%; display: flex; justify-content: flex-end; }
+  .row.claude {
+    align-self: flex-start;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .row.claude .skill-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--specialist);
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    margin-left: 12px;
+  }
+  .bubble.user {
+    background: var(--accent);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .bubble.claude {
+    background: var(--surface);
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+    border: 0.5px solid var(--border);
+  }
+  .artifacts-row { margin-top: 4px; padding-left: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .artifact-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--ember-dim);
+    border: 0.5px solid var(--accent);
+    padding: 3px 8px;
+    border-radius: var(--r-pill);
+  }
+  .artifact-chip::before { content: "⌬"; }
+
+  /* Outputs accordion at thread end */
+  .outputs-end {
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--card);
+    border-radius: var(--r-md);
+    border: 0.5px solid var(--border);
+  }
+  .outputs-end h3 {
+    margin: 0 0 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+    color: var(--accent);
+    font-weight: 500;
+  }
+  details.output {
+    border-top: 0.5px solid var(--border);
+    padding: 8px 0 4px;
+  }
+  details.output:first-of-type { border-top: 0; padding-top: 0; }
+  details.output > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  details.output > summary::-webkit-details-marker { display: none; }
+  details.output > summary::after {
+    content: "+";
+    margin-left: auto;
+    color: var(--subtle);
+  }
+  details.output[open] > summary::after { content: "−"; }
+  .out-lbl { font-size: 12px; font-weight: 600; }
+  .out-knd { font-family: var(--font-mono); font-size: 9px; color: var(--subtle); margin-left: 4px; }
+  .out-body {
+    margin-top: 8px;
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: var(--lh-base);
+    white-space: pre-wrap;
+  }
+
+  .typing {
+    align-self: flex-start;
+    display: flex;
+    gap: 4px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border-radius: 18px;
+    border: 0.5px solid var(--border);
+  }
+  .typing span {
+    width: 6px; height: 6px;
+    background: var(--subtle);
+    border-radius: 999px;
+    animation: typing 1s infinite ease-in-out;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.15s; }
+  .typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-3px); opacity: 1; }
+  }
+
+  /* ── Footer scrub ── */
+  .scrub {
+    padding: 10px 14px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    background: var(--ribbon);
+    border-top: 0.5px solid var(--border);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    align-items: center;
+  }
+  .play-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    transition: background var(--dur-fast) var(--ease-standard);
+  }
+  .play-btn:active { background: var(--accent-hover); }
+  .scrub-bar {
+    height: 4px;
+    background: var(--surface);
+    border-radius: 999px;
+    position: relative;
+    overflow: hidden;
+  }
+  .scrub-bar .fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background: var(--accent);
+    width: 0%;
+    transition: width var(--dur-base) var(--ease-standard);
+  }
+  .scrub-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--subtle);
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <header class="hdr">
+      <div class="hdr-row">
+        <div class="hdr-pic">o</div>
+        <div class="hdr-text">
+          <div class="hdr-title" id="hdr-title">Concept → shipped</div>
+          <div class="hdr-sub" id="hdr-sub">3h 41m · 5 skills</div>
+        </div>
+        <button class="hdr-toggle" id="hdr-toggle" aria-expanded="false">info</button>
+      </div>
+      <div class="chip-rail" id="chip-rail" role="tablist"></div>
+      <div class="hdr-info" id="hdr-info">
+        <div class="hdr-info-inner">
+          <div class="hdr-summary" id="hdr-summary"></div>
+          <div class="hdr-skill-row" id="hdr-skills"></div>
+          <div class="hdr-inputs"><ul id="hdr-inputs"></ul></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="thread" id="thread"></div>
+
+    <footer class="scrub">
+      <button class="play-btn" id="play" aria-label="play">▶</button>
+      <div class="scrub-bar"><div class="fill" id="fill"></div></div>
+      <span class="scrub-meta" id="meta">0/0</span>
+    </footer>
+  </div>
+
+  <script src="./_shared/data.js"></script>
+  <script>
+    const ws = window.WALKTHROUGHS;
+    let activeId = ws[0].id;
+    let stepIdx = 0;
+    let playing = false;
+    let timer = null;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const $ = (s) => document.querySelector(s);
+
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[c]);
+    }
+    function current() { return ws.find((w) => w.id === activeId); }
+
+    function renderHeader() {
+      const w = current();
+      $('#hdr-title').textContent = w.title;
+      $('#hdr-sub').textContent = `${w.runtime} · ${w.skills.length} skills`;
+      $('#hdr-summary').textContent = w.summary;
+      $('#hdr-skills').innerHTML = w.skills.map((s) => `<span class="skill-pill">${escape(s)}</span>`).join('');
+      $('#hdr-inputs').innerHTML = w.inputs.map((i) => `<li>${escape(i)}</li>`).join('');
+    }
+
+    function renderChips() {
+      $('#chip-rail').innerHTML = ws.map((w) => `
+        <button class="scn-chip" data-id="${w.id}" aria-selected="${w.id === activeId}">${escape(w.tagline)}</button>
+      `).join('');
+      $('#chip-rail').querySelectorAll('.scn-chip').forEach((c) => {
+        c.addEventListener('click', () => { activeId = c.dataset.id; resetAndRender(); });
+      });
+    }
+
+    function stepHTML(step, idx) {
+      const w = current();
+      if (step.type === 'beat') {
+        return `<div class="beat" data-idx="${idx}">
+          <div class="lbl">${escape(step.label)}</div>
+          ${step.caption ? `<div class="cap">${escape(step.caption)}</div>` : ''}
+        </div>`;
+      }
+      const arts = (step.artifacts || []).map((id) => {
+        const a = w.outputs.find((o) => o.id === id);
+        return a ? `<span class="artifact-chip">${escape(a.label)}</span>` : '';
+      }).join('');
+      const skill = step.skill || (step.role === 'user' ? 'you' : 'claude');
+      if (step.role === 'user') {
+        return `<div class="row user" data-idx="${idx}"><div class="bubble user">${escape(step.content)}</div></div>${arts ? `<div class="artifacts-row" style="align-self:flex-end">${arts}</div>` : ''}`;
+      }
+      return `<div class="row claude" data-idx="${idx}"><span class="skill-tag">${escape(skill)}</span><div class="bubble claude">${escape(step.content)}</div></div>${arts ? `<div class="artifacts-row">${arts}</div>` : ''}`;
+    }
+
+    function renderThreadUpTo(n) {
+      const w = current();
+      const html = w.steps.slice(0, n).map((s, i) => stepHTML(s, i)).join('');
+      const outputsBlock = (n >= w.steps.length)
+        ? `<div class="outputs-end">
+            <h3>Outputs · ${w.outputs.length}</h3>
+            ${w.outputs.map((o) => `
+              <details class="output"><summary>
+                <span class="out-lbl">${escape(o.label)}</span>
+                <span class="out-knd">${escape(o.kind || '')}</span>
+              </summary><div class="out-body">${escape(o.body)}</div></details>
+            `).join('')}
+          </div>` : '';
+      $('#thread').innerHTML = html + outputsBlock;
+      $('#thread').scrollTop = $('#thread').scrollHeight;
+      const total = w.steps.length;
+      $('#fill').style.width = Math.min(100, (n / total) * 100) + '%';
+      $('#meta').textContent = `${Math.min(n, total)}/${total}`;
+    }
+
+    function tick() {
+      const w = current();
+      if (stepIdx >= w.steps.length) { stop(); return; }
+      stepIdx++;
+      renderThreadUpTo(stepIdx);
+      const next = w.steps[stepIdx];
+      const delay = !next ? 600
+        : (w.steps[stepIdx - 1] && w.steps[stepIdx - 1].type === 'beat') ? 400
+        : (w.steps[stepIdx - 1] && w.steps[stepIdx - 1].role === 'user') ? 350
+        : 1100;
+      timer = setTimeout(tick, delay);
+    }
+    function play() {
+      if (playing) return;
+      const w = current();
+      if (stepIdx >= w.steps.length) { stepIdx = 0; renderThreadUpTo(0); }
+      playing = true;
+      $('#play').textContent = '⏸';
+      $('#play').setAttribute('aria-label', 'pause');
+      tick();
+    }
+    function stop() {
+      playing = false;
+      clearTimeout(timer);
+      $('#play').textContent = (stepIdx >= current().steps.length) ? '↺' : '▶';
+      $('#play').setAttribute('aria-label', 'play');
+    }
+    function toggle() { playing ? stop() : play(); }
+
+    function resetAndRender() {
+      stop();
+      stepIdx = 0;
+      renderHeader();
+      renderChips();
+      if (reduced) {
+        stepIdx = current().steps.length;
+        renderThreadUpTo(stepIdx);
+      } else {
+        renderThreadUpTo(0);
+        play();
+      }
+    }
+
+    $('#play').addEventListener('click', toggle);
+    $('#hdr-toggle').addEventListener('click', () => {
+      const info = $('#hdr-info');
+      const open = info.classList.toggle('is-open');
+      $('#hdr-toggle').setAttribute('aria-expanded', open);
+      $('#hdr-toggle').textContent = open ? 'hide' : 'info';
+    });
+
+    resetAndRender();
+  </script>
+</body>
+</html>
