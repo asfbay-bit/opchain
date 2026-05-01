@@ -1,0 +1,94 @@
+{
+  "protocol_version": "1.0",
+  "skill": "orchestrator",
+  "project": "opchain.dev",
+  "project_dir": "/home/user/opchain",
+  "created_at": "2026-05-01T04:30:00Z",
+  "updated_at": "2026-05-01T05:30:00Z",
+
+  "phase": "monitoring",
+  "step": "post-launch-iteration",
+  "status": "in_progress",
+  "progress_summary": "Active site (opchain.dev + staging.opchain.dev). Sprint 7c (CSP nonce migration) shipped to main. Sprints 1-6 closed. B-10 color-contrast token sweep RESOLVED (round 1 deltas in main pre-session, round 2 success-token follow-up shipped this session). B-11 (per-route COLOR_CONTRAST_DISABLE removal) in progress: 1/7 routes cleared. Per-PR babysitting active for several recent merges.",
+
+  "progress_table": [
+    { "id": "sprint-1",       "label": "Sprint 1: Foundation",                          "status": "complete" },
+    { "id": "sprint-2",       "label": "Sprint 2: Tokens + Style Book",                 "status": "complete" },
+    { "id": "sprint-3",       "label": "Sprint 3: Page Implementation",                 "status": "complete" },
+    { "id": "sprint-4",       "label": "Sprint 4: Worker Integration",                  "status": "complete" },
+    { "id": "sprint-5",       "label": "Sprint 5: Polish + Consent",                    "status": "complete" },
+    { "id": "sprint-6",       "label": "Sprint 6: Astro Cutover",                       "status": "complete" },
+    { "id": "sprint-7c",      "label": "Sprint 7c: CSP nonce migration",                "status": "complete" },
+    { "id": "b-10",           "label": "B-10: Color-contrast token sweep",              "status": "complete" },
+    { "id": "b-11",           "label": "B-11: Per-route Axe-disable removal",           "status": "in_progress" },
+    { "id": "b-09",           "label": "B-09: Playwright→wrangler-dev for CSP verify",  "status": "not_started" },
+    { "id": "client-events",  "label": "Reserved client events (wire-or-drop decision)", "status": "blocked" },
+    { "id": "arch-anim",      "label": "Architecture diagram auto-cycle restoration",   "status": "complete" }
+  ],
+
+  "context_primer": {
+    "key_decisions": [
+      "Site: Astro 5 (static) → Cloudflare Worker static-asset binding. Worker runs at opchain-dev (prod) and opchain-staging (staging). Custom domains via custom_domain: true — Cloudflare manages DNS automatically.",
+      "Deploys are MANUAL — `npm run deploy:staging` then `npm run deploy`. There is no CI/CD path; deploy.yml + promote.yml were removed because GitHub Actions Cloudflare token couldn't reliably manage routes/DNS in the opchain.dev zone.",
+      "Analytics: Cloudflare Web Analytics (cookieless, no banner) + PostHog Cloud EU (consent-gated via ConsentBanner.astro). Server-side capture from Worker fires zip_downloaded, feedback_submitted, notify_submitted. Client-side fires $pageview (autocapture) + install_copy_clicked. Three reserved client events declared but not wired: skill_filter_used, skill_detail_viewed, in_action_scenario_opened.",
+      "CSP (Sprint 7c): script-src 'self' 'nonce-...' 'strict-dynamic'. NO 'unsafe-inline'. Inline event handler attributes (onclick=, onmouseenter=, etc.) are blocked — must use addEventListener instead.",
+      "Skill catalog: 17 skills shown in /skills, 5 phases (discover/plan/build/ship/monitor), checkpoint-protocol + orchestrator as foundation. Architecture diagram on /architecture is the v2 interactive build."
+    ],
+    "session_dispatches": [
+      { "at": "2026-05-01T04:30:00Z", "intent": "pick up app-architect; cookies/tracking; why not amplitude", "routed_to": "self (orchestrator status)" },
+      { "at": "2026-05-01T04:35:00Z", "intent": "reconcile event taxonomy with shipped code", "routed_to": "code-auditor (informal)", "outcome": "PR #134 merged" },
+      { "at": "2026-05-01T04:55:00Z", "intent": "/ops next", "routed_to": "self (recommendation: B-10)" },
+      { "at": "2026-05-01T05:00:00Z", "intent": "/ux b-10 — color-contrast token deltas", "routed_to": "ux-engineer", "outcome": "PR #136 merged (8fdc3d5)" },
+      { "at": "2026-05-01T05:08:00Z", "intent": "architecture diagram missing animations (CSP fix)", "routed_to": "code-auditor (informal)", "outcome": "PR #138 merged (f9d9cd6)" },
+      { "at": "2026-05-01T05:23:00Z", "intent": "architecture diagram missing animations (auto-cycle)", "routed_to": "ux-engineer", "outcome": "PR #139 merged (00e159c)" }
+    ],
+    "merged_prs_this_session": [
+      "PR #134 — docs(analytics): reconcile event taxonomy with shipped code",
+      "PR #136 — fix(B-10): darken light --success to clear AA-normal on /skills role tag",
+      "PR #138 — fix(architecture): wire diagram events via addEventListener for CSP",
+      "PR #139 — feat(architecture): one-shot auto-cycle on page load"
+    ],
+    "user_preferences": [
+      "Direct, terse communication. Short tool prompts, brief PR bodies, no marketing prose",
+      "Uses /<skill> shorthand — invokes skills by their command form",
+      "Asks questions back via AskUserQuestion (not free-form prompts) when given the option",
+      "Wants ONE recommendation from /ops next, not a list",
+      "Says 'merge' as a one-word command; expects PR to be CI-green or imminently green",
+      "Asks me to backfill checkpoints at session-end rather than per-skill"
+    ]
+  },
+
+  "blockers": [
+    {
+      "id": "b1",
+      "description": "Three reserved client events declared in site/src/lib/analytics.ts but not wired to any caller: skill_filter_used, skill_detail_viewed, in_action_scenario_opened",
+      "blocking": "client-events progress entry",
+      "needs": "user_decision",
+      "proposed_resolution": "Either wire to /skills filter UI + /skills/<id> + /demo scenario opens, OR drop from the ClientEvent union and document as 'no client UI events for now'. Surface this when the user next opens /ops next."
+    }
+  ],
+
+  "next_actions": [
+    "Pick up B-11: drop COLOR_CONTRAST_DISABLE per-route. Order of attack — easiest first: /privacy and /styleguide (least visual complexity), then /install, /skills/<id>, /architecture, /demo. Each likely a small standalone PR or batched once verified.",
+    "Surface the reserved-events decision (skill_filter_used / skill_detail_viewed / in_action_scenario_opened) — wire or drop.",
+    "Manual deploys to staging + prod for the 4 PRs that landed this session. Order: `npm run deploy:staging`, eyeball, `npm run deploy`. CLAUDE.md is explicit that this is the only path."
+  ],
+
+  "skill_state": {
+    "active_project": "opchain.dev",
+    "registered_projects": [
+      { "id": "opchain", "name": "opchain.dev", "path": "/home/user/opchain", "type": "app", "priority": "primary", "apps": null }
+    ],
+    "session_started": "2026-05-01T04:30:00Z",
+    "last_scan": "2026-05-01T05:30:00Z",
+    "scan_cache": {
+      "opchain.dev": {
+        "skills_found": ["ux-engineer"],
+        "blocker_count": 1,
+        "status_summary": "Active site, 4 PRs merged this session, 1 reserved-events decision pending"
+      }
+    },
+    "routing_history_count": 6,
+    "note": "Per the orchestrator skill spec, the canonical orchestrator session state lives at ~/.opchain/orchestrator.session.json (ephemeral) and a memory edit (persistent registry). This project-scoped checkpoint exists only because the user explicitly asked to backfill 'per-skill' checkpoints for this session."
+  }
+}

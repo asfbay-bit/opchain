@@ -1,0 +1,87 @@
+{
+  "protocol_version": "1.0",
+  "skill": "ux-engineer",
+  "project": "opchain.dev",
+  "project_dir": "/home/user/opchain",
+  "created_at": "2026-05-01T05:00:00Z",
+  "updated_at": "2026-05-01T05:30:00Z",
+
+  "phase": "ad-hoc-evaluation",
+  "step": "post-launch-fixes",
+  "status": "complete",
+  "progress_summary": "Two ad-hoc UX-engineer engagements this session: B-10 color-contrast token decision (RESOLVED) and architecture-diagram auto-cycle restoration (SHIPPED). No active sprint or design spec — operating in plugin/eval mode against a live site.",
+
+  "progress_table": [
+    { "id": "b-10-token-decision", "label": "B-10: light --success token darken", "status": "complete" },
+    { "id": "arch-csp-rewire",     "label": "Architecture: rewire events for CSP", "status": "complete" },
+    { "id": "arch-auto-cycle",     "label": "Architecture: one-shot auto-cycle on load", "status": "complete" }
+  ],
+
+  "context_primer": {
+    "key_decisions": [
+      "B-10: Light --success moved from #047857 (emerald-700) to #065F46 (emerald-800). Lifts .card-role-tag[data-role=success] from 3.64:1 to 5.10:1; also lifts ribbon (4.04→5.66) and surface (4.43→6.20). Tailwind ramp preserved; visual identity drift minimal. Pre-computed mix bg also moved from #d0d5bd to #d0d1ba so Axe sees the same value color-mix(--success 15%, --surface) renders at runtime.",
+      "B-10 audit doc (roadmap/B-10-color-contrast-audit.md) was stale on session start — its 'hard fails' had already been patched in main. Round 2 added a resolution log so the doc reflects actual state.",
+      "/architecture had 47 inline on*=\"...\" event handler attributes that Sprint 7c's CSP (script-src 'self' 'nonce-...' 'strict-dynamic') silently blocked. Bound them via addEventListener inside the existing nonce-blessed <script is:inline>. Window.* exports removed since nothing else relied on them.",
+      "Architecture animations (CP clockwise build, orchestrator routing decision) were intent-original auto-running but gated on cp-mode/orch-mode classes that only got applied on click. Added autoCycleArch() — 1s settle → CP open → 7.5s build → close → orch open → 5s routing → close. Cancels on first user interaction. Skips on prefers-reduced-motion."
+    ],
+    "generated_files": [
+      "site/src/styles/tokens.css",
+      "site/src/pages/skills/index.astro",
+      "site/src/pages/architecture.astro",
+      "site/tests/e2e/routes.spec.ts",
+      "roadmap/B-10-color-contrast-audit.md"
+    ],
+    "shipped_prs": [
+      "PR #136 — fix(B-10): darken light --success to clear AA-normal on /skills role tag (squashed to 8fdc3d5)",
+      "PR #138 — fix(architecture): wire diagram events via addEventListener for CSP (squashed to f9d9cd6)",
+      "PR #139 — feat(architecture): one-shot auto-cycle on page load (squashed to 00e159c)"
+    ],
+    "user_preferences": [
+      "Direct, concise communication — short answers, no padding",
+      "Asks questions via AskUserQuestion when given the option",
+      "Prefers token-level fixes over per-component overrides (preserves the design-token-as-contract principle)",
+      "Wants animations to feel alive on load — auto-running over hover-only"
+    ]
+  },
+
+  "blockers": [],
+
+  "next_actions": [
+    "Manual deploy via `npm run deploy:staging` then `npm run deploy` — staging.opchain.dev and opchain.dev are NOT auto-updated by merging to main (per CLAUDE.md, deploys are manual)",
+    "Eyeball the deployed /architecture page: confirm CP panel auto-opens, 6-box clockwise build animates, closes, orch panel opens, routing decision plays, closes",
+    "Eyeball the deployed /skills page: confirm role-success tag has the new emerald-800 fg and that visual identity doesn't feel jarring",
+    "B-11 follow-on: drop COLOR_CONTRAST_DISABLE from the other 6 routes one at a time. /architecture, /install, /skills/<id>, /demo, /privacy, /styleguide. Each should be Axe-clean now that tokens are fixed but verify per-route before flipping. Run the per-route Axe disable removal in a small PR per route, or batch the obvious clean ones."
+  ],
+
+  "skill_state": {
+    "mode": "ad-hoc",
+    "attached_to_tridev": false,
+    "scoring_calibration": {
+      "b-10-token-decision": { "visual_hierarchy": 9, "state_completeness": 9, "consistency": 9, "accessibility": 9, "weighted": 9.0, "verdict": "PASS" }
+    },
+    "design_decisions_archive": {
+      "b-10": {
+        "decision_date": "2026-05-01",
+        "decision": "Darken light --success from #047857 to #065F46 (emerald-700 → emerald-800)",
+        "alternatives_considered": [
+          "#055747 (slightly deeper, off-Tailwind ramp) — rejected: marginal benefit, breaks ramp",
+          "#054d3a (visibly darker forest-green) — rejected: too much identity drift",
+          "Override .card-role-tag[data-role=success] locally — rejected: violates token-as-contract principle"
+        ],
+        "cascade_impact": {
+          "role_tag_bg": "3.64 → 5.10",
+          "ribbon": "4.04 → 5.66",
+          "surface": "4.43 → 6.20",
+          "card": "5.48 → 7.68"
+        }
+      }
+    },
+    "arch_animation_decisions": {
+      "decision_date": "2026-05-01",
+      "auto_cycle_shape": "play once on load, then settle",
+      "user_override": "cancel cycle on first hover/focus/keydown/scroll",
+      "reduced_motion": "skip cycle entirely if prefers-reduced-motion: reduce",
+      "timing_ms": { "settle": 1000, "cp_hold": 7500, "gap": 1100, "orch_hold": 5500 }
+    }
+  }
+}
