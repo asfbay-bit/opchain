@@ -89,11 +89,7 @@ import Base from "../layouts/Base.astro";
                  role="button"
                  tabindex="0"
                  aria-expanded="false"
-                 aria-controls="cp-detail-top cp-grid-section"
-                 onmouseenter="cpEnter()" onmouseleave="cpLeave()"
-                 onfocus="cpEnter()" onblur="cpLeave()"
-                 onclick="cpToggle()"
-                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();cpToggle();}">
+                 aria-controls="cp-detail-top cp-grid-section">
               <span class="fp-tag">PROTOCOL</span>
               <span class="fp-name">checkpoint-protocol</span>
               <span class="fp-desc">JSON schema · phase · progress · blockers · next_actions</span>
@@ -103,11 +99,7 @@ import Base from "../layouts/Base.astro";
                  role="button"
                  tabindex="0"
                  aria-expanded="false"
-                 aria-controls="orch-detail-top"
-                 onmouseenter="orchEnter()" onmouseleave="orchLeave()"
-                 onfocus="orchEnter()" onblur="orchLeave()"
-                 onclick="orchToggle()"
-                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();orchToggle();}">
+                 aria-controls="orch-detail-top">
               <span class="fp-tag">ORCH</span>
               <span class="fp-name">orchestrator</span>
               <span class="fp-desc">/ops · routing · cross-project status · gate enforcement</span>
@@ -115,8 +107,7 @@ import Base from "../layouts/Base.astro";
           </div>
 
           <!-- ── CP detail card (overlay reveals this) ── -->
-          <div class="cp-detail-expand" id="cp-detail-top"
-               onmouseenter="cpKeep()" onmouseleave="cpLeave()">
+          <div class="cp-detail-expand" id="cp-detail-top">
             <div class="cpd-inner">
               <p class="cpd-intro">Every skill writes a JSON checkpoint after each state change. Single source of truth — any skill can read any other's to rebuild context. Plain JSON on disk · no database · no vendor lock-in.</p>
               <div class="cpd-json">
@@ -133,8 +124,7 @@ import Base from "../layouts/Base.astro";
           </div>
 
           <!-- ── Orchestrator → 6 checkpoint sync diagram (clockwise build animation) ── -->
-          <div class="cp-grid-section" id="cp-grid-section"
-               onmouseenter="cpKeep()" onmouseleave="cpLeave()">
+          <div class="cp-grid-section" id="cp-grid-section">
             <div class="cp-grid-inner">
               <svg class="orch-sync-svg" viewBox="0 0 720 240" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orchestrator bidirectional sync to 6 checkpoints, animated clockwise">
                 <defs>
@@ -212,8 +202,7 @@ import Base from "../layouts/Base.astro";
           </div>
 
           <!-- ── Orchestrator detail card with routing-decision animation ── -->
-          <div class="orch-detail-expand" id="orch-detail-top"
-               onmouseenter="orchKeep()" onmouseleave="orchLeave()">
+          <div class="orch-detail-expand" id="orch-detail-top">
             <div class="cpd-inner">
               <p class="cpd-intro">The orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/ops</code> queries. Reads all 17 checkpoints; writes its own pipeline state.</p>
               <svg class="orch-route-svg" viewBox="0 0 720 110" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orchestrator routing decision: app-architect checkpoint update routed to ux-engineer">
@@ -265,9 +254,7 @@ import Base from "../layouts/Base.astro";
 
           <!-- ══ BAND 1: DISCOVER ══ -->
           <div class="band" id="band-discover" data-phase="discover"
-               tabindex="0"
-               onmouseenter="bandEnter('discover')" onmouseleave="bandLeave()"
-               onfocus="bandEnter('discover')" onblur="bandLeave()">
+               tabindex="0">
             <div class="band-label">
               <div class="band-label-bar" style="background:var(--slag)"></div>
               <span class="band-label-text">DISCOVER</span>
@@ -307,13 +294,12 @@ import Base from "../layouts/Base.astro";
           </div>
 
           <div class="band-arrow" id="ba-0" data-from="discover" data-to="plan"
-               onmouseenter="arrowEnter()" onmouseleave="arrowLeave()"></div>
+               ></div>
 
           <!-- ══ BAND 2: PLAN ══ -->
           <div class="band" id="band-plan" data-phase="plan"
                tabindex="0"
-               onmouseenter="bandEnter('plan')" onmouseleave="bandLeave()"
-               onfocus="bandEnter('plan')" onblur="bandLeave()">
+               >
             <div class="band-label">
               <div class="band-label-bar" style="background:var(--ember)"></div>
               <span class="band-label-text">PLAN</span>
@@ -416,13 +402,12 @@ import Base from "../layouts/Base.astro";
           </div>
 
           <div class="band-arrow" id="ba-1" data-from="plan" data-to="build"
-               onmouseenter="arrowEnter()" onmouseleave="arrowLeave()"></div>
+               ></div>
 
           <!-- ══ BAND 3: BUILD ══ -->
           <div class="band" id="band-build" data-phase="build"
                tabindex="0"
-               onmouseenter="bandEnter('build')" onmouseleave="bandLeave()"
-               onfocus="bandEnter('build')" onblur="bandLeave()">
+               >
             <div class="band-label">
               <div class="band-label-bar" style="background:var(--warning)"></div>
               <span class="band-label-text">BUILD</span>
@@ -512,13 +497,12 @@ import Base from "../layouts/Base.astro";
           </div>
 
           <div class="band-arrow" id="ba-2" data-from="build" data-to="ship"
-               onmouseenter="arrowEnter()" onmouseleave="arrowLeave()"></div>
+               ></div>
 
           <!-- ══ BAND 4: SHIP ══ -->
           <div class="band" id="band-ship" data-phase="ship"
                tabindex="0"
-               onmouseenter="bandEnter('ship')" onmouseleave="bandLeave()"
-               onfocus="bandEnter('ship')" onblur="bandLeave()">
+               >
             <div class="band-label">
               <div class="band-label-bar" style="background:var(--ember)"></div>
               <span class="band-label-text">SHIP</span>
@@ -629,13 +613,12 @@ import Base from "../layouts/Base.astro";
           </div>
 
           <div class="band-arrow" id="ba-3" data-from="ship" data-to="monitor"
-               onmouseenter="arrowEnter()" onmouseleave="arrowLeave()"></div>
+               ></div>
 
           <!-- ══ BAND 5: MONITOR ══ -->
           <div class="band" id="band-monitor" data-phase="monitor"
                tabindex="0"
-               onmouseenter="bandEnter('monitor')" onmouseleave="bandLeave()"
-               onfocus="bandEnter('monitor')" onblur="bandLeave()">
+               >
             <div class="band-label">
               <div class="band-label-bar" style="background:var(--success)"></div>
               <span class="band-label-text">MONITOR</span>
@@ -684,8 +667,7 @@ import Base from "../layouts/Base.astro";
             <div class="legend-section-label">connections</div>
 
             <span class="legend-item" tabindex="0" role="button"
-                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
-                  onfocus="legendEnter(this)" onblur="legendLeave()">
+                  >
               <div class="li-swatch li-swatch-spine">↑N↓</div>
               <span>spine ordinal</span>
               <div class="legend-card" role="tooltip">
@@ -695,8 +677,7 @@ import Base from "../layouts/Base.astro";
               </div>
             </span>
             <span class="legend-item" tabindex="0" role="button"
-                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
-                  onfocus="legendEnter(this)" onblur="legendLeave()">
+                  >
               <div class="li-line" style="border-color:#e05c18;border-style:dashed"></div>
               <span>auto-invoke</span>
               <div class="legend-card" role="tooltip">
@@ -706,8 +687,7 @@ import Base from "../layouts/Base.astro";
               </div>
             </span>
             <span class="legend-item" tabindex="0" role="button"
-                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
-                  onfocus="legendEnter(this)" onblur="legendLeave()">
+                  >
               <div class="li-line" style="border-color:#c4b89e;border-style:dashed"></div>
               <span>advisory</span>
               <div class="legend-card" role="tooltip">
@@ -717,8 +697,7 @@ import Base from "../layouts/Base.astro";
               </div>
             </span>
             <span class="legend-item" tabindex="0" role="button"
-                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
-                  onfocus="legendEnter(this)" onblur="legendLeave()">
+                  >
               <div class="li-line" style="border-color:#ef4444;border-style:dashed"></div>
               <span>audit gate</span>
               <div class="legend-card" role="tooltip">
@@ -728,8 +707,7 @@ import Base from "../layouts/Base.astro";
               </div>
             </span>
             <span class="legend-item" tabindex="0" role="button"
-                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
-                  onfocus="legendEnter(this)" onblur="legendLeave()">
+                  >
               <div class="li-swatch" style="background:rgba(224,92,24,.10);border:.5px solid rgba(224,92,24,.6)"></div>
               <span>CP · checkpoint</span>
               <div class="legend-card" role="tooltip">
@@ -739,8 +717,7 @@ import Base from "../layouts/Base.astro";
               </div>
             </span>
             <span class="legend-item" tabindex="0" role="button"
-                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
-                  onfocus="legendEnter(this)" onblur="legendLeave()">
+                  >
               <div class="li-swatch" style="background:rgba(224,92,24,.10);border:.5px solid rgba(224,92,24,.6)"></div>
               <span>ORC · orchestrator</span>
               <div class="legend-card" role="tooltip">
@@ -754,8 +731,7 @@ import Base from "../layouts/Base.astro";
             <div class="legend-section-label">skill types</div>
 
             <span class="legend-item" tabindex="0" role="button"
-                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
-                  onfocus="legendEnter(this)" onblur="legendLeave()">
+                  >
               <div class="li-swatch" style="background:rgba(245,158,11,.08);border:1px solid #f59e0b;box-shadow:0 0 6px rgba(245,158,11,.4)"></div>
               <span>tri-agent</span>
               <div class="legend-card" role="tooltip">
@@ -765,8 +741,7 @@ import Base from "../layouts/Base.astro";
               </div>
             </span>
             <span class="legend-item" tabindex="0" role="button"
-                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
-                  onfocus="legendEnter(this)" onblur="legendLeave()">
+                  >
               <div class="li-swatch" style="background:rgba(14,165,233,.08);border:1px solid #0EA5E9;box-shadow:0 0 6px rgba(14,165,233,.4)"></div>
               <span>advisor</span>
               <div class="legend-card" role="tooltip">
@@ -776,8 +751,7 @@ import Base from "../layouts/Base.astro";
               </div>
             </span>
             <span class="legend-item" tabindex="0" role="button"
-                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
-                  onfocus="legendEnter(this)" onblur="legendLeave()">
+                  >
               <div class="li-swatch" style="background:rgba(13,148,136,.08);border:1px solid #0D9488;box-shadow:0 0 6px rgba(13,148,136,.4)"></div>
               <span>specialist</span>
               <div class="legend-card" role="tooltip">
@@ -787,8 +761,7 @@ import Base from "../layouts/Base.astro";
               </div>
             </span>
             <span class="legend-item" tabindex="0" role="button"
-                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
-                  onfocus="legendEnter(this)" onblur="legendLeave()">
+                  >
               <div class="li-swatch" style="background:rgba(224,92,24,.08);border:1px solid #e05c18;box-shadow:0 0 6px rgba(224,92,24,.4)"></div>
               <span>workflow / orchestrator</span>
               <div class="legend-card" role="tooltip">
@@ -798,8 +771,7 @@ import Base from "../layouts/Base.astro";
               </div>
             </span>
             <span class="legend-item" tabindex="0" role="button"
-                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
-                  onfocus="legendEnter(this)" onblur="legendLeave()">
+                  >
               <div class="li-swatch" style="background:rgba(244,63,94,.08);border:1px solid #F43F5E;box-shadow:0 0 6px rgba(244,63,94,.4)"></div>
               <span>audit gate</span>
               <div class="legend-card" role="tooltip">
@@ -1238,25 +1210,73 @@ import Base from "../layouts/Base.astro";
       }, 200);
     }
 
-    /* Expose handlers used by inline event attributes */
-    window.bandEnter = bandEnter;
-    window.bandLeave = bandLeave;
-    window.arrowEnter = arrowEnter;
-    window.arrowLeave = arrowLeave;
-    window.cpEnter = cpEnter;
-    window.cpLeave = cpLeave;
-    window.cpKeep = cpKeep;
-    window.cpToggle = cpToggle;
-    window.orchEnter = orchEnter;
-    window.orchLeave = orchLeave;
-    window.orchKeep = orchKeep;
-    window.orchToggle = orchToggle;
-    window.legendEnter = legendEnter;
-    window.legendLeave = legendLeave;
+    /* Wire DOM events. Inline on*="..." attributes were removed because the
+       site's CSP (Sprint 7c: script-src 'self' 'nonce-...' 'strict-dynamic')
+       blocks event handler attributes — only nonce-blessed <script> tags
+       run, which is why this whole block executes. addEventListener has
+       no such restriction. */
+    function wireArchEvents() {
+      const cpToggleEl = document.getElementById('cp-toggle');
+      if (cpToggleEl) {
+        cpToggleEl.addEventListener('mouseenter', cpEnter);
+        cpToggleEl.addEventListener('mouseleave', cpLeave);
+        cpToggleEl.addEventListener('focus', cpEnter);
+        cpToggleEl.addEventListener('blur', cpLeave);
+        cpToggleEl.addEventListener('click', cpToggle);
+        cpToggleEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cpToggle(); }
+        });
+      }
+      const orchToggleEl = document.getElementById('orch-toggle');
+      if (orchToggleEl) {
+        orchToggleEl.addEventListener('mouseenter', orchEnter);
+        orchToggleEl.addEventListener('mouseleave', orchLeave);
+        orchToggleEl.addEventListener('focus', orchEnter);
+        orchToggleEl.addEventListener('blur', orchLeave);
+        orchToggleEl.addEventListener('click', orchToggle);
+        orchToggleEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); orchToggle(); }
+        });
+      }
+      ['cp-detail-top', 'cp-grid-section'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('mouseenter', cpKeep);
+        el.addEventListener('mouseleave', cpLeave);
+      });
+      const orchDetail = document.getElementById('orch-detail-top');
+      if (orchDetail) {
+        orchDetail.addEventListener('mouseenter', orchKeep);
+        orchDetail.addEventListener('mouseleave', orchLeave);
+      }
+      PHASES.forEach((phase) => {
+        const band = document.getElementById('band-' + phase);
+        if (!band) return;
+        const enter = () => bandEnter(phase);
+        band.addEventListener('mouseenter', enter);
+        band.addEventListener('mouseleave', bandLeave);
+        band.addEventListener('focus', enter);
+        band.addEventListener('blur', bandLeave);
+      });
+      ARROWS.forEach((id) => {
+        const a = document.getElementById(id);
+        if (!a) return;
+        a.addEventListener('mouseenter', arrowEnter);
+        a.addEventListener('mouseleave', arrowLeave);
+      });
+      document.querySelectorAll('.arch-v2 .legend-item').forEach((li) => {
+        const enter = () => legendEnter(li);
+        li.addEventListener('mouseenter', enter);
+        li.addEventListener('mouseleave', legendLeave);
+        li.addEventListener('focus', enter);
+        li.addEventListener('blur', legendLeave);
+      });
+    }
 
     if (document.readyState === 'loading') {
-      window.addEventListener('DOMContentLoaded', () => drawConnectionLines());
+      window.addEventListener('DOMContentLoaded', () => { wireArchEvents(); drawConnectionLines(); });
     } else {
+      wireArchEvents();
       drawConnectionLines();
     }
     window.addEventListener('load', () => drawConnectionLines());
