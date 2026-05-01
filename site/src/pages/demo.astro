@@ -1277,7 +1277,10 @@ const transcripts = walkthroughs.map((w) => ({
     overflow: hidden;
     flex-direction: column;
   }
-  .output-modal[open] { display: flex; }
+  /* height must be explicit (not just max-height) so that modal-inner's
+     height:100% and modal-body's flex:1 have a definite reference to
+     resolve against — otherwise both collapse to 0 and the body is invisible. */
+  .output-modal[open] { display: flex; height: min(88vh, 900px); }
   .output-modal::backdrop {
     background: rgba(0, 0, 0, 0.72);
     backdrop-filter: blur(3px);
