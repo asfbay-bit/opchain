@@ -1,5 +1,7 @@
 # B-10: Color-Contrast Audit — Hand-off to UX Session
 
+**Status:** RESOLVED — see "Resolution log" at the bottom of this doc.
+
 **Generated:** 2026-04-29
 **Source:** `site/src/styles/tokens.css` (token values as of HEAD `c18978b`)
 **Method:** WCAG 2.1 relative-luminance contrast ratio computed for every
@@ -160,3 +162,51 @@ The full Playwright/Axe audit (which would also catch component-local
 offenders the token analysis misses) lives in `site/tests/e2e/routes.spec.ts` —
 temporarily delete the `COLOR_CONTRAST_DISABLE` entries and run
 `cd site && npm run test:e2e` to surface the actual selector list.
+
+---
+
+## Resolution log
+
+### Round 1 (2026-04-30, in main)
+
+- Dark `--surface` darkened from `#2a2218` → `#251d14` — clears the
+  `accent-hover/surface` hard fail (2.91 → 3.08, ✓ AA-large).
+- Dark `--subtle` lightened from `#8A7868` → `#9d8b78` — clears AA normal
+  on all dark bgs (3.71–4.21 → 5.06–5.42).
+- Dark `--info` lightened from `#64748B` → `#94A3B8` (slate-500 → 400) —
+  clears AA normal on dark bgs (3.74 → 6.94).
+- Light `--ribbon` lightened from `#eed8bc` → `#f0dabe` — clears the
+  `accent/ribbon` hard fail (2.97 → 3.03, ✓ AA-large).
+- Light `--subtle` darkened from `#8c7657` → `#6e5c40` — clears AA normal
+  on all light bgs (3.13–3.69 → 4.74–5.47).
+- Skill-role token tunings B-12 (workflow, audit-gate, orchestrator) —
+  see inline comments in `tokens.css`.
+
+### Round 2 (2026-05-01, this branch)
+
+LHCI on PR #134 surfaced one residual AA-normal failure on `/skills`:
+the light-mode `[data-role="success"]` role tag at 10px ran fg
+`#047857` on the precomputed mix bg `#d0d5bd` for 3.64:1 — short of the
+4.5 normal-text floor.
+
+Fix:
+
+- Light `--success` darkened from `#047857` → `#065F46`
+  (Tailwind emerald-700 → 800). Cascade: role-tag 3.64 → 5.10, ribbon
+  4.04 → 5.66, surface 4.43 → 6.20. One stop on the same Tailwind ramp,
+  so visual identity barely shifts.
+- `.card-role-tag[data-role="success"]` precomputed bg updated from
+  `#d0d5bd` to `#d0d1ba` so the Axe-visible static value matches what
+  `color-mix(var(--success) 15%, var(--surface))` now renders at runtime.
+- `COLOR_CONTRAST_DISABLE` removed from the `/skills` route in
+  `site/tests/e2e/routes.spec.ts`. The other 6 routes still carry the
+  disable pending a per-route sweep (B-11).
+
+### Remaining
+
+- Sweep `COLOR_CONTRAST_DISABLE` off the other 6 routes one at a time:
+  `/architecture`, `/install`, `/skills/<id>`, `/demo`, `/privacy`,
+  `/styleguide`. Each should be Axe-clean now that the underlying tokens
+  have been fixed, but verify per-route before flipping.
+- The `--success` darken may have small downstream visual effects on
+  badges and callouts — eyeball during the next staging deploy.
