@@ -1,337 +1,1802 @@
 ---
 import Base from "../layouts/Base.astro";
-import Eyebrow from "../components/ui/Eyebrow.astro";
-import PipelineDiagram from "../components/PipelineDiagram.astro";
-import Card from "../components/ui/Card.astro";
-import { getAllSkills, getSkillRole, getRoleLabel, type Role } from "../lib/skills";
-
-const allSkills = await getAllSkills();
-const totalSkillCount = allSkills.length;
-const triAgents = allSkills.filter((s) => s.data.triAgent).map((s) => s.data.name);
-
-// Group skills by their semantic role from lib/skills.ts. The same role
-// vocabulary that drives every other coloured pill on the site (homepage,
-// skill library, demo) — so colours are consistent across surfaces.
-const ROLE_ORDER: Role[] = [
-  "workflow",
-  "tri-agent",
-  "audit-gate",
-  "specialist",
-  "advisor",
-  "orchestrator",
-  "success",
-];
-
-type Kind = { role: Role; label: string; skills: string[] };
-
-const byRole = new Map<Role, string[]>();
-for (const s of allSkills) {
-  const role = getSkillRole(s.data.name);
-  if (!byRole.has(role)) byRole.set(role, []);
-  byRole.get(role)!.push(s.data.name);
-}
-
-const skillKinds: Kind[] = ROLE_ORDER
-  .filter((r) => byRole.has(r))
-  .map((r) => ({
-    role: r,
-    label: getRoleLabel(r),
-    skills: (byRole.get(r) ?? []).sort(),
-  }));
-
-const handoffs = [
-  { from: "reverse-spec",          to: "app-architect",   trigger: "Existing codebase analyzed; loads specs as Phase 2 baseline" },
-  { from: "app-architect",         to: "stack-forge",     trigger: "Phase 2 — auto-invoked for stack decision" },
-  { from: "app-architect",         to: "ux-engineer",     trigger: "Phase 6 UI sprints — auto-attaches Design Evaluator" },
-  { from: "ux-engineer",           to: "dash-forge",      trigger: "Data-heavy screens — Tufte-density specialist" },
-  { from: "app-architect",         to: "git-ops",         trigger: "All build sprints pass" },
-  { from: "git-ops",               to: "deploy-ops",      trigger: "Post /git-sync" },
-  { from: "deploy-ops",            to: "code-auditor",    trigger: "Audit gate before production" },
-  { from: "code-auditor",          to: "security-auditor", trigger: "Threat model + hardening review above code-level findings" },
-  { from: "security-auditor",      to: "deploy-ops",      trigger: "Posture check before the production gate" },
-  { from: "deploy-ops",            to: "monitoring-ops",  trigger: "Hand off observability once production is live" },
-  { from: "app-architect",         to: "migration-ops",   trigger: "Live system needs a schema / framework / platform change" },
-  { from: "integrations-engineer", to: "code-auditor",    trigger: "Verify the integration before merge" },
-  { from: "app-architect",         to: "api-dev",         trigger: "Phase 2 — first-party API surface in spec; elaborate into OpenAPI/GraphQL" },
-  { from: "api-dev",               to: "code-auditor",    trigger: "Audit the scaffolded handlers before merge" },
-  { from: "api-dev",               to: "security-auditor", trigger: "CORS, rate-limit, and authn/authz posture review" },
-  { from: "api-dev",               to: "deploy-ops",      trigger: "Drift gate — fail the deploy if runtime contract drifts from the OpenAPI source" },
-  { from: "api-dev",               to: "monitoring-ops",  trigger: "Hand off the SLO + drift manifest to observability" },
-];
 ---
 
 <Base
   title="Architecture · opchain"
-  description="How opchain skills chain through JSON checkpoints to form an end-to-end software development pipeline."
+  description="Checkpoint-driven pipeline of 17 opchain skills across 5 phases — interactive diagram of how skills chain through .checkpoints/<skill>.json."
   active="/architecture"
 >
-  <main class="page">
-    <header class="page-head">
-      <Eyebrow>architecture</Eyebrow>
-      <h1>How opchain skills chain.</h1>
-      <p class="lede">
-        Every opchain skill specialises in one phase of the development
-        pipeline, communicates with the others through a single JSON file at
-        <code class="ic">.checkpoints/&lt;skill&gt;.checkpoint.json</code>,
-        and is routed by a central orchestrator
-        (<code class="ic">/ops</code>). No message bus, no framework — each
-        skill is a self-contained prompt package that reads its upstream
-        checkpoints and writes its own.
-      </p>
-    </header>
+  <div class="arch-v2">
+    <!-- Shared SVG defs (filters + arrowhead markers) -->
+    <svg class="arch-v2-defs" aria-hidden="true">
+      <defs>
+        <filter id="glow-ember" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="10" result="b"/>
+          <feFlood flood-color="#e05c18" flood-opacity="0.9" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="s"/>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow-orch" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="6" result="b"/>
+          <feFlood flood-color="#e05c18" flood-opacity="0.4" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="s"/>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow-yellow" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="7" result="b"/>
+          <feFlood flood-color="#f59e0b" flood-opacity="0.5" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="s"/>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow-deep-violet" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="7" result="b"/>
+          <feFlood flood-color="#0EA5E9" flood-opacity="0.6" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="s"/>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow-mint" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="7" result="b"/>
+          <feFlood flood-color="#0D9488" flood-opacity="0.45" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="s"/>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow-rose" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="7" result="b"/>
+          <feFlood flood-color="#F43F5E" flood-opacity="0.5" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="s"/>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <marker id="ah-success" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#0D9488"/>
+        </marker>
+        <marker id="ah-success-sm" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+          <polygon points="0 0, 6 2, 0 4" fill="#0D9488"/>
+        </marker>
+        <marker id="ah-ember" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+          <polygon points="0 0, 6 2, 0 4" fill="#e05c18"/>
+        </marker>
+        <marker id="ah-ember-rev" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto-start-reverse">
+          <polygon points="0 0, 6 2, 0 4" fill="#e05c18"/>
+        </marker>
+        <marker id="ah-sand" markerWidth="5" markerHeight="3.5" refX="4.5" refY="1.75" orient="auto">
+          <polygon points="0 0, 5 1.75, 0 3.5" fill="#c4b89e"/>
+        </marker>
+        <marker id="ah-sand-rev" markerWidth="5" markerHeight="3.5" refX="4.5" refY="1.75" orient="auto-start-reverse">
+          <polygon points="0 0, 5 1.75, 0 3.5" fill="#c4b89e"/>
+        </marker>
+        <marker id="ah-error" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+          <polygon points="0 0, 6 2, 0 4" fill="#ef4444"/>
+        </marker>
+      </defs>
+    </svg>
 
-    <!-- ───────────── Pipeline diagram ───────────── -->
-    <section class="section">
-      <h2>The pipeline</h2>
-      <p class="caption">
-        Read left-to-right. Solid arrows are automatic handoffs — the sending
-        skill invokes the receiver directly. Dashed arrows are advisory or
-        non-blocking. <code class="ic">checkpoint-protocol</code> underlies
-        every node; every other skill inherits its JSON schema.
-      </p>
-      <PipelineDiagram />
-    </section>
+    <div class="container">
+      <div class="header">
+        <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2</div>
+        <h1>opchain skills ecosystem</h1>
+        <p class="subtitle">Checkpoint-driven pipeline · 17 skills · 5 phases · 5 tri-agent · 3 audit gates · spine ordinals</p>
+      </div>
 
-    <!-- ───────────── Skill kinds ───────────── -->
-    <section class="section">
-      <h2>Skill kinds</h2>
-      <p class="caption">
-        Grouped by the same role vocabulary that colours every pill on the
-        site — Workflow, Tri-agent, Audit-gate, Standalone specialist,
-        Advisor, Orchestrator, Protocol.
-      </p>
-      <div class="kind-grid">
-        {skillKinds.map((k) => (
-          <Card variant="surface">
-            <div class="kind-head">
-              <span class="kind-pill" data-role={k.role}>{k.label}</span>
+      <div class="diagram-container">
+        <div class="bands-wrap" id="bands-wrap">
+          <canvas class="lines-canvas" id="lines-canvas"></canvas>
+
+          <!-- ══ FOUNDATION HEADER STRIP (CP + orchestrator) ══ -->
+          <div class="foundation" id="foundation" aria-label="Foundation layer: checkpoint-protocol and orchestrator">
+            <div class="foundation-pill foundation-pill-trigger"
+                 id="cp-toggle"
+                 role="button"
+                 tabindex="0"
+                 aria-expanded="false"
+                 aria-controls="cp-detail-top cp-grid-section"
+                 onmouseenter="cpEnter()" onmouseleave="cpLeave()"
+                 onfocus="cpEnter()" onblur="cpLeave()"
+                 onclick="cpToggle()"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();cpToggle();}">
+              <span class="fp-tag">PROTOCOL</span>
+              <span class="fp-name">checkpoint-protocol</span>
+              <span class="fp-desc">JSON schema · phase · progress · blockers · next_actions</span>
             </div>
-            <ul class="kind-list">
-              {k.skills.map((s) => (
-                <li><a href={`/skills/${s}`}>{s}</a></li>
-              ))}
-            </ul>
-          </Card>
-        ))}
-      </div>
-    </section>
-
-    <!-- ───────────── Checkpoint protocol ───────────── -->
-    <section class="section">
-      <h2>Checkpoint protocol</h2>
-      <p>
-        Every skill adopts a shared JSON schema for session persistence. The
-        canonical top-level keys are <code class="ic">phase</code>,
-        <code class="ic">progress_table</code>,
-        <code class="ic">context_primer</code>,
-        <code class="ic">blockers</code>, and
-        <code class="ic">next_actions</code>. When a skill activates it reads
-        its own checkpoint (offering to resume) and checks for upstream
-        checkpoints to pre-load context.
-      </p>
-      <p>
-        This is how context flows forward without manual copy-paste.
-        <code class="ic">deploy-ops</code> reads both
-        <code class="ic">code-auditor</code> and
-        <code class="ic">security-auditor</code> to gate on code-level and
-        posture findings before the production push.
-        <code class="ic">git-ops</code> reads
-        <code class="ic">app-architect</code> to name branches by sprint.
-        The UX Evaluator reads the approved style book to grade frontend
-        sprints. <code class="ic">migration-ops</code> reads
-        <code class="ic">app-architect</code>'s spec to sequence database,
-        framework, or platform migrations safely.
-      </p>
-    </section>
-
-    <!-- ───────────── Active chaining ───────────── -->
-    <section class="section">
-      <h2>Active chaining</h2>
-      <p>
-        Skills don't just <em>suggest</em> the next step — they actively
-        invoke it, and a central orchestrator
-        (<code class="ic">/ops</code>) tracks which checkpoint is current
-        so the next call is always routed to the right skill. When
-        <code class="ic">app-architect</code> finishes a build sprint, it
-        reads <code class="ic">git-ops</code>'s
-        <code class="ic">SKILL.md</code> and runs
-        <code class="ic">/git-sync</code> with the sprint context.
-        <code class="ic">git-ops</code> invokes
-        <code class="ic">deploy-ops</code>, which gates the production push
-        behind <code class="ic">code-auditor</code> and
-        <code class="ic">security-auditor</code> and then hands off to
-        <code class="ic">monitoring-ops</code> once the deploy is green.
-        The user sees one continuous flow, not a series of handoffs.
-      </p>
-
-      <h3 class="h3">Handoff matrix</h3>
-      <div class="handoff-table">
-        <div class="hh">
-          <span>From</span><span>To</span><span>Trigger</span>
-        </div>
-        {handoffs.map((h) => (
-          <div class="hr">
-            <a href={`/skills/${h.from}`}><code class="ic">{h.from}</code></a>
-            <a href={`/skills/${h.to}`}><code class="ic accent">{h.to}</code></a>
-            <span>{h.trigger}</span>
+            <div class="foundation-pill foundation-pill-trigger"
+                 id="orch-toggle"
+                 role="button"
+                 tabindex="0"
+                 aria-expanded="false"
+                 aria-controls="orch-detail-top"
+                 onmouseenter="orchEnter()" onmouseleave="orchLeave()"
+                 onfocus="orchEnter()" onblur="orchLeave()"
+                 onclick="orchToggle()"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();orchToggle();}">
+              <span class="fp-tag">ORCH</span>
+              <span class="fp-name">orchestrator</span>
+              <span class="fp-desc">/ops · routing · cross-project status · gate enforcement</span>
+            </div>
           </div>
-        ))}
-      </div>
-    </section>
 
-    <!-- ───────────── Total count ───────────── -->
-    <section class="section">
-      <h2>Total count</h2>
-      <ul class="count-list">
-        <li><strong>{totalSkillCount} entries</strong> — every skill owns one phase, plus the shared <code class="ic">checkpoint-protocol</code></li>
-        <li><strong>{triAgents.length} are tri-agent</strong> — {triAgents.join(", ")}</li>
-        <li><strong>0 require API keys</strong> — every skill is a prompt package</li>
-      </ul>
-      <p style="margin-top: 1.5rem;">
-        Browse the full set in the <a href="/skills">Skill Library</a>.
-      </p>
-    </section>
-  </main>
+          <!-- ── CP detail card (overlay reveals this) ── -->
+          <div class="cp-detail-expand" id="cp-detail-top"
+               onmouseenter="cpKeep()" onmouseleave="cpLeave()">
+            <div class="cpd-inner">
+              <p class="cpd-intro">Every skill writes a JSON checkpoint after each state change. Single source of truth — any skill can read any other's to rebuild context. Plain JSON on disk · no database · no vendor lock-in.</p>
+              <div class="cpd-json">
+                &#123;<br>
+                &nbsp;&nbsp;<span class="k">"skill"</span>: <span class="s">"app-architect"</span>,<br>
+                &nbsp;&nbsp;<span class="k">"phase"</span>: <span class="s">"build"</span>,<br>
+                &nbsp;&nbsp;<span class="k">"progress_table"</span>: &#123; <span class="s">"discover"</span>: <span class="s">"complete"</span>, <span class="s">"spec"</span>: <span class="s">"in_progress"</span> &#125;,<br>
+                &nbsp;&nbsp;<span class="k">"context_primer"</span>: <span class="s">"2-sentence summary..."</span>,<br>
+                &nbsp;&nbsp;<span class="k">"blockers"</span>: [<span class="s">"waiting on API key"</span>],<br>
+                &nbsp;&nbsp;<span class="k">"next_actions"</span>: [<span class="s">"/git-sync"</span>]<br>
+                &#125;
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Orchestrator → 6 checkpoint sync diagram (clockwise build animation) ── -->
+          <div class="cp-grid-section" id="cp-grid-section"
+               onmouseenter="cpKeep()" onmouseleave="cpLeave()">
+            <div class="cp-grid-inner">
+              <svg class="orch-sync-svg" viewBox="0 0 720 240" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orchestrator bidirectional sync to 6 checkpoints, animated clockwise">
+                <defs>
+                  <marker id="cp-sync-end" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+                    <polygon points="0 0, 6 2, 0 4" fill="#e05c18"/>
+                  </marker>
+                  <marker id="cp-sync-start" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto-start-reverse">
+                    <polygon points="0 0, 6 2, 0 4" fill="#e05c18"/>
+                  </marker>
+                  <filter id="cp-orch-glow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feGaussianBlur stdDeviation="3" result="b"/>
+                    <feFlood flood-color="#e05c18" flood-opacity="0.55" result="c"/>
+                    <feComposite in="c" in2="b" operator="in" result="s"/>
+                    <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                </defs>
+
+                <line class="cp-anim-line-1" x1="290" y1="98" x2="165" y2="70" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-2" x1="360" y1="98" x2="360" y2="70" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-3" x1="430" y1="98" x2="555" y2="70" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-4" x1="430" y1="142" x2="555" y2="170" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-5" x1="360" y1="142" x2="360" y2="170" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-6" x1="290" y1="142" x2="165" y2="170" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+
+                <g class="cp-anim-orch">
+                  <rect x="290" y="98" width="140" height="44" rx="5" fill="rgba(224,92,24,.20)" stroke="#e05c18" stroke-width="1.2" filter="url(#cp-orch-glow)"/>
+                  <text x="360" y="118" fill="#f6f0e8" font-size="11" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">orchestrator</text>
+                  <text x="360" y="132" fill="#e05c18" font-size="7.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">/ops · routing · sync</text>
+                </g>
+
+                <g class="cp-anim-box-1">
+                  <rect x="35" y="20" width="130" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="89" y="26" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="89" y="26" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                  <text x="100" y="35.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="100" y="58" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">reverse-spec</text>
+                </g>
+                <g class="cp-anim-box-2">
+                  <rect x="295" y="20" width="130" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="349" y="26" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="349" y="26" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                  <text x="360" y="35.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="360" y="58" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">app-architect</text>
+                </g>
+                <g class="cp-anim-box-3">
+                  <rect x="555" y="20" width="130" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="609" y="26" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="609" y="26" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                  <text x="620" y="35.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="620" y="58" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">stack-forge</text>
+                </g>
+                <g class="cp-anim-box-4">
+                  <rect x="555" y="170" width="130" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="609" y="176" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="609" y="176" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                  <text x="620" y="185.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="620" y="208" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">api-dev</text>
+                </g>
+                <g class="cp-anim-box-5">
+                  <rect x="295" y="170" width="130" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="349" y="176" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="349" y="176" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                  <text x="360" y="185.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="360" y="208" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">dash-forge</text>
+                </g>
+                <g class="cp-anim-box-6">
+                  <rect x="35" y="170" width="130" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="89" y="176" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="89" y="176" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                  <text x="100" y="185.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="100" y="208" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">ux-engineer</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- ── Orchestrator detail card with routing-decision animation ── -->
+          <div class="orch-detail-expand" id="orch-detail-top"
+               onmouseenter="orchKeep()" onmouseleave="orchLeave()">
+            <div class="cpd-inner">
+              <p class="cpd-intro">The orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/ops</code> queries. Reads all 17 checkpoints; writes its own pipeline state.</p>
+              <svg class="orch-route-svg" viewBox="0 0 720 110" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orchestrator routing decision: app-architect checkpoint update routed to ux-engineer">
+                <defs>
+                  <marker id="orch-rt-end" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+                    <polygon points="0 0, 6 2, 0 4" fill="#e05c18"/>
+                  </marker>
+                  <filter id="orch-rt-glow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feGaussianBlur stdDeviation="3" result="b"/>
+                    <feFlood flood-color="#e05c18" flood-opacity="0.55" result="c"/>
+                    <feComposite in="c" in2="b" operator="in" result="s"/>
+                    <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                </defs>
+
+                <line class="orch-rt-line orch-rt-line-1" x1="180" y1="48" x2="290" y2="48" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.3" marker-end="url(#orch-rt-end)" fill="none"/>
+                <line class="orch-rt-line orch-rt-line-2" x1="430" y1="48" x2="540" y2="48" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.3" marker-end="url(#orch-rt-end)" fill="none"/>
+
+                <g class="orch-rt-src">
+                  <rect class="orch-rt-rect" x="40" y="18" width="140" height="60" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="99" y="24" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="99" y="24" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#orch-rt-glow)"/>
+                  <text x="110" y="33.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="110" y="56" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,sans-serif" text-anchor="middle">app-architect</text>
+                  <text class="orch-rt-src-cap" x="110" y="71" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" letter-spacing=".1em" opacity="0">checkpoint update</text>
+                </g>
+
+                <g class="orch-rt-orch">
+                  <rect class="orch-rt-orch-rect" x="290" y="18" width="140" height="60" rx="5" fill="rgba(224,92,24,.20)" stroke="#e05c18" stroke-width="1.2" filter="url(#orch-rt-glow)"/>
+                  <text x="360" y="38" fill="#f6f0e8" font-size="11" font-weight="600" font-family="Outfit,sans-serif" text-anchor="middle">orchestrator</text>
+                  <text class="orch-rt-orch-base" x="360" y="56" fill="#e05c18" font-size="7.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">/ops · routing</text>
+                  <text class="orch-rt-decision" x="360" y="56" fill="#f59e0b" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0">→ /uxe sprint</text>
+                  <text class="orch-rt-orch-cap" x="360" y="71" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" letter-spacing=".1em" opacity="0">deciding</text>
+                </g>
+
+                <g class="orch-rt-tgt">
+                  <rect class="orch-rt-rect" x="540" y="18" width="140" height="60" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="599" y="24" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="599" y="24" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#orch-rt-glow)"/>
+                  <text x="610" y="33.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="610" y="56" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,sans-serif" text-anchor="middle">ux-engineer</text>
+                  <text class="orch-rt-tgt-cap" x="610" y="71" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" letter-spacing=".1em" opacity="0">activating</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <div style="height: 24px;"></div>
+
+          <!-- ══ BAND 1: DISCOVER ══ -->
+          <div class="band" id="band-discover" data-phase="discover"
+               tabindex="0"
+               onmouseenter="bandEnter('discover')" onmouseleave="bandLeave()"
+               onfocus="bandEnter('discover')" onblur="bandLeave()">
+            <div class="band-label">
+              <div class="band-label-bar" style="background:var(--slag)"></div>
+              <span class="band-label-text">DISCOVER</span>
+            </div>
+            <div class="band-content">
+              <svg viewBox="0 0 760 80" role="img" aria-label="Discover phase: reverse-spec">
+                <rect x="298" y="14" width="165" height="52" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" opacity="0.97"><title>reverse-spec — standalone specialist; reverse-engineers existing code into spec docs</title></rect>
+                <rect x="298" y="14" width="165" height="52" rx="5" fill="rgba(13,148,136,0.06)" stroke="#0D9488" stroke-width="0.5"/>
+                <text x="381" y="30" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">reverse-spec</text>
+                <text x="381" y="42" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Workflow</text>
+                <text x="381" y="56" fill="#0D9488" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/rev-spec · /rev-full</text>
+                <rect x="426" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="426" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                <text x="437" y="16.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="452" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="452" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                <text x="463" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <g class="spine-chip"><rect x="350" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="350" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="380" y="17" fill="#0D9488" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">1·↓2</text></g>
+              </svg>
+              <div class="band-detail">
+                <div class="bd-inner" style="background:rgba(13,148,136,0.04);border:0.5px solid rgba(13,148,136,0.2)">
+                  <div class="bd-left">
+                    <div class="bd-meta">
+                      <div class="bd-meta-row"><span class="bd-meta-label">skills</span><div class="bd-tags"><span class="bd-tag" style="background:rgba(13,148,136,0.1);border:0.5px solid rgba(13,148,136,0.4);color:#0D9488">reverse-spec</span></div></div>
+                      <div class="bd-meta-row"><span class="bd-meta-label">checkpt</span><div class="bd-cp"><span class="bd-cp-badge">CP</span> phase · codebase_scan · spec_output</div></div>
+                      <div class="bd-meta-row"><span class="bd-meta-label">links</span><div class="bd-cross"><span class="bd-cross-tag" style="background:rgba(13,148,136,0.06);border:0.5px solid rgba(13,148,136,0.2);color:#0D9488">↓ handoff to plan</span></div></div>
+                    </div>
+                    <div class="bd-text">
+                      <div class="bd-badge" style="color:var(--sand)">Phase 1 of 5</div>
+                      <div class="bd-title">Discover</div>
+                      <div class="bd-desc">Reverse-engineer existing codebases into structured spec documents. The output feeds <code style="color:#f59e0b">app-architect</code> as a Phase 2 baseline so the orchestrator never starts from a cold context. Optional — greenfield projects skip this band entirely.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="band-arrow" id="ba-0" data-from="discover" data-to="plan"
+               onmouseenter="arrowEnter()" onmouseleave="arrowLeave()"></div>
+
+          <!-- ══ BAND 2: PLAN ══ -->
+          <div class="band" id="band-plan" data-phase="plan"
+               tabindex="0"
+               onmouseenter="bandEnter('plan')" onmouseleave="bandLeave()"
+               onfocus="bandEnter('plan')" onblur="bandLeave()">
+            <div class="band-label">
+              <div class="band-label-bar" style="background:var(--ember)"></div>
+              <span class="band-label-text">PLAN</span>
+            </div>
+            <div class="band-content">
+              <svg viewBox="0 0 760 150" role="img" aria-label="Plan phase: scale-ops, stack-forge, app-architect, migration-ops">
+                <rect x="20" y="14" width="118" height="48" rx="5" fill="#1c1710" stroke="#0EA5E9" stroke-width="1" filter="url(#glow-deep-violet)" opacity="0.97"><title>scale-ops — advisor; capacity planning, perf budgets, load-test guidance</title></rect>
+                <rect x="20" y="14" width="118" height="48" rx="5" fill="rgba(14,165,233,0.06)" stroke="#0EA5E9" stroke-width="0.5"/>
+                <text x="79" y="29" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">scale-ops</text>
+                <text x="79" y="40" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Advisor</text>
+                <text x="79" y="54" fill="#0EA5E9" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/scale · perf · capacity</text>
+                <rect x="101" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="101" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="112" y="16.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="127" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="127" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="138" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+
+                <rect x="20" y="84" width="118" height="48" rx="5" fill="#1c1710" stroke="#0EA5E9" stroke-width="1" filter="url(#glow-deep-violet)" opacity="0.97"><title>stack-forge — advisor; recommends platform, framework, hosting</title></rect>
+                <rect x="20" y="84" width="118" height="48" rx="5" fill="rgba(14,165,233,0.06)" stroke="#0EA5E9" stroke-width="0.5"/>
+                <text x="79" y="99" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">stack-forge</text>
+                <text x="79" y="110" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Advisor</text>
+                <text x="79" y="124" fill="#0EA5E9" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/stack · /stack-decide</text>
+                <rect x="101" y="77" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="101" y="77" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="112" y="86.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="127" y="77" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="127" y="77" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="138" y="86.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+
+                <rect x="240" y="22" width="280" height="106" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1.2" filter="url(#glow-yellow)" opacity="0.97"><title>app-architect — tri-agent orchestrator: Generator / Evaluator loop; idea → spec → design → build → launch</title></rect>
+                <rect x="240" y="22" width="280" height="106" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
+                <text x="380" y="44" fill="#e8dfd0" font-size="9" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">app-architect</text>
+                <text x="380" y="58" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · Orchestrator</text>
+                <text x="380" y="74" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Generator / Evaluator · QA loop ≥ 7/10</text>
+                <text x="380" y="92" fill="#f59e0b" font-size="7.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">/app · /discover · /spec</text>
+                <text x="380" y="104" fill="#f59e0b" font-size="7.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">/design · /build · /launch</text>
+                <text x="380" y="120" fill="#e05c18" font-size="6.8" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">auto-invokes: stack-forge · ux-engineer · api-dev · dash-forge</text>
+                <rect x="483" y="14" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="483" y="14" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                <text x="494" y="23.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="509" y="14" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="509" y="14" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                <text x="520" y="23.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <g class="spine-chip"><rect x="350" y="14" width="60" height="14" rx="3" fill="#1c1710"/><rect x="350" y="14" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="380" y="24" fill="#0D9488" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑1·2·↓3</text></g>
+
+                <rect x="610" y="50" width="130" height="50" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" filter="url(#glow-mint)" opacity="0.97"><title>migration-ops — specialist; database/framework/platform migrations</title></rect>
+                <rect x="610" y="50" width="130" height="50" rx="5" fill="rgba(13,148,136,0.06)" stroke="#0D9488" stroke-width="0.5"/>
+                <text x="675" y="65" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">migration-ops</text>
+                <text x="675" y="76" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist</text>
+                <text x="675" y="90" fill="#0D9488" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/migrate · schema · platform</text>
+                <rect x="703" y="43" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="703" y="43" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="714" y="52.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="729" y="43" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="729" y="43" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="740" y="52.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+
+                <line x1="240" y1="26" x2="138" y2="26" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.78" marker-end="url(#ah-ember)"/>
+                <line x1="138" y1="50" x2="240" y2="50" stroke="#c4b89e" stroke-width="1.0" stroke-dasharray="5,3" opacity="0.55" marker-end="url(#ah-sand)"/>
+                <line x1="138" y1="96" x2="240" y2="96" stroke="#c4b89e" stroke-width="1.0" stroke-dasharray="5,3" opacity="0.55" marker-end="url(#ah-sand)"/>
+                <line x1="240" y1="120" x2="138" y2="120" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.78" marker-end="url(#ah-ember)"/>
+
+                <text x="189" y="20" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">auto-invoke</text>
+                <text x="189" y="44" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">advisory</text>
+                <text x="189" y="90" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">advisory</text>
+                <text x="189" y="114" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">auto-invoke</text>
+
+                <line x1="520" y1="63" x2="610" y2="63" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.78" marker-end="url(#ah-ember)"/>
+                <line x1="610" y1="87" x2="520" y2="87" stroke="#c4b89e" stroke-width="1.0" stroke-dasharray="5,3" opacity="0.55" marker-end="url(#ah-sand)"/>
+
+                <text x="565" y="57" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">auto-invoke</text>
+                <text x="565" y="81" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">advisory</text>
+              </svg>
+              <div class="band-detail">
+                <div class="bd-inner" style="background:rgba(224,92,24,0.04);border:0.5px solid rgba(224,92,24,0.2)">
+                  <div class="bd-left">
+                    <div class="bd-meta">
+                      <div class="bd-meta-row"><span class="bd-meta-label">skills</span><div class="bd-tags">
+                        <span class="bd-tag" style="background:rgba(245,158,11,0.1);border:0.5px solid rgba(245,158,11,0.4);color:#f59e0b">app-architect</span>
+                        <span class="bd-tag" style="background:rgba(14,165,233,0.1);border:0.5px solid rgba(14,165,233,0.35);color:#0EA5E9">stack-forge</span>
+                        <span class="bd-tag" style="background:rgba(14,165,233,0.1);border:0.5px solid rgba(14,165,233,0.35);color:#0EA5E9">scale-ops</span>
+                        <span class="bd-tag" style="background:rgba(13,148,136,0.1);border:0.5px solid rgba(13,148,136,0.35);color:#0D9488">migration-ops</span>
+                      </div></div>
+                      <div class="bd-meta-row"><span class="bd-meta-label">checkpt</span><div class="bd-cp"><span class="bd-cp-badge">CP</span> phase · stack_decision · capacity · migration_plan</div></div>
+                      <div class="bd-meta-row"><span class="bd-meta-label">links</span><div class="bd-cross">
+                        <span class="bd-cross-tag" style="background:rgba(13,148,136,0.06);border:0.5px solid rgba(13,148,136,0.2);color:#0D9488">↑ from discover</span>
+                        <span class="bd-cross-tag" style="background:rgba(245,158,11,0.06);border:0.5px solid rgba(245,158,11,0.2);color:#f59e0b">↓ to build</span>
+                      </div></div>
+                    </div>
+                    <div class="bd-text">
+                      <div class="bd-badge" style="color:var(--ember)">Phase 2 of 5</div>
+                      <div class="bd-title">Plan</div>
+                      <div class="bd-desc">app-architect anchors the spine, auto-invoking stack-forge for platform decisions, taking advisory input from scale-ops on capacity, and routing migration-ops when a live system needs a schema, framework, or platform change. The plan checkpoint is the master record downstream skills consume.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="band-arrow" id="ba-1" data-from="plan" data-to="build"
+               onmouseenter="arrowEnter()" onmouseleave="arrowLeave()"></div>
+
+          <!-- ══ BAND 3: BUILD ══ -->
+          <div class="band" id="band-build" data-phase="build"
+               tabindex="0"
+               onmouseenter="bandEnter('build')" onmouseleave="bandLeave()"
+               onfocus="bandEnter('build')" onblur="bandLeave()">
+            <div class="band-label">
+              <div class="band-label-bar" style="background:var(--warning)"></div>
+              <span class="band-label-text">BUILD</span>
+            </div>
+            <div class="band-content">
+              <svg viewBox="0 0 760 120" role="img" aria-label="Build phase: ux-engineer, dash-forge, api-dev, integrations-engineer">
+                <rect x="14" y="22" width="170" height="76" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1" opacity="0.97"><title>ux-engineer — tri-agent: Planner / Generator / Evaluator. Auto-attaches Design Evaluator to UI sprints.</title></rect>
+                <rect x="14" y="22" width="170" height="76" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
+                <text x="99" y="40" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">ux-engineer</text>
+                <text x="99" y="52" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent</text>
+                <text x="99" y="64" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Planner · Generator · Eval</text>
+                <text x="99" y="78" fill="#f59e0b" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/uxe · /design</text>
+                <g class="branch-tag"><rect x="64" y="85" width="70" height="11" rx="2" fill="rgba(13,148,136,.12)" stroke="#0D9488" stroke-width="0.5"/><text x="99.0" y="93" fill="#0D9488" font-size="7" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">→ dash-forge</text></g>
+                <rect x="147" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="147" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="158" y="24.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="173" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="173" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="184" y="24.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+
+                <rect x="206" y="22" width="160" height="76" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" opacity="0.97"><title>dash-forge — standalone specialist; dashboard + dense-info UI designer (Tufte density)</title></rect>
+                <rect x="206" y="22" width="160" height="76" rx="5" fill="rgba(13,148,136,0.06)" stroke="#0D9488" stroke-width="0.5"/>
+                <text x="286" y="40" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">dash-forge</text>
+                <text x="286" y="52" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist</text>
+                <text x="286" y="64" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tufte-density UI</text>
+                <text x="286" y="78" fill="#0D9488" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/data-forge · /dashboard</text>
+                <rect x="329" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="329" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="340" y="24.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="355" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="355" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="366" y="24.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+
+                <rect x="388" y="22" width="170" height="76" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1" opacity="0.97"><title>api-dev — tri-agent; first-party API surface; OpenAPI/GraphQL elaboration</title></rect>
+                <rect x="388" y="22" width="170" height="76" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
+                <text x="473" y="40" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">api-dev</text>
+                <text x="473" y="52" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent</text>
+                <text x="473" y="64" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">OpenAPI / GraphQL</text>
+                <text x="473" y="78" fill="#f59e0b" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">first-party API surface</text>
+                <g class="branch-tag"><rect x="432" y="85" width="82" height="11" rx="2" fill="rgba(13,148,136,.12)" stroke="#0D9488" stroke-width="0.5"/><text x="473.0" y="93" fill="#0D9488" font-size="7" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">→ code-auditor</text></g>
+                <rect x="521" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="521" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="532" y="24.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="547" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="547" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="558" y="24.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+
+                <rect x="580" y="22" width="160" height="76" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1" opacity="0.97"><title>integrations-engineer — tri-agent: Planner / Builder / Tester; third-party API integrations (OAuth, webhooks)</title></rect>
+                <rect x="580" y="22" width="160" height="76" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
+                <text x="660" y="40" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">integrations-eng</text>
+                <text x="660" y="52" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent</text>
+                <text x="660" y="64" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Planner · Builder · Tester</text>
+                <text x="660" y="78" fill="#f59e0b" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/integrate · OAuth · webhooks</text>
+                <g class="branch-tag"><rect x="619" y="85" width="82" height="11" rx="2" fill="rgba(13,148,136,.12)" stroke="#0D9488" stroke-width="0.5"/><text x="660.0" y="93" fill="#0D9488" font-size="7" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">→ code-auditor</text></g>
+                <rect x="703" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="703" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="714" y="24.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="729" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="729" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="740" y="24.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+              </svg>
+              <div class="band-detail">
+                <div class="bd-inner" style="background:rgba(245,158,11,0.04);border:0.5px solid rgba(245,158,11,0.2)">
+                  <div class="bd-left">
+                    <div class="bd-meta">
+                      <div class="bd-meta-row"><span class="bd-meta-label">skills</span><div class="bd-tags">
+                        <span class="bd-tag" style="background:rgba(245,158,11,0.1);border:0.5px solid rgba(245,158,11,0.4);color:#f59e0b">ux-engineer</span>
+                        <span class="bd-tag" style="background:rgba(13,148,136,0.1);border:0.5px solid rgba(13,148,136,0.35);color:#0D9488">dash-forge</span>
+                        <span class="bd-tag" style="background:rgba(245,158,11,0.1);border:0.5px solid rgba(245,158,11,0.4);color:#f59e0b">api-dev</span>
+                        <span class="bd-tag" style="background:rgba(245,158,11,0.1);border:0.5px solid rgba(245,158,11,0.4);color:#f59e0b">integrations-eng</span>
+                      </div></div>
+                      <div class="bd-meta-row"><span class="bd-meta-label">checkpt</span><div class="bd-cp"><span class="bd-cp-badge">CP</span> phase · ux_specs · api_surface · integrations · dashboards</div></div>
+                      <div class="bd-meta-row"><span class="bd-meta-label">links</span><div class="bd-cross">
+                        <span class="bd-cross-tag" style="background:rgba(224,92,24,0.06);border:0.5px solid rgba(224,92,24,0.2);color:#e05c18">↑ auto-invoked by app-architect</span>
+                        <span class="bd-cross-tag" style="background:rgba(244,63,94,0.06);border:0.5px solid rgba(244,63,94,0.2);color:#F43F5E">↓ to ship gates</span>
+                      </div></div>
+                    </div>
+                    <div class="bd-text">
+                      <div class="bd-badge" style="color:var(--warning)">Phase 3 of 5</div>
+                      <div class="bd-title">Build</div>
+                      <div class="bd-desc">Three tri-agent loops (ux-engineer · api-dev · integrations-engineer) plus the dense-UI specialist (dash-forge) work in parallel. ux-engineer hands data-heavy screens to dash-forge; api-dev produces an OpenAPI/GraphQL contract that the deploy-time drift gate later enforces. All four feed checkpoints back to app-architect.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="band-arrow" id="ba-2" data-from="build" data-to="ship"
+               onmouseenter="arrowEnter()" onmouseleave="arrowLeave()"></div>
+
+          <!-- ══ BAND 4: SHIP ══ -->
+          <div class="band" id="band-ship" data-phase="ship"
+               tabindex="0"
+               onmouseenter="bandEnter('ship')" onmouseleave="bandLeave()"
+               onfocus="bandEnter('ship')" onblur="bandLeave()">
+            <div class="band-label">
+              <div class="band-label-bar" style="background:var(--ember)"></div>
+              <span class="band-label-text">SHIP</span>
+            </div>
+            <div class="band-content">
+              <svg viewBox="0 0 760 180" role="img" aria-label="Ship phase: bug-check, git-ops, code-auditor, security-auditor, deploy-ops">
+                <rect x="180" y="14" width="160" height="50" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" opacity="0.97"><title>git-ops — specialist; branch, commit, PR, sync</title></rect>
+                <rect x="180" y="14" width="160" height="50" rx="5" fill="rgba(13,148,136,0.06)" stroke="#0D9488" stroke-width="0.5"/>
+                <text x="260" y="30" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">git-ops</text>
+                <text x="260" y="42" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Workflow</text>
+                <text x="260" y="56" fill="#0D9488" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/git · /commit · /pr · /push</text>
+                <rect x="303" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="303" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="314" y="16.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="329" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="329" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="340" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <g class="spine-chip"><rect x="230" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="230" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="260" y="17" fill="#0D9488" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑2·3·↓4</text></g>
+
+                <rect x="430" y="14" width="190" height="50" rx="5" fill="#1c1710" stroke="#e05c18" stroke-width="1" filter="url(#glow-orch)" opacity="0.97"><title>deploy-ops — orchestrator; staging, prod, rollback, audit gate enforcement</title></rect>
+                <rect x="430" y="14" width="190" height="50" rx="5" fill="rgba(224,92,24,.08)" stroke="#e05c18" stroke-width="0.5"/>
+                <text x="525" y="30" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">deploy-ops</text>
+                <text x="525" y="42" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Orchestrator · Workflow</text>
+                <text x="525" y="56" fill="#e05c18" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/deploy · gates → prod → rollback</text>
+                <rect x="583" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="583" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                <text x="594" y="16.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="609" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="609" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                <text x="620" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <g class="spine-chip"><rect x="495" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="495" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="525" y="17" fill="#0D9488" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑3·4·↓5</text></g>
+
+                <rect x="50" y="92" width="140" height="72" rx="5" fill="#1c1710" stroke="#F43F5E" stroke-width="1" opacity="0.97"><title>bug-check — audit gate; pre-commit type/lint/secret/vulnerability scan</title></rect>
+                <rect x="50" y="92" width="140" height="72" rx="5" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="0.5"/>
+                <text x="120" y="108" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">bug-check</text>
+                <text x="120" y="120" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate · pre-commit</text>
+                <text x="120" y="134" fill="#F43F5E" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">type · lint · secrets · vuln</text>
+                <text x="120" y="146" fill="#F43F5E" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/bugcheck</text>
+                <rect x="153" y="85" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="153" y="85" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="164" y="94.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="179" y="85" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="179" y="85" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="190" y="94.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+
+                <rect x="240" y="92" width="170" height="72" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1" opacity="0.97"><title>code-auditor — tri-agent: Auditor / Fixer / Verifier; functions as audit gate (red dashed exits gate the production deploy)</title></rect>
+                <rect x="240" y="92" width="170" height="72" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
+                <text x="325" y="108" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">code-auditor</text>
+                <text x="325" y="120" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · gates prod</text>
+                <text x="325" y="134" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Auditor · Fixer · Verifier</text>
+                <text x="325" y="146" fill="#f59e0b" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/audit · score ≥ 7/10</text>
+                <g class="branch-tag"><rect x="276" y="151" width="98" height="11" rx="2" fill="rgba(13,148,136,.12)" stroke="#0D9488" stroke-width="0.5"/><text x="325.0" y="159" fill="#0D9488" font-size="7" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">→ security-auditor</text></g>
+                <rect x="373" y="85" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="373" y="85" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="384" y="94.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="399" y="85" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="399" y="85" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="410" y="94.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+
+                <rect x="460" y="92" width="200" height="72" rx="5" fill="#1c1710" stroke="#F43F5E" stroke-width="1" opacity="0.97"><title>security-auditor — audit gate; STRIDE threat model, OWASP Top 10, infra hardening</title></rect>
+                <rect x="460" y="92" width="200" height="72" rx="5" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="0.5"/>
+                <text x="560" y="108" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">security-auditor</text>
+                <text x="560" y="120" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate · posture review</text>
+                <text x="560" y="134" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">STRIDE · OWASP · TLS · CSP</text>
+                <text x="560" y="146" fill="#F43F5E" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/security · /threat-model</text>
+                <rect x="623" y="85" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="623" y="85" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="634" y="94.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="649" y="85" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="649" y="85" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="660" y="94.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+
+                <polyline points="120,92 120,78 260,78 260,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
+                <text x="208" y="74" fill="#ef4444" font-size="6.8" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">pre-commit</text>
+
+                <polyline points="325,92 325,78 510,78 510,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
+                <text x="430" y="98" fill="#ef4444" font-size="6.8" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">audit gate</text>
+
+                <polyline points="560,92 560,78 540,78 540,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
+                <text x="568" y="74" fill="#ef4444" font-size="6.8" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">posture gate</text>
+              </svg>
+              <div class="band-detail">
+                <div class="bd-inner" style="background:rgba(224,92,24,0.04);border:0.5px solid rgba(224,92,24,0.2)">
+                  <div class="bd-left">
+                    <div class="bd-meta">
+                      <div class="bd-meta-row"><span class="bd-meta-label">skills</span><div class="bd-tags">
+                        <span class="bd-tag" style="background:rgba(244,63,94,0.1);border:0.5px solid rgba(244,63,94,0.4);color:#F43F5E">bug-check</span>
+                        <span class="bd-tag" style="background:rgba(13,148,136,0.1);border:0.5px solid rgba(13,148,136,0.35);color:#0D9488">git-ops</span>
+                        <span class="bd-tag" style="background:rgba(245,158,11,0.1);border:0.5px solid rgba(245,158,11,0.4);color:#f59e0b">code-auditor</span>
+                        <span class="bd-tag" style="background:rgba(244,63,94,0.1);border:0.5px solid rgba(244,63,94,0.4);color:#F43F5E">security-auditor</span>
+                        <span class="bd-tag" style="background:rgba(224,92,24,0.1);border:0.5px solid rgba(224,92,24,0.4);color:#e05c18">deploy-ops</span>
+                      </div></div>
+                      <div class="bd-meta-row"><span class="bd-meta-label">checkpt</span><div class="bd-cp"><span class="bd-cp-badge">CP</span> phase · audit_score · posture · branch · pr · deploy_status</div></div>
+                      <div class="bd-meta-row"><span class="bd-meta-label">links</span><div class="bd-cross">
+                        <span class="bd-cross-tag" style="background:rgba(244,63,94,0.06);border:0.5px solid rgba(244,63,94,0.2);color:#F43F5E">3 audit gates block prod</span>
+                        <span class="bd-cross-tag" style="background:rgba(224,92,24,0.06);border:0.5px solid rgba(224,92,24,0.2);color:#e05c18">↓ handoff to monitor</span>
+                      </div></div>
+                    </div>
+                    <div class="bd-text">
+                      <div class="bd-badge" style="color:var(--ember)">Phase 4 of 5</div>
+                      <div class="bd-title">Ship</div>
+                      <div class="bd-desc">Three audit gates (bug-check pre-commit, code-auditor for code-level findings, security-auditor for STRIDE/OWASP/infra) all must pass before deploy-ops will run the production sequence. The spine flows git-ops → deploy-ops; the gate cluster sits below and writes blocker status into shared checkpoints.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="band-arrow" id="ba-3" data-from="ship" data-to="monitor"
+               onmouseenter="arrowEnter()" onmouseleave="arrowLeave()"></div>
+
+          <!-- ══ BAND 5: MONITOR ══ -->
+          <div class="band" id="band-monitor" data-phase="monitor"
+               tabindex="0"
+               onmouseenter="bandEnter('monitor')" onmouseleave="bandLeave()"
+               onfocus="bandEnter('monitor')" onblur="bandLeave()">
+            <div class="band-label">
+              <div class="band-label-bar" style="background:var(--success)"></div>
+              <span class="band-label-text">MONITOR</span>
+            </div>
+            <div class="band-content">
+              <svg viewBox="0 0 760 80" role="img" aria-label="Monitor phase: monitoring-ops">
+                <rect x="280" y="14" width="200" height="52" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" filter="url(#glow-mint)" opacity="0.97"><title>monitoring-ops — specialist; uptime, error tracking, alerting, SLO dashboards, incident response</title></rect>
+                <rect x="280" y="14" width="200" height="52" rx="5" fill="rgba(13,148,136,0.06)" stroke="#0D9488" stroke-width="0.5"/>
+                <text x="380" y="30" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">monitoring-ops</text>
+                <text x="380" y="42" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · observability</text>
+                <text x="380" y="56" fill="#0D9488" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/monitor · uptime · SLO · incidents</text>
+                <rect x="443" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="443" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="454" y="16.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="469" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="469" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="480" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <g class="spine-chip"><rect x="350" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="350" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="380" y="17" fill="#0D9488" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑4·5</text></g>
+              </svg>
+              <div class="band-detail">
+                <div class="bd-inner" style="background:rgba(13,148,136,0.04);border:0.5px solid rgba(13,148,136,0.2)">
+                  <div class="bd-left">
+                    <div class="bd-meta">
+                      <div class="bd-meta-row"><span class="bd-meta-label">skills</span><div class="bd-tags">
+                        <span class="bd-tag" style="background:rgba(13,148,136,0.1);border:0.5px solid rgba(13,148,136,0.4);color:#0D9488">monitoring-ops</span>
+                      </div></div>
+                      <div class="bd-meta-row"><span class="bd-meta-label">checkpt</span><div class="bd-cp"><span class="bd-cp-badge">CP</span> phase · slo_status · alert_rules · incident_log</div></div>
+                      <div class="bd-meta-row"><span class="bd-meta-label">links</span><div class="bd-cross">
+                        <span class="bd-cross-tag" style="background:rgba(224,92,24,0.06);border:0.5px solid rgba(224,92,24,0.2);color:#e05c18">↑ handoff from deploy-ops</span>
+                        <span class="bd-cross-tag" style="background:rgba(245,158,11,0.06);border:0.5px solid rgba(245,158,11,0.2);color:#f59e0b">api-dev SLO + drift manifest</span>
+                      </div></div>
+                    </div>
+                    <div class="bd-text">
+                      <div class="bd-badge" style="color:var(--success)">Phase 5 of 5</div>
+                      <div class="bd-title">Monitor</div>
+                      <div class="bd-desc">deploy-ops hands off to monitoring-ops once production is green. monitoring-ops also receives api-dev's SLO + drift manifest so contract violations alert the same way uptime errors do. Incident response runbooks and postmortems live here.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div class="legend">
+            <div class="legend-section-label">connections</div>
+
+            <span class="legend-item" tabindex="0" role="button"
+                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
+                  onfocus="legendEnter(this)" onblur="legendLeave()">
+              <div class="li-swatch li-swatch-spine">↑N↓</div>
+              <span>spine ordinal</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title">Spine Ordinal</div>
+                The 5 primary-spine skills wear numbered ember chips showing handoff position. Each chip carries <code>↑prev·↓next</code> indicators. Replaces the green handoff lines that previously connected them. Branch handoffs use inline mint <code>→ target</code> pills inside source rects.
+                <div class="legend-card-examples">1 rev-spec → 2 app-arch → 3 git-ops → 4 deploy-ops → 5 monitoring-ops</div>
+              </div>
+            </span>
+            <span class="legend-item" tabindex="0" role="button"
+                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
+                  onfocus="legendEnter(this)" onblur="legendLeave()">
+              <div class="li-line" style="border-color:#e05c18;border-style:dashed"></div>
+              <span>auto-invoke</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title">Auto-invoke</div>
+                The orchestrator silently triggers a sub-skill without explicit user command. The sub-skill operates in the orchestrator's current phase context.
+                <div class="legend-card-examples">e.g. app-architect → stack-forge · app-architect → ux-engineer · app-architect → api-dev</div>
+              </div>
+            </span>
+            <span class="legend-item" tabindex="0" role="button"
+                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
+                  onfocus="legendEnter(this)" onblur="legendLeave()">
+              <div class="li-line" style="border-color:#c4b89e;border-style:dashed"></div>
+              <span>advisory</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title">Advisory</div>
+                Non-blocking recommendations passed via checkpoint. The receiver can accept or override. No hard dependency.
+                <div class="legend-card-examples">e.g. scale-ops → app-architect · stack-forge → app-architect · migration-ops ↔ app-architect</div>
+              </div>
+            </span>
+            <span class="legend-item" tabindex="0" role="button"
+                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
+                  onfocus="legendEnter(this)" onblur="legendLeave()">
+              <div class="li-line" style="border-color:#ef4444;border-style:dashed"></div>
+              <span>audit gate</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title">Audit Gate</div>
+                Pipeline blocks until the gate writes a passing result. Three gates in this ecosystem: bug-check (pre-commit), code-auditor (code-level), security-auditor (posture).
+                <div class="legend-card-examples">score ≥ 7/10 · STRIDE clean · zero critical CVEs</div>
+              </div>
+            </span>
+            <span class="legend-item" tabindex="0" role="button"
+                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
+                  onfocus="legendEnter(this)" onblur="legendLeave()">
+              <div class="li-swatch" style="background:rgba(224,92,24,.10);border:.5px solid rgba(224,92,24,.6)"></div>
+              <span>CP · checkpoint</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title">Checkpoint Protocol</div>
+                Every skill writes JSON to <code>.checkpoints/</code> after each state change. Single source of truth — any skill can read any other's checkpoint to rebuild context after a reset. CP badge sits centered on the top edge of each skill, paired just to the left of ORC. Hover the CP zone toggle top-left of the diagram to see all 17 connected.
+                <div class="legend-card-examples">.checkpoints/app-architect.json · phase · progress_table · blockers · next_actions</div>
+              </div>
+            </span>
+            <span class="legend-item" tabindex="0" role="button"
+                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
+                  onfocus="legendEnter(this)" onblur="legendLeave()">
+              <div class="li-swatch" style="background:rgba(224,92,24,.10);border:.5px solid rgba(224,92,24,.6)"></div>
+              <span>ORC · orchestrator</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title">Orchestrator</div>
+                Every skill is routed by <code>/ops</code> — the central orchestrator tracks which checkpoint is current and dispatches the next skill in the pipeline. The ORC badge sits centered on the top-right corner of each skill (straddling the right edge), with CP paired immediately to its left. Marks every skill that participates in active chaining.
+                <div class="legend-card-examples">/ops · cross-project routing · gate enforcement · "what should I do next" recommendations</div>
+              </div>
+            </span>
+
+            <div class="legend-divider"></div>
+            <div class="legend-section-label">skill types</div>
+
+            <span class="legend-item" tabindex="0" role="button"
+                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
+                  onfocus="legendEnter(this)" onblur="legendLeave()">
+              <div class="li-swatch" style="background:rgba(245,158,11,.08);border:1px solid #f59e0b;box-shadow:0 0 6px rgba(245,158,11,.4)"></div>
+              <span>tri-agent</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title" style="color:#f59e0b">Tri-agent</div>
+                Skills running an internal Planner / Generator / Evaluator loop. The Evaluator scores output (≥ 7/10 to advance); failure triggers Generator retry until threshold or max iterations.
+                <div class="legend-card-examples">app-architect · ux-engineer · api-dev · integrations-engineer · code-auditor</div>
+              </div>
+            </span>
+            <span class="legend-item" tabindex="0" role="button"
+                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
+                  onfocus="legendEnter(this)" onblur="legendLeave()">
+              <div class="li-swatch" style="background:rgba(14,165,233,.08);border:1px solid #0EA5E9;box-shadow:0 0 6px rgba(14,165,233,.4)"></div>
+              <span>advisor</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title" style="color:#0EA5E9">Advisor</div>
+                Non-orchestrating skills that return recommendations or analysis. No tri-agent loop. Results fed back via checkpoint; caller can override.
+                <div class="legend-card-examples">stack-forge · scale-ops</div>
+              </div>
+            </span>
+            <span class="legend-item" tabindex="0" role="button"
+                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
+                  onfocus="legendEnter(this)" onblur="legendLeave()">
+              <div class="li-swatch" style="background:rgba(13,148,136,.08);border:1px solid #0D9488;box-shadow:0 0 6px rgba(13,148,136,.4)"></div>
+              <span>specialist</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title" style="color:#0D9488">Standalone Specialist</div>
+                Single-purpose skills that produce a concrete artifact and hand it off. No internal loop, no orchestration of others.
+                <div class="legend-card-examples">reverse-spec · dash-forge · git-ops · migration-ops · monitoring-ops</div>
+              </div>
+            </span>
+            <span class="legend-item" tabindex="0" role="button"
+                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
+                  onfocus="legendEnter(this)" onblur="legendLeave()">
+              <div class="li-swatch" style="background:rgba(224,92,24,.08);border:1px solid #e05c18;box-shadow:0 0 6px rgba(224,92,24,.4)"></div>
+              <span>workflow / orchestrator</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title" style="color:#e05c18">Workflow / Orchestrator</div>
+                Skills that drive structured, sequential pipelines. app-architect orchestrates the build; deploy-ops orchestrates the ship; orchestrator routes across projects.
+                <div class="legend-card-examples">app-architect · deploy-ops · orchestrator</div>
+              </div>
+            </span>
+            <span class="legend-item" tabindex="0" role="button"
+                  onmouseenter="legendEnter(this)" onmouseleave="legendLeave()"
+                  onfocus="legendEnter(this)" onblur="legendLeave()">
+              <div class="li-swatch" style="background:rgba(244,63,94,.08);border:1px solid #F43F5E;box-shadow:0 0 6px rgba(244,63,94,.4)"></div>
+              <span>audit gate</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title" style="color:#F43F5E">Audit Gate</div>
+                Quality enforcement skills that block pipeline progression until thresholds are met. Three in this ecosystem cover three layers: pre-commit, code-level (also tri-agent — see yellow stroke on code-auditor), security posture.
+                <div class="legend-card-examples">bug-check · code-auditor · security-auditor</div>
+              </div>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot" style="background:var(--success)"></div>
+            <h3>Spine Ordinals</h3>
+          </div>
+          <ul>
+            <li>· Ember chips on the 5 spine skills mark the handoff sequence</li>
+            <li>· <strong style="color:var(--success)">1</strong> reverse-spec → <strong style="color:var(--success)">2</strong> app-architect → <strong style="color:var(--success)">3</strong> git-ops → <strong style="color:var(--success)">4</strong> deploy-ops → <strong style="color:var(--success)">5</strong> monitoring-ops</li>
+            <li>· Each chip carries <code>↑prev·↓next</code> for direction</li>
+            <li>· Branch handoffs as inline mint pills inside source rects:</li>
+            <li>&nbsp;&nbsp;ux-engineer <span style="color:#0D9488">→ dash-forge</span></li>
+            <li>&nbsp;&nbsp;api-dev / integ-eng <span style="color:#0D9488">→ code-auditor</span></li>
+            <li>&nbsp;&nbsp;code-auditor <span style="color:#0D9488">→ security-auditor</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot" style="background:var(--warning)"></div>
+            <h3>Tri-Agent Patterns (5)</h3>
+          </div>
+          <ul>
+            <li>· app-architect: Generator / Evaluator</li>
+            <li>· ux-engineer: Planner / Generator / Evaluator</li>
+            <li>· api-dev: Planner / Generator / Evaluator</li>
+            <li>· integrations-engineer: Planner / Builder / Tester</li>
+            <li>· code-auditor: Auditor / Fixer / Verifier</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot" style="background:var(--auditor)"></div>
+            <h3>Audit Gates (3)</h3>
+          </div>
+          <ul>
+            <li>· bug-check — pre-commit type/lint/secret scan</li>
+            <li>· code-auditor — code-level Auditor/Fixer/Verifier</li>
+            <li>· security-auditor — STRIDE / OWASP / infra hardening</li>
+            <li>· All three must pass before deploy-ops ships</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot" style="background:var(--ember)"></div>
+            <h3>Checkpoint Protocol</h3>
+          </div>
+          <ul>
+            <li>· JSON files at .checkpoints/&lt;skill&gt;.json</li>
+            <li>· Keys: phase · progress_table · context_primer · blockers · next_actions</li>
+            <li>· All 17 skills read all 17 checkpoints (no ACL)</li>
+            <li>· Resume: own → upstream → novice mode</li>
+            <li>· Framework-agnostic — no platform lock-in</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot" style="background:var(--sand)"></div>
+            <h3>Routing Key</h3>
+          </div>
+          <ul>
+            <li>· <strong>Bus pattern</strong>: 1 trunk + N branches for fan-outs/fan-ins</li>
+            <li>· <strong>Lane offsets</strong>: handoff −10, auto-invoke −3, advisory +4, gate +11</li>
+            <li>· <strong>Width</strong>: spine 1.8 · secondary 1.2 · advisory 1.0 · gate 1.4</li>
+            <li>· <strong>Opacity</strong>: spine .95 · secondary .78 · advisory .55</li>
+            <li>· <strong>Long-jumps</strong>: route via left/right gutter (safeX 32)</li>
+            <li>· <strong>Edge centers only</strong>: top receives, bottom sends</li>
+            <li>· <strong>Bidirectional</strong>: single line, both arrowheads (e.g. migration-ops ↔ app-arch)</li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="footer">opchain skills ecosystem v2 · asfbay-bit/opchain · 17 skills · 5 phases · 5 tri-agent · 3 audit gates · spine ordinals · checkpoint-driven</p>
+    </div>
+  </div>
+
+  <script is:inline>
+    /* ══ Architecture v2 — interactive diagram ══ */
+    const PHASES = ['discover','plan','build','ship','monitor'];
+    const ARROWS = ['ba-0','ba-1','ba-2','ba-3'];
+    let activePhase = null, leaveTimeout = null;
+    let cpActive = false, cpLeaveTimeout = null;
+    let orchActive = false, orchLeaveTimeout = null;
+    let legendActive = false, legendLeaveTimeout = null;
+
+    /* Skill coordinate map: cross-band canvas line endpoints */
+    const SKILLS = {
+      'reverse-spec':          { band: 'discover', x: 298, y: 14,  w: 165, h: 52,  vbW: 760, vbH: 80  },
+      'scale-ops':             { band: 'plan',     x: 20,  y: 14,  w: 118, h: 48,  vbW: 760, vbH: 150 },
+      'stack-forge':           { band: 'plan',     x: 20,  y: 84,  w: 118, h: 48,  vbW: 760, vbH: 150 },
+      'app-architect':         { band: 'plan',     x: 240, y: 22,  w: 280, h: 106, vbW: 760, vbH: 150 },
+      'migration-ops':         { band: 'plan',     x: 610, y: 50,  w: 130, h: 50,  vbW: 760, vbH: 150 },
+      'ux-engineer':           { band: 'build',    x: 14,  y: 22,  w: 170, h: 76,  vbW: 760, vbH: 120 },
+      'dash-forge':            { band: 'build',    x: 206, y: 22,  w: 160, h: 76,  vbW: 760, vbH: 120 },
+      'api-dev':               { band: 'build',    x: 388, y: 22,  w: 170, h: 76,  vbW: 760, vbH: 120 },
+      'integrations-engineer': { band: 'build',    x: 580, y: 22,  w: 160, h: 76,  vbW: 760, vbH: 120 },
+      'bug-check':             { band: 'ship',     x: 50,  y: 92,  w: 140, h: 72,  vbW: 760, vbH: 180 },
+      'git-ops':               { band: 'ship',     x: 180, y: 14,  w: 160, h: 50,  vbW: 760, vbH: 180 },
+      'code-auditor':          { band: 'ship',     x: 240, y: 92,  w: 170, h: 72,  vbW: 760, vbH: 180 },
+      'security-auditor':      { band: 'ship',     x: 460, y: 92,  w: 200, h: 72,  vbW: 760, vbH: 180 },
+      'deploy-ops':            { band: 'ship',     x: 430, y: 14,  w: 190, h: 50,  vbW: 760, vbH: 180 },
+      'monitoring-ops':        { band: 'monitor',  x: 280, y: 14,  w: 200, h: 52,  vbW: 760, vbH: 80  }
+    };
+
+    function drawConnectionLines() {
+      const canvas = document.getElementById('lines-canvas');
+      const wrap = document.getElementById('bands-wrap');
+      if (!canvas || !wrap) return;
+      const wr = wrap.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = wr.width * dpr;
+      canvas.height = wr.height * dpr;
+      canvas.style.width = wr.width + 'px';
+      canvas.style.height = wr.height + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, wr.width, wr.height);
+
+      function pt(skill, edge) {
+        const s = SKILLS[skill];
+        const svg = document.querySelector('#band-' + s.band + ' .band-content svg');
+        if (!svg) return null;
+        const sr = svg.getBoundingClientRect();
+        const sx = sr.width / s.vbW, sy = sr.height / s.vbH;
+        const cx = sr.left + (s.x + s.w / 2) * sx;
+        const cy = sr.top  + (s.y + s.h / 2) * sy;
+        let x, y;
+        switch (edge) {
+          case 'top':    x = cx;                                   y = sr.top + s.y * sy;             break;
+          case 'bottom': x = cx;                                   y = sr.top + (s.y + s.h) * sy;     break;
+          case 'left':   x = sr.left + s.x * sx;                   y = cy;                            break;
+          case 'right':  x = sr.left + (s.x + s.w) * sx;           y = cy;                            break;
+        }
+        return { x: x - wr.left, y: y - wr.top };
+      }
+
+      function arrowMidY(arrowId) {
+        const el = document.getElementById(arrowId);
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return r.top + r.height / 2 - wr.top;
+      }
+
+      function drawArrowhead(fromX, fromY, toX, toY, color, alpha, size) {
+        const angle = Math.atan2(toY - fromY, toX - fromX);
+        const sz = size || 5;
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.globalAlpha = alpha;
+        ctx.translate(toX, toY);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(-sz * 1.6, -sz * 0.55);
+        ctx.lineTo(-sz * 1.6,  sz * 0.55);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawPath(points, color, width, dash, alpha, arrowEnd, arrowSize) {
+        if (points.length < 2 || points.some(p => !p)) return;
+        const a = (alpha == null) ? 0.85 : alpha;
+        const aSz = arrowSize || 5;
+        const pts = points.map(p => ({ x: p.x, y: p.y }));
+        if (arrowEnd && pts.length >= 2) {
+          const p = pts[pts.length - 2], q = pts[pts.length - 1];
+          const dx = q.x - p.x, dy = q.y - p.y, len = Math.sqrt(dx*dx + dy*dy);
+          const back = aSz * 1.6;
+          if (len > back) pts[pts.length - 1] = { x: q.x - (dx/len)*back, y: q.y - (dy/len)*back };
+        }
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.globalAlpha = a;
+        ctx.setLineDash(dash ? [5, 4] : []);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        if (arrowEnd) {
+          const p = points[points.length - 2], q = points[points.length - 1];
+          drawArrowhead(p.x, p.y, q.x, q.y, color, a, aSz);
+        }
+      }
+
+      function labelPill(text, x, y, color) {
+        ctx.save();
+        ctx.font = '500 7.5px "JetBrains Mono", ui-monospace, monospace';
+        const m = ctx.measureText(text);
+        const padX = 6, padY = 3;
+        const w = m.width + padX * 2;
+        const h = 9 + padY * 2;
+        const rx = 3;
+        ctx.fillStyle = '#1c1710';
+        ctx.globalAlpha = 0.96;
+        if (ctx.roundRect) {
+          ctx.beginPath(); ctx.roundRect(x - w/2, y - h/2, w, h, rx); ctx.fill();
+        } else {
+          ctx.fillRect(x - w/2, y - h/2, w, h);
+        }
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 0.6;
+        ctx.globalAlpha = 0.45;
+        if (ctx.roundRect) {
+          ctx.beginPath(); ctx.roundRect(x - w/2, y - h/2, w, h, rx); ctx.stroke();
+        } else {
+          ctx.strokeRect(x - w/2, y - h/2, w, h);
+        }
+        ctx.globalAlpha = 0.95;
+        ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, x, y);
+        ctx.restore();
+      }
+
+      function ortho(srcSkill, srcEdge, tgtSkill, tgtEdge, midY, color, width, dash, alpha, arrowSize) {
+        const s = pt(srcSkill, srcEdge);
+        const t = pt(tgtSkill, tgtEdge);
+        if (!s || !t) return null;
+        const points = [s];
+        if (Math.abs(s.x - t.x) >= 0.5) {
+          points.push({ x: s.x, y: midY });
+          points.push({ x: t.x, y: midY });
+        }
+        points.push(t);
+        drawPath(points, color, width, dash, alpha, true, arrowSize);
+        return { s, t, midY };
+      }
+
+      function orthoSkip(srcSkill, srcEdge, tgtSkill, tgtEdge, midY1, midY2, safeX, color, width, dash, alpha, arrowSize) {
+        const s = pt(srcSkill, srcEdge);
+        const t = pt(tgtSkill, tgtEdge);
+        if (!s || !t) return null;
+        const points = [
+          s,
+          { x: s.x,    y: midY1 },
+          { x: safeX,  y: midY1 },
+          { x: safeX,  y: midY2 },
+          { x: t.x,    y: midY2 },
+          t
+        ];
+        drawPath(points, color, width, dash, alpha, true, arrowSize);
+        return { s, t, midY1, midY2, safeX };
+      }
+
+      function busFanOut(srcSkill, tgtSkills, midY, color, width, dash, alpha, arrowSize) {
+        const s = pt(srcSkill, 'bottom');
+        const targets = tgtSkills.map(n => ({ name: n, p: pt(n, 'top') })).filter(o => o.p);
+        if (!s || !targets.length) return null;
+        const xs = targets.map(o => o.p.x).concat([s.x]);
+        const busL = Math.min.apply(null, xs);
+        const busR = Math.max.apply(null, xs);
+        drawPath([s, { x: s.x, y: midY }], color, width, dash, alpha, false);
+        drawPath([{ x: busL, y: midY }, { x: busR, y: midY }], color, width, dash, alpha, false);
+        for (const o of targets) {
+          drawPath([{ x: o.p.x, y: midY }, o.p], color, width, dash, alpha, true, arrowSize);
+        }
+        return { s, targets: targets.map(o => o.p), midY, busL, busR };
+      }
+
+      function busFanIn(srcSkills, tgtSkill, midY, color, width, dash, alpha, arrowSize) {
+        const sources = srcSkills.map(n => pt(n, 'bottom')).filter(Boolean);
+        const t = pt(tgtSkill, 'top');
+        if (!sources.length || !t) return null;
+        const xs = sources.map(p => p.x).concat([t.x]);
+        const busL = Math.min.apply(null, xs);
+        const busR = Math.max.apply(null, xs);
+        for (const s of sources) {
+          drawPath([s, { x: s.x, y: midY }], color, width, dash, alpha, false);
+        }
+        drawPath([{ x: busL, y: midY }, { x: busR, y: midY }], color, width, dash, alpha, false);
+        drawPath([{ x: t.x, y: midY }, t], color, width, dash, alpha, true, arrowSize);
+        return { sources, t, midY, busL, busR };
+      }
+
+      const W_PRIMARY = 1.8, W_SECONDARY = 1.2, W_ADVISORY = 1.0;
+      const O_PRIMARY = 0.95, O_SECONDARY = 0.78, O_ADVISORY = 0.55;
+      const A_PRIMARY = 7, A_SECONDARY = 5, A_ADVISORY = 4;
+
+      const LANE_HANDOFF = -10, LANE_AUTO = -3, LANE_ADVISORY = +4, LANE_GATE = +11;
+
+      const safeXL = 32, safeXR = wr.width - 32;
+
+      const SUCC = '#0D9488', EMB = '#e05c18', SAND = '#c4b89e';
+
+      const mY_dp = arrowMidY('ba-0');
+      const mY_pb = arrowMidY('ba-1');
+      const mY_bs = arrowMidY('ba-2');
+      const mY_sm = arrowMidY('ba-3');
+
+      if (mY_dp == null || mY_pb == null || mY_bs == null || mY_sm == null) return;
+
+      /* Plan → Build: app-arch BUS fan-out (auto-invoke) */
+      const r2 = busFanOut('app-architect',
+                           ['ux-engineer', 'api-dev', 'integrations-engineer'],
+                           mY_pb + LANE_AUTO, EMB, W_SECONDARY, true, O_SECONDARY, A_SECONDARY);
+      if (r2) labelPill('auto-invoke', (r2.busL + r2.busR) / 2, mY_pb + LANE_AUTO, EMB);
+
+      /* Build → Ship: api-dev → security-auditor (advisory, around deploy-ops) */
+      const _dpR  = pt('deploy-ops', 'right');
+      const _dpB  = pt('deploy-ops', 'bottom');
+      const _saT2 = pt('security-auditor', 'top');
+      const safeX_sec = _dpR ? _dpR.x + 30 : (wr.width - 100);
+      const midY2_sec = (_dpB && _saT2) ? (_dpB.y + _saT2.y) / 2 : (mY_bs + LANE_ADVISORY + 60);
+      const r4 = orthoSkip('api-dev', 'bottom', 'security-auditor', 'top',
+                           mY_bs + LANE_ADVISORY, midY2_sec, safeX_sec,
+                           SAND, W_ADVISORY, true, O_ADVISORY, A_ADVISORY);
+      if (r4) labelPill('advisory', r4.safeX, (r4.midY1 + r4.midY2) / 2, SAND);
+
+      /* Build → Monitor long-jump: api-dev → monitoring-ops (advisory, right gutter) */
+      const r7 = orthoSkip('api-dev', 'bottom', 'monitoring-ops', 'top',
+                           mY_bs + LANE_ADVISORY, mY_sm + LANE_ADVISORY, safeXR,
+                           SAND, W_ADVISORY, true, O_ADVISORY, A_ADVISORY);
+      if (r7) labelPill('SLO + drift', r7.safeX, (r7.midY1 + r7.midY2) / 2, SAND);
+    }
+
+    function bandEnter(phase) {
+      clearTimeout(leaveTimeout);
+      if (cpActive || legendActive) return;
+      if (activePhase === phase) return;
+      activePhase = phase;
+      PHASES.forEach(p => {
+        const b = document.getElementById('band-' + p);
+        if (!b) return;
+        if (p === phase) { b.classList.add('active'); b.classList.remove('dimmed'); }
+        else { b.classList.add('dimmed'); b.classList.remove('active'); }
+      });
+      ARROWS.forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('dimmed'); });
+      const lc = document.getElementById('lines-canvas'); if (lc) lc.classList.add('dimmed');
+      const fd = document.getElementById('foundation'); if (fd) fd.classList.add('dimmed');
+    }
+    function bandLeave() {
+      leaveTimeout = setTimeout(() => {
+        activePhase = null;
+        PHASES.forEach(p => { const b = document.getElementById('band-' + p); if (b) b.classList.remove('active', 'dimmed'); });
+        ARROWS.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('dimmed'); });
+        const lc = document.getElementById('lines-canvas'); if (lc) lc.classList.remove('dimmed');
+        const fd = document.getElementById('foundation'); if (fd) fd.classList.remove('dimmed');
+        setTimeout(() => drawConnectionLines(), 550);
+      }, 200);
+    }
+    function arrowEnter() { clearTimeout(leaveTimeout); }
+    function arrowLeave() { bandLeave(); }
+
+    function cpEnter() {
+      clearTimeout(cpLeaveTimeout);
+      if (cpActive) return;
+      if (orchActive) {
+        document.getElementById('bands-wrap').classList.remove('orch-mode');
+        document.getElementById('orch-toggle').setAttribute('aria-expanded', 'false');
+        orchActive = false;
+        clearTimeout(orchLeaveTimeout);
+      }
+      cpActive = true; activePhase = null;
+      PHASES.forEach(p => { const b = document.getElementById('band-' + p); if (b) b.classList.remove('active', 'dimmed'); });
+      ARROWS.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('dimmed'); });
+      document.getElementById('bands-wrap').classList.add('cp-mode');
+      document.getElementById('cp-toggle').setAttribute('aria-expanded', 'true');
+    }
+    function cpLeave() {
+      cpLeaveTimeout = setTimeout(() => {
+        cpActive = false;
+        document.getElementById('bands-wrap').classList.remove('cp-mode');
+        document.getElementById('cp-toggle').setAttribute('aria-expanded', 'false');
+        setTimeout(() => drawConnectionLines(), 550);
+      }, 300);
+    }
+    function cpKeep() { clearTimeout(cpLeaveTimeout); }
+    function cpToggle() {
+      if (cpActive) { cpLeave(); }
+      else { cpEnter(); }
+    }
+
+    function orchEnter() {
+      clearTimeout(orchLeaveTimeout);
+      if (orchActive) return;
+      if (cpActive) {
+        document.getElementById('bands-wrap').classList.remove('cp-mode');
+        document.getElementById('cp-toggle').setAttribute('aria-expanded', 'false');
+        cpActive = false;
+        clearTimeout(cpLeaveTimeout);
+      }
+      orchActive = true; activePhase = null;
+      PHASES.forEach(p => { const b = document.getElementById('band-' + p); if (b) b.classList.remove('active', 'dimmed'); });
+      ARROWS.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('dimmed'); });
+      document.getElementById('bands-wrap').classList.add('orch-mode');
+      document.getElementById('orch-toggle').setAttribute('aria-expanded', 'true');
+    }
+    function orchLeave() {
+      orchLeaveTimeout = setTimeout(() => {
+        orchActive = false;
+        document.getElementById('bands-wrap').classList.remove('orch-mode');
+        document.getElementById('orch-toggle').setAttribute('aria-expanded', 'false');
+        setTimeout(() => drawConnectionLines(), 550);
+      }, 300);
+    }
+    function orchKeep() { clearTimeout(orchLeaveTimeout); }
+    function orchToggle() { if (orchActive) { orchLeave(); } else { orchEnter(); } }
+
+    function legendEnter(el) {
+      clearTimeout(legendLeaveTimeout);
+      if (cpActive) return;
+      legendActive = true;
+      document.querySelectorAll('.arch-v2 .legend-item').forEach(li => {
+        if (li === el) {
+          li.classList.remove('dimmed');
+          const c = li.querySelector('.legend-card'); if (c) c.classList.add('visible');
+        } else {
+          li.classList.add('dimmed');
+          const c = li.querySelector('.legend-card'); if (c) c.classList.remove('visible');
+        }
+      });
+    }
+    function legendLeave() {
+      legendLeaveTimeout = setTimeout(() => {
+        legendActive = false;
+        document.querySelectorAll('.arch-v2 .legend-item').forEach(li => {
+          li.classList.remove('dimmed');
+          const c = li.querySelector('.legend-card'); if (c) c.classList.remove('visible');
+        });
+      }, 200);
+    }
+
+    /* Expose handlers used by inline event attributes */
+    window.bandEnter = bandEnter;
+    window.bandLeave = bandLeave;
+    window.arrowEnter = arrowEnter;
+    window.arrowLeave = arrowLeave;
+    window.cpEnter = cpEnter;
+    window.cpLeave = cpLeave;
+    window.cpKeep = cpKeep;
+    window.cpToggle = cpToggle;
+    window.orchEnter = orchEnter;
+    window.orchLeave = orchLeave;
+    window.orchKeep = orchKeep;
+    window.orchToggle = orchToggle;
+    window.legendEnter = legendEnter;
+    window.legendLeave = legendLeave;
+
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', () => drawConnectionLines());
+    } else {
+      drawConnectionLines();
+    }
+    window.addEventListener('load', () => drawConnectionLines());
+    window.addEventListener('resize', () => drawConnectionLines());
+  </script>
 </Base>
 
-<style>
-  .page {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 3rem 1.5rem 6rem;
-  }
-  .page-head { margin-bottom: 3rem; }
-  .page-head h1 {
-    font-family: var(--font-display);
-    font-size: var(--fs-2xl);
-    font-weight: 600;
-    letter-spacing: var(--ls-tight);
-    color: var(--text);
-    margin: 0.75rem 0 1rem;
-  }
-  .lede { color: var(--muted); max-width: 42rem; }
+<style is:global>
+  /* ── Architecture v2 — scoped under .arch-v2 to avoid leaking into the rest of the site.
+        Native CSS nesting (Chrome 112+, Safari 16.5+, Firefox 117+) does the prefixing. ── */
 
-  .section {
-    border-top: 0.5px solid var(--border);
-    padding-top: 2.5rem;
-    margin-top: 2.5rem;
-  }
-  .section h2 {
-    font-family: var(--font-display);
-    font-size: var(--fs-xl);
-    font-weight: 600;
-    color: var(--text);
-    margin: 0 0 1rem;
-    letter-spacing: var(--ls-tight);
-  }
-  .section p { color: var(--muted); max-width: 42rem; margin: 0 0 1rem; }
-  .section a { color: var(--accent); }
-  .caption {
-    font-size: var(--fs-sm);
-    color: var(--subtle);
-    margin: 0 0 1rem;
-  }
+  .arch-v2 {
+    /* Forge surfaces */
+    --obsidian:   #1c1710;
+    --forge:      #2a2218;
+    --slag:       #5a5040;
+    --sand:       #c4b89e;
+    --linen:      #e8dfd0;
+    --parchment:  #f6f0e8;
 
-  .h3 {
-    font-family: var(--font-display);
-    font-size: var(--fs-md);
-    font-weight: 600;
-    color: var(--text);
-    margin: 1.75rem 0 0.75rem;
+    /* Brand accent */
+    --ember:      #e05c18;
+    --char:       #b84510;
+    --ember-dim:  rgba(224,92,24,.10);
+
+    /* Semantic */
+    --success:    #0D9488;
+    --warning:    #f59e0b;
+    --error:      #ef4444;
+    --advisor:    #0EA5E9;
+    --auditor:    #F43F5E;
+
+    /* Spacing */
+    --s-1: .25rem; --s-2: .5rem; --s-3: .75rem;
+    --s-4: 1rem;   --s-5: 1.5rem; --s-6: 2rem;
+
+    /* Radius */
+    --r-sm: 3px; --r-md: 5px; --r-lg: 8px;
+
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    background: var(--obsidian);
+    color: var(--linen);
+    padding: 2rem;
   }
 
-  .ic {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    padding: 1px 5px;
-    border-radius: var(--r-xs);
-    color: var(--text);
-  }
-  .ic.accent { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+  .arch-v2 *,
+  .arch-v2 *::before,
+  .arch-v2 *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-  .kind-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 0.6rem;
-    margin-top: 1rem;
-  }
-  .kind-head { margin-bottom: 0.65rem; }
-  /* Role-coloured pill for the skill-kinds grid header. Same outline +
-     15% colour-mix fill as the homepage skill pills; one source of truth
-     for role colours via lib/skills.ts. */
-  .kind-pill {
-    --pill-color: var(--specialist);
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 9px;
-    border-radius: 0;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    line-height: 1.5;
-    color: var(--pill-color);
-    border: 0.5px solid var(--pill-color);
-    background: color-mix(in srgb, var(--pill-color) 15%, transparent);
-    white-space: nowrap;
-  }
-  .kind-pill[data-role="workflow"]     { --pill-color: var(--workflow); }
-  .kind-pill[data-role="tri-agent"]    { --pill-color: var(--tri-agent); }
-  .kind-pill[data-role="audit-gate"]   { --pill-color: var(--audit-gate); }
-  .kind-pill[data-role="specialist"]   { --pill-color: var(--specialist); }
-  .kind-pill[data-role="advisor"]      { --pill-color: var(--advisor); }
-  .kind-pill[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
-  .kind-pill[data-role="success"]      { --pill-color: var(--success); }
-  .kind-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-  }
-  .kind-list li a {
-    font-family: var(--font-mono);
-    font-size: var(--fs-sm);
-    color: var(--text);
-    text-decoration: none;
-  }
-  .kind-list li a:hover { color: var(--accent); }
-
-  .handoff-table {
-    border: 0.5px solid var(--border);
-    border-radius: var(--r-md);
+  /* Hide the floating SVG defs container — referenced by url(#filter-id) only */
+  .arch-v2 .arch-v2-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
     overflow: hidden;
-    margin-top: 0.75rem;
   }
-  .hh, .hr {
-    display: grid;
-    grid-template-columns: minmax(140px, 1fr) minmax(140px, 1fr) 2.5fr;
-    gap: 1rem;
-    padding: 0.6rem 0.85rem;
-    font-size: var(--fs-sm);
-  }
-  .hh {
-    background: var(--surface);
-    color: var(--subtle);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    text-transform: uppercase;
-    letter-spacing: var(--ls-widest);
-  }
-  .hr { border-top: 0.5px solid var(--border); color: var(--muted); align-items: baseline; }
-  .hr a { text-decoration: none; }
 
-  .count-list {
-    list-style: none;
-    padding: 0;
-    margin: 0.75rem 0 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    color: var(--muted);
+  .arch-v2 .container { max-width: 100%; margin: 0 auto; }
+
+  .arch-v2 .header { margin-bottom: 1.5rem; }
+  .arch-v2 .header-eyebrow {
+    display: flex; align-items: center; gap: .5em;
+    font-size: .625rem; font-weight: 500; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--ember);
+    margin-bottom: .4em;
   }
-  .count-list strong { color: var(--text); }
+  .arch-v2 .header-eyebrow::before {
+    content: '—'; font-size: 1.125rem; line-height: 1; color: var(--ember);
+  }
+  .arch-v2 h1 {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: 1.5rem; font-weight: 600;
+    letter-spacing: -0.015em; color: var(--linen);
+  }
+  .arch-v2 .subtitle { color: var(--sand); font-size: .75rem; margin-top: .25em; }
+
+  .arch-v2 .diagram-container {
+    background: var(--forge);
+    border-radius: 8px;
+    border: .5px solid var(--slag);
+    padding: 20px;
+    position: relative;
+  }
+
+  .arch-v2 .bands-wrap {
+    border: 1px dashed rgba(224,92,24,.3);
+    border-radius: 6px;
+    padding: .5rem .5rem 1rem 0;
+    position: relative;
+    background: rgba(224,92,24,.015);
+  }
+  .arch-v2 .cp-zone-label {
+    position: absolute;
+    top: 10px; left: 16px;
+    display: flex; align-items: center; gap: 10px;
+    z-index: 4;
+  }
+  .arch-v2 .cp-zone-badge {
+    font-size: .625rem; font-weight: 700; color: var(--ember);
+    padding: .3em .5em; border-radius: 4px;
+    background: var(--ember-dim);
+    border: .5px solid rgba(224,92,24,.5);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    letter-spacing: .08em;
+  }
+  .arch-v2 .cp-zone-badge:focus-visible { outline: 1.5px solid var(--ember); outline-offset: 2px; }
+  .arch-v2 .cp-zone-text { display: flex; flex-direction: column; gap: 2px; }
+  .arch-v2 .cp-zone-title {
+    font-size: .6875rem; font-weight: 700; color: var(--ember);
+    cursor: pointer; letter-spacing: .05em;
+  }
+  .arch-v2 .cp-zone-sub { font-size: .5625rem; color: var(--slag); }
+
+  .arch-v2 .foundation {
+    display: flex; gap: 6px;
+    padding: 4px 6px 8px 6px;
+    align-items: stretch;
+    transition: opacity 1.5s ease, filter 1.5s ease;
+  }
+  .arch-v2 .foundation.dimmed { opacity: .12; filter: grayscale(.8) brightness(.4); }
+  .arch-v2 .foundation-pill {
+    flex: 1;
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px;
+    border-radius: 5px;
+    background: rgba(224,92,24,.04);
+    border: .5px solid rgba(224,92,24,.5);
+    box-shadow: 0 0 14px rgba(224,92,24,.18);
+  }
+  .arch-v2 .foundation-pill .fp-tag {
+    font-size: .55rem; font-weight: 700; color: var(--ember);
+    letter-spacing: .12em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 3px;
+    background: var(--ember-dim); border: .5px solid rgba(224,92,24,.5);
+  }
+  .arch-v2 .foundation-pill .fp-name {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: .75rem; font-weight: 600; color: var(--linen);
+  }
+  .arch-v2 .foundation-pill .fp-desc {
+    font-size: .55rem; color: var(--sand);
+    margin-left: auto;
+    letter-spacing: .02em;
+  }
+  .arch-v2 .foundation-pill-trigger {
+    cursor: pointer;
+    transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  .arch-v2 .foundation-pill-trigger:hover,
+  .arch-v2 .foundation-pill-trigger:focus-visible {
+    background: rgba(224,92,24,.10);
+    border-color: rgba(224,92,24,.7);
+    box-shadow: 0 0 22px rgba(224,92,24,.32);
+    outline: none;
+  }
+  .arch-v2 .foundation-pill-trigger:focus-visible {
+    outline: 1.5px solid var(--ember);
+    outline-offset: 2px;
+  }
+
+  .arch-v2 .band {
+    display: flex; align-items: stretch;
+    transition: opacity 1.5s ease, filter 1.5s ease;
+    position: relative;
+  }
+  .arch-v2 .band.dimmed { opacity: .06; filter: grayscale(1) brightness(.3); }
+  .arch-v2 .band-label {
+    width: 18px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative;
+    margin-left: 7px;
+  }
+  .arch-v2 .band-label:focus-visible { outline: 1.5px solid var(--ember); outline-offset: 2px; border-radius: 2px; }
+  .arch-v2 .band-label-text {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: .575rem; font-weight: 700;
+    letter-spacing: .15em; color: var(--slag);
+    transition: color .2s; white-space: nowrap;
+  }
+  .arch-v2 .band.active .band-label-text,
+  .arch-v2 .band:hover .band-label-text { color: var(--sand); }
+  .arch-v2 .band-label-bar {
+    position: absolute; left: 0; top: 6px; bottom: 6px;
+    width: 2px; border-radius: 1px;
+    opacity: 0; transition: opacity .2s;
+  }
+  .arch-v2 .band.active .band-label-bar { opacity: 1; }
+  .arch-v2 .band-content { flex: 1; min-width: 0; position: relative; }
+  .arch-v2 .band-content svg { width: 100%; display: block; }
+
+  .arch-v2 .band-detail {
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height .5s cubic-bezier(.4,0,.2,1),
+                opacity .4s ease .08s, padding .5s ease;
+    padding: 0 12px;
+  }
+  .arch-v2 .band.active .band-detail {
+    max-height: 320px; opacity: 1; padding: 8px 12px 12px;
+  }
+  .arch-v2 .bd-inner {
+    border-radius: 6px; padding: 12px 16px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .arch-v2 .bd-left { flex: 1; min-width: 0; display: flex; flex-direction: row; gap: 14px; align-items: flex-start; }
+  .arch-v2 .bd-text { flex: 1; min-width: 0; }
+  .arch-v2 .bd-badge {
+    font-size: .5rem; font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase; margin-bottom: 3px;
+  }
+  .arch-v2 .bd-title {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: .8125rem; font-weight: 600; color: var(--linen); margin-bottom: 5px;
+  }
+  .arch-v2 .bd-desc { font-size: .625rem; color: var(--sand); line-height: 1.65; }
+  .arch-v2 .bd-meta {
+    flex-shrink: 0; width: fit-content; border-radius: 5px; padding: 8px 10px;
+    background: rgba(0,0,0,.18); border: .5px solid rgba(196,184,158,.12);
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .arch-v2 .bd-meta-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .arch-v2 .bd-meta-label {
+    font-size: .529rem; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--slag); flex-shrink: 0; width: 44px;
+  }
+  .arch-v2 .bd-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .arch-v2 .bd-tag {
+    font-size: .661rem; padding: 2px 6px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .arch-v2 .bd-cp { font-size: .661rem; color: var(--ember); display: flex; align-items: center; gap: 4px; }
+  .arch-v2 .bd-cp-badge {
+    font-size: .578rem; font-weight: 700; padding: 1px 4px; border-radius: 3px;
+    background: var(--ember-dim); border: .5px solid rgba(224,92,24,.5);
+  }
+  .arch-v2 .bd-cross { display: flex; gap: 6px; flex-wrap: wrap; }
+  .arch-v2 .bd-cross-tag { font-size: .578rem; padding: 1px 5px; border-radius: 3px; opacity: .8; }
+
+  .arch-v2 .band-arrow {
+    display: flex; align-items: center; justify-content: center;
+    padding: 2px 0; height: 36px; gap: 10px;
+    transition: opacity 1.5s ease, filter 1.5s ease;
+  }
+  .arch-v2 .band-arrow.dimmed { opacity: .04; filter: grayscale(1) brightness(.2); }
+
+  .arch-v2 .lines-canvas {
+    position: absolute; inset: 0;
+    pointer-events: none; z-index: 2;
+    transition: opacity .75s ease;
+  }
+  .arch-v2 .lines-canvas.dimmed { opacity: .04; }
+  .arch-v2 .bands-wrap.cp-mode .lines-canvas { opacity: .04; }
+
+  .arch-v2 .bands-wrap.cp-mode .band,
+  .arch-v2 .bands-wrap.orch-mode .band {
+    opacity: .12;
+    filter: grayscale(.8) brightness(.4);
+    transition: opacity 1.5s ease, filter 1.5s ease;
+  }
+  .arch-v2 .bands-wrap.cp-mode .band-arrow,
+  .arch-v2 .bands-wrap.orch-mode .band-arrow { opacity: .03; transition: opacity 1.5s ease; }
+  .arch-v2 .bands-wrap.cp-mode .foundation,
+  .arch-v2 .bands-wrap.orch-mode .foundation { opacity: 1; filter: none; }
+  .arch-v2 .bands-wrap.cp-mode .cp-grid-section { opacity: 1; filter: none; }
+  .arch-v2 .bands-wrap.orch-mode .lines-canvas { opacity: .04; }
+
+  .arch-v2 .orch-detail-expand {
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height .6s cubic-bezier(.4,0,.2,1), opacity .4s ease .1s;
+    position: relative; z-index: 3;
+  }
+  .arch-v2 .bands-wrap.orch-mode .orch-detail-expand { max-height: 320px; opacity: 1; }
+
+  .arch-v2 .orch-route-svg { width: 100%; max-width: 720px; height: auto; display: block; margin: 0.75rem auto 0; }
+  .arch-v2 .orch-route-svg .orch-rt-rect,
+  .arch-v2 .orch-route-svg .orch-rt-orch-rect { transform-origin: center; transform-box: fill-box; }
+  .arch-v2 .bands-wrap.orch-mode .orch-rt-src      .orch-rt-rect      { animation: archV2RtSrcBox  5s linear infinite; }
+  .arch-v2 .bands-wrap.orch-mode .orch-rt-line-1                       { animation: archV2RtLine1   5s linear infinite; }
+  .arch-v2 .bands-wrap.orch-mode .orch-rt-orch     .orch-rt-orch-rect  { animation: archV2RtOrchPulse 5s linear infinite; }
+  .arch-v2 .bands-wrap.orch-mode .orch-rt-line-2                       { animation: archV2RtLine2   5s linear infinite; }
+  .arch-v2 .bands-wrap.orch-mode .orch-rt-tgt      .orch-rt-rect       { animation: archV2RtTgtBox  5s linear infinite; }
+  .arch-v2 .bands-wrap.orch-mode .orch-rt-decision                     { animation: archV2RtDecision 5s linear infinite; }
+  .arch-v2 .bands-wrap.orch-mode .orch-rt-orch-base                    { animation: archV2RtOrchBase 5s linear infinite; }
+  .arch-v2 .bands-wrap.orch-mode .orch-rt-src-cap                      { animation: archV2RtSrcCap  5s linear infinite; }
+  .arch-v2 .bands-wrap.orch-mode .orch-rt-orch-cap                     { animation: archV2RtOrchCap 5s linear infinite; }
+  .arch-v2 .bands-wrap.orch-mode .orch-rt-tgt-cap                      { animation: archV2RtTgtCap  5s linear infinite; }
+
+  @keyframes archV2RtSrcBox {
+    0%, 6%  { opacity: 0.6; transform: scale(1); fill-opacity: .10; stroke-width: .7; }
+    10%, 24%{ opacity: 1;   transform: scale(1.03); fill-opacity: .22; stroke-width: 1.2; }
+    30%, 100%{ opacity: 0.6; transform: scale(1); fill-opacity: .10; stroke-width: .7; }
+  }
+  @keyframes archV2RtSrcCap {
+    0%, 8%, 28%, 100% { opacity: 0; }
+    14%, 22%          { opacity: 1; }
+  }
+  @keyframes archV2RtLine1 {
+    0%, 22%, 42%, 100% { opacity: .25; stroke-width: 1.2; }
+    28%, 38%           { opacity: 1;   stroke-width: 1.8; }
+  }
+  @keyframes archV2RtOrchPulse {
+    0%, 36%, 64%, 100% { fill-opacity: .2; stroke-width: 1.2; }
+    42%, 58%           { fill-opacity: .48; stroke-width: 1.8; }
+  }
+  @keyframes archV2RtOrchBase {
+    0%, 38%, 64%, 100% { opacity: 1; }
+    44%, 58%           { opacity: 0; }
+  }
+  @keyframes archV2RtDecision {
+    0%, 40%, 64%, 100% { opacity: 0; }
+    46%, 60%           { opacity: 1; }
+  }
+  @keyframes archV2RtOrchCap {
+    0%, 38%, 64%, 100% { opacity: 0; }
+    44%, 60%           { opacity: 1; }
+  }
+  @keyframes archV2RtLine2 {
+    0%, 60%, 80%, 100% { opacity: .25; stroke-width: 1.2; }
+    66%, 76%           { opacity: 1;   stroke-width: 1.8; }
+  }
+  @keyframes archV2RtTgtBox {
+    0%, 76%, 96%, 100% { opacity: 0.6; transform: scale(1); fill-opacity: .10; stroke-width: .7; }
+    82%, 92%           { opacity: 1;   transform: scale(1.03); fill-opacity: .22; stroke-width: 1.2; }
+  }
+  @keyframes archV2RtTgtCap {
+    0%, 80%, 96%, 100% { opacity: 0; }
+    86%, 92%           { opacity: 1; }
+  }
+
+  .arch-v2 .cp-grid-section {
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height .6s cubic-bezier(.4,0,.2,1), opacity .5s ease .1s;
+    position: relative; z-index: 3;
+  }
+  .arch-v2 .bands-wrap.cp-mode .cp-grid-section { max-height: 320px; opacity: 1; }
+  .arch-v2 .orch-sync-svg { width: 100%; max-width: 720px; height: auto; display: block; margin: 0 auto; }
+
+  @keyframes archV2CpBoxIn {
+    0%   { opacity: 0; transform: scale(0.85); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes archV2CpLineIn {
+    0%   { opacity: 0; }
+    100% { opacity: 0.75; }
+  }
+  .arch-v2 .orch-sync-svg .cp-anim-box-1,
+  .arch-v2 .orch-sync-svg .cp-anim-box-2,
+  .arch-v2 .orch-sync-svg .cp-anim-box-3,
+  .arch-v2 .orch-sync-svg .cp-anim-box-4,
+  .arch-v2 .orch-sync-svg .cp-anim-box-5,
+  .arch-v2 .orch-sync-svg .cp-anim-box-6 { opacity: 0; transform-origin: center; transform-box: fill-box; }
+  .arch-v2 .orch-sync-svg .cp-anim-line-1,
+  .arch-v2 .orch-sync-svg .cp-anim-line-2,
+  .arch-v2 .orch-sync-svg .cp-anim-line-3,
+  .arch-v2 .orch-sync-svg .cp-anim-line-4,
+  .arch-v2 .orch-sync-svg .cp-anim-line-5,
+  .arch-v2 .orch-sync-svg .cp-anim-line-6 { opacity: 0; }
+
+  .arch-v2 .bands-wrap.cp-mode .cp-anim-box-1 { animation: archV2CpBoxIn 0.5s ease-out 0.0s forwards; }
+  .arch-v2 .bands-wrap.cp-mode .cp-anim-box-2 { animation: archV2CpBoxIn 0.5s ease-out 1.0s forwards; }
+  .arch-v2 .bands-wrap.cp-mode .cp-anim-box-3 { animation: archV2CpBoxIn 0.5s ease-out 2.0s forwards; }
+  .arch-v2 .bands-wrap.cp-mode .cp-anim-box-4 { animation: archV2CpBoxIn 0.5s ease-out 3.0s forwards; }
+  .arch-v2 .bands-wrap.cp-mode .cp-anim-box-5 { animation: archV2CpBoxIn 0.5s ease-out 4.0s forwards; }
+  .arch-v2 .bands-wrap.cp-mode .cp-anim-box-6 { animation: archV2CpBoxIn 0.5s ease-out 5.0s forwards; }
+
+  .arch-v2 .bands-wrap.cp-mode .cp-anim-line-1 { animation: archV2CpLineIn 2.0s ease-out 0.5s forwards; }
+  .arch-v2 .bands-wrap.cp-mode .cp-anim-line-2 { animation: archV2CpLineIn 2.0s ease-out 1.5s forwards; }
+  .arch-v2 .bands-wrap.cp-mode .cp-anim-line-3 { animation: archV2CpLineIn 2.0s ease-out 2.5s forwards; }
+  .arch-v2 .bands-wrap.cp-mode .cp-anim-line-4 { animation: archV2CpLineIn 2.0s ease-out 3.5s forwards; }
+  .arch-v2 .bands-wrap.cp-mode .cp-anim-line-5 { animation: archV2CpLineIn 2.0s ease-out 4.5s forwards; }
+  .arch-v2 .bands-wrap.cp-mode .cp-anim-line-6 { animation: archV2CpLineIn 2.0s ease-out 5.5s forwards; }
+
+  .arch-v2 .cp-grid-inner {
+    border: 1px dashed rgba(224,92,24,.25);
+    border-radius: 6px;
+    background: rgba(28,23,16,.85);
+    padding: 16px 24px 14px; margin: 4px 8px; position: relative;
+  }
+  .arch-v2 .cp-grid-title {
+    font-size: .5625rem; font-weight: 700; color: var(--ember);
+    letter-spacing: .12em; text-transform: uppercase;
+    margin-bottom: 14px; text-align: center; opacity: .7;
+  }
+  .arch-v2 .cp-grid {
+    display: grid; grid-template-columns: repeat(8, 1fr);
+    gap: 10px 12px; position: relative; z-index: 2;
+  }
+  .arch-v2 .cp-grid-badge { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .arch-v2 .cp-grid-badge-icon {
+    width: 2em; height: 1.125em;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 4px;
+    background: var(--ember-dim);
+    border: .5px solid rgba(224,92,24,.6);
+    font-size: .5rem; font-weight: 700; color: var(--ember);
+    letter-spacing: .05em;
+  }
+  .arch-v2 .cp-grid-badge-name {
+    font-size: .46rem; color: var(--slag);
+    text-align: center; white-space: nowrap;
+  }
+  .arch-v2 .cp-grid-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+
+  .arch-v2 .cp-detail-expand {
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height .6s cubic-bezier(.4,0,.2,1), opacity .4s ease .1s;
+    position: relative; z-index: 3;
+  }
+  .arch-v2 .bands-wrap.cp-mode .cp-detail-expand { max-height: 280px; opacity: 1; }
+  .arch-v2 .cpd-inner {
+    border: .5px solid rgba(224,92,24,.3);
+    border-radius: 8px;
+    background: rgba(28,23,16,.92);
+    padding: 14px 18px; margin: 18px 4px 4px;
+  }
+  .arch-v2 .cpd-inner::before {
+    content: ''; display: block;
+    height: 1px; margin: -14px -18px 12px; border-radius: 8px 8px 0 0;
+    background: linear-gradient(90deg, transparent, var(--ember) 30%, var(--ember) 70%, transparent);
+    opacity: .35;
+  }
+  .arch-v2 .cpd-badge { font-size: .5rem; font-weight: 700; color: var(--ember); letter-spacing: .12em; margin-bottom: 3px; }
+  .arch-v2 .cpd-title {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: .875rem; font-weight: 600; color: var(--ember); margin-bottom: 8px;
+  }
+  .arch-v2 .cpd-body { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; }
+  .arch-v2 .cpd-intro {
+    font-size: .7rem; color: var(--sand); line-height: 1.6;
+    margin: 0 0 12px;
+  }
+  .arch-v2 .cpd-intro code { font-size: .65rem; color: var(--linen); background: var(--ember-dim); border: .5px solid rgba(224,92,24,.2); padding: 0 4px; border-radius: 3px; }
+  .arch-v2 .cpd-inner .cpd-json { margin-top: 0; }
+  .arch-v2 .cpd-st { font-size: .4375rem; font-weight: 700; color: var(--ember); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 3px; opacity: .8; }
+  .arch-v2 .cpd-section p { font-size: .625rem; color: var(--sand); line-height: 1.6; margin: 0; }
+  .arch-v2 .cpd-section code { font-size: .5625rem; color: var(--linen); background: var(--ember-dim); border: .5px solid rgba(224,92,24,.2); padding: 0 4px; border-radius: 3px; }
+  .arch-v2 .cpd-flow { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+  .arch-v2 .cpd-step { font-size: .5rem; padding: 2px 6px; border-radius: 4px; background: rgba(224,92,24,.07); border: .5px solid rgba(224,92,24,.18); color: var(--linen); }
+  .arch-v2 .cpd-arrow { color: var(--ember); font-size: .625rem; }
+  .arch-v2 .cpd-json {
+    font-size: .5rem; color: var(--sand); background: var(--obsidian);
+    border: .5px solid rgba(224,92,24,.12); border-radius: 4px;
+    padding: 7px 9px; line-height: 1.6; margin-top: 5px;
+  }
+  .arch-v2 .cpd-json .k { color: var(--ember); }
+  .arch-v2 .cpd-json .s { color: var(--success); }
+  .arch-v2 .cpd-json .c { color: var(--slag); font-style: italic; }
+
+  .arch-v2 .legend {
+    display: flex; flex-wrap: wrap; gap: 10px 28px;
+    padding: 18px 16px 10px; justify-content: center;
+    position: relative;
+  }
+  .arch-v2 .legend-section-label {
+    width: 100%;
+    text-align: center;
+    font-size: 8px;
+    letter-spacing: .12em;
+    color: var(--slag);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .arch-v2 .legend-divider {
+    width: 100%;
+    height: .5px;
+    background: var(--slag);
+    opacity: .3;
+    margin: 6px 0 8px;
+  }
+  .arch-v2 .legend-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: .625rem; color: var(--sand); cursor: pointer;
+    transition: opacity .75s ease; position: relative;
+  }
+  .arch-v2 .legend-item:focus-visible { outline: 1.5px solid var(--ember); outline-offset: 2px; border-radius: 2px; }
+  .arch-v2 .legend-item.dimmed { opacity: .07; }
+  .arch-v2 .li-swatch { width: 22px; height: 12px; border-radius: 3px; }
+  .arch-v2 .li-swatch-spine {
+    background: rgba(13,148,136,.18);
+    border: .5px solid #0D9488;
+    color: #0D9488;
+    font-size: .5rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    height: 13px;
+    width: 32px;
+    letter-spacing: .02em;
+  }
+  .arch-v2 .li-line { width: 28px; height: 0; border-top: 2px solid; }
+  .arch-v2 .legend-card {
+    position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%); width: 16.25rem;
+    padding: 12px 14px; border-radius: 6px;
+    background: rgba(28,23,16,.96);
+    border: .5px solid var(--slag);
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    z-index: 10; pointer-events: none; opacity: 0;
+    transition: opacity .3s ease;
+    font-size: .625rem; color: var(--sand); line-height: 1.6;
+  }
+  .arch-v2 .legend-card.visible { opacity: 1; }
+  .arch-v2 .legend-card-title { font-family: 'Outfit', system-ui, sans-serif; font-size: .6875rem; font-weight: 600; margin-bottom: 4px; color: var(--linen); }
+  .arch-v2 .legend-card-examples { margin-top: 5px; font-size: .5rem; color: var(--slag); }
+
+  .arch-v2 .cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem; margin-top: 1.5rem;
+  }
+  .arch-v2 .card {
+    background: var(--forge);
+    border-radius: 8px; border: .5px solid var(--slag); padding: 1.1rem;
+  }
+  .arch-v2 .card-header { display: flex; align-items: center; gap: .5rem; margin-bottom: .6rem; }
+  .arch-v2 .card-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .arch-v2 .card h3 {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: .8rem; font-weight: 600; color: var(--linen);
+  }
+  .arch-v2 .card ul { list-style: none; color: var(--sand); font-size: .7rem; }
+  .arch-v2 .card li { margin-bottom: .3rem; }
+  .arch-v2 .footer { text-align: center; margin-top: 1.25rem; color: var(--slag); font-size: .7rem; }
+
+  @keyframes archV2SpinePulse {
+    0%, 100% { opacity: 0.85; }
+    50%      { opacity: 1; }
+  }
+  .arch-v2 .spine-chip { animation: archV2SpinePulse 3.5s ease-in-out infinite; transform-origin: center; }
+  .arch-v2 .branch-tag rect { transition: stroke-opacity 0.2s ease, fill-opacity 0.2s ease; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .arch-v2 *,
+    .arch-v2 *::before,
+    .arch-v2 *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 </style>
