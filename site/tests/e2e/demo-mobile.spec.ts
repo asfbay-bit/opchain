@@ -5,7 +5,7 @@ import { devices, expect, test } from "@playwright/test";
  *
  * Both DesktopWorkbench and MobileWorkbench render in DOM on every
  * request; a CSS breakpoint at 767px hides one of them with
- * `display: none`. These tests pin an iPhone 14 viewport so the mobile
+ * `display: none`. These tests pin a phone viewport so the mobile
  * subtree is the visible one, then exercise:
  *
  *   - Tab swap (Scenarios · Stream · I/O · Inspector)
@@ -14,11 +14,17 @@ import { devices, expect, test } from "@playwright/test";
  *   - Inspector tab fills with skills + summary + stages
  *   - Output rows in either tab open the same shared <dialog> lightbox
  *   - The desktop topbar tour button is not interactable
+ *
+ * Uses Pixel 5 (Chromium, 393×851) instead of iPhone 14 (WebKit, 390×844)
+ * so the existing CI Chromium-only Playwright project picks it up — the
+ * mobile workbench has no iOS-specific code, so Chromium-mobile is a
+ * faithful test. To exercise WebKit specifically, add a webkit project
+ * to playwright.config.ts and `npx playwright install webkit` in CI.
  */
 
-test.use({ ...devices["iPhone 14"] });
+test.use({ ...devices["Pixel 5"] });
 
-test.describe("mobile workbench (iPhone 14)", () => {
+test.describe("mobile workbench (Pixel 5)", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
       try { localStorage.setItem("opchain-demo-tour-seen", "1"); } catch { /* ignore */ }
