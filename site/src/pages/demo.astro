@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import OnboardingTour from "../components/OnboardingTour.astro";
 import { walkthroughs } from "../data/walkthroughs";
 import { getSkillRole } from "../lib/skills";
+import { renderSafeMarkdown } from "../lib/markdown";
 
 /**
  * Demo — short tour summary + IDE workbench.
@@ -24,6 +25,17 @@ const sidebar = walkthroughs.map((w, i) => ({
   id: w.id,
   skills: w.skills.map((id) => ({ id, role: getSkillRole(id) })),
 }));
+
+/** Pre-rendered artifact bodies — avoids client-side markdown parsing. */
+const artifacts = walkthroughs.flatMap((w) =>
+  w.outputs.map((o) => ({
+    scenarioId: w.id,
+    artifactId: o.id,
+    label: o.label,
+    kind: o.kind ?? "",
+    html: renderSafeMarkdown(o.body),
+  }))
+);
 ---
 
 <Base
@@ -186,7 +198,7 @@ const sidebar = walkthroughs.map((w, i) => ({
       <div class="ide-status">
         <span>workbench</span>
         <span class="ide-sep">·</span>
-        <span>port chunk 4 of 9 · summary panes wired</span>
+        <span>port chunk 5 of 9 · output lightbox wired</span>
         <span class="ide-sep">·</span>
         <span class="ok">✓ {sidebar.length} scenarios loaded</span>
         <span class="right">
@@ -199,6 +211,38 @@ const sidebar = walkthroughs.map((w, i) => ({
   </section>
 
   <OnboardingTour />
+
+  <!-- Hidden artifact store — pre-rendered markdown bodies, one div per artifact.
+       The JS lightbox reads innerHTML from here and injects it into the modal. -->
+  <div class="artifact-store" aria-hidden="true" hidden>
+    {artifacts.map((a) => (
+      <div
+        data-artifact-scenario={a.scenarioId}
+        data-artifact-id={a.artifactId}
+        set:html={a.html}
+      />
+    ))}
+  </div>
+
+  <!-- Output modal lightbox — opened by chunk 5 click handler below. -->
+  <dialog
+    class="output-modal"
+    id="output-modal"
+    aria-modal="true"
+    aria-labelledby="modal-title"
+  >
+    <div class="modal-inner">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <span class="modal-ico" aria-hidden="true">⊞</span>
+          <h2 id="modal-title" class="modal-title"></h2>
+          <span class="modal-kind"></span>
+        </div>
+        <button class="modal-close" aria-label="Close output" type="button">✕</button>
+      </div>
+      <div class="modal-body prose"></div>
+    </div>
+  </dialog>
 </Base>
 
 <style>
@@ -673,6 +717,180 @@ const sidebar = walkthroughs.map((w, i) => ({
     .ide-sidebar { max-height: 220px; }
     .ide-inspector { display: none; }
   }
+
+  /* ── Output modal lightbox (chunk 5) ── */
+  .output-modal {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: min(90vw, 820px);
+    max-height: min(88vh, 900px);
+    padding: 0;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    background: var(--bg);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.45),
+      0 2px 8px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .output-modal[open] { display: flex; }
+  .output-modal::backdrop {
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(3px);
+  }
+  .modal-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+  .modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem 0.75rem;
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    flex: 0 0 auto;
+  }
+  .modal-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .modal-ico {
+    color: var(--accent);
+    font-size: 1rem;
+    flex: 0 0 auto;
+  }
+  .modal-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-md);
+    line-height: 1.3;
+    color: var(--text);
+    margin: 0;
+    min-width: 0;
+  }
+  .modal-kind {
+    color: var(--subtle);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    flex: 0 0 auto;
+    padding: 2px 6px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+  }
+  .modal-close {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--r-xs);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    transition: color 120ms, border-color 120ms;
+  }
+  .modal-close:hover { color: var(--text); border-color: var(--text); }
+  .modal-close:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .modal-body {
+    padding: 1.5rem 1.6rem;
+    overflow-y: auto;
+    flex: 1 1 0;
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    color: var(--text);
+  }
+  /* Prose resets inside the modal body */
+  .modal-body :global(h1),
+  .modal-body :global(h2),
+  .modal-body :global(h3) {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--text);
+    margin: 1.4rem 0 0.5rem;
+    line-height: 1.25;
+  }
+  .modal-body :global(h1) { font-size: clamp(1.1rem, 2vw, 1.4rem); }
+  .modal-body :global(h2) { font-size: clamp(1rem, 1.8vw, 1.2rem); }
+  .modal-body :global(h3) { font-size: var(--fs-md); }
+  .modal-body :global(p)  { margin: 0 0 0.75rem; }
+  .modal-body :global(ul),
+  .modal-body :global(ol) { padding-left: 1.4rem; margin: 0 0 0.75rem; }
+  .modal-body :global(li) { margin-bottom: 0.25rem; }
+  .modal-body :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 3px;
+    padding: 0.1em 0.35em;
+    color: var(--accent);
+  }
+  .modal-body :global(pre) {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    margin: 0 0 1rem;
+  }
+  .modal-body :global(pre code) {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+  }
+  .modal-body :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 1rem;
+    font-size: var(--fs-sm);
+  }
+  .modal-body :global(th),
+  .modal-body :global(td) {
+    border: 0.5px solid var(--border);
+    padding: 0.45rem 0.75rem;
+    text-align: left;
+  }
+  .modal-body :global(th) {
+    background: var(--surface);
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .modal-body :global(strong) { color: var(--text); font-weight: 600; }
+  .modal-body :global(a) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .modal-body :global(blockquote) {
+    border-left: 3px solid var(--accent);
+    margin: 0 0 1rem;
+    padding: 0.4rem 0 0.4rem 1rem;
+    color: var(--muted);
+  }
+  .modal-body :global(hr) {
+    border: none;
+    border-top: 0.5px solid var(--border);
+    margin: 1.2rem 0;
+  }
+  @media (max-width: 600px) {
+    .output-modal { width: 100vw; max-height: 100dvh; border-radius: 0; border-left: none; border-right: none; }
+  }
 </style>
 
 <script is:inline>
@@ -724,6 +942,60 @@ const sidebar = walkthroughs.map((w, i) => ({
           showEditor(pickActiveFromOpenFolders());
         }
       });
+    });
+  })();
+
+  /* Output modal lightbox — chunk 5.
+
+     Clicking any .output-row button looks up the pre-rendered artifact
+     body from the hidden .artifact-store, populates the <dialog>, and
+     calls showModal(). The <dialog> element handles the focus trap and
+     Escape key automatically. Backdrop click and the ✕ button also close. */
+  (() => {
+    const modal     = /** @type {HTMLDialogElement|null} */ (document.getElementById('output-modal'));
+    const titleEl   = document.getElementById('modal-title');
+    const kindEl    = modal && modal.querySelector('.modal-kind');
+    const bodyEl    = modal && modal.querySelector('.modal-body');
+    const closeBtn  = modal && modal.querySelector('.modal-close');
+    const store     = document.querySelector('.artifact-store');
+    if (!modal || !titleEl || !kindEl || !bodyEl || !store) return;
+
+    function openArtifact(scenarioId, artifactId) {
+      const src = store.querySelector(
+        `[data-artifact-scenario="${CSS.escape(scenarioId)}"][data-artifact-id="${CSS.escape(artifactId)}"]`
+      );
+      if (!src) return;
+
+      // Read label + kind from the clicked output-row for DRY display.
+      const btn   = document.querySelector(
+        `[data-output-scenario="${CSS.escape(scenarioId)}"][data-output-id="${CSS.escape(artifactId)}"]`
+      );
+      const label = btn && btn.querySelector('.output-label')
+        ? btn.querySelector('.output-label').textContent.trim()
+        : artifactId;
+      const kind  = btn && btn.querySelector('.output-kind')
+        ? btn.querySelector('.output-kind').textContent.trim()
+        : '';
+
+      titleEl.textContent  = label;
+      kindEl.textContent   = kind;
+      bodyEl.innerHTML     = src.innerHTML;
+      modal.showModal();
+    }
+
+    // Wire every output row in all scenario panes.
+    document.querySelectorAll('.output-row[data-output-scenario]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        openArtifact(btn.dataset.outputScenario, btn.dataset.outputId);
+      });
+    });
+
+    // Close: ✕ button.
+    closeBtn && closeBtn.addEventListener('click', () => modal.close());
+
+    // Close: click on the backdrop (the <dialog> element itself, outside modal-inner).
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.close();
     });
   })();
 </script>
