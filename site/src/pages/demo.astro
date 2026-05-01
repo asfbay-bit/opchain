@@ -31,10 +31,13 @@ const sidebar = walkthroughs.map((w, i) => ({
   description="Replay curated opchain skill conversations end-to-end — six scenarios, real transcripts, click to inspect."
   active="/demo"
 >
-  <!-- 1 · Page intro — distilled from the OnboardingTour first step.
-       The magazine cover that used to live here moved to the homepage
-       in chunk 2 of the workbench port. -->
-  <div class="page-head">
+  <!-- 1 · Summary block — distilled from the OnboardingTour modals.
+       Restyled in chunk 3.5 as a visibly distinct card with an ember
+       eyebrow + side bar so it reads as "this is the page summary"
+       rather than a regular page heading. The magazine cover that used
+       to live here moved to the homepage in chunk 2. -->
+  <section class="page-summary" aria-label="What this demo is">
+    <span class="page-summary-eyebrow">demo · what this is</span>
     <h1>Watch a finished run.</h1>
     <p class="lede">
       A live walkthrough of six finished opchain sessions — from
@@ -42,7 +45,14 @@ const sidebar = walkthroughs.map((w, i) => ({
       below is actual transcript, not a faked-up demo. No live chat,
       no email gate, no install required.
     </p>
-  </div>
+    <p class="lede">
+      Each scenario tackles a different problem the skill ecosystem
+      solves: shipping a new app from concept, rescuing a half-finished
+      dashboard, hardening security before release, migrating a legacy
+      stack, reviving abandoned code, and shipping Stripe billing.
+      Pick one on the left to get started.
+    </p>
+  </section>
 
   <!-- 2 · IDE workbench -->
   <section class="workbench" id="workbench" aria-label="Workbench">
@@ -132,28 +142,48 @@ const sidebar = walkthroughs.map((w, i) => ({
 </Base>
 
 <style>
-  /* ── 1. Page intro — short distilled tour summary above the IDE.
-        Magazine cover that used to live here moved to the homepage. ── */
-  .page-head {
+  /* ── 1. Summary block — distilled tour content above the IDE.
+        Card surface + ember left bar so it reads as a deliberate
+        summary panel, not a regular page heading. ── */
+  .page-summary {
     max-width: 1100px;
-    margin: clamp(1.6rem, 4vw, 2.4rem) auto 1rem;
-    padding: 0 clamp(1rem, 4vw, 2.4rem);
+    margin: clamp(1.6rem, 4vw, 2.4rem) auto 1.5rem;
+    padding: clamp(1rem, 2.5vw, 1.4rem) clamp(1.1rem, 3vw, 1.8rem);
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-sm);
   }
-  .page-head h1 {
+  /* Side gutters on smaller viewports — match the workbench's. */
+  @media (max-width: 1100px) {
+    .page-summary { margin-left: clamp(0.5rem, 2vw, 1.5rem); margin-right: clamp(0.5rem, 2vw, 1.5rem); }
+  }
+  .page-summary-eyebrow {
+    display: inline-block;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    margin-bottom: 0.55rem;
+  }
+  .page-summary h1 {
     font-family: var(--font-display);
     font-weight: 600;
     font-size: clamp(1.4rem, 3vw, 2rem);
     line-height: 1.15;
     letter-spacing: var(--ls-tight);
-    margin: 0 0 0.6rem;
+    margin: 0 0 0.7rem;
     color: var(--text);
   }
-  .page-head .lede {
+  .page-summary .lede {
     color: var(--muted);
-    max-width: 56rem;
-    margin: 0;
+    max-width: 60rem;
+    margin: 0 0 0.6rem;
     line-height: var(--lh-base);
   }
+  .page-summary .lede:last-child { margin-bottom: 0; }
 
   /* ── 2. IDE workbench section ── */
   .workbench {
