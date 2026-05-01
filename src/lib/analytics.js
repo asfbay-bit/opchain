@@ -4,8 +4,9 @@
  * Workers. Failures are swallowed so analytics never breaks a user flow.
  *
  * Events:
- *   zip_downloaded         — GET *.zip
- *   feedback_submitted     — /api/feedback 2xx
+ *   zip_downloaded         — GET /skills/*.zip or /opchain-skills.zip
+ *   feedback_submitted     — POST /api/feedback 2xx
+ *   notify_submitted       — POST /api/notify 2xx (lead capture)
  *
  * (The Try-It chat events `demo_email_submitted` / `demo_chat_started` /
  * `demo_chat_completed` were removed with the surface in

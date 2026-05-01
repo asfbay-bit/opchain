@@ -15,26 +15,47 @@ Two signals. Neither collects PII.
 - Consent-gated (see `site/src/components/ConsentBanner.astro`). Declining means no
   SDK load, no cookies, no events.
 - Server-side capture also runs from the Worker (`src/lib/analytics.js`) for events
-  the browser can't reliably send (e.g. `feedback_submitted`, `zip_downloaded`).
-- Distinct id is `SHA-256(lowercased email)` — a stable pseudonym so we can
-  correlate a user across sessions without storing the raw email in PostHog.
+  the browser can't reliably send (`feedback_submitted`, `notify_submitted`,
+  `zip_downloaded`).
+- Distinct id is `SHA-256(lowercased email)` for events that have an email
+  (`feedback_submitted`, `notify_submitted`); for `zip_downloaded` it's
+  `SHA-256("ip:" + CF-Connecting-IP)`. Both are stable pseudonyms — the raw
+  email/IP never lands in PostHog.
+
+### Live event taxonomy
+
+| Event | Source | Trigger |
+|---|---|---|
+| `$pageview` | client (autocapture) | Every navigation, post-consent |
+| `notify_submitted` | server | `POST /api/notify` 2xx (CaptureModal lead) |
+| `feedback_submitted` | server | `POST /api/feedback` 2xx |
+| `zip_downloaded` | server | `GET /skills/*.zip` or `/opchain-skills.zip` 2xx |
+| `install_copy_clicked` | client | Copy button on `/install`; `flow` property = which flow |
+
+Reserved (declared in `site/src/lib/analytics.ts` but not yet wired):
+`skill_filter_used`, `skill_detail_viewed`, `in_action_scenario_opened`. Don't
+build dashboards on these until call sites exist.
 
 ### Dashboards (one-time setup)
 
-Create these in the PostHog UI once the project is live. They rely on the events
-already emitted by Worker + client.
+Create these in the PostHog UI once the project is live. They rely only on
+events that are actually being emitted today.
 
-1. **Try-It funnel** — `demo_email_submitted` → `demo_chat_started` → `demo_chat_completed`.
-   Conversion windows: 1 hour for email → first message, 24 hours for first → completion.
-2. **Install intent** — `zip_downloaded` (per-IP pseudonym) over time. Trend with a
-   7-day moving average.
-3. **Skill breakdown** — `demo_chat_started` broken down by the `skill` property.
-   Pie chart + raw table.
-4. **Feedback rate** — `feedback_submitted` / unique pageviews, broken down by `type`.
-5. **Retention** — 4-week return curve keyed on `$distinct_id`.
+1. **Lead funnel** — `$pageview` (any) → `notify_submitted`. Conversion window:
+   30 min. Break `notify_submitted` down by the `source` property (which page
+   the modal opened from).
+2. **Install intent** — `zip_downloaded` over time, with a 7-day moving average.
+   Break down by `path` to separate per-skill `.zip` downloads from the combined
+   bundle.
+3. **Install CTA efficacy** — `install_copy_clicked` broken down by `flow`. Pair
+   with `zip_downloaded` to see which flow converts.
+4. **Feedback rate** — `feedback_submitted` / unique pageviews, broken down by
+   `type` (bug / feature / improvement) and `skill`.
+5. **Retention** — 4-week return curve keyed on `$distinct_id`. Most useful for
+   identified leads (post `notify_submitted`).
 
-Take screenshots and link them in a new `docs/analytics-screenshots/` dir once the
-dashboards are up.
+Take screenshots and link them in a new `docs/analytics-screenshots/` dir once
+the dashboards are up.
 
 ## Rollback
 

@@ -97,15 +97,24 @@ into the global Astro layout (`site/src/layouts/Base.astro`) in Sprint 6.
 
 | Event | Fired from | Purpose |
 |---|---|---|
-| `$pageview` | client (PostHog SDK) | Deduped pageviews for the funnel |
-| `demo_email_submitted` | server (`/api/try/start` 2xx) | Top of funnel |
-| `demo_chat_started` | server (first `/api/try/chat` per session) | Activation |
-| `demo_chat_completed` | server (chat stream `message_stop`) | Engagement depth |
-| `demo_skill_selected` | client | Which skills users try |
-| `install_cta_clicked` | client | CTA efficacy |
-| `zip_downloaded` | server (`GET *.zip`) | Conversion proxy |
+| `$pageview` | client (PostHog SDK autocapture) | Deduped pageviews for the funnel |
+| `notify_submitted` | server (`/api/notify` 2xx) | Top of funnel — lead capture from `CaptureModal` |
 | `feedback_submitted` | server (`/api/feedback` 2xx) | Qualitative signal |
-| `nav_clicked` | client | Navigation heatmap |
+| `zip_downloaded` | server (`GET /skills/*.zip`, `GET /opchain-skills.zip`) | Conversion proxy |
+| `install_copy_clicked` | client (`/install` page) | CTA efficacy per install flow |
+
+The Try-It chat events (`demo_email_submitted`, `demo_chat_started`,
+`demo_chat_completed`, `demo_skill_selected`) were retired with the
+email-gated chat in `claude/remove-try-it`. The new `/demo` is a
+static walkthrough; if we add interaction events for it later, they
+should follow the `demo_*` namespace and land here.
+
+Declared in `site/src/lib/analytics.ts` as `ClientEvent` but **not
+yet wired** (kept reserved so call sites don't invent ad-hoc names):
+`skill_filter_used`, `skill_detail_viewed`, `in_action_scenario_opened`.
+Wire them in the matching components when the corresponding UX questions
+become real (filter usage on `/skills`, detail-page engagement, demo
+scenario opens). Until then, dashboards depending on them will be empty.
 
 Rationale:
 
