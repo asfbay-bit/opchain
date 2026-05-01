@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>opchain · Mobile demo · E — Stacked Workbench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+<link rel="stylesheet" href="./_shared/tokens.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--obsidian);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  a { color: var(--accent); text-decoration: none; }
+
+  .phone {
+    width: 390px;
+    height: min(844px, calc(100dvh - 48px));
+    background: var(--bg);
+    border-radius: 44px;
+    border: 8px solid #000;
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+  @media (max-width: 480px) {
+    body { padding: 0; }
+    .phone {
+      width: 100%; height: 100dvh;
+      border-radius: 0; border: 0; box-shadow: none;
+    }
+  }
+
+  /* ── Sticky brand row + toc ── */
+  .topbar {
+    background: var(--ribbon);
+    border-bottom: 0.5px solid var(--border);
+    padding-top: env(safe-area-inset-top);
+  }
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px 6px;
+  }
+  .wordmark {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: var(--ls-display);
+    font-size: 13px;
+  }
+  .brand-meta {
+    flex: 1;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--subtle);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .toc {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 4px 14px 10px;
+    scrollbar-width: none;
+  }
+  .toc::-webkit-scrollbar { display: none; }
+  .toc a {
+    flex: 0 0 auto;
+    padding: 5px 9px;
+    border-radius: var(--r-pill);
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ── Scrollable body ── */
+  .scroll {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 12px 14px 32px;
+  }
+
+  /* Generic accordion section */
+  details.section {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  details.section[open] { border-color: var(--accent); }
+  details.section > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 12px 14px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-height: 44px;
+  }
+  details.section > summary::-webkit-details-marker { display: none; }
+  details.section > summary::after {
+    content: "+";
+    margin-left: auto;
+    font-size: 18px;
+    color: var(--subtle);
+    line-height: 1;
+  }
+  details.section[open] > summary::after { content: "−"; color: var(--accent); }
+  details.section > summary .sec-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  details.section > summary .sec-count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--subtle);
+  }
+  .sec-body {
+    padding: 0 14px 14px;
+  }
+
+  /* Scenario picker */
+  .scn-card {
+    width: 100%;
+    text-align: left;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 12px;
+    margin-top: 8px;
+    transition: border-color var(--dur-fast) var(--ease-standard);
+    display: block;
+  }
+  .scn-card[aria-selected="true"] {
+    border-color: var(--accent);
+    background: var(--ember-dim);
+  }
+  .scn-card .scn-title { font-size: 13px; font-weight: 600; line-height: 1.2; }
+  .scn-card .scn-tag { font-family: var(--font-mono); font-size: 10px; color: var(--subtle); margin-top: 2px; text-transform: uppercase; letter-spacing: var(--ls-wide); }
+
+  /* Hero */
+  .hero {
+    padding: 14px 16px;
+    background: linear-gradient(140deg, var(--surface), var(--card));
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    margin-bottom: 12px;
+  }
+  .hero .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .hero .title { font-size: 20px; font-weight: 600; line-height: var(--lh-tight); margin-bottom: 6px; }
+  .hero .summary { font-size: 13px; color: var(--muted); line-height: var(--lh-snug); }
+
+  /* Inputs */
+  .input-row {
+    font-size: 13px;
+    color: var(--text);
+    padding: 8px 12px;
+    background: var(--surface);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 var(--r-md) var(--r-md) 0;
+    margin-bottom: 6px;
+  }
+
+  /* Transcript */
+  .beat {
+    margin: 14px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .beat:first-child { margin-top: 0; }
+  .beat .lbl {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .beat .cap { font-size: 11px; color: var(--subtle); margin-top: 2px; }
+  .ex {
+    border-radius: var(--r-md);
+    padding: 9px 11px;
+    font-size: 12.5px;
+    line-height: var(--lh-base);
+    margin: 8px 0;
+    white-space: pre-wrap;
+  }
+  .ex .role {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    margin-bottom: 4px;
+  }
+  .ex.user {
+    background: var(--ember-dim);
+    border-left: 2px solid var(--accent);
+  }
+  .ex.user .role { color: var(--accent); }
+  .ex.claude {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+  }
+  .ex.claude .role { color: var(--specialist); }
+  .artifact-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--ember-dim);
+    border: 0.5px solid var(--accent);
+    padding: 3px 8px;
+    border-radius: var(--r-pill);
+    margin: 6px 4px 0 0;
+  }
+  .artifact-chip::before { content: "⌬"; }
+
+  /* Outputs (nested details) */
+  details.output {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 9px 11px;
+    margin-bottom: 6px;
+  }
+  details.output[open] { border-color: var(--accent); }
+  details.output > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  details.output > summary::-webkit-details-marker { display: none; }
+  details.output > summary::after {
+    content: "+";
+    margin-left: auto;
+    color: var(--subtle);
+    font-size: 16px;
+  }
+  details.output[open] > summary::after { content: "−"; color: var(--accent); }
+  .out-lbl { font-size: 12px; font-weight: 600; }
+  .out-knd { font-family: var(--font-mono); font-size: 9px; color: var(--subtle); margin-left: 4px; }
+  .out-body {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 0.5px solid var(--border);
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: var(--lh-base);
+    white-space: pre-wrap;
+  }
+
+  /* Inspector */
+  .insp-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 12px;
+  }
+  .insp-row + .insp-row { border-top: 0.5px solid var(--border); }
+  .insp-row span:first-child {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--subtle);
+  }
+  .insp-row span:last-child { color: var(--text); font-weight: 500; text-align: right; }
+  .skill-pill {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    padding: 2px 6px;
+    border-radius: var(--r-pill);
+    background: var(--ember-dim);
+    color: var(--accent);
+    border: 0.5px solid var(--accent);
+    margin: 0 2px 2px 0;
+    display: inline-block;
+  }
+
+  :target {
+    scroll-margin-top: 70px;
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="topbar">
+      <div class="brand-row">
+        <span class="wordmark">opchain</span>
+        <span class="brand-meta" id="brand-meta">demo · concept → shipped</span>
+      </div>
+      <nav class="toc">
+        <a href="#sec-pick">Scenarios</a>
+        <a href="#sec-inputs">Inputs</a>
+        <a href="#sec-transcript">Transcript</a>
+        <a href="#sec-outputs">Outputs</a>
+        <a href="#sec-insp">Inspector</a>
+      </nav>
+    </div>
+
+    <div class="scroll">
+      <div class="hero" id="hero"></div>
+
+      <details class="section" id="sec-pick">
+        <summary>
+          <span class="sec-eyebrow">Scenarios</span>
+          <span class="sec-count">6 in catalog</span>
+        </summary>
+        <div class="sec-body" id="picker"></div>
+      </details>
+
+      <details class="section" id="sec-inputs" open>
+        <summary>
+          <span class="sec-eyebrow">Inputs</span>
+          <span class="sec-count" id="inputs-count"></span>
+        </summary>
+        <div class="sec-body" id="inputs"></div>
+      </details>
+
+      <details class="section" id="sec-transcript" open>
+        <summary>
+          <span class="sec-eyebrow">Transcript</span>
+          <span class="sec-count" id="transcript-count"></span>
+        </summary>
+        <div class="sec-body" id="transcript"></div>
+      </details>
+
+      <details class="section" id="sec-outputs">
+        <summary>
+          <span class="sec-eyebrow">Outputs</span>
+          <span class="sec-count" id="outputs-count"></span>
+        </summary>
+        <div class="sec-body" id="outputs"></div>
+      </details>
+
+      <details class="section" id="sec-insp">
+        <summary>
+          <span class="sec-eyebrow">Inspector</span>
+        </summary>
+        <div class="sec-body" id="inspector"></div>
+      </details>
+    </div>
+  </div>
+
+  <script src="./_shared/data.js"></script>
+  <script>
+    const ws = window.WALKTHROUGHS;
+    let activeId = ws[0].id;
+    const $ = (s) => document.querySelector(s);
+
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[c]);
+    }
+    function current() { return ws.find((w) => w.id === activeId); }
+
+    function render() {
+      const w = current();
+      $('#brand-meta').textContent = `demo · ${w.tagline}`;
+
+      $('#hero').innerHTML = `
+        <div class="eyebrow">${escape(w.tagline)}</div>
+        <div class="title">${escape(w.title)}</div>
+        <div class="summary">${escape(w.summary)}</div>
+      `;
+
+      $('#picker').innerHTML = ws.map((x) => `
+        <button class="scn-card" data-id="${x.id}" aria-selected="${x.id === activeId}">
+          <div class="scn-title">${escape(x.title)}</div>
+          <div class="scn-tag">${escape(x.tagline)} · ${escape(x.runtime)}</div>
+        </button>
+      `).join('');
+      $('#picker').querySelectorAll('.scn-card').forEach((b) => {
+        b.addEventListener('click', () => {
+          activeId = b.dataset.id;
+          render();
+          document.getElementById('sec-pick').open = false;
+          document.getElementById('sec-transcript').scrollIntoView({ block: 'start' });
+        });
+      });
+
+      $('#inputs').innerHTML = w.inputs.map((i) => `<div class="input-row">${escape(i)}</div>`).join('');
+      $('#inputs-count').textContent = `${w.inputs.length} items`;
+
+      const beats = w.steps.filter((s) => s.type === 'beat').length;
+      $('#transcript-count').textContent = `${beats} stages`;
+      $('#transcript').innerHTML = w.steps.map((step) => {
+        if (step.type === 'beat') {
+          return `<div class="beat">
+            <div class="lbl">${escape(step.label)}</div>
+            ${step.caption ? `<div class="cap">${escape(step.caption)}</div>` : ''}
+          </div>`;
+        }
+        const arts = (step.artifacts || []).map((id) => {
+          const a = w.outputs.find((o) => o.id === id);
+          return a ? `<button class="artifact-chip" data-art="${a.id}">${escape(a.label)}</button>` : '';
+        }).join('');
+        const skill = step.skill || (step.role === 'user' ? 'you' : 'claude');
+        return `<div class="ex ${step.role}">
+          <div class="role">${escape(skill)}</div>
+          <div>${escape(step.content)}</div>
+          ${arts ? `<div>${arts}</div>` : ''}
+        </div>`;
+      }).join('');
+
+      $('#outputs-count').textContent = `${w.outputs.length} artifacts`;
+      $('#outputs').innerHTML = w.outputs.map((o) => `
+        <details class="output" data-id="${o.id}">
+          <summary>
+            <span class="out-lbl">${escape(o.label)}</span>
+            <span class="out-knd">${escape(o.kind || '')}</span>
+          </summary>
+          <div class="out-body">${escape(o.body)}</div>
+        </details>
+      `).join('');
+
+      $('#inspector').innerHTML = `
+        <div class="insp-row"><span>Scenario</span><span>${escape(w.title)}</span></div>
+        <div class="insp-row"><span>Runtime</span><span>${escape(w.runtime)}</span></div>
+        <div class="insp-row"><span>Outputs</span><span>${w.outputs.length}</span></div>
+        <div class="insp-row"><span>Stages</span><span>${beats}</span></div>
+        <div class="insp-row" style="display:block">
+          <span>Skills exercised</span>
+          <div style="text-align:right;margin-top:6px">
+            ${w.skills.map((s) => `<span class="skill-pill">${escape(s)}</span>`).join('')}
+          </div>
+        </div>
+      `;
+
+      document.querySelectorAll('.artifact-chip').forEach((b) => {
+        b.addEventListener('click', () => {
+          document.getElementById('sec-outputs').open = true;
+          const t = document.querySelector(`details.output[data-id="${b.dataset.art}"]`);
+          if (t) { t.open = true; setTimeout(() => t.scrollIntoView({ block: 'center', behavior: 'smooth' }), 100); }
+        });
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>

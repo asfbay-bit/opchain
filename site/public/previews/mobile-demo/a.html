@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>opchain · Mobile demo · A — Bottom-Tab IDE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+<link rel="stylesheet" href="./_shared/tokens.css" />
+<style>
+  /* ── Reset / page chrome ── */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--obsidian);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+  a { color: inherit; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+  /* ── Phone frame (desktop only) ── */
+  .phone {
+    width: 390px;
+    height: min(844px, calc(100dvh - 48px));
+    background: var(--bg);
+    border-radius: 44px;
+    border: 8px solid #000;
+    box-shadow: var(--shadow-xl), 0 0 0 1px var(--border);
+    overflow: hidden;
+    position: relative;
+    display: grid;
+    grid-template-rows: 52px 1fr 60px;
+  }
+  @media (max-width: 480px) {
+    body { padding: 0; align-items: stretch; justify-items: stretch; }
+    .phone {
+      width: 100%;
+      height: 100dvh;
+      border-radius: 0;
+      border: 0;
+      box-shadow: none;
+      grid-template-rows: 52px 1fr calc(60px + env(safe-area-inset-bottom));
+    }
+  }
+
+  /* ── Topbar ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--ribbon);
+    padding-top: env(safe-area-inset-top);
+    height: 100%;
+  }
+  .brand {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: var(--ls-display);
+    font-size: 13px;
+    color: var(--text);
+  }
+  .scn-chip {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-end;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    overflow: hidden;
+  }
+  .scn-chip span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .scn-chip::after { content: "▾"; color: var(--accent); }
+
+  /* ── Panels ── */
+  .panels {
+    overflow: hidden;
+    position: relative;
+  }
+  .panel {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 14px 24px;
+    display: none;
+  }
+  .panel.is-active { display: block; }
+  .panel h2 {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+    color: var(--subtle);
+    margin: 0 0 10px;
+    font-weight: 500;
+  }
+
+  /* ── Scenarios panel ── */
+  .scn-card {
+    width: 100%;
+    text-align: left;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 14px;
+    margin-bottom: 10px;
+    transition: border-color var(--dur-fast) var(--ease-standard);
+    display: block;
+  }
+  .scn-card[aria-selected="true"] {
+    border-color: var(--accent);
+    box-shadow: var(--glow-md);
+  }
+  .scn-card .scn-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: var(--lh-tight);
+    margin-bottom: 4px;
+  }
+  .scn-card .scn-tagline {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    margin-bottom: 8px;
+  }
+  .scn-card .scn-summary {
+    font-size: 12px;
+    color: var(--subtle);
+    line-height: var(--lh-snug);
+    margin-bottom: 10px;
+  }
+  .scn-card .scn-meta {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .skill-pill {
+    font-size: 9px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    padding: 2px 6px;
+    border-radius: var(--r-pill);
+    background: var(--ember-dim);
+    color: var(--accent);
+    border: 0.5px solid var(--accent);
+  }
+  .runtime-pill {
+    font-size: 9px;
+    font-family: var(--font-mono);
+    color: var(--subtle);
+    padding: 2px 6px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-pill);
+    margin-left: auto;
+  }
+
+  /* ── Stream panel ── */
+  .beat {
+    position: sticky;
+    top: -16px;
+    background: var(--bg);
+    padding: 12px 0 8px;
+    margin: 16px 0 8px;
+    border-bottom: 0.5px solid var(--border);
+    z-index: 1;
+  }
+  .beat:first-child { margin-top: 0; }
+  .beat .beat-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .beat .beat-caption {
+    font-size: 11px;
+    color: var(--subtle);
+    margin-top: 2px;
+  }
+  .ex { margin: 10px 0 14px; }
+  .ex .role {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--subtle);
+    margin-bottom: 4px;
+  }
+  .ex.user .role { color: var(--accent); }
+  .ex.claude .role { color: var(--specialist); }
+  .ex .body {
+    font-size: 13px;
+    line-height: var(--lh-base);
+    white-space: pre-wrap;
+    color: var(--text);
+  }
+  .ex.user .body {
+    background: var(--ember-dim);
+    border-left: 2px solid var(--accent);
+    padding: 8px 10px;
+    border-radius: 0 var(--r-md) var(--r-md) 0;
+  }
+  .ex.claude .body {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 10px 12px;
+    border-radius: var(--r-md);
+  }
+  .artifact-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--ember-dim);
+    border: 0.5px solid var(--accent);
+    padding: 3px 8px;
+    border-radius: var(--r-pill);
+    margin: 8px 6px 0 0;
+    text-transform: lowercase;
+  }
+  .artifact-chip::before { content: "⌬"; }
+
+  /* ── I/O panel ── */
+  .io-section { margin-bottom: 18px; }
+  .io-section h3 {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+    color: var(--subtle);
+    margin: 0 0 10px;
+    font-weight: 500;
+  }
+  .io-input {
+    font-size: 12px;
+    color: var(--text);
+    padding: 8px 12px;
+    background: var(--card);
+    border-left: 2px solid var(--accent);
+    margin-bottom: 6px;
+    border-radius: 0 var(--r-md) var(--r-md) 0;
+  }
+  details.output {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  details.output[open] { border-color: var(--accent); }
+  details.output > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  details.output > summary::-webkit-details-marker { display: none; }
+  details.output > summary::after {
+    content: "+";
+    margin-left: auto;
+    font-size: 16px;
+    color: var(--subtle);
+  }
+  details.output[open] > summary::after { content: "−"; }
+  .output-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: var(--lh-tight);
+  }
+  .output-kind {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--subtle);
+    text-transform: lowercase;
+    margin-top: 1px;
+  }
+  .output-body {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 0.5px solid var(--border);
+    font-size: 11.5px;
+    line-height: var(--lh-base);
+    color: var(--muted);
+    white-space: pre-wrap;
+  }
+
+  /* ── Inspector panel ── */
+  .insp-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .insp-card .insp-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+    color: var(--subtle);
+    margin-bottom: 8px;
+  }
+  .insp-card .insp-value {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+    line-height: var(--lh-snug);
+  }
+  .insp-skills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+
+  /* ── Bottom tab bar ── */
+  .tabbar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: var(--ribbon);
+    border-top: 0.5px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 0;
+    color: var(--subtle);
+    min-height: 44px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    transition: color var(--dur-fast) var(--ease-standard);
+  }
+  .tab .tab-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+  .tab[aria-selected="true"] {
+    color: var(--accent);
+    box-shadow: inset 0 2px 0 var(--accent);
+  }
+
+  /* ── Scenario picker sheet ── */
+  .sheet-scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-base) var(--ease-standard);
+    z-index: 10;
+  }
+  .sheet-scrim.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .sheet {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    background: var(--bg);
+    border-radius: 16px 16px 0 0;
+    border-top: 0.5px solid var(--border);
+    transform: translateY(100%);
+    transition: transform var(--dur-slow) var(--ease-emphasized);
+    max-height: 70%;
+    overflow-y: auto;
+    padding: 12px 14px calc(20px + env(safe-area-inset-bottom));
+    z-index: 11;
+  }
+  .sheet.is-open { transform: translateY(0); }
+  .sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--subtle);
+    border-radius: 999px;
+    margin: 4px auto 14px;
+    opacity: 0.4;
+  }
+</style>
+</head>
+<body>
+  <div class="phone" id="phone">
+    <header class="topbar">
+      <span class="brand">opchain</span>
+      <button class="scn-chip" id="scn-chip" aria-haspopup="dialog">
+        <span id="scn-chip-label">Concept → shipped</span>
+      </button>
+    </header>
+
+    <div class="panels">
+      <section class="panel is-active" data-panel="scenarios">
+        <h2>Scenarios · 6</h2>
+        <div id="scn-list"></div>
+      </section>
+
+      <section class="panel" data-panel="stream">
+        <div id="stream-content"></div>
+      </section>
+
+      <section class="panel" data-panel="io">
+        <div class="io-section">
+          <h3>Inputs</h3>
+          <div id="inputs-list"></div>
+        </div>
+        <div class="io-section">
+          <h3>Outputs</h3>
+          <div id="outputs-list"></div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="inspector">
+        <h2>Inspector</h2>
+        <div id="inspector-content"></div>
+      </section>
+
+      <div class="sheet-scrim" id="scrim"></div>
+      <div class="sheet" id="sheet" role="dialog" aria-label="Pick a scenario">
+        <div class="sheet-handle"></div>
+        <div id="sheet-list"></div>
+      </div>
+    </div>
+
+    <nav class="tabbar" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-tab="scenarios">
+        <span class="tab-icon">▦</span><span>Scenarios</span>
+      </button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="stream">
+        <span class="tab-icon">⏵</span><span>Stream</span>
+      </button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="io">
+        <span class="tab-icon">⇄</span><span>I/O</span>
+      </button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="inspector">
+        <span class="tab-icon">●</span><span>Inspector</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="./_shared/data.js"></script>
+  <script>
+    const ws = window.WALKTHROUGHS;
+    let activeId = ws[0].id;
+    const $ = (s) => document.querySelector(s);
+    const $$ = (s) => document.querySelectorAll(s);
+
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[c]);
+    }
+
+    function current() { return ws.find((w) => w.id === activeId); }
+
+    function renderScenarios() {
+      const list = $('#scn-list');
+      list.innerHTML = ws.map((w) => `
+        <button class="scn-card" data-id="${w.id}" aria-selected="${w.id === activeId}">
+          <div class="scn-title">${escape(w.title)}</div>
+          <div class="scn-tagline">${escape(w.tagline)}</div>
+          <div class="scn-summary">${escape(w.summary)}</div>
+          <div class="scn-meta">
+            ${w.skills.slice(0, 3).map((s) => `<span class="skill-pill">${escape(s)}</span>`).join('')}
+            <span class="runtime-pill">${escape(w.runtime)}</span>
+          </div>
+        </button>
+      `).join('');
+      list.querySelectorAll('.scn-card').forEach((card) => {
+        card.addEventListener('click', () => {
+          select(card.dataset.id);
+          activateTab('stream');
+        });
+      });
+    }
+
+    function renderSheet() {
+      const list = $('#sheet-list');
+      list.innerHTML = ws.map((w) => `
+        <button class="scn-card" data-id="${w.id}" aria-selected="${w.id === activeId}">
+          <div class="scn-title">${escape(w.title)}</div>
+          <div class="scn-tagline">${escape(w.tagline)}</div>
+        </button>
+      `).join('');
+      list.querySelectorAll('.scn-card').forEach((card) => {
+        card.addEventListener('click', () => {
+          select(card.dataset.id);
+          closeSheet();
+        });
+      });
+    }
+
+    function renderStream() {
+      const w = current();
+      const html = w.steps.map((step) => {
+        if (step.type === 'beat') {
+          return `<div class="beat">
+            <div class="beat-label">${escape(step.label)}</div>
+            ${step.caption ? `<div class="beat-caption">${escape(step.caption)}</div>` : ''}
+          </div>`;
+        }
+        const arts = (step.artifacts || []).map((id) => {
+          const a = w.outputs.find((o) => o.id === id);
+          return a ? `<button class="artifact-chip" data-art="${a.id}">${escape(a.label)}</button>` : '';
+        }).join('');
+        return `<div class="ex ${step.role}">
+          <div class="role">${step.role === 'user' ? 'you' : (step.skill || 'claude')}</div>
+          <div class="body">${escape(step.content)}</div>
+          ${arts}
+        </div>`;
+      }).join('');
+      $('#stream-content').innerHTML = html;
+      $('#stream-content').querySelectorAll('.artifact-chip').forEach((b) => {
+        b.addEventListener('click', () => {
+          activateTab('io');
+          const target = document.querySelector(`details.output[data-id="${b.dataset.art}"]`);
+          if (target) { target.open = true; target.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+        });
+      });
+    }
+
+    function renderIO() {
+      const w = current();
+      $('#inputs-list').innerHTML = w.inputs.map((i) => `<div class="io-input">${escape(i)}</div>`).join('');
+      $('#outputs-list').innerHTML = w.outputs.map((o) => `
+        <details class="output" data-id="${o.id}">
+          <summary>
+            <div>
+              <div class="output-label">${escape(o.label)}</div>
+              <div class="output-kind">${escape(o.kind || '')}</div>
+            </div>
+          </summary>
+          <div class="output-body">${escape(o.body)}</div>
+        </details>
+      `).join('');
+    }
+
+    function renderInspector() {
+      const w = current();
+      $('#inspector-content').innerHTML = `
+        <div class="insp-card">
+          <div class="insp-eyebrow">Scenario</div>
+          <div class="insp-value">${escape(w.title)}</div>
+        </div>
+        <div class="insp-card">
+          <div class="insp-eyebrow">Runtime</div>
+          <div class="insp-value">${escape(w.runtime)}</div>
+        </div>
+        <div class="insp-card">
+          <div class="insp-eyebrow">Skills exercised · ${w.skills.length}</div>
+          <div class="insp-skills">${w.skills.map((s) => `<span class="skill-pill">${escape(s)}</span>`).join('')}</div>
+        </div>
+        <div class="insp-card">
+          <div class="insp-eyebrow">Summary</div>
+          <div class="insp-value" style="font-size:13px;font-weight:400;color:var(--muted);line-height:var(--lh-base)">${escape(w.summary)}</div>
+        </div>
+      `;
+    }
+
+    function select(id) {
+      activeId = id;
+      $('#scn-chip-label').textContent = current().title;
+      renderScenarios();
+      renderSheet();
+      renderStream();
+      renderIO();
+      renderInspector();
+    }
+
+    function activateTab(name) {
+      $$('.tab').forEach((t) => t.setAttribute('aria-selected', t.dataset.tab === name));
+      $$('.panel').forEach((p) => p.classList.toggle('is-active', p.dataset.panel === name));
+      const ap = document.querySelector(`.panel[data-panel="${name}"]`);
+      if (ap) ap.scrollTop = 0;
+    }
+
+    function openSheet() { $('#sheet').classList.add('is-open'); $('#scrim').classList.add('is-open'); }
+    function closeSheet() { $('#sheet').classList.remove('is-open'); $('#scrim').classList.remove('is-open'); }
+
+    $$('.tab').forEach((t) => t.addEventListener('click', () => activateTab(t.dataset.tab)));
+    $('#scn-chip').addEventListener('click', openSheet);
+    $('#scrim').addEventListener('click', closeSheet);
+
+    select(activeId);
+  </script>
+</body>
+</html>

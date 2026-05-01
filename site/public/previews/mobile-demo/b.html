@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>opchain · Mobile demo · B — Reels / Vertical Snap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+<link rel="stylesheet" href="./_shared/tokens.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--obsidian);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+  .phone {
+    width: 390px;
+    height: min(844px, calc(100dvh - 48px));
+    background: var(--bg);
+    border-radius: 44px;
+    border: 8px solid #000;
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    position: relative;
+    display: grid;
+    grid-template-rows: 56px 1fr;
+  }
+  @media (max-width: 480px) {
+    body { padding: 0; }
+    .phone {
+      width: 100%;
+      height: 100dvh;
+      border-radius: 0;
+      border: 0;
+      box-shadow: none;
+    }
+  }
+
+  /* ── Scenario carousel (top) ── */
+  .carousel {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    padding: 12px 14px;
+    padding-top: max(12px, env(safe-area-inset-top));
+    background: linear-gradient(to bottom, var(--obsidian) 0%, var(--obsidian) 70%, transparent);
+    border-bottom: 0.5px solid var(--border);
+    scrollbar-width: none;
+    z-index: 5;
+  }
+  .carousel::-webkit-scrollbar { display: none; }
+  .scn-pill {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    padding: 6px 12px;
+    border-radius: var(--r-pill);
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--muted);
+    white-space: nowrap;
+    transition: all var(--dur-fast) var(--ease-standard);
+  }
+  .scn-pill[aria-selected="true"] {
+    background: var(--ember-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── Reel container ── */
+  .reel {
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: y mandatory;
+    position: relative;
+  }
+  .card {
+    height: 100%;
+    min-height: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    padding: 24px 22px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+  }
+  .card.intro { background: linear-gradient(160deg, var(--obsidian), var(--surface)); }
+  .card.outro { background: linear-gradient(200deg, var(--surface), var(--obsidian)); }
+
+  /* ── Card header ── */
+  .card-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+    color: var(--accent);
+  }
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 600;
+    line-height: var(--lh-tight);
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+  }
+  .card-caption {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: var(--lh-snug);
+  }
+
+  /* ── Beat card content ── */
+  .ex {
+    border-radius: var(--r-md);
+    padding: 12px 14px;
+    font-size: 13.5px;
+    line-height: var(--lh-base);
+    white-space: pre-wrap;
+  }
+  .ex.user {
+    background: var(--ember-dim);
+    border-left: 2px solid var(--accent);
+  }
+  .ex.user::before {
+    content: "you";
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .ex.claude {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+  }
+  .ex.claude::before {
+    content: attr(data-skill);
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--specialist);
+    margin-bottom: 4px;
+  }
+
+  .skill-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .skill-pill {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    padding: 3px 8px;
+    border-radius: var(--r-pill);
+    background: var(--ember-dim);
+    color: var(--accent);
+    border: 0.5px solid var(--accent);
+  }
+  .artifact-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--ember-dim);
+    border: 0.5px solid var(--accent);
+    padding: 4px 10px;
+    border-radius: var(--r-pill);
+    margin-right: 6px;
+  }
+  .artifact-chip::before { content: "⌬"; }
+
+  /* ── Intro / outro card content ── */
+  .input-list, .output-list { display: flex; flex-direction: column; gap: 8px; }
+  .input-list .row {
+    font-size: 13px;
+    color: var(--text);
+    padding: 10px 12px;
+    background: var(--card);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 var(--r-md) var(--r-md) 0;
+  }
+  .output-list .row {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 10px 12px;
+  }
+  .output-list .row .lbl { font-size: 13px; font-weight: 600; }
+  .output-list .row .knd { font-family: var(--font-mono); font-size: 10px; color: var(--subtle); margin-top: 1px; }
+  .stat-row { display: flex; gap: 14px; font-family: var(--font-mono); font-size: 11px; color: var(--subtle); margin-top: 2px; }
+  .stat-row span strong { color: var(--accent); font-weight: 600; }
+
+  /* ── Progress rail (left edge) ── */
+  .progress {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    pointer-events: none;
+    z-index: 4;
+  }
+  .progress .dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--subtle);
+    opacity: 0.4;
+    transition: all var(--dur-base) var(--ease-standard);
+  }
+  .progress .dot.active {
+    background: var(--accent);
+    opacity: 1;
+    height: 18px;
+  }
+
+  /* ── Hint footer (first card) ── */
+  .swipe-hint {
+    position: absolute;
+    bottom: 24px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+    color: var(--subtle);
+    opacity: 0.7;
+    animation: pulse 2s var(--ease-standard) infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-3px); }
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="carousel" id="carousel" role="tablist"></div>
+    <div class="reel" id="reel"></div>
+    <div class="progress" id="progress"></div>
+  </div>
+
+  <script src="./_shared/data.js"></script>
+  <script>
+    const ws = window.WALKTHROUGHS;
+    let activeId = ws[0].id;
+    const $ = (s) => document.querySelector(s);
+
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[c]);
+    }
+
+    function current() { return ws.find((w) => w.id === activeId); }
+
+    function renderCarousel() {
+      $('#carousel').innerHTML = ws.map((w) => `
+        <button class="scn-pill" data-id="${w.id}" aria-selected="${w.id === activeId}">
+          ${escape(w.tagline)}
+        </button>
+      `).join('');
+      document.querySelectorAll('.scn-pill').forEach((p) => {
+        p.addEventListener('click', () => {
+          activeId = p.dataset.id;
+          renderAll();
+        });
+      });
+    }
+
+    /**
+     * Build cards: 1 intro card + N beat cards + 1 outro card.
+     * Beat card groups the beat with the exchanges that follow until the next beat.
+     */
+    function buildCards(w) {
+      const cards = [];
+
+      // Intro
+      cards.push({
+        kind: 'intro',
+        html: `
+          <div class="card-eyebrow">${escape(w.runtime)} · ${w.skills.length} skills</div>
+          <div class="card-title">${escape(w.title)}</div>
+          <div class="card-caption">${escape(w.summary)}</div>
+          <div style="margin-top:6px"><div class="card-eyebrow" style="color:var(--subtle);margin-bottom:8px">Inputs</div>
+          <div class="input-list">
+            ${w.inputs.map((i) => `<div class="row">${escape(i)}</div>`).join('')}
+          </div></div>
+          <div class="swipe-hint">↓ swipe</div>
+        `,
+      });
+
+      // Group beats
+      let beat = null;
+      let exs = [];
+      const flush = () => {
+        if (!beat) return;
+        cards.push({
+          kind: 'beat',
+          html: `
+            <div class="card-eyebrow">${escape(beat.label)}</div>
+            <div class="card-title">${escape(beat.caption || '')}</div>
+            <div class="skill-row">${(beat.skills || []).map((s) => `<span class="skill-pill">${escape(s)}</span>`).join('')}</div>
+            ${exs.map((ex) => {
+              const role = ex.role;
+              const skill = ex.skill || (role === 'user' ? 'you' : 'claude');
+              const arts = (ex.artifacts || []).map((id) => {
+                const a = w.outputs.find((o) => o.id === id);
+                return a ? `<span class="artifact-chip">${escape(a.label)}</span>` : '';
+              }).join('');
+              return `<div class="ex ${role}" data-skill="${escape(skill)}">${escape(ex.content)}${arts ? '<div style="margin-top:8px">' + arts + '</div>' : ''}</div>`;
+            }).join('')}
+          `,
+        });
+        beat = null;
+        exs = [];
+      };
+      for (const step of w.steps) {
+        if (step.type === 'beat') {
+          flush();
+          beat = step;
+        } else {
+          exs.push(step);
+        }
+      }
+      flush();
+
+      // Outro
+      cards.push({
+        kind: 'outro',
+        html: `
+          <div class="card-eyebrow">Shipped</div>
+          <div class="card-title">${escape(w.tagline)}</div>
+          <div class="stat-row">
+            <span><strong>${escape(w.runtime)}</strong> runtime</span>
+            <span><strong>${w.outputs.length}</strong> artifacts</span>
+            <span><strong>${w.skills.length}</strong> skills</span>
+          </div>
+          <div style="margin-top:6px"><div class="card-eyebrow" style="color:var(--subtle);margin-bottom:8px">Outputs</div>
+          <div class="output-list">
+            ${w.outputs.map((o) => `<div class="row"><div class="lbl">${escape(o.label)}</div><div class="knd">${escape(o.kind || '')}</div></div>`).join('')}
+          </div></div>
+        `,
+      });
+      return cards;
+    }
+
+    function renderReel() {
+      const w = current();
+      const cards = buildCards(w);
+      $('#reel').innerHTML = cards.map((c) => `<section class="card ${c.kind}">${c.html}</section>`).join('');
+      $('#progress').innerHTML = cards.map((_, i) => `<span class="dot${i === 0 ? ' active' : ''}"></span>`).join('');
+      $('#reel').scrollTop = 0;
+      observeProgress(cards.length);
+    }
+
+    function observeProgress(total) {
+      const dots = document.querySelectorAll('#progress .dot');
+      const cards = document.querySelectorAll('.card');
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting && e.intersectionRatio > 0.6) {
+            const idx = Array.from(cards).indexOf(e.target);
+            dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+          }
+        }
+      }, { root: $('#reel'), threshold: [0.6] });
+      cards.forEach((c) => io.observe(c));
+    }
+
+    function renderAll() {
+      renderCarousel();
+      renderReel();
+    }
+    renderAll();
+  </script>
+</body>
+</html>

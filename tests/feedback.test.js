@@ -241,6 +241,50 @@ describe("POST /api/feedback", () => {
     expect(body.code).toBe("upstream_error");
   });
 
+  it("dry-run mode 201s with synthetic id and skips Linear", async () => {
+    const res = await worker.fetch(
+      req("https://staging.opchain.dev/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "bug", title: "test from staging" }),
+      }),
+      // Dry-run wins even when LINEAR_API_KEY happens to be set.
+      envWith({ FEEDBACK_DRY_RUN: "true" }),
+    );
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.id).toBe("STAGING-DRY-RUN");
+    expect(body.dryRun).toBe(true);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("dry-run mode does not require LINEAR_API_KEY", async () => {
+    const res = await worker.fetch(
+      req("https://staging.opchain.dev/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "general", title: "no key needed" }),
+      }),
+      envWith({ FEEDBACK_DRY_RUN: "true", LINEAR_API_KEY: undefined }),
+    );
+    expect(res.status).toBe(201);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("dry-run mode still validates the body", async () => {
+    const res = await worker.fetch(
+      req("https://staging.opchain.dev/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "bug" }),
+      }),
+      envWith({ FEEDBACK_DRY_RUN: "true" }),
+    );
+    expect(res.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("OPTIONS preflight returns 204 with CORS headers", async () => {
     const res = await worker.fetch(
       req("https://opchain.dev/api/feedback", {

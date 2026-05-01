@@ -56,6 +56,12 @@
       // Staging custom domain. Same shape as the prod `routes` above —
       // see that comment for DNS / wrangler-login notes.
       "routes": [{ "pattern": "staging.opchain.dev", "custom_domain": true }],
+      // Disable Linear writes from staging. The /api/feedback handler
+      // accepts the submission, logs the FEEDBACK_DRY_RUN event, and
+      // returns a synthetic 201 with id "STAGING-DRY-RUN" — no Linear
+      // call, so LINEAR_API_KEY isn't required here. Keeps test
+      // submissions out of the prod Linear backlog.
+      "vars": { "FEEDBACK_DRY_RUN": "true" },
       "kv_namespaces": [
         {
           "binding": "NOTIFY",
