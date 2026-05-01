@@ -165,6 +165,22 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
   }
   const { type, title, description, priority, skill, email } = parsed.data;
 
+  // Staging (and any env with FEEDBACK_DRY_RUN="true") accepts the
+  // submission, logs it, and returns a synthetic 201 without calling
+  // Linear. Keeps test entries out of the prod backlog and means
+  // staging doesn't need LINEAR_API_KEY at all. See wrangler.jsonc
+  // env.staging.
+  if (env.FEEDBACK_DRY_RUN === "true") {
+    log.event(EVENTS.FEEDBACK_SUBMITTED, {
+      type, priority: PRIORITY_MAP[priority] ?? 0,
+      skill: skill || null, issue: "STAGING-DRY-RUN", dry_run: true,
+    });
+    return new Response(
+      JSON.stringify({ ok: true, id: "STAGING-DRY-RUN", url: null, dryRun: true }),
+      { status: 201, headers: corsHeaders(origin, requestId) },
+    );
+  }
+
   if (!env.LINEAR_API_KEY) {
     return new Response(
       JSON.stringify({ error: "Feedback endpoint not configured", code: "not_configured" }),
