@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import MobileArchitecture from "../components/MobileArchitecture.astro";
 ---
 
 <Base
@@ -7,7 +8,11 @@ import Base from "../layouts/Base.astro";
   description="Checkpoint-driven pipeline of 17 opchain skills across 5 phases — interactive diagram of how skills chain through .checkpoints/<skill>.json."
   active="/architecture"
 >
-  <main class="arch-v2">
+  <!-- Mobile-only static architecture (≤767px). Hidden on desktop via the
+       CSS swap at the bottom of <style is:global>. -->
+  <div class="arch-mobile"><MobileArchitecture /></div>
+
+  <main class="arch-v2 arch-desktop">
     <!-- Shared SVG defs (filters + arrowhead markers) -->
     <svg class="arch-v2-defs" aria-hidden="true">
       <defs>
@@ -1863,5 +1868,16 @@ import Base from "../layouts/Base.astro";
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
     }
+  }
+
+  /* ── Desktop / mobile architecture swap ──
+        The desktop interactive diagram is dense and assumes ≥768px gutter
+        routing; the static MobileArchitecture component takes over below
+        that breakpoint. Both subtrees server-render; the inactive one is
+        display:none so layout cost is zero. */
+  .arch-mobile { display: none; }
+  @media (max-width: 767px) {
+    .arch-desktop { display: none; }
+    .arch-mobile  { display: block; }
   }
 </style>
