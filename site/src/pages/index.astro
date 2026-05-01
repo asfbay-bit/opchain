@@ -4,6 +4,7 @@ import Logo from "../components/Logo.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
 import Button from "../components/ui/Button.astro";
 import Icon from "../components/Icon.astro";
+import { walkthroughs } from "../data/walkthroughs";
 
 type Role =
   | "workflow"
@@ -82,6 +83,18 @@ const phases: Phase[] = [
     blurb: "Engine swap — live migrations: database, framework, auth, platform — with rollback.",
   },
 ];
+
+// Featured-scenario rotation: the magazine cover relocated from /demo
+// (chunk 2 of the workbench port). Slot is keyed to wall-clock time so
+// every visitor in the same 2-minute window sees the same headline; the
+// inline script below schedules the next swap on the slot boundary.
+const covers = walkthroughs.map((w, i) => ({
+  num: String(i + 1).padStart(2, "0"),
+  id: w.id,
+  title: w.title,
+  tagline: w.tagline,
+}));
+const initialCover = covers[0];
 ---
 
 <Base
@@ -124,6 +137,25 @@ const phases: Phase[] = [
         No vendor lock-in — every skill is a single Markdown file.
       </p>
     </div>
+
+    <!-- Featured-scenario magazine cover — rotates every 2 min through
+         the six walkthroughs. "Open the workbench" deep-links into
+         /demo so the click lands directly on the IDE workbench. -->
+    <section class="stage" data-cover>
+      <div class="stage-mid">
+        <div class="stage-issue">
+          opchain · scenario <span data-cover-num>{initialCover.num}</span>
+        </div>
+        <h2 class="stage-h" data-cover-title>{initialCover.title}</h2>
+        <p class="stage-sub" data-cover-tagline>{initialCover.tagline}</p>
+        <div class="stage-actions">
+          <a class="btn btn-primary" href="/demo#workbench">▶ open the workbench</a>
+          <a class="btn btn-ghost" href="/install">install opchain</a>
+        </div>
+      </div>
+    </section>
+
+    <script is:inline type="application/json" id="cover-data" set:html={JSON.stringify(covers)} />
 
     <section class="phase-grid" aria-label="Pipeline phases">
       {phases.map((p) => (
@@ -342,4 +374,152 @@ const phases: Phase[] = [
     flex-wrap: wrap;
     margin-top: 1rem;
   }
+
+  /* ── Magazine cover (relocated from /demo, chunk 2). Sits between
+        the intro body and the phase grid, full-bleed within the .intro
+        column. Rotates every 2 minutes via the inline script below. ── */
+  .stage {
+    position: relative;
+    align-self: stretch;
+    max-width: none;
+    margin: 2.5rem -1.5rem 2.5rem;
+    padding: clamp(1.1rem, 2.5vw, 1.8rem) clamp(1rem, 4vw, 2.4rem);
+    overflow: hidden;
+    text-align: left;
+    background:
+      radial-gradient(640px 320px at 75% 30%, var(--ember-glow), transparent 70%),
+      radial-gradient(420px 240px at 15% 80%, var(--ember-dim), transparent 70%),
+      var(--bg);
+    border-top: 0.5px solid var(--border);
+    border-bottom: 0.5px solid var(--border);
+  }
+  .stage-mid { max-width: 940px; margin: 0 auto; width: 100%; }
+  .stage-issue {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .stage-h {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.15rem, 2.2vw, 1.7rem);
+    line-height: 1.15;
+    letter-spacing: var(--ls-tight);
+    margin: 0 0 0.4rem;
+    max-width: 36ch;
+    color: var(--text);
+    transition: opacity var(--dur-base) var(--ease-standard);
+  }
+  .stage-sub {
+    font-size: var(--fs-base);
+    color: var(--muted);
+    max-width: 44rem;
+    margin: 0 0 0.85rem;
+    line-height: var(--lh-snug);
+    transition: opacity var(--dur-base) var(--ease-standard);
+  }
+  .stage[data-swapping] .stage-h,
+  .stage[data-swapping] .stage-sub,
+  .stage[data-swapping] .stage-issue { opacity: 0; }
+  .stage-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .stage .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.1rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    cursor: pointer;
+    text-decoration: none;
+    border-radius: var(--r-xs);
+    transition:
+      transform var(--dur-fast) var(--ease-standard),
+      background var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard),
+      box-shadow var(--dur-base) var(--ease-standard);
+  }
+  .stage .btn-primary {
+    background: var(--accent);
+    color: var(--obsidian);
+    border: 0;
+    font-weight: 600;
+  }
+  /* Light-theme contrast bump — mirrors Button.astro's primary
+     variant. var(--accent) (#d95010) on --obsidian only hits 4.46:1
+     in light mode, just below AA-Normal; var(--ember) (#e05c18) is
+     the brand-constant ember and clears AA. */
+  :global([data-theme="light"]) .stage .btn-primary {
+    background: var(--ember);
+  }
+  .stage .btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--glow-md);
+  }
+  .stage .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 0.5px solid var(--border);
+  }
+  .stage .btn-ghost:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
 </style>
+
+<script is:inline>
+  /* Magazine cover — 2-minute slot rotation (6 covers × 2 min = 12 min
+     cycle). Mirrors the previous /demo behaviour after the chunk-2
+     relocation. */
+  (() => {
+    const stage = document.querySelector('[data-cover]');
+    const dataNode = document.getElementById('cover-data');
+    if (!stage || !dataNode) return;
+
+    let covers;
+    try { covers = JSON.parse(dataNode.textContent || '[]'); }
+    catch { return; }
+    if (!Array.isArray(covers) || covers.length === 0) return;
+
+    const SLOT_MS = 2 * 60 * 1000;
+    const numEl = stage.querySelector('[data-cover-num]');
+    const titleEl = stage.querySelector('[data-cover-title]');
+    const taglineEl = stage.querySelector('[data-cover-tagline]');
+
+    function slotIndex() {
+      return Math.floor(Date.now() / SLOT_MS) % covers.length;
+    }
+    function paint(c) {
+      if (numEl) numEl.textContent = c.num;
+      if (titleEl) titleEl.textContent = c.title;
+      if (taglineEl) taglineEl.textContent = c.tagline;
+    }
+    function swap(animated) {
+      const c = covers[slotIndex()];
+      if (!animated) { paint(c); return; }
+      stage.setAttribute('data-swapping', '');
+      setTimeout(() => {
+        paint(c);
+        stage.removeAttribute('data-swapping');
+      }, 200);
+    }
+
+    swap(false);
+    const msUntilNext = SLOT_MS - (Date.now() % SLOT_MS);
+    setTimeout(() => {
+      swap(true);
+      setInterval(() => swap(true), SLOT_MS);
+    }, msUntilNext);
+  })();
+</script>
