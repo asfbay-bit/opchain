@@ -168,6 +168,12 @@ const sidebar = walkthroughs.map((w, i) => ({
     text-transform: uppercase;
     margin-bottom: 0.55rem;
   }
+  /* Light-mode contrast bump — var(--accent) (#d95010) on var(--surface)
+     (#f4e5cf) only hits 3.32:1, below AA-Normal. var(--char) (#ab3e08)
+     is the brand-constant deep ember and clears AA at 4.87:1. */
+  :global([data-theme="light"]) .page-summary-eyebrow {
+    color: var(--char);
+  }
   .page-summary h1 {
     font-family: var(--font-display);
     font-weight: 600;
