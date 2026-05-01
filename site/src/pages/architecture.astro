@@ -1273,11 +1273,56 @@ import Base from "../layouts/Base.astro";
       });
     }
 
+    /* One-shot auto-cycle on page load: open the CP panel and let the
+       6-box clockwise build animate, then open the orch panel and let
+       the routing-decision animation play one cycle, then settle.
+       Cancels on first user interaction (mouse, focus, scroll, key). */
+    function autoCycleArch() {
+      const wrap = document.getElementById('bands-wrap');
+      if (!wrap) return;
+      // Honour prefers-reduced-motion: skip the cycle entirely.
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      let cancelled = false;
+      const timeouts = [];
+      const schedule = (fn, delay) => {
+        const t = setTimeout(() => { if (!cancelled) fn(); }, delay);
+        timeouts.push(t);
+      };
+      const cancel = () => {
+        if (cancelled) return;
+        cancelled = true;
+        timeouts.forEach(clearTimeout);
+      };
+      // First user-initiated interaction inside the diagram cancels the cycle.
+      ['pointerdown', 'pointerover', 'focusin', 'keydown', 'wheel'].forEach((ev) => {
+        wrap.addEventListener(ev, cancel, { once: true, capture: true, passive: true });
+      });
+      // Scrolling away also cancels.
+      window.addEventListener('scroll', cancel, { once: true, capture: true, passive: true });
+
+      /* Timing:
+         t=0     +1000ms settle (let layout + fonts settle)
+         t=1000  cpEnter — CP panel transitions open (0.6s)
+                 6 boxes × 1.0s stagger + 0.5s anim each, lines run
+                 0.5–7.5s. Hold ~7.5s so the last line completes.
+         t=8500  cpLeave — panel collapses (~0.9s with the 300ms guard)
+         t=9600  orchEnter — orch panel transitions open
+         t=11000 routing animation peaks — let one full 5s cycle run
+         t=15100 orchLeave — panel collapses
+       */
+      schedule(() => cpEnter(),                               1000);
+      schedule(() => { if (cpActive)   cpLeave();   },        8500);
+      schedule(() => orchEnter(),                             9600);
+      schedule(() => { if (orchActive) orchLeave(); },       15100);
+    }
+
     if (document.readyState === 'loading') {
-      window.addEventListener('DOMContentLoaded', () => { wireArchEvents(); drawConnectionLines(); });
+      window.addEventListener('DOMContentLoaded', () => { wireArchEvents(); drawConnectionLines(); autoCycleArch(); });
     } else {
       wireArchEvents();
       drawConnectionLines();
+      autoCycleArch();
     }
     window.addEventListener('load', () => drawConnectionLines());
     window.addEventListener('resize', () => drawConnectionLines());
