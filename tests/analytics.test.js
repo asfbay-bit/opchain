@@ -42,7 +42,7 @@ describe("capture — PostHog wrapper", () => {
   it("POSTs to /capture/ with the expected shape", async () => {
     await capture(
       { POSTHOG_PROJECT_API_KEY: "phc_xyz", POSTHOG_HOST: "https://eu.i.posthog.com" },
-      { distinctId: "abc", event: "demo_email_submitted", properties: { foo: 1 } },
+      { distinctId: "abc", event: "notify_submitted", properties: { foo: 1 } },
     );
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0];
@@ -50,7 +50,7 @@ describe("capture — PostHog wrapper", () => {
     expect(init.method).toBe("POST");
     const body = JSON.parse(init.body);
     expect(body.api_key).toBe("phc_xyz");
-    expect(body.event).toBe("demo_email_submitted");
+    expect(body.event).toBe("notify_submitted");
     expect(body.distinct_id).toBe("abc");
     expect(body.properties.foo).toBe(1);
     expect(body.properties.$lib).toBe("opchain-worker");

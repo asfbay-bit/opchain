@@ -259,10 +259,10 @@ const transcripts = walkthroughs.map((w) => ({
                   </div>
                 </header>
 
-                {t.steps.map((step) => {
+                {t.steps.map((step, si) => {
                   if (step.kind === "beat") {
                     return (
-                      <div class="cc-beat">
+                      <div class="cc-beat" data-step-index={si}>
                         <div class="cc-beat-rule" aria-hidden="true"></div>
                         <div class="cc-beat-body">
                           <span class="cc-beat-label">{step.label}</span>
@@ -282,14 +282,14 @@ const transcripts = walkthroughs.map((w) => ({
                   }
                   if (step.kind === "user") {
                     return (
-                      <div class="cc-user">
+                      <div class="cc-user" data-step-index={si}>
                         <span class="cc-user-mark" aria-hidden="true">&gt;</span>
                         <span class="cc-user-text">{step.content}</span>
                       </div>
                     );
                   }
                   return (
-                    <div class="cc-assistant">
+                    <div class="cc-assistant" data-step-index={si}>
                       <div class="cc-assistant-head">
                         <span class="cc-bullet cc-bullet--tool" aria-hidden="true">●</span>
                         <span class="cc-name">claude</span>
@@ -1277,7 +1277,10 @@ const transcripts = walkthroughs.map((w) => ({
     overflow: hidden;
     flex-direction: column;
   }
-  .output-modal[open] { display: flex; }
+  /* height must be explicit (not just max-height) so that modal-inner's
+     height:100% and modal-body's flex:1 have a definite reference to
+     resolve against — otherwise both collapse to 0 and the body is invisible. */
+  .output-modal[open] { display: flex; height: min(88vh, 900px); }
   .output-modal::backdrop {
     background: rgba(0, 0, 0, 0.72);
     backdrop-filter: blur(3px);
@@ -1435,16 +1438,11 @@ const transcripts = walkthroughs.map((w) => ({
 </style>
 
 <script is:inline>
-  /* Sidebar + editor swap.
+  /* Sidebar + editor swap — accordion.
 
-     Sidebar: folders start collapsed. Click toggles .is-open on the
-     folder (▸ ↔ ▾ arrow flip, aria-expanded). Multi-expand — opening
-     one does not collapse the others.
-
-     Editor: a single "active scenario" controls which .scenario-pane
-     is visible. Opening a sidebar folder makes that scenario the
-     active one. Closing the active scenario falls back to whichever
-     other folder is still open, or shows the welcome prompt. */
+     Sidebar: folders start collapsed. Click opens the clicked folder
+     and closes all others (single-select accordion). Active scenario
+     tracks whichever folder is open; closing it clears the editor. */
   (() => {
     const folders        = document.querySelectorAll('.tree-folder[data-scenario]');
     const panes          = document.querySelectorAll('[data-scenario-pane]');
@@ -1452,9 +1450,6 @@ const transcripts = walkthroughs.map((w) => ({
     const prompt         = document.querySelector('[data-editor-prompt]');
     const inspectorHint  = document.querySelector('[data-inspector-placeholder]');
 
-    /* Set the editor pane's mode (summary | transcript) and sync the
-       per-view visibility + inspector. Chunk 8 introduced two child
-       views per .scenario-pane; this is the single source of truth. */
     function setPaneMode(pane, mode) {
       pane.dataset.paneMode = mode;
       pane.querySelectorAll('.pane-view').forEach((v) => {
@@ -1486,7 +1481,6 @@ const transcripts = walkthroughs.map((w) => ({
         if (on) { pane.removeAttribute('hidden'); any = true; }
         else    {
           pane.setAttribute('hidden', '');
-          // Reset non-active panes back to summary so reopening starts clean.
           if (pane.dataset.paneMode === 'transcript') setPaneMode(pane, 'summary');
         }
       });
@@ -1497,32 +1491,35 @@ const transcripts = walkthroughs.map((w) => ({
       syncInspector(activeId);
     }
 
-    function pickActiveFromOpenFolders() {
-      const openFolder = document.querySelector('.tree-folder.is-open[data-scenario]');
-      return openFolder ? openFolder.dataset.scenario : null;
+    function closeFolder(folder) {
+      folder.classList.remove('is-open');
+      folder.setAttribute('aria-expanded', 'false');
+      const arrow = folder.querySelector('.tree-arrow');
+      if (arrow) arrow.textContent = '▸';
     }
 
     folders.forEach((folder) => {
       folder.addEventListener('click', () => {
-        const open = folder.classList.toggle('is-open');
-        folder.setAttribute('aria-expanded', open ? 'true' : 'false');
-        const arrow = folder.querySelector('.tree-arrow');
-        if (arrow) arrow.textContent = open ? '▾' : '▸';
+        const wasOpen = folder.classList.contains('is-open');
 
-        if (open) {
-          // Newly opened — make this the active editor scenario.
+        // Accordion: always close all folders first.
+        folders.forEach(closeFolder);
+
+        if (!wasOpen) {
+          // Open the clicked one and make it the active editor scenario.
+          folder.classList.add('is-open');
+          folder.setAttribute('aria-expanded', 'true');
+          const arrow = folder.querySelector('.tree-arrow');
+          if (arrow) arrow.textContent = '▾';
           showEditor(folder.dataset.scenario);
         } else {
-          // Closed — fall back to another open folder, else clear.
-          showEditor(pickActiveFromOpenFolders());
+          // Was open — now all are closed, clear editor.
+          showEditor(null);
         }
       });
     });
 
-    /* Transcript mode toggle.
-       "▶ play transcript" swaps the editor pane to the cc-stream view
-       and surfaces the scenario summary in the inspector. "← back to
-       summary" reverts. */
+    /* Transcript mode toggle. */
     document.querySelectorAll('[data-play-transcript]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const id = btn.getAttribute('data-play-transcript');
@@ -1530,7 +1527,6 @@ const transcripts = walkthroughs.map((w) => ({
         if (!pane) return;
         setPaneMode(pane, 'transcript');
         syncInspector(id);
-        // Scroll the transcript stream to the top whenever it's freshly opened.
         const stream = pane.querySelector('.pane-view[data-view="transcript"]');
         if (stream) stream.scrollTop = 0;
       });
@@ -1547,63 +1543,61 @@ const transcripts = walkthroughs.map((w) => ({
     });
   })();
 
-  /* Output modal lightbox.
-     Clicking any .output-row button looks up the pre-rendered artifact
-     body from the hidden .artifact-store, populates the <dialog>, and
-     calls showModal(). The <dialog> element handles the focus trap and
-     Escape key automatically. Backdrop click and the ✕ button also close. */
+  /* Output modal lightbox — event delegation.
+     Single document listener catches clicks from any .output-row,
+     including those in summary-page right columns that are dynamically
+     shown/hidden. */
   (() => {
-    const modal     = /** @type {HTMLDialogElement|null} */ (document.getElementById('output-modal'));
-    const titleEl   = document.getElementById('modal-title');
-    const kindEl    = modal && modal.querySelector('.modal-kind');
-    const bodyEl    = modal && modal.querySelector('.modal-body');
-    const closeBtn  = modal && modal.querySelector('.modal-close');
-    const store     = document.querySelector('.artifact-store');
+    const modal    = /** @type {HTMLDialogElement|null} */ (document.getElementById('output-modal'));
+    const titleEl  = document.getElementById('modal-title');
+    const kindEl   = modal && modal.querySelector('.modal-kind');
+    const bodyEl   = modal && modal.querySelector('.modal-body');
+    const closeBtn = modal && modal.querySelector('.modal-close');
+    const store    = document.querySelector('.artifact-store');
     if (!modal || !titleEl || !kindEl || !bodyEl || !store) return;
 
-    function openArtifact(scenarioId, artifactId) {
+    function openArtifact(btn) {
+      const scenarioId = btn.dataset.outputScenario;
+      const artifactId = btn.dataset.outputId;
+      if (!scenarioId || !artifactId) return;
       const src = store.querySelector(
         `[data-artifact-scenario="${CSS.escape(scenarioId)}"][data-artifact-id="${CSS.escape(artifactId)}"]`
       );
       if (!src) return;
 
-      // Read label + kind from the clicked output-row for DRY display.
-      const btn   = document.querySelector(
-        `[data-output-scenario="${CSS.escape(scenarioId)}"][data-output-id="${CSS.escape(artifactId)}"]`
-      );
-      const label = btn && btn.querySelector('.output-label')
+      const label = btn.querySelector('.output-label')
         ? btn.querySelector('.output-label').textContent.trim()
         : artifactId;
-      const kind  = btn && btn.querySelector('.output-kind')
+      const kind = btn.querySelector('.output-kind')
         ? btn.querySelector('.output-kind').textContent.trim()
         : '';
 
-      titleEl.textContent  = label;
-      kindEl.textContent   = kind;
-      bodyEl.innerHTML     = src.innerHTML;
+      titleEl.textContent = label;
+      kindEl.textContent  = kind;
+      bodyEl.innerHTML    = src.innerHTML;
       modal.showModal();
     }
 
-    // Wire every output row in all scenario panes.
-    document.querySelectorAll('.output-row[data-output-scenario]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        openArtifact(btn.dataset.outputScenario, btn.dataset.outputId);
-      });
+    // Event delegation — catches every .output-row regardless of where it lives.
+    document.addEventListener('click', (e) => {
+      const btn = /** @type {HTMLElement|null} */ (
+        e.target instanceof Element
+          ? e.target.closest('.output-row[data-output-scenario]')
+          : null
+      );
+      if (btn) openArtifact(/** @type {HTMLElement} */ (btn));
     });
 
-    // Close: ✕ button.
     closeBtn && closeBtn.addEventListener('click', () => modal.close());
 
-    // Close: click on the backdrop (the <dialog> element itself, outside modal-inner).
     modal.addEventListener('click', (e) => {
       if (e.target === modal) modal.close();
     });
   })();
 
   /* Fullscreen workbench.
-     Toggle expands the .workbench section to fill the viewport via a CSS
-     class swap (no Fullscreen API). Exit on the button, the macOS-style
-     red dot, or Escape (when no modal is open). */
+     Toggle button, red-dot, and Escape exit fullscreen. Clicking the
+     workbench background (when not already fullscreen) enters it. */
   (() => {
     const workbench = document.querySelector('.workbench');
     const btn       = document.querySelector('[data-fullscreen-toggle]');
@@ -1628,6 +1622,11 @@ const transcripts = walkthroughs.map((w) => ({
 
     btn.addEventListener('click', () => setFullscreen(!isFullscreen()));
 
+    // Click the workbench background (not an inner element) to enter fullscreen.
+    workbench.addEventListener('click', (e) => {
+      if (!isFullscreen() && e.target === workbench) setFullscreen(true);
+    });
+
     if (redDot) {
       redDot.setAttribute('role', 'button');
       redDot.setAttribute('tabindex', '0');
@@ -1635,14 +1634,87 @@ const transcripts = walkthroughs.map((w) => ({
       redDot.addEventListener('click', () => { if (isFullscreen()) setFullscreen(false); });
     }
 
-    // Escape exits fullscreen — but only if no native <dialog> is open
-    // (the dialog owns Escape inside its own showModal lifecycle).
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
       if (!isFullscreen()) return;
       const openDialog = document.querySelector('dialog[open]');
       if (openDialog) return;
       setFullscreen(false);
+    });
+  })();
+
+  /* Step-by-step transcript playback.
+     On "▶ play transcript": all steps are hidden; ↵ reveals the next
+     step, ␣ reveals all at once, R resets to the beginning. The mode
+     is scoped to the currently-visible transcript pane. */
+  (() => {
+    let stepCursor = -1;   // index of last-revealed step in current playback
+    let activeSteps = [];  // NodeList snapshot for the current transcript
+
+    function getVisibleTranscript() {
+      return document.querySelector(
+        '[data-scenario-pane]:not([hidden]) .pane-view[data-view="transcript"]:not([hidden])'
+      );
+    }
+
+    function startPlayback() {
+      const transcript = getVisibleTranscript();
+      if (!transcript) return;
+      activeSteps = Array.from(transcript.querySelectorAll('[data-step-index]'));
+      if (activeSteps.length === 0) return;
+      stepCursor = -1;
+      activeSteps.forEach((el) => el.setAttribute('hidden', ''));
+      transcript.scrollTop = 0;
+    }
+
+    function revealNext() {
+      if (activeSteps.length === 0) return;
+      stepCursor = Math.min(stepCursor + 1, activeSteps.length - 1);
+      const el = activeSteps[stepCursor];
+      el.removeAttribute('hidden');
+      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    function revealAll() {
+      activeSteps.forEach((el) => el.removeAttribute('hidden'));
+      stepCursor = activeSteps.length - 1;
+    }
+
+    function resetPlayback() {
+      if (activeSteps.length === 0) {
+        // Re-init from whatever transcript is visible.
+        startPlayback();
+        return;
+      }
+      stepCursor = -1;
+      activeSteps.forEach((el) => el.setAttribute('hidden', ''));
+      const transcript = getVisibleTranscript();
+      if (transcript) transcript.scrollTop = 0;
+    }
+
+    // Hook into the existing play-transcript buttons to start playback.
+    document.querySelectorAll('[data-play-transcript]').forEach((playBtn) => {
+      playBtn.addEventListener('click', () => {
+        // Defer until the pane swap (above IIFE) has run.
+        requestAnimationFrame(startPlayback);
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      // Only active when a transcript pane is visible.
+      if (!getVisibleTranscript()) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        revealNext();
+      } else if (e.key === ' ') {
+        e.preventDefault();
+        revealAll();
+      } else if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        resetPlayback();
+      }
     });
   })();
 </script>
