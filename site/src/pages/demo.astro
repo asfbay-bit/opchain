@@ -1256,6 +1256,11 @@ const transcripts = walkthroughs.map((w) => ({
   }
 
   /* ── Output modal lightbox ── */
+  /* Base rule deliberately omits `display` — Astro's CSS scoping adds
+     a data-astro-cid attribute that would bump specificity above the
+     UA `dialog:not([open]) { display: none }` default and force the
+     modal visible on page load. The [open] rule below provides the
+     in-use layout. */
   .output-modal {
     position: fixed;
     inset: 0;
@@ -1270,7 +1275,6 @@ const transcripts = walkthroughs.map((w) => ({
       0 8px 32px rgba(0, 0, 0, 0.45),
       0 2px 8px rgba(0, 0, 0, 0.3);
     overflow: hidden;
-    display: flex;
     flex-direction: column;
   }
   .output-modal[open] { display: flex; }
