@@ -36,6 +36,40 @@ const artifacts = walkthroughs.flatMap((w) =>
     html: renderSafeMarkdown(o.body),
   }))
 );
+
+/** Per-scenario transcript steps with claude exchange bodies pre-rendered.
+    Used by chunk 8's transcript mode — the editor pane swaps from the
+    summary card to a Claude-Code terminal-styled stream of beats +
+    user/claude exchanges. Artifact chips inline reference output ids
+    and dispatch the same modal lightbox wired in chunk 5. */
+const transcripts = walkthroughs.map((w) => ({
+  id: w.id,
+  title: w.title,
+  stepCount: w.steps.length,
+  steps: w.steps.map((step) => {
+    if (step.type === "beat") {
+      return {
+        kind: "beat" as const,
+        label: step.label,
+        caption: step.caption ?? "",
+        skills: (step.skills ?? []).map((id) => ({ id, role: getSkillRole(id) })),
+      };
+    }
+    if (step.role === "user") {
+      return { kind: "user" as const, content: step.content };
+    }
+    return {
+      kind: "claude" as const,
+      skill: step.skill ?? "",
+      skillRole: step.skill ? getSkillRole(step.skill) : null,
+      html: renderSafeMarkdown(step.content),
+      artifacts: (step.artifacts ?? []).map((aid) => {
+        const a = w.outputs.find((o) => o.id === aid);
+        return { id: aid, label: a?.label ?? aid, kind: a?.kind ?? "" };
+      }),
+    };
+  }),
+}));
 ---
 
 <Base
@@ -136,8 +170,12 @@ const artifacts = walkthroughs.flatMap((w) =>
       <!-- Editor — per-scenario summary panes. Default state shows
            the prompt; opening a scenario in the sidebar swaps in that
            scenario's pane via the click handler at the bottom of the
-           file. Output rows are wired to a modal lightbox in chunk 5. -->
-      <div class="ide-editor" role="region" aria-label="Scenario summary">
+           file. Output rows are wired to a modal lightbox in chunk 5.
+           Each pane has two modes (chunk 8): "summary" (default) and
+           "transcript" (Claude-Code terminal stream). The "▶ play
+           transcript" button toggles the mode and the .ide-inspector
+           swaps to a compact summary copy on the right. -->
+      <div class="ide-editor" role="region" aria-label="Scenario editor">
         <div class="editor-prompt" data-editor-prompt>
           <div class="editor-prompt-eyebrow">scenario summary</div>
           <p class="editor-prompt-h">Pick a scenario on the left.</p>
@@ -148,67 +186,207 @@ const artifacts = walkthroughs.flatMap((w) =>
           </p>
         </div>
 
-        {walkthroughs.map((w, i) => (
-          <article
-            class="scenario-pane"
-            data-scenario-pane={w.id}
-            aria-label={`${w.title} summary`}
-            hidden
-          >
-            <header class="scenario-head">
-              <div class="scenario-num">scenario {String(i + 1).padStart(2, "0")}</div>
-              <h2 class="scenario-title">{w.title}</h2>
-              <p class="scenario-tagline">{w.tagline} · {w.runtime}</p>
-            </header>
+        {walkthroughs.map((w, i) => {
+          const t = transcripts[i];
+          return (
+            <article
+              class="scenario-pane"
+              data-scenario-pane={w.id}
+              data-pane-mode="summary"
+              aria-label={`${w.title}`}
+              hidden
+            >
+              <!-- ── Summary view (chunks 4 + 5) ── -->
+              <div class="pane-view" data-view="summary">
+                <header class="scenario-head">
+                  <div class="scenario-num">scenario {String(i + 1).padStart(2, "0")}</div>
+                  <h2 class="scenario-title">{w.title}</h2>
+                  <p class="scenario-tagline">{w.tagline} · {w.runtime}</p>
+                  <button
+                    type="button"
+                    class="play-btn"
+                    data-play-transcript={w.id}
+                    aria-label={`Play ${w.title} transcript`}
+                  >
+                    <span class="play-ico" aria-hidden="true">▶</span>
+                    play transcript · {t.stepCount} steps
+                  </button>
+                </header>
 
-            <p class="scenario-summary">{w.summary}</p>
+                <p class="scenario-summary">{w.summary}</p>
 
-            <div class="scenario-cols">
-              <section class="scenario-col">
-                <div class="col-head">inputs · {w.inputs.length}</div>
-                <ul class="col-list">
-                  {w.inputs.map((line) => (
-                    <li>{line}</li>
-                  ))}
-                </ul>
-              </section>
+                <div class="scenario-cols">
+                  <section class="scenario-col">
+                    <div class="col-head">inputs · {w.inputs.length}</div>
+                    <ul class="col-list">
+                      {w.inputs.map((line) => (
+                        <li>{line}</li>
+                      ))}
+                    </ul>
+                  </section>
 
-              <section class="scenario-col">
-                <div class="col-head">outputs · {w.outputs.length}</div>
-                <ul class="col-list outputs-list">
-                  {w.outputs.map((o) => (
-                    <li>
-                      <button
-                        type="button"
-                        class="output-row"
-                        data-output-scenario={w.id}
-                        data-output-id={o.id}
-                        aria-label={`Open ${o.label}`}
-                      >
-                        <span class="output-ico">⊞</span>
-                        <span class="output-label">{o.label}</span>
-                        {o.kind && <span class="output-kind">{o.kind}</span>}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            </div>
-          </article>
-        ))}
+                  <section class="scenario-col">
+                    <div class="col-head">outputs · {w.outputs.length}</div>
+                    <ul class="col-list outputs-list">
+                      {w.outputs.map((o) => (
+                        <li>
+                          <button
+                            type="button"
+                            class="output-row"
+                            data-output-scenario={w.id}
+                            data-output-id={o.id}
+                            aria-label={`Open ${o.label}`}
+                          >
+                            <span class="output-ico">⊞</span>
+                            <span class="output-label">{o.label}</span>
+                            {o.kind && <span class="output-kind">{o.kind}</span>}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                </div>
+              </div>
+
+              <!-- ── Transcript view (chunk 8) ── -->
+              <div class="pane-view cc-stream" data-view="transcript" hidden>
+                <header class="transcript-head">
+                  <button
+                    type="button"
+                    class="back-btn"
+                    data-back-to-summary={w.id}
+                    aria-label="Back to scenario summary"
+                  >
+                    <span aria-hidden="true">←</span> back to summary
+                  </button>
+                  <div class="transcript-meta">
+                    {t.stepCount} steps · {w.runtime}
+                  </div>
+                </header>
+
+                {t.steps.map((step) => {
+                  if (step.kind === "beat") {
+                    return (
+                      <div class="cc-beat">
+                        <div class="cc-beat-rule" aria-hidden="true"></div>
+                        <div class="cc-beat-body">
+                          <span class="cc-beat-label">{step.label}</span>
+                          {step.caption && (
+                            <span class="cc-beat-caption">· {step.caption}</span>
+                          )}
+                          {step.skills.length > 0 && (
+                            <span class="cc-beat-skills">
+                              {step.skills.map((sk) => (
+                                <code class:list={["cc-chip", `role-${sk.role}`]}>{sk.id}</code>
+                              ))}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+                  if (step.kind === "user") {
+                    return (
+                      <div class="cc-user">
+                        <span class="cc-user-mark" aria-hidden="true">&gt;</span>
+                        <span class="cc-user-text">{step.content}</span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div class="cc-assistant">
+                      <div class="cc-assistant-head">
+                        <span class="cc-bullet cc-bullet--tool" aria-hidden="true">●</span>
+                        <span class="cc-name">claude</span>
+                        {step.skill && (
+                          <>
+                            <span class="cc-sep" aria-hidden="true">·</span>
+                            <code class:list={[
+                              "cc-chip",
+                              step.skillRole && `role-${step.skillRole}`,
+                            ]}>{step.skill}</code>
+                          </>
+                        )}
+                      </div>
+                      <div class="cc-assistant-body" set:html={step.html} />
+                      {step.artifacts.length > 0 && (
+                        <div class="cc-artifacts" aria-label="Outputs from this exchange">
+                          {step.artifacts.map((a) => (
+                            <button
+                              type="button"
+                              class="output-row cc-artifact-chip"
+                              data-output-scenario={w.id}
+                              data-output-id={a.id}
+                              aria-label={`Open ${a.label}`}
+                            >
+                              <span class="output-ico" aria-hidden="true">⊞</span>
+                              <span class="output-label">{a.label}</span>
+                              {a.kind && <span class="output-kind">{a.kind}</span>}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </article>
+          );
+        })}
       </div>
 
-      <!-- Inspector — populated in chunk 8 (transcript mode moves
-           the summary here when transcript starts) -->
+      <!-- Inspector — chunk 8 swaps from the placeholder to a compact
+           scenario summary when the editor enters transcript mode. -->
       <div class="ide-inspector" role="region" aria-label="Scenario inspector">
-        <div class="ide-placeholder">summary panel → port chunk 8</div>
+        <div class="ide-placeholder" data-inspector-placeholder>
+          summary moves here in transcript mode
+        </div>
+        {walkthroughs.map((w, i) => (
+          <aside
+            class="inspector-pane"
+            data-inspector-pane={w.id}
+            aria-label={`${w.title} side summary`}
+            hidden
+          >
+            <div class="ip-eyebrow">scenario {String(i + 1).padStart(2, "0")}</div>
+            <h3 class="ip-title">{w.title}</h3>
+            <p class="ip-tagline">{w.tagline}</p>
+            <p class="ip-summary">{w.summary}</p>
+            <div class="ip-section">
+              <div class="ip-section-head">inputs · {w.inputs.length}</div>
+              <ul class="ip-list">
+                {w.inputs.map((line) => (<li>{line}</li>))}
+              </ul>
+            </div>
+            <div class="ip-section">
+              <div class="ip-section-head">outputs · {w.outputs.length}</div>
+              <ul class="ip-list">
+                {w.outputs.map((o) => (
+                  <li>
+                    <button
+                      type="button"
+                      class="output-row ip-output-row"
+                      data-output-scenario={w.id}
+                      data-output-id={o.id}
+                      aria-label={`Open ${o.label}`}
+                    >
+                      <span class="output-ico" aria-hidden="true">⊞</span>
+                      <span class="output-label">{o.label}</span>
+                      {o.kind && <span class="output-kind">{o.kind}</span>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </aside>
+        ))}
       </div>
 
       <!-- Status bar -->
       <div class="ide-status">
         <span>workbench</span>
         <span class="ide-sep">·</span>
-        <span>port chunk 6 of 9 · fullscreen toggle</span>
+        <span>port chunk 8 of 9 · transcript mode</span>
         <span class="ide-sep">·</span>
         <span class="ok">✓ {sidebar.length} scenarios loaded</span>
         <span class="right">
@@ -731,6 +909,320 @@ const artifacts = walkthroughs.flatMap((w) =>
     .ide-inspector { display: none; }
   }
 
+  /* ── Transcript mode (chunk 8) ──
+        The editor pane has two child views: the summary card (chunks
+        4-5) and the terminal-styled chat stream below. Mode is driven
+        by .scenario-pane[data-pane-mode] and a JS toggle. The inspector
+        gets a compact side-summary when transcript is on so the user
+        keeps brief context while reading the chat. */
+  .pane-view[hidden] { display: none; }
+
+  .play-btn {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    margin-top: 0.7rem;
+    border-radius: var(--r-xs);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    transition: color 120ms, background 120ms, border-color 120ms;
+  }
+  .play-btn:hover { background: var(--ember-dim); }
+  .play-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .play-ico { font-size: 0.7em; }
+
+  .transcript-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0.9rem;
+    margin-bottom: 0.4rem;
+    border-bottom: 0.5px solid var(--cc-border);
+    background: rgba(0, 0, 0, 0.2);
+    font-family: var(--font-mono);
+  }
+  .back-btn {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--cc-border);
+    color: var(--cc-fg);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    padding: 4px 9px;
+    border-radius: var(--r-xs);
+    cursor: pointer;
+    transition: color 120ms, border-color 120ms;
+  }
+  .back-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .back-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .transcript-meta {
+    color: var(--cc-dim);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Claude-Code terminal stream tokens.
+     Scoped to .cc-stream so the rest of the editor isn't affected. */
+  .cc-stream {
+    --cc-bg:      #181818;
+    --cc-fg:      #e8e8e8;
+    --cc-dim:     #8a8a8a;
+    --cc-subtle:  #5a5a5a;
+    --cc-cyan:    #62afff;
+    --cc-orange:  #d99155;
+    --cc-purple:  #b294ff;
+    --cc-green:   #9ece6a;
+    --cc-red:     #f7768e;
+    --cc-border:  #2a2a2a;
+
+    background: var(--cc-bg);
+    color: var(--cc-fg);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.55;
+    padding: 0 0 1rem;
+    height: 100%;
+    overflow-y: auto;
+  }
+  .cc-stream > * { padding-left: 0.9rem; padding-right: 0.9rem; }
+  .cc-stream > .transcript-head { padding-left: 0.9rem; padding-right: 0.9rem; }
+
+  .cc-beat {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 1.2rem 0 0.6rem;
+    color: var(--cc-dim);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .cc-beat-rule {
+    flex: 0 0 1rem;
+    border-top: 0.5px solid var(--cc-border);
+    height: 0;
+  }
+  .cc-beat-body {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .cc-beat-label   { color: var(--cc-fg); font-weight: 500; }
+  .cc-beat-caption { color: var(--cc-dim); }
+  .cc-beat-skills  { display: inline-flex; gap: 0.35rem; }
+
+  .cc-chip {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    background: rgba(255, 255, 255, 0.04);
+    border: 0.5px solid var(--cc-border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    color: var(--cc-fg);
+    text-transform: none;
+  }
+  /* role-* tints come from the role-dot palette, mapped onto chip text. */
+  .cc-chip.role-workflow     { color: var(--workflow); }
+  .cc-chip.role-tri-agent    { color: var(--tri-agent); }
+  .cc-chip.role-audit-gate   { color: var(--rose, var(--audit-gate)); }
+  .cc-chip.role-specialist   { color: var(--teal, var(--specialist)); }
+  .cc-chip.role-advisor      { color: var(--advisor); }
+  .cc-chip.role-orchestrator { color: var(--orchestrator); }
+  .cc-chip.role-success      { color: var(--success); }
+
+  .cc-user {
+    display: flex;
+    gap: 0.55rem;
+    margin: 0.7rem 0 0.4rem;
+    color: var(--cc-fg);
+  }
+  .cc-user-mark { color: var(--cc-cyan); flex: 0 0 auto; }
+  .cc-user-text { white-space: pre-wrap; }
+
+  .cc-assistant { margin: 0.7rem 0 0.9rem; }
+  .cc-assistant-head {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.4rem;
+    color: var(--cc-dim);
+    font-size: 11.5px;
+  }
+  .cc-bullet { color: var(--cc-orange); flex: 0 0 auto; }
+  .cc-name   { color: var(--cc-fg); font-weight: 600; }
+  .cc-sep    { color: var(--cc-subtle); }
+
+  .cc-assistant-body {
+    color: var(--cc-fg);
+    padding-left: 1.05rem;
+    border-left: 1px solid var(--cc-border);
+    margin-left: 0.18rem;
+  }
+  .cc-assistant-body :global(p) { margin: 0 0 0.55rem; }
+  .cc-assistant-body :global(p:last-child) { margin-bottom: 0; }
+  .cc-assistant-body :global(strong) { color: #fff; font-weight: 600; }
+  .cc-assistant-body :global(em) { color: var(--cc-fg); font-style: italic; }
+  .cc-assistant-body :global(h1),
+  .cc-assistant-body :global(h2),
+  .cc-assistant-body :global(h3) {
+    margin: 0.7rem 0 0.4rem;
+    color: var(--cc-fg);
+    font-family: var(--font-mono);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .cc-assistant-body :global(h1) { font-size: 14px; }
+  .cc-assistant-body :global(h2) { font-size: 13px; }
+  .cc-assistant-body :global(h3) { font-size: 12px; color: var(--cc-fg); }
+  .cc-assistant-body :global(ul),
+  .cc-assistant-body :global(ol) { margin: 0 0 0.55rem; padding-left: 1.1rem; }
+  .cc-assistant-body :global(li) { margin: 0.1rem 0; }
+  .cc-assistant-body :global(code) {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--cc-cyan);
+    background: rgba(98, 175, 255, 0.08);
+    border-radius: 2px;
+    padding: 0 4px;
+  }
+  .cc-assistant-body :global(pre) {
+    background: rgba(255, 255, 255, 0.03);
+    border: 0.5px solid var(--cc-border);
+    border-radius: 3px;
+    padding: 0.6rem 0.8rem;
+    overflow-x: auto;
+    margin: 0 0 0.6rem;
+    font-size: 12px;
+  }
+  .cc-assistant-body :global(pre code) {
+    background: none;
+    padding: 0;
+    color: var(--cc-fg);
+  }
+  .cc-assistant-body :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 0.55rem;
+    font-size: 11.5px;
+  }
+  .cc-assistant-body :global(th),
+  .cc-assistant-body :global(td) {
+    border: 0.5px solid var(--cc-border);
+    padding: 0.3rem 0.55rem;
+    text-align: left;
+  }
+  .cc-assistant-body :global(th) {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--cc-fg);
+    font-weight: 500;
+  }
+  .cc-assistant-body :global(blockquote) {
+    border-left: 2px solid var(--cc-orange);
+    margin: 0 0 0.55rem;
+    padding: 0.2rem 0 0.2rem 0.7rem;
+    color: var(--cc-dim);
+  }
+  .cc-assistant-body :global(a) {
+    color: var(--cc-cyan);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .cc-artifacts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin: 0.55rem 0 0;
+    padding-left: 1.05rem;
+  }
+  .cc-artifact-chip {
+    background: rgba(255, 255, 255, 0.03);
+    border: 0.5px solid var(--cc-border);
+    color: var(--cc-fg);
+    font-size: 12px;
+  }
+  .cc-artifact-chip:hover {
+    border-color: var(--cc-orange);
+    background: rgba(217, 145, 85, 0.08);
+  }
+  .cc-artifact-chip .output-ico   { color: var(--cc-orange); }
+  .cc-artifact-chip .output-kind  { color: var(--cc-dim); }
+
+  /* Inspector side-summary (chunk 8). */
+  .inspector-pane {
+    padding: 0.9rem 1rem 1.2rem;
+    color: var(--muted);
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+  }
+  .inspector-pane[hidden] { display: none; }
+  .ip-eyebrow {
+    color: #f5894d;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  :global([data-theme="light"]) .ip-eyebrow { color: #993505; }
+  .ip-title {
+    color: var(--text);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-md);
+    line-height: 1.25;
+    margin: 0 0 0.3rem;
+  }
+  .ip-tagline {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    margin: 0 0 0.7rem;
+  }
+  .ip-summary {
+    color: var(--text);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-base);
+    margin: 0 0 1rem;
+  }
+  .ip-section { margin-bottom: 0.9rem; }
+  .ip-section-head {
+    color: #f5894d;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  :global([data-theme="light"]) .ip-section-head { color: #993505; }
+  .ip-list { list-style: none; padding: 0; margin: 0; }
+  .ip-list li {
+    color: var(--muted);
+    font-size: 11.5px;
+    line-height: 1.45;
+    padding: 0.18rem 0;
+  }
+  .ip-output-row { font-size: 11.5px; padding: 0.4rem 0.55rem; }
+  .ip-output-row .output-ico { font-size: 11px; }
+
+  /* The inspector placeholder + matching pane are toggled by JS based
+     on whether the active scenario is in transcript mode. */
+  [data-inspector-placeholder][hidden] { display: none; }
+
   /* ── Fullscreen workbench (chunk 6) ──
         Toggle expands .workbench to fill the viewport. Implemented as
         a CSS class swap rather than the Fullscreen API — avoids the
@@ -955,21 +1447,55 @@ const artifacts = walkthroughs.flatMap((w) =>
      active one. Closing the active scenario falls back to whichever
      other folder is still open, or shows the welcome prompt. */
   (() => {
-    const folders = document.querySelectorAll('.tree-folder[data-scenario]');
-    const panes   = document.querySelectorAll('[data-scenario-pane]');
-    const prompt  = document.querySelector('[data-editor-prompt]');
+    const folders        = document.querySelectorAll('.tree-folder[data-scenario]');
+    const panes          = document.querySelectorAll('[data-scenario-pane]');
+    const inspectorPanes = document.querySelectorAll('[data-inspector-pane]');
+    const prompt         = document.querySelector('[data-editor-prompt]');
+    const inspectorHint  = document.querySelector('[data-inspector-placeholder]');
+
+    /* Set the editor pane's mode (summary | transcript) and sync the
+       per-view visibility + inspector. Chunk 8 introduced two child
+       views per .scenario-pane; this is the single source of truth. */
+    function setPaneMode(pane, mode) {
+      pane.dataset.paneMode = mode;
+      pane.querySelectorAll('.pane-view').forEach((v) => {
+        if (v.dataset.view === mode) v.removeAttribute('hidden');
+        else                          v.setAttribute('hidden', '');
+      });
+    }
+
+    function syncInspector(activeId) {
+      const activePane = activeId
+        ? document.querySelector(`[data-scenario-pane="${CSS.escape(activeId)}"]`)
+        : null;
+      const transcriptOn = !!(activePane && activePane.dataset.paneMode === 'transcript');
+      inspectorPanes.forEach((p) => {
+        const on = transcriptOn && p.dataset.inspectorPane === activeId;
+        if (on) p.removeAttribute('hidden');
+        else    p.setAttribute('hidden', '');
+      });
+      if (inspectorHint) {
+        if (transcriptOn) inspectorHint.setAttribute('hidden', '');
+        else              inspectorHint.removeAttribute('hidden');
+      }
+    }
 
     function showEditor(activeId) {
       let any = false;
       panes.forEach((pane) => {
         const on = pane.dataset.scenarioPane === activeId;
         if (on) { pane.removeAttribute('hidden'); any = true; }
-        else    { pane.setAttribute('hidden', ''); }
+        else    {
+          pane.setAttribute('hidden', '');
+          // Reset non-active panes back to summary so reopening starts clean.
+          if (pane.dataset.paneMode === 'transcript') setPaneMode(pane, 'summary');
+        }
       });
       if (prompt) {
         if (any) prompt.setAttribute('hidden', '');
         else     prompt.removeAttribute('hidden');
       }
+      syncInspector(activeId);
     }
 
     function pickActiveFromOpenFolders() {
@@ -991,6 +1517,33 @@ const artifacts = walkthroughs.flatMap((w) =>
           // Closed — fall back to another open folder, else clear.
           showEditor(pickActiveFromOpenFolders());
         }
+      });
+    });
+
+    /* Transcript mode toggle — chunk 8.
+       "▶ play transcript" swaps the editor pane to the cc-stream view
+       and surfaces the scenario summary in the inspector. "← back to
+       summary" reverts. */
+    document.querySelectorAll('[data-play-transcript]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-play-transcript');
+        const pane = document.querySelector(`[data-scenario-pane="${CSS.escape(id)}"]`);
+        if (!pane) return;
+        setPaneMode(pane, 'transcript');
+        syncInspector(id);
+        // Scroll the transcript stream to the top whenever it's freshly opened.
+        const stream = pane.querySelector('.pane-view[data-view="transcript"]');
+        if (stream) stream.scrollTop = 0;
+      });
+    });
+
+    document.querySelectorAll('[data-back-to-summary]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-back-to-summary');
+        const pane = document.querySelector(`[data-scenario-pane="${CSS.escape(id)}"]`);
+        if (!pane) return;
+        setPaneMode(pane, 'summary');
+        syncInspector(id);
       });
     });
   })();
