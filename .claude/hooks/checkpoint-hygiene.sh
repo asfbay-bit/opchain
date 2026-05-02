@@ -9,10 +9,15 @@
 # Reads stdin JSON: { session_id, transcript_path, cwd, ... }
 # Outputs JSON on block: { "decision": "block", "reason": "..." }
 # Exits 0 silently when nothing is missing.
-#
-# Dependencies: bash, jq, grep. Portable across macOS + Linux.
 
 set -euo pipefail
+
+# Soft-skip if jq is missing — we'd rather let a session end than wedge
+# it on a missing dep. The CI validator (npm run checkpoint:validate)
+# is the backstop.
+if ! command -v jq >/dev/null 2>&1; then
+  exit 0
+fi
 
 INPUT="$(cat)"
 TRANSCRIPT_PATH="$(jq -r '.transcript_path // empty' <<<"$INPUT")"
@@ -48,15 +53,23 @@ ENFORCED_SKILLS=(
   ux-engineer
 )
 
-# Find skills invoked in this session's transcript. Match only real Skill
-# tool-use entries — JSONL lines that contain BOTH `"name":"Skill"` (the
-# tool-use kind) AND `"skill":"<name>"` (the input field). This avoids
-# false positives from bash command text, prose, PR descriptions, or
-# checkpoint files that mention a skill name in passing.
+# Find skills invoked in this session's transcript. Use jq to parse each
+# JSONL line as a structured object — match only entries where
+# .message.content[*].type == "tool_use" AND .name == "Skill" AND
+# .input.skill == <skill>. Substring matching on raw lines was brittle:
+# any prose containing both '"name":"Skill"' and '"skill":"<name>"' would
+# false-positive.
+#
+# Empty/unparseable lines are tolerated via `?` in the path expressions.
+INVOKED_RAW=$(jq -r '
+  .message.content[]?
+  | select(.type == "tool_use" and .name == "Skill")
+  | .input.skill // empty
+' "$TRANSCRIPT_PATH" 2>/dev/null | sort -u || true)
+
 INVOKED=()
 for skill in "${ENFORCED_SKILLS[@]}"; do
-  if grep -F '"name":"Skill"' "$TRANSCRIPT_PATH" 2>/dev/null \
-     | grep -q -F "\"skill\":\"${skill}\""; then
+  if grep -Fxq -- "$skill" <<<"$INVOKED_RAW"; then
     INVOKED+=("$skill")
   fi
 done
@@ -83,12 +96,25 @@ fi
 # Block the stop. Emit JSON on stdout — the harness shows `reason` to the
 # assistant as a system-reminder so it can write the missing checkpoints
 # and try again.
+#
+# We point at `node scripts/checkpoint.mjs update` (the canonical writer
+# that validates + auto-stamps updated_at) rather than the per-skill
+# .sh writers, which do shallow merges with no schema validation and
+# can produce checkpoints that CI's validator then rejects.
 LIST=$(printf -- "  - %s\n" "${MISSING[@]}")
 REASON=$(cat <<EOF
 Checkpoint hygiene: the following opchain skills were invoked this session but have no checkpoint at .checkpoints/<skill>.checkpoint.json:
 
 ${LIST}
-Run .claude/skills/<skill>/scripts/checkpoint.sh write <project-dir> <skill> '<json>' for each before ending the session. The .checkpoints/ directory is gitignored, so this is a local-only state file.
+Write each checkpoint with the canonical CLI before ending the session:
+
+  node scripts/checkpoint.mjs update <skill> \\
+    --status=complete \\
+    --phase=<phase> \\
+    --step=<step> \\
+    --progress_summary='<one paragraph>'
+
+This validates the schema, stamps updated_at, and is the same tool CI runs in npm run checkpoint:validate. The .checkpoints/ directory is tracked in git so the next session can resume from the prior session's next_actions[0].
 EOF
 )
 
