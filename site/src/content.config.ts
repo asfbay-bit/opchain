@@ -11,6 +11,26 @@ import { glob } from "astro/loaders";
 
 const PHASES = ["foundation", "plan", "build"] as const;
 
+// Optional `flags:` block in SKILL.md frontmatter. `required` lists flag
+// names that must evaluate to true for the skill page to render; `exposes`
+// declares experimental flags this skill owns. Names are not validated here
+// against the central registry — that's gen-skills-catalog.mjs's job — so
+// frontmatter changes don't need a site-build round trip during authoring.
+const FlagsSchema = z
+  .object({
+    required: z.array(z.string()).optional(),
+    exposes: z
+      .array(
+        z.object({
+          name: z.string(),
+          default: z.union([z.boolean(), z.string(), z.number()]),
+          description: z.string().optional(),
+        }),
+      )
+      .optional(),
+  })
+  .optional();
+
 const skills = defineCollection({
   loader: glob({
     pattern: "*/SKILL.md",
@@ -29,6 +49,7 @@ const skills = defineCollection({
     tryable: z.boolean().optional(),
     commands: z.array(z.string()),
     description: z.string(),
+    flags: FlagsSchema,
   }),
 });
 

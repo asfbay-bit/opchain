@@ -14,6 +14,9 @@
 import { FeedbackSchema, NotifySchema, parseBody } from "./lib/schemas.js";
 import { capture, hashDistinctId } from "./lib/analytics.js";
 import { bindLogger, newRequestId, EVENTS } from "./lib/request-id.js";
+import { evalFlag, evalFlags } from "./lib/flags/eval.js";
+import { ensureOcId } from "./lib/flags/identity.js";
+import { FLAG_NAMES, FLAGS, PUBLIC_FLAG_NAMES } from "./lib/flags/registry.js";
 
 // Injected at build time by esbuild `define` (see build.mjs).
 // eslint-disable-next-line no-undef
@@ -165,12 +168,17 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
   }
   const { type, title, description, priority, skill, email } = parsed.data;
 
-  // Staging (and any env with FEEDBACK_DRY_RUN="true") accepts the
+  // Staging (and any env with the api-feedback kill flag on) accepts the
   // submission, logs it, and returns a synthetic 201 without calling
   // Linear. Keeps test entries out of the prod backlog and means
   // staging doesn't need LINEAR_API_KEY at all. See wrangler.jsonc
   // env.staging.
-  if (env.FEEDBACK_DRY_RUN === "true") {
+  //
+  // The legacy FEEDBACK_DRY_RUN env var is honoured as a back-compat
+  // alias so an in-flight rollout doesn't break staging.
+  const dryRun = env.FEEDBACK_DRY_RUN === "true"
+    || (await evalFlag("site.ops.api-feedback.kill", { env, ctx }));
+  if (dryRun) {
     log.event(EVENTS.FEEDBACK_SUBMITTED, {
       type, priority: PRIORITY_MAP[priority] ?? 0,
       skill: skill || null, issue: "STAGING-DRY-RUN", dry_run: true,
@@ -363,6 +371,48 @@ async function sha256Hex(input) {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// ── Flags API ───────────────────────────────────────────────────────────────
+//
+// /api/flags/public returns the subset of flags safe to ship to the browser
+// (UI / feature / experiment / consent / skill visibility — see
+// PUBLIC_FLAG_NAMES). Sets the `oc_id` cookie if missing so the same visitor
+// keeps landing in the same percentage-rollout bucket.
+//
+// Response is cached briefly per-visitor:
+//   Cache-Control: private, max-age=30
+// — long enough to absorb a burst of fetches on a single page load, short
+// enough that flipping a flag in PostHog propagates within ~30s.
+
+async function handlePublicFlags(request, env, ctx, origin, requestId) {
+  const { id, setCookie } = ensureOcId(request);
+  const flags = await evalFlags(PUBLIC_FLAG_NAMES, { env, ctx, distinctId: id });
+  const headers = {
+    ...corsHeaders(origin, requestId),
+    "Cache-Control": "private, max-age=30",
+  };
+  if (setCookie) headers["Set-Cookie"] = setCookie;
+  return new Response(
+    JSON.stringify({ flags }),
+    { status: 200, headers },
+  );
+}
+
+/**
+ * Build a server-only summary of flags whose evaluated value differs from
+ * the registry default. Used by /api/health when site.ops.api-health.detailed
+ * is on. Distinct id is intentionally omitted — this is the env-level
+ * picture, not a per-visitor snapshot.
+ */
+async function flagOverridesSummary(env, ctx) {
+  const evaluated = await evalFlags(FLAG_NAMES, { env, ctx });
+  const overrides = {};
+  for (const name of FLAG_NAMES) {
+    const def = FLAGS[name];
+    if (evaluated[name] !== def.default) overrides[name] = evaluated[name];
+  }
+  return { count: Object.keys(overrides).length, overrides };
+}
+
 // ── Main Router ─────────────────────────────────────────────────────────────
 
 async function route(request, env, ctx, url, origin, requestId) {
@@ -371,8 +421,12 @@ async function route(request, env, ctx, url, origin, requestId) {
     }
 
     if (url.pathname === "/api/health" && request.method === "GET") {
+      const body = { ok: true, service: "opchain-dev", version: VERSION };
+      if (await evalFlag("site.ops.api-health.detailed", { env, ctx })) {
+        body.flags = await flagOverridesSummary(env, ctx);
+      }
       return new Response(
-        JSON.stringify({ ok: true, service: "opchain-dev", version: VERSION }),
+        JSON.stringify(body),
         {
           headers: {
             "Content-Type": "application/json",
@@ -383,11 +437,24 @@ async function route(request, env, ctx, url, origin, requestId) {
       );
     }
 
+    if (url.pathname === "/api/flags/public" && request.method === "GET") {
+      return handlePublicFlags(request, env, ctx, origin, requestId);
+    }
+
     if (url.pathname === "/api/feedback" && request.method === "POST") {
       return handleFeedback(request, env, ctx, origin, requestId);
     }
 
     if (url.pathname === "/api/notify" && request.method === "POST") {
+      // Ops kill switch — when on, return 503 without touching KV. Used to
+      // pause lead capture during incidents. Default off, so existing
+      // traffic flows untouched.
+      if (await evalFlag("site.ops.api-notify.kill", { env, ctx })) {
+        return new Response(
+          JSON.stringify({ error: "Lead capture is paused.", code: "paused" }),
+          { status: 503, headers: corsHeaders(origin, requestId) },
+        );
+      }
       return handleNotify(request, env, ctx, origin, requestId);
     }
 

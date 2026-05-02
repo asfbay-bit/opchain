@@ -5,15 +5,19 @@
   "type": "module",
   "description": "opchain.dev marketing site (Astro 5 + Cloudflare adapter). Real content lands in Sprints 1-3.",
   "scripts": {
+    "gen-flags": "node ../scripts/gen-flags.mjs",
+    "predev": "npm run gen-flags",
+    "prebuild": "npm run gen-flags",
+    "precheck": "npm run gen-flags",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
-    "pretest:e2e": "PUBLIC_POSTHOG_KEY=phc_test_e2e PUBLIC_POSTHOG_HOST=http://127.0.0.1:9999 astro build",
+    "pretest:e2e": "PUBLIC_POSTHOG_KEY=phc_test_e2e PUBLIC_POSTHOG_HOST=http://127.0.0.1:9999 npm run gen-flags && astro build",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
-    "prelhci": "astro build",
+    "prelhci": "npm run gen-flags && astro build",
     "lhci": "lhci autorun --config=../lighthouserc.json"
   },
   "dependencies": {

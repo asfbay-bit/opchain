@@ -19,6 +19,9 @@ site/blob-report/
 /public/
 src/generated/
 
+# Codegen — regenerated on every prebuild from src/lib/flags/registry.js
+site/src/lib/flags/registry.ts
+
 # Cloudflare
 .wrangler/
 .dev.vars

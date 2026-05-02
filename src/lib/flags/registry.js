@@ -1,0 +1,371 @@
+/**
+ * Feature-flag registry — the single source of truth for every flag that
+ * exists in opchain. PostHog stores the *runtime* value; this file stores the
+ * *contract* (name, default, type, owner, category, description). Any new
+ * flag must land here first so it has a typed name, a safe default for
+ * fail-closed eval, and an owner the next person can ask about it.
+ *
+ * Hierarchy (dot-namespaced):
+ *
+ *   site.ui.<feature>            UI surface toggles
+ *   site.feature.<feature>       Page / widget on-off
+ *   site.experiment.<id>         A/B-style experiments
+ *   site.ops.<route>.kill        Kill switches (default false → off-state means "off")
+ *   site.consent.<feature>       Consent / privacy controls
+ *
+ *   skills.registry.<id>.enabled Show / hide an individual skill in the catalog
+ *   skills.capability.<name>     Cross-cutting capability (tri-agent, checkpoint)
+ *   skills.command.<cmd>.enabled Individual slash command on/off
+ *   skills.experiment.<id>.<f>   Experimental skill features
+ *
+ *   platform.observability.<sink>
+ *   platform.security.<control>
+ *
+ * A flag's `default` is what evalFlag returns when:
+ *   - the wrangler env var override is unset, AND
+ *   - PostHog is unconfigured / unreachable / times out.
+ *
+ * Defaults MUST preserve current behaviour. Day-one rollout is supposed to
+ * be invisible.
+ */
+
+export const CATEGORIES = /** @type {const} */ (
+  ["release", "ops", "experiment", "permission", "consent"]
+);
+
+const NAME_RE = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$/;
+
+/**
+ * @typedef {"boolean" | "string" | "number"} FlagType
+ * @typedef {(typeof CATEGORIES)[number]} FlagCategory
+ * @typedef {object} FlagDef
+ * @property {string} name
+ * @property {FlagType} type
+ * @property {boolean | string | number} default
+ * @property {FlagCategory} category
+ * @property {string} owner
+ * @property {string} description
+ * @property {string} [expires]   ISO date — review/remove by this date
+ */
+
+/** @type {FlagDef[]} */
+const DEFINITIONS = [
+  // ── site.ui ──────────────────────────────────────────────────────────────
+  {
+    name: "site.ui.header.beta-banner",
+    type: "boolean",
+    default: false,
+    category: "release",
+    owner: "site",
+    description: "Render the beta-banner strip above the header.",
+  },
+  {
+    name: "site.ui.hero.variant",
+    type: "string",
+    default: "default",
+    category: "experiment",
+    owner: "site",
+    description: "Landing-page hero variant. 'default' | 'compact' | future ids.",
+  },
+  {
+    name: "site.ui.footer.newsletter",
+    type: "boolean",
+    default: false,
+    category: "release",
+    owner: "site",
+    description: "Show a newsletter sign-up panel in the footer.",
+  },
+
+  // ── site.feature ─────────────────────────────────────────────────────────
+  {
+    name: "site.feature.feedback-widget",
+    type: "boolean",
+    default: true,
+    category: "release",
+    owner: "site",
+    description: "Mount the floating feedback widget across the site chrome.",
+  },
+  {
+    name: "site.feature.demo-page",
+    type: "boolean",
+    default: true,
+    category: "release",
+    owner: "site",
+    description: "Expose /demo. When false the route 404s and home-page links hide.",
+  },
+  {
+    name: "site.feature.install-zip-download",
+    type: "boolean",
+    default: true,
+    category: "release",
+    owner: "site",
+    description: "Allow downloading the combined opchain-skills.zip and per-skill zips.",
+  },
+  {
+    name: "site.feature.replays-section",
+    type: "boolean",
+    default: true,
+    category: "release",
+    owner: "site",
+    description: "Render the session-replay vignettes block on the home page.",
+  },
+
+  // ── site.experiment ──────────────────────────────────────────────────────
+  {
+    name: "site.experiment.landing-cta-copy",
+    type: "string",
+    default: "control",
+    category: "experiment",
+    owner: "site",
+    description: "Variant id for the landing-page CTA copy A/B.",
+  },
+  {
+    name: "site.experiment.install-guided-flow",
+    type: "boolean",
+    default: false,
+    category: "experiment",
+    owner: "site",
+    description: "Replace the static /install instructions with a guided checklist.",
+  },
+
+  // ── site.ops (kill switches; default false → behave normally) ────────────
+  {
+    name: "site.ops.api-feedback.kill",
+    type: "boolean",
+    default: false,
+    category: "ops",
+    owner: "platform",
+    description:
+      "Dry-run /api/feedback. When true, the handler accepts + logs the submission and returns a synthetic 201 without calling Linear. Migrated from FEEDBACK_DRY_RUN.",
+  },
+  {
+    name: "site.ops.api-notify.kill",
+    type: "boolean",
+    default: false,
+    category: "ops",
+    owner: "platform",
+    description: "Reject /api/notify with 503. Use to pause lead capture during incidents.",
+  },
+  {
+    name: "site.ops.api-health.detailed",
+    type: "boolean",
+    default: false,
+    category: "ops",
+    owner: "platform",
+    description: "Include the flag-overrides summary block in /api/health responses.",
+  },
+
+  // ── site.consent ─────────────────────────────────────────────────────────
+  {
+    name: "site.consent.banner-required",
+    type: "boolean",
+    default: true,
+    category: "consent",
+    owner: "platform",
+    description: "Show the consent banner. Disabling it does NOT auto-grant consent.",
+  },
+
+  // ── skills.registry.<id>.enabled — one per skill ─────────────────────────
+  ...skillRegistryFlags([
+    "api-dev",
+    "app-architect",
+    "bug-check",
+    "checkpoint-protocol",
+    "code-auditor",
+    "dash-forge",
+    "deploy-ops",
+    "git-ops",
+    "integrations-engineer",
+    "migration-ops",
+    "monitoring-ops",
+    "orchestrator",
+    "reverse-spec",
+    "scale-ops",
+    "security-auditor",
+    "stack-forge",
+    "ux-engineer",
+  ]),
+
+  // ── skills.capability ────────────────────────────────────────────────────
+  {
+    name: "skills.capability.tri-agent",
+    type: "boolean",
+    default: true,
+    category: "release",
+    owner: "skills",
+    description:
+      "Render the tri-agent badge / chrome on skills that declare triAgent: true. Disabling hides the chrome but does not unpublish skills.",
+  },
+  {
+    name: "skills.capability.checkpoint-protocol",
+    type: "boolean",
+    default: true,
+    category: "release",
+    owner: "skills",
+    description:
+      "Surface the checkpoint-protocol cross-cuts on skill detail pages. Required by skills that reference checkpoint state.",
+  },
+
+  // ── skills.command.<verb>.enabled ────────────────────────────────────────
+  // Source: every verb that appears in `commands:` across the SKILL.md set.
+  // Subcommands (e.g. `/api design`) inherit the parent verb's flag — we
+  // gate at the verb, not the variant. New verbs declared in SKILL.md must
+  // register a flag here; gen-skills-catalog.mjs enforces that on build.
+  ...skillCommandFlags([
+    "/api", "/app", "/attack-surface", "/audit", "/build", "/bugcheck",
+    "/commit", "/dash-forge", "/data-forge", "/deploy", "/design",
+    "/df-archetype", "/df-audit", "/df-full", "/df-intake", "/df-layout",
+    "/df-prototype", "/df-spec-only", "/df-tokens", "/df-variants",
+    "/discover", "/feature", "/git", "/git-sync", "/hardening", "/integrate",
+    "/launch", "/migrate", "/monitor", "/ops", "/owasp", "/posture", "/pr",
+    "/push", "/rev-design", "/rev-full", "/rev-scan", "/rev-sprint",
+    "/rev-stack", "/reverse-spec", "/roadmap", "/scaffold", "/scale", "/sec",
+    "/secaudit", "/security", "/spec", "/stack", "/stack-decide",
+    "/threat-model", "/uxe",
+  ]),
+
+  // ── skills.experiment ────────────────────────────────────────────────────
+  {
+    name: "skills.experiment.app-architect.parallel-evaluators",
+    type: "boolean",
+    default: false,
+    category: "experiment",
+    owner: "skills",
+    description: "Run app-architect design evaluators in parallel rather than sequentially.",
+  },
+  {
+    name: "skills.experiment.code-auditor.deep-scan",
+    type: "boolean",
+    default: false,
+    category: "experiment",
+    owner: "skills",
+    description: "Enable an extended ruleset in code-auditor.",
+  },
+
+  // ── platform.observability ───────────────────────────────────────────────
+  {
+    name: "platform.observability.posthog-server",
+    type: "boolean",
+    default: true,
+    category: "release",
+    owner: "platform",
+    description:
+      "Allow server-side PostHog capture (analytics.js). Falsifying this skips capture even when POSTHOG_PROJECT_API_KEY is set.",
+  },
+  {
+    name: "platform.observability.posthog-client",
+    type: "boolean",
+    default: true,
+    category: "release",
+    owner: "platform",
+    description:
+      "Allow client-side PostHog SDK to load post-consent. Independent of consent gating.",
+  },
+  {
+    name: "platform.observability.cloudflare-beacon",
+    type: "boolean",
+    default: true,
+    category: "release",
+    owner: "platform",
+    description:
+      "Inject the Cloudflare Web Analytics beacon. PUBLIC_CF_BEACON_TOKEN must also be set for it to render.",
+  },
+
+  // ── platform.security ────────────────────────────────────────────────────
+  {
+    name: "platform.security.csp-strict",
+    type: "boolean",
+    default: true,
+    category: "permission",
+    owner: "platform",
+    description:
+      "Emit Content-Security-Policy in enforce mode. Disabling falls back to Report-Only for CSP-tuning windows.",
+  },
+  {
+    name: "platform.security.rate-limit-feedback",
+    type: "boolean",
+    default: false,
+    category: "permission",
+    owner: "platform",
+    description:
+      "Enforce a per-IP rate limit on /api/feedback. Off until we wire a counter; reserved.",
+  },
+];
+
+function skillRegistryFlags(ids) {
+  return ids.map((id) => ({
+    name: `skills.registry.${id}.enabled`,
+    type: /** @type {FlagType} */ ("boolean"),
+    default: true,
+    category: /** @type {FlagCategory} */ ("release"),
+    owner: "skills",
+    description: `Show the ${id} skill in the catalog and detail page. Off → skill hidden + /skills/${id} 404s.`,
+  }));
+}
+
+function skillCommandFlags(commands) {
+  return commands.map((cmd) => ({
+    name: `skills.command.${cmd.replace(/^\//, "")}.enabled`,
+    type: /** @type {FlagType} */ ("boolean"),
+    default: true,
+    category: /** @type {FlagCategory} */ ("release"),
+    owner: "skills",
+    description: `Allow the ${cmd} slash command to be advertised on skill pages.`,
+  }));
+}
+
+// Validate the whole table once at import time. Catches duplicate names,
+// malformed names, and default-type mismatches without waiting for a test.
+const _seen = new Set();
+for (const def of DEFINITIONS) {
+  if (!NAME_RE.test(def.name)) {
+    throw new Error(`flag registry: name "${def.name}" violates the namespace regex`);
+  }
+  if (_seen.has(def.name)) {
+    throw new Error(`flag registry: duplicate flag "${def.name}"`);
+  }
+  _seen.add(def.name);
+  if (typeof def.default !== def.type) {
+    throw new Error(
+      `flag registry: "${def.name}" default is ${typeof def.default}, expected ${def.type}`,
+    );
+  }
+  if (!CATEGORIES.includes(def.category)) {
+    throw new Error(`flag registry: "${def.name}" has unknown category "${def.category}"`);
+  }
+}
+
+/** Map of flag name → definition. */
+export const FLAGS = Object.freeze(
+  Object.fromEntries(DEFINITIONS.map((d) => [d.name, Object.freeze(d)])),
+);
+
+export const FLAG_NAMES = Object.freeze(Object.keys(FLAGS));
+
+export function getDefault(name) {
+  const def = FLAGS[name];
+  if (!def) throw new Error(`unknown flag: ${name}`);
+  return def.default;
+}
+
+export function isKnown(name) {
+  return Object.prototype.hasOwnProperty.call(FLAGS, name);
+}
+
+/**
+ * Flags safe to expose to the client over /api/flags/public. Anything
+ * gating an internal/ops control stays server-only.
+ */
+export const PUBLIC_FLAG_NAMES = Object.freeze(
+  FLAG_NAMES.filter((name) =>
+    name.startsWith("site.ui.") ||
+    name.startsWith("site.feature.") ||
+    name.startsWith("site.experiment.") ||
+    name.startsWith("site.consent.") ||
+    name.startsWith("skills.registry.") ||
+    name.startsWith("skills.capability.") ||
+    name.startsWith("skills.command.") ||
+    name === "platform.observability.posthog-client" ||
+    name === "platform.observability.cloudflare-beacon"
+  ),
+);

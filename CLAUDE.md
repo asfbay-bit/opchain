@@ -134,8 +134,10 @@ the JSON honest.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| GET | `/api/health` | Health check |
+| GET | `/api/health` | Health check (with optional flag-overrides summary) |
+| GET | `/api/flags/public` | Public-flag map for the browser; sets `oc_id` cookie |
 | POST | `/api/feedback` | Create Linear issue (bug/feature/improvement) |
+| POST | `/api/notify` | Lead capture (KV-backed) |
 | GET | `/*` | Static assets from `public/` |
 
 The email-gated Try-It chat (`POST /api/try/start` + `POST /api/try/chat`)
@@ -163,6 +165,27 @@ CI deploy needs two GitHub Actions secrets at the repo level:
 - **Skill docs** in `public/docs/` are synced from `skills/` via `sync-docs.sh`. Edit the source in `skills/`, the copy regenerates on build.
 - **styles.css** has all component styles inline — no CSS modules, no preprocessor.
 - **URL paths in HTML** use root-relative paths (e.g., `/styles.css`, `/docs/app-architect/SKILL.md`). These were previously `/opchain/styles.css` etc. when hosted under aidops.dev — they've been updated for standalone hosting.
+
+## Feature flags
+
+Single source of truth: **`src/lib/flags/registry.js`**. Every flag has a name, type, default, owner, category, and description. Hierarchy is dot-namespaced:
+
+- `site.ui.*` / `site.feature.*` / `site.experiment.*` — surface, page, A/B
+- `site.ops.*.kill` — ops kill switches (default false; on → degrade gracefully)
+- `site.consent.*` — consent / privacy
+- `skills.registry.<id>.enabled` — per-skill visibility (one per `skills/<id>/`)
+- `skills.capability.*` — cross-cutting (tri-agent, checkpoint-protocol)
+- `skills.command.<verb>.enabled` — slash-command verb gates (subcommands inherit)
+- `skills.experiment.<id>.<feature>` — experimental skill behaviour
+- `platform.observability.*` / `platform.security.*` — infra-level toggles
+
+Evaluation is layered (default → wrangler env override → PostHog `/decide`). PostHog is the runtime backend; flag values flip without a redeploy. When PostHog is unconfigured or unreachable, the registry default wins (fail-closed). The Worker helper is `evalFlag(name, { env, ctx, distinctId })` — see `src/lib/flags/eval.js`. Per-request memoisation keeps cost to one PostHog call per request.
+
+The site receives a `<meta name="opchain-flags">` snapshot of public defaults at build time (`Base.astro`), then `site/src/lib/flags/client.ts` layers PostHog overrides post-consent. Server-only flags never leak to the browser — see `PUBLIC_FLAG_NAMES` in the registry.
+
+Env-var override naming: `site.ops.api-feedback.kill` → `FLAG_SITE_OPS_API_FEEDBACK_KILL`. Booleans accept `true`/`false`/`1`/`0`. Useful for staging-only kill switches.
+
+`scripts/gen-flags.mjs` mirrors the registry into `site/src/lib/flags/registry.ts` (typed, gitignored). `scripts/gen-skills-catalog.mjs` validates that every `flags.required` / `flags.exposes` / command verb in a `SKILL.md` has a corresponding registry entry — build fails on drift.
 
 ## Relationship to aidops
 
