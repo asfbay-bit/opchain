@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "npm run prebuild && wrangler dev",
     "build": "node build.mjs",
-    "deploy": "npm run prebuild && wrangler deploy",
-    "deploy:staging": "npm run prebuild && wrangler deploy --env staging",
+    "deploy": "PUBLIC_POSTHOG_KEY=phc_m4mpaJBA3EsEFRiGeVQWESFX8pz6CtS6B8y85Va6rmJV PUBLIC_POSTHOG_HOST=https://t.opchain.dev npm run prebuild && wrangler deploy",
+    "deploy:staging": "PUBLIC_POSTHOG_KEY=phc_m4mpaJBA3EsEFRiGeVQWESFX8pz6CtS6B8y85Va6rmJV PUBLIC_POSTHOG_HOST=https://t.staging.opchain.dev npm run prebuild && wrangler deploy --env staging",
     "deploy:skip-build": "wrangler deploy --config wrangler.jsonc --no-build",
     "sync-docs": "bash scripts/sync-docs.sh",
     "make-zip": "bash scripts/make-skills-zip.sh",
@@ -21,7 +21,10 @@
     "test:watch": "vitest",
     "site:install": "cd site && npm install",
     "site:dev": "cd site && npm run dev",
-    "site:build": "cd site && npm run build"
+    "site:build": "cd site && npm run build",
+    "checkpoint": "node scripts/checkpoint.mjs",
+    "checkpoint:status": "node scripts/checkpoint.mjs status",
+    "checkpoint:validate": "node scripts/checkpoint.mjs validate"
   },
   "devDependencies": {
     "esbuild": "^0.28.0",

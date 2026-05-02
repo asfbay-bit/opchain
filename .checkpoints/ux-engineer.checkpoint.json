@@ -1,0 +1,63 @@
+{
+  "protocol_version": "1.0",
+  "skill": "ux-engineer",
+  "project": "opchain.dev",
+  "project_dir": "/home/user/opchain",
+  "created_at": "2026-05-01T16:42:00Z",
+  "updated_at": "2026-05-02T00:40:26Z",
+
+  "phase": "design-iteration",
+  "step": "round-3-ui-tweaks-shipped",
+  "status": "complete",
+  "progress_summary": "Three rounds of UI work merged. Round 1: 5 mobile-demo direction previews → Direction A picked → production MobileWorkbench. Round 2: mobile architecture diagram (vertical stack, no JS, dark default). Round 3: replaced page-summary + OnboardingTour with one-step WelcomePopup, full-bleed workbench, top-right feedback pill, skill detail TOC restyle (fade-in-bg → cream on region hover → ember on link hover → click-to-flash heading bump + 10s ember→cream fade).",
+
+  "progress_table": [
+    { "id": "previews",   "label": "5 mobile-demo direction previews (PR #140)",     "status": "complete" },
+    { "id": "evaluate",   "label": "User selected Direction A",                       "status": "complete" },
+    { "id": "production", "label": "MobileWorkbench production build (PR #143)",      "status": "complete" },
+    { "id": "arch-mob",   "label": "MobileArchitecture diagram (PR #146)",            "status": "complete" },
+    { "id": "popup",      "label": "WelcomePopup replaces banner + tour (PR #148)",   "status": "complete" },
+    { "id": "fullbleed",  "label": "Drop page-summary; workbench full-bleed",         "status": "complete" },
+    { "id": "feedback",   "label": "Move desktop feedback pill to top-right",         "status": "complete" },
+    { "id": "toc",        "label": "Skill TOC fade/region-hover/link-hover/flash",    "status": "complete" }
+  ],
+
+  "context_primer": {
+    "key_decisions": [
+      "Direction A (Bottom-Tab IDE) selected from 5 previews — preserves IDE metaphor, learnable, all info reachable.",
+      "Mobile architecture diagram: static, no JS, dark default, vertical stack of <details> bands. Replaces interactive desktop diagram below 767px.",
+      "WelcomePopup: one-step modal with DNS checkbox (localStorage `opchain-demo-welcome-seen`). Auto-opens on every page load unless DNS set. Skipped on mobile.",
+      "Desktop full-bleed workbench: dropped page-summary card so the IDE owns the page (78vh height contract retained).",
+      "Feedback pill desktop: top-right (top:1rem right:1rem z-index:100). Mobile unchanged — Header.astro already houses the launcher there.",
+      "Skill TOC default state uses var(--subtle) (~4.85:1 on obsidian, AA pass) so it blends into bg without failing contrast. Region hover brightens to var(--text); per-link hover overrides to var(--accent). Active-in-viewport entry stays ember.",
+      "Click-to-flash uses 320ms scale+nudge bump and 10s linear color fade ember→cream. prefers-reduced-motion disables both."
+    ],
+    "generated_files": [
+      "site/public/previews/mobile-demo/{index,a,b,c,d,e}.html",
+      "site/public/previews/mobile-demo/_shared/{tokens.css,data.js}",
+      "site/src/components/MobileWorkbench.astro",
+      "site/src/components/MobileArchitecture.astro",
+      "site/src/components/WelcomePopup.astro"
+    ],
+    "user_preferences": [
+      "Wants HTML previews to evaluate before approving direction (round 1).",
+      "Comfortable delegating defaults when no preference (\"go ahead and implement option A fully\").",
+      "Likes brand-on voice and full-bleed/immersive surfaces over heavy chrome."
+    ]
+  },
+
+  "blockers": [],
+
+  "next_actions": [
+    "Manual phone QA on staging: /demo workbench, /architecture mobile diagram, real-iPhone safe-area check.",
+    "Optional: keep B/C/D/E preview directions live at /previews/mobile-demo/ as marketing artifacts (already deployed via #140)."
+  ],
+
+  "skill_state": {
+    "directions_shipped_for_evaluation": ["A", "B", "C", "D", "E"],
+    "winner": "A",
+    "tweak_rounds_complete": 3,
+    "components_owned": ["MobileWorkbench.astro", "MobileArchitecture.astro", "WelcomePopup.astro"],
+    "depends_on": "checkpoint-protocol v1.0"
+  }
+}

@@ -83,6 +83,38 @@ ORCHESTRATOR COMMANDS
 
 ---
 
+## Session-Start Protocol
+
+Run this on every new session, before doing any other orchestrator work:
+
+```bash
+npm run checkpoint:status
+```
+
+That command prints a markdown summary of every `.checkpoints/<skill>.checkpoint.json`
+in the project — phase, step, status, `next_actions`, and blockers. It
+**is** the registry scanner for a single project; the architecture
+diagram below describes how the same protocol scales to multi-project.
+
+If the project doesn't have `npm run checkpoint:status` wired up
+(common on cold projects), fall back to:
+
+```bash
+ls .checkpoints/*.checkpoint.json 2>/dev/null && cat .checkpoints/*.checkpoint.json
+```
+
+If `.checkpoints/` doesn't exist at all, this is a cold start —
+delegate to `checkpoint-protocol` to scaffold the schema, README,
+`scripts/checkpoint.mjs`, and the post-merge auto-stamp workflow
+before doing anything else.
+
+**Do not** start routing or dispatching work until you've read the
+checkpoint state. The whole point of the protocol is that the next
+session resumes from the prior session's `next_actions[0]`, not from
+chat history.
+
+---
+
 ## Architecture
 
 ```

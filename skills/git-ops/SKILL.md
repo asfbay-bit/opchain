@@ -355,6 +355,32 @@ project-specific, git-ops defaults are generic.
 | Commits made | Commit SHAs, messages, file counts |
 | Push completed | Remote URL, branch pushed, timestamp |
 | PR created | PR URL, PR number |
+| **PR merged** | Append `{ number, title, merge_method, merge_sha, merged_at }` to `skill_state.merged_prs`. Re-stamp `updated_at`. |
+
+### Post-Merge Auto-Update
+
+Don't write this by hand on every merge — wire it up once and forget.
+The reference implementation lives at
+`.github/workflows/checkpoint-after-merge.yml` in the opchain.dev repo.
+On `pull_request: closed` with `merged == true`, it runs:
+
+```bash
+node scripts/checkpoint.mjs update git-ops \
+  "--skill_state.merged_prs+:json={...}" \
+  "--step=last-merge-#${PR_NUM}" \
+  "--status=in_progress"
+
+git add .checkpoints/git-ops.checkpoint.json
+git commit -m "chore(checkpoint): stamp git-ops after #N merge [skip ci]"
+git push origin main
+```
+
+When scaffolding a new project that uses git-ops, drop that workflow
+file. It needs `permissions: contents: write` and the
+`[skip ci]` trailer so it doesn't loop. Other skills' checkpoints
+(orchestrator, app-architect, ux-engineer, etc.) stay assistant-driven
+because their content is contextual — only `git-ops` has a fully
+deterministic post-merge update worth automating.
 
 ### context_primer Template
 
