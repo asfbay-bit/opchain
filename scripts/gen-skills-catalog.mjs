@@ -15,6 +15,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
+import { FLAGS, isKnown as isKnownFlag } from "../src/lib/flags/registry.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SKILLS_DIR = join(ROOT, "skills");
@@ -70,7 +71,81 @@ function validateSkill(id) {
   if (!Array.isArray(data.commands)) {
     throw new Error(`skills/${id}/SKILL.md: \`commands\` must be an array (use [] for none)`);
   }
+  validateSkillFlags(id, data);
+  validateSkillCommands(id, data);
   return data;
+}
+
+function validateSkillFlags(id, data) {
+  const flags = data.flags;
+  if (flags === undefined || flags === null) return;
+  if (typeof flags !== "object") {
+    throw new Error(`skills/${id}/SKILL.md: \`flags\` must be an object`);
+  }
+  if (flags.required !== undefined) {
+    if (!Array.isArray(flags.required)) {
+      throw new Error(`skills/${id}/SKILL.md: \`flags.required\` must be an array`);
+    }
+    for (const name of flags.required) {
+      if (typeof name !== "string") {
+        throw new Error(`skills/${id}/SKILL.md: \`flags.required[]\` entries must be strings`);
+      }
+      if (!isKnownFlag(name)) {
+        throw new Error(
+          `skills/${id}/SKILL.md: flags.required references unknown flag \`${name}\` ` +
+          `(register it in src/lib/flags/registry.js first)`,
+        );
+      }
+    }
+  }
+  if (flags.exposes !== undefined) {
+    if (!Array.isArray(flags.exposes)) {
+      throw new Error(`skills/${id}/SKILL.md: \`flags.exposes\` must be an array`);
+    }
+    for (const entry of flags.exposes) {
+      if (!entry || typeof entry !== "object") {
+        throw new Error(`skills/${id}/SKILL.md: each \`flags.exposes\` entry must be an object`);
+      }
+      if (typeof entry.name !== "string") {
+        throw new Error(`skills/${id}/SKILL.md: \`flags.exposes[].name\` is required`);
+      }
+      if (!isKnownFlag(entry.name)) {
+        throw new Error(
+          `skills/${id}/SKILL.md: flags.exposes references unknown flag \`${entry.name}\` ` +
+          `(register it in src/lib/flags/registry.js first)`,
+        );
+      }
+      const def = FLAGS[entry.name];
+      if (typeof entry.default !== def.type) {
+        throw new Error(
+          `skills/${id}/SKILL.md: flags.exposes[${entry.name}].default is ` +
+          `${typeof entry.default}, expected ${def.type}`,
+        );
+      }
+    }
+  }
+}
+
+function validateSkillCommands(id, data) {
+  // Commands surface as `/<verb>` or `/<verb> <subcommand>`. The flag tracks
+  // the verb only — subcommands inherit the parent's gate. Examples:
+  //   "/api"          → skills.command.api.enabled
+  //   "/api design"   → skills.command.api.enabled (same flag)
+  //   "/migrate plan" → skills.command.migrate.enabled
+  const seen = new Set();
+  for (const cmd of data.commands) {
+    if (typeof cmd !== "string") continue;
+    const verb = cmd.replace(/^\//, "").split(/\s+/, 1)[0];
+    if (!verb || seen.has(verb)) continue;
+    seen.add(verb);
+    const flagName = `skills.command.${verb}.enabled`;
+    if (!isKnownFlag(flagName)) {
+      throw new Error(
+        `skills/${id}/SKILL.md: command verb \`/${verb}\` has no flag in the registry ` +
+        `(add ${flagName} to src/lib/flags/registry.js)`,
+      );
+    }
+  }
 }
 
 function main() {

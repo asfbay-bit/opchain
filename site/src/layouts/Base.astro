@@ -3,6 +3,8 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import FeedbackWidget from "../components/FeedbackWidget.astro";
 import ConsentBanner from "../components/ConsentBanner.astro";
+import { publicDefaults } from "../lib/flags/build-defaults";
+import { defaultFor } from "../lib/flags/build-defaults";
 import "../styles/global.css";
 
 interface Props {
@@ -51,6 +53,20 @@ const ROUTE_OG_IMAGES: Record<string, string> = {
 
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
 
+// Public-flag snapshot stamped into HTML so the client has a deterministic
+// initial value without a network round-trip. Post-consent, ConsentBanner
+// loads PostHog; site/src/lib/flags/client.ts then layers PostHog overrides
+// on top of these build-time defaults.
+const flagSnapshot = JSON.stringify(publicDefaults());
+
+// Build-time gates for site chrome. Defaults match prior behaviour (all
+// true / true) so day-one rollout is invisible. Flipping a flag in the
+// registry (or via a PostHog runtime override at the next build) opts
+// the chrome out without touching this file.
+const showFeedbackWidget = defaultFor("site.feature.feedback-widget") as boolean;
+const consentBannerRequired = defaultFor("site.consent.banner-required") as boolean;
+const cloudflareBeaconAllowed = defaultFor("platform.observability.cloudflare-beacon") as boolean;
+
 // Resolution order: explicit prop → route map → global fallback. Each
 // route page can pass `ogImage="/og/custom.png"` to override the static
 // map (e.g. skill detail pages picking per-skill cards down the road).
@@ -72,6 +88,10 @@ const ogImage = new URL(ogImagePath, Astro.site).toString();
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <!-- Build-time public-flag snapshot. Read by site/src/lib/flags/client.ts
+         to seed initial values; overridden at runtime once PostHog loads
+         post-consent. Server-only flags are never emitted here. -->
+    <meta name="opchain-flags" content={flagSnapshot} />
     <script is:inline>
       // FOUC-preventing theme init — runs before CSS applies.
       // Default is dark (CSS default with no [data-theme] attribute).
@@ -115,7 +135,7 @@ const ogImage = new URL(ogImagePath, Astro.site).toString();
     <!-- Cloudflare Web Analytics — cookieless pageview beacon. Loaded on
          every page (no consent gate) because it collects no PII and sets
          no cookies. Token is set via `PUBLIC_CF_BEACON_TOKEN` at build. -->
-    {import.meta.env.PUBLIC_CF_BEACON_TOKEN && (
+    {cloudflareBeaconAllowed && import.meta.env.PUBLIC_CF_BEACON_TOKEN && (
       <script
         is:inline
         defer
@@ -128,7 +148,7 @@ const ogImage = new URL(ogImagePath, Astro.site).toString();
     {!bare && <Header active={active} />}
     <slot />
     {!bare && <Footer />}
-    {!bare && <FeedbackWidget />}
-    {!bare && <ConsentBanner />}
+    {!bare && showFeedbackWidget && <FeedbackWidget />}
+    {!bare && consentBannerRequired && <ConsentBanner />}
   </body>
 </html>

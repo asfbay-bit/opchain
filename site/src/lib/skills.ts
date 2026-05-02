@@ -3,6 +3,9 @@
 // and pairs it with the TRYIT.md prompts via a build-time glob.
 
 import { getCollection, type CollectionEntry } from "astro:content";
+import { defaultFor } from "./flags/build-defaults";
+import type { FlagName } from "./flags/registry";
+import { isKnown as isKnownFlag } from "./flags/registry";
 
 export type SkillEntry = CollectionEntry<"skills">;
 
@@ -64,15 +67,35 @@ function sortByDisplayName(a: SkillEntry, b: SkillEntry) {
   return a.data.displayName.localeCompare(b.data.displayName);
 }
 
-/** All skills, alphabetised by displayName. */
+/**
+ * Build-time skill visibility check. Reads `skills.registry.<id>.enabled`
+ * (default true) and the SKILL.md `flags.required` block (every required
+ * flag must default-true for the skill to render). PostHog runtime
+ * overrides are ignored here — SSG happens long before the user lands.
+ */
+export function isSkillVisible(entry: SkillEntry): boolean {
+  const id = entry.data.name;
+  const registryFlag = `skills.registry.${id}.enabled` as FlagName;
+  if (isKnownFlag(registryFlag) && !defaultFor(registryFlag)) return false;
+  const required = entry.data.flags?.required ?? [];
+  for (const name of required) {
+    if (!isKnownFlag(name)) return false;
+    if (!defaultFor(name as FlagName)) return false;
+  }
+  return true;
+}
+
+/** All skills, alphabetised by displayName. Build-time flag gates applied. */
 export async function getAllSkills(): Promise<SkillEntry[]> {
   const entries = await getCollection("skills");
-  return entries.sort(sortByDisplayName);
+  return entries.filter(isSkillVisible).sort(sortByDisplayName);
 }
 
 /** Single skill by id (the directory name / frontmatter `name`). */
 export async function getSkill(id: string): Promise<SkillEntry | undefined> {
   const entries = await getCollection("skills");
-  return entries.find((entry: SkillEntry) => entry.data.name === id);
+  const found = entries.find((entry: SkillEntry) => entry.data.name === id);
+  if (!found || !isSkillVisible(found)) return undefined;
+  return found;
 }
 
