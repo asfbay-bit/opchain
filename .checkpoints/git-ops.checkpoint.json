@@ -4,20 +4,33 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-05-02T00:40:26Z",
-
+  "updated_at": "2026-05-02T01:20:42.433Z",
   "phase": "pr-cycle",
-  "step": "all-prs-merged",
+  "step": "last-merge-#151",
   "status": "complete",
   "progress_summary": "Four PRs merged this session — #140 mobile-demo previews, #143 Direction A workbench, #146 mobile architecture diagram, #148 UI tweaks bundle (welcome popup + full-bleed + top-right feedback + skill TOC). One CI fix mid-cycle (Pixel 5 vs WebKit) and one mid-cycle h1 fix (routes.spec assertion).",
-
   "progress_table": [
-    { "id": "pr-140",  "label": "PR #140 — mobile-demo previews",                          "status": "complete" },
-    { "id": "pr-143",  "label": "PR #143 — Direction A workbench (Pixel-5 fix on retry)",  "status": "complete" },
-    { "id": "pr-146",  "label": "PR #146 — mobile architecture diagram",                   "status": "complete" },
-    { "id": "pr-148",  "label": "PR #148 — UI tweaks (with mid-CI h1 fix)",                "status": "complete" }
+    {
+      "id": "pr-140",
+      "label": "PR #140 — mobile-demo previews",
+      "status": "complete"
+    },
+    {
+      "id": "pr-143",
+      "label": "PR #143 — Direction A workbench (Pixel-5 fix on retry)",
+      "status": "complete"
+    },
+    {
+      "id": "pr-146",
+      "label": "PR #146 — mobile architecture diagram",
+      "status": "complete"
+    },
+    {
+      "id": "pr-148",
+      "label": "PR #148 — UI tweaks (with mid-CI h1 fix)",
+      "status": "complete"
+    }
   ],
-
   "context_primer": {
     "key_decisions": [
       "Manual deploys per CLAUDE.md — git-ops only handles branch/commit/push/PR; deploy-ops owns wrangler.",
@@ -36,25 +49,49 @@
       "Merges directly with single `merge` command after CI is mostly green."
     ]
   },
-
   "blockers": [],
-
   "next_actions": [
     "No git work pending. Deploy-ops takes over: `npm run deploy:staging` from a logged-in wrangler session.",
     "Heads-up for next session: local main is divergent from origin/main due to squash merges — re-checkout from origin/main when starting new work."
   ],
-
   "skill_state": {
     "current_branch": "claude/demo-popup-fullscreen (merged & deletable)",
     "open_prs": [],
     "merged_prs": [
-      { "number": 140, "title": "demo(mobile): five direction previews",                                       "merge_method": "squash", "merge_sha": "f87df4b" },
-      { "number": 143, "title": "feat(demo): direction A — Bottom-Tab IDE mobile workbench",                  "merge_method": "squash", "merge_sha": "8f8d640" },
-      { "number": 146, "title": "feat(architecture): mobile-optimized static diagram <768px",                  "merge_method": "squash", "merge_sha": "57d54a4" },
-      { "number": 148, "title": "feat(ui): demo welcome popup, full-bleed workbench, top-right feedback, TOC", "merge_method": "squash", "merge_sha": "fc5a70f" }
+      {
+        "number": 140,
+        "title": "demo(mobile): five direction previews",
+        "merge_method": "squash",
+        "merge_sha": "f87df4b"
+      },
+      {
+        "number": 143,
+        "title": "feat(demo): direction A — Bottom-Tab IDE mobile workbench",
+        "merge_method": "squash",
+        "merge_sha": "8f8d640"
+      },
+      {
+        "number": 146,
+        "title": "feat(architecture): mobile-optimized static diagram <768px",
+        "merge_method": "squash",
+        "merge_sha": "57d54a4"
+      },
+      {
+        "number": 148,
+        "title": "feat(ui): demo welcome popup, full-bleed workbench, top-right feedback, TOC",
+        "merge_method": "squash",
+        "merge_sha": "fc5a70f"
+      }
     ],
     "remote": "origin",
     "default_base": "main",
-    "depends_on": "app-architect for build state; ux-engineer for design rationale; checkpoint-protocol v1.0"
+    "depends_on": "app-architect for build state; ux-engineer for design rationale; checkpoint-protocol v1.0",
+    "merged_prs+": {
+      "number": 151,
+      "title": "feat(analytics): point PostHog at managed reverse-proxy hosts",
+      "merge_method": "squash",
+      "merge_sha": "593af92",
+      "merged_at": "2026-05-02T01:18:00Z"
+    }
   }
 }
