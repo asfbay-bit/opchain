@@ -1,0 +1,52 @@
+{
+  "protocol_version": "1.0",
+  "skill": "code-auditor",
+  "project": "opchain.dev",
+  "project_dir": "/home/user/opchain",
+  "created_at": "2026-05-02T06:41:44Z",
+  "updated_at": "2026-05-02T06:41:44Z",
+  "phase": "auditor",
+  "step": "report-generated",
+  "status": "complete",
+  "progress_summary": "10x audit pass over skills/ + .claude/skills/ communication, checkpoint semantics, and bug-check invocation. 11 findings: 2 CRITICAL, 3 HIGH, 4 MEDIUM, 2 LOW. Root cause of 'bug-check never runs': git-ops/SKILL.md has its own inline pre-commit checks that warn-don't-block and never invoke bug-check, the orchestrator.md handoff table is aspirational not enforced, and there is no PreToolUse(Bash:git commit*) hook to gate raw commits. Secondary critical issue: .claude/skills/ has drifted from skills/ — three SKILL.md files (checkpoint-protocol, git-ops, orchestrator) are stale Apr-25 copies. The runtime loads the stale ones.",
+  "progress_table": [
+    { "id": "drift-scan", "label": "Pass 1: skills/ vs .claude/skills/ drift map", "status": "complete" },
+    { "id": "bugcheck-trace", "label": "Pass 2: trace bug-check invocation paths", "status": "complete" },
+    { "id": "checkpoint-semantics", "label": "Pass 3: checkpoint write semantics audit", "status": "complete" },
+    { "id": "auto-attach", "label": "Pass 4: validate orchestrator auto-attach claims", "status": "complete" },
+    { "id": "stop-hook", "label": "Pass 5: Stop hook coverage analysis", "status": "complete" },
+    { "id": "script-inventory", "label": "Pass 6: checkpoint script inventory", "status": "complete" },
+    { "id": "pipeline-vs-skillmd", "label": "Pass 7: pipeline map vs SKILL.md realities", "status": "complete" },
+    { "id": "pretool-hook", "label": "Pass 8: PreToolUse(Bash:git commit) hook gap", "status": "complete" },
+    { "id": "available-skills-parity", "label": "Pass 9: orchestrator descriptions vs runtime skill list", "status": "complete" },
+    { "id": "report", "label": "Pass 10: synthesize report + write checkpoint", "status": "complete" }
+  ],
+  "context_primer": {
+    "key_decisions": [
+      "Treating .claude/skills/ as a deployment artifact of skills/ — drift means the runtime is running stale instructions",
+      "bug-check non-invocation is multi-cause: missing wiring in git-ops, no PreToolUse hook, Stop hook only fires post-hoc",
+      "Two checkpoint write paths (.sh per-skill vs .mjs at root) disagree on validation; the Stop hook recommends the unvalidated path"
+    ],
+    "generated_files": [],
+    "user_preferences": []
+  },
+  "blockers": [],
+  "next_actions": [
+    "Apply F-001 fix: replace .claude/skills/ with symlinks to skills/ OR add a sync script + CI guard",
+    "Apply F-002 fix: rewrite skills/git-ops/SKILL.md sections 'Pre-Commit Checks' (~L219) and '/git-sync step 6' to actively invoke bug-check and BLOCK on FAIL",
+    "Apply F-003 fix: add PreToolUse hook in .claude/settings.json that gates Bash matching '^git commit' on a fresh PASS verdict in .checkpoints/bug-check.checkpoint.json",
+    "Apply F-004 fix: change checkpoint-hygiene.sh error message to recommend `node scripts/checkpoint.mjs update`, deprecate the per-skill .sh writers",
+    "Apply F-006 fix: add deploy-ops → security-auditor and deploy-ops → monitoring-ops chain instructions in skills/deploy-ops/SKILL.md"
+  ],
+  "skill_state": {
+    "mode": "audit-only",
+    "scope": "skills/ + .claude/skills/ + .claude/hooks/ + .checkpoints/",
+    "findings_total": 11,
+    "findings_by_severity": { "critical": 2, "high": 3, "medium": 4, "low": 2 },
+    "grade": "C-",
+    "fixes_applied": 0,
+    "fixes_verified": 0,
+    "fixes_rejected": 0,
+    "report_path": "inline (this conversation)"
+  }
+}
