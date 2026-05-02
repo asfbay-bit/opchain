@@ -34,7 +34,10 @@ cost real debugging time downstream.
 
 This is NOT code-auditor. Code-auditor runs a deep tri-agent sweep (Auditor → Fixer →
 Verifier) that takes 30+ minutes and produces a graded report. Bug-check is the metal
-detector at the door — fast, blunt, binary. Pass or fail.
+detector at the door — fast, blunt, binary: every check resolves to **PASS** or **FAIL**.
+Individual checks may emit advisory **WARN** notes (e.g. "no test suite detected")
+that are surfaced in the report but do not affect the gate verdict — only FAIL blocks
+the commit.
 
 ## /bugcheck — Command Reference
 

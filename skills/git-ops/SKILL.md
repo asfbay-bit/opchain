@@ -216,22 +216,31 @@ git add src/auth/__tests__/ tests/
 git commit -m "test(auth): add unit + integration tests for passkey auth"
 ```
 
-### Pre-Commit Checks
+### Pre-Commit Gate (auto-invokes bug-check)
 
-Before committing, if the project has tooling:
+**Before staging files or running `git commit`, invoke the bug-check skill.**
+This is the canonical pre-commit gate — git-ops does NOT run its own
+ad-hoc lint/type/test checks. Bug-check owns the seven-check suite
+(types, lint, tests, anti-patterns, secrets, build, deps) and decides
+PASS or FAIL.
 
-```bash
-# Type check
-npx tsc --noEmit 2>/dev/null && echo "✅ Types OK" || echo "⚠️ Type errors"
-
-# Lint
-npx eslint . --max-warnings 0 2>/dev/null && echo "✅ Lint OK" || echo "⚠️ Lint warnings"
-
-# Tests
-npm test 2>/dev/null && echo "✅ Tests pass" || echo "⚠️ Test failures"
+```
+Skill(skill="bug-check", args="/bugcheck run")
 ```
 
-If any check fails, warn the user but don't block — they may want to commit WIP.
+Then read `.checkpoints/bug-check.checkpoint.json` for the verdict.
+
+| Verdict | Action |
+|---|---|
+| PASS | Proceed to `git add` + `git commit` |
+| FAIL | **ABORT.** Surface the failing checks and offer the user `/bugcheck fix` (auto-fix lint/format) or `/bugcheck bypass` (logged override). Do NOT call `git commit` until verdict flips to PASS or the user explicitly bypasses. |
+| (no checkpoint) | Bug-check hasn't run — invoke it first. |
+
+The runtime also has a `PreToolUse(Bash)` hook at
+`.claude/hooks/pre-commit-bugcheck.sh` that blocks `git commit` when the
+bug-check checkpoint is missing or stale (>10min) or has a non-PASS
+verdict. The hook is the safety net; this section is the contract that
+keeps the assistant from tripping it.
 
 ---
 
@@ -310,7 +319,7 @@ One command that runs the entire flow:
 3. **Create branch** — `git checkout -b <branch>`
 4. **Stage changes** — intelligently stage (skip build artifacts, node_modules)
 5. **Structure commits** — group by logical unit
-6. **Run pre-commit checks** — lint, types, tests (warn, don't block)
+6. **Run bug-check gate** — invoke `Skill(skill="bug-check", args="/bugcheck run")`. **FAIL aborts the sync** — surface the failing checks and stop. The user can `/bugcheck fix`, `/bugcheck bypass`, or address the failures and re-run `/git-sync`.
 7. **Push** — `git push -u origin <branch>`
 8. **Generate PR description** — from all available context
 9. **Create PR** — via gh CLI or output for manual creation
