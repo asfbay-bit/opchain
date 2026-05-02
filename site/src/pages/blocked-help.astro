@@ -1,0 +1,172 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+---
+
+<Base
+  title="Site blocked at work? · opchain"
+  description="If opchain.dev is blocked by a corporate network, here's how to diagnose what's happening and get it unblocked."
+  active="/blocked-help"
+>
+  <main class="page">
+    <div class="page-head">
+      <Eyebrow>access</Eyebrow>
+      <h1>Can't reach opchain.dev from work?</h1>
+    </div>
+
+    <p class="lede">
+      If your office network blocks this site, the fix is almost never
+      on our end. <code>opchain.dev</code> serves a valid TLS
+      certificate auto-provisioned by Cloudflare, so it isn't a cert
+      problem. Here's how to figure out what's happening and what to
+      do about it.
+    </p>
+
+    <section>
+      <h2>1. Identify what you're seeing</h2>
+      <ul>
+        <li>
+          <strong>"Blocked by your organization" page</strong> from a
+          named vendor (Cisco Umbrella, Zscaler, Palo Alto, Symantec,
+          Forcepoint, Netskope, etc.) → category filter. Skip to step 2.
+        </li>
+        <li>
+          <strong>Generic timeout or "this site can't be reached"</strong>
+          → DNS-level block. Skip to step 3.
+        </li>
+        <li>
+          <strong>Certificate warning</strong> ("not trusted by your
+          organization", "NET::ERR_CERT_AUTHORITY_INVALID") → your
+          network is doing TLS inspection with its own root CA. The
+          fix is on the laptop, not on opchain. Ask IT to install the
+          corporate root certificate, or use a personal device.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>2. Request recategorization</h2>
+      <p>
+        <code>opchain.dev</code> is a relatively new domain, so some
+        web filters auto-categorize it as "uncategorized" or "newly
+        registered" and block by default. Submitting it for
+        recategorization is free and usually takes a few days:
+      </p>
+      <ul>
+        <li>
+          <strong>Cisco Talos</strong> (Umbrella, OpenDNS) —
+          <a href="https://talosintelligence.com/reputation_center" target="_blank" rel="noopener">talosintelligence.com/reputation_center</a>
+        </li>
+        <li>
+          <strong>Zscaler</strong> —
+          <a href="https://csi.zscaler.com/" target="_blank" rel="noopener">csi.zscaler.com</a>
+        </li>
+        <li>
+          <strong>Symantec / Bluecoat / WebPulse</strong> —
+          <a href="https://sitereview.bluecoat.com/" target="_blank" rel="noopener">sitereview.bluecoat.com</a>
+        </li>
+        <li>
+          <strong>Palo Alto Networks</strong> —
+          <a href="https://urlfiltering.paloaltonetworks.com/" target="_blank" rel="noopener">urlfiltering.paloaltonetworks.com</a>
+        </li>
+        <li>
+          <strong>Forcepoint</strong> —
+          <a href="https://csi.forcepoint.com/" target="_blank" rel="noopener">csi.forcepoint.com</a>
+        </li>
+      </ul>
+      <p>
+        Suggest the category <em>"Computers &amp; Internet"</em> or
+        <em>"Information Technology"</em>.
+      </p>
+    </section>
+
+    <section>
+      <h2>3. Ask IT to allowlist</h2>
+      <p>
+        The fastest path is usually a one-line ticket to your IT or
+        security team:
+      </p>
+      <blockquote>
+        Please allow access to <code>https://opchain.dev</code>. It's
+        an open-source documentation site for a developer toolkit
+        (Claude Code skills). Source is on GitHub at
+        github.com/asfbay-bit/opchain. No ads, no tracking cookies, no
+        downloads beyond a static zip of markdown files.
+      </blockquote>
+    </section>
+
+    <section>
+      <h2>4. Workarounds for right now</h2>
+      <ul>
+        <li>
+          Read the same content on a personal device on cellular or
+          home wifi.
+        </li>
+        <li>
+          The skill source files live on GitHub —
+          <a href="https://github.com/asfbay-bit/opchain" target="_blank" rel="noopener">github.com/asfbay-bit/opchain</a>
+          — which most corporate networks already allow.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Still stuck?</h2>
+      <p>
+        Email <a href="mailto:hello@opchain.dev">hello@opchain.dev</a>
+        with a screenshot of the block page (vendor name visible if
+        possible) and we'll help you draft the right ask.
+      </p>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+  }
+  .page-head { margin-bottom: 1.25rem; }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
+  .lede { color: var(--muted); margin: 0 0 1.5rem; max-width: 42rem; }
+  section { margin-top: 1.75rem; }
+  section h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    color: var(--text);
+    margin: 0 0 0.5rem;
+    letter-spacing: var(--ls-tight);
+  }
+  section p,
+  section li { color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-base); }
+  section ul { margin: 0.25rem 0 0 1.1rem; padding: 0; }
+  section li { margin-bottom: 0.45rem; }
+  blockquote {
+    margin: 0.75rem 0 0;
+    padding: 0.75rem 1rem;
+    border-left: 2px solid var(--border);
+    background: var(--surface);
+    border-radius: var(--r-xs);
+    color: var(--text);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-base);
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+  section a { color: var(--accent); }
+</style>
