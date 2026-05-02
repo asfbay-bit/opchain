@@ -20,7 +20,10 @@
     "test:watch": "vitest",
     "site:install": "cd site && npm install",
     "site:dev": "cd site && npm run dev",
-    "site:build": "cd site && npm run build"
+    "site:build": "cd site && npm run build",
+    "checkpoint": "node scripts/checkpoint.mjs",
+    "checkpoint:status": "node scripts/checkpoint.mjs status",
+    "checkpoint:validate": "node scripts/checkpoint.mjs validate"
   },
   "devDependencies": {
     "esbuild": "^0.28.0",

@@ -339,9 +339,16 @@ project-dir/
 ```
 
 The `.checkpoints/` directory is:
-- Git-ignored by default (add to `.gitignore` in scaffold phase)
-- Not copied to `/mnt/user-data/outputs/` (internal state, not a deliverable)
+- **Tracked in git** (was gitignored in v1.0; flipped to tracked because
+  Claude Code on the web has an ephemeral worker — gitignored state
+  doesn't survive sessions). Treat checkpoints as living "session state
+  docs" the team can read in PRs alongside the code change.
 - Readable by any skill in the ecosystem
+- Validated by CI via `npm run checkpoint:validate` (see
+  `.checkpoints/README.md` and `scripts/checkpoint.mjs` for the schema
+  and tooling)
+- Surfaced via `npm run checkpoint:status` — the canonical "where did I
+  leave off?" command for new sessions
 
 ---
 

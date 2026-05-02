@@ -28,6 +28,8 @@ jobs:
       - name: Install (site) — needed because `npm run build` now runs astro build
         working-directory: site
         run: npm ci
+      - name: Validate checkpoints (.checkpoints/<skill>.checkpoint.json)
+        run: npm run checkpoint:validate
       - name: Unit tests
         run: npm test
       - name: Build worker (regenerates catalog, builds site, bundles worker)

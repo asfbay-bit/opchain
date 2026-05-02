@@ -111,7 +111,24 @@ npm run make-zip         # skills/ → public/opchain-skills.zip (runs in prebui
 npm run site:install     # one-time: cd site && npm install
 npm run site:dev         # astro dev on localhost:4321
 npm run site:build       # astro build → site/dist
+
+# Checkpoints (session state docs at .checkpoints/<skill>.checkpoint.json) —
+npm run checkpoint:status    # print "where did I leave off?" markdown summary
+npm run checkpoint:validate  # validate every checkpoint against the schema
+npm run checkpoint -- update <skill> --field=value   # update a field, restamp updated_at
 ```
+
+## Session resume
+
+`.checkpoints/` is **tracked in git**, not gitignored. At the start of a
+new session on this repo, run `npm run checkpoint:status` to see every
+skill's last known phase, step, status, and `next_actions`. The file
+schema lives in `.checkpoints/README.md`.
+
+Skills don't auto-write — the assistant updates the relevant checkpoint
+at sensible inflection points (after a PR merges, after a phase
+completes, when blocked). CI runs `npm run checkpoint:validate` to keep
+the JSON honest.
 
 ## API Routes
 

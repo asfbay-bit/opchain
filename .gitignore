@@ -30,8 +30,10 @@ src/generated/
 .env.*.local
 !.env.example
 
-# Checkpoints (opchain skills write here)
-.checkpoints/
+# Checkpoints (opchain skills write here).
+# Tracked in git as living "session state docs" so they survive across
+# sessions and machines (incl. Claude Code on the web). Schema + tooling
+# in .checkpoints/README.md and scripts/checkpoint.mjs.
 
 # Playwright (Sprint 7a)
 site/test-results/
