@@ -57,7 +57,8 @@ const DEFINITIONS = [
     default: false,
     category: "release",
     owner: "site",
-    description: "Render the beta-banner strip above the header.",
+    description:
+      "Reserved — render a beta-banner strip above the header. The partial isn't built yet; flipping this flag does nothing today.",
   },
   {
     name: "site.ui.hero.variant",
@@ -65,7 +66,8 @@ const DEFINITIONS = [
     default: "default",
     category: "experiment",
     owner: "site",
-    description: "Landing-page hero variant. 'default' | 'compact' | future ids.",
+    description:
+      "Reserved — landing-page hero variant id. Only the 'default' variant ships today; alternate variants are not built.",
   },
   {
     name: "site.ui.footer.newsletter",
@@ -73,7 +75,8 @@ const DEFINITIONS = [
     default: false,
     category: "release",
     owner: "site",
-    description: "Show a newsletter sign-up panel in the footer.",
+    description:
+      "Reserved — show a newsletter sign-up panel in the footer. The form isn't built yet; flipping this flag does nothing today.",
   },
 
   // ── site.feature ─────────────────────────────────────────────────────────
@@ -107,7 +110,8 @@ const DEFINITIONS = [
     default: true,
     category: "release",
     owner: "site",
-    description: "Render the session-replay vignettes block on the home page.",
+    description:
+      "Reserved — render a session-replay vignettes block on the home page. The block isn't built yet; flipping this flag does nothing today.",
   },
 
   // ── site.experiment ──────────────────────────────────────────────────────
@@ -117,7 +121,8 @@ const DEFINITIONS = [
     default: "control",
     category: "experiment",
     owner: "site",
-    description: "Variant id for the landing-page CTA copy A/B.",
+    description:
+      "Reserved — variant id for the landing-page CTA copy A/B. Only the 'control' copy is shipped today; alternate variants are not built.",
   },
   {
     name: "site.experiment.install-guided-flow",
@@ -125,7 +130,8 @@ const DEFINITIONS = [
     default: false,
     category: "experiment",
     owner: "site",
-    description: "Replace the static /install instructions with a guided checklist.",
+    description:
+      "Reserved — replace the static /install instructions with a guided checklist. The guided flow isn't built yet; flipping this flag does nothing today.",
   },
 
   // ── site.ops (kill switches; default false → behave normally) ────────────

@@ -122,23 +122,26 @@ export function applyBaselineHeaders(res) {
   return res;
 }
 
-async function applySecurityHeaders(response) {
+async function applySecurityHeaders(response, { env, ctx } = {}) {
   const ct = response.headers.get("Content-Type") || "";
   if (!ct.includes("text/html")) {
     const res = new Response(response.body, response);
     applyBaselineHeaders(res);
     return res;
   }
-  // HTML path: read the body, swap placeholder for a per-request nonce, then
-  // re-emit. Per-page cost is sub-millisecond on Workers; HTML is tiny.
   const nonce = generateNonce();
   const text = await response.text();
   const swapped = text.split(NONCE_PLACEHOLDER).join(nonce);
   const res = new Response(swapped, response);
   applyBaselineHeaders(res);
-  res.headers.set("Content-Security-Policy", buildCspHtml(nonce));
-  // Content-Length will be wrong if substitution changed length; let the
-  // platform recompute by deleting it (Cloudflare adds Transfer-Encoding).
+  // Strict mode emits enforce; non-strict emits Report-Only so we can tune
+  // a new policy in production without breaking the page. The default is
+  // strict, so in test paths that don't pass env we keep enforce mode.
+  const strict = env
+    ? await evalFlag("platform.security.csp-strict", { env, ctx })
+    : true;
+  const cspHeader = strict ? "Content-Security-Policy" : "Content-Security-Policy-Report-Only";
+  res.headers.set(cspHeader, buildCspHtml(nonce));
   res.headers.delete("Content-Length");
   return res;
 }
@@ -503,6 +506,12 @@ async function route(request, env, ctx, url, origin, requestId) {
     }
 
     if (url.pathname.endsWith(".zip")) {
+      if (!(await evalFlag("site.feature.install-zip-download", { env, ctx }))) {
+        return new Response("Not Found", {
+          status: 404,
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        });
+      }
       const res = await fetchAsset(env, request, url.origin);
       const dlRes = new Response(res.body, res);
       // Use the actual filename from the URL so per-skill bundles
@@ -522,11 +531,11 @@ async function route(request, env, ctx, url, origin, requestId) {
           }));
         } catch { /* analytics never breaks a download */ }
       }
-      return applySecurityHeaders(dlRes);
+      return applySecurityHeaders(dlRes, { env, ctx });
     }
 
     const res = await fetchAsset(env, request, url.origin);
-    return applySecurityHeaders(res);
+    return applySecurityHeaders(res, { env, ctx });
 }
 
 export default {

@@ -5,6 +5,9 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
 import Button from "../components/ui/Button.astro";
 import Icon from "../components/Icon.astro";
 import { walkthroughs } from "../data/walkthroughs";
+import { defaultFor } from "../lib/flags/build-defaults";
+
+const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
 
 type Role =
   | "workflow"
@@ -149,7 +152,9 @@ const initialCover = covers[0];
         <h2 class="stage-h" data-cover-title>{initialCover.title}</h2>
         <p class="stage-sub" data-cover-tagline>{initialCover.tagline}</p>
         <div class="stage-actions">
-          <a class="btn btn-primary" href="/demo#workbench">▶ open the workbench</a>
+          {demoEnabled && (
+            <a class="btn btn-primary" href="/demo#workbench">▶ open the workbench</a>
+          )}
           <a class="btn btn-ghost" href="/install">install opchain</a>
         </div>
       </div>
@@ -177,10 +182,12 @@ const initialCover = covers[0];
         <Icon name="download" />
         install opchain
       </Button>
-      <Button variant="outline" href="/demo">
-        <Icon name="sparkles" />
-        watch a demo
-      </Button>
+      {demoEnabled && (
+        <Button variant="outline" href="/demo">
+          <Icon name="sparkles" />
+          watch a demo
+        </Button>
+      )}
       <Button variant="ghost" href="/skills">
         browse skills
         <Icon name="arrow-right" />
