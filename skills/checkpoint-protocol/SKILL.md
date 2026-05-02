@@ -331,6 +331,14 @@ The validator runs after every `update` so you can't silently corrupt a file.
 `npm run checkpoint:validate` is wired into CI as a gate. A failing
 checkpoint blocks merges — same posture as type-check or unit tests.
 
+> **Deprecation note:** Each skill bundles a `scripts/checkpoint.sh`
+> bash+python writer that predates `scripts/checkpoint.mjs`. The .sh
+> writer does a shallow merge with no schema validation and no
+> `updated_at` auto-stamp, which means it can produce checkpoints
+> that the .mjs validator (and CI) then reject. Prefer
+> `node scripts/checkpoint.mjs update <skill> ...` everywhere. The
+> .sh files are kept for backward compatibility only.
+
 ---
 
 ## Scaffold Phase
