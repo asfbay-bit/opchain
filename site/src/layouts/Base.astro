@@ -74,18 +74,17 @@ const ogImage = new URL(ogImagePath, Astro.site).toString();
     <link rel="canonical" href={canonical} />
     <script is:inline>
       // FOUC-preventing theme init — runs before CSS applies.
+      // Default is dark (CSS default with no [data-theme] attribute).
+      // The OS `prefers-color-scheme` media query is intentionally NOT
+      // honored: opchain ships dark-first and a visitor on a light-mode
+      // OS still sees the brand palette they came for. Once the user
+      // clicks the ThemeToggle, the explicit choice is persisted to
+      // localStorage and re-applied on every subsequent visit.
       (function () {
         try {
           var saved = localStorage.getItem("opchain-theme");
           if (saved === "light" || saved === "dark") {
             document.documentElement.setAttribute("data-theme", saved);
-            return;
-          }
-          if (
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: light)").matches
-          ) {
-            document.documentElement.setAttribute("data-theme", "light");
           }
         } catch (e) { /* best effort */ }
       })();
