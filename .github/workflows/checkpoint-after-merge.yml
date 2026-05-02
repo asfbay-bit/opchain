@@ -1,0 +1,77 @@
+name: Checkpoint after merge
+
+# Auto-stamp the git-ops checkpoint whenever a PR merges to main, so the
+# session-state docs at .checkpoints/<skill>.checkpoint.json keep up
+# without anyone remembering to do it by hand.
+#
+# What this does:
+#   1. Runs only when a PR is closed AND it merged (not closed-without-merge).
+#   2. Reads the merged PR's title, number, and merge SHA.
+#   3. Calls `node scripts/checkpoint.mjs update git-ops` to:
+#        - append the merged PR to skill_state.merged_prs
+#        - re-stamp updated_at (the script does this automatically)
+#   4. Commits + pushes back to main with [skip ci] so we don't loop.
+#
+# Other skills (orchestrator, app-architect, ux-engineer, …) are NOT
+# auto-updated here — their content is contextual and the assistant
+# updates them at sensible inflection points (phase change, blockers,
+# etc.) via `node scripts/checkpoint.mjs update <skill>`. Only git-ops
+# has a deterministic post-merge update worth automating.
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  stamp-git-ops:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Append merged PR to git-ops checkpoint
+        env:
+          PR_NUM: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          PR_METHOD: ${{ github.event.pull_request.merged_by && 'squash' || 'merge' }}
+        run: |
+          # Build the merged_prs entry as compact JSON. The :json suffix on
+          # --skill_state.merged_prs+ tells the CLI to parse the value.
+          ENTRY=$(node -e '
+            const e = {
+              number: parseInt(process.env.PR_NUM, 10),
+              title: process.env.PR_TITLE,
+              merge_method: process.env.PR_METHOD,
+              merge_sha: (process.env.PR_SHA || "").slice(0, 7),
+              merged_at: new Date().toISOString(),
+            };
+            process.stdout.write(JSON.stringify(e));
+          ')
+          node scripts/checkpoint.mjs update git-ops \
+            "--skill_state.merged_prs+:json=$ENTRY" \
+            "--step=last-merge-#${PR_NUM}" \
+            "--status=in_progress"
+
+      - name: Commit + push if anything changed
+        run: |
+          if git diff --quiet -- .checkpoints/; then
+            echo "No checkpoint change to commit."
+            exit 0
+          fi
+          git config user.name  "opchain-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add .checkpoints/git-ops.checkpoint.json
+          git commit -m "chore(checkpoint): stamp git-ops after #${{ github.event.pull_request.number }} merge [skip ci]"
+          git push origin main

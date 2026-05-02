@@ -1,0 +1,105 @@
+{
+  "protocol_version": "1.0",
+  "skill": "orchestrator",
+  "project": "opchain.dev",
+  "project_dir": "/home/user/opchain",
+  "created_at": "2026-05-01T16:50:00Z",
+  "updated_at": "2026-05-02T00:48:09.936Z",
+  "phase": "routing",
+  "step": "round-3-merged-awaiting-deploy",
+  "status": "complete",
+  "progress_summary": "Four PRs merged this session — mobile-demo previews (#140), Direction A workbench (#143), mobile architecture diagram (#146), and a UI tweaks bundle (#148: welcome popup + full-bleed workbench + top-right feedback pill + skill TOC fade/flash). All on main; deploy is manual from a logged-in wrangler session per CLAUDE.md.",
+  "progress_table": [
+    {
+      "id": "intake",
+      "label": "Intake user request (mobile-demo)",
+      "status": "complete"
+    },
+    {
+      "id": "route-uxe",
+      "label": "Route → ux-engineer (5 directions)",
+      "status": "complete"
+    },
+    {
+      "id": "preview-pr",
+      "label": "PR #140 — preview chooser",
+      "status": "complete"
+    },
+    {
+      "id": "user-pick",
+      "label": "User picks Direction A",
+      "status": "complete"
+    },
+    {
+      "id": "route-architect",
+      "label": "Route → app-architect (Phase 2 build)",
+      "status": "complete"
+    },
+    {
+      "id": "impl-pr",
+      "label": "PR #143 — Direction A production",
+      "status": "complete"
+    },
+    {
+      "id": "arch-mobile",
+      "label": "PR #146 — mobile architecture diagram",
+      "status": "complete"
+    },
+    {
+      "id": "ui-tweaks",
+      "label": "PR #148 — welcome popup + TOC + pill",
+      "status": "complete"
+    },
+    {
+      "id": "deploy",
+      "label": "Manual deploy: staging → prod",
+      "status": "not_started"
+    }
+  ],
+  "context_primer": {
+    "key_decisions": [
+      "Original ask: mobile /demo + 10x /ux-engineer loop with 5 HTML previews before implementation.",
+      "Direction picked: A — Bottom-Tab IDE.",
+      "Architecture and demo both use single-route + CSS-breakpoint swap at 767px (no UA sniff, no parallel route).",
+      "Round-3 UX tweaks: replaced static page-summary card and OnboardingTour with a single one-step WelcomePopup (DNS via localStorage). Workbench is now full-bleed.",
+      "Feedback pill on desktop moved to top-right (top:1rem right:1rem z:100) so it clears the sticky header. Mobile unchanged.",
+      "Skill detail TOC: rest color var(--subtle) blends into bg, region hover → var(--text), per-link hover → var(--accent). Click-to-flash bumps the matching heading and fades ember→cream over 10s; honors prefers-reduced-motion.",
+      "Restored visually-hidden h1 on /demo to satisfy routes.spec.ts and a11y after dropping the page-summary card."
+    ],
+    "generated_files": [
+      "/root/.claude/plans/run-orchestrator-and-run-sprightly-chipmunk.md",
+      "site/public/previews/mobile-demo/{index,a,b,c,d,e}.html",
+      "site/public/previews/mobile-demo/_shared/{tokens.css,data.js}",
+      "site/src/components/{DesktopWorkbench,MobileWorkbench,MobileArchitecture,WelcomePopup}.astro",
+      "site/src/pages/{demo,architecture}.astro (refactored)",
+      "site/src/pages/skills/[id].astro (TOC restyle + flash)",
+      "site/src/components/FeedbackWidget.astro (top-right move)",
+      "site/tests/e2e/demo-mobile.spec.ts"
+    ],
+    "user_preferences": [
+      "Pragmatic, brand-on voice. Picks defaults willingly (\"go ahead and implement option A fully\").",
+      "Wants previews + clarifying questions before non-trivial UI changes.",
+      "Comfortable merging promptly once CI is green; deploy is always manual."
+    ]
+  },
+  "blockers": [],
+  "next_actions": [
+    "Smoke-test the checkpoint tooling in this PR.",
+    "Hand off to deploy-ops for staging."
+  ],
+  "skill_state": {
+    "active_prs": [],
+    "merged_prs": [
+      "asfbay-bit/opchain#140",
+      "asfbay-bit/opchain#143",
+      "asfbay-bit/opchain#146",
+      "asfbay-bit/opchain#148"
+    ],
+    "skills_invoked_this_session": [
+      "orchestrator",
+      "ux-engineer",
+      "app-architect",
+      "git-ops"
+    ]
+  }
+}

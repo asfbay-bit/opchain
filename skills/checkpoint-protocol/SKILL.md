@@ -307,6 +307,55 @@ Each skill that adopts this protocol needs minimal changes:
 
 ---
 
+## Tooling
+
+Three commands keep checkpoints honest. They live in `package.json` and
+shell out to `scripts/checkpoint.mjs` (zero deps, pure Node):
+
+```bash
+npm run checkpoint:status         # markdown summary — "where did I leave off?"
+npm run checkpoint:validate       # schema enforcement, runs in CI
+npm run checkpoint -- update <skill> --field=value [...]
+                                  # apply field updates, auto-stamp updated_at
+```
+
+`update` supports three operators:
+
+- `--key=value`     — replace a scalar
+- `--key+=value`    — append to an array (creates if missing)
+- `--key:json=...`  — parse the value as JSON for objects/arrays/numbers
+
+Dotted paths work for nested fields (`--context_primer.key_decisions+="..."`).
+The validator runs after every `update` so you can't silently corrupt a file.
+
+`npm run checkpoint:validate` is wired into CI as a gate. A failing
+checkpoint blocks merges — same posture as type-check or unit tests.
+
+---
+
+## Scaffold Phase
+
+When this skill is invoked on a fresh project that has no
+`.checkpoints/` directory yet, drop these files:
+
+1. `.checkpoints/README.md` — schema reference + tooling docs.
+2. `scripts/checkpoint.mjs` — the validator/status/update CLI.
+3. `package.json` scripts — `checkpoint`, `checkpoint:status`,
+   `checkpoint:validate`.
+4. CI step — call `npm run checkpoint:validate` from your CI pipeline.
+5. `.github/workflows/checkpoint-after-merge.yml` (optional but
+   recommended) — auto-stamps the git-ops checkpoint on every merge to
+   `main` so the team doesn't have to remember.
+
+**Do not** add `.checkpoints/` to `.gitignore`. Tracking the directory in
+git is what makes checkpoints survive across sessions and machines —
+including ephemeral runners like Claude Code on the web.
+
+The opchain.dev repo is the reference implementation; `cp` from there
+is faster than re-typing.
+
+---
+
 ## /checkpoint Command
 
 Any skill that adopts this protocol should recognize `/checkpoint` as a utility command:
@@ -339,9 +388,16 @@ project-dir/
 ```
 
 The `.checkpoints/` directory is:
-- Git-ignored by default (add to `.gitignore` in scaffold phase)
-- Not copied to `/mnt/user-data/outputs/` (internal state, not a deliverable)
+- **Tracked in git** (was gitignored in v1.0; flipped to tracked because
+  Claude Code on the web has an ephemeral worker — gitignored state
+  doesn't survive sessions). Treat checkpoints as living "session state
+  docs" the team can read in PRs alongside the code change.
 - Readable by any skill in the ecosystem
+- Validated by CI via `npm run checkpoint:validate` (see
+  `.checkpoints/README.md` and `scripts/checkpoint.mjs` for the schema
+  and tooling)
+- Surfaced via `npm run checkpoint:status` — the canonical "where did I
+  leave off?" command for new sessions
 
 ---
 
