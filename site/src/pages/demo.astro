@@ -44,6 +44,12 @@ const artifacts = walkthroughs.flatMap((w) =>
   description="Replay curated opchain skill conversations end-to-end — six scenarios, real transcripts, click to inspect."
   active="/demo"
 >
+  <!-- Visually-hidden page heading. The full-bleed workbench has no
+       prose-style title, but the page still needs a semantic h1 for
+       SEO + screen readers + the routes.spec.ts smoke test. The same
+       copy fronts the welcome popup. -->
+  <h1 class="visually-hidden">Watch a finished run.</h1>
+
   <!-- Desktop + mobile workbenches share the route; CSS-breakpoint swap
        below picks one based on viewport width. Both subtrees are in DOM
        but the inactive one is `display: none` so layout cost is zero
