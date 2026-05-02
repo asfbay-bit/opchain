@@ -1,0 +1,68 @@
+{
+  "protocol_version": "1.0",
+  "skill": "bug-check",
+  "project": "opchain.dev",
+  "project_dir": "/home/user/opchain",
+  "created_at": "2026-05-02T18:47:50Z",
+  "updated_at": "2026-05-02T18:47:50Z",
+
+  "phase": "gate",
+  "step": "checkpoint-only-diff-passed",
+  "status": "complete",
+  "progress_summary": "First bug-check run on this project. Diff scope was a single checkpoint JSON file (.checkpoints/ux-engineer.checkpoint.json) — no source code touched. Ran the relevant subset: checkpoint schema validation (npm run checkpoint:validate, all 5 valid) and secret scan (no matches). Type-check, lint, tests, build, and dep-audit are not applicable to a checkpoint-only diff and were skipped. Verdict PASS.",
+
+  "progress_table": [
+    { "id": "schema",       "label": "Checkpoint schema validation",  "status": "complete" },
+    { "id": "secrets",      "label": "Secret scan on changed file",   "status": "complete" },
+    { "id": "type_safety",  "label": "TypeScript --noEmit (N/A — checkpoint-only diff)",  "status": "not_started" },
+    { "id": "lint",         "label": "ESLint (N/A — checkpoint-only diff)",               "status": "not_started" },
+    { "id": "tests",        "label": "Vitest run (N/A — checkpoint-only diff)",           "status": "not_started" },
+    { "id": "anti_patterns","label": "Anti-pattern grep (N/A — checkpoint-only diff)",    "status": "not_started" },
+    { "id": "build",        "label": "npm run build (N/A — checkpoint-only diff)",        "status": "not_started" },
+    { "id": "dependencies", "label": "npm audit (N/A — checkpoint-only diff)",            "status": "not_started" }
+  ],
+
+  "context_primer": {
+    "key_decisions": [
+      "Diff is checkpoint-only (.checkpoints/ux-engineer.checkpoint.json) — source-code checks (tsc, eslint, vitest, build, npm audit) intentionally skipped as N/A.",
+      "Schema validation via npm run checkpoint:validate is the canonical correctness check for checkpoint diffs.",
+      "Secret scan still ran because secrets are always-on per bug-check policy."
+    ],
+    "generated_files": [],
+    "user_preferences": []
+  },
+
+  "blockers": [],
+
+  "next_actions": [
+    "On the next source-touching commit, run a full bug-check (tsc, eslint, vitest, build, anti-patterns, secrets, npm audit)."
+  ],
+
+  "skill_state": {
+    "last_run": {
+      "at": "2026-05-02T18:47:50Z",
+      "verdict": "PASS",
+      "duration_ms": 1500,
+      "scope": "changed",
+      "changed_files": [".checkpoints/ux-engineer.checkpoint.json"],
+      "checks": {
+        "type_safety": "SKIP",
+        "lint": "SKIP",
+        "tests": "SKIP",
+        "anti_patterns": "SKIP",
+        "secrets": "PASS",
+        "build": "SKIP",
+        "dependencies": "SKIP",
+        "checkpoint_schema": "PASS"
+      },
+      "warnings": 0,
+      "errors": 0
+    },
+    "run_history": [
+      { "at": "2026-05-02T18:47:50Z", "verdict": "PASS", "warnings": 0 }
+    ],
+    "bypasses": [],
+    "carried_debt": 0,
+    "streak": { "passes": 1, "since": "2026-05-02T18:47:50Z" }
+  }
+}
