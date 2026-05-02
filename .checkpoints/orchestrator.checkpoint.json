@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-01T16:50:00Z",
-  "updated_at": "2026-05-02T00:48:09.936Z",
+  "updated_at": "2026-05-02T01:20:56.670Z",
   "phase": "routing",
-  "step": "round-3-merged-awaiting-deploy",
+  "step": "session-shipped",
   "status": "complete",
-  "progress_summary": "Four PRs merged this session — mobile-demo previews (#140), Direction A workbench (#143), mobile architecture diagram (#146), and a UI tweaks bundle (#148: welcome popup + full-bleed workbench + top-right feedback pill + skill TOC fade/flash). All on main; deploy is manual from a logged-in wrangler session per CLAUDE.md.",
+  "progress_summary": "Six PRs merged this session (#140 mobile-demo previews, #143 Direction A workbench, #146 mobile architecture, #148 UI tweaks bundle, #150 checkpoints-as-docs + tooling, #151 PostHog reverse-proxy). All deployed to staging and production. Auto-stamp workflow needed a fix (this PR) — branch protection blocks direct pushes to main, so it now opens a PR with auto-merge instead.",
   "progress_table": [
     {
       "id": "intake",
@@ -53,7 +53,7 @@
     {
       "id": "deploy",
       "label": "Manual deploy: staging → prod",
-      "status": "not_started"
+      "status": "complete"
     }
   ],
   "context_primer": {
@@ -84,8 +84,8 @@
   },
   "blockers": [],
   "next_actions": [
-    "Smoke-test the checkpoint tooling in this PR.",
-    "Hand off to deploy-ops for staging."
+    "Session done — open a fresh session to start the next thing.",
+    "Run npm run checkpoint:status at the top of the next session to resume."
   ],
   "skill_state": {
     "active_prs": [],
