@@ -615,6 +615,29 @@ const consumers = isFoundational
         const mobile  = document.getElementById("toc-list-mobile")  as HTMLOListElement | null;
         if (!desktop && !mobile) return;
 
+        // Click-to-flash. When the user clicks a TOC entry, the matching
+        // heading gets a `.is-flash` class — CSS handles the bump + 10s
+        // ember→cream fade. We let the browser's native href#id
+        // navigation handle the scroll; the flash sits on top of that.
+        // A single timer is shared across all TOC links so a rapid
+        // second click cancels the prior flash cleanly.
+        let flashTimer: number | undefined;
+        function flash(h: HTMLElement) {
+          if (flashTimer !== undefined) {
+            window.clearTimeout(flashTimer);
+            root.querySelectorAll<HTMLElement>("h2.is-flash, h3.is-flash")
+              .forEach((el) => el.classList.remove("is-flash"));
+          }
+          // Force a reflow so re-adding the class restarts the animations
+          // even when the user re-clicks the same entry.
+          void h.offsetWidth;
+          h.classList.add("is-flash");
+          flashTimer = window.setTimeout(() => {
+            h.classList.remove("is-flash");
+            flashTimer = undefined;
+          }, 10100);
+        }
+
         // Render a flat list with .toc-h3 visually indenting the level-3
         // entries. Two clones so each TOC has its own DOM (active
         // highlighting needs distinct nodes).
@@ -634,6 +657,13 @@ const consumers = isFoundational
               a.textContent = a.textContent.replace(/^\d{2}\s+/, "");
             }
             a.dataset.tocId = h.id;
+            // Don't preventDefault — let the native anchor navigation
+            // run the scroll. requestAnimationFrame queues the flash for
+            // the next frame so the bump lands during/after the scroll
+            // start, not before.
+            a.addEventListener("click", () => {
+              requestAnimationFrame(() => flash(h));
+            });
             li.appendChild(a);
             into.appendChild(li);
           });
@@ -1375,21 +1405,62 @@ const consumers = isFoundational
     line-height: 1.4;
   }
   .toc-list li.toc-h3 { padding-left: 1.2rem; }
+  /* Default state: faded just-above-obsidian (subtle) so the TOC blends
+     into the page surface. Hovering anywhere over the TOC region
+     brightens every entry to the cream text color so the rail acts as
+     a unit; pointing at a specific link then turns it ember to mark
+     the user's intent. Active (in-viewport) entry stays ember. */
   .toc-list a {
-    color: var(--text);
+    color: var(--subtle);
     text-decoration: none;
     border-left: 2px solid transparent;
     padding-left: 0.55rem;
     margin-left: -0.55rem;
     display: inline-block;
     transition:
-      color var(--dur-fast) var(--ease-standard),
+      color var(--dur-base) var(--ease-standard),
       border-color var(--dur-fast) var(--ease-standard);
   }
-  .toc-list a:hover { color: var(--accent); }
+  .toc-rail:hover .toc-list a,
+  .toc-rail:focus-within .toc-list a,
+  .toc-collapse:hover .toc-list a,
+  .toc-collapse:focus-within .toc-list a { color: var(--text); }
+  /* Per-link hover wins over the region-hover override. */
+  .toc-list a:hover,
+  .toc-list a:focus-visible { color: var(--accent); }
   .toc-list a.is-active {
     color: var(--accent);
     border-left-color: var(--accent);
+  }
+
+  /* Click-to-flash: when the user clicks a TOC entry, the matching
+     heading in the prose gets a brief scale "bump" plus an ember tint
+     that slowly fades back to the cream text color over 10 seconds.
+     The class is added in JS on click and removed when both animations
+     finish. Honors prefers-reduced-motion (no animation, no flash). */
+  .prose :global(h2.is-flash),
+  .prose :global(h3.is-flash) {
+    animation:
+      toc-flash-bump 320ms var(--ease-emphasized, var(--ease-standard)) 1,
+      toc-flash-fade 10s linear 1;
+    /* Lock the resting color while the fade animation runs so the final
+       frame matches the body color (avoids a snap when the animation
+       releases). */
+    color: var(--text);
+  }
+  @keyframes toc-flash-bump {
+    0%   { transform: translateY(0)    scale(1); }
+    35%  { transform: translateY(-2px) scale(1.025); }
+    100% { transform: translateY(0)    scale(1); }
+  }
+  @keyframes toc-flash-fade {
+    0%   { color: var(--accent); }
+    8%   { color: var(--accent); }
+    100% { color: var(--text); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .prose :global(h2.is-flash),
+    .prose :global(h3.is-flash) { animation: none; }
   }
 
   .toc-rail {
