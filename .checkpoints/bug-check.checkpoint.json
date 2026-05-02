@@ -4,12 +4,12 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-02T18:47:50Z",
+  "updated_at": "2026-05-02T19:05:19Z",
 
   "phase": "gate",
-  "step": "checkpoint-only-diff-passed",
+  "step": "lighthouserc-config-diff-passed",
   "status": "complete",
-  "progress_summary": "First bug-check run on this project. Diff scope was a single checkpoint JSON file (.checkpoints/ux-engineer.checkpoint.json) — no source code touched. Ran the relevant subset: checkpoint schema validation (npm run checkpoint:validate, all 5 valid) and secret scan (no matches). Type-check, lint, tests, build, and dep-audit are not applicable to a checkpoint-only diff and were skipped. Verdict PASS.",
+  "progress_summary": "Second bug-check run on this project. Diff is lighthouserc.cjs (LHCI config) plus two checkpoint JSON files (.checkpoints/app-architect, .checkpoints/bug-check). No application source touched. Ran the relevant subset: checkpoint schema validation (npm run checkpoint:validate, all 6 valid), Node parse check on lighthouserc.cjs (require() succeeds), and secret scan (no matches). Type-check, lint, vitest, build, and dep-audit are not applicable to a config-only diff and were skipped. Verdict PASS.",
 
   "progress_table": [
     { "id": "schema",       "label": "Checkpoint schema validation",  "status": "complete" },
@@ -40,11 +40,15 @@
 
   "skill_state": {
     "last_run": {
-      "at": "2026-05-02T18:47:50Z",
+      "at": "2026-05-02T19:05:19Z",
       "verdict": "PASS",
-      "duration_ms": 1500,
+      "duration_ms": 1800,
       "scope": "changed",
-      "changed_files": [".checkpoints/ux-engineer.checkpoint.json"],
+      "changed_files": [
+        "lighthouserc.cjs",
+        ".checkpoints/app-architect.checkpoint.json",
+        ".checkpoints/bug-check.checkpoint.json"
+      ],
       "checks": {
         "type_safety": "SKIP",
         "lint": "SKIP",
@@ -53,16 +57,18 @@
         "secrets": "PASS",
         "build": "SKIP",
         "dependencies": "SKIP",
-        "checkpoint_schema": "PASS"
+        "checkpoint_schema": "PASS",
+        "config_parse": "PASS"
       },
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      { "at": "2026-05-02T19:05:19Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-02T18:47:50Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
-    "streak": { "passes": 1, "since": "2026-05-02T18:47:50Z" }
+    "streak": { "passes": 2, "since": "2026-05-02T18:47:50Z" }
   }
 }
