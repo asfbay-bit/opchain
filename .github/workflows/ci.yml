@@ -30,6 +30,34 @@ jobs:
         run: npm ci
       - name: Validate checkpoints (.checkpoints/<skill>.checkpoint.json)
         run: npm run checkpoint:validate
+      - name: Verify .claude/skills/ has no drift from skills/
+        run: |
+          # Each .claude/skills/<name> must be a symlink to ../../skills/<name>.
+          # Tracking copies leads to stale runtime instructions (audit PR #157).
+          fail=0
+          for entry in .claude/skills/*; do
+            name=$(basename "$entry")
+            if [[ ! -L "$entry" ]]; then
+              echo "::error file=$entry::not a symlink — .claude/skills/$name must symlink to ../../skills/$name"
+              fail=1
+              continue
+            fi
+            target=$(readlink "$entry")
+            expected="../../skills/$name"
+            if [[ "$target" != "$expected" ]]; then
+              echo "::error file=$entry::symlink points to '$target', expected '$expected'"
+              fail=1
+            fi
+          done
+          for d in skills/*/; do
+            name=$(basename "$d")
+            if [[ ! -e ".claude/skills/$name" ]]; then
+              echo "::error file=skills/$name::no .claude/skills/$name symlink — runtime won't see this skill"
+              fail=1
+            fi
+          done
+          if [[ $fail -ne 0 ]]; then exit 1; fi
+          echo "✓ .claude/skills/ ↔ skills/ symlinks are clean"
       - name: Unit tests
         run: npm test
       - name: Build worker (regenerates catalog, builds site, bundles worker)
