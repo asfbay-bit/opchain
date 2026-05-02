@@ -1,0 +1,254 @@
+---
+/**
+ * Welcome popup for /demo.
+ *
+ * Replaces the previous static page-summary card and the multi-step
+ * OnboardingTour. Shows the same "Watch a finished run." copy as a
+ * one-step modal that auto-opens on every page load unless the user
+ * checks "Don't show again" (persisted to localStorage).
+ *
+ * Behavior:
+ *   - Auto-open on mount if `localStorage.getItem(STORAGE_KEY) !== "1"`.
+ *   - Dismiss without DNS → just close, popup re-appears on next load.
+ *   - Dismiss with DNS box checked → set localStorage flag, never re-open.
+ *   - Skip auto-open on mobile viewports — MobileWorkbench has its own
+ *     empty-state guidance, and the popup competes with the bottom tab
+ *     bar on small screens.
+ *
+ * Keyboard: Escape closes. Initial focus lands on the primary "Got it"
+ * button so Enter dismisses without DNS by default.
+ */
+---
+
+<div class="welcome" id="demo-welcome" hidden aria-hidden="true">
+  <button class="welcome-scrim" id="demo-welcome-scrim" tabindex="-1" aria-label="Close welcome"></button>
+
+  <div class="welcome-card" role="dialog" aria-labelledby="demo-welcome-title" aria-modal="true">
+    <div class="welcome-head">
+      <span class="welcome-eyebrow">demo · what this is</span>
+      <button class="welcome-close" id="demo-welcome-close" aria-label="Close welcome">×</button>
+    </div>
+
+    <div class="welcome-body">
+      <h2 class="welcome-title" id="demo-welcome-title">Watch a finished run.</h2>
+      <p class="welcome-text">
+        A live walkthrough of six finished opchain sessions — from
+        idea-in-a-chat to deployed-to-production, end to end. Every line
+        below is actual transcript, not a faked-up demo. No live chat,
+        no email gate, no install required.
+      </p>
+      <p class="welcome-text">
+        Each scenario tackles a different problem the skill ecosystem
+        solves: shipping a new app from concept, rescuing a half-finished
+        dashboard, hardening security before release, migrating a legacy
+        stack, reviving abandoned code, and shipping Stripe billing.
+        Pick one to get started.
+      </p>
+    </div>
+
+    <div class="welcome-foot">
+      <label class="welcome-dns">
+        <input type="checkbox" id="demo-welcome-dns" />
+        <span>Don't show again</span>
+      </label>
+      <button class="welcome-btn" id="demo-welcome-ok" type="button">Got it</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = "opchain-demo-welcome-seen";
+
+  const welcome  = document.getElementById("demo-welcome")!;
+  const scrim    = document.getElementById("demo-welcome-scrim")!;
+  const closeBtn = document.getElementById("demo-welcome-close")!;
+  const okBtn    = document.getElementById("demo-welcome-ok")! as HTMLButtonElement;
+  const dnsBox   = document.getElementById("demo-welcome-dns")! as HTMLInputElement;
+
+  function open() {
+    welcome.hidden = false;
+    welcome.removeAttribute("aria-hidden");
+    requestAnimationFrame(() => {
+      welcome.classList.add("is-open");
+      // Focus the primary action so Enter dismisses by default; also
+      // moves focus into the dialog for AT users.
+      okBtn.focus();
+    });
+  }
+
+  function close() {
+    if (dnsBox.checked) {
+      try { localStorage.setItem(STORAGE_KEY, "1"); } catch { /* ignore */ }
+    }
+    welcome.classList.remove("is-open");
+    welcome.setAttribute("aria-hidden", "true");
+    setTimeout(() => { welcome.hidden = true; }, 240);
+  }
+
+  scrim.addEventListener("click", close);
+  closeBtn.addEventListener("click", close);
+  okBtn.addEventListener("click", close);
+
+  document.addEventListener("keydown", (ev) => {
+    if (welcome.hidden) return;
+    if (ev.key === "Escape") { ev.preventDefault(); close(); }
+  });
+
+  // Auto-open on every page load unless DNS flag set or on mobile.
+  // Skip on mobile — the popup competes with the bottom tab bar and the
+  // MobileWorkbench Scenarios tab is its own welcome surface.
+  const isMobile = window.matchMedia("(max-width: 767px)").matches;
+  let seen = "0";
+  try { seen = localStorage.getItem(STORAGE_KEY) || "0"; } catch { /* ignore */ }
+  if (seen !== "1" && !isMobile) open();
+</script>
+
+<style>
+  /* Backdrop + centered card. The card stays narrow so it never crowds
+     the workbench behind it on smaller laptop screens. */
+  .welcome {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+  }
+  .welcome:not([hidden]) { pointer-events: auto; }
+  .welcome-scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    border: 0;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-standard);
+  }
+  .welcome.is-open .welcome-scrim { opacity: 1; }
+
+  .welcome-card {
+    position: relative;
+    width: min(38rem, calc(100vw - 2rem));
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-xl);
+    transform: translateY(8px);
+    opacity: 0;
+    transition:
+      opacity var(--dur-base) var(--ease-standard),
+      transform var(--dur-base) var(--ease-standard);
+  }
+  .welcome.is-open .welcome-card {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .welcome-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem 0.5rem;
+  }
+  .welcome-eyebrow {
+    /* Inline ember pair so the small mono-cap eyebrow clears AA-Normal
+       (4.5:1) on the surface card in both themes — same values used by
+       the previous static page-summary block. */
+    color: #f5894d;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+  }
+  :global([data-theme="light"]) .welcome-eyebrow { color: #993505; }
+  .welcome-close {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+    width: 28px;
+    height: 28px;
+    border-radius: var(--r-xs);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+  }
+  .welcome-close:hover { color: var(--accent); border-color: var(--accent); }
+
+  .welcome-body {
+    padding: 0.25rem 1.25rem 0.5rem;
+  }
+  .welcome-title {
+    margin: 0 0 0.7rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    line-height: 1.15;
+    letter-spacing: var(--ls-tight);
+    color: var(--text);
+  }
+  .welcome-text {
+    color: var(--muted);
+    margin: 0 0 0.6rem;
+    line-height: var(--lh-base);
+  }
+  .welcome-text:last-child { margin-bottom: 0; }
+
+  .welcome-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem 1.1rem;
+    border-top: 0.5px solid var(--border);
+    margin-top: 0.75rem;
+  }
+  .welcome-dns {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--subtle);
+    cursor: pointer;
+    user-select: none;
+  }
+  .welcome-dns input {
+    accent-color: var(--accent);
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+  }
+  .welcome-dns:hover { color: var(--muted); }
+
+  .welcome-btn {
+    appearance: none;
+    font: inherit;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    background: var(--accent);
+    border: 0.5px solid var(--accent);
+    color: #1c1710;
+    font-weight: 600;
+    padding: 0.45rem 1.1rem;
+    border-radius: var(--r-xs);
+    cursor: pointer;
+    transition:
+      background var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+  }
+  /* B-10: light --accent (#d95010) + --obsidian text = 4.34:1 ✗.
+     --ember (#e05c18) gives 4.83:1 ✓ — same fix used in the old tour. */
+  :global([data-theme="light"]) .welcome-btn {
+    background: var(--ember);
+    border-color: var(--ember);
+  }
+  .welcome-btn:hover { filter: brightness(1.05); }
+  .welcome-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+  }
+</style>

@@ -27,7 +27,7 @@ test.use({ ...devices["Pixel 5"] });
 test.describe("mobile workbench (Pixel 5)", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
-      try { localStorage.setItem("opchain-demo-tour-seen", "1"); } catch { /* ignore */ }
+      try { localStorage.setItem("opchain-demo-welcome-seen", "1"); } catch { /* ignore */ }
       // Pre-decline the consent banner so it never renders. With the
       // workbench tab bar now position:fixed at bottom 0, an open
       // consent banner can intercept clicks on the bottom tabs.
@@ -121,15 +121,16 @@ test.describe("mobile workbench (Pixel 5)", () => {
     await page.keyboard.press("Escape");
   });
 
-  test("OnboardingTour does not auto-open on mobile", async ({ page, context }) => {
-    // Clear the "seen" flag so the desktop path would auto-open.
-    await context.clearCookies();
+  test("WelcomePopup does not auto-open on mobile", async ({ page }) => {
+    // Override the global beforeEach: clear the "seen" flag so the
+    // desktop path would auto-open, and verify mobile still skips it.
+    await page.addInitScript(() => {
+      try { localStorage.removeItem("opchain-demo-welcome-seen"); } catch { /* ignore */ }
+    });
     await page.goto("/demo");
-    // The tour root is a fixed-position scrim; if it auto-opened it would be visible.
-    // OnboardingTour markup uses `.tour` as its root; assert it's not present-and-visible.
-    const tour = page.locator(".tour");
-    if ((await tour.count()) > 0) {
-      await expect(tour.first()).toBeHidden();
+    const welcome = page.locator("#demo-welcome");
+    if ((await welcome.count()) > 0) {
+      await expect(welcome.first()).toBeHidden();
     }
   });
 });

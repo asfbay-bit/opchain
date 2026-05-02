@@ -2,12 +2,13 @@
 import Base from "../layouts/Base.astro";
 import DesktopWorkbench from "../components/DesktopWorkbench.astro";
 import MobileWorkbench from "../components/MobileWorkbench.astro";
-import OnboardingTour from "../components/OnboardingTour.astro";
+import WelcomePopup from "../components/WelcomePopup.astro";
 import { walkthroughs } from "../data/walkthroughs";
 import { renderSafeMarkdown } from "../lib/markdown";
 
 /**
- * Demo — short tour summary above two parallel workbenches:
+ * Demo — full-bleed workbench with a one-step welcome popup.
+ *
  *   - DesktopWorkbench (≥768px viewport): the original 4-column IDE
  *   - MobileWorkbench  (<768px viewport): bottom-tab IDE for phones
  *
@@ -15,6 +16,10 @@ import { renderSafeMarkdown } from "../lib/markdown";
  * the inactive one with `display: none` so layout cost is zero. No UA
  * sniffing, no separate route — same `/demo` URL, SEO and shared links
  * keep working everywhere.
+ *
+ * The welcome popup auto-opens on every page load unless the user checks
+ * "Don't show again" (localStorage). Replaces the previous static
+ * page-summary card and multi-step OnboardingTour.
  *
  * Pre-rendered artifact bodies live in `.artifact-store` (this file) and
  * are read by the shared <dialog> lightbox. Both workbenches expose
@@ -39,26 +44,6 @@ const artifacts = walkthroughs.flatMap((w) =>
   description="Replay curated opchain skill conversations end-to-end — six scenarios, real transcripts, click to inspect."
   active="/demo"
 >
-  <!-- Page summary — distilled from the OnboardingTour modals, styled
-       as a card with an ember eyebrow + side bar. -->
-  <section class="page-summary" aria-label="What this demo is">
-    <span class="page-summary-eyebrow">demo · what this is</span>
-    <h1>Watch a finished run.</h1>
-    <p class="lede">
-      A live walkthrough of six finished opchain sessions — from
-      idea-in-a-chat to deployed-to-production, end to end. Every line
-      below is actual transcript, not a faked-up demo. No live chat,
-      no email gate, no install required.
-    </p>
-    <p class="lede">
-      Each scenario tackles a different problem the skill ecosystem
-      solves: shipping a new app from concept, rescuing a half-finished
-      dashboard, hardening security before release, migrating a legacy
-      stack, reviving abandoned code, and shipping Stripe billing.
-      Pick one to get started.
-    </p>
-  </section>
-
   <!-- Desktop + mobile workbenches share the route; CSS-breakpoint swap
        below picks one based on viewport width. Both subtrees are in DOM
        but the inactive one is `display: none` so layout cost is zero
@@ -66,7 +51,7 @@ const artifacts = walkthroughs.flatMap((w) =>
   <div class="dw-desktop"><DesktopWorkbench /></div>
   <div class="dw-mobile"><MobileWorkbench /></div>
 
-  <OnboardingTour />
+  <WelcomePopup />
 
   <!-- Hidden artifact store — pre-rendered markdown bodies, one div per artifact.
        The JS lightbox reads innerHTML from here and injects it into the modal. -->
@@ -102,50 +87,7 @@ const artifacts = walkthroughs.flatMap((w) =>
 </Base>
 
 <style>
-  /* ── 1. Page-summary block — distilled tour content above the workbench. ── */
-  .page-summary {
-    max-width: 1100px;
-    margin: clamp(1.6rem, 4vw, 2.4rem) auto 1.5rem;
-    padding: clamp(1rem, 2.5vw, 1.4rem) clamp(1.1rem, 3vw, 1.8rem);
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-left: 3px solid var(--accent);
-    border-radius: var(--r-md);
-    box-shadow: var(--shadow-sm);
-  }
-  @media (max-width: 1100px) {
-    .page-summary { margin-left: clamp(0.5rem, 2vw, 1.5rem); margin-right: clamp(0.5rem, 2vw, 1.5rem); }
-  }
-  .page-summary-eyebrow {
-    display: inline-block;
-    /* Inline ember pair so the small mono-cap eyebrow clears AA-Normal
-       (4.5:1) on the surface card in both themes. */
-    color: #f5894d;
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    letter-spacing: var(--ls-widest);
-    text-transform: uppercase;
-    margin-bottom: 0.55rem;
-  }
-  :global([data-theme="light"]) .page-summary-eyebrow { color: #993505; }
-  .page-summary h1 {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: clamp(1.4rem, 3vw, 2rem);
-    line-height: 1.15;
-    letter-spacing: var(--ls-tight);
-    margin: 0 0 0.7rem;
-    color: var(--text);
-  }
-  .page-summary .lede {
-    color: var(--muted);
-    max-width: 60rem;
-    margin: 0 0 0.6rem;
-    line-height: var(--lh-base);
-  }
-  .page-summary .lede:last-child { margin-bottom: 0; }
-
-  /* ── 2. Desktop / mobile workbench swap.
+  /* ── Desktop / mobile workbench swap.
         Both subtrees server-render. The inactive one collapses to
         display:none so it costs nothing in layout, but the document-
         level click delegate below still reaches its `.output-row`
