@@ -41,11 +41,12 @@ const {
       background var(--dur-fast) var(--ease-standard);
   }
   .pill:hover { color: var(--text); }
+  /* B-10: --accent text on --accent-dim/--surface fails AA on both themes
+     (light 3.05:1, dark 4.01:1). Border + bg tint still carry the "pressed"
+     cue; text drops to --text for contrast. */
   .pill[aria-pressed="true"] {
-    color: var(--accent);
+    color: var(--text);
     border-color: var(--accent);
     background: var(--accent-dim);
   }
-  /* B-10: pressed pill on light --surface with --accent text = 3.05:1 ✗. */
-  :global([data-theme="light"]) .pill[aria-pressed="true"] { color: var(--text); }
 </style>
