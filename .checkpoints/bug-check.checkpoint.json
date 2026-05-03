@@ -4,24 +4,53 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-02T19:16:20Z",
-
+  "updated_at": "2026-05-03T00:35:44.165Z",
   "phase": "gate",
-  "step": "welcomepopup-css-fix-passed",
+  "step": "skills-page-updated-badge-passed",
   "status": "complete",
   "progress_summary": "Third bug-check run on this project, first one with real source-code surface area. Diff is site/src/components/WelcomePopup.astro (CSS-only additions: prefers-reduced-motion guard for F-005, light-mode close-button color override for F-006). Ran the full check suite that's relevant: vitest (15 files, 108/108 passed), astro check (0 errors, 0 warnings — the one pre-existing 'ortho' warning in architecture.astro line 1010 is unrelated to this diff), site build (25 pages, 5.68s, completed clean), anti-pattern grep (no console.log/debugger/.only/@ts-ignore in changed file), and secret scan (no matches). npm audit not surfacing critical, no dependency change. Verdict PASS.",
-
   "progress_table": [
-    { "id": "schema",       "label": "Checkpoint schema validation",  "status": "complete" },
-    { "id": "secrets",      "label": "Secret scan on changed file",   "status": "complete" },
-    { "id": "type_safety",  "label": "astro check (type + a11y)",     "status": "complete" },
-    { "id": "lint",         "label": "ESLint (no config in repo, skipped)", "status": "not_started" },
-    { "id": "tests",        "label": "Vitest run — 108/108 passed",   "status": "complete" },
-    { "id": "anti_patterns","label": "Anti-pattern grep on diff",     "status": "complete" },
-    { "id": "build",        "label": "npm run site:build — 25 pages", "status": "complete" },
-    { "id": "dependencies", "label": "npm audit (no dep change)",     "status": "not_started" }
+    {
+      "id": "schema",
+      "label": "Checkpoint schema validation",
+      "status": "complete"
+    },
+    {
+      "id": "secrets",
+      "label": "Secret scan on changed file",
+      "status": "complete"
+    },
+    {
+      "id": "type_safety",
+      "label": "astro check (type + a11y)",
+      "status": "complete"
+    },
+    {
+      "id": "lint",
+      "label": "ESLint (no config in repo, skipped)",
+      "status": "not_started"
+    },
+    {
+      "id": "tests",
+      "label": "Vitest run — 108/108 passed",
+      "status": "complete"
+    },
+    {
+      "id": "anti_patterns",
+      "label": "Anti-pattern grep on diff",
+      "status": "complete"
+    },
+    {
+      "id": "build",
+      "label": "npm run site:build — 25 pages",
+      "status": "complete"
+    },
+    {
+      "id": "dependencies",
+      "label": "npm audit (no dep change)",
+      "status": "not_started"
+    }
   ],
-
   "context_primer": {
     "key_decisions": [
       "First source-touching commit on this branch — ran the full applicable check suite (tests, build, type-check, anti-patterns, secrets), not just the schema/parse subset used on the previous two config-only diffs.",
@@ -31,22 +60,20 @@
     "generated_files": [],
     "user_preferences": []
   },
-
   "blockers": [],
-
   "next_actions": [
     "If a future commit changes package.json or package-lock.json, run npm audit --audit-level=critical as part of bug-check.",
     "If eslint config is added to the repo, wire it into bug-check's lint step."
   ],
-
   "skill_state": {
     "last_run": {
-      "at": "2026-05-02T19:16:20Z",
+      "at": "2026-05-03T00:35:44Z",
       "verdict": "PASS",
-      "duration_ms": 12000,
+      "duration_ms": 15000,
       "scope": "changed",
       "changed_files": [
-        "site/src/components/WelcomePopup.astro"
+        "site/src/lib/skills.ts",
+        "site/src/pages/skills/[id].astro"
       ],
       "checks": {
         "type_safety": "PASS",
@@ -55,20 +82,38 @@
         "anti_patterns": "PASS",
         "secrets": "PASS",
         "build": "PASS",
-        "dependencies": "SKIP",
-        "checkpoint_schema": "PASS",
-        "config_parse": "SKIP"
+        "dependencies": "PASS"
       },
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
-      { "at": "2026-05-02T19:16:20Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-02T19:05:19Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-02T18:47:50Z", "verdict": "PASS", "warnings": 0 }
+      {
+        "at": "2026-05-03T00:35:44Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-02T19:16:20Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-02T19:05:19Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-02T18:47:50Z",
+        "verdict": "PASS",
+        "warnings": 0
+      }
     ],
     "bypasses": [],
     "carried_debt": 0,
-    "streak": { "passes": 3, "since": "2026-05-02T18:47:50Z" }
+    "streak": {
+      "passes": 4,
+      "since": "2026-05-02T18:47:50Z"
+    }
   }
 }

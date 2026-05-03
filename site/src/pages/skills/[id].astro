@@ -7,7 +7,7 @@ import Button from "../../components/ui/Button.astro";
 import Card from "../../components/ui/Card.astro";
 import Icon from "../../components/Icon.astro";
 import CaptureModal from "../../components/CaptureModal.astro";
-import { getAllSkills, getSkill, getSkillRole, type Role } from "../../lib/skills";
+import { getAllSkills, getSkill, getSkillRole, getSkillUpdatedAt, type Role } from "../../lib/skills";
 
 export async function getStaticPaths() {
   const skills = await getAllSkills();
@@ -41,6 +41,19 @@ const skillRolesJson = JSON.stringify(
 // reads "1 min" instead of "0 min".
 const wordCount = (skill.body || "").trim().split(/\s+/).filter(Boolean).length;
 const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
+
+// Last-touched date for the skill, derived from `git log` over
+// skills/<id>/. The frontmatter `version` is a coarse signal and rarely
+// gets bumped on small fixes, so the badge gives visitors a precise
+// "is this fresh?" answer alongside the semver pill.
+const updatedIso = getSkillUpdatedAt(skill.data.name);
+const updatedLabel = updatedIso
+  ? new Date(updatedIso).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  : null;
 
 // 18 — Prev / next skill nav. Catalog ordered by role (the same
 // ROLE_ORDER used on /architecture) then by skill name within group,
@@ -91,6 +104,11 @@ const consumers = isFoundational
         {skill.data.phases.map((p: string) => <Badge variant="accent">{p}</Badge>)}
         {skill.data.triAgent && <Badge variant="accent">Tri-agent</Badge>}
         <Badge variant="neutral">v{skill.data.version}</Badge>
+        {updatedLabel && updatedIso && (
+          <Badge variant="neutral">
+            <time datetime={updatedIso}>Updated {updatedLabel}</time>
+          </Badge>
+        )}
       </div>
     </header>
 
