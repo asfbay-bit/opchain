@@ -583,58 +583,145 @@ Checkpoint: \`.checkpoints/app-architect.checkpoint.json\` Phase 2 branch.`,
       body:
 `# Audit Report — Carrier Scorecard
 
-**Scope** 612 lines, 14 files, 2 migrations
-**Runner** \`/audit full\` + money-flow supplementary pass
-**Gate** required before PR merge
+**Scope** 612 lines, 14 files, 2 migrations · **Runner** \`/audit full\` + money-flow supplementary pass · **Gate** required before PR merge · **Auditor version** 1.2.0 · **Run at** 2026-04-18T10:42:13Z
 
-## Security
+## 1. Files inspected
+
+| File | LoC changed | Notes |
+|---|---:|---|
+| \`db/migrate/20260418_add_carrier_scorecards_view.rb\` | +18 | Creates materialized view + unique index. |
+| \`db/migrate/20260418_backfill_scorecards.rb\` | +6 | One-shot REFRESH after view creation. |
+| \`db/views/carrier_scorecards_v1_v01.sql\` | +42 | DDL via \`scenic\` gem. |
+| \`app/models/carrier_scorecard.rb\` | +28 | Read-only AR model wrapping the view. |
+| \`app/policies/carrier_scorecard_policy.rb\` | +14 | Pundit; Dispatcher-only. |
+| \`app/jobs/scorecard_refresh.rb\` | +18 | Hourly Sidekiq job; uses \`CONCURRENTLY\`. |
+| \`config/sidekiq.yml\` | +2 | New \`money_adjacent\` queue. |
+| \`app/controllers/loads_controller.rb\` | +9 | Wires \`?min_on_time\` Ransack param. |
+| \`app/views/loads/_carrier_picker.html.erb\` | +44 | New 3-glyph strip + low-data badge. |
+| \`app/javascript/controllers/scorecard_filter_controller.js\` | +17 | Stimulus controller for the toggle. |
+| \`app/views/carriers/_index_row.html.erb\` | +6 | Sortable column on \`/carriers\`. |
+| \`spec/models/carrier_scorecard_spec.rb\` | +156 | 12 examples; covers all edge cases. |
+| \`spec/jobs/scorecard_refresh_spec.rb\` | +52 | 4 examples (idempotency, lock-contention, runtime guard). |
+| \`spec/system/loads/picker_spec.rb\` | +200 | 22 examples (filter, deep-dive, low-data badge, a11y). |
+
+Total: **612** lines added, **0** removed, across **14** files + **2** migrations.
+
+## 2. Security
 
 - ✅ **No new user-input surfaces.** The only new endpoint is an internal scope via Ransack; no raw params enter SQL.
-- ✅ **No SQL interpolation.** Scope uses parameterized fragments.
-- ✅ **Mass assignment.** New columns are not permitted in any \`_params\` method.
-- ✅ **Authorization.** \`CarrierScorecard\` is read-only; Pundit policy restricts access to \`Dispatcher\` role.
+- ✅ **No SQL interpolation.** Scope uses parameterized fragments. \`?min_on_time=80\` is parsed as Float and clamped to [0, 100].
+- ✅ **Mass assignment.** New columns are not permitted in any \`_params\` method. Verified by grepping every \`permit(\` call site.
+- ✅ **Authorization.** \`CarrierScorecard\` is read-only; Pundit policy restricts access to \`Dispatcher\` role. SuperAdmin sees aggregate dashboard, not per-Carrier scorecards.
+- ✅ **Pundit verify_authorized.** The new controller actions invoke \`authorize @carrier_scorecard\` — verified by static check (\`bundle exec pundit-matchers\`).
+- ✅ **No PII in logs.** The new code logs only carrier_id (already an internal id, not surfaced in URLs).
+- ✅ **Rate-limiting.** Picker endpoint inherits the existing \`rack-attack\` 600/hr/user rule.
 
-## Perf
+## 3. Performance
 
 - ✅ \`EXPLAIN ANALYZE\` on the hot query — **38 ms p95** over the 1.2M-shipment staging dump.
-- ✅ Index coverage — the new materialized view hits an index on \`(carrier_id, delivered_at)\`. No seq scans.
+- ✅ Index coverage — the materialized view hits a unique index on \`(carrier_id)\`; the filtered ordering hits the secondary index on \`on_time_rate\`. No seq scans.
 - ✅ Backfill — one-shot migration on 1.2M rows runs in **~14 s** on a t3.large in staging; runs in < 60 s on prod dimensions. Idempotent (safe to re-run).
+- ✅ \`CONCURRENTLY\` REFRESH measured at **18 s p99** on staging; runs without taking the table lock.
+- ✅ Picker page weight change: **+1.1 KB gzipped** (mostly the Stimulus controller + the SVG glyphs).
+- ✅ No N+1 — \`includes(:carrier_scorecard)\` on the picker query.
 
-## Correctness
+### EXPLAIN excerpt
 
-- ✅ **Idempotent refresh.** \`ScorecardRefresh\` uses \`REFRESH MATERIALIZED VIEW CONCURRENTLY\`; re-runs are safe.
-- ✅ **Timezone.** Windows computed in UTC; display converted to Dispatcher-local via existing \`TimezoneConcern\`.
-- ✅ **Null-handling.** Carriers with zero shipments show \`—\` with a tooltip, not a division-by-zero crash.
+\`\`\`
+Sort  (cost=412.84..414.21 rows=549 width=72)
+  ->  Bitmap Heap Scan on carrier_scorecards_v1
+        Recheck Cond: (on_time_rate >= 0.8::double precision)
+        ->  Bitmap Index Scan on carrier_scorecards_v1_on_time
+              Index Cond: (on_time_rate >= 0.8::double precision)
+Planning Time: 0.412 ms
+Execution Time: 38.7 ms
+\`\`\`
 
-## Settlement model — explicit verification (money-flow pass)
+## 4. Correctness
+
+- ✅ **Idempotent refresh.** \`ScorecardRefresh\` uses \`REFRESH MATERIALIZED VIEW CONCURRENTLY\`; re-runs are safe and don't take a write lock.
+- ✅ **Timezone.** Windows computed in UTC inside the view; display converted to Dispatcher-local via existing \`TimezoneConcern\`. No naive timestamps cross boundaries.
+- ✅ **Null-handling.** Carriers with zero shipments show \`—\` with a tooltip, not a division-by-zero crash. The view uses \`NULLIF(denominator, 0)\` so the underlying float is \`NULL\`, not \`Inf\` or \`NaN\`.
+- ✅ **Low-data badge.** Shown when \`shipments_90d < 5\` — chosen empirically (below 5, the metric variance is too high to be useful).
+- ✅ **Filter clamping.** \`?min_on_time=200\` → clamped to 100. \`?min_on_time=-5\` → clamped to 0. \`?min_on_time=foo\` → falls back to default (off).
+
+## 5. Settlement model — explicit verification (money-flow pass)
+
+This is the **extra-strict** pass mandated by the project context (the only engineer who knew \`settlement.rb\` is leaving in 3 weeks; the file has 0 tests and 6 callbacks). Anything in this diff that touched it would be a hard fail.
 
 - ✅ **Zero diff lines** touch \`app/models/settlement.rb\` or any of its callbacks.
-- ✅ **Zero query paths** join \`settlements\` table. Grep confirms no \`JOIN settlements\` or \`Settlement.\` references in the diff.
+- ✅ **Zero diff lines** touch \`app/services/settlement_runner.rb\`, \`app/jobs/weekly_settlement_run.rb\`, \`app/models/settlement_line_item.rb\`.
+- ✅ **Zero query paths** join \`settlements\` table. Grep confirms no \`JOIN settlements\` or \`Settlement.\` references in the diff (including ERB partials and Ruby string heredocs).
 - ✅ **Foreign-key scan** — the materialized view references \`shipments\`, \`claims\`, \`invoices\`. Not \`payments\` or \`settlements\`.
+- ✅ **Active Admin scan** — no new Active Admin registration; no new admin can edit Settlement.
+- ✅ **Background job scan** — \`scorecard_refresh.rb\` operates on the new view only; doesn't enqueue or dequeue any \`Settlement*\` job.
+- ✅ **Pundit policy scan** — no new \`SettlementPolicy\` change; existing access control unchanged.
 
-## Style
+The Settlement clean-diff stamp (separate artifact) is the machine-verifiable receipt of this pass.
 
-- ✅ RuboCop clean.
-- ✅ Stimulus controller 17 lines, keyboard-accessible, respects \`prefers-reduced-motion\`.
+## 6. Style
 
-## Tests
+- ✅ **RuboCop clean** — 0 offences. Run with \`bundle exec rubocop --parallel\`.
+- ✅ **Brakeman clean** — 0 warnings, 0 errors. Run with \`bundle exec brakeman -q\`.
+- ✅ **Stimulus controller** 17 lines, keyboard-accessible (Tab, Enter, Space all work), respects \`prefers-reduced-motion\` (skips the slider's settle animation).
+- ✅ **ERB partial** uses \`html_safe\`-on-helpers, never on user input. No raw interpolation.
+- ✅ **No \`raw\`** calls in any new view; everything passes through Rails' default escaping.
+- ✅ **No new \`config.eager_load = false\`** in env files.
+- ✅ **i18n** — new strings live in \`config/locales/en.yml\`; no inline strings in views.
 
-- ✅ 38 new RSpec examples, 100% line coverage on new code.
-- ✅ Contract test for \`?min_on_time=80\` query param.
-- ✅ Fixture fixtures for "zero-shipments" and "one-shipment" edge cases.
+## 7. Tests
 
-## Dependencies
+- ✅ **38 new RSpec examples**, 100% line coverage on the diff (verified by SimpleCov).
+- ✅ **Contract test** for \`?min_on_time=80\` query param — asserts the URL is bookmarkable.
+- ✅ **Fixture builders** for "zero-shipments" and "one-shipment" edge cases.
+- ✅ **System spec** with Capybara + Selenium covers the picker flow end-to-end including keyboard navigation.
+- ✅ **a11y test** — \`axe-rspec\` matcher run on the picker page; 0 violations.
+- ✅ **Performance regression** — Capybara assertion that the picker render time is < 200 ms in CI (it's 88 ms on the test rig).
 
-- ⚠ New gem: \`scenic\` — Rails idiom for materialized views. **Verified** on the allow-list; actively maintained (last release 3 months ago).
+| Test file | Examples | Coverage |
+|---|---:|---:|
+| \`spec/models/carrier_scorecard_spec.rb\` | 12 | 100% |
+| \`spec/jobs/scorecard_refresh_spec.rb\` | 4 | 100% |
+| \`spec/system/loads/picker_spec.rb\` | 22 | 100% (controller + view + Stimulus) |
 
-## Overall
+## 8. Dependencies
+
+- ⚠ **New gem:** \`scenic\` (1.7.0). Rails idiom for materialized views.
+  - Verified on the allow-list (\`bundle audit\` clean).
+  - Last release: 3 months ago. Maintainer: thoughtbot. Active.
+  - License: MIT. No copyleft contamination.
+  - Exit cost if needed: \`scenic\` files are SQL DDL files in \`db/views/\` — easy to lift out into raw migrations if we ever drop the gem.
+
+## 9. Operability
+
+- ✅ **Sidekiq queue** \`money_adjacent\` (not \`default\`) — the refresh job won't compete with email blasts in the queue.
+- ✅ **Failure alert** — the refresh job fires a Slack alert if it runs > 5 min (anomaly threshold).
+- ✅ **Stale-data alert** — a separate watchdog asserts the view's \`pg_stat_user_tables\` last-vacuum timestamp is within 6 hours.
+- ✅ **Feature flag** — \`scorecard_picker\` (Flipper) gates the new picker UI; off by default. Rollout plan in the feature spec.
+- ✅ **Rollback procedure** — flip the flag off; legacy picker renders unchanged. Drop the materialized view when confident.
+- ✅ **Documented runbook** — \`docs/runbooks/carrier-scorecard.md\` (added in this PR).
+
+## 10. Overall
 
 \`\`\`
  grade     A (94/100)
  gate      PASS
 \`\`\`
 
-Writing \`.checkpoints/code-auditor.checkpoint.json\` with the explicit Settlement-clean-diff stamp. git-ops may open PR.`,
+Deductions:
+- −3 for the new gem (any dependency adds risk; mitigated by allow-list verification).
+- −2 for missing a "low data" telemetry event (we know which metric is hidden, but not how often that hide is the only blocker between the dispatcher and a pick).
+- −1 for documentation: the runbook covers the happy path but skips "what if the materialized view is corrupted?" — added a TODO for v1.1.
+
+Writing \`.checkpoints/code-auditor.checkpoint.json\` with the explicit Settlement-clean-diff stamp. git-ops may open PR.
+
+## 11. Auditor sign-off
+
+- **Auditor:** code-auditor v1.2.0
+- **Mode:** \`/audit full\` + money-flow supplementary pass (Settlement clean-diff verification)
+- **Run-time:** 4 m 12 s end-to-end (RuboCop + Brakeman + RSpec + EXPLAIN benchmarks + grep gates).
+- **Gate verdict:** PASS — git-ops may open PR.
+- **Re-audit recommended:** before any future change touches the materialized view definition or adds a join from the picker to the Settlement table.`,
     },
     {
       id: "settlement-clean-diff-stamp",
@@ -643,16 +730,40 @@ Writing \`.checkpoints/code-auditor.checkpoint.json\` with the explicit Settleme
       body:
 `# Settlement Clean-Diff Stamp
 
-Added to \`.checkpoints/code-auditor.checkpoint.json\` after the money-flow pass.
+Added to \`.checkpoints/code-auditor.checkpoint.json\` after the money-flow pass. This is a **machine-verifiable receipt** that the new feature did not touch any file in the Settlement scope.
+
+## 1. The stamp
 
 \`\`\`json
 {
   "verification": "settlement-untouched",
   "commit": "a4f91e2",
-  "scope": ["app/models/settlement.rb", "app/services/settlement_runner.rb", "app/jobs/weekly_settlement_run.rb"],
+  "branch": "feat/carrier-scorecard",
+  "scope": [
+    "app/models/settlement.rb",
+    "app/models/settlement_line_item.rb",
+    "app/services/settlement_runner.rb",
+    "app/services/settlement_balancer.rb",
+    "app/jobs/weekly_settlement_run.rb",
+    "app/admin/settlements.rb",
+    "app/policies/settlement_policy.rb",
+    "spec/models/settlement_spec.rb"
+  ],
   "diff_lines_touching_scope": 0,
   "query_paths_touching_settlements_table": 0,
+  "active_admin_changes_to_settlement": 0,
+  "background_jobs_added_to_settlement_workers": 0,
+  "policy_changes": 0,
   "foreign_keys_referenced_by_new_tables": ["shipments", "claims", "invoices"],
+  "grep_patterns_run": [
+    "JOIN settlements",
+    "Settlement\\\\.",
+    "Settlement::",
+    "settlement_id",
+    "settlements_path",
+    "settlement_runner",
+    "WeeklySettlementRun"
+  ],
   "verifier": "code-auditor",
   "verifier_version": "1.2.0",
   "timestamp": "2026-04-18T10:42:13Z",
@@ -661,13 +772,73 @@ Added to \`.checkpoints/code-auditor.checkpoint.json\` after the money-flow pass
 }
 \`\`\`
 
-## Why this stamp matters
+## 2. Why this stamp matters
 
-The one engineer who knew the settlement model is leaving in 3 weeks. The audit stamp is a machine-verifiable receipt that the new feature did not touch a load-bearing file she owns. Six months from now, if settlements break, the first question will be "what changed?" — and the answer for this feature is provably "nothing."
+The one engineer who knew the settlement model is leaving in 3 weeks. The audit stamp is a machine-verifiable receipt that the new feature did not touch a load-bearing file she owns.
 
-## Re-verification on every release
+Six months from now, if settlements break, the first question will be "what changed?" — and the answer for this feature is provably "nothing." That's the difference between a 4-hour incident and a 2-day forensic audit.
 
-The stamp is regenerated on each code-auditor invocation. If a future diff accidentally touches \`settlement.rb\`, the gate fails loudly before the PR can be merged.`,
+## 3. What the verifier actually does
+
+The clean-diff verifier is a deterministic script (\`bin/audit/settlement-clean-diff.rb\`) that runs as part of \`/audit full\` on any diff:
+
+1. **\`git diff --name-only HEAD\`** intersected with the in-scope file list — must be empty.
+2. **Static grep** across the entire diff for the pattern list above. Each match is a hard fail.
+3. **AST scan** of every changed Ruby file — looks for any reference to a constant matching \`/Settlement/\` (catches indirect references like \`scope.send(:settlements)\`).
+4. **Schema diff** — asserts no migration in the diff touches the \`settlements\` table or any table with a \`settlement_id\` foreign key.
+5. **Active Admin scan** — \`/app/admin/\` files in the diff are inspected for any \`ActiveAdmin.register Settlement\` block change.
+6. **Background-job scan** — \`/app/jobs/\` and \`/app/workers/\` files are inspected for any new enqueue of a Settlement-related class name.
+7. **Policy scan** — Pundit \`SettlementPolicy\` AST hash unchanged.
+
+A failure on any of these short-circuits the gate; the PR cannot be opened.
+
+## 4. Where the stamp lives
+
+The stamp is one entry in \`.checkpoints/code-auditor.checkpoint.json\` under \`skill_state.supplementary_pass_stamps\`. The full checkpoint also stores the \`/audit full\` results, so a successor team can reconstruct the audit history without re-running.
+
+\`\`\`
+.checkpoints/
+└─ code-auditor.checkpoint.json
+   └─ skill_state.supplementary_pass_stamps[]
+      ├─ {commit: "a4f91e2", verification: "settlement-untouched", ...}  ← this stamp
+      ├─ {commit: "918aaee", verification: "invoice-callback-untouched", ...}
+      └─ ...
+\`\`\`
+
+## 5. Re-verification on every release
+
+The stamp is **regenerated on each code-auditor invocation**. If a future diff accidentally touches \`settlement.rb\`, the gate fails loudly before the PR can be merged. Specifically:
+
+- A pre-commit hook (\`.husky/pre-commit\`) runs the verifier on the local diff.
+- A GitHub Actions workflow runs it on every PR push.
+- A nightly cron runs it against \`main\` to catch drift (e.g., a force-push that bypassed the gate).
+
+If any of those finds a violation, a Linear bug is auto-filed at \`Severity = High\` with the failing diff attached.
+
+## 6. Stamp signature (forward-compat)
+
+In v1, stamps are unsigned; the verifier writes them and the checkpoint trusts the writer. In v1.1, stamps will be signed with a CI-only ed25519 key so a tampered stamp can be detected:
+
+\`\`\`json
+{
+  ...
+  "signature": "ed25519:7f4e9c...",
+  "signed_by": "code-auditor-ci"
+}
+\`\`\`
+
+This is documented as a TODO; not blocking for v1.
+
+## 7. Provenance
+
+| Field | Value |
+|---|---|
+| Stamp produced by | code-auditor v1.2.0 |
+| Run mode | \`/audit full\` + money-flow supplementary pass |
+| Commit verified | \`a4f91e2\` |
+| Run duration | 4 m 12 s |
+| Gate verdict | PASS |
+| Stored at | \`.checkpoints/code-auditor.checkpoint.json\` |`,
     },
   ],
   skills: ["reverse-spec", "app-architect", "code-auditor"],
