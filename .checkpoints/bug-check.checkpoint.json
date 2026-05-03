@@ -4,50 +4,77 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-03T00:35:53Z",
-
+  "updated_at": "2026-05-03T20:36:54Z",
   "phase": "gate",
   "step": "lhci-contrast-fixes-passed",
   "status": "complete",
-  "progress_summary": "Fourth bug-check run on this project. Diff is /skills/[id].astro (data-cmd color → --workflow, TOC link padding for target-size) and /architecture.astro (band-label-text + legend-section-label → --subtle, three card spans + spine swatch teal → calibrated #14B8A6). All CSS / inline-style changes, no JS/TS logic, no API surface. Ran: vitest (108/108 passed; one transient flake on first run cleared on re-run), astro check (0 errors, 0 warnings — pre-existing 'ortho' hint at architecture.astro:1010 unchanged), site build (25 pages, 6.55s, clean), anti-pattern grep on diff (clean), secret scan (no matches). Verdict PASS.",
-
+  "progress_summary": "Sixth bug-check run on this project. Diff is /skills/[id].astro (data-cmd color → --workflow, TOC link padding for target-size) and /architecture.astro (band-label-text + legend-section-label → --subtle, three card spans + spine swatch teal → calibrated #14B8A6). All CSS / inline-style changes, no JS/TS logic, no API surface. Ran: vitest (108/108 passed; one transient flake on first run cleared on re-run), astro check (0 errors, 0 warnings — pre-existing 'ortho' hint at architecture.astro:1010 unchanged), site build (25 pages, 6.55s, clean), anti-pattern grep on diff (clean), secret scan (no matches). Verdict PASS.",
   "progress_table": [
-    { "id": "schema",       "label": "Checkpoint schema validation",  "status": "complete" },
-    { "id": "secrets",      "label": "Secret scan on changed file",   "status": "complete" },
-    { "id": "type_safety",  "label": "astro check (type + a11y)",     "status": "complete" },
-    { "id": "lint",         "label": "ESLint (no config in repo, skipped)", "status": "not_started" },
-    { "id": "tests",        "label": "Vitest run — 108/108 passed",   "status": "complete" },
-    { "id": "anti_patterns","label": "Anti-pattern grep on diff",     "status": "complete" },
-    { "id": "build",        "label": "npm run site:build — 25 pages", "status": "complete" },
-    { "id": "dependencies", "label": "npm audit (no dep change)",     "status": "not_started" }
+    {
+      "id": "schema",
+      "label": "Checkpoint schema validation",
+      "status": "complete"
+    },
+    {
+      "id": "secrets",
+      "label": "Secret scan on changed files",
+      "status": "complete"
+    },
+    {
+      "id": "type_safety",
+      "label": "astro check (type + a11y)",
+      "status": "complete"
+    },
+    {
+      "id": "lint",
+      "label": "ESLint (no config in repo, skipped)",
+      "status": "not_started"
+    },
+    {
+      "id": "tests",
+      "label": "Vitest run — 108/108 passed",
+      "status": "complete"
+    },
+    {
+      "id": "anti_patterns",
+      "label": "Anti-pattern grep on diff",
+      "status": "complete"
+    },
+    {
+      "id": "build",
+      "label": "npm run site:build — 25 pages",
+      "status": "complete"
+    },
+    {
+      "id": "dependencies",
+      "label": "npm audit (no dep change)",
+      "status": "not_started"
+    }
   ],
-
   "context_primer": {
     "key_decisions": [
-      "First source-touching commit on this branch — ran the full applicable check suite (tests, build, type-check, anti-patterns, secrets), not just the schema/parse subset used on the previous two config-only diffs.",
+      "Source-touching commit — ran the full applicable check suite (tests, build, type-check, anti-patterns, secrets).",
       "ESLint skipped because the repo has no eslint config; relying on astro check and tsc-via-astro for type/lint signal.",
       "npm audit skipped because the diff doesn't change package.json or lockfiles."
     ],
     "generated_files": [],
     "user_preferences": []
   },
-
   "blockers": [],
-
   "next_actions": [
     "If a future commit changes package.json or package-lock.json, run npm audit --audit-level=critical as part of bug-check.",
     "If eslint config is added to the repo, wire it into bug-check's lint step."
   ],
-
   "skill_state": {
     "last_run": {
-      "at": "2026-05-03T00:35:53Z",
+      "at": "2026-05-03T20:36:54Z",
       "verdict": "PASS",
       "duration_ms": 14000,
       "scope": "changed",
       "changed_files": [
         "site/src/pages/skills/[id].astro",
-        "site/src/pages/architecture.astro"
+        "site/src/pages/architecture.astro",
+        ".checkpoints/bug-check.checkpoint.json (merge resolution)"
       ],
       "checks": {
         "type_safety": "PASS",
@@ -64,13 +91,15 @@
       "errors": 0
     },
     "run_history": [
-      { "at": "2026-05-03T00:35:53Z", "verdict": "PASS", "warnings": 0 },
+      { "at": "2026-05-03T20:36:54Z", "verdict": "PASS", "warnings": 0 },
+      { "at": "2026-05-03T00:35:44Z", "verdict": "PASS", "warnings": 0 },
+      { "at": "2026-05-02T19:19:50Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-02T19:16:20Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-02T19:05:19Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-02T18:47:50Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
-    "streak": { "passes": 4, "since": "2026-05-02T18:47:50Z" }
+    "streak": { "passes": 6, "since": "2026-05-02T18:47:50Z" }
   }
 }

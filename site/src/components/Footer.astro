@@ -1,5 +1,9 @@
 ---
+import { defaultFor } from "../lib/flags/build-defaults";
+
 const year = new Date().getFullYear();
+const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
+const installZipEnabled = defaultFor("site.feature.install-zip-download") as boolean;
 ---
 
 <footer class="site-footer">
@@ -15,11 +19,13 @@ const year = new Date().getFullYear();
       <a href="/skills">Skill Library</a>
       <a href="/install">Install</a>
     </div>
-    <div class="col">
-      <div class="col-head">demo</div>
-      <a href="/demo">Walkthrough</a>
-      <a href="/opchain-skills.zip">Download bundle</a>
-    </div>
+    {(demoEnabled || installZipEnabled) && (
+      <div class="col">
+        <div class="col-head">demo</div>
+        {demoEnabled && <a href="/demo">Walkthrough</a>}
+        {installZipEnabled && <a href="/opchain-skills.zip">Download bundle</a>}
+      </div>
+    )}
     <div class="col">
       <div class="col-head">source</div>
       <a href="https://github.com/asfbay-bit/opchain" rel="noopener">GitHub</a>

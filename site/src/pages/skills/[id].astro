@@ -7,7 +7,9 @@ import Button from "../../components/ui/Button.astro";
 import Card from "../../components/ui/Card.astro";
 import Icon from "../../components/Icon.astro";
 import CaptureModal from "../../components/CaptureModal.astro";
-import { getAllSkills, getSkill, getSkillRole, type Role } from "../../lib/skills";
+import { getAllSkills, getSkill, getSkillRole, getSkillUpdatedAt, type Role } from "../../lib/skills";
+import { defaultFor } from "../../lib/flags/build-defaults";
+import { isCapabilityEnabled, isCommandEnabled } from "../../lib/flags/build-defaults";
 
 export async function getStaticPaths() {
   const skills = await getAllSkills();
@@ -41,6 +43,24 @@ const skillRolesJson = JSON.stringify(
 // reads "1 min" instead of "0 min".
 const wordCount = (skill.body || "").trim().split(/\s+/).filter(Boolean).length;
 const readingMinutes = Math.max(1, Math.ceil(wordCount / 220));
+
+// Last-touched date for the skill, derived from `git log` over
+// skills/<id>/. The frontmatter `version` is a coarse signal and rarely
+// gets bumped on small fixes, so the badge gives visitors a precise
+// "is this fresh?" answer alongside the semver pill.
+const updatedIso = getSkillUpdatedAt(skill.data.name);
+const updatedLabel = updatedIso
+  ? new Date(updatedIso).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  : null;
+
+const triAgentEnabled = isCapabilityEnabled("tri-agent");
+const checkpointProtocolEnabled = isCapabilityEnabled("checkpoint-protocol");
+const installZipEnabled = defaultFor("site.feature.install-zip-download") as boolean;
+const visibleCommands = (skill.data.commands as string[]).filter(isCommandEnabled);
 
 // 18 — Prev / next skill nav. Catalog ordered by role (the same
 // ROLE_ORDER used on /architecture) then by skill name within group,
@@ -89,18 +109,23 @@ const consumers = isFoundational
       <p class="lede">{skill.data.shortDesc}</p>
       <div class="tags">
         {skill.data.phases.map((p: string) => <Badge variant="accent">{p}</Badge>)}
-        {skill.data.triAgent && <Badge variant="accent">Tri-agent</Badge>}
+        {skill.data.triAgent && triAgentEnabled && <Badge variant="accent">Tri-agent</Badge>}
         <Badge variant="neutral">v{skill.data.version}</Badge>
+        {updatedLabel && updatedIso && (
+          <Badge variant="neutral">
+            <time datetime={updatedIso}>Updated {updatedLabel}</time>
+          </Badge>
+        )}
       </div>
     </header>
 
     <!-- ───────────── Quick facts + actions ───────────── -->
     <section class="quick">
-      {skill.data.commands.length > 0 && (
+      {visibleCommands.length > 0 && (
         <Card variant="surface" glow={false}>
           <div class="quick-head">Commands</div>
           <div class="cmds">
-            {skill.data.commands.map((c: string) => <code class="cmd">{c}</code>)}
+            {visibleCommands.map((c: string) => <code class="cmd">{c}</code>)}
           </div>
         </Card>
       )}
@@ -109,13 +134,13 @@ const consumers = isFoundational
         <div class="quick-head">Pipeline phase</div>
         <p class="quick-body">
           <strong>{phaseLabel}</strong>
-          {skill.data.triAgent && <span> · runs as a tri-agent loop (Planner / Generator / Evaluator)</span>}
+          {skill.data.triAgent && triAgentEnabled && <span> · runs as a tri-agent loop (Planner / Generator / Evaluator)</span>}
         </p>
       </Card>
 
       <Card variant="surface" glow={false}>
         <div class="quick-head">Get this skill</div>
-        {isFoundational && (
+        {isFoundational && checkpointProtocolEnabled && (
           <>
             <p class="quick-body">
               Foundational protocol — every other opchain skill reads / writes its checkpoint contract.
@@ -131,22 +156,24 @@ const consumers = isFoundational
             )}
           </>
         )}
-        {!isFoundational && (
+        {(!isFoundational || !checkpointProtocolEnabled) && (
           <p class="quick-body">
             Drop the bundle into <code class="ic">.claude/skills/</code> and Claude Code auto-discovers it on the next session.
           </p>
         )}
-        <div class="try-actions">
-          <Button
-            variant="outline"
-            size="sm"
-            href={`/skills/${skill.data.name}.zip`}
-            {...{ "data-capture-trigger": true, "data-capture-source": "skill-download" } as any}
-          >
-            <Icon name="download" size={12} />
-            download skill
-          </Button>
-        </div>
+        {installZipEnabled && (
+          <div class="try-actions">
+            <Button
+              variant="outline"
+              size="sm"
+              href={`/skills/${skill.data.name}.zip`}
+              {...{ "data-capture-trigger": true, "data-capture-source": "skill-download" } as any}
+            >
+              <Icon name="download" size={12} />
+              download skill
+            </Button>
+          </div>
+        )}
       </Card>
     </section>
 
@@ -154,15 +181,15 @@ const consumers = isFoundational
     <section id="usage" class="usage">
       <h2>How you'll use it</h2>
       <p class="usage-desc">{skill.data.description}</p>
-      {skill.data.commands.length > 0 && (
+      {visibleCommands.length > 0 && (
         <>
           <p class="usage-label">Trigger with natural language or a slash command:</p>
           <div class="usage-cmds">
-            {skill.data.commands.slice(0, 6).map((c: string) => (
+            {visibleCommands.slice(0, 6).map((c: string) => (
               <code class="cmd">{c}</code>
             ))}
-            {skill.data.commands.length > 6 && (
-              <span class="cmd-more">+{skill.data.commands.length - 6} more</span>
+            {visibleCommands.length > 6 && (
+              <span class="cmd-more">+{visibleCommands.length - 6} more</span>
             )}
           </div>
         </>

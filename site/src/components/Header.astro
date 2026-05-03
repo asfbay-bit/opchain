@@ -2,6 +2,7 @@
 import Logo from "./Logo.astro";
 import ThemeToggle from "./ThemeToggle.astro";
 import Icon from "./Icon.astro";
+import { defaultFor } from "../lib/flags/build-defaults";
 
 interface NavLink {
   href: string;
@@ -14,11 +15,13 @@ interface Props {
   links?: NavLink[];
 }
 
+const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
+
 const defaultLinks: NavLink[] = [
   { href: "/",              label: "Home" },
   { href: "/architecture",  label: "Architecture" },
   { href: "/skills",        label: "Skill Library" },
-  { href: "/demo",          label: "Demo" },
+  ...(demoEnabled ? [{ href: "/demo", label: "Demo" }] : []),
   { href: "/install",       label: "Install" },
 ];
 

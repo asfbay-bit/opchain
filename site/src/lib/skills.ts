@@ -2,6 +2,9 @@
 // Reads the `skills` Astro content collection (defined in src/content.config.ts)
 // and pairs it with the TRYIT.md prompts via a build-time glob.
 
+import { execSync } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { getCollection, type CollectionEntry } from "astro:content";
 import { defaultFor } from "./flags/build-defaults";
 import type { FlagName } from "./flags/registry";
@@ -97,5 +100,40 @@ export async function getSkill(id: string): Promise<SkillEntry | undefined> {
   const found = entries.find((entry: SkillEntry) => entry.data.name === id);
   if (!found || !isSkillVisible(found)) return undefined;
   return found;
+}
+
+// Resolve the repo root from this file's location so the helper works
+// regardless of the cwd the build was invoked from. site/src/lib → ../../..
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+const SAFE_ID = /^[a-z0-9][a-z0-9-]*$/;
+const updatedCache = new Map<string, string | null>();
+
+/**
+ * Author-date (ISO 8601) of the most recent commit that touched
+ * `skills/<id>/`. Used by /skills/<id> to render an "Updated …" badge so
+ * visitors can see when a skill was last refreshed without scraping the
+ * SKILL.md frontmatter (which ships a coarse semver, not a date).
+ *
+ * Returns null when git is unavailable, the skill dir has no history
+ * yet, or the id contains anything but lowercase alphanumerics + dashes.
+ * The page falls back to hiding the badge in those cases.
+ */
+export function getSkillUpdatedAt(id: string): string | null {
+  if (updatedCache.has(id)) return updatedCache.get(id) ?? null;
+  let iso: string | null = null;
+  if (SAFE_ID.test(id)) {
+    try {
+      const out = execSync(`git log -1 --format=%cI -- skills/${id}`, {
+        cwd: REPO_ROOT,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim();
+      iso = out || null;
+    } catch {
+      iso = null;
+    }
+  }
+  updatedCache.set(id, iso);
+  return iso;
 }
 

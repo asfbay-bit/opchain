@@ -5,6 +5,9 @@ import MobileWorkbench from "../components/MobileWorkbench.astro";
 import WelcomePopup from "../components/WelcomePopup.astro";
 import { walkthroughs } from "../data/walkthroughs";
 import { renderSafeMarkdown } from "../lib/markdown";
+import { defaultFor } from "../lib/flags/build-defaults";
+
+const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
 
 /**
  * Demo — full-bleed workbench with a one-step welcome popup.
@@ -44,52 +47,49 @@ const artifacts = walkthroughs.flatMap((w) =>
   description="Replay curated opchain skill conversations end-to-end — six scenarios, real transcripts, click to inspect."
   active="/demo"
 >
-  <!-- Visually-hidden page heading. The full-bleed workbench has no
-       prose-style title, but the page still needs a semantic h1 for
-       SEO + screen readers + the routes.spec.ts smoke test. The same
-       copy fronts the welcome popup. -->
-  <h1 class="visually-hidden">Watch a finished run.</h1>
+  {!demoEnabled && (
+    <main class="demo-disabled">
+      <h1>Demo unavailable</h1>
+      <p>The interactive demo is currently turned off. Try the <a href="/skills">skill library</a> or <a href="/install">install opchain</a> to see it run locally.</p>
+    </main>
+  )}
+  {demoEnabled && (
+    <>
+      <h1 class="visually-hidden">Watch a finished run.</h1>
+      <div class="dw-desktop"><DesktopWorkbench /></div>
+      <div class="dw-mobile"><MobileWorkbench /></div>
+      <WelcomePopup />
 
-  <!-- Desktop + mobile workbenches share the route; CSS-breakpoint swap
-       below picks one based on viewport width. Both subtrees are in DOM
-       but the inactive one is `display: none` so layout cost is zero
-       and the modal-open delegated click handler reaches both. -->
-  <div class="dw-desktop"><DesktopWorkbench /></div>
-  <div class="dw-mobile"><MobileWorkbench /></div>
-
-  <WelcomePopup />
-
-  <!-- Hidden artifact store — pre-rendered markdown bodies, one div per artifact.
-       The JS lightbox reads innerHTML from here and injects it into the modal. -->
-  <div class="artifact-store" aria-hidden="true" hidden>
-    {artifacts.map((a) => (
-      <div
-        data-artifact-scenario={a.scenarioId}
-        data-artifact-id={a.artifactId}
-        set:html={a.html}
-      />
-    ))}
-  </div>
-
-  <!-- Output modal lightbox — opened by the click handler below. -->
-  <dialog
-    class="output-modal"
-    id="output-modal"
-    aria-modal="true"
-    aria-labelledby="modal-title"
-  >
-    <div class="modal-inner">
-      <div class="modal-header">
-        <div class="modal-title-row">
-          <span class="modal-ico" aria-hidden="true">⊞</span>
-          <h2 id="modal-title" class="modal-title">Output preview</h2>
-          <span class="modal-kind"></span>
-        </div>
-        <button class="modal-close" aria-label="Close output" type="button">✕</button>
+      <div class="artifact-store" aria-hidden="true" hidden>
+        {artifacts.map((a) => (
+          <div
+            data-artifact-scenario={a.scenarioId}
+            data-artifact-id={a.artifactId}
+            set:html={a.html}
+          />
+        ))}
       </div>
-      <div class="modal-body prose"></div>
-    </div>
-  </dialog>
+
+      <dialog
+        class="output-modal"
+        id="output-modal"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
+        <div class="modal-inner">
+          <div class="modal-header">
+            <div class="modal-title-row">
+              <span class="modal-ico" aria-hidden="true">⊞</span>
+              <h2 id="modal-title" class="modal-title">Output preview</h2>
+              <span class="modal-kind"></span>
+            </div>
+            <button class="modal-close" aria-label="Close output" type="button">✕</button>
+          </div>
+          <div class="modal-body prose"></div>
+        </div>
+      </dialog>
+    </>
+  )}
 </Base>
 
 <style>
