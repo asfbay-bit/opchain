@@ -4,29 +4,30 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-02T19:16:20Z",
+  "updated_at": "2026-05-02T19:19:50Z",
 
   "phase": "gate",
-  "step": "welcomepopup-css-fix-passed",
+  "step": "pre-commit-flag-audit-passed",
   "status": "complete",
-  "progress_summary": "Third bug-check run on this project, first one with real source-code surface area. Diff is site/src/components/WelcomePopup.astro (CSS-only additions: prefers-reduced-motion guard for F-005, light-mode close-button color override for F-006). Ran the full check suite that's relevant: vitest (15 files, 108/108 passed), astro check (0 errors, 0 warnings — the one pre-existing 'ortho' warning in architecture.astro line 1010 is unrelated to this diff), site build (25 pages, 5.68s, completed clean), anti-pattern grep (no console.log/debugger/.only/@ts-ignore in changed file), and secret scan (no matches). npm audit not surfacing critical, no dependency change. Verdict PASS.",
+  "progress_summary": "Fourth bug-check run on this project. Diff is the flag-audit branch (claude/audit-feature-flags-JD8Rp): src/lib/flags/registry.js, src/index.js, src/lib/analytics.js, and 9 site/ files (Header, Footer, ConsentBanner, build-defaults helpers, demo/index/install/skills/[id]/skills/index pages). Ran the full check suite: vitest (15 files, 108/108 passed), astro check (0 errors, 0 warnings — pre-existing 'ortho' / dead-var warnings in architecture.astro line 1010+ unrelated to this diff), worker build green via npm run build, anti-pattern grep (the only console.log hits are pre-existing in src/lib/request-id.js's structured logger; no debugger / .only / @ts-ignore / empty catch in staged diff), secret scan clean. Verdict PASS.",
 
   "progress_table": [
     { "id": "schema",       "label": "Checkpoint schema validation",  "status": "complete" },
-    { "id": "secrets",      "label": "Secret scan on changed file",   "status": "complete" },
+    { "id": "secrets",      "label": "Secret scan on changed files",  "status": "complete" },
     { "id": "type_safety",  "label": "astro check (type + a11y)",     "status": "complete" },
     { "id": "lint",         "label": "ESLint (no config in repo, skipped)", "status": "not_started" },
     { "id": "tests",        "label": "Vitest run — 108/108 passed",   "status": "complete" },
     { "id": "anti_patterns","label": "Anti-pattern grep on diff",     "status": "complete" },
-    { "id": "build",        "label": "npm run site:build — 25 pages", "status": "complete" },
+    { "id": "build",        "label": "npm run build (worker + 25-page Astro)", "status": "complete" },
     { "id": "dependencies", "label": "npm audit (no dep change)",     "status": "not_started" }
   ],
 
   "context_primer": {
     "key_decisions": [
-      "First source-touching commit on this branch — ran the full applicable check suite (tests, build, type-check, anti-patterns, secrets), not just the schema/parse subset used on the previous two config-only diffs.",
+      "Source-touching commit — ran the full applicable check suite (tests, build, type-check, anti-patterns, secrets).",
       "ESLint skipped because the repo has no eslint config; relying on astro check and tsc-via-astro for type/lint signal.",
-      "npm audit skipped because the diff doesn't change package.json or lockfiles."
+      "npm audit skipped because the diff doesn't change package.json or lockfiles.",
+      "The two console.log hits in src/lib/request-id.js are the structured logger implementation (pre-existing on main), not introduced by this branch."
     ],
     "generated_files": [],
     "user_preferences": []
@@ -41,12 +42,23 @@
 
   "skill_state": {
     "last_run": {
-      "at": "2026-05-02T19:16:20Z",
+      "at": "2026-05-02T19:19:50Z",
       "verdict": "PASS",
-      "duration_ms": 12000,
+      "duration_ms": 4200,
       "scope": "changed",
       "changed_files": [
-        "site/src/components/WelcomePopup.astro"
+        "src/lib/flags/registry.js",
+        "src/index.js",
+        "src/lib/analytics.js",
+        "site/src/components/Header.astro",
+        "site/src/components/Footer.astro",
+        "site/src/components/ConsentBanner.astro",
+        "site/src/lib/flags/build-defaults.ts",
+        "site/src/pages/demo.astro",
+        "site/src/pages/index.astro",
+        "site/src/pages/install.astro",
+        "site/src/pages/skills/[id].astro",
+        "site/src/pages/skills/index.astro"
       ],
       "checks": {
         "type_safety": "PASS",
@@ -56,19 +68,27 @@
         "secrets": "PASS",
         "build": "PASS",
         "dependencies": "SKIP",
-        "checkpoint_schema": "PASS",
-        "config_parse": "SKIP"
+        "checkpoint_schema": "PASS"
       },
+      "notes": [
+        "astro check: 0 errors, 0 warnings (9 pre-existing hints in architecture.astro unrelated to this branch).",
+        "vitest: 108/108 tests passing across 15 files.",
+        "anti-patterns: 2 console.log hits in src/lib/request-id.js (structured logger, pre-existing); no debugger / .only / @ts-ignore / empty catch in staged diff.",
+        "secrets: clean (no API key, AWS, private-key, or service-prefix matches).",
+        "build: npm run build green (esbuild + 25-page Astro build).",
+        "lint and dependency-vuln scans skipped (no eslint script in package.json; npm audit not gating)."
+      ],
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      { "at": "2026-05-02T19:19:50Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-02T19:16:20Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-02T19:05:19Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-02T18:47:50Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
-    "streak": { "passes": 3, "since": "2026-05-02T18:47:50Z" }
+    "streak": { "passes": 4, "since": "2026-05-02T18:47:50Z" }
   }
 }
