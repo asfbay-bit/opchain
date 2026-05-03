@@ -760,7 +760,7 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
               <div class="li-swatch" style="background:rgba(13,148,136,.08);border:1px solid #0D9488;box-shadow:0 0 6px rgba(13,148,136,.4)"></div>
               <span>specialist</span>
               <div class="legend-card" role="tooltip">
-                <div class="legend-card-title" style="color:#0D9488">Standalone Specialist</div>
+                <div class="legend-card-title" style="color:#14B8A6">Standalone Specialist</div>
                 Single-purpose skills that produce a concrete artifact and hand it off. No internal loop, no orchestration of others.
                 <div class="legend-card-examples">reverse-spec · dash-forge · git-ops · migration-ops · monitoring-ops</div>
               </div>
@@ -800,9 +800,9 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
             <li>· <strong style="color:var(--success)">1</strong> reverse-spec → <strong style="color:var(--success)">2</strong> app-architect → <strong style="color:var(--success)">3</strong> git-ops → <strong style="color:var(--success)">4</strong> deploy-ops → <strong style="color:var(--success)">5</strong> monitoring-ops</li>
             <li>· Each chip carries <code>↑prev·↓next</code> for direction</li>
             <li>· Branch handoffs as inline mint pills inside source rects:</li>
-            <li>&nbsp;&nbsp;ux-engineer <span style="color:#0D9488">→ dash-forge</span></li>
-            <li>&nbsp;&nbsp;api-dev / integ-eng <span style="color:#0D9488">→ code-auditor</span></li>
-            <li>&nbsp;&nbsp;code-auditor <span style="color:#0D9488">→ security-auditor</span></li>
+            <li>&nbsp;&nbsp;ux-engineer <span style="color:#14B8A6">→ dash-forge</span></li>
+            <li>&nbsp;&nbsp;api-dev / integ-eng <span style="color:#14B8A6">→ code-auditor</span></li>
+            <li>&nbsp;&nbsp;code-auditor <span style="color:#14B8A6">→ security-auditor</span></li>
           </ul>
         </div>
         <div class="card">
@@ -1505,7 +1505,16 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
     writing-mode: vertical-rl;
     text-orientation: mixed;
     font-size: .575rem; font-weight: 700;
-    letter-spacing: .15em; color: var(--slag);
+    /* LHCI: --slag (#5a5040) was ~2.30:1, --subtle (#9d8b78) cleared
+       most bands but Lighthouse still flagged band-ship and band-monitor
+       specifically — likely because those bands have visual treatments
+       (glow filters, ember/success bars) that shift the effective bg
+       luminance under the 9.2px vertical text. --muted (=--sand,
+       #c4b89e) gives ~9.4:1 — way above any threshold. Active state
+       remains --sand so the dim/active hierarchy collapses, but
+       hover-band-active still has the bar+content reveal so the
+       interaction signal isn't lost. */
+    letter-spacing: .15em; color: var(--muted);
     transition: color .2s; white-space: nowrap;
   }
   .arch-v2 .band.active .band-label-text,
@@ -1811,7 +1820,9 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
     text-align: center;
     font-size: 8px;
     letter-spacing: .12em;
-    color: var(--slag);
+    /* LHCI: --slag fails AA Normal. --subtle is the calibrated
+       dimmed-text token. Same fix as .band-label-text above. */
+    color: var(--subtle);
     text-transform: uppercase;
     margin-bottom: 2px;
   }
@@ -1831,9 +1842,12 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
   .arch-v2 .legend-item.dimmed { opacity: .07; }
   .arch-v2 .li-swatch { width: 22px; height: 12px; border-radius: 3px; }
   .arch-v2 .li-swatch-spine {
-    background: rgba(13,148,136,.18);
-    border: .5px solid #0D9488;
-    color: #0D9488;
+    /* LHCI: #0D9488 (teal-700) on the alpha-blended 18% mix bg gives
+       ~4.48:1 — fails AA Normal at .5rem. #14B8A6 is the calibrated
+       --specialist token (B-10: was #0D9488, 4.48△ → 6.74✓). */
+    background: rgba(20,184,166,.18);
+    border: .5px solid #14B8A6;
+    color: #14B8A6;
     font-size: .5rem;
     font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
@@ -1877,7 +1891,10 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
   }
   .arch-v2 .card ul { list-style: none; color: var(--sand); font-size: .7rem; }
   .arch-v2 .card li { margin-bottom: .3rem; }
-  .arch-v2 .footer { text-align: center; margin-top: 1.25rem; color: var(--slag); font-size: .7rem; }
+  /* LHCI: --slag (#5a5040) fails AA Normal at .7rem on --bg. --subtle
+     is the calibrated dimmed-text token (~5.59:1) and matches the
+     other dimmed-text fixes on this page. */
+  .arch-v2 .footer { text-align: center; margin-top: 1.25rem; color: var(--subtle); font-size: .7rem; }
 
   @keyframes archV2SpinePulse {
     0%, 100% { opacity: 0.85; }

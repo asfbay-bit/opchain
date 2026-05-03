@@ -1,0 +1,88 @@
+name: Canary
+
+# Probes prod + staging /api/health on a schedule. No deploy creds, no
+# secrets — pure outbound HTTP from the runner. A failed run emails repo
+# admins so we hear about outages like the host_not_allowed one in
+# claude/debug-opchain-loading-4rvYp without waiting on user reports.
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "URL to probe (defaults to prod + staging)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: canary-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    name: Probe ${{ matrix.label }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: prod
+            url: https://opchain.dev
+          - label: staging
+            url: https://staging.opchain.dev
+    steps:
+      - name: Probe ${{ matrix.url }}/api/health
+        env:
+          URL: ${{ inputs.target || matrix.url }}
+        run: |
+          set -u
+          fail=0
+          attempt=0
+          while [ "$attempt" -lt 3 ]; do
+            attempt=$((attempt + 1))
+            echo "::group::attempt ${attempt}: ${URL}/api/health"
+            hdrs="$(curl -sS -m 10 -D - -o body.txt -w 'HTTP %{http_code}\n' "${URL}/api/health" 2>&1)" || true
+            echo "$hdrs"
+            status="$(printf '%s\n' "$hdrs" | awk '/^HTTP /{print $2}' | tail -1)"
+            deny="$(printf '%s\n' "$hdrs" | awk -F': ' 'tolower($1)=="x-deny-reason"{print $2}' | tr -d '\r' | tail -1)"
+            ct="$(printf '%s\n' "$hdrs" | awk -F': ' 'tolower($1)=="content-type"{print tolower($2)}' | tr -d '\r' | tail -1)"
+            body="$(cat body.txt 2>/dev/null || true)"
+            echo "::endgroup::"
+
+            if [ -n "$deny" ]; then
+              echo "::error::${URL} returned x-deny-reason=${deny} — Worker custom-domain binding is missing. Re-run \`npm run deploy\` (or \`deploy:staging\`) from a logged-in laptop to restore the route."
+              fail=1
+              break
+            fi
+            if [ "$status" != "200" ]; then
+              echo "::warning::attempt ${attempt}: status=${status}, retrying"
+              fail=1
+              sleep 5
+              continue
+            fi
+            case "$ct" in
+              application/json*) ;;
+              *)
+                echo "::error::${URL}/api/health returned content-type='${ct}' (expected application/json) — edge probably intercepted the response"
+                fail=1
+                break
+                ;;
+            esac
+            if ! printf '%s' "$body" | grep -q '"ok":true'; then
+              echo "::error::${URL}/api/health body missing \"ok\":true — body: ${body}"
+              fail=1
+              break
+            fi
+            fail=0
+            echo "ok: ${URL} healthy (status=200, json, ok:true)"
+            break
+          done
+
+          if [ "$fail" -ne 0 ]; then
+            exit 1
+          fi

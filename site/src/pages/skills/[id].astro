@@ -1045,9 +1045,14 @@ const consumers = isFoundational
      Same outline + 15% colour-mix language used everywhere else on the
      site. Works in both themes via the design tokens. */
   .prose :global(code[data-cmd]) {
-    color: var(--ember);
-    border-color: color-mix(in srgb, var(--ember) 50%, transparent);
-    background: color-mix(in srgb, var(--ember) 12%, transparent);
+    /* LHCI calibration: var(--ember) (#e05c18) on the 12% ember-mix
+       pill background nets ~4.22:1 — just below AA Normal 4.5:1 for
+       the 12px text. Use --workflow (#FB923C / light: #8a3610) which
+       is the AA-calibrated bright-ember sibling already used for the
+       workflow role. Same visual family, clears AA on both themes. */
+    color: var(--workflow);
+    border-color: color-mix(in srgb, var(--workflow) 50%, transparent);
+    background: color-mix(in srgb, var(--workflow) 12%, transparent);
     font-weight: 500;
   }
   .prose :global(code[data-role]) {
@@ -1441,9 +1446,16 @@ const consumers = isFoundational
     color: var(--subtle);
     text-decoration: none;
     border-left: 2px solid transparent;
-    padding-left: 0.55rem;
-    margin-left: -0.55rem;
-    display: inline-block;
+    /* LHCI target-size: previous attempt used inline-block with 4px
+       padding (~27.6px box). Lighthouse still flagged the links —
+       likely because adjacent li margins shrink the effective offset
+       below the 24px threshold. Switched to display: block so each
+       link spans the full rail width (clear horizontal target) and
+       bumped padding to 6px top/bottom so the box is ~31.6px tall.
+       Dropped the inline-block-era negative margin since the block
+       link no longer needs the visual pull-back. */
+    display: block;
+    padding: 6px 0 6px 0.55rem;
     transition:
       color var(--dur-base) var(--ease-standard),
       border-color var(--dur-fast) var(--ease-standard);
