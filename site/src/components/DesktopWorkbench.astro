@@ -118,13 +118,29 @@ const transcripts = walkthroughs.map((w) => ({
     <!-- Editor — per-scenario summary panes with two modes. -->
     <div class="ide-editor" role="region" aria-label="Scenario editor">
       <div class="editor-prompt" data-editor-prompt>
-        <div class="editor-prompt-eyebrow">scenario summary</div>
-        <p class="editor-prompt-h">Pick a scenario on the left.</p>
-        <p class="editor-prompt-sub">
-          Each scenario shows a one-paragraph brief, the inputs the
-          user brought, and the outputs Claude produced — each output
-          opens to its full body.
-        </p>
+        <div class="editor-prompt-inner">
+          <div class="editor-prompt-eyebrow">scenario summary</div>
+          <p class="editor-prompt-h">Pick a scenario on the left.</p>
+          <p class="editor-prompt-sub">
+            Each scenario shows a one-paragraph brief, the inputs the
+            user brought, and the outputs Claude produced — each output
+            opens to its full body.
+          </p>
+          <div class="controls-legend" aria-label="Playback controls">
+            <div class="controls-legend-row">
+              <span class="key key--lg">↵</span>
+              <span class="controls-legend-label">play</span>
+            </div>
+            <div class="controls-legend-row">
+              <span class="key key--lg">␣</span>
+              <span class="controls-legend-label">skip</span>
+            </div>
+            <div class="controls-legend-row">
+              <span class="key key--lg">R</span>
+              <span class="controls-legend-label">restart</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {walkthroughs.map((w, i) => {
@@ -186,6 +202,21 @@ const transcripts = walkthroughs.map((w) => ({
                     ))}
                   </ul>
                 </section>
+              </div>
+
+              <div class="controls-legend controls-legend--scenario" aria-label="Playback controls">
+                <div class="controls-legend-row">
+                  <span class="key key--lg">↵</span>
+                  <span class="controls-legend-label">play</span>
+                </div>
+                <div class="controls-legend-row">
+                  <span class="key key--lg">␣</span>
+                  <span class="controls-legend-label">skip</span>
+                </div>
+                <div class="controls-legend-row">
+                  <span class="key key--lg">R</span>
+                  <span class="controls-legend-label">restart</span>
+                </div>
               </div>
             </div>
 
@@ -565,12 +596,60 @@ const transcripts = walkthroughs.map((w) => ({
   .editor-prompt {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: center;
     padding: clamp(1rem, 3vw, 2rem);
     height: 100%;
     color: var(--muted);
+    text-align: center;
   }
   .editor-prompt[hidden] { display: none; }
+  .editor-prompt-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 36rem;
+  }
+  .controls-legend {
+    margin-top: clamp(1.5rem, 4vw, 2.5rem);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(1rem, 3vw, 2rem);
+  }
+  .controls-legend--scenario {
+    margin-top: clamp(2rem, 5vw, 3rem);
+    padding-top: clamp(1.5rem, 3vw, 2rem);
+    border-top: 0.5px solid var(--border);
+  }
+  .controls-legend-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .controls-legend-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    letter-spacing: var(--ls-wide);
+    color: var(--muted);
+    text-transform: lowercase;
+  }
+  .key.key--lg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3rem;
+    height: 3rem;
+    padding: 0 0.9rem;
+    font-size: 1.5rem;
+    line-height: 1;
+    border-radius: var(--r-md, 6px);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-mono);
+  }
   .editor-prompt-eyebrow {
     color: #f5894d;
     font-family: var(--font-mono);
