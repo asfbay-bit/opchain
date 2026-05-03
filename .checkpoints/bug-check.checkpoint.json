@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-03T23:48:00Z",
+  "updated_at": "2026-05-03T23:53:00Z",
   "phase": "gate",
-  "step": "demo-artifact-expansion-chunk5-passed",
+  "step": "demo-artifact-expansion-chunk6-passed-FINAL",
   "status": "complete",
-  "progress_summary": "Thirteenth bug-check run. Diff is chunk 5: postgres-migration artifacts (migration plan → 9-section runbook with target end state, 6 invariants, 5 phases each with rollback gates, comms timeline, risk register; verification report → 9-section monitoring-ops report with per-table breakdown, full ramp metrics, alert configuration, capacity headroom; ops-status → 8-section orchestrator demo with priority hierarchy, filter commands, refresh cadence). Ran: vitest (108/108 passed), astro check (0 errors / 0 warnings), anti-pattern grep clean, secret scan clean. Verdict PASS.",
+  "progress_summary": "Fourteenth bug-check run. Diff is chunk 6 (final): security-hardening artifacts (threat-model → 8-section STRIDE-per-boundary doc with data classification, exploitability/impact ranking, OWASP + SOC2 TSC mappings; hardening-plan → 8-section infra plan with full CSP header, all CF settings table, cookie matrix, audit log schema, 12-step engineer checklist; remediation-backlog → 9-section prioritised backlog with 4-tier severity, B/C/D/H items each with finding/fix/scope/est/done-when, sprint proposal, comms grid, definition of audit-ready). Final end-to-end build run: 25 pages, demo page now 589KB (was ~340KB pre-PR; +73%). Ran: vitest (108/108 passed), astro check (0 errors / 0 warnings), anti-pattern grep clean, secret scan clean, full site build green. Verdict PASS.",
   "progress_table": [
     { "id": "schema", "label": "Checkpoint schema validation", "status": "complete" },
     { "id": "secrets", "label": "Secret scan on changed files", "status": "complete" },
@@ -38,12 +38,12 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-03T23:48:00Z",
+      "at": "2026-05-03T23:53:00Z",
       "verdict": "PASS",
       "duration_ms": 3700,
       "scope": "changed",
       "changed_files": [
-        "site/src/data/walkthroughs/postgres-migration.ts"
+        "site/src/data/walkthroughs/security-hardening.ts"
       ],
       "checks": {
         "type_safety": "PASS",
@@ -51,22 +51,24 @@
         "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "SKIP",
+        "build": "PASS",
         "dependencies": "SKIP"
       },
       "notes": [
-        "Chunk 5: full-length expansion of all three postgres-migration artifacts (migration plan, verification report, ops-status).",
+        "Chunk 6 (final): full-length expansion of all three security-hardening artifacts (threat-model, hardening-plan, remediation-backlog).",
+        "End-of-PR end-to-end build verification: 25 pages built clean; demo page now 589KB (was ~340KB pre-PR — +73% growth from genuine artifact expansion across all six scenarios).",
         "astro check: 0 errors, 0 warnings on the diff.",
         "vitest: 108/108 passing.",
         "secrets: clean.",
         "anti-patterns: clean.",
-        "Build skipped: data-only Markdown content.",
-        "Note: LHCI bot reports same two pre-existing failures on /skills/app-architect and /architecture (now seen 4 PR pushes in a row). Not from this PR; /demo at 0.99/1.00. No action."
+        "Note: LHCI bot reports same two pre-existing failures on /skills/app-architect and /architecture (5 consecutive PR pushes). Not from this PR; /demo consistently at 0.99/1.00 across all chunks. No action.",
+        "PR #172 chunks 1-6 complete: TOC infrastructure + 22 artifact expansions across 6 scenarios."
       ],
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      { "at": "2026-05-03T23:53:00Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T23:48:00Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T23:43:00Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T23:38:00Z", "verdict": "PASS", "warnings": 0 },
@@ -75,13 +77,12 @@
       { "at": "2026-05-03T21:11:04Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T20:55:10Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T20:52:46Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T20:49:39Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T20:40:11Z", "verdict": "PASS", "warnings": 0 }
+      { "at": "2026-05-03T20:49:39Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
     "streak": {
-      "passes": 15,
+      "passes": 16,
       "since": "2026-05-02T18:47:50Z"
     }
   }

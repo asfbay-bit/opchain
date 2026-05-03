@@ -29,14 +29,27 @@ export const securityHardening: Walkthrough = {
       body:
 `# Threat Model — heads-down-app
 
-**Produced by** security-auditor Phase 1 (Threat Model) · **Method:** STRIDE per trust boundary
+**Produced by** security-auditor Phase 1 (Threat Model) · **Method:** STRIDE per trust boundary · **Compliance lens:** SOC2 Type I + OWASP Top 10 (2021) · **Run-time:** 22 minutes
 
-## System boundaries
+## 1. Scope + assumptions
+
+- **In scope:** the live SaaS, end-to-end. Browser → Cloudflare → Vercel-hosted Next.js → Supabase Postgres → Stripe webhooks.
+- **Out of scope:** the marketing site (separate worker, no auth, no PII).
+- **Threat-actor profiles considered:** anonymous internet attacker · disgruntled customer with valid creds · curious employee with no admin role · partner integration via API (Stripe).
+- **Not considered:** nation-state APT, social engineering of the founder, physical access to laptops.
+
+## 2. System boundaries
 
 \`\`\`
 [browser] ──https──► [cloudflare edge] ──https──► [vercel / next.js] ──tls──► [supabase]
-                           │
-                           └──► [stripe] ──https──► [back-channel webhooks]
+                           │                              │                          │
+                           │                              │                          └─ RLS, per-row policies
+                           │                              ├─ session cookie auth
+                           │                              ├─ middleware: rate-limit, headers
+                           │                              └──► [stripe] ──https──► [back-channel webhooks]
+                           ├─ WAF managed rules
+                           ├─ Bot Fight Mode
+                           └─ rate-limit / IP allow-list
 \`\`\`
 
 Three trust boundaries:
@@ -45,23 +58,69 @@ Three trust boundaries:
 2. **Edge → App** (Vercel). TLS terminated again; request identity is the user session cookie.
 3. **App → Data** (Supabase). Postgres RLS and per-row policies are the last line.
 
-## STRIDE findings (ranked by exploitability × impact)
+## 3. Data classification
 
-| # | Category | Component | Finding | Sev |
-|---|----------|-----------|---------|-----|
-| 1 | **T**ampering | App → Supabase | Service-role key used for tenant-isolated queries instead of per-tenant JWT; RLS is effectively bypassed. | CRITICAL |
-| 2 | **I**nfo disclosure | Edge → App | No \`Content-Security-Policy\` header; any script injection has full reign over the page. | HIGH |
-| 3 | **D**enial of service | Internet → Edge | Cloudflare WAF is on default rules; \`/api/*\` has no rate-limit; no Challenge page on suspicious traffic. | HIGH |
-| 4 | **I**nfo disclosure | App | Error responses include stack traces in production (500s reveal source paths). | HIGH |
-| 5 | **S**poofing | App | Session cookie is \`HttpOnly\` but not \`SameSite=Strict\` — CSRF on any state-changing GET. | MEDIUM |
-| 6 | **E**levation of privilege | App | Admin role is checked at the route level, not at the data level. RLS does not enforce it. | MEDIUM |
-| 7 | **R**epudiation | App | No audit log for admin actions (user impersonation, plan change, team transfer). | MEDIUM |
-| 8 | **T**ampering | App ↔ Stripe | Webhook endpoint verifies signature ✓, but not IP origin; relies solely on HMAC. | LOW (defence-in-depth gap) |
+| Class | Examples | Storage | Retention |
+|---|---|---|---|
+| Highly sensitive | password hashes, session tokens, Stripe customer ids | Postgres + Stripe | session: 30d idle; pwd: never deleted |
+| PII | email, display name, team membership | Postgres | retained while account active; 30d soft-delete |
+| Operational | logs, metrics, traces | CF + Vercel | 14d |
+| Public | marketing copy | static assets | indefinite |
 
-## OWASP Top 10 (2021) compliance map
+## 4. STRIDE findings (ranked by exploitability × impact)
+
+### 4.1 Per trust boundary
+
+#### Boundary 1 — Internet → Edge (Cloudflare)
+
+| # | STRIDE | Finding | Sev |
+|---|---|---|---|
+| 3 | DoS | CF WAF on default rules; \`/api/*\` has no rate-limit; no Challenge page on suspicious traffic. | HIGH |
+
+#### Boundary 2 — Edge → App (Vercel)
+
+| # | STRIDE | Finding | Sev |
+|---|---|---|---|
+| 2 | Info disclosure | No \`Content-Security-Policy\` header; any script injection has full reign over the page. | HIGH |
+| 4 | Info disclosure | Error responses include stack traces in production (500s reveal source paths). | HIGH |
+| 5 | Spoofing | Session cookie is \`HttpOnly\` but not \`SameSite=Strict\` — CSRF on any state-changing GET. | MEDIUM |
+
+#### Boundary 3 — App → Data (Supabase)
+
+| # | STRIDE | Finding | Sev |
+|---|---|---|---|
+| 1 | Tampering | Service-role key used for tenant-isolated queries instead of per-tenant JWT; RLS is effectively bypassed. | CRITICAL |
+| 6 | Elevation of privilege | Admin role is checked at the route level, not at the data level. RLS does not enforce it. | MEDIUM |
+
+#### Boundary 3' — App ↔ Stripe (back-channel)
+
+| # | STRIDE | Finding | Sev |
+|---|---|---|---|
+| 8 | Tampering | Webhook endpoint verifies signature ✓, but not IP origin; relies solely on HMAC. | LOW (defence-in-depth gap) |
+
+#### Cross-boundary (audit + repudiation)
+
+| # | STRIDE | Finding | Sev |
+|---|---|---|---|
+| 7 | Repudiation | No audit log for admin actions (user impersonation, plan change, team transfer). | MEDIUM |
+
+### 4.2 Findings sorted by exploitability × impact
+
+| # | Component | Sev | Exploitability | Impact | Risk |
+|---|---|---|---|---|---|
+| 1 | App → Supabase | CRITICAL | HIGH (service-role key used in every API route) | HIGH (cross-tenant leak) | 9.5 |
+| 2 | Edge → App | HIGH | MED (XSS still requires injection foothold) | HIGH (full page exfil) | 7.5 |
+| 3 | Internet → Edge | HIGH | HIGH (default WAF + no rate-limit) | MED (downtime, not breach) | 7.0 |
+| 4 | App | HIGH | MED (one trigger of a 500 anywhere) | MED (path disclosure) | 6.0 |
+| 5 | App | MED | MED (CSRF requires same-tab attack vector) | MED (state-change action) | 5.0 |
+| 6 | App | MED | LOW (requires existing user session + privilege confusion) | HIGH (privilege escalation) | 5.0 |
+| 7 | App | MED | N/A (audit gap, not exploit) | MED (compliance + forensics) | 4.5 |
+| 8 | App ↔ Stripe | LOW | LOW (HMAC strong) | LOW (defence-in-depth only) | 2.0 |
+
+## 5. OWASP Top 10 (2021) compliance map
 
 | # | Category | Status | Notes |
-|---|----------|--------|-------|
+|---|---|---|---|
 | A01 | Broken Access Control | **FAIL** | Finding #1, #6 |
 | A02 | Cryptographic Failures | PASS | TLS 1.3 only; no plaintext at rest; no hand-rolled crypto. |
 | A03 | Injection | PASS | Parameterised queries throughout; no string-concat SQL; input validation via Zod at edges. |
@@ -73,11 +132,32 @@ Three trust boundaries:
 | A09 | Logging & Monitoring | **PARTIAL** | App errors logged; admin actions not (Finding #7). |
 | A10 | Server-Side Request Forgery | PASS | No user-supplied URLs are fetched server-side. |
 
-## Recommendation
+## 6. SOC2 Trust Services Criteria mapping
+
+| TSC | Status | Findings |
+|---|---|---|
+| CC1 (Control environment) | PASS | Org chart documented; founder owns security responsibility. |
+| CC2 (Communication & info) | PASS | Privacy policy on file; user-facing. |
+| CC3 (Risk assessment) | **PARTIAL** | This document fills the gap going forward. |
+| CC4 (Monitoring) | **PARTIAL** | Finding #7 — admin action audit log missing. |
+| CC5 (Control activities) | **FAIL** | Finding #1 — RLS not enforced. |
+| CC6 (Logical & physical access) | **FAIL** | Findings #2, #3, #4. |
+| CC7 (System operations) | PASS | Deploy + rollback runbook on file. |
+| CC8 (Change management) | PASS | PR + audit gate on every change. |
+| CC9 (Risk mitigation) | **PARTIAL** | Backlog established (separate artifact). |
+
+## 7. Recommendation
 
 Findings #1 and #2 are the hard blockers for SOC2 — an auditor will flag them inside 10 minutes. Findings #3, #4 are SOC2 Common Criteria CC6.1 (logical access) concerns. The rest are SOC2-adjacent but acceptable for Type I if on a roadmap.
 
 Chaining to **code-auditor** for a code-level sweep underneath this posture review — we want to know if the RLS bypass (Finding #1) is actually triggered from any route, not just theoretically possible.
+
+## 8. Out of scope (deliberately)
+
+- **Code-level vulnerability scan.** That's code-auditor's job; chained underneath.
+- **Penetration test.** Recommend after remediation lands; out of scope for this pre-audit pass.
+- **Third-party vendor risk review.** Recommended but separate engagement; not blocking SOC2 Type I.
+- **Disaster recovery / business continuity.** Already documented in deploy-ops runbook.
 
 Checkpoint: \`.checkpoints/security-auditor.checkpoint.json\`.`,
     },
@@ -88,11 +168,13 @@ Checkpoint: \`.checkpoints/security-auditor.checkpoint.json\`.`,
       body:
 `# Infrastructure Hardening Plan
 
-**Produced by** security-auditor Phase 3 (Hardening) · **Targets:** edge, DNS, TLS, CSP, WAF, error handling
+**Produced by** security-auditor Phase 3 (Hardening) · **Targets:** edge, DNS, TLS, CSP, WAF, error handling, cookies, audit log · **Implementation effort:** ~2 days total · **No application code change** for half of the items.
 
-## CSP — \`Content-Security-Policy\`
+## 1. Content-Security-Policy
 
 Ship a strict CSP with a per-request nonce, in **report-only mode for 7 days** before enforcing. This catches false positives before they break customer flows.
+
+### 1.1 The header (report-only first)
 
 \`\`\`
 Content-Security-Policy-Report-Only:
@@ -108,41 +190,161 @@ Content-Security-Policy-Report-Only:
   report-uri /csp-report;
 \`\`\`
 
-Enforcement cutover: remove \`-Report-Only\` after 7 days of zero unexplained violations.
+### 1.2 Implementation
 
-## TLS + DNS
+- \`middleware.ts\` generates a per-request \`nonce\` (16 random bytes, base64).
+- Header set on every response.
+- \`app/layout.tsx\` reads the nonce and applies it to every \`<script>\` tag (Next 15 supports nonce inheritance for Server Components).
+- \`POST /csp-report\` handler ingests violations, logs to Sentry, never throws.
 
-- Cloudflare SSL mode → **Full (strict)**. Currently on "Full"; \`strict\` rejects origin certs that don't chain to a trusted CA. (Already do; only the mode setting is wrong.)
-- Min TLS version → **1.2**. TLS 1.3 preferred; disabling 1.0/1.1 cleans up auditor checkbox #4.
-- HSTS header with \`max-age=63072000; includeSubDomains; preload\`. Submit to the preload list after 30 days of stable HSTS.
-- CAA DNS records — restrict who can issue certs for \`opchain.dev\` to Let's Encrypt + Cloudflare only.
+### 1.3 Enforcement cutover
 
-## WAF + rate-limit
+After 7 days with zero unexplained violation reports:
 
-- Cloudflare WAF: enable the **Managed Rulesets** (default is "basic" only). Turn on the Cloudflare Managed Ruleset + OWASP Core Rule Set.
-- Rate-limit rule on \`/api/*\` — 60 req/min/IP for anon; 600 req/min/IP for authenticated (cookie-scoped). Above that → Challenge page, not block (avoids false positives on corporate NAT).
-- Bot Fight Mode → **on** for \`/signup\`, \`/login\`, \`/api/auth/*\`.
+1. Change header name to \`Content-Security-Policy\` (drop \`-Report-Only\`).
+2. Keep \`report-uri\` for ongoing visibility.
+3. Re-run the \`/secaudit\` pass; expect Finding #2 to flip to GREEN.
 
-## Error handling
+### 1.4 Known false-positive surfaces (to whitelist or fix)
+
+- Stripe Checkout iframes — already in \`frame-src\`.
+- Supabase realtime websocket — already in \`connect-src\`.
+- Inline styles in the legacy \`/dashboard/legacy\` route — fix during the dashboard refactor; meanwhile use the nonce.
+
+## 2. TLS + DNS
+
+| Setting | Current | Target | Action |
+|---|---|---|---|
+| Cloudflare SSL mode | Full | **Full (strict)** | Toggle in dashboard. \`strict\` rejects origin certs that don't chain to a trusted CA — we already chain to LE. |
+| Min TLS version | 1.0 | **1.2** | Toggle in dashboard. TLS 1.3 preferred; disabling 1.0/1.1 cleans auditor checkbox #4. |
+| HSTS | off | \`max-age=63072000; includeSubDomains; preload\` | Set via Cloudflare > SSL/TLS > Edge Certificates > HSTS. Submit to preload list after 30d of stable HSTS. |
+| CAA DNS | absent | Let's Encrypt + Cloudflare only | Add via DNS dashboard. Prevents rogue cert issuance. |
+| Always Use HTTPS | on | on | (already correct) |
+
+### 2.1 HSTS preload submission
+
+After 30 days with HSTS active and no rollback:
+
+1. Visit \`hstspreload.org\`.
+2. Submit \`headsdown.app\`.
+3. Wait ~6-8 weeks for browser inclusion.
+4. Note: HSTS preload is **near-permanent** — removing the domain takes months. Be confident before submitting.
+
+## 3. WAF + rate-limit
+
+### 3.1 WAF rulesets to enable
+
+- **Cloudflare Managed Ruleset** — bundled OWASP-aligned rules; on by default in higher tiers, off here.
+- **OWASP Core Rule Set** — independent OWASP CRS; pair with Cloudflare's for defence in depth.
+- Both run in **Block** mode for high-confidence rules; **Challenge** for medium-confidence (avoids false positives on corporate NAT).
+
+### 3.2 Rate-limit rules
+
+| Rule | Rate | Action |
+|---|---|---|
+| \`/api/*\` (anon) | 60/min/IP | Challenge |
+| \`/api/*\` (authenticated) | 600/min/IP | Challenge |
+| \`/api/auth/*\` | 5/min/IP | Block + 1h cooldown |
+| \`/api/billing/checkout\` | 5/min/user | 429 |
+| \`/csp-report\` | 50/min/IP | Drop silently |
+
+### 3.3 Bot Fight Mode
+
+Enable for: \`/signup\`, \`/login\`, \`/api/auth/*\`. These are the credential-stuffing surfaces.
+
+## 4. Error handling
 
 - Strip stack traces from production responses. Log them server-side only.
-- \`next.config.js\` \`productionBrowserSourceMaps: false\` (already set) — but confirm they're not leaking through other routes.
-- Custom 500 page that returns a correlation id; the id maps to the full trace in the log aggregator.
+- \`next.config.js\`: \`productionBrowserSourceMaps: false\` (already set) — but confirm they're not leaking through other routes.
+- Custom \`global-error.tsx\` renders a clean correlation id; the id maps to the full trace in the log aggregator.
 
-## Cookie hardening
+### 4.1 Implementation sketch
 
-- \`SameSite=Strict\` on the session cookie (was \`Lax\`).
-- \`__Host-\` prefix on the session cookie (already \`Secure\` + \`HttpOnly\`).
-- Session rotation on privilege change (already done).
+\`\`\`tsx
+// app/global-error.tsx
+"use client";
+export default function GlobalError({ error }: { error: Error & { digest?: string } }) {
+  return (
+    <html>
+      <body>
+        <h1>Something went wrong</h1>
+        <p>Reference: <code>{error.digest ?? "unknown"}</code></p>
+        <p>Please try again. If the problem persists, contact support with the reference above.</p>
+      </body>
+    </html>
+  );
+}
+\`\`\`
 
-## Admin audit log
+The \`error.digest\` is Next 15's stable correlation id; backend logs are searchable by this id.
 
-New table: \`admin_audit_log\`. Every admin action writes one row: actor, target, action, timestamp, ip, user-agent, success/failure. Retained 7 years (SOC2 CC7.2 retention).
+## 5. Cookie hardening
 
-## Cloudflare settings summary
+| Cookie | Setting | Current | Target |
+|---|---|---|---|
+| Session | \`SameSite\` | \`Lax\` | **\`Strict\`** |
+| Session | name | \`session\` | \`__Host-session\` (\`__Host-\` prefix forces \`Secure\` + path=/ + no Domain attr) |
+| Session | \`Secure\` | yes | yes |
+| Session | \`HttpOnly\` | yes | yes |
+| Session | rotation on privilege change | yes | yes |
+| CSRF (legacy) | — | absent | not needed (covered by SameSite=Strict + Origin check) |
+
+### 5.1 SameSite=Strict caveat
+
+OAuth redirect interactions can trip on \`Strict\` (the redirect from the OAuth provider arrives without a referrer that matches). Mitigation: special-case the OAuth callback path with a one-shot \`SameSite=Lax\` cookie that promotes to \`Strict\` after the first authenticated request.
+
+## 6. Admin audit log
+
+New table: \`admin_audit_log\`. Every admin action writes one row.
+
+\`\`\`prisma
+model AdminAuditLog {
+  id          String   @id @default(cuid())
+  actorId     String   // user performing the action
+  targetType  String   // "User", "Team", "Subscription", etc.
+  targetId    String
+  action      String   // "impersonate", "plan_change", "team_transfer", etc.
+  before      Json?    // state before (snapshot)
+  after       Json?    // state after (snapshot)
+  ipAddress   String
+  userAgent   String
+  success     Boolean
+  reason      String?  // free-text rationale
+  createdAt   DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId, createdAt])
+}
+\`\`\`
+
+Retained 7 years (SOC2 CC7.2 retention).
+
+### 6.1 Wrapping admin routes
+
+\`\`\`ts
+// lib/admin/audit.ts
+export async function logAdminAction(opts: {
+  actorId: string;
+  action: string;
+  targetType: string;
+  targetId: string;
+  before?: unknown;
+  after?: unknown;
+  ipAddress: string;
+  userAgent: string;
+  success: boolean;
+  reason?: string;
+}) {
+  await db.adminAuditLog.create({ data: { ...opts } });
+}
+\`\`\`
+
+Every admin route entry-point calls \`logAdminAction\` after the action settles (success or failure).
+
+## 7. Cloudflare settings summary
 
 | Setting | Current | Target |
-|---------|---------|--------|
+|---|---|---|
 | SSL Mode | Full | Full (strict) |
 | Min TLS | 1.0 | 1.2 |
 | HSTS | off | max-age=63072000; preload |
@@ -150,6 +352,26 @@ New table: \`admin_audit_log\`. Every admin action writes one row: actor, target
 | Rate-limit /api/* | off | 60/min anon · 600/min auth |
 | Bot Fight Mode | off | on (auth paths) |
 | Security Level | medium | high |
+| Always Use HTTPS | on | on (no change) |
+| Email Obfuscation | off | on |
+| Hotlink Protection | off | on |
+
+## 8. Hardening checklist (for the engineer doing the work)
+
+- [ ] Add CSP middleware + nonce plumbing (1 day).
+- [ ] Set \`/csp-report\` route + Sentry forwarding (30 min).
+- [ ] Toggle CF SSL Mode → strict (5 min).
+- [ ] Toggle CF Min TLS → 1.2 (5 min).
+- [ ] Set HSTS via CF dashboard (10 min).
+- [ ] Add CAA DNS records (10 min).
+- [ ] Enable WAF managed rulesets (15 min).
+- [ ] Configure rate-limit rules in CF dashboard (30 min).
+- [ ] Enable Bot Fight Mode on auth paths (5 min).
+- [ ] Replace \`global-error.tsx\` (30 min).
+- [ ] Bump session cookie to \`SameSite=Strict\` + \`__Host-\` (1 h, includes regression test on OAuth redirect).
+- [ ] Add \`admin_audit_log\` migration + wrapper + 6 admin route call-sites (1 day).
+
+Total: **~2 days of focused work**, half of which is dashboard toggles.
 
 Checkpoint: \`.checkpoints/security-auditor.checkpoint.json\` (Phase 3).`,
     },
@@ -160,85 +382,150 @@ Checkpoint: \`.checkpoints/security-auditor.checkpoint.json\` (Phase 3).`,
       body:
 `# Remediation Backlog — SOC2 Prep
 
-**Produced by** security-auditor after chaining through code-auditor.
-**Prioritisation:** SOC2 blocker > CC6 finding > defence-in-depth > hygiene.
+**Produced by** security-auditor after chaining through code-auditor · **Prioritisation:** SOC2 blocker > CC6 finding > defence-in-depth > hygiene · **Audit window** ~6 weeks · **Total est. effort** ~12 engineering days
 
-## SOC2 blockers (must fix before auditor arrives)
+## 1. Severity mapping
+
+| Tier | Definition | SLA |
+|---|---|---|
+| **B (blocker)** | Hard SOC2 fail; auditor will flag in < 10 min | This sprint (Sprint A) |
+| **C (CC6)** | Common-Criteria finding; auditor will flag on first review | This + next sprint |
+| **D (defence-in-depth)** | Not a SOC2 fail; nice to have | Next sprint or backlog |
+| **H (hygiene)** | Not exploitable; documentation/process | Ongoing |
+
+## 2. SOC2 blockers (must fix before auditor arrives)
 
 ### B-1 — Supabase: switch to per-tenant JWT for RLS
 
 - **Finding:** service-role key used for tenant-scoped queries; RLS is a suggestion, not a control.
-- **Fix:** generate a short-lived JWT per-request with the tenant id as a claim; swap \`createClient\` to use \`getSupabase(userJwt)\` in every API route.
-- **Scope:** 23 API routes + \`lib/supabase/server.ts\`.
+- **Why critical:** a single \`where team_id=session.teamId\` typo would leak across tenants.
+- **Fix:**
+  1. Generate a short-lived JWT per-request with \`tenant_id\` as a claim.
+  2. Swap \`createClient\` to use \`getSupabase(userJwt)\` in every API route.
+  3. Enable RLS on every tenant-scoped table; write policies that filter on the JWT claim.
+- **Scope:** 23 API routes + \`lib/supabase/server.ts\` + 14 RLS policies.
 - **Verification:** code-auditor confirmed 23 call-sites; added a lint rule (\`no-service-role-in-request\`) that fails CI on regression.
 - **Est:** 1–2 days.
+- **Owner:** founder (handle directly given criticality).
+- **Done when:** \`bin/audit/rls-coverage.sh\` reports 100% of tenant tables protected; lint rule green; integration test confirms cross-tenant query is rejected.
 
 ### B-2 — Content-Security-Policy (report-only first, then enforce)
 
 - **Finding:** no CSP; any XSS has full page reign.
-- **Fix:** add CSP via \`middleware.ts\`, nonce-per-request, start in \`Content-Security-Policy-Report-Only\` mode. Collect reports at \`/csp-report\` for 7 days.
+- **Fix:**
+  1. Add CSP via \`middleware.ts\`, nonce-per-request.
+  2. Start in \`Content-Security-Policy-Report-Only\` mode.
+  3. Collect reports at \`POST /csp-report\` for 7 days.
+  4. After 7 days of zero unexplained violations, drop \`-Report-Only\`.
 - **Scope:** \`middleware.ts\`, \`app/csp-report/route.ts\`, \`app/layout.tsx\` (nonce plumbing).
-- **Verification:** security-auditor will re-scan after enforcement day.
-- **Est:** 1 day.
+- **Verification:** security-auditor re-scan after enforcement day; \`/csp-report\` log shows zero unexplained violations.
+- **Est:** 1 day initial + 7-day soak + 1 day enforcement.
+- **Done when:** header is \`Content-Security-Policy\` (not \`-Report-Only\`); /secaudit re-scan flips Finding #2 to GREEN.
 
 ### B-3 — Strip stack traces from production 500s
 
 - **Finding:** error pages render stack traces containing source paths. Disclosure.
-- **Fix:** \`global-error.tsx\` renders a clean page with a correlation id; only the server log has the trace.
+- **Fix:** replace \`global-error.tsx\` with a clean page; only the server log has the trace.
 - **Scope:** one file.
-- **Verification:** 4 routes tested in staging — clean pages everywhere.
+- **Verification:** 4 routes tested in staging — clean pages everywhere; \`curl\`-a-500 from production returns no source path.
 - **Est:** 2 hours.
 
-## CC6 findings (should fix before audit)
+## 3. CC6 findings (should fix before audit)
 
 ### C-1 — Cloudflare WAF: enable managed rulesets + rate-limit /api/*
 
-- **Fix:** enable CF Managed Ruleset + OWASP Core Rule Set; add rate-limit (60 anon, 600 auth) on \`/api/*\`.
+- **Fix:**
+  - Enable CF Managed Ruleset + OWASP Core Rule Set.
+  - Add rate-limit (60 anon, 600 auth) on \`/api/*\`.
+  - Bot Fight Mode on \`/signup\`, \`/login\`, \`/api/auth/*\`.
 - **Scope:** Cloudflare dashboard, no code.
 - **Est:** 30 minutes.
 
 ### C-2 — SSL mode → Full (strict); Min TLS → 1.2; HSTS on
 
+- **Fix:**
+  - Cloudflare SSL Mode: Full → Full (strict).
+  - Min TLS Version: 1.0 → 1.2.
+  - HSTS: \`max-age=63072000; includeSubDomains; preload\`.
 - **Scope:** Cloudflare dashboard.
 - **Est:** 15 minutes (no app code change; origin already presents a valid cert).
+- **Note:** HSTS preload submission is a separate decision (see hardening plan).
 
 ### C-3 — Admin audit log
 
-- **Fix:** new \`admin_audit_log\` table + wrapper \`logAdminAction()\` at every admin route entry point. 7-year retention policy.
+- **Fix:** new \`admin_audit_log\` table + \`logAdminAction()\` wrapper at every admin route entry point. 7-year retention policy.
 - **Scope:** one migration, one wrapper function, 6 admin routes.
 - **Est:** 1 day.
 
-## Defence-in-depth
+## 4. Defence-in-depth
 
 ### D-1 — SameSite=Strict on session cookie + \`__Host-\` prefix
 
-- **Est:** 1 hour; regression-test login flows (OAuth redirect interactions can trip on \`Strict\`).
+- **Fix:** rename cookie to \`__Host-session\`, set \`SameSite=Strict\`. Special-case OAuth callback path with one-shot \`Lax\` cookie that promotes to \`Strict\`.
+- **Est:** 1 hour; regression-test login flows.
 
 ### D-2 — Stripe webhook IP allow-list
 
 - **Fix:** in addition to HMAC, verify \`X-Forwarded-For\` against Stripe's published CIDR block.
-- **Est:** 2 hours.
+- **Est:** 2 hours. (Note: already addressed in the Stripe integration audit; this is the same fix from a different lens.)
 
 ### D-3 — CAA DNS records
 
+- **Fix:** add CAA records restricting certificate issuance to Let's Encrypt + Cloudflare only.
 - **Est:** 10 minutes.
 
-## Hygiene
+### D-4 — Email obfuscation + hotlink protection
+
+- **Fix:** Cloudflare dashboard toggles. Reduces scraper signal + cross-site image abuse.
+- **Est:** 5 minutes.
+
+## 5. Hygiene
 
 ### H-1 — Documented threat model on file
 
-- **Fix:** commit this document to \`docs/security/threat-model.md\`. Review quarterly.
+- **Fix:** commit the threat-model artifact to \`docs/security/threat-model.md\`. Review quarterly.
 - **Est:** 10 minutes (the doc already exists; just commit it).
 
-## Sprint proposal
+### H-2 — Subprocessor inventory + DPA on file
+
+- **Fix:** list every subprocessor (Cloudflare, Vercel, Supabase, Stripe, Sentry); confirm DPAs are signed; commit to \`docs/security/subprocessors.md\`.
+- **Est:** 30 minutes (most are signed; just consolidate).
+
+### H-3 — Quarterly security review cadence
+
+- **Fix:** add a recurring calendar entry for \`/secaudit\` re-run every 90 days.
+- **Est:** 5 minutes.
+
+## 6. Sprint proposal
 
 \`\`\`
-Sprint A (this week)       B-1, B-2 (report-only), B-3, C-1, C-2
-Sprint B (next week)       B-2 (enforce), C-3, D-1, D-2, D-3
-Hygiene (ongoing)          H-1, re-scan after enforcement, audit re-run monthly
+Sprint A (this week)       B-1, B-2 (report-only), B-3, C-1, C-2     ~3 days work
+Sprint B (next week)       B-2 (enforce), C-3, D-1, D-2, D-3, D-4    ~2 days work
+Hygiene (ongoing)          H-1, H-2, H-3 (mostly docs)               ~1 hour
+Re-audit                   /secaudit after each sprint               separate cadence
+Pen-test                   external; book after Sprint B closes      separate engagement
 \`\`\`
 
 Both sprints pass through app-architect's normal build → code-auditor → security-auditor → deploy-ops chain. No one-off patches direct to prod.
+
+## 7. Tracking
+
+Linear project: \`security-soc2-prep\`. Each backlog item maps to a Linear issue with the same id (B-1, B-2, etc.). Closing an issue requires an attached PR + the security-auditor re-scan output as a comment.
+
+## 8. Communication
+
+| Audience | Cadence | What |
+|---|---|---|
+| Founder | daily during Sprint A/B | Slack DM with what shipped + what's next |
+| Investors | end of Sprint A | "We're SOC2-ready" milestone email |
+| Customers | only on incident | (no proactive comms during prep) |
+| Auditor | week before audit | full scope packet (this doc + attestation) |
+
+## 9. Definition of "audit-ready"
+
+All B-tier and C-tier items closed; D-tier items either closed or with a documented "accepted risk" decision; H-tier items committed to the repo. Pen-test booked. Subprocessor DPAs filed.
+
+Estimated calendar time from this doc to "audit-ready": **~2.5 weeks** of focused work + 7-day CSP soak.
 
 Checkpoint: \`.checkpoints/security-auditor.checkpoint.json\`.`,
     },
