@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-03T23:32:00Z",
+  "updated_at": "2026-05-03T23:38:00Z",
   "phase": "gate",
-  "step": "demo-artifact-expansion-chunk2-passed",
+  "step": "demo-artifact-expansion-chunk3-passed",
   "status": "complete",
-  "progress_summary": "Tenth bug-check run on this project. Diff is the demo-artifact expansion chunk 2: legacy-revive/audit-report (612-line file-by-file audit with EXPLAIN excerpts) and legacy-revive/settlement-clean-diff-stamp (machine-verifiable receipt with full grep pattern list, AST scan, schema diff). Ran: vitest (108/108 passed), astro check (0 errors / 0 warnings on the diff), anti-pattern grep on diff (clean), secret scan (clean). Verdict PASS.",
+  "progress_summary": "Eleventh bug-check run on this project. Diff is the demo-artifact expansion chunk 3: dashboard-rescue artifacts (principles audit → 7-section doc with 12-offender table + 9 driving principles; 3-layer IA → 10-section dash-forge spec with component catalog + perf budget + a11y; before/after grade → 7-section evaluator with 12-axis rubric + eye-tracking deltas + Lighthouse comparison; sprint brief → 10-section build-ready brief with files-touched table, rollout phases, risks). Ran: vitest (108/108 passed), astro check (0 errors / 0 warnings), anti-pattern grep clean, secret scan clean. Verdict PASS.",
   "progress_table": [
     { "id": "schema", "label": "Checkpoint schema validation", "status": "complete" },
     { "id": "secrets", "label": "Secret scan on changed files", "status": "complete" },
@@ -38,12 +38,12 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-03T23:32:00Z",
+      "at": "2026-05-03T23:38:00Z",
       "verdict": "PASS",
-      "duration_ms": 3800,
+      "duration_ms": 3500,
       "scope": "changed",
       "changed_files": [
-        "site/src/data/walkthroughs/legacy-revive.ts"
+        "site/src/data/walkthroughs/dashboard-rescue.ts"
       ],
       "checks": {
         "type_safety": "PASS",
@@ -55,17 +55,19 @@
         "dependencies": "SKIP"
       },
       "notes": [
-        "Chunk 2: full-length expansion of legacy-revive/audit-report (11 sections incl. file inventory, EXPLAIN excerpt, money-flow pass detail) and legacy-revive/settlement-clean-diff-stamp (7 sections incl. full grep pattern list, AST scan description, signature roadmap).",
+        "Chunk 3: full-length expansion of all four dashboard-rescue artifacts (principles audit, 3-layer IA, before/after evaluator grade, sprint brief).",
         "astro check: 0 errors, 0 warnings on the diff.",
         "vitest: 108/108 passing.",
         "secrets: clean.",
         "anti-patterns: clean.",
-        "Build skipped: astro check confirms type-safety; site build was run end-to-end on chunk 1 and the diff is data-only Markdown content (no template logic changes)."
+        "Build skipped: data-only Markdown content; chunk 1 confirmed end-to-end build.",
+        "Note: LHCI bot reports two pre-existing failures on /skills/app-architect (TOC target-size) and /architecture (band-label contrast). Neither route is touched by this PR; /demo (the route this PR targets) is at 0.99 perf / 1.00 a11y / 1.00 best / 1.00 SEO. No action."
       ],
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      { "at": "2026-05-03T23:38:00Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T23:32:00Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T23:27:30Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T21:11:04Z", "verdict": "PASS", "warnings": 0 },
@@ -74,13 +76,12 @@
       { "at": "2026-05-03T20:49:39Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T20:40:11Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T00:35:44Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-02T19:19:50Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-02T19:16:20Z", "verdict": "PASS", "warnings": 0 }
+      { "at": "2026-05-02T19:19:50Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
     "streak": {
-      "passes": 12,
+      "passes": 13,
       "since": "2026-05-02T18:47:50Z"
     }
   }
