@@ -203,6 +203,21 @@ const transcripts = walkthroughs.map((w) => ({
                   </ul>
                 </section>
               </div>
+
+              <div class="controls-legend controls-legend--scenario" aria-label="Playback controls">
+                <div class="controls-legend-row">
+                  <span class="key key--lg">↵</span>
+                  <span class="controls-legend-label">play</span>
+                </div>
+                <div class="controls-legend-row">
+                  <span class="key key--lg">␣</span>
+                  <span class="controls-legend-label">skip</span>
+                </div>
+                <div class="controls-legend-row">
+                  <span class="key key--lg">R</span>
+                  <span class="controls-legend-label">restart</span>
+                </div>
+              </div>
             </div>
 
             <!-- Transcript view -->
@@ -601,6 +616,11 @@ const transcripts = walkthroughs.map((w) => ({
     flex-wrap: wrap;
     justify-content: center;
     gap: clamp(1rem, 3vw, 2rem);
+  }
+  .controls-legend--scenario {
+    margin-top: clamp(2rem, 5vw, 3rem);
+    padding-top: clamp(1.5rem, 3vw, 2rem);
+    border-top: 0.5px solid var(--border);
   }
   .controls-legend-row {
     display: flex;
