@@ -4,9 +4,9 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-03T20:49:39Z",
+  "updated_at": "2026-05-03T20:52:46Z",
   "phase": "gate",
-  "step": "lhci-followup-fixes-passed",
+  "step": "scenario-controls-legend-passed",
   "status": "complete",
   "progress_summary": "Seventh bug-check run on this project. Diff is /skills/[id].astro (TOC link target-size: inline-block → block, padding 4px → 6px) and /architecture.astro (band-label-text → --muted for higher contrast under glow filters; p.footer → --subtle). Followup pass after the first LHCI run on PR #167 cleared 3 of 4 original findings. Ran: vitest (108/108 passed), site build (25 pages, 4.17s, clean), anti-pattern grep on diff (clean), secret scan (no matches), checkpoint validation (all 6 valid). Verdict PASS.",
   "progress_table": [
@@ -67,14 +67,12 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-03T20:49:39Z",
+      "at": "2026-05-03T20:52:46Z",
       "verdict": "PASS",
-      "duration_ms": 14000,
+      "duration_ms": 11000,
       "scope": "changed",
       "changed_files": [
-        "site/src/pages/skills/[id].astro",
-        "site/src/pages/architecture.astro",
-        ".checkpoints/bug-check.checkpoint.json"
+        "site/src/components/DesktopWorkbench.astro"
       ],
       "checks": {
         "type_safety": "PASS",
@@ -83,24 +81,60 @@
         "anti_patterns": "PASS",
         "secrets": "PASS",
         "build": "PASS",
-        "dependencies": "SKIP",
-        "checkpoint_schema": "PASS",
-        "config_parse": "SKIP"
+        "dependencies": "SKIP"
       },
       "warnings": 0,
-      "errors": 0
+      "errors": 0,
+      "notes": [
+        "astro check: 0 errors / 0 warnings.",
+        "vitest: 108/108 tests passing across 15 files.",
+        "site build: 25 pages built clean.",
+        "anti-patterns: clean on diff.",
+        "secrets: clean."
+      ]
     },
     "run_history": [
-      { "at": "2026-05-03T20:49:39Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T20:40:11Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T00:35:44Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-02T19:19:50Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-02T19:16:20Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-02T19:05:19Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-02T18:47:50Z", "verdict": "PASS", "warnings": 0 }
+      {
+        "at": "2026-05-03T20:49:39Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-03T20:40:11Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-03T00:35:44Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-02T19:19:50Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-02T19:16:20Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-02T19:05:19Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-02T18:47:50Z",
+        "verdict": "PASS",
+        "warnings": 0
+      }
     ],
     "bypasses": [],
     "carried_debt": 0,
-    "streak": { "passes": 7, "since": "2026-05-02T18:47:50Z" }
+    "streak": {
+      "passes": 7,
+      "since": "2026-05-02T18:47:50Z"
+    }
   }
 }
