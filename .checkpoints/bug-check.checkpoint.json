@@ -4,12 +4,12 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-02T19:16:20Z",
+  "updated_at": "2026-05-03T00:35:53Z",
 
   "phase": "gate",
-  "step": "welcomepopup-css-fix-passed",
+  "step": "lhci-contrast-fixes-passed",
   "status": "complete",
-  "progress_summary": "Third bug-check run on this project, first one with real source-code surface area. Diff is site/src/components/WelcomePopup.astro (CSS-only additions: prefers-reduced-motion guard for F-005, light-mode close-button color override for F-006). Ran the full check suite that's relevant: vitest (15 files, 108/108 passed), astro check (0 errors, 0 warnings — the one pre-existing 'ortho' warning in architecture.astro line 1010 is unrelated to this diff), site build (25 pages, 5.68s, completed clean), anti-pattern grep (no console.log/debugger/.only/@ts-ignore in changed file), and secret scan (no matches). npm audit not surfacing critical, no dependency change. Verdict PASS.",
+  "progress_summary": "Fourth bug-check run on this project. Diff is /skills/[id].astro (data-cmd color → --workflow, TOC link padding for target-size) and /architecture.astro (band-label-text + legend-section-label → --subtle, three card spans + spine swatch teal → calibrated #14B8A6). All CSS / inline-style changes, no JS/TS logic, no API surface. Ran: vitest (108/108 passed; one transient flake on first run cleared on re-run), astro check (0 errors, 0 warnings — pre-existing 'ortho' hint at architecture.astro:1010 unchanged), site build (25 pages, 6.55s, clean), anti-pattern grep on diff (clean), secret scan (no matches). Verdict PASS.",
 
   "progress_table": [
     { "id": "schema",       "label": "Checkpoint schema validation",  "status": "complete" },
@@ -41,12 +41,13 @@
 
   "skill_state": {
     "last_run": {
-      "at": "2026-05-02T19:16:20Z",
+      "at": "2026-05-03T00:35:53Z",
       "verdict": "PASS",
-      "duration_ms": 12000,
+      "duration_ms": 14000,
       "scope": "changed",
       "changed_files": [
-        "site/src/components/WelcomePopup.astro"
+        "site/src/pages/skills/[id].astro",
+        "site/src/pages/architecture.astro"
       ],
       "checks": {
         "type_safety": "PASS",
@@ -63,12 +64,13 @@
       "errors": 0
     },
     "run_history": [
+      { "at": "2026-05-03T00:35:53Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-02T19:16:20Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-02T19:05:19Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-02T18:47:50Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
-    "streak": { "passes": 3, "since": "2026-05-02T18:47:50Z" }
+    "streak": { "passes": 4, "since": "2026-05-02T18:47:50Z" }
   }
 }

@@ -1018,9 +1018,14 @@ const consumers = isFoundational
      Same outline + 15% colour-mix language used everywhere else on the
      site. Works in both themes via the design tokens. */
   .prose :global(code[data-cmd]) {
-    color: var(--ember);
-    border-color: color-mix(in srgb, var(--ember) 50%, transparent);
-    background: color-mix(in srgb, var(--ember) 12%, transparent);
+    /* LHCI calibration: var(--ember) (#e05c18) on the 12% ember-mix
+       pill background nets ~4.22:1 — just below AA Normal 4.5:1 for
+       the 12px text. Use --workflow (#FB923C / light: #8a3610) which
+       is the AA-calibrated bright-ember sibling already used for the
+       workflow role. Same visual family, clears AA on both themes. */
+    color: var(--workflow);
+    border-color: color-mix(in srgb, var(--workflow) 50%, transparent);
+    background: color-mix(in srgb, var(--workflow) 12%, transparent);
     font-weight: 500;
   }
   .prose :global(code[data-role]) {
@@ -1414,7 +1419,11 @@ const consumers = isFoundational
     color: var(--subtle);
     text-decoration: none;
     border-left: 2px solid transparent;
-    padding-left: 0.55rem;
+    /* LHCI: 14px text × 1.4 line-height ≈ 19.6px is below the 24×24
+       target-size threshold. Pad 4px top/bottom to reach ~28px. The
+       rail is fixed-position with room to spare, so the slightly
+       taller TOC doesn't displace any layout. */
+    padding: 4px 0 4px 0.55rem;
     margin-left: -0.55rem;
     display: inline-block;
     transition:
