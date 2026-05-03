@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-03T20:52:46Z",
+  "updated_at": "2026-05-03T21:11:04Z",
   "phase": "gate",
-  "step": "scenario-controls-legend-passed",
+  "step": "pipeline-text-scaling-passed",
   "status": "complete",
-  "progress_summary": "Seventh bug-check run on this project. Diff is /skills/[id].astro (TOC link target-size: inline-block → block, padding 4px → 6px) and /architecture.astro (band-label-text → --muted for higher contrast under glow filters; p.footer → --subtle). Followup pass after the first LHCI run on PR #167 cleared 3 of 4 original findings. Ran: vitest (108/108 passed), site build (25 pages, 4.17s, clean), anti-pattern grep on diff (clean), secret scan (no matches), checkpoint validation (all 6 valid). Verdict PASS.",
+  "progress_summary": "Eighth bug-check run on this project. Diff is /architecture.astro (band-detail font-sizes switched to clamp(min, Ncqi, max) so phase-card text scales with container width to match the SVG skill-box labels; .band-content gains container-type: inline-size). Ran: vitest (108/108 passed), astro check (0 errors / 0 warnings on the diff), site build (25 pages, clean), anti-pattern grep on diff (clean), secret scan (no matches), checkpoint validation (all 6 valid). Verdict PASS.",
   "progress_table": [
     {
       "id": "schema",
@@ -67,12 +67,12 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-03T20:52:46Z",
+      "at": "2026-05-03T21:11:04Z",
       "verdict": "PASS",
-      "duration_ms": 11000,
+      "duration_ms": 4000,
       "scope": "changed",
       "changed_files": [
-        "site/src/components/DesktopWorkbench.astro"
+        "site/src/pages/architecture.astro"
       ],
       "checks": {
         "type_safety": "PASS",
@@ -83,17 +83,33 @@
         "build": "PASS",
         "dependencies": "SKIP"
       },
-      "warnings": 0,
-      "errors": 0,
       "notes": [
-        "astro check: 0 errors / 0 warnings.",
-        "vitest: 108/108 tests passing across 15 files.",
-        "site build: 25 pages built clean.",
-        "anti-patterns: clean on diff.",
-        "secrets: clean."
-      ]
+        "CSS-only edit on architecture.astro (band-detail font-sizes scale via container queries).",
+        "astro check: 0 errors, 0 warnings on the diff.",
+        "vitest: 108/108 passing.",
+        "site build: clean (25 pages).",
+        "secrets: clean.",
+        "anti-patterns: clean."
+      ],
+      "warnings": 0,
+      "errors": 0
     },
     "run_history": [
+      {
+        "at": "2026-05-03T21:11:04Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-03T20:55:10Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-03T20:52:46Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
       {
         "at": "2026-05-03T20:49:39Z",
         "verdict": "PASS",
@@ -133,7 +149,7 @@
     "bypasses": [],
     "carried_debt": 0,
     "streak": {
-      "passes": 7,
+      "passes": 10,
       "since": "2026-05-02T18:47:50Z"
     }
   }
