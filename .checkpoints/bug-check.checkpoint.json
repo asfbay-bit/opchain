@@ -4,52 +4,20 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-03T21:11:04Z",
+  "updated_at": "2026-05-03T23:27:30Z",
   "phase": "gate",
-  "step": "pipeline-text-scaling-passed",
+  "step": "demo-artifact-expansion-chunk1-passed",
   "status": "complete",
-  "progress_summary": "Eighth bug-check run on this project. Diff is /architecture.astro (band-detail font-sizes switched to clamp(min, Ncqi, max) so phase-card text scales with container width to match the SVG skill-box labels; .band-content gains container-type: inline-size). Ran: vitest (108/108 passed), astro check (0 errors / 0 warnings on the diff), site build (25 pages, clean), anti-pattern grep on diff (clean), secret scan (no matches), checkpoint validation (all 6 valid). Verdict PASS.",
+  "progress_summary": "Ninth bug-check run on this project. Diff is the demo-artifact expansion chunk 1: site/src/pages/demo.astro (TOC + scrollspy + wider modal layout) plus full-length expansion of concept-to-shipped artifacts (master-spec, stack-decision, sprint-ledger, pr-bundle, rollback-runbook) and legacy-revive artifacts (reconstructed-spec, feature-spec). Ran: vitest (108/108 passed), astro check (0 errors / 0 warnings on the diff), site build (25 pages, clean — demo page grew from ~340KB to ~493KB), anti-pattern grep on diff (clean), secret scan (clean). Verdict PASS.",
   "progress_table": [
-    {
-      "id": "schema",
-      "label": "Checkpoint schema validation",
-      "status": "complete"
-    },
-    {
-      "id": "secrets",
-      "label": "Secret scan on changed files",
-      "status": "complete"
-    },
-    {
-      "id": "type_safety",
-      "label": "astro check (type + a11y)",
-      "status": "complete"
-    },
-    {
-      "id": "lint",
-      "label": "ESLint (no config in repo, skipped)",
-      "status": "not_started"
-    },
-    {
-      "id": "tests",
-      "label": "Vitest run — 108/108 passed",
-      "status": "complete"
-    },
-    {
-      "id": "anti_patterns",
-      "label": "Anti-pattern grep on diff",
-      "status": "complete"
-    },
-    {
-      "id": "build",
-      "label": "npm run site:build — 25 pages",
-      "status": "complete"
-    },
-    {
-      "id": "dependencies",
-      "label": "npm audit (no dep change)",
-      "status": "not_started"
-    }
+    { "id": "schema", "label": "Checkpoint schema validation", "status": "complete" },
+    { "id": "secrets", "label": "Secret scan on changed files", "status": "complete" },
+    { "id": "type_safety", "label": "astro check (type + a11y)", "status": "complete" },
+    { "id": "lint", "label": "ESLint (no config in repo, skipped)", "status": "not_started" },
+    { "id": "tests", "label": "Vitest run — 108/108 passed", "status": "complete" },
+    { "id": "anti_patterns", "label": "Anti-pattern grep on diff", "status": "complete" },
+    { "id": "build", "label": "npm run site:build — 25 pages", "status": "complete" },
+    { "id": "dependencies", "label": "npm audit (no dep change)", "status": "not_started" }
   ],
   "context_primer": {
     "key_decisions": [
@@ -58,21 +26,26 @@
       "npm audit skipped because the diff doesn't change package.json or lockfiles."
     ],
     "generated_files": [],
-    "user_preferences": []
+    "user_preferences": [
+      "User asked for the work to be done in small chunks; this is chunk 1 of N. Followups land in subsequent commits on the same branch."
+    ]
   },
   "blockers": [],
   "next_actions": [
+    "Continue the demo-artifact expansion in subsequent chunks (legacy-revive audit-report + stamp; dashboard-rescue; stripe-ship; postgres-migration; security-hardening). Re-run bug-check before each commit.",
     "If a future commit changes package.json or package-lock.json, run npm audit --audit-level=critical as part of bug-check.",
     "If eslint config is added to the repo, wire it into bug-check's lint step."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-03T21:11:04Z",
+      "at": "2026-05-03T23:27:30Z",
       "verdict": "PASS",
-      "duration_ms": 4000,
+      "duration_ms": 5200,
       "scope": "changed",
       "changed_files": [
-        "site/src/pages/architecture.astro"
+        "site/src/pages/demo.astro",
+        "site/src/data/walkthroughs/concept-to-shipped.ts",
+        "site/src/data/walkthroughs/legacy-revive.ts"
       ],
       "checks": {
         "type_safety": "PASS",
@@ -84,10 +57,12 @@
         "dependencies": "SKIP"
       },
       "notes": [
-        "CSS-only edit on architecture.astro (band-detail font-sizes scale via container queries).",
-        "astro check: 0 errors, 0 warnings on the diff.",
+        "Adds dynamic TOC sidebar to artifact lightbox modal (triggered when artifact has >=6 headings); modal widens to min(95vw, 1180px) and TOC collapses to <details> on narrow viewports.",
+        "Greatly expands concept-to-shipped artifacts to genuinely match their stated scope (master-spec is now 23 sections matching the '18 pages' claim).",
+        "Greatly expands legacy-revive artifacts (reconstructed-spec is now 16 sections including all 28 models and a top-30 risk map; feature-spec is 13 sections).",
+        "astro check: 0 errors, 0 warnings on the diff (9 hints unrelated to this diff).",
         "vitest: 108/108 passing.",
-        "site build: clean (25 pages).",
+        "site build: clean (25 pages); demo page grew from ~340KB to ~493KB as expected.",
         "secrets: clean.",
         "anti-patterns: clean."
       ],
@@ -95,61 +70,21 @@
       "errors": 0
     },
     "run_history": [
-      {
-        "at": "2026-05-03T21:11:04Z",
-        "verdict": "PASS",
-        "warnings": 0
-      },
-      {
-        "at": "2026-05-03T20:55:10Z",
-        "verdict": "PASS",
-        "warnings": 0
-      },
-      {
-        "at": "2026-05-03T20:52:46Z",
-        "verdict": "PASS",
-        "warnings": 0
-      },
-      {
-        "at": "2026-05-03T20:49:39Z",
-        "verdict": "PASS",
-        "warnings": 0
-      },
-      {
-        "at": "2026-05-03T20:40:11Z",
-        "verdict": "PASS",
-        "warnings": 0
-      },
-      {
-        "at": "2026-05-03T00:35:44Z",
-        "verdict": "PASS",
-        "warnings": 0
-      },
-      {
-        "at": "2026-05-02T19:19:50Z",
-        "verdict": "PASS",
-        "warnings": 0
-      },
-      {
-        "at": "2026-05-02T19:16:20Z",
-        "verdict": "PASS",
-        "warnings": 0
-      },
-      {
-        "at": "2026-05-02T19:05:19Z",
-        "verdict": "PASS",
-        "warnings": 0
-      },
-      {
-        "at": "2026-05-02T18:47:50Z",
-        "verdict": "PASS",
-        "warnings": 0
-      }
+      { "at": "2026-05-03T23:27:30Z", "verdict": "PASS", "warnings": 0 },
+      { "at": "2026-05-03T21:11:04Z", "verdict": "PASS", "warnings": 0 },
+      { "at": "2026-05-03T20:55:10Z", "verdict": "PASS", "warnings": 0 },
+      { "at": "2026-05-03T20:52:46Z", "verdict": "PASS", "warnings": 0 },
+      { "at": "2026-05-03T20:49:39Z", "verdict": "PASS", "warnings": 0 },
+      { "at": "2026-05-03T20:40:11Z", "verdict": "PASS", "warnings": 0 },
+      { "at": "2026-05-03T00:35:44Z", "verdict": "PASS", "warnings": 0 },
+      { "at": "2026-05-02T19:19:50Z", "verdict": "PASS", "warnings": 0 },
+      { "at": "2026-05-02T19:16:20Z", "verdict": "PASS", "warnings": 0 },
+      { "at": "2026-05-02T19:05:19Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
     "streak": {
-      "passes": 10,
+      "passes": 11,
       "since": "2026-05-02T18:47:50Z"
     }
   }

@@ -85,7 +85,15 @@ const artifacts = walkthroughs.flatMap((w) =>
             </div>
             <button class="modal-close" aria-label="Close output" type="button">✕</button>
           </div>
-          <div class="modal-body prose"></div>
+          <div class="modal-content">
+            <aside class="modal-toc" aria-label="Document outline" hidden>
+              <details class="modal-toc-mobile" open>
+                <summary>On this page</summary>
+                <nav class="modal-toc-nav" aria-label="Sections"></nav>
+              </details>
+            </aside>
+            <div class="modal-body prose"></div>
+          </div>
         </div>
       </dialog>
     </>
@@ -126,9 +134,14 @@ const artifacts = walkthroughs.flatMap((w) =>
     overflow: hidden;
     flex-direction: column;
   }
+  /* When the long-form TOC is in play, widen the modal so the sidebar +
+     reading column have room. The has-toc class is set by JS once the
+     rendered artifact body crosses the heading-count threshold. */
+  .output-modal.has-toc { width: min(95vw, 1180px); max-height: min(92vh, 960px); }
   /* height must be explicit (not just max-height) so that modal-inner's
      height:100% and modal-body's flex:1 have a definite reference. */
   .output-modal[open] { display: flex; height: min(88vh, 900px); }
+  .output-modal[open].has-toc { height: min(92vh, 960px); }
   .output-modal::backdrop {
     background: rgba(0, 0, 0, 0.72);
     backdrop-filter: blur(3px);
@@ -197,13 +210,73 @@ const artifacts = walkthroughs.flatMap((w) =>
   }
   .modal-close:hover { color: var(--text); border-color: var(--text); }
   .modal-close:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+  /* ── Modal content layout: body alone, or TOC + body when long-form ── */
+  .modal-content {
+    display: flex;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .modal-toc {
+    flex: 0 0 240px;
+    border-right: 0.5px solid var(--border);
+    background: var(--surface);
+    overflow-y: auto;
+    padding: 1rem 0.75rem 1.5rem;
+  }
+  .modal-toc[hidden] { display: none; }
+  .modal-toc-mobile > summary {
+    display: none;
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--muted);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.25rem 0.5rem 0.5rem;
+    list-style: none;
+  }
+  .modal-toc-mobile > summary::-webkit-details-marker { display: none; }
+  .modal-toc-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .modal-toc-nav a {
+    display: block;
+    padding: 0.32rem 0.55rem;
+    border-left: 2px solid transparent;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: 1.35;
+    text-decoration: none;
+    transition: color 80ms, background 80ms, border-color 80ms;
+    border-radius: 0 4px 4px 0;
+  }
+  .modal-toc-nav a[data-toc-level="2"] { padding-left: 1.1rem; font-size: 0.86em; }
+  .modal-toc-nav a[data-toc-level="3"] { padding-left: 1.7rem; font-size: 0.82em; color: var(--subtle); }
+  .modal-toc-nav a:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .modal-toc-nav a.is-active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(0, 0, 0, 0.18);
+  }
+  .modal-toc-nav a:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: 4px; }
+
   .modal-body {
     padding: 1.5rem 1.6rem;
     overflow-y: auto;
     flex: 1 1 0;
+    min-width: 0;
     font-size: var(--fs-base);
     line-height: var(--lh-base);
     color: var(--text);
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .modal-body { scroll-behavior: auto; }
   }
   /* Prose resets inside the modal body */
   .modal-body :global(h1),
@@ -282,6 +355,24 @@ const artifacts = walkthroughs.flatMap((w) =>
   }
   @media (max-width: 600px) {
     .output-modal { width: 100vw; max-height: 100dvh; border-radius: 0; border-left: none; border-right: none; }
+    .output-modal[open],
+    .output-modal[open].has-toc { height: 100dvh; max-height: 100dvh; }
+  }
+  /* Below 900px, the TOC stops being a sidebar and becomes a collapsible
+     details element pinned above the body. Its summary clickable header
+     becomes visible via the rule below. */
+  @media (max-width: 900px) {
+    .output-modal.has-toc .modal-content { flex-direction: column; }
+    .output-modal.has-toc .modal-toc {
+      flex: 0 0 auto;
+      width: 100%;
+      max-height: 40vh;
+      border-right: 0;
+      border-bottom: 0.5px solid var(--border);
+      padding: 0.5rem 0.75rem;
+    }
+    .modal-toc-mobile > summary { display: block; }
+    .modal-toc-mobile:not([open]) .modal-toc-nav { display: none; }
   }
 </style>
 
@@ -296,7 +387,111 @@ const artifacts = walkthroughs.flatMap((w) =>
     const bodyEl   = modal && modal.querySelector('.modal-body');
     const closeBtn = modal && modal.querySelector('.modal-close');
     const store    = document.querySelector('.artifact-store');
+    const tocEl    = modal && modal.querySelector('.modal-toc');
+    const tocNav   = modal && modal.querySelector('.modal-toc-nav');
     if (!modal || !titleEl || !kindEl || !bodyEl || !store) return;
+
+    /* Threshold below which the TOC just adds noise — short artifacts
+       stay tight, long ones get the sidebar. */
+    const TOC_MIN_HEADINGS = 6;
+
+    /** @type {IntersectionObserver|null} */
+    let scrollSpy = null;
+
+    function slugify(str) {
+      return String(str || '')
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .slice(0, 64) || 'section';
+    }
+
+    function teardownToc() {
+      if (scrollSpy) { scrollSpy.disconnect(); scrollSpy = null; }
+      if (tocNav) tocNav.innerHTML = '';
+      if (tocEl) tocEl.setAttribute('hidden', '');
+      modal.classList.remove('has-toc');
+    }
+
+    function buildToc() {
+      if (!tocEl || !tocNav || !bodyEl) return;
+      const headings = /** @type {HTMLElement[]} */ (
+        Array.from(bodyEl.querySelectorAll('h1, h2, h3'))
+      );
+      if (headings.length < TOC_MIN_HEADINGS) {
+        teardownToc();
+        return;
+      }
+
+      /* Assign stable, collision-resistant ids and build nav links. */
+      const seen = new Map();
+      const frag = document.createDocumentFragment();
+      headings.forEach((h) => {
+        const base = slugify(h.textContent || '');
+        const n = (seen.get(base) || 0) + 1;
+        seen.set(base, n);
+        const id = n === 1 ? base : `${base}-${n}`;
+        h.id = id;
+
+        const a = document.createElement('a');
+        a.href = `#${id}`;
+        a.textContent = h.textContent || '';
+        a.setAttribute('data-toc-level', h.tagName.substring(1));
+        a.addEventListener('click', (ev) => {
+          ev.preventDefault();
+          const target = document.getElementById(id);
+          if (!target) return;
+          /* Scroll within the modal body, not the page. */
+          const top = target.offsetTop - 12;
+          bodyEl.scrollTo({ top, behavior: 'smooth' });
+          /* Update hash visually without jumping the page. */
+          history.replaceState(null, '', `#${id}`);
+          /* On mobile, collapse the TOC after navigation. */
+          const det = tocEl.querySelector('details.modal-toc-mobile');
+          if (det && window.matchMedia('(max-width: 900px)').matches) {
+            det.removeAttribute('open');
+          }
+        });
+        frag.appendChild(a);
+      });
+      tocNav.innerHTML = '';
+      tocNav.appendChild(frag);
+      tocEl.removeAttribute('hidden');
+      modal.classList.add('has-toc');
+
+      /* Scrollspy — highlight whichever heading is nearest the top of
+         the visible reading area. */
+      const links = /** @type {HTMLAnchorElement[]} */ (
+        Array.from(tocNav.querySelectorAll('a'))
+      );
+      const linkById = new Map(links.map((a) => [a.getAttribute('href').slice(1), a]));
+
+      scrollSpy = new IntersectionObserver(
+        (entries) => {
+          /* Track which targets are above the threshold; the latest one
+             above becomes active. */
+          entries.forEach((entry) => {
+            const link = linkById.get(entry.target.id);
+            if (!link) return;
+            if (entry.isIntersecting) {
+              links.forEach((l) => l.classList.remove('is-active'));
+              link.classList.add('is-active');
+            }
+          });
+        },
+        {
+          root: bodyEl,
+          /* Trigger when heading approaches the top quarter of the viewport. */
+          rootMargin: '0px 0px -75% 0px',
+          threshold: [0, 1],
+        }
+      );
+      headings.forEach((h) => scrollSpy && scrollSpy.observe(h));
+
+      /* Ensure first item starts active. */
+      if (links[0]) links[0].classList.add('is-active');
+    }
 
     function openArtifact(btn) {
       const scenarioId = btn.dataset.outputScenario;
@@ -316,8 +511,12 @@ const artifacts = walkthroughs.flatMap((w) =>
 
       titleEl.textContent = label;
       kindEl.textContent  = kind;
+      teardownToc();
       bodyEl.innerHTML    = src.innerHTML;
+      bodyEl.scrollTop    = 0;
       modal.showModal();
+      /* Defer TOC build until after the dialog is visible so layout is settled. */
+      requestAnimationFrame(buildToc);
     }
 
     document.addEventListener('click', (e) => {
@@ -334,5 +533,7 @@ const artifacts = walkthroughs.flatMap((w) =>
     modal.addEventListener('click', (e) => {
       if (e.target === modal) modal.close();
     });
+
+    modal.addEventListener('close', teardownToc);
   })();
 </script>
