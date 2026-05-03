@@ -17,8 +17,13 @@
  * `npm run deploy:staging`. Routing PostHog traffic through our own
  * domain dodges most ad blockers without changing what's collected.
  */
+import { defaultFor } from "../lib/flags/build-defaults";
+
 const publicKey = import.meta.env.PUBLIC_POSTHOG_KEY || "";
 const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || "https://t.opchain.dev";
+// Build-time gate. The client-side `flags/client.ts` layer overrides this
+// post-consent if PostHog flips the flag at runtime.
+const posthogClientEnabled = defaultFor("platform.observability.posthog-client") as boolean;
 ---
 
 <div id="consent-banner" class="consent-banner" role="dialog" aria-labelledby="consent-title" hidden>
@@ -37,7 +42,7 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || "https://t.opchain.de
   </div>
 </div>
 
-<script is:inline define:vars={{ publicKey, posthogHost }}>
+<script is:inline define:vars={{ publicKey, posthogHost, posthogClientEnabled }}>
   (function () {
     const KEY = "opchain-consent";
     const banner = document.getElementById("consent-banner");
@@ -45,6 +50,7 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || "https://t.opchain.de
     const decline = document.getElementById("consent-decline");
 
     function loadPosthog() {
+      if (!posthogClientEnabled) return;
       if (!publicKey) return;
       if (window.posthog) return;
       // Minimal inlined bootstrap — mirrors the official snippet. Once loaded,

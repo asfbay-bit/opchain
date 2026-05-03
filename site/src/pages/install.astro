@@ -5,6 +5,9 @@ import Button from "../components/ui/Button.astro";
 import Card from "../components/ui/Card.astro";
 import Icon from "../components/Icon.astro";
 import CaptureModal from "../components/CaptureModal.astro";
+import { defaultFor } from "../lib/flags/build-defaults";
+
+const installZipEnabled = defaultFor("site.feature.install-zip-download") as boolean;
 
 const cliCmd = `curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
 unzip opchain-skills.zip -d .claude/skills/
@@ -27,14 +30,16 @@ git push`;
         <Eyebrow>install</Eyebrow>
         <h1>Three flows.</h1>
       </div>
-      <Button
-        variant="primary"
-        href="/opchain-skills.zip"
-        {...{ "data-capture-trigger": true, "data-capture-source": "bundle-download" } as any}
-      >
-        <Icon name="download" />
-        download bundle
-      </Button>
+      {installZipEnabled && (
+        <Button
+          variant="primary"
+          href="/opchain-skills.zip"
+          {...{ "data-capture-trigger": true, "data-capture-source": "bundle-download" } as any}
+        >
+          <Icon name="download" />
+          download bundle
+        </Button>
+      )}
     </div>
 
     <p class="lede">
@@ -80,9 +85,11 @@ git push`;
         <h2><Icon name="layers" /> Claude.ai / Claude Desktop</h2>
         <ol class="steps">
           <li>
-            Download the full <a href="/opchain-skills.zip">bundle ZIP</a> or
-            individual <code class="ic">SKILL.md</code> files from the
-            <a href="/skills">Skill Library</a>.
+            {installZipEnabled ? (
+              <>Download the full <a href="/opchain-skills.zip">bundle ZIP</a> or individual <code class="ic">SKILL.md</code> files from the <a href="/skills">Skill Library</a>.</>
+            ) : (
+              <>Download individual <code class="ic">SKILL.md</code> files from the <a href="/skills">Skill Library</a>.</>
+            )}
           </li>
           <li>Open Claude → <strong>Settings → Customize → Skills</strong>.</li>
           <li>Click <strong>Upload skill</strong> and pick the <code class="ic">.md</code> file.</li>

@@ -174,6 +174,11 @@
     font-size: 18px;
     line-height: 1;
   }
+  /* F-006: --muted in light mode is too pale against --surface for the
+     small "×" glyph (fails AA Non-text 3:1). --text gives a solid
+     ~14:1 against the light card and matches what the eyebrow / title
+     do in the same theme. */
+  :global([data-theme="light"]) .welcome-close { color: var(--text); }
   .welcome-close:hover { color: var(--accent); border-color: var(--accent); }
 
   .welcome-body {
@@ -250,5 +255,17 @@
   .welcome-btn:focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+  }
+
+  /* F-005: kill all enter/exit animation for users who opt out of
+     motion. The popup still appears and dismisses — instantly, with
+     no scrim fade, no card slide-up, no button-state crossfade. */
+  @media (prefers-reduced-motion: reduce) {
+    .welcome-scrim,
+    .welcome-card,
+    .welcome-btn {
+      transition: none;
+    }
+    .welcome-card { transform: none; }
   }
 </style>

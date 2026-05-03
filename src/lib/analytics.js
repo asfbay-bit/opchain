@@ -13,6 +13,8 @@
  * `claude/remove-try-it`.)
  */
 
+import { evalFlag } from "./flags/eval.js";
+
 /**
  * Hash an email into a stable PostHog distinct_id. Using SHA-256 keeps the
  * user pseudonymous in PostHog while still letting us join events for the
@@ -37,6 +39,9 @@ export async function hashDistinctId(email) {
 export async function capture(env, { distinctId, event, properties = {} }) {
   const apiKey = env?.POSTHOG_PROJECT_API_KEY;
   if (!apiKey) return; // analytics disabled — noop
+  // Flag kill-switch — lets ops mute server-side capture without rotating
+  // the API key. Defaults true so existing deploys keep emitting events.
+  if (!(await evalFlag("platform.observability.posthog-server", { env }))) return;
   const host = (env.POSTHOG_HOST || "https://eu.i.posthog.com").replace(/\/$/, "");
   try {
     const res = await fetch(`${host}/capture/`, {

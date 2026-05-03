@@ -6,6 +6,13 @@
 // Backlog: roadmap/05-post-sprint-7-backlog.md B-01 (initial calibration),
 // B-08 (raised /demo a11y back from 0.91 once aria-allowed-role and
 // aria-allowed-attr were fixed in the scenario picker).
+//
+// /architecture and /skills/app-architect are awaiting calibration —
+// measured at `warn` for the first few runs, then promoted to `error`
+// once a stable median is known (same calibration cycle as B-01).
+// app-architect is the representative skill detail page; the [id]
+// route uses the same Astro template for every skill, so one page is
+// sufficient to catch template-level regressions.
 
 module.exports = {
   ci: {
@@ -15,6 +22,8 @@ module.exports = {
       url: [
         "http://127.0.0.1:4321/",
         "http://127.0.0.1:4321/skills",
+        "http://127.0.0.1:4321/skills/app-architect",
+        "http://127.0.0.1:4321/architecture",
         "http://127.0.0.1:4321/demo",
       ],
       numberOfRuns: 3,
@@ -38,6 +47,24 @@ module.exports = {
             "categories:accessibility":  ["error", { minScore: 0.95 }],
             "categories:best-practices": ["error", { minScore: 0.95 }],
             "categories:seo":            ["error", { minScore: 0.95 }],
+          },
+        },
+        {
+          matchingUrlPattern: "/skills/app-architect$",
+          assertions: {
+            "categories:performance":    ["warn", { minScore: 0.95 }],
+            "categories:accessibility":  ["warn", { minScore: 0.95 }],
+            "categories:best-practices": ["warn", { minScore: 0.95 }],
+            "categories:seo":            ["warn", { minScore: 0.95 }],
+          },
+        },
+        {
+          matchingUrlPattern: "/architecture$",
+          assertions: {
+            "categories:performance":    ["warn", { minScore: 0.95 }],
+            "categories:accessibility":  ["warn", { minScore: 0.95 }],
+            "categories:best-practices": ["warn", { minScore: 0.95 }],
+            "categories:seo":            ["warn", { minScore: 0.95 }],
           },
         },
         {

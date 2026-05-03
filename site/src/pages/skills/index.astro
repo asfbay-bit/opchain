@@ -12,8 +12,11 @@ import {
   getRoleLabel,
   phaseLabel,
 } from "../../lib/skills";
+import { defaultFor, isCommandEnabled } from "../../lib/flags/build-defaults";
 
 const skills = await getAllSkills();
+const installZipEnabled = defaultFor("site.feature.install-zip-download") as boolean;
+const visibleCommandsFor = (cmds: string[]) => cmds.filter(isCommandEnabled);
 
 const phaseFilters = [
   { id: "all",        label: "All" },
@@ -35,10 +38,12 @@ const phaseFilters = [
         <Eyebrow>skill library</Eyebrow>
         <h1>Every skill, filterable.</h1>
       </div>
-      <Button variant="outline" href="/opchain-skills.zip">
-        <Icon name="download" />
-        download all skills
-      </Button>
+      {installZipEnabled && (
+        <Button variant="outline" href="/opchain-skills.zip">
+          <Icon name="download" />
+          download all skills
+        </Button>
+      )}
     </div>
 
     <p class="lede">
@@ -102,13 +107,16 @@ const phaseFilters = [
               <br />
               <span class="short-body">{s.data.description}</span>
             </p>
-            {s.data.commands.length > 0 && (
-              <div class="commands">
-                {s.data.commands.map((c: string) => (
-                  <code class="cmd">{c}</code>
-                ))}
-              </div>
-            )}
+            {(() => {
+              const visible = visibleCommandsFor(s.data.commands as string[]);
+              return visible.length > 0 ? (
+                <div class="commands">
+                  {visible.map((c: string) => (
+                    <code class="cmd">{c}</code>
+                  ))}
+                </div>
+              ) : null;
+            })()}
             <div class="card-foot">
               <span class="link">View docs <Icon name="arrow-right" size={12} /></span>
             </div>

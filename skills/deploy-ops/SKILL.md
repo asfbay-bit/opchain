@@ -163,23 +163,44 @@ Create or update `.deploy-ops.json`:
 
 ## Pre-Deploy Audit Gate (/deploy audit)
 
-Before any deploy, run the code-auditor in pre-deploy mode:
+Before any deploy, run **two** audits in order: code-auditor (code-level
+findings) then security-auditor (architecture / hardening / threat
+model). Both must pass for `/deploy staging` and `/deploy prod` to
+proceed.
+
+### 1. code-auditor — code-level gate
 
 ```bash
-# Check if code-auditor checkpoint exists and is recent
-bash checkpoint.sh exists <project-dir> code-auditor
-# If exists and < 1 hour old, reuse. Otherwise run fresh.
+# Reuse the existing checkpoint if it's recent
+node scripts/checkpoint.mjs status code-auditor
+# If updated_at < 1h old, reuse. Otherwise:
+#   Skill(skill="code-auditor", args="/audit pre-deploy")
+```
+
+### 2. security-auditor — posture gate
+
+Code-auditor finds SQLi and hardcoded secrets; security-auditor asks
+"what's the threat model?" and "is the infra hardened?". Run it
+before the first production deploy and any time the surface area
+changes (new auth flow, new public endpoint, new third-party
+integration).
+
+```bash
+node scripts/checkpoint.mjs status security-auditor
+# Reuse if updated_at < 24h old AND no high-impact changes since.
+# Otherwise:
+#   Skill(skill="security-auditor", args="/security pre-deploy")
 ```
 
 ### Gate Rules
 
 | Audit Result | Deploy Decision |
 |---|---|
-| No CRITICAL findings | ✅ Proceed |
-| CRITICAL findings exist | 🚫 Block — must fix before deploy |
-| HIGH findings (≤ 3) | ⚠️ Warn — proceed with user confirmation |
-| HIGH findings (> 3) | 🚫 Block — too many unresolved issues |
-| No audit run | ⚠️ Warn — suggest running audit first |
+| No CRITICAL findings (both audits) | ✅ Proceed |
+| CRITICAL findings exist (either audit) | 🚫 Block — must fix before deploy |
+| HIGH findings (≤ 3 total) | ⚠️ Warn — proceed with user confirmation |
+| HIGH findings (> 3 total) | 🚫 Block — too many unresolved issues |
+| No audit run | ⚠️ Warn — suggest running both audits first |
 
 When blocked, show the specific findings and fix commands. When warned, list
 the findings and ask for explicit confirmation before proceeding.
@@ -298,6 +319,27 @@ echo "Production: $STATUS (${LATENCY}s)"
 [[ "$STATUS" != "200" ]] && echo "❌ UNHEALTHY — consider rollback"
 (( $(echo "$LATENCY > 2.0" | bc -l 2>/dev/null) )) && echo "⚠️ High latency"
 ```
+
+### Hand off to monitoring-ops
+
+After a successful production promotion, **invoke monitoring-ops** to
+verify post-deploy observability (uptime checks, error tracking,
+SLO/SLI alarms). Deploy-ops ships it; monitoring-ops watches it.
+
+```
+Skill(skill="monitoring-ops", args="/monitor verify")
+```
+
+monitoring-ops reads this skill's checkpoint to learn what shipped
+(version, commit SHA, prod URL) and confirms:
+
+- Uptime monitor is configured and pinging the new deployment.
+- Error tracking sees fresh events from the new version.
+- Any new alerts/SLOs needed for surfaces introduced in this release.
+
+If monitoring-ops reports gaps (no uptime monitor, no error tracking,
+new endpoints without SLOs), surface them and let the user decide
+whether to address now or schedule for a follow-up.
 
 ---
 

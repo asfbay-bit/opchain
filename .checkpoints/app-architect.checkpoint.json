@@ -4,10 +4,10 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-01T18:30:00Z",
-  "updated_at": "2026-05-02T00:40:26Z",
+  "updated_at": "2026-05-02T18:50:00Z",
 
   "phase": "build",
-  "step": "round-3-merged-awaiting-deploy",
+  "step": "round-3-deployed",
   "status": "complete",
   "progress_summary": "Three rounds of build work merged. R1: extracted DesktopWorkbench, built MobileWorkbench (Direction A), CSS-breakpoint swap on /demo at 767px (#143). R2: built MobileArchitecture component, same swap pattern on /architecture (#146). R3: built WelcomePopup, deleted OnboardingTour, dropped page-summary card (full-bleed workbench), moved desktop feedback pill to top-right, restyled skill detail TOC, added click-to-flash, restored visually-hidden h1 on /demo (#148).",
 
@@ -23,7 +23,7 @@
     { "id": "toc-restyle",      "label": "Skill TOC fade/region-hover/link-hover",        "status": "complete" },
     { "id": "toc-flash",        "label": "Click-to-flash heading bump + 10s color fade",  "status": "complete" },
     { "id": "h1-fix",           "label": "Visually-hidden h1 on /demo for routes.spec",   "status": "complete" },
-    { "id": "deploy",           "label": "Hand off to deploy-ops",                        "status": "not_started" }
+    { "id": "deploy",           "label": "Hand off to deploy-ops",                        "status": "complete" }
   ],
 
   "context_primer": {
@@ -59,8 +59,7 @@
   "blockers": [],
 
   "next_actions": [
-    "Hand off to deploy-ops: `npm run deploy:staging` → manual QA → `npm run deploy`.",
-    "Worth a follow-up: add /architecture and /skills/<id> routes to lighthouserc.cjs so future PRs catch a11y/perf regressions on those surfaces."
+    "Once /architecture and /skills/app-architect have a stable LHCI median across a few CI runs, promote their lighthouserc.cjs assertions from `warn` to `error` (matches B-01/B-08 calibration cycle for the original 3 routes)."
   ],
 
   "skill_state": {
