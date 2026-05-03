@@ -1516,7 +1516,14 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
     opacity: 0; transition: opacity .2s;
   }
   .arch-v2 .band.active .band-label-bar { opacity: 1; }
-  .arch-v2 .band-content { flex: 1; min-width: 0; position: relative; }
+  .arch-v2 .band-content {
+    flex: 1; min-width: 0; position: relative;
+    /* Establish an inline-size container so .band-detail text can scale
+       with the same width that drives the SVG skill-box text (which is
+       sized in viewBox units of a 760-wide canvas). 1cqi ≈ the on-screen
+       size of an SVG font-size="7.6" glyph. */
+    container-type: inline-size;
+  }
   .arch-v2 .band-content svg { width: 100%; display: block; }
 
   .arch-v2 .band-detail {
@@ -1534,15 +1541,24 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
   }
   .arch-v2 .bd-left { flex: 1; min-width: 0; display: flex; flex-direction: row; gap: 14px; align-items: flex-start; }
   .arch-v2 .bd-text { flex: 1; min-width: 0; }
+  /* Phase-card text scales in cqi to track the SVG skill-box text, which
+     renders at font-size = (svgFontSize / 760) × containerWidth. The SVG
+     body labels use font-size="7.5" → ≈ 1cqi. clamp() floors keep things
+     readable on narrow desktop widths and ceilings keep things from
+     ballooning on ultra-wide. */
   .arch-v2 .bd-badge {
-    font-size: .5rem; font-weight: 700;
+    font-size: clamp(.5rem, .85cqi, .7rem); font-weight: 700;
     letter-spacing: .12em; text-transform: uppercase; margin-bottom: 3px;
   }
   .arch-v2 .bd-title {
     font-family: 'Outfit', system-ui, sans-serif;
-    font-size: .8125rem; font-weight: 600; color: var(--linen); margin-bottom: 5px;
+    font-size: clamp(.8125rem, 1.45cqi, 1.05rem);
+    font-weight: 600; color: var(--linen); margin-bottom: 5px;
   }
-  .arch-v2 .bd-desc { font-size: .625rem; color: var(--sand); line-height: 1.65; }
+  .arch-v2 .bd-desc {
+    font-size: clamp(.625rem, 1cqi, .85rem);
+    color: var(--sand); line-height: 1.65;
+  }
   .arch-v2 .bd-meta {
     flex-shrink: 0; width: fit-content; border-radius: 5px; padding: 8px 10px;
     background: rgba(0,0,0,.18); border: .5px solid rgba(196,184,158,.12);
@@ -1550,21 +1566,30 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
   }
   .arch-v2 .bd-meta-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .arch-v2 .bd-meta-label {
-    font-size: .529rem; font-weight: 700; letter-spacing: .14em;
+    font-size: clamp(.529rem, .85cqi, .72rem);
+    font-weight: 700; letter-spacing: .14em;
     text-transform: uppercase; color: var(--slag); flex-shrink: 0; width: 44px;
   }
   .arch-v2 .bd-tags { display: flex; gap: 4px; flex-wrap: wrap; }
   .arch-v2 .bd-tag {
-    font-size: .661rem; padding: 2px 6px; border-radius: 4px;
+    font-size: clamp(.661rem, 1cqi, .85rem);
+    padding: 2px 6px; border-radius: 4px;
     font-family: 'JetBrains Mono', monospace;
   }
-  .arch-v2 .bd-cp { font-size: .661rem; color: var(--ember); display: flex; align-items: center; gap: 4px; }
+  .arch-v2 .bd-cp {
+    font-size: clamp(.661rem, 1cqi, .85rem);
+    color: var(--ember); display: flex; align-items: center; gap: 4px;
+  }
   .arch-v2 .bd-cp-badge {
-    font-size: .578rem; font-weight: 700; padding: 1px 4px; border-radius: 3px;
+    font-size: clamp(.578rem, .85cqi, .72rem);
+    font-weight: 700; padding: 1px 4px; border-radius: 3px;
     background: var(--ember-dim); border: .5px solid rgba(224,92,24,.5);
   }
   .arch-v2 .bd-cross { display: flex; gap: 6px; flex-wrap: wrap; }
-  .arch-v2 .bd-cross-tag { font-size: .578rem; padding: 1px 5px; border-radius: 3px; opacity: .8; }
+  .arch-v2 .bd-cross-tag {
+    font-size: clamp(.578rem, .85cqi, .72rem);
+    padding: 1px 5px; border-radius: 3px; opacity: .8;
+  }
 
   .arch-v2 .band-arrow {
     display: flex; align-items: center; justify-content: center;

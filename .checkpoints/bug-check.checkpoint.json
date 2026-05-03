@@ -4,9 +4,9 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-03T00:35:44.165Z",
+  "updated_at": "2026-05-03T20:53:50Z",
   "phase": "gate",
-  "step": "skills-page-updated-badge-passed",
+  "step": "pipeline-text-scaling-passed",
   "status": "complete",
   "progress_summary": "Fifth bug-check run on this project. Diff is the skill-page Updated-badge change (site/src/lib/skills.ts + site/src/pages/skills/[id].astro). Ran the full check suite: vitest (15 files, 108/108 passed), astro check (4 pre-existing errors in flags/registry.ts which is gitignored generated code, none from this diff), site build via npm run prebuild + npm run site:build (25 pages clean — verified the new <time datetime=\"…\">Updated May 2, 2026</time> badge renders on /skills/deploy-ops next to v1.0.0 matching the actual #161 merge timestamp), anti-pattern grep on staged diff (clean — no console.log/debugger/.only/@ts-ignore/empty catch in added lines), secret scan clean, npm audit clean (0 vulnerabilities). Verdict PASS.",
   "progress_table": [
@@ -67,13 +67,12 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-03T00:35:44Z",
+      "at": "2026-05-03T20:53:50Z",
       "verdict": "PASS",
-      "duration_ms": 15000,
+      "duration_ms": 4000,
       "scope": "changed",
       "changed_files": [
-        "site/src/lib/skills.ts",
-        "site/src/pages/skills/[id].astro"
+        "site/src/pages/architecture.astro"
       ],
       "checks": {
         "type_safety": "PASS",
@@ -85,12 +84,12 @@
         "dependencies": "PASS"
       },
       "notes": [
-        "astro check: 4 pre-existing errors in gitignored flags/registry.ts; 0 errors in the diff itself.",
-        "vitest: 108/108 tests passing across 15 files.",
-        "anti-patterns: clean on staged diff (no console.log/debugger/.only/@ts-ignore/empty catch in added lines).",
+        "CSS-only edit on architecture.astro (band-detail font-sizes scale via container queries).",
+        "astro check: 0 errors, 0 warnings on the diff.",
+        "vitest: 108/108 passing.",
+        "site build: clean (25 pages).",
         "secrets: clean.",
-        "build: npm run prebuild + npm run site:build green; verified Updated badge renders in /skills/deploy-ops/index.html.",
-        "dependencies: npm audit --audit-level=high reports 0 vulnerabilities."
+        "anti-patterns: clean."
       ],
       "warnings": 0,
       "errors": 0
@@ -128,5 +127,6 @@
       "passes": 5,
       "since": "2026-05-02T18:47:50Z"
     }
-  }
+  },
+  "field": "last_run.at=2026-05-03T20:53:16Z"
 }
