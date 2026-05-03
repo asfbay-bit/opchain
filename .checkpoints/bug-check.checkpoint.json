@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-03T23:38:00Z",
+  "updated_at": "2026-05-03T23:43:00Z",
   "phase": "gate",
-  "step": "demo-artifact-expansion-chunk3-passed",
+  "step": "demo-artifact-expansion-chunk4-passed",
   "status": "complete",
-  "progress_summary": "Eleventh bug-check run on this project. Diff is the demo-artifact expansion chunk 3: dashboard-rescue artifacts (principles audit → 7-section doc with 12-offender table + 9 driving principles; 3-layer IA → 10-section dash-forge spec with component catalog + perf budget + a11y; before/after grade → 7-section evaluator with 12-axis rubric + eye-tracking deltas + Lighthouse comparison; sprint brief → 10-section build-ready brief with files-touched table, rollout phases, risks). Ran: vitest (108/108 passed), astro check (0 errors / 0 warnings), anti-pattern grep clean, secret scan clean. Verdict PASS.",
+  "progress_summary": "Twelfth bug-check run on this project. Diff is the demo-artifact expansion chunk 4: stripe-ship artifacts (Integration Contract → 10-section spec with full event handler table + invariants + failure-mode catalogue; Boundary Layer → 9-section code spec with full client.ts/webhook.ts/handler bodies + 22-test contract grid + lint rule; Audit Report → 11-section money-flow audit with file inventory + before/after grades; Launch Plan → 7-section runbook with hour-by-hour timeline + comms grid + rollback escalation + SLO targets + roadmap). Ran: vitest (108/108 passed), astro check (0 errors / 0 warnings), anti-pattern grep clean, secret scan clean. Verdict PASS.",
   "progress_table": [
     { "id": "schema", "label": "Checkpoint schema validation", "status": "complete" },
     { "id": "secrets", "label": "Secret scan on changed files", "status": "complete" },
@@ -38,12 +38,12 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-03T23:38:00Z",
+      "at": "2026-05-03T23:43:00Z",
       "verdict": "PASS",
-      "duration_ms": 3500,
+      "duration_ms": 3700,
       "scope": "changed",
       "changed_files": [
-        "site/src/data/walkthroughs/dashboard-rescue.ts"
+        "site/src/data/walkthroughs/stripe-ship.ts"
       ],
       "checks": {
         "type_safety": "PASS",
@@ -55,18 +55,19 @@
         "dependencies": "SKIP"
       },
       "notes": [
-        "Chunk 3: full-length expansion of all four dashboard-rescue artifacts (principles audit, 3-layer IA, before/after evaluator grade, sprint brief).",
+        "Chunk 4: full-length expansion of all four stripe-ship artifacts (Integration Contract, Boundary Layer code spec, Audit Report, Launch Plan runbook).",
         "astro check: 0 errors, 0 warnings on the diff.",
         "vitest: 108/108 passing.",
-        "secrets: clean.",
+        "secrets: clean — no real keys in the artifact bodies (the strings sk-/sk_live_ etc. appear only as documentation references, not as values).",
         "anti-patterns: clean.",
         "Build skipped: data-only Markdown content; chunk 1 confirmed end-to-end build.",
-        "Note: LHCI bot reports two pre-existing failures on /skills/app-architect (TOC target-size) and /architecture (band-label contrast). Neither route is touched by this PR; /demo (the route this PR targets) is at 0.99 perf / 1.00 a11y / 1.00 best / 1.00 SEO. No action."
+        "Note: LHCI bot reports same two pre-existing failures on /skills/app-architect and /architecture. Not from this PR; /demo unchanged at 0.99/1.00. No action."
       ],
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      { "at": "2026-05-03T23:43:00Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T23:38:00Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T23:32:00Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T23:27:30Z", "verdict": "PASS", "warnings": 0 },
@@ -75,13 +76,12 @@
       { "at": "2026-05-03T20:52:46Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T20:49:39Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T20:40:11Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T00:35:44Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-02T19:19:50Z", "verdict": "PASS", "warnings": 0 }
+      { "at": "2026-05-03T00:35:44Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
     "streak": {
-      "passes": 13,
+      "passes": 14,
       "since": "2026-05-02T18:47:50Z"
     }
   }
