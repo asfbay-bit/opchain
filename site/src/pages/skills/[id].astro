@@ -1446,13 +1446,16 @@ const consumers = isFoundational
     color: var(--subtle);
     text-decoration: none;
     border-left: 2px solid transparent;
-    /* LHCI: 14px text × 1.4 line-height ≈ 19.6px is below the 24×24
-       target-size threshold. Pad 4px top/bottom to reach ~28px. The
-       rail is fixed-position with room to spare, so the slightly
-       taller TOC doesn't displace any layout. */
-    padding: 4px 0 4px 0.55rem;
-    margin-left: -0.55rem;
-    display: inline-block;
+    /* LHCI target-size: previous attempt used inline-block with 4px
+       padding (~27.6px box). Lighthouse still flagged the links —
+       likely because adjacent li margins shrink the effective offset
+       below the 24px threshold. Switched to display: block so each
+       link spans the full rail width (clear horizontal target) and
+       bumped padding to 6px top/bottom so the box is ~31.6px tall.
+       Dropped the inline-block-era negative margin since the block
+       link no longer needs the visual pull-back. */
+    display: block;
+    padding: 6px 0 6px 0.55rem;
     transition:
       color var(--dur-base) var(--ease-standard),
       border-color var(--dur-fast) var(--ease-standard);
