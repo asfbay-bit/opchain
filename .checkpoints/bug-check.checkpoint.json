@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-03T23:43:00Z",
+  "updated_at": "2026-05-03T23:48:00Z",
   "phase": "gate",
-  "step": "demo-artifact-expansion-chunk4-passed",
+  "step": "demo-artifact-expansion-chunk5-passed",
   "status": "complete",
-  "progress_summary": "Twelfth bug-check run on this project. Diff is the demo-artifact expansion chunk 4: stripe-ship artifacts (Integration Contract → 10-section spec with full event handler table + invariants + failure-mode catalogue; Boundary Layer → 9-section code spec with full client.ts/webhook.ts/handler bodies + 22-test contract grid + lint rule; Audit Report → 11-section money-flow audit with file inventory + before/after grades; Launch Plan → 7-section runbook with hour-by-hour timeline + comms grid + rollback escalation + SLO targets + roadmap). Ran: vitest (108/108 passed), astro check (0 errors / 0 warnings), anti-pattern grep clean, secret scan clean. Verdict PASS.",
+  "progress_summary": "Thirteenth bug-check run. Diff is chunk 5: postgres-migration artifacts (migration plan → 9-section runbook with target end state, 6 invariants, 5 phases each with rollback gates, comms timeline, risk register; verification report → 9-section monitoring-ops report with per-table breakdown, full ramp metrics, alert configuration, capacity headroom; ops-status → 8-section orchestrator demo with priority hierarchy, filter commands, refresh cadence). Ran: vitest (108/108 passed), astro check (0 errors / 0 warnings), anti-pattern grep clean, secret scan clean. Verdict PASS.",
   "progress_table": [
     { "id": "schema", "label": "Checkpoint schema validation", "status": "complete" },
     { "id": "secrets", "label": "Secret scan on changed files", "status": "complete" },
@@ -38,12 +38,12 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-03T23:43:00Z",
+      "at": "2026-05-03T23:48:00Z",
       "verdict": "PASS",
       "duration_ms": 3700,
       "scope": "changed",
       "changed_files": [
-        "site/src/data/walkthroughs/stripe-ship.ts"
+        "site/src/data/walkthroughs/postgres-migration.ts"
       ],
       "checks": {
         "type_safety": "PASS",
@@ -55,18 +55,19 @@
         "dependencies": "SKIP"
       },
       "notes": [
-        "Chunk 4: full-length expansion of all four stripe-ship artifacts (Integration Contract, Boundary Layer code spec, Audit Report, Launch Plan runbook).",
+        "Chunk 5: full-length expansion of all three postgres-migration artifacts (migration plan, verification report, ops-status).",
         "astro check: 0 errors, 0 warnings on the diff.",
         "vitest: 108/108 passing.",
-        "secrets: clean — no real keys in the artifact bodies (the strings sk-/sk_live_ etc. appear only as documentation references, not as values).",
+        "secrets: clean.",
         "anti-patterns: clean.",
-        "Build skipped: data-only Markdown content; chunk 1 confirmed end-to-end build.",
-        "Note: LHCI bot reports same two pre-existing failures on /skills/app-architect and /architecture. Not from this PR; /demo unchanged at 0.99/1.00. No action."
+        "Build skipped: data-only Markdown content.",
+        "Note: LHCI bot reports same two pre-existing failures on /skills/app-architect and /architecture (now seen 4 PR pushes in a row). Not from this PR; /demo at 0.99/1.00. No action."
       ],
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      { "at": "2026-05-03T23:48:00Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T23:43:00Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T23:38:00Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T23:32:00Z", "verdict": "PASS", "warnings": 0 },
@@ -75,13 +76,12 @@
       { "at": "2026-05-03T20:55:10Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T20:52:46Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-05-03T20:49:39Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T20:40:11Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T00:35:44Z", "verdict": "PASS", "warnings": 0 }
+      { "at": "2026-05-03T20:40:11Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
     "streak": {
-      "passes": 14,
+      "passes": 15,
       "since": "2026-05-02T18:47:50Z"
     }
   }
