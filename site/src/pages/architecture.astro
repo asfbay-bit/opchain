@@ -131,7 +131,7 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
           <!-- ── Orchestrator → 6 checkpoint sync diagram (clockwise build animation) ── -->
           <div class="cp-grid-section" id="cp-grid-section">
             <div class="cp-grid-inner">
-              <svg class="orch-sync-svg" viewBox="0 0 720 240" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orchestrator bidirectional sync to 6 checkpoints, animated clockwise">
+              <svg class="orch-sync-svg" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orchestrator bidirectional sync to 6 checkpoints, animated clockwise">
                 <defs>
                   <marker id="cp-sync-end" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
                     <polygon points="0 0, 6 2, 0 4" fill="#e05c18"/>
@@ -147,60 +147,60 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
                   </filter>
                 </defs>
 
-                <line class="cp-anim-line-1" x1="290" y1="98" x2="165" y2="70" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
-                <line class="cp-anim-line-2" x1="360" y1="98" x2="360" y2="70" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
-                <line class="cp-anim-line-3" x1="430" y1="98" x2="555" y2="70" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
-                <line class="cp-anim-line-4" x1="430" y1="142" x2="555" y2="170" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
-                <line class="cp-anim-line-5" x1="360" y1="142" x2="360" y2="170" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
-                <line class="cp-anim-line-6" x1="290" y1="142" x2="165" y2="170" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-1" x1="160" y1="100" x2="190" y2="50" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-2" x1="160" y1="100" x2="365" y2="50" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-3" x1="160" y1="100" x2="540" y2="50" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-4" x1="160" y1="100" x2="540" y2="150" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-5" x1="160" y1="100" x2="365" y2="150" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-6" x1="160" y1="100" x2="190" y2="150" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
 
                 <g class="cp-anim-orch">
-                  <rect x="290" y="98" width="140" height="44" rx="5" fill="rgba(224,92,24,.20)" stroke="#e05c18" stroke-width="1.2" filter="url(#cp-orch-glow)"/>
-                  <text x="360" y="118" fill="#f6f0e8" font-size="11" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">orchestrator</text>
-                  <text x="360" y="132" fill="#e05c18" font-size="7.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">/ops · routing · sync</text>
+                  <rect x="20" y="70" width="140" height="60" rx="5" fill="rgba(224,92,24,.20)" stroke="#e05c18" stroke-width="1.2" filter="url(#cp-orch-glow)"/>
+                  <text x="90" y="98" fill="#f6f0e8" font-size="9" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">orchestrator</text>
+                  <text x="90" y="114" fill="#e05c18" font-size="7.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">/ops · routing · sync</text>
                 </g>
 
                 <g class="cp-anim-box-1">
-                  <rect x="35" y="20" width="130" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
-                  <rect x="89" y="26" width="22" height="13" rx="3" fill="#1c1710"/>
-                  <rect x="89" y="26" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
-                  <text x="100" y="35.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                  <text x="100" y="58" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">reverse-spec</text>
+                  <rect x="190" y="20" width="160" height="60" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="259" y="26" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="259" y="26" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                  <text x="270" y="35.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="270" y="68" fill="#f6f0e8" font-size="7.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">reverse-spec</text>
                 </g>
                 <g class="cp-anim-box-2">
-                  <rect x="295" y="20" width="130" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
-                  <rect x="349" y="26" width="22" height="13" rx="3" fill="#1c1710"/>
-                  <rect x="349" y="26" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
-                  <text x="360" y="35.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                  <text x="360" y="58" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">app-architect</text>
+                  <rect x="365" y="20" width="160" height="60" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="434" y="26" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="434" y="26" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                  <text x="445" y="35.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="445" y="68" fill="#f6f0e8" font-size="7.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">app-architect</text>
                 </g>
                 <g class="cp-anim-box-3">
-                  <rect x="555" y="20" width="130" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="540" y="20" width="160" height="60" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
                   <rect x="609" y="26" width="22" height="13" rx="3" fill="#1c1710"/>
                   <rect x="609" y="26" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
                   <text x="620" y="35.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                  <text x="620" y="58" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">stack-forge</text>
+                  <text x="620" y="68" fill="#f6f0e8" font-size="7.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">stack-forge</text>
                 </g>
                 <g class="cp-anim-box-4">
-                  <rect x="555" y="170" width="130" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
-                  <rect x="609" y="176" width="22" height="13" rx="3" fill="#1c1710"/>
-                  <rect x="609" y="176" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
-                  <text x="620" y="185.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                  <text x="620" y="208" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">api-dev</text>
+                  <rect x="540" y="120" width="160" height="60" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="609" y="126" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="609" y="126" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                  <text x="620" y="135.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="620" y="168" fill="#f6f0e8" font-size="7.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">api-dev</text>
                 </g>
                 <g class="cp-anim-box-5">
-                  <rect x="295" y="170" width="130" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
-                  <rect x="349" y="176" width="22" height="13" rx="3" fill="#1c1710"/>
-                  <rect x="349" y="176" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
-                  <text x="360" y="185.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                  <text x="360" y="208" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">dash-forge</text>
+                  <rect x="365" y="120" width="160" height="60" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="434" y="126" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="434" y="126" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                  <text x="445" y="135.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="445" y="168" fill="#f6f0e8" font-size="7.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">dash-forge</text>
                 </g>
                 <g class="cp-anim-box-6">
-                  <rect x="35" y="170" width="130" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
-                  <rect x="89" y="176" width="22" height="13" rx="3" fill="#1c1710"/>
-                  <rect x="89" y="176" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
-                  <text x="100" y="185.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                  <text x="100" y="208" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">ux-engineer</text>
+                  <rect x="190" y="120" width="160" height="60" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="259" y="126" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="259" y="126" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
+                  <text x="270" y="135.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="270" y="168" fill="#f6f0e8" font-size="7.5" font-weight="500" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">ux-engineer</text>
                 </g>
               </svg>
             </div>
@@ -210,7 +210,7 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
           <div class="orch-detail-expand" id="orch-detail-top">
             <div class="cpd-inner">
               <p class="cpd-intro">The orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/ops</code> queries. Reads all 17 checkpoints; writes its own pipeline state.</p>
-              <svg class="orch-route-svg" viewBox="0 0 720 110" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orchestrator routing decision: app-architect checkpoint update routed to ux-engineer">
+              <svg class="orch-route-svg" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orchestrator routing decision: app-architect checkpoint update routed to ux-engineer, dash-forge, and api-dev in parallel">
                 <defs>
                   <marker id="orch-rt-end" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
                     <polygon points="0 0, 6 2, 0 4" fill="#e05c18"/>
@@ -223,33 +223,50 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
                   </filter>
                 </defs>
 
-                <line class="orch-rt-line orch-rt-line-1" x1="180" y1="48" x2="290" y2="48" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.3" marker-end="url(#orch-rt-end)" fill="none"/>
-                <line class="orch-rt-line orch-rt-line-2" x1="430" y1="48" x2="540" y2="48" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.3" marker-end="url(#orch-rt-end)" fill="none"/>
+                <line class="orch-rt-line orch-rt-line-1" x1="180" y1="100" x2="290" y2="100" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.3" marker-end="url(#orch-rt-end)" fill="none"/>
+                <line class="orch-rt-line orch-rt-line-2" x1="430" y1="100" x2="540" y2="40" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.3" marker-end="url(#orch-rt-end)" fill="none"/>
+                <line class="orch-rt-line orch-rt-line-2" x1="430" y1="100" x2="540" y2="100" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.3" marker-end="url(#orch-rt-end)" fill="none"/>
+                <line class="orch-rt-line orch-rt-line-2" x1="430" y1="100" x2="540" y2="160" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.3" marker-end="url(#orch-rt-end)" fill="none"/>
 
                 <g class="orch-rt-src">
-                  <rect class="orch-rt-rect" x="40" y="18" width="140" height="60" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
-                  <rect x="99" y="24" width="22" height="13" rx="3" fill="#1c1710"/>
-                  <rect x="99" y="24" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#orch-rt-glow)"/>
-                  <text x="110" y="33.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                  <text x="110" y="56" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,sans-serif" text-anchor="middle">app-architect</text>
-                  <text class="orch-rt-src-cap" x="110" y="71" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" letter-spacing=".1em" opacity="0">checkpoint update</text>
+                  <rect class="orch-rt-rect" x="40" y="70" width="140" height="60" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="99" y="76" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="99" y="76" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#orch-rt-glow)"/>
+                  <text x="110" y="85.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="110" y="108" fill="#f6f0e8" font-size="7.5" font-weight="500" font-family="Outfit,sans-serif" text-anchor="middle">app-architect</text>
+                  <text class="orch-rt-src-cap" x="110" y="123" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" letter-spacing=".1em" opacity="0">checkpoint update</text>
                 </g>
 
                 <g class="orch-rt-orch">
-                  <rect class="orch-rt-orch-rect" x="290" y="18" width="140" height="60" rx="5" fill="rgba(224,92,24,.20)" stroke="#e05c18" stroke-width="1.2" filter="url(#orch-rt-glow)"/>
-                  <text x="360" y="38" fill="#f6f0e8" font-size="11" font-weight="600" font-family="Outfit,sans-serif" text-anchor="middle">orchestrator</text>
-                  <text class="orch-rt-orch-base" x="360" y="56" fill="#e05c18" font-size="7.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">/ops · routing</text>
-                  <text class="orch-rt-decision" x="360" y="56" fill="#f59e0b" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0">→ /uxe sprint</text>
-                  <text class="orch-rt-orch-cap" x="360" y="71" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" letter-spacing=".1em" opacity="0">deciding</text>
+                  <rect class="orch-rt-orch-rect" x="290" y="70" width="140" height="60" rx="5" fill="rgba(224,92,24,.20)" stroke="#e05c18" stroke-width="1.2" filter="url(#orch-rt-glow)"/>
+                  <text x="360" y="90" fill="#f6f0e8" font-size="9" font-weight="600" font-family="Outfit,sans-serif" text-anchor="middle">orchestrator</text>
+                  <text class="orch-rt-orch-base" x="360" y="108" fill="#e05c18" font-size="7.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">/ops · routing</text>
+                  <text class="orch-rt-decision" x="360" y="108" fill="#f59e0b" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0">→ build sprint</text>
+                  <text class="orch-rt-orch-cap" x="360" y="123" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" letter-spacing=".1em" opacity="0">deciding</text>
                 </g>
 
                 <g class="orch-rt-tgt">
-                  <rect class="orch-rt-rect" x="540" y="18" width="140" height="60" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
-                  <rect x="599" y="24" width="22" height="13" rx="3" fill="#1c1710"/>
-                  <rect x="599" y="24" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#orch-rt-glow)"/>
-                  <text x="610" y="33.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                  <text x="610" y="56" fill="#f6f0e8" font-size="9.5" font-weight="500" font-family="Outfit,sans-serif" text-anchor="middle">ux-engineer</text>
-                  <text class="orch-rt-tgt-cap" x="610" y="71" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" letter-spacing=".1em" opacity="0">activating</text>
+                  <rect class="orch-rt-rect" x="540" y="15" width="140" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="599" y="21" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="599" y="21" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#orch-rt-glow)"/>
+                  <text x="610" y="30.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="610" y="53" fill="#f6f0e8" font-size="7.5" font-weight="500" font-family="Outfit,sans-serif" text-anchor="middle">ux-engineer</text>
+                </g>
+
+                <g class="orch-rt-tgt">
+                  <rect class="orch-rt-rect" x="540" y="75" width="140" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="599" y="81" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="599" y="81" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#orch-rt-glow)"/>
+                  <text x="610" y="90.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="610" y="113" fill="#f6f0e8" font-size="7.5" font-weight="500" font-family="Outfit,sans-serif" text-anchor="middle">dash-forge</text>
+                </g>
+
+                <g class="orch-rt-tgt">
+                  <rect class="orch-rt-rect" x="540" y="135" width="140" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="0.7"/>
+                  <rect x="599" y="141" width="22" height="13" rx="3" fill="#1c1710"/>
+                  <rect x="599" y="141" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#orch-rt-glow)"/>
+                  <text x="610" y="150.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                  <text x="610" y="173" fill="#f6f0e8" font-size="7.5" font-weight="500" font-family="Outfit,sans-serif" text-anchor="middle">api-dev</text>
                 </g>
               </svg>
             </div>
@@ -1458,17 +1475,17 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
     box-shadow: 0 0 14px rgba(224,92,24,.18);
   }
   .arch-v2 .foundation-pill .fp-tag {
-    font-size: .55rem; font-weight: 700; color: var(--ember);
+    font-size: clamp(.503rem, .805cqi, .685rem); font-weight: 700; color: var(--ember);
     letter-spacing: .12em; text-transform: uppercase;
     padding: 2px 6px; border-radius: 3px;
     background: var(--ember-dim); border: .5px solid rgba(224,92,24,.5);
   }
   .arch-v2 .foundation-pill .fp-name {
     font-family: 'Outfit', system-ui, sans-serif;
-    font-size: .75rem; font-weight: 600; color: var(--linen);
+    font-size: clamp(.791rem, 1.265cqi, 1.076rem); font-weight: 600; color: var(--linen);
   }
   .arch-v2 .foundation-pill .fp-desc {
-    font-size: .55rem; color: var(--sand);
+    font-size: clamp(.503rem, .805cqi, .685rem); color: var(--sand);
     margin-left: auto;
     letter-spacing: .02em;
   }
@@ -1561,11 +1578,11 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
   }
   .arch-v2 .bd-title {
     font-family: 'Outfit', system-ui, sans-serif;
-    font-size: clamp(.8125rem, 1.45cqi, 1.05rem);
+    font-size: clamp(.934rem, 1.668cqi, 1.208rem);
     font-weight: 600; color: var(--linen); margin-bottom: 5px;
   }
   .arch-v2 .bd-desc {
-    font-size: clamp(.625rem, 1cqi, .85rem);
+    font-size: clamp(.719rem, 1.15cqi, .978rem);
     color: var(--sand); line-height: 1.65;
   }
   .arch-v2 .bd-meta {
@@ -1633,7 +1650,7 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
     transition: max-height .6s cubic-bezier(.4,0,.2,1), opacity .4s ease .1s;
     position: relative; z-index: 3;
   }
-  .arch-v2 .bands-wrap.orch-mode .orch-detail-expand { max-height: 320px; opacity: 1; }
+  .arch-v2 .bands-wrap.orch-mode .orch-detail-expand { max-height: 480px; opacity: 1; }
 
   .arch-v2 .orch-route-svg { width: 100%; max-width: 720px; height: auto; display: block; margin: 0.75rem auto 0; }
   .arch-v2 .orch-route-svg .orch-rt-rect,
@@ -1770,39 +1787,47 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
     transition: max-height .6s cubic-bezier(.4,0,.2,1), opacity .4s ease .1s;
     position: relative; z-index: 3;
   }
-  .arch-v2 .bands-wrap.cp-mode .cp-detail-expand { max-height: 280px; opacity: 1; }
+  .arch-v2 .bands-wrap.cp-mode .cp-detail-expand { max-height: 380px; opacity: 1; }
   .arch-v2 .cpd-inner {
     border: .5px solid rgba(224,92,24,.3);
     border-radius: 8px;
     background: rgba(28,23,16,.92);
     padding: 14px 18px; margin: 18px 4px 4px;
   }
+  .arch-v2 .cp-detail-expand .cpd-inner {
+    display: grid;
+    grid-template-columns: 60% 40%;
+    gap: 18px;
+    align-items: start;
+  }
+  .arch-v2 .cp-detail-expand .cpd-inner .cpd-intro { margin: 0; }
+  .arch-v2 .cp-detail-expand .cpd-inner .cpd-json { margin: 0; }
   .arch-v2 .cpd-inner::before {
     content: ''; display: block;
     height: 1px; margin: -14px -18px 12px; border-radius: 8px 8px 0 0;
     background: linear-gradient(90deg, transparent, var(--ember) 30%, var(--ember) 70%, transparent);
     opacity: .35;
   }
-  .arch-v2 .cpd-badge { font-size: .5rem; font-weight: 700; color: var(--ember); letter-spacing: .12em; margin-bottom: 3px; }
+  .arch-v2 .cpd-badge { font-size: clamp(.503rem, .805cqi, .685rem); font-weight: 700; color: var(--ember); letter-spacing: .12em; margin-bottom: 3px; }
   .arch-v2 .cpd-title {
     font-family: 'Outfit', system-ui, sans-serif;
-    font-size: .875rem; font-weight: 600; color: var(--ember); margin-bottom: 8px;
+    font-size: clamp(.935rem, 1.495cqi, 1.272rem); font-weight: 600; color: var(--ember); margin-bottom: 8px;
   }
   .arch-v2 .cpd-body { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; }
   .arch-v2 .cpd-intro {
-    font-size: .7rem; color: var(--sand); line-height: 1.6;
+    font-size: clamp(.719rem, 1.15cqi, .978rem); color: var(--sand); line-height: 1.65;
     margin: 0 0 12px;
   }
-  .arch-v2 .cpd-intro code { font-size: .65rem; color: var(--linen); background: var(--ember-dim); border: .5px solid rgba(224,92,24,.2); padding: 0 4px; border-radius: 3px; }
+  .arch-v2 .cpd-intro code { font-size: clamp(.611rem, .978cqi, .831rem); color: var(--linen); background: var(--ember-dim); border: .5px solid rgba(224,92,24,.2); padding: 0 4px; border-radius: 3px; }
   .arch-v2 .cpd-inner .cpd-json { margin-top: 0; }
-  .arch-v2 .cpd-st { font-size: .4375rem; font-weight: 700; color: var(--ember); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 3px; opacity: .8; }
-  .arch-v2 .cpd-section p { font-size: .625rem; color: var(--sand); line-height: 1.6; margin: 0; }
-  .arch-v2 .cpd-section code { font-size: .5625rem; color: var(--linen); background: var(--ember-dim); border: .5px solid rgba(224,92,24,.2); padding: 0 4px; border-radius: 3px; }
+  .arch-v2 .cpd-st { font-size: clamp(.503rem, .805cqi, .685rem); font-weight: 700; color: var(--ember); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 3px; opacity: .8; }
+  .arch-v2 .cpd-section p { font-size: clamp(.719rem, 1.15cqi, .978rem); color: var(--sand); line-height: 1.6; margin: 0; }
+  .arch-v2 .cpd-section code { font-size: clamp(.611rem, .978cqi, .831rem); color: var(--linen); background: var(--ember-dim); border: .5px solid rgba(224,92,24,.2); padding: 0 4px; border-radius: 3px; }
   .arch-v2 .cpd-flow { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
-  .arch-v2 .cpd-step { font-size: .5rem; padding: 2px 6px; border-radius: 4px; background: rgba(224,92,24,.07); border: .5px solid rgba(224,92,24,.18); color: var(--linen); }
-  .arch-v2 .cpd-arrow { color: var(--ember); font-size: .625rem; }
+  .arch-v2 .cpd-step { font-size: clamp(.503rem, .805cqi, .685rem); padding: 2px 6px; border-radius: 4px; background: rgba(224,92,24,.07); border: .5px solid rgba(224,92,24,.18); color: var(--linen); }
+  .arch-v2 .cpd-arrow { color: var(--ember); font-size: clamp(.719rem, 1.15cqi, .978rem); }
   .arch-v2 .cpd-json {
-    font-size: .5rem; color: var(--sand); background: var(--obsidian);
+    font-size: clamp(.611rem, .978cqi, .831rem); color: var(--sand); background: var(--obsidian);
     border: .5px solid rgba(224,92,24,.12); border-radius: 4px;
     padding: 7px 9px; line-height: 1.6; margin-top: 5px;
   }
