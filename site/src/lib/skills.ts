@@ -3,6 +3,7 @@
 // and pairs it with the TRYIT.md prompts via a build-time glob.
 
 import { execSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getCollection, type CollectionEntry } from "astro:content";
@@ -102,9 +103,26 @@ export async function getSkill(id: string): Promise<SkillEntry | undefined> {
   return found;
 }
 
-// Resolve the repo root from this file's location so the helper works
-// regardless of the cwd the build was invoked from. site/src/lib → ../../..
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+// Resolve the repo root by walking up from this file's location until
+// we find the `skills/` directory (the canonical marker for the
+// monorepo root). Walking is robust to Astro/Vite bundling, which
+// resolves `import.meta.url` to a path that may be one or more levels
+// deeper than the source — a fixed `../../..` offset breaks under
+// SSG. The walk caps at 8 levels to avoid runaway loops.
+function resolveRepoRoot(): string {
+  let dir = path.dirname(fileURLToPath(import.meta.url));
+  for (let i = 0; i < 8; i++) {
+    if (existsSync(path.join(dir, "skills")) && existsSync(path.join(dir, ".git"))) {
+      return dir;
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  // Fall back to cwd-relative resolution; tolerated as last resort.
+  return process.cwd();
+}
+const REPO_ROOT = resolveRepoRoot();
 const SAFE_ID = /^[a-z0-9][a-z0-9-]*$/;
 const updatedCache = new Map<string, string | null>();
 
