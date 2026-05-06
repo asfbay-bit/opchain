@@ -1,8 +1,8 @@
 ---
 name: checkpoint-protocol
 displayName: Checkpoint Protocol
-version: 1.0.0
-shortDesc: Session persistence across skills.
+version: 1.2.0
+shortDesc: Session persistence across skills. v1.2 adds a `pm_refs` schema field so checkpoints carry linked PM ticket ids.
 phases: [foundation]
 triAgent: false
 tryable: false
@@ -406,6 +406,84 @@ The `.checkpoints/` directory is:
   and tooling)
 - Surfaced via `npm run checkpoint:status` — the canonical "where did I
   leave off?" command for new sessions
+
+---
+
+## v1.2 schema additions: `pm_refs`
+
+v1.2 adds a top-level optional field to the checkpoint schema so
+every skill's checkpoint can carry the PM tickets it touched.
+Downstream skills read it to find context without re-asking.
+
+### Field shape
+
+```jsonc
+{
+  // ...existing fields
+  "pm_refs": [
+    {
+      "provider": "linear",                  // or "jira" | "github-issues"
+      "id": "PLAT-4471",                     // ticket id
+      "url": "https://linear.app/onramp/issue/PLAT-4471",
+      "role": "source",                      // "source" | "child" | "deploy" | "incident" | "linked"
+      "created_by_skill": "app-architect",   // which skill linked it
+      "first_seen_at": "2026-05-04T12:00:00Z"
+    }
+  ]
+}
+```
+
+`role` semantics:
+
+- `source` — the originating ticket (one per checkpoint, typically).
+- `child` — sprint / step / sub-ticket created by this skill.
+- `deploy` — deploy-ops-created deploy ticket.
+- `incident` — monitoring-ops-created incident ticket.
+- `linked` — a related ticket the skill referenced but didn't author.
+
+### Read pattern (downstream skills)
+
+When any skill starts, after reading its own checkpoint, it
+**also reads `pm_refs` from sibling-skill checkpoints** to find
+context. Example: git-ops, on `/git-sync` with no explicit ticket
+id, looks at `app-architect.checkpoint.json#pm_refs` to find the
+source ticket from the most recent build phase.
+
+### Write pattern
+
+Every skill that touches a PM ticket appends to its own
+`pm_refs` array at the same time it writes the ticket. The array
+is append-only within a session; entries are not deduplicated
+across sessions (the audit trail is per-session).
+
+### Status surface
+
+`npm run checkpoint:status` includes a one-line PM summary per
+skill in v1.2:
+
+```
+app-architect    spec-approved    PM: PLAT-4471 (source) + 3 children
+git-ops          PR-merged        PM: PLAT-4471 (linked)
+deploy-ops       shipped          PM: PLAT-4485 (deploy) → PLAT-4471
+monitoring-ops   resolved         PM: PLAT-4503 (incident) → PLAT-4485
+```
+
+This makes the cross-skill PM thread legible at session resume.
+
+### Validation
+
+`npm run checkpoint:validate` accepts the new field as optional;
+existing v1.1 checkpoints validate unchanged. Schema migrations
+only happen on the next write — there is no batch migration.
+
+### Privacy in regulated environments
+
+The `pm_refs` array stores ticket ids + URLs. **It does not
+store ticket bodies.** Tickets in regulated environments may
+contain CUI / PHI; the body retrieval path runs through the
+broker + redactor on each access (see `mcp-enterprise-f500` and
+`mcp-enterprise-defense` scenarios). The checkpoint is therefore
+safe to commit + share within the project.
 
 ---
 

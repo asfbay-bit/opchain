@@ -1,8 +1,8 @@
 ---
 name: bug-check
 displayName: Bug Check
-version: 1.0.0
-shortDesc: Pre-commit QA gate — fast checks on every commit.
+version: 1.2.0
+shortDesc: Pre-commit QA gate — fast checks on every commit. v1.2 attaches the failure report to the linked PM ticket on block.
 phases: [build]
 triAgent: false
 tryable: true
@@ -609,6 +609,64 @@ python -m pytest --tb=short 2>&1
 grep -rn "import pdb\|breakpoint()" --include="*.py" --exclude-dir=venv .
 grep -rn "print(" --include="*.py" --exclude-dir=venv --exclude-dir=test .
 ```
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+bug-check is the cheapest skill to run; its job is to be silent on
+clean code and loud on bad. v1.2 makes the loud case visible in the
+PM tool when a linked ticket is in play. See `integrations-engineer`
+for the canonical PM-MCP patterns.
+
+### On PASS (clean)
+
+Nothing posted. The principle is that the PM tool is for state
+changes the team needs to see, not for "everything is fine." A clean
+bug-check run is the default; advertising it dilutes signal.
+
+### On FAIL (gate blocks the commit)
+
+If git-ops invoked bug-check with a ticket in context (the typical
+`/git-sync TICKET-1234` flow), post a comment to the linked ticket:
+
+```
+bug-check FAIL — commit blocked.
+Failed checks: {N of M}
+First failure:
+  - type-check: 3 errors in src/api/customers.csv.ts
+  - tests: 2 failed in tests/api/customers.csv.spec.ts
+Suggested next step: /bugcheck fix
+Full report: .checkpoints/bug-check.checkpoint.json
+```
+
+The comment is a one-shot status, not a thread. Subsequent
+re-runs that still fail update the same comment rather than
+spam.
+
+### On bypass (rare; explicit override)
+
+If the user invokes `/bugcheck bypass` (the explicit override path),
+post:
+
+```
+bug-check BYPASSED on user request — {reason if provided}.
+Skipped checks: {list}.
+Reviewer: please confirm this is acceptable.
+```
+
+Bypass is an audit event in regulated environments. The comment is
+the trail. (Brokered audit log carries the canonical record; the
+PM comment is the human-readable reflection.)
+
+### Failure modes
+
+- No linked ticket → no PM write; checkpoint records intent only.
+- bug-check is invoked outside git-ops (manual `/bugcheck`) → no
+  PM write; user can pass `--ticket TICKET-1234` to opt in.
+- PM provider rate-limits during a CI burst → batch failures into
+  a daily roll-up comment on the team's standing-board ticket
+  rather than per-commit.
 
 ---
 

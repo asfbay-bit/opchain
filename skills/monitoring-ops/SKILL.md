@@ -1,8 +1,8 @@
 ---
 name: monitoring-ops
 displayName: Monitoring Ops
-version: 1.0.0
-shortDesc: Post-deploy observability — uptime, errors, alerts, incidents.
+version: 1.2.0
+shortDesc: Post-deploy observability — uptime, errors, alerts, incidents. v1.2 opens PM incident tickets when alerts fire.
 phases: [build]
 triAgent: false
 tryable: true
@@ -593,6 +593,68 @@ project-dir/
 | Uptime | BetterStack or UptimeRobot |
 | Alerting | Start with Telegram/Slack, graduate to PagerDuty |
 | Status page | BetterStack (free tier includes status page) |
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+monitoring-ops opens **incident tickets** in the PM tool when
+alerts fire, and back-references them through resolution.
+
+### On alert fire
+
+1. Look up the alert in the runbook registry (configured per
+   alert id; see `runbooks/`).
+2. Compose incident body:
+   ```
+   Alert: {alert-name} ({severity})
+   Fired at: {iso-timestamp}
+   Service: {service}
+   Symptoms: {first-three-symptoms-from-alert-payload}
+   Runbook: {runbook-url}
+   On-call: {on-call-engineer-from-pagerduty}
+   Recent deploys: {list-of-deploys-in-last-2h-from-deploy-ops-checkpoint}
+   ```
+3. Call `mcp.<provider>.save_issue`:
+   - issue_type = `incident` (from `.opchain/pm.yaml`; default "Incident").
+   - priority from alert severity mapping.
+   - labels from runbook (`incident`, `service:<name>`, `severity:<level>`).
+   - parent / blocked-by relation to the most recent deploy ticket
+     if one is open (likely culprit).
+4. Record incident id in `monitoring-ops.checkpoint.json` with the
+   correlating Sentry / PagerDuty event id.
+
+### Per-event updates during the incident
+
+| Event | Action |
+|---|---|
+| Alert auto-resolves (back to baseline) | `add_comment`: "Auto-resolved — {duration}"; transition → `resolved-pending-postmortem`. Do not close. |
+| Engineer ack via PagerDuty | `add_comment`: "{engineer} acknowledged"; transition → `in_progress` |
+| Status page update | `add_comment` mirroring the public update |
+| Postmortem published | `add_comment` with link; transition → `done` |
+
+### Postmortem back-reference
+
+When the postmortem is written, monitoring-ops appends an action-item
+sub-ticket per remediation item, parent = the incident ticket. Each
+remediation sub-ticket assigned to the owning team's default
+assignee (from `.opchain/pm.yaml` `remediation_owners` map), with a
+target close date.
+
+### Alert hygiene
+
+If an alert fires more than N times in 24h (default 5; configurable
+per alert), monitoring-ops adds a `noisy-alert` label to the
+incident and surfaces a tuning recommendation rather than spamming
+new tickets — same incident gets new comments, not new tickets.
+
+### Failure modes
+
+- MCP unavailable → alert fires through Telegram / PagerDuty as
+  always; intended PM-MCP write is logged in checkpoint as deferred.
+- PM provider rate-limits during a major incident burst → batch into
+  a single rollup ticket with N alerts as comments rather than
+  retrying each.
 
 ---
 

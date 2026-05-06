@@ -1,8 +1,8 @@
 ---
 name: security-auditor
 displayName: Security Auditor
-version: 1.0.0
-shortDesc: Threat modeling, OWASP hardening, and attack-surface review.
+version: 1.2.0
+shortDesc: Threat modeling, OWASP hardening, attack-surface review. v1.2 files CRITICAL findings as PM incident tickets.
 phases: [build]
 triAgent: false
 tryable: false
@@ -474,6 +474,92 @@ for format.
 | code-auditor | Threat model → guide where to focus code sweeps |
 | app-architect | Security requirements → inform spec updates |
 | scale-ops | DoS findings → capacity planning input |
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+Security findings have higher impact than code findings: they often
+require coordinated remediation across teams + a paper trail for
+audit. v1.2 routes `/secaudit` output through the PM tool with
+slightly different rules from `code-auditor`. See
+`integrations-engineer` for the canonical PM-MCP patterns.
+
+### Posture summary on the linked ticket
+
+After every `/secaudit` run, post a structured summary on the linked
+PM ticket (if any):
+
+```
+Security audit: Posture grade {A-F}.
+STRIDE findings: {C N, H N, M N, L N}
+OWASP Top 10: {N FAIL, N PARTIAL, N PASS}
+Top three (by exploitability × impact):
+  1. {component} — {one-line finding}
+  ...
+Compliance lens: {SOC2 / HIPAA / CMMC / ISO mapping summary}
+Full report: .checkpoints/security-auditor.checkpoint.json
+```
+
+### CRITICAL findings as incident tickets
+
+CRITICAL findings get the `incident` issue-type from
+`.opchain/pm.yaml`, not `bug`:
+
+- `priority`: highest tier.
+- `labels`: `security`, `incident`, `severity:CRITICAL`,
+  `compliance:<framework-if-relevant>`.
+- `parent`: the source PR ticket if invoked from one; otherwise
+  unparented.
+- `assignee`: Security Lead from `.opchain/pm.yaml`
+  `remediation_owners.security`.
+- `body`: full finding + threat-model reference + suggested
+  remediation + compliance-impact statement.
+
+Why incident-typed: a CRITICAL security finding is treated as an
+active operational concern, not a backlog bug. Incident-typed tickets
+in most PM tools route to on-call workflows + status pages.
+
+### HIGH findings as security sub-tickets
+
+HIGH findings get filed as `bug`-typed sub-tickets parent-linked to
+the source PR ticket, same shape as code-auditor's HIGH+ pattern.
+Labels include `security`, `severity:HIGH`, and the relevant OWASP
+category.
+
+### Compliance crosswalk artifacts
+
+In regulated runs (SOC2, HIPAA, CMMC, FedRAMP) the crosswalk
+artifact (mapping findings → compliance controls) is also attached
+to the ticket as a comment + uploaded as a file attachment if the PM
+tool supports it. The crosswalk is the auditor-facing artefact; the
+PM ticket is the engineer-facing surface.
+
+### Re-scan hygiene
+
+`/secaudit` re-runs check existing security tickets. A finding that
+no longer reproduces gets a `security-auditor verified clean in {sha}`
+comment + transition to `done`. Regressions reopen the same ticket
+rather than create duplicates.
+
+### Cross-domain + regulated environments
+
+In environments with the broker / redactor / cross-domain rules
+described in scenarios `mcp-enterprise-f500` and
+`mcp-enterprise-defense`, the security-auditor's PM-MCP writes pass
+through the same broker as every other tool call — same audit log,
+same scope rules. The Security Lead role typically holds elevated
+PM-MCP scope by design.
+
+### Failure modes
+
+- No linked ticket + CRITICAL finding → still file the incident
+  ticket unparented; the gravity warrants a PM record even without
+  context linkage.
+- MCP unavailable → log to checkpoint as deferred; never block the
+  audit on PM availability.
+- BAA / DPA missing on the configured PM provider → refuse to write
+  the body of compliance findings; only post the grade + count.
 
 ---
 

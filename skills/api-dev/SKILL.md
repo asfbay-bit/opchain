@@ -1,8 +1,8 @@
 ---
 name: api-dev
 displayName: API Developer
-version: 1.0.0
-shortDesc: First-party API design, OpenAPI, versioning, SDKs.
+version: 1.2.0
+shortDesc: First-party API design, OpenAPI, versioning, SDKs. v1.2 files breaking-change + deprecation tickets; drift on PR.
 phases: [plan, build]
 triAgent: true
 tryable: true
@@ -491,6 +491,72 @@ are *declarations* in the spec. Sibling skills implement them.
 | monitoring-ops | Ingests SLO targets + drift-alert manifest |
 | deploy-ops | Drift gate — `api-dev /api drift` must report zero before prod |
 | integrations-engineer | When a sibling app integrates *this* API, the published spec is the source of truth |
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+API changes have ripple effects: SDK consumers need lead time on
+breaking changes; deprecations need calendar visibility; spec drift
+is a deploy-blocker. v1.2 routes those signals through the PM tool
+so they're not buried in a checkpoint. See `integrations-engineer`
+for the canonical PM-MCP patterns.
+
+### Breaking-change tickets
+
+When `/api version` proposes a major-version bump (or
+`/api lint` detects a breaking change in a non-major version), file:
+
+- A **breaking-change parent ticket** with the new version + the
+  list of breaking endpoints + migration guide.
+- One **child ticket per consumer** known to depend on the affected
+  surface. Consumer registry comes from `.opchain/api-consumers.yaml`
+  if present, or from the SDK download / API-key telemetry if
+  monitoring-ops is wired.
+
+Each consumer ticket has the suggested upgrade path + the deadline
+matching the deprecation policy in `.opchain/pm.yaml`
+(`deprecation_lead_time: 90d` etc.).
+
+### Deprecation notices
+
+When `/api deprecate <endpoint>` is invoked:
+
+- Comment on every ticket that mentions the endpoint (search via
+  the PM-MCP) noting the deprecation date.
+- Open a calendar-keyed reminder ticket scheduled for the
+  sunset date with the cleanup checklist.
+- If the deprecated endpoint has not actually been removed by the
+  sunset date, monitoring-ops opens an incident ticket
+  parent-linked to the deprecation reminder.
+
+### Drift gate visibility
+
+`/api drift` is a deploy-ops pre-condition. When drift is detected:
+
+- Comment on the linked PR ticket: `API drift detected — spec and
+  implementation diverge in {endpoint}. Deploy gate will refuse
+  until reconciled.`
+- File the specific drift as an `api-drift`-labelled bug-typed
+  child ticket if it persists across a re-run (one-shot drifts
+  often resolve in the next commit; persistent drift gets a
+  ticket).
+
+### SDK release notes auto-comment
+
+When `/api sdk` produces a new SDK release, post a comment on every
+linked PM ticket that contributed to the version:
+`SDK {language} v{version} released; includes your change ({endpoint}).`
+
+### Failure modes
+
+- No `.opchain/api-consumers.yaml` → skip the per-consumer fan-out;
+  parent ticket only.
+- Endpoint search across PM tool returns 100+ matches → file the
+  parent ticket only with a query link rather than commenting on
+  each.
+- Breaking change in a v0.x project (semver pre-1) → no PM
+  fan-out by default; opt-in via `/api version --pm-broadcast`.
 
 ---
 

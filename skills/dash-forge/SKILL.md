@@ -1,8 +1,8 @@
 ---
 name: dash-forge
 displayName: Dash Forge
-version: 1.0.0
-shortDesc: Dashboards, BI, dense data — design spec + React prototype.
+version: 1.2.0
+shortDesc: Dashboards, BI, dense data — design spec + React prototype. v1.2 attaches the handoff bundle to the linked PM ticket.
 phases: [plan]
 triAgent: false
 tryable: true
@@ -468,6 +468,62 @@ data-architect ──handoff──►│  dash-forge  │──handoff──► 
 - **Upstream (rare):** direct invocation with just "design me a dashboard"
 - **Downstream:** app-architect build phase, tri-dev sprint decomposition
 - **Peer:** ux-engineer handles non-data UI; consistent token handoff both ways
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+Dashboard work is bursty: a single dash-forge run produces a
+substantial handoff bundle (design spec + prototype + component
+inventory + integration notes). v1.2 makes that bundle linkable
+from the PM tool so app-architect's build phase + reviewers can
+find it without grepping the repo. See `integrations-engineer`
+for the canonical PM-MCP patterns.
+
+### Handoff comment on the linked ticket
+
+When `/data-forge` (or `/dash-forge`) completes, post:
+
+```
+Dashboard handoff: {archetype} ({Exec / Ops / Analyst})
+  Layout: {grid-summary}
+  Components: {N total} ({M new})
+  Charts: {chart-types-used}
+  Mock-data fixtures: {fixture-count}
+  Prototype: dash-forge-handoff/prototype.tsx
+  Integration notes: dash-forge-handoff/integration-notes.md
+  /df-audit: PASS (or FAIL: {summary})
+```
+
+If routed-from ux-engineer (the typical path), reply on the same
+ticket where ux-engineer's "Routed to dash-forge" comment lives.
+The thread reads end-to-end.
+
+### Archetype-decision record
+
+The archetype pick (Exec vs Ops vs Analyst) is an architectural
+decision. v1.2 records it as a structured comment alongside the
+handoff so the next reviewer can see *why* the dashboard looks
+the way it does:
+
+```
+Archetype: {choice}
+Reason: {one-line — usually about the user persona's task shape}
+Rejected: {alternatives}, because {reason}.
+```
+
+### `/df-audit` failures
+
+If `/df-audit` fails, post the failure summary on the ticket
+**before** the handoff comment, so the ticket reflects the
+current state. The handoff comment posts only after audit passes.
+
+### Failure modes
+
+- No linked ticket → handoff bundle written to filesystem only.
+- ux-engineer originating ticket missing → post the handoff
+  unparented; the user can link it manually if needed.
+- MCP unavailable → log intent to checkpoint as deferred.
 
 ---
 

@@ -1,8 +1,8 @@
 ---
 name: scale-ops
 displayName: Scale Ops
-version: 1.0.0
-shortDesc: Load, caching, capacity planning.
+version: 1.2.0
+shortDesc: Load, caching, capacity planning. v1.2 posts load-test reports to the PM ticket; HIGH risks as sub-tickets.
 phases: [plan]
 triAgent: false
 tryable: true
@@ -425,6 +425,64 @@ When moving from [current tier] to [next tier]:
 | deploy-ops | Readiness score → deploy confidence at scale |
 | code-auditor | Performance budgets → `/audit perf` thresholds |
 | app-architect | Cost projections → spec cost estimates |
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+Scaling work is advisory — recommendations the engineering team
+will act on over weeks. v1.2 makes those recommendations
+discoverable + ownable in the PM tool. See `integrations-engineer`
+for the canonical PM-MCP patterns.
+
+### Load-test summary on the linked ticket
+
+After every `/scale audit` or `/scale loadtest`, post a structured
+summary on the linked PM ticket:
+
+```
+Scale audit: Readiness {READY / WATCH / RED}.
+Load profile: {N concurrent users / {req/sec} sustained}
+SLO compliance: p95 {Xms / target Yms} · p99 {Xms / target Yms} · err {X% / target Y%}
+Top three bottlenecks (by headroom × business-impact):
+  1. {component} — {one-line finding}
+  ...
+Cost projection: ~${USD/month} at {target-scale}
+Full report: .checkpoints/scale-ops.checkpoint.json
+```
+
+### HIGH-risk findings as scaling sub-tickets
+
+For every finding tagged HIGH or CRITICAL on the readiness scale:
+
+- Sub-ticket parent-linked to the source PR ticket.
+- `issue_type`: `bug` if it's a current pain; `chore` if it's a
+  scaling-prep concern.
+- labels: `scaling`, `severity:<level>`, `area:<component>`.
+- assignee: from `.opchain/pm.yaml` `remediation_owners.infra` or
+  `.backend` based on finding type.
+
+### Capacity-planning artifacts
+
+`/scale capacity` produces a 12-month capacity projection. The
+output is uploaded as a comment with the projection table + a
+calendar-keyed reminder ticket scheduled for the next review
+window (default 90 days).
+
+### Cost recommendations
+
+When `/scale cost` finds a > 30% cost-reduction opportunity, file a
+sub-ticket with the projected savings + the change required. Cost
+recommendations smaller than that stay in the report only — not
+worth the PM noise.
+
+### Failure modes
+
+- No linked ticket → report still produced; no PM write.
+- MCP unavailable → log intended writes to checkpoint; user can
+  `/scale sync-pm` later.
+- Load test still running when invoked → defer the PM comment until
+  the run completes; never post partial results.
 
 ---
 

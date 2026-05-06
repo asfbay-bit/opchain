@@ -141,9 +141,18 @@ const initialCover = covers[0];
       </p>
     </div>
 
+    <a class="release-pill" href="/changelog" aria-label="opchain v1.2 release notes">
+      <span class="release-pill-tag">v1.2</span>
+      <span class="release-pill-text">
+        PM-tool MCP integration · Linear / Jira / GitHub Issues
+      </span>
+      <span class="release-pill-arrow" aria-hidden="true">›</span>
+    </a>
+
     <!-- Featured-scenario magazine cover — rotates every 10 s through
-         the six walkthroughs. "Open the workbench" deep-links into
-         /demo so the click lands directly on the IDE workbench. -->
+         every walkthrough in the catalog. "Open the workbench"
+         deep-links into /demo so the click lands directly on the IDE
+         workbench. -->
     <section class="stage" data-cover>
       <div class="stage-mid">
         <div class="stage-issue">
@@ -381,6 +390,55 @@ const initialCover = covers[0];
     flex-wrap: wrap;
     margin-top: 1rem;
   }
+
+  /* ── Release pill (v1.2 marketing affordance). Sits above the
+        magazine cover; links to /changelog. Subtle ember accent so
+        it reads as a release callout, not a primary CTA. ── */
+  .release-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    align-self: center;
+    margin: 1.75rem auto 0;
+    padding: 0.4rem 0.9rem 0.4rem 0.5rem;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+    transition:
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard),
+      transform var(--dur-fast) var(--ease-standard);
+  }
+  .release-pill:hover {
+    color: var(--text);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .release-pill-tag {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(0, 0, 0, 0);
+    border: 0.5px solid var(--accent);
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .release-pill-text {
+    font-family: var(--font-sans);
+    letter-spacing: var(--ls-wide);
+  }
+  .release-pill-arrow {
+    color: var(--subtle);
+    font-size: 16px;
+    line-height: 1;
+    transition: color var(--dur-fast) var(--ease-standard);
+  }
+  .release-pill:hover .release-pill-arrow { color: var(--accent); }
 
   /* ── Magazine cover (relocated from /demo, chunk 2). Sits between
         the intro body and the phase grid, full-bleed within the .intro

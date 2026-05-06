@@ -1,76 +1,85 @@
 {
   "protocol_version": "1.0",
   "skill": "app-architect",
-  "project": "opchain.dev",
-  "project_dir": "/home/user/opchain",
-  "created_at": "2026-05-01T18:30:00Z",
-  "updated_at": "2026-05-02T18:50:00Z",
+  "project": "opchain.dev v1.2",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "created_at": "2026-05-05T00:00:00Z",
+  "updated_at": "2026-05-05T21:25:00Z",
 
   "phase": "build",
-  "step": "round-3-deployed",
+  "step": "all-sprints-complete",
   "status": "complete",
-  "progress_summary": "Three rounds of build work merged. R1: extracted DesktopWorkbench, built MobileWorkbench (Direction A), CSS-breakpoint swap on /demo at 767px (#143). R2: built MobileArchitecture component, same swap pattern on /architecture (#146). R3: built WelcomePopup, deleted OnboardingTour, dropped page-summary card (full-bleed workbench), moved desktop feedback pill to top-right, restyled skill detail TOC, added click-to-flash, restored visually-hidden h1 on /demo (#148).",
+  "progress_summary": "v1.2 feature batch complete. Three new scenarios shipped (mcp-enterprise-f500, mcp-enterprise-defense, pm-pipeline-linear), five SKILL.md files updated with PM-MCP integration prose (integrations-engineer canonical owner; app-architect / git-ops / deploy-ops / monitoring-ops phase-specific behaviors), versions bumped 1.0->1.2 (or 1.1->1.2 for app-architect), /changelog page added, homepage v1.2 pill linking to it, styleguide badge bumped to v1.2.0. Build green; 108/108 tests pass; skill catalog validates with 17 skills.",
 
   "progress_table": [
-    { "id": "extract-desktop",  "label": "Extract DesktopWorkbench.astro (verbatim)",     "status": "complete" },
-    { "id": "build-mobile-wb",  "label": "MobileWorkbench.astro (Direction A)",           "status": "complete" },
-    { "id": "demo-thin",        "label": "demo.astro thin-container + CSS swap",          "status": "complete" },
-    { "id": "build-mobile-arch","label": "MobileArchitecture.astro static diagram",       "status": "complete" },
-    { "id": "arch-thin",        "label": "architecture.astro CSS swap at 767px",          "status": "complete" },
-    { "id": "welcome-popup",    "label": "WelcomePopup.astro replaces page-summary+tour", "status": "complete" },
-    { "id": "fullbleed",        "label": "Drop page-summary; workbench full-bleed",       "status": "complete" },
-    { "id": "feedback-pill",    "label": "Move desktop feedback pill to top-right",       "status": "complete" },
-    { "id": "toc-restyle",      "label": "Skill TOC fade/region-hover/link-hover",        "status": "complete" },
-    { "id": "toc-flash",        "label": "Click-to-flash heading bump + 10s color fade",  "status": "complete" },
-    { "id": "h1-fix",           "label": "Visually-hidden h1 on /demo for routes.spec",   "status": "complete" },
-    { "id": "deploy",           "label": "Hand off to deploy-ops",                        "status": "complete" }
+    { "id": "scope",        "label": "Scope + sprint plan approval",                 "status": "complete" },
+    { "id": "sprint-1",     "label": "Sprint 1: F500 healthcare MCP scenario",       "status": "complete" },
+    { "id": "sprint-2",     "label": "Sprint 2: Defense MCP scenario",               "status": "complete" },
+    { "id": "sprint-3",     "label": "Sprint 3: Skills v1.2 PM-MCP prose updates",  "status": "complete" },
+    { "id": "sprint-4",     "label": "Sprint 4: v1.2 site surface + Linear scenario","status": "complete" }
   ],
 
   "context_primer": {
     "key_decisions": [
-      "Single-route + CSS-breakpoint swap at 767px on both /demo and /architecture (no UA sniff, no parallel route).",
-      "Both Desktop and Mobile subtrees server-render. Inactive one is display:none → zero layout cost; modal-open delegated click handler reaches both.",
-      "Mobile components namespaced (mw-*, ma-*) so JS selectors never reach into the desktop subtree.",
-      "WelcomePopup auto-open key: localStorage `opchain-demo-welcome-seen`. Mobile skipped (MobileWorkbench Scenarios tab is its own welcome).",
-      "FeedbackWidget desktop pill: top:1rem right:1rem z-index:100. Mobile launcher (in Header.astro) unchanged.",
-      "Skill TOC: var(--subtle) at rest; .toc-rail:hover/.toc-collapse:hover descendant selector brightens to var(--text); per-link :hover wins to var(--accent). Active stays ember.",
-      "Click-to-flash uses single shared timer + reflow trick (`void el.offsetWidth`) so a rapid second click cancels and restarts cleanly.",
-      "Restored visually-hidden h1 on /demo using existing .visually-hidden utility from src/styles/global.css.",
-      "TypeScript predicate `(s): s is Extract<...>` doesn't parse cleanly inside Astro JSX — used `step.kind === 'beat' ? ... : null` instead.",
-      "HTML braces `{` `}` inside Astro markup must be entity-escaped (`&#123;` `&#125;`) when not part of an expression."
+      "Option C: updated SKILL.md prose to teach PM-MCP behavior AND added a /changelog marketing surface.",
+      "Two MCP-enterprise scenarios: F500 healthcare (MeridianHealth, HIPAA + ISO + SOC2) and defense contractor (Daedalus Aerospace, CMMC L3 + FedRAMP High + IL5 + ITAR).",
+      "PM tools in scope: Linear (named tool in v1.2 hero scenario), Jira + GitHub Issues called out as drop-in alts. Monday dropped per user request.",
+      "v1.2 is a content/marketing label; runtime __OPCHAIN_VERSION__ remains git-SHA-stamped.",
+      "shortDesc has a 120-char schema limit (Astro content collection); first batch of v1.2 shortDescs were too long, fixed.",
+      "Skills are markdown documents that prompt Claude's behavior — updating SKILL.md prose IS implementing v1.2."
     ],
     "generated_files": [
-      "site/src/components/DesktopWorkbench.astro",
-      "site/src/components/MobileWorkbench.astro",
-      "site/src/components/MobileArchitecture.astro",
-      "site/src/components/WelcomePopup.astro",
-      "site/src/pages/demo.astro (refactored thin container + h1)",
-      "site/src/pages/architecture.astro (CSS-swap wiring)",
-      "site/src/pages/skills/[id].astro (TOC restyle + flash)",
-      "site/src/components/FeedbackWidget.astro (top-right desktop)",
-      "site/tests/e2e/demo-mobile.spec.ts"
+      "site/src/data/walkthroughs/mcp-enterprise-f500.ts (~880 lines, 7 artifacts)",
+      "site/src/data/walkthroughs/mcp-enterprise-defense.ts (~750 lines, 6 artifacts)",
+      "site/src/data/walkthroughs/pm-pipeline-linear.ts (~620 lines, 6 artifacts)",
+      "site/src/data/walkthroughs/index.ts (3 new imports + entries)",
+      "site/src/pages/changelog.astro (new /changelog page)",
+      "site/src/pages/index.astro (homepage v1.2 release pill + CSS)",
+      "site/src/pages/styleguide.astro (badge v1.1.0 -> v1.2.0)",
+      "site/src/components/Footer.astro (Changelog link)",
+      "skills/integrations-engineer/SKILL.md (canonical PM-MCP section, version 1.2.0)",
+      "skills/app-architect/SKILL.md (Phase 1/4/6 PM-MCP integration, version 1.2.0)",
+      "skills/git-ops/SKILL.md (/git-sync TICKET-1234 flow, version 1.2.0)",
+      "skills/deploy-ops/SKILL.md (deploy ticket auto-creation, version 1.2.0)",
+      "skills/monitoring-ops/SKILL.md (incident ticket auto-creation, version 1.2.0)"
     ],
     "user_preferences": [
-      "CSS-breakpoint swap (recommended), no separate /m/ routes.",
-      "Comfortable picking defaults when given clarifying questions."
+      "User picks options when given clear choices; comfortable saying 'go with defaults'.",
+      "Prefers to scope the work with sharp questions before building; willing to approve big plans in one pass.",
+      "Healthcare for F500 (not fintech).",
+      "Linear for the v1.2 hero scenario (not Jira)."
     ]
   },
 
   "blockers": [],
 
   "next_actions": [
-    "Once /architecture and /skills/app-architect have a stable LHCI median across a few CI runs, promote their lighthouserc.cjs assertions from `warn` to `error` (matches B-01/B-08 calibration cycle for the original 3 routes)."
+    "Manual visual verification on staging: confirm v1.2 pill renders at expected size; confirm /changelog reads well; click through to each linked scenario.",
+    "Run local dev server + click through demo workbench to verify scenarios 7, 8, 9 are pickable and play correctly end-to-end.",
+    "When ready: npm run deploy:staging, eyeball, then npm run deploy. Per CLAUDE.md, deploys are manual from a wrangler-logged-in laptop.",
+    "Optional Sprint 5 (post-ship): add Playwright e2e coverage for /changelog and the new scenarios to lighthouserc warn assertions."
   ],
 
   "skill_state": {
-    "demo_astro_lines_before": 1720,
-    "demo_astro_lines_after": 350,
-    "new_components": ["DesktopWorkbench.astro", "MobileWorkbench.astro", "MobileArchitecture.astro", "WelcomePopup.astro"],
-    "deleted_components": ["OnboardingTour.astro"],
-    "modified_components": ["FeedbackWidget.astro"],
-    "modified_pages": ["demo.astro", "architecture.astro", "skills/[id].astro"],
-    "breakpoint_px": 767,
-    "tap_target_min_px": 44,
-    "depends_on": "ux-engineer checkpoint for design rationale; checkpoint-protocol v1.0"
+    "sprint_count": 4,
+    "scenarios_added": ["mcp-enterprise-f500", "mcp-enterprise-defense", "pm-pipeline-linear"],
+    "skills_updated": ["integrations-engineer", "app-architect", "git-ops", "deploy-ops", "monitoring-ops"],
+    "site_surfaces_added": ["/changelog page", "homepage v1.2 pill"],
+    "version_bumps": {
+      "integrations-engineer": "1.0.0 -> 1.2.0",
+      "app-architect": "1.1.0 -> 1.2.0",
+      "git-ops": "1.0.0 -> 1.2.0",
+      "deploy-ops": "1.0.0 -> 1.2.0",
+      "monitoring-ops": "1.0.0 -> 1.2.0",
+      "styleguide-badge": "v1.1.0 -> v1.2.0"
+    },
+    "build_state": {
+      "site_pages_built": 26,
+      "tests_passed": "108/108",
+      "skill_catalog_validates": true,
+      "shortDesc_max_chars": 120,
+      "longest_shortDesc_now": 117
+    },
+    "depends_on": "checkpoint-protocol v1.0; existing scenario format in site/src/data/walkthroughs/"
   }
 }

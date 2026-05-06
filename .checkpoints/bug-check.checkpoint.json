@@ -2,88 +2,61 @@
   "protocol_version": "1.0",
   "skill": "bug-check",
   "project": "opchain.dev",
-  "project_dir": "/home/user/opchain",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-03T23:53:00Z",
+  "updated_at": "2026-05-06T04:52:55Z",
   "phase": "gate",
-  "step": "demo-artifact-expansion-chunk6-passed-FINAL",
+  "step": "v1.2-pm-mcp-batch-passed",
   "status": "complete",
-  "progress_summary": "Fourteenth bug-check run. Diff is chunk 6 (final): security-hardening artifacts (threat-model → 8-section STRIDE-per-boundary doc with data classification, exploitability/impact ranking, OWASP + SOC2 TSC mappings; hardening-plan → 8-section infra plan with full CSP header, all CF settings table, cookie matrix, audit log schema, 12-step engineer checklist; remediation-backlog → 9-section prioritised backlog with 4-tier severity, B/C/D/H items each with finding/fix/scope/est/done-when, sprint proposal, comms grid, definition of audit-ready). Final end-to-end build run: 25 pages, demo page now 589KB (was ~340KB pre-PR; +73%). Ran: vitest (108/108 passed), astro check (0 errors / 0 warnings), anti-pattern grep clean, secret scan clean, full site build green. Verdict PASS.",
+  "progress_summary": "Pre-commit gate run for the v1.2 feature batch (12 SKILL.md updates, 3 new walkthrough scenarios, /changelog page, homepage v1.2 pill, footer link, styleguide bump, .opchain/pm.yaml schema, getSkillUpdatedAt REPO_ROOT walk-up bug fix). astro check 0/0 errors+warnings; vitest 108/108 pass; anti-pattern grep clean; secret scan clean (one bug-check doc string + package-lock task-list-item substring both false positives); npm run build green (26 pages + worker dist 550KB); root npm audit 0 vulnerabilities; site npm audit 4 low / 6 moderate (no critical, no high) — WARN, pre-existing not from this batch. Verdict: PASS.",
   "progress_table": [
-    { "id": "schema", "label": "Checkpoint schema validation", "status": "complete" },
-    { "id": "secrets", "label": "Secret scan on changed files", "status": "complete" },
-    { "id": "type_safety", "label": "astro check (type + a11y)", "status": "complete" },
-    { "id": "lint", "label": "ESLint (no config in repo, skipped)", "status": "not_started" },
-    { "id": "tests", "label": "Vitest run — 108/108 passed", "status": "complete" },
-    { "id": "anti_patterns", "label": "Anti-pattern grep on diff", "status": "complete" },
-    { "id": "build", "label": "npm run site:build — 25 pages", "status": "complete" },
-    { "id": "dependencies", "label": "npm audit (no dep change)", "status": "not_started" }
+    { "id": "schema",        "label": "Checkpoint schema validation",                "status": "complete" },
+    { "id": "secrets",       "label": "Secret scan on changed files",                "status": "complete" },
+    { "id": "type_safety",   "label": "astro check — 0 errors, 0 warnings",          "status": "complete" },
+    { "id": "lint",          "label": "ESLint (no repo config; skipped)",            "status": "not_started" },
+    { "id": "tests",         "label": "Vitest run — 108/108 passed",                 "status": "complete" },
+    { "id": "anti_patterns", "label": "Anti-pattern grep on diff — 0 hits",          "status": "complete" },
+    { "id": "build",         "label": "npm run build — 26 pages + worker dist",      "status": "complete" },
+    { "id": "dependencies",  "label": "npm audit — 0 critical (root); 6 moderate (site, pre-existing)", "status": "complete" }
   ],
   "context_primer": {
     "key_decisions": [
-      "Source-touching commit — ran the full applicable check suite (tests, build, type-check, anti-patterns, secrets).",
-      "ESLint skipped because the repo has no eslint config; relying on astro check and tsc-via-astro for type/lint signal.",
-      "npm audit skipped because the diff doesn't change package.json or lockfiles."
+      "Source-touching commit — ran the full applicable check suite (type-check, tests, build, anti-patterns, secrets, dep audit).",
+      "ESLint skipped because the repo has no eslint config; astro check and TS provide the linting signal.",
+      "Secret-scan grep matched two strings: (1) the literal regex inside bug-check/SKILL.md documenting private-key detection, (2) substring 'sk-' inside `task-list-item` in package-lock.json. Both verified false positives.",
+      "site npm audit reports 4 low + 6 moderate (no critical, no high). Not introduced by this batch; tracked as carried debt for a separate dependency-bump pass.",
+      "Walking-up REPO_ROOT bug fix verified: skill detail pages now render the Updated badge with real ISO timestamps."
     ],
     "generated_files": [],
     "user_preferences": [
-      "User asked for the work to be done in small chunks; this is chunk 1 of N. Followups land in subsequent commits on the same branch."
+      "User asked for full publish (commit + staging deploy + prod). Pause for explicit approval before prod deploy per CLAUDE.md flow."
     ]
   },
   "blockers": [],
   "next_actions": [
-    "Continue the demo-artifact expansion in subsequent chunks (legacy-revive audit-report + stamp; dashboard-rescue; stripe-ship; postgres-migration; security-hardening). Re-run bug-check before each commit.",
-    "If a future commit changes package.json or package-lock.json, run npm audit --audit-level=critical as part of bug-check.",
-    "If eslint config is added to the repo, wire it into bug-check's lint step."
+    "Proceed with the v1.2 feature commit (gate passed).",
+    "Stage deploy via npm run deploy:staging.",
+    "curl staging health, verify version SHA matches HEAD.",
+    "Pause for user prod approval before npm run deploy."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-03T23:53:00Z",
+      "at": "2026-05-06T04:52:55Z",
       "verdict": "PASS",
-      "duration_ms": 3700,
-      "scope": "changed",
-      "changed_files": [
-        "site/src/data/walkthroughs/security-hardening.ts"
-      ],
+      "duration_s": 25,
       "checks": {
         "type_safety": "PASS",
-        "lint": "SKIP",
+        "lint": "SKIPPED",
         "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
         "build": "PASS",
-        "dependencies": "SKIP"
+        "dependencies": "WARN"
       },
-      "notes": [
-        "Chunk 6 (final): full-length expansion of all three security-hardening artifacts (threat-model, hardening-plan, remediation-backlog).",
-        "End-of-PR end-to-end build verification: 25 pages built clean; demo page now 589KB (was ~340KB pre-PR — +73% growth from genuine artifact expansion across all six scenarios).",
-        "astro check: 0 errors, 0 warnings on the diff.",
-        "vitest: 108/108 passing.",
-        "secrets: clean.",
-        "anti-patterns: clean.",
-        "Note: LHCI bot reports same two pre-existing failures on /skills/app-architect and /architecture (5 consecutive PR pushes). Not from this PR; /demo consistently at 0.99/1.00 across all chunks. No action.",
-        "PR #172 chunks 1-6 complete: TOC infrastructure + 22 artifact expansions across 6 scenarios."
-      ],
-      "warnings": 0,
+      "warnings": 1,
       "errors": 0
     },
-    "run_history": [
-      { "at": "2026-05-03T23:53:00Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T23:48:00Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T23:43:00Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T23:38:00Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T23:32:00Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T23:27:30Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T21:11:04Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T20:55:10Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T20:52:46Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-05-03T20:49:39Z", "verdict": "PASS", "warnings": 0 }
-    ],
     "bypasses": [],
-    "carried_debt": 0,
-    "streak": {
-      "passes": 16,
-      "since": "2026-05-02T18:47:50Z"
-    }
+    "carried_debt": 0
   }
 }

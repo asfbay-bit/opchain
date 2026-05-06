@@ -1,8 +1,8 @@
 ---
 name: ux-engineer
 displayName: UX Engineer
-version: 1.1.0
-shortDesc: Design Planner → Generator → Evaluator harness.
+version: 1.2.0
+shortDesc: Design Planner → Generator → Evaluator. v1.2 posts eval scores to the PM ticket; a11y as sub-tickets.
 phases: [plan]
 triAgent: true
 tryable: true
@@ -657,6 +657,79 @@ project-dir/
 | tri-dev | Design scores → combined sprint verdict |
 | code-auditor | Component health → UX audit context |
 | deploy-ops | Fidelity score → deploy confidence |
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+UI sprints have an extra grader (the Design Evaluator) that
+produces scores design teams care about. v1.2 makes those scores
+visible in the PM tool. See `integrations-engineer` for the
+canonical PM-MCP patterns.
+
+### Design-eval summary on the linked ticket
+
+After every Design Evaluator round on a UI sprint, post a
+structured comment:
+
+```
+Design eval — round {M}: {PASS / FAIL}
+  Visual hierarchy:    {X}/10
+  State completeness:  {X}/10  (loading / empty / error / disabled — {N} of 4)
+  Consistency:         {X}/10
+  Accessibility:       {X}/10  (axe-core: {N} violations)
+Top three findings:
+  1. {component} — {one-line finding}
+  ...
+Full report: sprints/sprint-{N}/design-eval-round-{M}.md
+```
+
+### Accessibility findings as sub-tickets
+
+Accessibility violations have higher escalation than other design
+findings — they're not subjective preferences and they have legal /
+compliance implications. v1.2 files axe-core CRITICAL or SERIOUS
+violations as sub-tickets parent-linked to the source PR ticket:
+
+- `issue_type`: `bug`.
+- `priority`: highest tier for CRITICAL, high for SERIOUS.
+- `labels`: `a11y`, `severity:<critical|serious>`,
+  `wcag:<criterion>`.
+- `assignee`: from `.opchain/pm.yaml` `remediation_owners.frontend`.
+- `body`: violation + offending selector + WCAG criterion +
+  suggested fix from axe-core.
+
+Lower-severity violations stay in the eval report only.
+
+### Design-system drift comments
+
+If `/uxe consistency` finds drift (a new component using off-token
+colors or off-scale spacing), comment on the linked ticket:
+
+```
+Design-system drift detected:
+  - 3 new components use raw hex colors (should be tokens).
+  - 1 new spacing value off the 4/8/12/16 scale.
+Action: refactor before merge, or accept as exception with rationale.
+```
+
+The skill does not auto-block; the comment is the signal. Whether
+it's a block depends on team policy + the PR review process.
+
+### Dash-forge handoff back-reference
+
+When ux-engineer detects a dashboard surface and routes to
+dash-forge, both skills' PM-MCP integrations coordinate: ux-engineer
+adds a `Routed to dash-forge for {screen-name}; handoff bundle
+attached.` comment, dash-forge later appends its own design-spec +
+prototype comment to the same ticket. The thread reads end-to-end.
+
+### Failure modes
+
+- No linked ticket → eval report saved only; no PM write.
+- axe-core integration absent → a11y scores still reported, but
+  no a11y sub-tickets filed (we don't fabricate violations).
+- MCP unavailable → log intent to checkpoint.
 
 ---
 

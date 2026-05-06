@@ -1,8 +1,8 @@
 ---
 name: stack-forge
 displayName: Stack Forge
-version: 1.0.0
-shortDesc: Stack decisions, Cloudflare patterns, typed pipeline.
+version: 1.2.0
+shortDesc: Stack decisions, Cloudflare patterns, typed pipeline. v1.2 records the chosen stack on the linked PM ticket as an ADR.
 phases: [plan, build]
 triAgent: false
 tryable: true
@@ -364,6 +364,64 @@ Checkpoint location: `{project-dir}/.checkpoints/stack-forge.checkpoint.json`
 **When a reference doc doesn't cover the selected stack**, web search for current
 best practices and generate the pattern inline. The reference docs are a starting
 point, not a ceiling.
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+stack-forge produces architectural decisions. Those decisions
+deserve a permanent home in the PM tool — the next engineer
+investigating "why are we on this stack?" should not have to dig
+through chat logs. v1.2 makes stack-forge an Architectural
+Decision Record (ADR) author. See `integrations-engineer` for
+the canonical PM-MCP patterns.
+
+### Stack-decision comment on the linked ticket
+
+When stack-forge runs from app-architect Phase 2 (the typical
+case), the source ticket comes from the parent invocation. After
+the stack is selected, post:
+
+```
+Stack decision (ADR-{N}):
+  Platform:  {choice}        ← {one-line rationale}
+  Backend:   {choice}        ← {one-line rationale}
+  Database:  {choice}        ← {one-line rationale}
+  Auth:      {choice}        ← {one-line rationale}
+  Frontend:  {choice}        ← {one-line rationale}
+
+Considered + rejected: {alternatives}, because {reason}.
+Cost projection: ~${USD/month} at MVP scale.
+Full rationale: spec/01-tech-stack.md
+```
+
+The `ADR-{N}` is auto-numbered from the project's existing ADR
+counter (read from `.opchain/adr-counter` if present; otherwise
+maintained by stack-forge in the checkpoint).
+
+### Standalone `/stack-decide` runs
+
+When stack-forge is invoked outside a Phase 2 flow with
+`/stack-decide --ticket TICKET-1234`, the ticket is treated as
+the ADR home. Otherwise the decision lives in the project's
+`docs/adr/` directory only.
+
+### Re-decisions
+
+If `/stack-decide` is invoked on a project that already has a
+prior stack-decision comment in PM:
+
+- Find the prior comment via the PM-MCP search.
+- Post a follow-up comment: `Stack re-decision; supersedes ADR-{prev}.`
+- Add the supersession to the prior ADR record.
+
+### Failure modes
+
+- No ticket context → no PM write; ADR lives in
+  `docs/adr/{N}-stack-decision.md` only.
+- MCP unavailable → log intent to checkpoint as deferred.
+- ADR counter conflict → fall back to ISO timestamp suffix
+  rather than block.
 
 ---
 

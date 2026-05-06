@@ -1,8 +1,8 @@
 ---
 name: orchestrator
 displayName: Orchestrator
-version: 1.0.0
-shortDesc: Pipeline coordinator — project registry, status, routing, next actions.
+version: 1.2.0
+shortDesc: Pipeline coordinator — registry, status, routing. v1.2 reads `pm_refs` across skills; routes by ticket id.
 phases: [foundation]
 triAgent: false
 tryable: true
@@ -778,6 +778,112 @@ The orchestrator **skill** adds:
 Over time, skills may choose to delegate their welcome protocol to the orchestrator
 (check if orchestrator checkpoint exists → read active project from it → skip own
 project detection). But this is opt-in, not required.
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+The orchestrator already reads every skill's checkpoint to answer
+"where did I leave off?". v1.2 makes it PM-aware by reading the
+`pm_refs` field added in checkpoint-protocol v1.2 — the orchestrator
+becomes a router by ticket id, not just by project / phase.
+
+### Cross-skill PM thread aggregation
+
+`/ops` reads `pm_refs` across every skill checkpoint in every
+registered project, then aggregates:
+
+```
+Active threads (by ticket):
+
+  PLAT-4471 — Add CSV export to /api/customers
+    app-architect     spec-approved   (source)
+    git-ops           PR opened       (linked)
+    deploy-ops        shipped         (deploy: PLAT-4485)
+    monitoring-ops    resolved        (incident: PLAT-4503)
+
+  AEGIS-9 — Migrate auth provider Auth0 → Clerk
+    migration-ops     step 4/9        (parent + 9 children)
+    deploy-ops        ─               (waiting)
+
+  EXP-12 — Image-search prototype
+    app-architect     /discover       (source)
+    stack-forge       decided         (ADR-7)
+```
+
+The view collapses by project but is queryable by ticket: `/ops
+ticket PLAT-4471` shows that thread alone.
+
+### `/ops resume TICKET-ID` — route by ticket
+
+New verb (v1.2). User says "resume work on PLAT-4471" and the
+orchestrator:
+
+1. Searches `pm_refs` across all skill checkpoints for the
+   ticket id.
+2. Identifies which skill last touched it + what phase.
+3. Recommends the next action, citing the specific skill and
+   command. Examples:
+   - "Last touched by `git-ops` 2 days ago — PR is in review.
+     Run `/git-sync --refresh` to update."
+   - "Last touched by `app-architect` Phase 4. Next: `/build`."
+
+### `/ops next` (existing verb, v1.2-enhanced)
+
+`/ops next` already considers project + phase. v1.2 also
+considers PM-ticket priority:
+
+- A ticket marked `Urgent` or `priority:high` in the PM tool
+  surfaces ahead of lower-priority backlog work.
+- Tickets with an unblocked dependency surface ahead of blocked
+  ones.
+- Stale-but-active threads (no checkpoint write in > 7d) get a
+  `stale?` annotation.
+
+### `/ops pm-status` — what does the PM tool say?
+
+New advisory verb. Queries the configured PM-MCP for the user's
+assigned tickets in `In Progress` state, cross-references with
+checkpoint state, and reports inconsistencies:
+
+```
+PM ↔ checkpoint reconciliation:
+
+  PLAT-4471 — In Progress (PM)   ↔   shipped (deploy-ops)
+    ⚠  PM ticket should be Done. Likely auto-transition failed.
+    Suggested: /git-sync --retry-pm
+
+  AEGIS-9 — In Progress (PM)     ↔   step 4/9 (migration-ops)
+    ✓  In sync.
+
+  CHURN-3 — In Progress (PM)     ↔   no checkpoint
+    ⚠  PM says you're working on this; no opchain skill
+       has a checkpoint. Did you start outside opchain?
+```
+
+This is a hygiene tool, not an enforcement layer. Reconciliation
+problems are usually transient (deferred PM writes, MCP outages
+during a transition).
+
+### Multi-project routing
+
+In a multi-project setup (orchestrator's existing strength),
+`pm_refs` are namespaced by project so the orchestrator never
+confuses `PLAT-1` from project A with `PLAT-1` from project B
+(different PM workspaces, different broker scopes).
+
+### Failure modes
+
+- No PM-MCP configured anywhere → `/ops` operates as v1.1; no
+  PM aggregation; the existing project / phase view is the
+  full picture.
+- PM-MCP available but `pm_refs` field absent in a skill's
+  checkpoint → that skill simply doesn't appear in the PM
+  thread view; checkpoint-protocol v1.2 backfill happens on
+  the skill's next write.
+- Cross-project PM ambiguity → orchestrator prompts the user
+  to disambiguate when a ticket id appears in multiple PM
+  workspaces.
 
 ---
 

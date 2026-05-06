@@ -1,8 +1,8 @@
 ---
 name: code-auditor
 displayName: Code Auditor
-version: 1.0.0
-shortDesc: Auditor → Fixer → Verifier quality loop.
+version: 1.2.0
+shortDesc: Auditor → Fixer → Verifier quality loop. v1.2 posts findings to the linked PM ticket; HIGH+ filed as sub-tickets.
 phases: [build]
 triAgent: true
 tryable: true
@@ -403,6 +403,74 @@ Output: actual test files written to the project, not a report.
 | git-ops | Report path → include in PR |
 | tri-dev | Findings → pre-seed evaluator |
 | ux-engineer | Component health → UX audit context |
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+Audits run inside a context. The PR was opened from a ticket; the
+sprint that produced the code is linked to a ticket. v1.2 makes the
+auditor post its findings back where humans expect to see them: the
+PM tool. See `integrations-engineer` for the canonical PM-MCP
+patterns.
+
+### Finding-summary comment
+
+After every `/audit pre-deploy` or `/audit full` run, if a linked
+PM ticket can be resolved (from the PR body, the
+`app-architect.checkpoint.json`, or the user prompt), post a
+structured summary comment:
+
+```
+Auditor: Grade {A-F}.
+Counts: {CRITICAL N, HIGH N, MEDIUM N, LOW N, ADVISORY N}
+Top three (by severity × exploitability):
+  1. {file:line} — {one-line title}
+  2. {file:line} — {one-line title}
+  3. {file:line} — {one-line title}
+Full report: .checkpoints/code-auditor.checkpoint.json
+```
+
+The comment is intentionally compact — full findings live in the
+checkpoint. The summary is what subscribers + reviewers see in
+their notification stream.
+
+### HIGH+ findings as sub-tickets
+
+For every CRITICAL or HIGH finding, file a sub-ticket parent-linked
+to the PR ticket:
+
+- `issue_type`: `bug` from `.opchain/pm.yaml`.
+- `priority`: maps from severity (`CRITICAL` → highest tier;
+  `HIGH` → high tier).
+- `labels`: `auditor`, `severity:<level>`, `area:<extracted-from-path>`.
+- `title`: `{file}: {one-line finding}`.
+- `body`: file + line + reproduction + suggested fix from the
+  finding record.
+- `assignee`: from `.opchain/pm.yaml` `remediation_owners` map by
+  area; unassigned if no rule matches.
+
+MEDIUM and LOW findings stay in the audit report only. We don't
+spam the tracker for everything; the principle is that the PM tool
+holds work that someone is going to act on.
+
+### Re-run hygiene
+
+If a subsequent `/audit` round shows that a previously-filed sub-ticket
+no longer reproduces (the issue is closed in code), append a comment
+to the sub-ticket: `Auditor verified clean in {sha}` and transition
+to `done` from `.opchain/pm.yaml` states. If a previously-clean
+finding regresses, re-open the same sub-ticket if it exists rather
+than creating a duplicate.
+
+### Failure modes
+
+- No linked ticket → audit report still produced; no PM write.
+- MCP unavailable → log intended writes to checkpoint as deferred
+  PM actions.
+- Sub-ticket creation rate-limited → batch CRITICAL into one ticket
+  per file rather than per-finding when more than 5 findings hit
+  the same file.
 
 ---
 

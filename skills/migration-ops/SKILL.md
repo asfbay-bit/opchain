@@ -1,8 +1,8 @@
 ---
 name: migration-ops
 displayName: Migration Ops
-version: 1.0.0
-shortDesc: Change the engine mid-flight — database, framework, auth, platform migrations.
+version: 1.2.0
+shortDesc: Change the engine mid-flight — DB, framework, auth, platform. v1.2 mirrors the plan as parent + step children.
 phases: [plan, build]
 triAgent: false
 tryable: true
@@ -766,6 +766,98 @@ project-dir/
 │       ├── step-03-verify.md      # Per-step verification
 │       └── final-verify.md        # Final verification report
 ```
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+Migrations are multi-week, multi-step, multi-engineer. They are
+also genuinely scary — the kind of work where everyone in the org
+wants to know the current state. v1.2 makes that state legible
+in the PM tool the team already lives in. See
+`integrations-engineer` for the canonical PM-MCP patterns.
+
+### Parent + step-child mirror
+
+When `/migrate plan` produces the migration plan:
+
+1. Create a **parent ticket**:
+   - title: `Migration: {from-engine} → {to-engine}`
+   - type: `chore` or `epic` from `.opchain/pm.yaml` (use `epic`
+     mapping if available — migrations are exactly the kind of
+     work epics exist for).
+   - body: full migration spec summary + estimated calendar
+     duration + abort criteria + the rollback strategy.
+   - labels: `migration`, `area:<from-engine>`, `area:<to-engine>`,
+     `risk:<low/med/high>`.
+2. For each plan step, create a **child ticket** parent-linked:
+   - title: `Step {NN}: {step-name}`
+   - body: step procedure + rollback + verification criteria.
+   - state: `Todo` initially.
+3. Record parent + child ids in the
+   `migration-ops.checkpoint.json` so the executor knows which
+   ticket to update at each step.
+
+### Per-step state machine
+
+The plan is the source of truth; the PM tool reflects it.
+
+```
+plan-pending      Step is in the plan, not yet started
+in_progress       /migrate execute picked it up
+verified          /migrate verify passed
+blocked           Verification failed; rollback in progress
+rolled-back       Step was undone; back to plan-pending or aborted
+done              Verified + signed off; safe to advance
+```
+
+State transitions on the PM ticket happen at the same instants the
+checkpoint is updated. The PM comment thread carries the verifier
+output; the checkpoint carries the canonical machine-readable record.
+
+### Per-step comment shape
+
+Every state transition emits a comment on the step ticket:
+
+```
+{state-from} → {state-to} at {timestamp}
+Verifier: {pass-summary OR failure-detail}
+Next: {next-action OR blocker}
+Checkpoint: .checkpoints/migration-ops.checkpoint.json
+```
+
+If the step touches a separately-tracked feature ticket (e.g. the
+migration is happening to unblock PLAT-4471), comment back on
+that ticket too: `Migration step N completed; PLAT-4471 unblocked.`
+
+### Aborts + rollbacks
+
+Aborts are big enough that they get their own visibility:
+
+- Abort triggered → comment on the parent ticket:
+  `MIGRATION ABORTED at step {N}. Rollback in progress.`
+- Each rollback step gets its own comment on its step ticket.
+- Final state on parent: `rolled-back` with the abort reason.
+
+### Communication discipline
+
+For long-running migrations (multi-week), monitoring-ops and
+deploy-ops will write into the same parent ticket via their own
+PM-MCP integrations — deploy tickets parent-link to the migration
+parent, incident tickets back-reference if any incident is traced
+to a migration step. The parent ticket becomes the project
+homepage.
+
+### Failure modes
+
+- PM provider down at a step transition → checkpoint records the
+  intended transition; user can `/migrate sync-pm` to flush.
+- Migration spans 50+ steps → use a phase-grouping pattern:
+  parent → phase tickets (≤6) → step tickets per phase. Avoids a
+  flat list of 50 children that nobody can navigate.
+- Cross-team migration → mention the team's owner in each step
+  ticket using the PM tool's `@mentions` (or labelled assignment
+  if mentions aren't available).
 
 ---
 

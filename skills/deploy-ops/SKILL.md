@@ -1,8 +1,8 @@
 ---
 name: deploy-ops
 displayName: Deploy Ops
-version: 1.0.0
-shortDesc: Audit gate → staging → production → monitoring.
+version: 1.2.0
+shortDesc: Audit gate → staging → production → monitor. v1.2 creates deploy tickets and updates linked PM tickets per env.
 phases: [build]
 triAgent: false
 tryable: true
@@ -476,6 +476,63 @@ jobs:
   smoke:       # post-deploy smoke tests
   notify:      # telegram notification
 ```
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+deploy-ops creates a **deploy ticket** per environment + commit +
+ship and updates every PM ticket linked to commits in the deploy.
+
+### Deploy ticket creation
+
+When `/deploy staging` or `/deploy prod` starts and audit gate
+passes:
+
+1. Walk the commit range from last-deployed to HEAD.
+2. Extract `Refs:` and `Closes:` trailers from each commit; collect
+   the unique ticket id set.
+3. Compose deploy-ticket body:
+   ```
+   Environment: {env}
+   Range: {prev-sha}..{HEAD-sha}
+   Commits: {N}
+   Linked tickets: {ids comma-separated, each linked}
+   Audit gate: PASS (grade {X})
+   Bug-check: PASS
+   Smoke tests: pending
+   ```
+4. Call `mcp.<provider>.save_issue` with:
+   - issue_type from `.opchain/pm.yaml` (`deploy` mapping; default
+     "Deploy" or "Task" if missing).
+   - parent / blocked-by relations to each linked ticket, if the
+     PM tool supports them.
+5. Record the deploy-ticket id in `deploy-ops.checkpoint.json`.
+
+### Per-event updates
+
+| Event | Action |
+|---|---|
+| Smoke tests pass (staging) | `add_comment` to deploy ticket: PASS + URL; transition deploy ticket → `staging-verified` |
+| Production ship | `add_comment` to deploy ticket: prod URL + version stamp; transition → `shipped`; `add_comment` to each linked ticket: "Shipped to prod via deploy {id}" |
+| Rollback | `add_comment` to deploy ticket: rollback reason + previous-version SHA; transition → `rolled-back`; `add_comment` to each linked ticket: "Rolled back — re-investigate" |
+| Smoke fail | `add_comment` to deploy ticket: failure summary; transition → `blocked`; the prod gate refuses |
+
+### Cross-env consistency
+
+The deploy ticket lives until production ships (or rollback closes
+the loop). A staging deploy ticket left open >7d auto-comments on
+itself with "Stale deploy — close manually if abandoned" so the PM
+tool reflects reality.
+
+### Failure modes
+
+- MCP unavailable → deploy proceeds; intended comments / transitions
+  are logged in checkpoint as deferred. `/deploy --retry-pm` flushes
+  later.
+- Deploy spans 50+ tickets → comment on the deploy ticket only;
+  individual linked tickets get a single rollup comment that lists
+  all included tickets to avoid notification spam.
 
 ---
 

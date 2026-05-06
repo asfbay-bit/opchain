@@ -1,8 +1,8 @@
 ---
 name: reverse-spec
 displayName: Reverse Spec
-version: 1.0.0
-shortDesc: Turn existing code into pipeline-ready specs.
+version: 1.2.0
+shortDesc: Turn existing code into pipeline-ready specs. v1.2 mirrors discovered scope to the PM tool as parent + children.
 phases: [plan]
 triAgent: false
 tryable: true
@@ -519,6 +519,69 @@ Next Steps:
   3. Use /app-architect /roadmap to plan next features against these specs
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+A reverse-spec run produces 8-11 markdown files describing what
+exists. In legacy projects without a PM trail, those documents are
+the first record of the system at all — most teams want them
+mirrored into the PM tool so they become discoverable + linkable
+from future work. See `integrations-engineer` for the canonical
+PM-MCP patterns.
+
+### `/rev-spec --pm-mirror`
+
+Opt-in flag (off by default — reverse-spec on a private fork
+doesn't want PM mirroring). When set:
+
+1. Create a parent ticket in the configured PM tool:
+   - title: `Reverse-spec: {repo-name} ({sha})`
+   - type: `chore` (or `documentation` if mapped in
+     `.opchain/pm.yaml`)
+   - body: top-level summary + total file count + run timestamp.
+2. For each generated spec file (`00-overview.md`,
+   `01-tech-stack.md`, etc.), create a child ticket:
+   - title: `Spec: {file-title}`
+   - body: the file's executive summary + a `Source:` link
+     pointing at the file path in the repo.
+   - labels: `reverse-spec`, `documentation`.
+3. Record the parent + child ticket ids in the
+   `reverse-spec.checkpoint.json` for downstream skills (notably
+   `app-architect /roadmap`) to read.
+
+### Hand-off to app-architect
+
+When `app-architect` is invoked next, it reads the
+reverse-spec checkpoint and finds the PM-ticket pointers. It then
+operates as if the user had run `/discover --ticket {parent-id}` —
+the spec is already on file; Phase 4 (`/roadmap`) writes the new
+sprint plan back to the same parent or a new sibling.
+
+### Findings as sub-tickets
+
+If the reverse-spec run surfaced concerning findings (security
+posture gaps, scaling risks, integration-rot indicators), file
+each as a sub-ticket of the parent with the appropriate skill
+label:
+- `security` finding → labeled for security-auditor follow-up.
+- `scaling` finding → labeled for scale-ops.
+- `integration` finding → labeled for integrations-engineer.
+
+The team's standard triage process picks them up from there.
+
+### Failure modes
+
+- `--pm-mirror` set but no MCP configured → skill prompts user
+  to run `/integrate plan pm` first, or proceed without
+  mirroring.
+- Parent ticket creation fails → emit specs to the filesystem
+  as usual; log the intended PM mirror as deferred in the
+  checkpoint.
+- Repo is huge (50+ specs) → batch sub-tickets into 5-spec
+  groupings rather than 50 individual children to avoid PM
+  notification storms.
 
 ---
 

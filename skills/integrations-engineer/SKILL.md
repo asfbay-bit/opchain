@@ -1,8 +1,8 @@
 ---
 name: integrations-engineer
 displayName: Integrations Engineer
-version: 1.0.0
-shortDesc: Third-party APIs, OAuth, webhooks.
+version: 1.2.0
+shortDesc: Third-party APIs, OAuth, webhooks. v1.2 adds PM-tool MCP integration patterns (Linear / Jira / GitHub Issues).
 phases: [build]
 triAgent: true
 tryable: true
@@ -446,6 +446,140 @@ Check every integration's secrets:
 | Google APIs | OAuth 2.0 | Full | Service account for server-to-server |
 | SendGrid | API key | Quick | Idempotency keys |
 | GitHub | OAuth / PAT / App | Full | App auth for org-level |
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+This skill is the canonical owner of PM-tool MCP integration patterns.
+"PM tools" means project / issue trackers — Linear, Jira, GitHub Issues —
+and the integration is via the **MCP servers** Anthropic ships with
+Claude Code (or the customer's on-prem variant in regulated environments).
+
+The pattern is the same across all three: an MCP server exposes a stable
+tool surface (`get_issue`, `list_issues`, `save_issue`, `add_comment`,
+`list_projects`, etc.). The other opchain skills consume that surface
+through their own phases. This section defines the patterns; downstream
+skills cite this section.
+
+### When PM-MCP integration matters
+
+- The user has a PM ticket they're working from. Reading the ticket as
+  context is far cheaper than re-asking. (`app-architect /discover`,
+  `git-ops /git-sync TICKET-1234`.)
+- Work product needs to be reflected back to the PM tool. Sprint plans,
+  PRs, deploy windows, incidents — all live there as records. Writing
+  back closes the loop. (`app-architect /roadmap`, `git-ops` on PR open
+  + merge, `deploy-ops` per environment, `monitoring-ops` per alert.)
+- The org's audit posture requires it. Enterprises (see scenarios 7-8)
+  treat the PM tool as the system-of-record for engineering work; an
+  agent flow that doesn't update the ticket is invisible to compliance.
+
+### MCP-server selection
+
+| Tool | Anthropic-shipped MCP | On-prem variant | Notes |
+|---|---|---|---|
+| **Linear** | yes (cloud only) | no — SaaS-only product | Default for PLG-style orgs |
+| **Jira** | yes (cloud + Atlassian DC via separate MCP) | yes (on-prem Jira via custom MCP fork) | Most common in enterprise |
+| **GitHub Issues** | yes (cloud) | yes (GitHub Enterprise via custom MCP) | Convenient when the repo + tracker live together |
+
+In regulated environments (HIPAA / FedRAMP / CMMC), only the on-prem
+variants are permissible. See scenarios `mcp-enterprise-f500` and
+`mcp-enterprise-defense` for the security posture and the broker /
+redactor / audit pipeline that must precede deployment.
+
+### Detecting "this work has a PM ticket"
+
+The agent recognises a PM ticket reference when:
+
+1. The user's prompt contains a recognisable ticket id pattern:
+   - `[A-Z][A-Z0-9_]+-\d+` (Jira / Linear convention; e.g. `PLAT-4471`,
+     `MEM-12`).
+   - `#\d+` immediately after a repo reference (GitHub Issues).
+   - A URL matching `linear.app/.+/issue/.+`,
+     `*.atlassian.net/browse/.+`, or `github.com/.+/issues/\d+`.
+2. The user provides the id explicitly to a command:
+   `/git-sync PLAT-4471`, `/discover --ticket PLAT-4471`.
+3. The skill is in a phase where it actively asks the user
+   ("Is there a Jira ticket for this?").
+
+When detected, the skill calls `mcp.<server>.get_issue` to fetch:
+title, description, status, assignee, priority, labels, parent /
+project, recent comments. The fetch is logged to the audit pipeline
+(see scenarios for required schema in regulated environments).
+
+### Patterns by phase (quick reference; canonical text in each skill)
+
+**Read-then-shape** (app-architect Phase 1, code-auditor on a bug
+ticket, monitoring-ops on a runbook reference):
+1. Get the ticket.
+2. Use the body + comments as discovery / spec context.
+3. Continue the phase normally; cite the ticket id in produced
+   artifacts.
+
+**Write-on-close** (app-architect Phase 4, git-ops on PR merge,
+deploy-ops on prod ship, monitoring-ops on alert resolution):
+1. Complete the phase / event.
+2. Compose a structured comment summarising what changed +
+   artifact links.
+3. Add the comment via `add_comment`.
+4. Optionally transition the ticket via `save_issue` (state field).
+
+**Auto-create** (deploy-ops creates a deploy ticket, monitoring-ops
+opens an incident ticket):
+1. Compose ticket title + description from event context.
+2. Call `save_issue` (or equivalent create) with the project +
+   issue-type + priority defaults from project config.
+3. Link related tickets via the parent / blocked-by relation.
+
+### Project configuration
+
+Each repo using PM-MCP integration has a `.opchain/pm.yaml`:
+
+```yaml
+provider: linear   # or "jira" / "github-issues"
+team_or_project: PLAT
+issue_types:
+  feature: Feature
+  bug: Bug
+  deploy: Deploy
+  incident: Incident
+states:
+  in_progress: "In Progress"
+  in_review: "In Review"
+  done: "Done"
+labels_default: [opchain, agent-driven]
+mcp_server: linear   # which configured MCP server to use
+```
+
+Skills read `.opchain/pm.yaml` to know which fields / state
+transitions to use. Missing file → skill prompts user once and
+writes it.
+
+### Failure modes
+
+- **MCP unconfigured** — skill reports `pm-mcp not configured`
+  and continues without PM context. Never blocks on MCP; the PM
+  loop is enrichment, not load-bearing.
+- **Ticket not found** — skill reports the failure, asks user to
+  confirm the id, and continues without PM context.
+- **Write tool call fails** — log the intended write to the
+  checkpoint as a deferred action. User can retry with
+  `/<verb> --retry-pm`.
+- **Cross-team / scope-violation write** — broker (in enterprise
+  deployments) or PM server returns 403. Skill surfaces the
+  permission error and stops; never silently widens scope.
+
+### Audit-pipeline expectation (regulated)
+
+In CMMC / HIPAA / FedRAMP environments, every PM-MCP tool call
+emits an audit record per the broker design (see scenarios 7-8).
+The skill itself does not handle audit emission; that is a
+broker-side concern. The skill's only obligation is to use
+named, narrow tool surfaces and to never embed the **content**
+of a fetched ticket in subsequent tool calls without first
+running it through the redactor (the broker enforces this; the
+skill respects rejections).
 
 ---
 

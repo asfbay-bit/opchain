@@ -1,0 +1,265 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+---
+
+<Base
+  title="Changelog · opchain"
+  description="Release notes for opchain — what shipped, when, and how to migrate."
+  active="/changelog"
+>
+  <main class="page">
+    <div class="page-head">
+      <Eyebrow>changelog</Eyebrow>
+      <h1>Changelog.</h1>
+    </div>
+
+    <p class="lede">
+      What shipped, when, and what to do about it. The skills are
+      individual Markdown files; their <code>version</code> field is the
+      source of truth — this page summarises across the catalog.
+    </p>
+
+    <section class="release release--current">
+      <header class="rel-head">
+        <span class="rel-tag">v1.2</span>
+        <h2>PM-tool MCP integration</h2>
+        <span class="rel-date">2026-05-05</span>
+      </header>
+
+      <p class="rel-summary">
+        opchain v1.2 wires the skills into the PM-tool MCPs Anthropic
+        ships with Claude Code. Linear, Jira, and GitHub Issues become
+        first-class context for <code>app-architect</code>, <code>git-ops</code>,
+        <code>deploy-ops</code>, and <code>monitoring-ops</code> — the
+        ticket is the thread of execution, not a side artefact.
+      </p>
+
+      <h3>What's new</h3>
+      <ul>
+        <li>
+          <strong>app-architect /discover</strong> accepts a ticket
+          reference and pre-fills the interview from the ticket body +
+          comments. <code>/roadmap</code> writes the sprint plan back as
+          a structured comment and (optionally) creates a child ticket
+          per sprint.
+        </li>
+        <li>
+          <strong>git-ops /git-sync TICKET-1234</strong> reads the
+          ticket, shapes the branch / commit / PR from it, and
+          transitions ticket state on PR open and merge. The PR body
+          is generated from ticket description, diff summary, and
+          auditor + bug-check output.
+        </li>
+        <li>
+          <strong>code-auditor</strong> findings post back to the
+          linked PM ticket, not just the checkpoint.
+        </li>
+        <li>
+          <strong>deploy-ops</strong> auto-creates a deploy ticket per
+          environment, parent-linked to every commit's tickets.
+          Transitions the deploy ticket through
+          <em>in-progress → staging-verified → shipped</em>
+          (or <em>rolled-back</em>); comments back on each linked
+          ticket on prod ship.
+        </li>
+        <li>
+          <strong>monitoring-ops</strong> opens an incident ticket
+          when alerts fire, parent-linked to the most recent deploy
+          ticket. Auto-creates remediation sub-tickets when the
+          postmortem publishes.
+        </li>
+        <li>
+          <strong>integrations-engineer</strong> is the canonical
+          owner of the PM-MCP integration patterns; its SKILL.md
+          documents detection, scoping, and audit-pipeline
+          expectations for regulated environments.
+        </li>
+      </ul>
+
+      <h3>Two new scenarios</h3>
+      <ul>
+        <li>
+          <a href="/demo#mcp-enterprise-f500">MCP at a Fortune-500 healthcare insurer</a>
+          — HIPAA + ISO 27001 + SOC2 + an internal AI-Use Policy;
+          custom PHI-redacting FHIR proxy MCP; SIEM-forwarded audit
+          log; phased rollout with abort criteria.
+        </li>
+        <li>
+          <a href="/demo#mcp-enterprise-defense">MCP at a CMMC L3 defense prime</a>
+          — FedRAMP High / IL5; on-prem MCP fleet; PIV/CAC-rooted
+          broker; cross-domain Guard signatures for the MCP envelope;
+          ATO modification package and STIG-hardened workstation
+          profile.
+        </li>
+        <li>
+          <a href="/demo#pm-pipeline-linear">v1.2 hero scenario — Linear-led pipeline</a>
+          — the full v1.2 flow on a real Linear ticket, ticket → ship
+          → first incident, with Jira and GitHub Issues called out
+          as one-line config swaps.
+        </li>
+      </ul>
+
+      <h3>Configuration</h3>
+      <p>
+        v1.2 adds <code>.opchain/pm.yaml</code> at the repo root.
+        Default mapping is Linear; Jira and GitHub Issues are drop-in
+        with provider-specific issue-type and state mappings. See the
+        <a href="/demo#pm-pipeline-linear">hero scenario</a> for the
+        full schema.
+      </p>
+
+      <h3>Compatibility</h3>
+      <p>
+        v1.2 is backward-compatible with v1.1. Without a
+        <code>.opchain/pm.yaml</code> file (or with an MCP server
+        unconfigured) every skill operates as it did in v1.1; the PM
+        loop is enrichment, never a hard dependency. Skills will
+        prompt once on first use to write the config, then proceed.
+      </p>
+
+      <h3>Security posture</h3>
+      <p>
+        Regulated environments should not adopt v1.2 by default. The
+        Fortune-500 and Defense scenarios document the broker /
+        redactor / audit-pipeline / cross-domain rules that must
+        precede any production deployment under HIPAA, FedRAMP,
+        CMMC, ITAR, or equivalent regimes. v1.2 is opt-in via
+        <code>.opchain/pm.yaml</code>; the regulated scenarios are
+        the reference architectures for adopting it safely.
+      </p>
+    </section>
+
+    <section class="release">
+      <header class="rel-head">
+        <span class="rel-tag rel-tag--past">v1.1</span>
+        <h2>Stable release</h2>
+        <span class="rel-date">2026-04</span>
+      </header>
+      <p class="rel-summary">
+        Tri-agent harness across <code>app-architect</code>,
+        <code>code-auditor</code>, <code>integrations-engineer</code>;
+        full-pipeline flow from <code>/discover</code> to
+        <code>/deploy</code>; checkpoint-protocol v1.0 across every
+        skill; static Astro site; first set of six in-action
+        scenarios.
+      </p>
+    </section>
+
+    <section class="release">
+      <header class="rel-head">
+        <span class="rel-tag rel-tag--past">v1.0</span>
+        <h2>Initial release</h2>
+        <span class="rel-date">2026-02</span>
+      </header>
+      <p class="rel-summary">
+        First public cut of the opchain skill catalog as a set of
+        Markdown files installable into Claude Code. No site, no
+        scenarios; just the skills.
+      </p>
+    </section>
+
+    <p class="footer-note">
+      Skill versions are stamped in <code>skills/&lt;name&gt;/SKILL.md</code>
+      under <code>version:</code>; this page rolls them up by feature.
+    </p>
+  </main>
+</Base>
+
+<style>
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+  }
+  .page-head { margin-bottom: 1.25rem; }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
+  .lede { color: var(--muted); margin: 0 0 1.5rem; max-width: 42rem; }
+  .lede code,
+  .release code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  .release {
+    margin-top: 2.25rem;
+    padding-top: 1.5rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .release--current { border-top: 1.5px solid var(--accent); }
+  .rel-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+  .rel-tag {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 0.5px solid var(--accent);
+    padding: 2px 8px;
+    border-radius: var(--r-xs);
+  }
+  .rel-tag--past {
+    color: var(--subtle);
+    border-color: var(--border);
+  }
+  .rel-head h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    color: var(--text);
+    margin: 0;
+    letter-spacing: var(--ls-tight);
+    flex: 1 1 auto;
+  }
+  .rel-date {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+  }
+  .release h3 {
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    color: var(--text);
+    margin: 1.25rem 0 0.4rem;
+    letter-spacing: var(--ls-tight);
+  }
+  .release p,
+  .release li {
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-base);
+  }
+  .release ul {
+    margin: 0.25rem 0 0 1.1rem;
+    padding: 0;
+  }
+  .release li { margin-bottom: 0.55rem; }
+  .release a { color: var(--accent); text-decoration: none; }
+  .release a:hover { text-decoration: underline; }
+
+  .footer-note {
+    margin-top: 3rem;
+    color: var(--subtle);
+    font-size: var(--fs-xs);
+    font-family: var(--font-mono);
+    letter-spacing: var(--ls-wide);
+  }
+</style>

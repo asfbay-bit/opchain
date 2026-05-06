@@ -1,8 +1,8 @@
 ---
 name: git-ops
 displayName: Git Ops
-version: 1.0.0
-shortDesc: Branch, commit, PR, sync workflows.
+version: 1.2.0
+shortDesc: Branch, commit, PR, sync workflows. v1.2 is PM-aware — `/git-sync TICKET-1234` reads ticket; transitions on merge.
 phases: [build]
 triAgent: false
 tryable: true
@@ -436,6 +436,61 @@ build/
 
 If `.gitignore` is missing entries, add them in a separate `chore: update .gitignore`
 commit before the feature commits.
+
+---
+
+## PM-Tool MCP Integration (v1.2+)
+
+When the user invokes any verb with a ticket id —
+`/git-sync TICKET-1234`, `/commit --ticket PLAT-12`, or pastes a
+Linear / Jira / GitHub Issues URL — git-ops reads the ticket via
+the configured PM-MCP and uses it for branch, commit, and PR shape.
+
+### `/git-sync TICKET-1234` flow
+
+1. Resolve provider from `.opchain/pm.yaml` (or detect from id pattern
+   / URL).
+2. `mcp.<provider>.get_issue(id)` — fetch title, description, labels,
+   priority, status, assignee.
+3. **Branch name** — slug `{type}/{id}-{title-kebab-truncated-50}`,
+   where `type` is derived from the ticket type / labels:
+   `feat`, `fix`, `chore`, `docs`, `refactor`. Default `feat` if
+   ambiguous.
+4. **Commit message** — first line: `{type}({scope}): {title}`.
+   Body: short paragraph summarising the change; trailer
+   `Refs: TICKET-1234` (or `Closes:` if the ticket is in a
+   "ready-to-close" state).
+5. **PR body** — generated from the ticket description, the diff
+   summary, and the auditor / bug-check report (if present).
+   Includes a top-line `**Linked ticket:** [TICKET-1234](url)`.
+6. **PR open** — call `mcp.<provider>.add_comment` on the source
+   ticket: `PR opened: <url>` and transition the ticket to the
+   `in_review` state from `.opchain/pm.yaml`.
+7. **PR merge** (when git-ops observes the merge or is invoked with
+   `/git-sync --closed`) — `add_comment` with the merge SHA + the
+   commit subject; transition the ticket to `done`.
+
+### `/commit` enrichment
+
+If a ticket id appears in the user's prompt but no `/git-sync`,
+just enrich the commit body with `Refs: TICKET-1234` and stop —
+the comment + transition is `/git-sync` territory.
+
+### Multi-ticket commits
+
+If the staged diff spans multiple tickets (e.g. user says
+"this closes PLAT-1 and PLAT-2"), use the first as the branch /
+PR primary and add a `Refs:` line per additional ticket. Comment
+on each.
+
+### Failure modes
+
+- MCP unavailable → fall back to slug from the user's prompt and
+  generic commit message; never block the commit on PM-MCP.
+- Ticket id format unrecognised → treat as plain text in the user
+  prompt; do not call MCP.
+- `add_comment` fails → log the intended comment to the git-ops
+  checkpoint; user can `/git-sync --retry-pm` later.
 
 ---
 
