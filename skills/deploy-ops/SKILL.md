@@ -479,10 +479,18 @@ jobs:
 
 ---
 
-## PM-Tool MCP Integration (v1.2+)
+## PM-Tool MCP Integration (v1.3+)
 
 deploy-ops creates a **deploy ticket** per environment + commit +
 ship and updates every PM ticket linked to commits in the deploy.
+
+The runtime contract — concrete tool names, retry policy, idempotency
+markers, the `pm_deferred_actions[]` schema, and the extended state
+vocabulary (`staging-verified` / `shipped` / `rolled-back` / `blocked`)
+— lives in
+[`integrations-engineer/references/pm-mcp-protocol.md`](../integrations-engineer/references/pm-mcp-protocol.md).
+**All MCP calls below honour that contract; this section says only how
+deploy-ops shapes the deploy ticket and per-event updates.**
 
 ### Deploy ticket creation
 
@@ -492,8 +500,12 @@ passes:
 1. Walk the commit range from last-deployed to HEAD.
 2. Extract `Refs:` and `Closes:` trailers from each commit; collect
    the unique ticket id set.
-3. Compose deploy-ticket body:
+3. Compose deploy-ticket description, prefixed with the idempotency
+   marker per protocol §3:
+
    ```
+   <!-- opchain:deploy-ops:deploy-created:<env>:<HEAD-sha> -->
+
    Environment: {env}
    Range: {prev-sha}..{HEAD-sha}
    Commits: {N}
@@ -502,37 +514,70 @@ passes:
    Bug-check: PASS
    Smoke tests: pending
    ```
-4. Call `mcp.<provider>.save_issue` with:
-   - issue_type from `.opchain/pm.yaml` (`deploy` mapping; default
-     "Deploy" or "Task" if missing).
+
+4. Pre-create check: call the registry-resolved `list_issues` tool
+   (Linear: `mcp__claude_ai_Linear__list_issues`; GitHub:
+   `mcp__mcp-server-github__list_issues`) filtered to the configured
+   project + the `deploy` issue type from `pm.yaml.issue_types`,
+   description-text query for the marker. If a match exists, **reuse**
+   the existing ticket id instead of creating a new one.
+5. Otherwise call the registry-resolved `create_issue` tool (Linear:
+   `mcp__claude_ai_Linear__save_issue` with no `id`; GitHub:
+   `mcp__mcp-server-github__issue_write` action=create) with:
+   - `issue_type` from `pm.yaml.issue_types.deploy` (default "Deploy"
+     or "Task" if missing).
    - parent / blocked-by relations to each linked ticket, if the
      PM tool supports them.
-5. Record the deploy-ticket id in `deploy-ops.checkpoint.json`.
+6. Record the deploy-ticket id in `deploy-ops.checkpoint.json`
+   `skill_state.pm.deploy_tickets[]`.
 
 ### Per-event updates
 
-| Event | Action |
-|---|---|
-| Smoke tests pass (staging) | `add_comment` to deploy ticket: PASS + URL; transition deploy ticket → `staging-verified` |
-| Production ship | `add_comment` to deploy ticket: prod URL + version stamp; transition → `shipped`; `add_comment` to each linked ticket: "Shipped to prod via deploy {id}" |
-| Rollback | `add_comment` to deploy ticket: rollback reason + previous-version SHA; transition → `rolled-back`; `add_comment` to each linked ticket: "Rolled back — re-investigate" |
-| Smoke fail | `add_comment` to deploy ticket: failure summary; transition → `blocked`; the prod gate refuses |
+Each row below uses a unique idempotency marker so retries / re-runs
+short-circuit per protocol §3. Pre-write check via `list_comments`
+(Linear) or `issue_read` (GitHub) before every comment.
+
+| Event | Marker | Action |
+|---|---|---|
+| Smoke tests pass (staging) | `<!-- opchain:deploy-ops:staging-verified:<deploy-id> -->` | `add_comment` to deploy ticket: PASS + URL; transition deploy ticket → `staging-verified` (resolved from `pm.yaml.states.extended`). |
+| Production ship | `<!-- opchain:deploy-ops:prod-shipped:<deploy-id> -->` | `add_comment` to deploy ticket: prod URL + version stamp; transition → `shipped`. For each linked ticket, separate marker `<!-- opchain:deploy-ops:linked-shipped:<deploy-id>:<ticket-id> -->` with body "Shipped to prod via deploy {id}". |
+| Rollback | `<!-- opchain:deploy-ops:rollback:<deploy-id> -->` | `add_comment` to deploy ticket: rollback reason + previous-version SHA; transition → `rolled-back`. For each linked ticket, marker `<!-- opchain:deploy-ops:linked-rollback:<deploy-id>:<ticket-id> -->` body "Rolled back — re-investigate". |
+| Smoke fail | `<!-- opchain:deploy-ops:smoke-fail:<deploy-id> -->` | `add_comment` to deploy ticket: failure summary; transition → `blocked`; the prod gate refuses. |
+
+State strings (`staging-verified` / `shipped` / `rolled-back` /
+`blocked`) **must** be resolved from `pm.yaml.states.extended` — never
+hard-coded — so each project can map them to its actual workflow names.
 
 ### Cross-env consistency
 
 The deploy ticket lives until production ships (or rollback closes
 the loop). A staging deploy ticket left open >7d auto-comments on
-itself with "Stale deploy — close manually if abandoned" so the PM
-tool reflects reality.
+itself with marker
+`<!-- opchain:deploy-ops:stale-staging:<deploy-id> -->` body
+"Stale deploy — close manually if abandoned" so the PM tool
+reflects reality. The 7-day auto-comment is itself idempotent —
+the marker prevents duplicate stale-warnings on resumed sessions.
+
+### `/deploy --retry-pm` flush
+
+Invokes the protocol §4 flush against
+`deploy-ops.checkpoint.json` `pm_deferred_actions[]`. Filter to
+`skill: "deploy-ops"` and `retriable: true`. Surfaces
+`flushed N / failed M`. The deploy itself never blocks on PM-MCP;
+this flush is purely the post-ship reconciliation path.
 
 ### Failure modes
 
-- MCP unavailable → deploy proceeds; intended comments / transitions
-  are logged in checkpoint as deferred. `/deploy --retry-pm` flushes
-  later.
+- MCP unavailable / unconfigured → deploy proceeds; intended
+  comments / transitions are deferred per protocol §4. `/deploy
+  --retry-pm` flushes later.
+- 403 on a per-linked-ticket comment → defer that one entry with
+  `retriable: false`; the deploy ticket and other linked-ticket
+  comments are unaffected.
 - Deploy spans 50+ tickets → comment on the deploy ticket only;
-  individual linked tickets get a single rollup comment that lists
-  all included tickets to avoid notification spam.
+  individual linked tickets get a single rollup comment with marker
+  `<!-- opchain:deploy-ops:rollup:<deploy-id> -->` listing all
+  included tickets to avoid notification spam.
 
 ---
 

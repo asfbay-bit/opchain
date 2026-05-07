@@ -138,7 +138,7 @@ Examples:
 
 ### Convention from Checkpoint
 
-If an app-architect or tri-dev checkpoint exists, derive the branch name from it:
+If an app-architect checkpoint exists, derive the branch name from it:
 - Sprint 1 build → `feat/sprint-1-auth-flow`
 - Code audit fix → `fix/audit-f001-rate-limiting`
 - Deploy setup → `deploy/ci-cd-pipeline`
@@ -197,9 +197,9 @@ One commit per logical unit of work. Rules of thumb:
 | Full sprint | 3-6 commits following the build order |
 | Config/tooling changes | 1 commit, separate from feature work |
 
-### Auto-Commit from Tri-Dev Sprints
+### Auto-Commit from app-architect Phase 6 Sprints
 
-When tri-dev completes a sprint, git-ops can auto-structure commits:
+When app-architect completes a Phase 6 sprint, git-ops can auto-structure commits:
 
 ```bash
 # Read the sprint contract for commit scoping
@@ -280,7 +280,7 @@ Pull from all available sources to build a comprehensive PR description:
 - [ ] Unit tests pass (`npm test`)
 - [ ] Type check passes (`tsc --noEmit`)
 - [ ] Manual testing completed
-[If tri-dev: "Evaluated by tri-dev evaluator: X.X/10 (sprint N)"]
+[If app-architect Phase 6: "Evaluated by app-architect evaluator: X.X/10 (sprint N)"]
 
 ## Audit Status
 
@@ -411,9 +411,8 @@ deterministic post-merge update worth automating.
 
 | Reads from | Why |
 |---|---|
-| tri-dev | Sprint contract → commit scoping, eval scores → PR description |
+| app-architect | Roadmap tasks → PR description, phase → branch naming; Phase 6 sprint contract → commit scoping, eval scores → PR description |
 | code-auditor | Audit grade → PR description, findings → commit grouping |
-| app-architect | Roadmap tasks → PR description, phase → branch naming |
 | deploy-ops | Deploy status → PR deployment notes |
 
 ---
@@ -439,19 +438,29 @@ commit before the feature commits.
 
 ---
 
-## PM-Tool MCP Integration (v1.2+)
+## PM-Tool MCP Integration (v1.3+)
 
 When the user invokes any verb with a ticket id —
 `/git-sync TICKET-1234`, `/commit --ticket PLAT-12`, or pastes a
 Linear / Jira / GitHub Issues URL — git-ops reads the ticket via
 the configured PM-MCP and uses it for branch, commit, and PR shape.
 
+The runtime contract — concrete tool names, retry policy, idempotency
+markers, and the `pm_deferred_actions[]` schema — lives in
+[`integrations-engineer/references/pm-mcp-protocol.md`](../integrations-engineer/references/pm-mcp-protocol.md).
+**All MCP calls below honour that contract; this section says only how
+git-ops shapes branch / commit / PR / state from the ticket.**
+
 ### `/git-sync TICKET-1234` flow
 
 1. Resolve provider from `.opchain/pm.yaml` (or detect from id pattern
-   / URL).
-2. `mcp.<provider>.get_issue(id)` — fetch title, description, labels,
-   priority, status, assignee.
+   / URL). Apply `tool_overrides` from `pm.yaml` before falling through
+   to the registry in protocol §1.
+2. Call the registry-resolved `get_issue` tool (Linear:
+   `mcp__claude_ai_Linear__get_issue`; GitHub:
+   `mcp__mcp-server-github__issue_read`; Jira:
+   `mcp__atlassian__jira_get_issue`) to fetch title, description, labels,
+   priority, status, assignee. Apply the retry policy from protocol §2.
 3. **Branch name** — slug `{type}/{id}-{title-kebab-truncated-50}`,
    where `type` is derived from the ticket type / labels:
    `feat`, `fix`, `chore`, `docs`, `refactor`. Default `feat` if
@@ -463,34 +472,58 @@ the configured PM-MCP and uses it for branch, commit, and PR shape.
 5. **PR body** — generated from the ticket description, the diff
    summary, and the auditor / bug-check report (if present).
    Includes a top-line `**Linked ticket:** [TICKET-1234](url)`.
-6. **PR open** — call `mcp.<provider>.add_comment` on the source
-   ticket: `PR opened: <url>` and transition the ticket to the
-   `in_review` state from `.opchain/pm.yaml`.
+6. **PR open** — pre-write check via the `list_comments` tool (Linear)
+   or `issue_read` (GitHub, comments inline) for marker
+   `<!-- opchain:git-ops:pr-opened:#<pr-number> -->`. If absent, call
+   the registry-resolved `add_comment` tool (Linear:
+   `mcp__claude_ai_Linear__save_comment`; GitHub:
+   `mcp__mcp-server-github__add_issue_comment`) with body
+   `<!-- opchain:git-ops:pr-opened:#<pr-number> -->\nPR opened: <url>`.
+   Then resolve the `in_review` state string from `pm.yaml.states` and
+   call the `transition` tool (Linear / GitHub: `save_issue` /
+   `issue_write` with state field; Jira:
+   `mcp__atlassian__jira_transition_issue`).
 7. **PR merge** (when git-ops observes the merge or is invoked with
-   `/git-sync --closed`) — `add_comment` with the merge SHA + the
-   commit subject; transition the ticket to `done`.
+   `/git-sync --closed`) — same pre-write check pattern with marker
+   `<!-- opchain:git-ops:pr-merged:#<pr-number> -->`; comment carries
+   the merge SHA + commit subject; transition to `done` (resolved
+   from `pm.yaml.states`).
 
 ### `/commit` enrichment
 
 If a ticket id appears in the user's prompt but no `/git-sync`,
 just enrich the commit body with `Refs: TICKET-1234` and stop —
-the comment + transition is `/git-sync` territory.
+the comment + transition is `/git-sync` territory. No MCP call is
+made by `/commit` alone.
 
 ### Multi-ticket commits
 
 If the staged diff spans multiple tickets (e.g. user says
 "this closes PLAT-1 and PLAT-2"), use the first as the branch /
 PR primary and add a `Refs:` line per additional ticket. Comment
-on each.
+on each via `add_comment`, each carrying its own ticket-scoped
+marker `<!-- opchain:git-ops:pr-opened:#<pr-number>:<ticket-id> -->`
+so re-runs are idempotent per ticket.
+
+### `/git-sync --retry-pm` flush
+
+Invokes the protocol §4 flush against
+`git-ops.checkpoint.json` `pm_deferred_actions[]`. Filter to
+`skill: "git-ops"` and `retriable: true`. Surfaces
+`flushed N / failed M`.
 
 ### Failure modes
 
-- MCP unavailable → fall back to slug from the user's prompt and
-  generic commit message; never block the commit on PM-MCP.
+- MCP unavailable / unconfigured → fall back to slug from the user's
+  prompt and generic commit message; never block the commit on
+  PM-MCP. The PR still opens.
 - Ticket id format unrecognised → treat as plain text in the user
   prompt; do not call MCP.
-- `add_comment` fails → log the intended comment to the git-ops
-  checkpoint; user can `/git-sync --retry-pm` later.
+- `add_comment` retry-budget exhausted (transient) → defer per
+  protocol §4 with `retriable: true`; user can `/git-sync --retry-pm`
+  later. The PR is unaffected.
+- 403 (cross-team scope) → defer with `retriable: false`; surface
+  the permission error; never auto-flush. The PR is unaffected.
 
 ---
 

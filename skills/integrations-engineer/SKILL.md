@@ -449,18 +449,24 @@ Check every integration's secrets:
 
 ---
 
-## PM-Tool MCP Integration (v1.2+)
+## PM-Tool MCP Integration (v1.3+)
 
 This skill is the canonical owner of PM-tool MCP integration patterns.
 "PM tools" means project / issue trackers — Linear, Jira, GitHub Issues —
 and the integration is via the **MCP servers** Anthropic ships with
 Claude Code (or the customer's on-prem variant in regulated environments).
 
-The pattern is the same across all three: an MCP server exposes a stable
-tool surface (`get_issue`, `list_issues`, `save_issue`, `add_comment`,
-`list_projects`, etc.). The other opchain skills consume that surface
-through their own phases. This section defines the patterns; downstream
-skills cite this section.
+The runtime contract — concrete tool names, retry / backoff, idempotency
+markers, deferred-action queue, validator rules — lives in
+[`references/pm-mcp-protocol.md`](references/pm-mcp-protocol.md). v1.2
+introduced the prose; v1.3 makes it executable. **Every PM-MCP write made
+by an opchain skill must follow that contract.**
+
+The pattern is the same across all three providers: an MCP server exposes a
+stable tool surface (`get_issue`, `list_issues`, `save_issue`,
+`save_comment`/`add_issue_comment`, `list_projects`, etc.). The other opchain
+skills consume that surface through their own phases. This section defines
+the patterns; downstream skills cite this section AND the protocol doc.
 
 ### When PM-MCP integration matters
 
@@ -503,16 +509,21 @@ The agent recognises a PM ticket reference when:
 3. The skill is in a phase where it actively asks the user
    ("Is there a Jira ticket for this?").
 
-When detected, the skill calls `mcp.<server>.get_issue` to fetch:
-title, description, status, assignee, priority, labels, parent /
-project, recent comments. The fetch is logged to the audit pipeline
-(see scenarios for required schema in regulated environments).
+When detected, the skill calls the registry-resolved `get_issue` tool
+(Linear: `mcp__claude_ai_Linear__get_issue`; GitHub Issues:
+`mcp__mcp-server-github__issue_read`; Jira: `mcp__atlassian__jira_get_issue`)
+to fetch: title, description, status, assignee, priority, labels, parent /
+project, recent comments. Apply retry / backoff per
+[`pm-mcp-protocol.md` §2](references/pm-mcp-protocol.md). The fetch is logged
+to the audit pipeline (see scenarios for required schema in regulated
+environments).
 
 ### Patterns by phase (quick reference; canonical text in each skill)
 
 **Read-then-shape** (app-architect Phase 1, code-auditor on a bug
 ticket, monitoring-ops on a runbook reference):
-1. Get the ticket.
+1. Get the ticket via the registry-resolved `get_issue` tool, applying the
+   retry policy from [`pm-mcp-protocol.md` §2](references/pm-mcp-protocol.md).
 2. Use the body + comments as discovery / spec context.
 3. Continue the phase normally; cite the ticket id in produced
    artifacts.
@@ -520,16 +531,31 @@ ticket, monitoring-ops on a runbook reference):
 **Write-on-close** (app-architect Phase 4, git-ops on PR merge,
 deploy-ops on prod ship, monitoring-ops on alert resolution):
 1. Complete the phase / event.
-2. Compose a structured comment summarising what changed +
-   artifact links.
-3. Add the comment via `add_comment`.
-4. Optionally transition the ticket via `save_issue` (state field).
+2. Compose a structured comment summarising what changed + artifact links;
+   prepend the idempotency marker from
+   [`pm-mcp-protocol.md` §3](references/pm-mcp-protocol.md):
+   `<!-- opchain:<skill>:<event>:<correlation-id> -->`.
+3. Pre-write check: list comments on the ticket, skip if marker already
+   present, else call the registry-resolved `add_comment` tool (Linear:
+   `save_comment`; GitHub: `add_issue_comment`; Jira: `jira_add_comment`).
+4. Optionally transition the ticket via the registry-resolved
+   `transition_state` tool (Linear / GitHub: `save_issue` /
+   `issue_write` with the state field; Jira: `jira_transition_issue`).
+   State strings come from `.opchain/pm.yaml` `states` map — never
+   hard-coded.
+5. On retry-budget exhaustion, defer per
+   [`pm-mcp-protocol.md` §4](references/pm-mcp-protocol.md).
 
 **Auto-create** (deploy-ops creates a deploy ticket, monitoring-ops
-opens an incident ticket):
-1. Compose ticket title + description from event context.
-2. Call `save_issue` (or equivalent create) with the project +
-   issue-type + priority defaults from project config.
+opens an incident ticket, release-ops creates a release ticket):
+1. Compose ticket title + description from event context. The
+   description carries the idempotency marker per Section 3 of the
+   protocol; pre-write check via `list_issues` filtered to the
+   configured project + issue type before creating.
+2. Call the registry-resolved `create_issue` tool (Linear:
+   `save_issue` with no `id`; GitHub: `issue_write` action=create;
+   Jira: `jira_create_issue`) with the project + issue-type +
+   priority defaults from `pm.yaml`.
 3. Link related tickets via the parent / blocked-by relation.
 
 ### Project configuration
@@ -558,17 +584,24 @@ writes it.
 
 ### Failure modes
 
+Authoritative semantics — including which failures are retriable, when to
+mark a deferred action `retriable: false`, and how `--retry-pm --force`
+clears non-retriable entries — live in
+[`pm-mcp-protocol.md` §2 + §4](references/pm-mcp-protocol.md). Quick recap:
+
 - **MCP unconfigured** — skill reports `pm-mcp not configured`
   and continues without PM context. Never blocks on MCP; the PM
   loop is enrichment, not load-bearing.
-- **Ticket not found** — skill reports the failure, asks user to
-  confirm the id, and continues without PM context.
-- **Write tool call fails** — log the intended write to the
-  checkpoint as a deferred action. User can retry with
-  `/<verb> --retry-pm`.
-- **Cross-team / scope-violation write** — broker (in enterprise
+- **Ticket not found (404)** — skill reports the failure, asks user to
+  confirm the id, and continues without PM context. Not retriable.
+- **Transient (5xx / 429 / network)** — retry policy applies; if the
+  budget exhausts, log to `pm_deferred_actions[]` with `retriable: true`.
+  User can flush with `/<verb> --retry-pm`.
+- **Cross-team / scope-violation write (403)** — broker (in enterprise
   deployments) or PM server returns 403. Skill surfaces the
-  permission error and stops; never silently widens scope.
+  permission error, records `retriable: false`, and stops; never
+  silently widens scope. `--retry-pm --force` is required to clear.
+- **Validation error (422)** — skill bug; surface for fix. Not retriable.
 
 ### Audit-pipeline expectation (regulated)
 
