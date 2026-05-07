@@ -1,85 +1,60 @@
 {
   "protocol_version": "1.0",
   "skill": "app-architect",
-  "project": "opchain.dev v1.2",
+  "project": "opchain.dev v1.3",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
-  "created_at": "2026-05-05T00:00:00Z",
-  "updated_at": "2026-05-05T21:25:00Z",
+  "created_at": "2026-05-07T00:00:00Z",
+  "updated_at": "2026-05-07T00:00:00Z",
 
-  "phase": "build",
-  "step": "all-sprints-complete",
-  "status": "complete",
-  "progress_summary": "v1.2 feature batch complete. Three new scenarios shipped (mcp-enterprise-f500, mcp-enterprise-defense, pm-pipeline-linear), five SKILL.md files updated with PM-MCP integration prose (integrations-engineer canonical owner; app-architect / git-ops / deploy-ops / monitoring-ops phase-specific behaviors), versions bumped 1.0->1.2 (or 1.1->1.2 for app-architect), /changelog page added, homepage v1.2 pill linking to it, styleguide badge bumped to v1.2.0. Build green; 108/108 tests pass; skill catalog validates with 17 skills.",
+  "phase": "sprint-plan-approved",
+  "step": "sprint-1-starting",
+  "status": "in_progress",
+  "progress_summary": "v1.3 scope + sprint plan approved. Theme: 'Runtime PM, real platforms, automated releases.' Primary A (Runtime PM-MCP), secondary E (platform expansion: Django + Rails + Go), tertiary B (new skill release-ops). Ship target: Monday 2026-05-11. Four sprints scoped; Sprint 4 includes carry-over (Playwright e2e + LHCI for /changelog and the v1.2 scenarios). Hero scenario: 'Ticket → ship → incident → postmortem' on a real Linear thread; supporting scenarios: release-ops dogfood + Django/Render shipped.",
 
   "progress_table": [
-    { "id": "scope",        "label": "Scope + sprint plan approval",                 "status": "complete" },
-    { "id": "sprint-1",     "label": "Sprint 1: F500 healthcare MCP scenario",       "status": "complete" },
-    { "id": "sprint-2",     "label": "Sprint 2: Defense MCP scenario",               "status": "complete" },
-    { "id": "sprint-3",     "label": "Sprint 3: Skills v1.2 PM-MCP prose updates",  "status": "complete" },
-    { "id": "sprint-4",     "label": "Sprint 4: v1.2 site surface + Linear scenario","status": "complete" }
+    { "id": "scope",        "label": "Scope + sprint plan approval",                            "status": "complete" },
+    { "id": "sprint-1",     "label": "Sprint 1: Runtime PM-MCP made real",                      "status": "in_progress" },
+    { "id": "sprint-2",     "label": "Sprint 2: New skill release-ops (the 18th)",              "status": "not_started" },
+    { "id": "sprint-3",     "label": "Sprint 3: Platform expansion (Django/Rails/Go)",          "status": "not_started" },
+    { "id": "sprint-4",     "label": "Sprint 4: Scenarios + carry-over + /changelog + ship",    "status": "not_started" }
   ],
 
   "context_primer": {
     "key_decisions": [
-      "Option C: updated SKILL.md prose to teach PM-MCP behavior AND added a /changelog marketing surface.",
-      "Two MCP-enterprise scenarios: F500 healthcare (MeridianHealth, HIPAA + ISO + SOC2) and defense contractor (Daedalus Aerospace, CMMC L3 + FedRAMP High + IL5 + ITAR).",
-      "PM tools in scope: Linear (named tool in v1.2 hero scenario), Jira + GitHub Issues called out as drop-in alts. Monday dropped per user request.",
-      "v1.2 is a content/marketing label; runtime __OPCHAIN_VERSION__ remains git-SHA-stamped.",
-      "shortDesc has a 120-char schema limit (Astro content collection); first batch of v1.2 shortDescs were too long, fixed.",
-      "Skills are markdown documents that prompt Claude's behavior — updating SKILL.md prose IS implementing v1.2."
-    ],
-    "generated_files": [
-      "site/src/data/walkthroughs/mcp-enterprise-f500.ts (~880 lines, 7 artifacts)",
-      "site/src/data/walkthroughs/mcp-enterprise-defense.ts (~750 lines, 6 artifacts)",
-      "site/src/data/walkthroughs/pm-pipeline-linear.ts (~620 lines, 6 artifacts)",
-      "site/src/data/walkthroughs/index.ts (3 new imports + entries)",
-      "site/src/pages/changelog.astro (new /changelog page)",
-      "site/src/pages/index.astro (homepage v1.2 release pill + CSS)",
-      "site/src/pages/styleguide.astro (badge v1.1.0 -> v1.2.0)",
-      "site/src/components/Footer.astro (Changelog link)",
-      "skills/integrations-engineer/SKILL.md (canonical PM-MCP section, version 1.2.0)",
-      "skills/app-architect/SKILL.md (Phase 1/4/6 PM-MCP integration, version 1.2.0)",
-      "skills/git-ops/SKILL.md (/git-sync TICKET-1234 flow, version 1.2.0)",
-      "skills/deploy-ops/SKILL.md (deploy ticket auto-creation, version 1.2.0)",
-      "skills/monitoring-ops/SKILL.md (incident ticket auto-creation, version 1.2.0)"
+      "Theme: A (Runtime PM-MCP) primary, E (platform expansion) secondary, B (release-ops 18th skill) tertiary.",
+      "Ship Monday 2026-05-11 (Thursday 2026-05-07 + 4 days).",
+      "Hero scenario: ticket→ship→incident→postmortem on a single Linear thread (closes the v1.2 prose-vs-runtime gap visibly).",
+      "Three new scenarios match v1.2 cadence: runtime-pm-loop (hero) + release-ops-dogfood + django-render-shipped.",
+      "Add 18th skill: release-ops. Sits between git-ops and deploy-ops at release boundaries.",
+      "Carry-over from v1.2: Playwright e2e for /changelog + the three v1.2 scenarios; LHCI warn assertions on new pages.",
+      "All 18 skill versions bump 1.2.0 → 1.3.0; styleguide badge v1.2.0 → v1.3.0; homepage pill v1.2 → v1.3.",
+      "Backwards-compatible release; no flag changes, no auth changes, no platform migration."
     ],
     "user_preferences": [
-      "User picks options when given clear choices; comfortable saying 'go with defaults'.",
-      "Prefers to scope the work with sharp questions before building; willing to approve big plans in one pass.",
-      "Healthcare for F500 (not fintech).",
-      "Linear for the v1.2 hero scenario (not Jira)."
+      "Picks options when given clear choices; comfortable with 'go with defaults'.",
+      "Prefers sharp scoping questions, then approves big plans in one pass (re-confirmed for v1.3).",
+      "Wants a hero scenario per release; comfortable with bigger 4-sprint releases when scope is well-defined.",
+      "Manual deploy from wrangler-logged-in laptop is the rule; CI is verification-only."
     ]
   },
 
   "blockers": [],
 
   "next_actions": [
-    "Manual visual verification on staging: confirm v1.2 pill renders at expected size; confirm /changelog reads well; click through to each linked scenario.",
-    "Run local dev server + click through demo workbench to verify scenarios 7, 8, 9 are pickable and play correctly end-to-end.",
-    "When ready: npm run deploy:staging, eyeball, then npm run deploy. Per CLAUDE.md, deploys are manual from a wrangler-logged-in laptop.",
-    "Optional Sprint 5 (post-ship): add Playwright e2e coverage for /changelog and the new scenarios to lighthouserc warn assertions."
+    "Sprint 1 build: survey existing src/lib (feedback handler, retry helpers) + existing SKILL.md PM-MCP prose to determine the right shape for the runtime layer.",
+    "Sprint 1 build: implement shared PM helper, retry/backoff, idempotency, deferred-action queue + flush command.",
+    "Sprint 1 build: wire the four PM-aware skills (app-architect, git-ops, deploy-ops, monitoring-ops) to the helper.",
+    "Sprint 1 DoD: vitest covers retry/backoff/idempotency; live Linear ADEV ticket round-trips through the loop."
   ],
 
   "skill_state": {
-    "sprint_count": 4,
-    "scenarios_added": ["mcp-enterprise-f500", "mcp-enterprise-defense", "pm-pipeline-linear"],
-    "skills_updated": ["integrations-engineer", "app-architect", "git-ops", "deploy-ops", "monitoring-ops"],
-    "site_surfaces_added": ["/changelog page", "homepage v1.2 pill"],
-    "version_bumps": {
-      "integrations-engineer": "1.0.0 -> 1.2.0",
-      "app-architect": "1.1.0 -> 1.2.0",
-      "git-ops": "1.0.0 -> 1.2.0",
-      "deploy-ops": "1.0.0 -> 1.2.0",
-      "monitoring-ops": "1.0.0 -> 1.2.0",
-      "styleguide-badge": "v1.1.0 -> v1.2.0"
-    },
-    "build_state": {
-      "site_pages_built": 26,
-      "tests_passed": "108/108",
-      "skill_catalog_validates": true,
-      "shortDesc_max_chars": 120,
-      "longest_shortDesc_now": 117
-    },
-    "depends_on": "checkpoint-protocol v1.0; existing scenario format in site/src/data/walkthroughs/"
+    "release_target": "2026-05-11",
+    "themes": { "primary": "A: runtime PM-MCP", "secondary": "E: platform expansion", "tertiary": "B: release-ops" },
+    "scenarios_planned": ["runtime-pm-loop", "release-ops-dogfood", "django-render-shipped"],
+    "new_skill": "release-ops",
+    "skills_to_bump": "all 18 (17 existing + release-ops new) → 1.3.0",
+    "carry_over_from_v12": ["playwright e2e for /changelog and v1.2 scenarios", "LHCI warn assertions"],
+    "deploy_method": "manual wrangler from laptop",
+    "depends_on": "v1.2 release shipped; .opchain/pm.yaml exists with provider=linear team=ADEV"
   }
 }

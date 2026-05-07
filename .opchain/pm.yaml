@@ -1,0 +1,29 @@
+# opchain PM-tool configuration
+# Read by opchain skills during Claude Code sessions to route issue reads/writes
+# via the Linear MCP server. See skills/integrations-engineer/SKILL.md §PM-Tool MCP Integration.
+#
+# Auth: set LINEAR_API_KEY in .dev.vars (local) or Cloudflare dashboard (prod).
+# Staging: no API key required — wrangler.jsonc sets FEEDBACK_DRY_RUN=true so
+# the feedback handler accepts submissions without writing to Linear.
+
+provider: linear
+team_or_project: ADEV
+
+# Known IDs (for reference; the MCP server resolves by team key at runtime)
+# team_id:    7548a4f9-6ed3-42a6-9130-3b2b45db3c5c
+# project_id: 7a8ea196-9a52-4efb-b997-003cb48a3f1a  (opchain-dev)
+
+issue_types:
+  feature: Feature
+  bug: Bug
+  deploy: Deploy
+  incident: Incident
+
+states:
+  in_progress: "In Progress"
+  in_review: "In Review"
+  done: "Done"
+
+labels_default: [opchain, agent-driven]
+
+mcp_server: linear
