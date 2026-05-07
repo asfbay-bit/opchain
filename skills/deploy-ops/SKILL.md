@@ -446,14 +446,14 @@ notify "✅ *gtrack* deployed to production — $(git rev-parse --short HEAD)"
 | Reads from | Why |
 |---|---|
 | code-auditor | Audit grade → deploy gate |
-| tri-dev | Sprint pass → deploy confidence |
+| app-architect | Phase 6 sprint pass → deploy confidence |
 | git-ops | Branch merged → ready to deploy |
 
 ### Triggered By
 
 Deploy-ops can be invoked directly, but also gets suggested by other skills:
 - **git-ops**: After `/git-sync` completes, git-ops suggests `/deploy staging`
-- **tri-dev**: After final sprint passes, tri-dev suggests `/audit pre-deploy` → `/deploy`
+- **app-architect**: After final Phase 6 sprint passes, app-architect suggests `/audit pre-deploy` → `/deploy`
 - **app-architect**: Phase 7 (Launch) suggests the deploy pipeline
 
 When triggered by another skill's suggestion, read that skill's checkpoint for context
