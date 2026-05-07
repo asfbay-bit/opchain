@@ -1,7 +1,7 @@
 ---
 name: app-architect
 displayName: App Architect
-version: 1.2.0
+version: 1.3.0
 shortDesc: Idea → spec → design → build → launch in one skill. v1.2 reads PM tickets and writes sprints back via PM-MCP.
 phases: [plan, build]
 triAgent: true

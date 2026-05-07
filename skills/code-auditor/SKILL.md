@@ -1,7 +1,7 @@
 ---
 name: code-auditor
 displayName: Code Auditor
-version: 1.2.0
+version: 1.3.0
 shortDesc: Auditor → Fixer → Verifier quality loop. v1.2 posts findings to the linked PM ticket; HIGH+ filed as sub-tickets.
 phases: [build]
 triAgent: true
@@ -394,14 +394,14 @@ Output: actual test files written to the project, not a report.
 | Reads from | Why |
 |---|---|
 | reverse-spec | Stack, architecture, file inventory → skip re-scanning |
-| tri-dev | Sprint scores, known issues → don't re-report |
+| app-architect | Sprint scores, known issues → don't re-report |
 | stack-forge | Typed pipeline standard → grade against |
 
 | Read by | Why |
 |---|---|
 | deploy-ops | Finding count, grade → deploy gate |
 | git-ops | Report path → include in PR |
-| tri-dev | Findings → pre-seed evaluator |
+| app-architect | Findings → pre-seed Phase 6 evaluator |
 | ux-engineer | Component health → UX audit context |
 
 ---
@@ -481,7 +481,7 @@ than creating a duplicate.
    code is clean. Missing semicolon is not HIGH.
 3. **Fixes must be verified.** An unverified fix is a hope, not a solution.
 4. **Minimal diffs.** Fix the finding, nothing more. Scope creep in fixes is a bug.
-5. **Don't re-report known issues.** Check tri-dev and prior audit checkpoints.
+5. **Don't re-report known issues.** Check app-architect Phase 6 and prior audit checkpoints.
 6. **Grade honestly.** A C is a C. Don't inflate.
 7. **Skepticism is the Verifier's job.** The Fixer assumes their fix works. The
    Verifier assumes it doesn't. This tension produces real quality.

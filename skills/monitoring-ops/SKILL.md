@@ -1,7 +1,7 @@
 ---
 name: monitoring-ops
 displayName: Monitoring Ops
-version: 1.2.0
+version: 1.3.0
 shortDesc: Post-deploy observability — uptime, errors, alerts, incidents. v1.2 opens PM incident tickets when alerts fire.
 phases: [build]
 triAgent: false

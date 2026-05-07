@@ -50,6 +50,8 @@ const ROUTES: RouteSpec[] = [
   },
   { path: "/privacy",    h1: /privacy/i,    disabledRules: [COLOR_CONTRAST_DISABLE] },
   { path: "/styleguide", h1: /styleguide/i, disabledRules: [COLOR_CONTRAST_DISABLE] },
+  // v1.3 carry-over from v1.2: /changelog joined the route smoke suite.
+  { path: "/changelog",  h1: /changelog/i,  disabledRules: [COLOR_CONTRAST_DISABLE] },
 ];
 
 test.describe("routes render", () => {

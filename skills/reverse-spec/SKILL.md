@@ -1,7 +1,7 @@
 ---
 name: reverse-spec
 displayName: Reverse Spec
-version: 1.2.0
+version: 1.3.0
 shortDesc: Turn existing code into pipeline-ready specs. v1.2 mirrors discovered scope to the PM tool as parent + children.
 phases: [plan]
 triAgent: false
@@ -23,21 +23,22 @@ description: >
 
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
-Read an existing codebase and generate the structured spec documents that app-architect,
-stack-forge, and tri-dev expect as inputs. This is the reverse of the normal pipeline:
-instead of idea → spec → code, it goes code → spec → pipeline-ready.
+Read an existing codebase and generate the structured spec documents that app-architect
+expects as inputs. This is the reverse of the normal pipeline: instead of idea → spec →
+code, it goes code → spec → pipeline-ready.
 
 ## Why This Exists
 
-The build pipeline (app-architect → stack-forge → tri-dev) assumes spec documents exist.
-But most real projects were built before the pipeline existed, or grew organically without
-formal specs. Reverse-spec bridges that gap — it reads what's actually built and produces
-the documentation that makes the project legible to the rest of the toolchain.
+The build pipeline (app-architect Phase 2 stack decision → Phase 6 build loop) assumes
+spec documents exist. But most real projects were built before the pipeline existed, or
+grew organically without formal specs. Reverse-spec bridges that gap — it reads what's
+actually built and produces the documentation that makes the project legible to the rest
+of the toolchain.
 
 This matters because without specs:
 - **app-architect** can't generate a roadmap for new features (no baseline to build from)
 - **stack-forge** can't run a gap analysis (no documented architecture to compare against)
-- **tri-dev** can't decompose features into sprints (no spec.md or sprint-plan.md to reference)
+- **app-architect Phase 6** can't decompose features into sprints (no spec.md or sprint-plan.md to reference)
 
 ## /reverse-spec — Command Reference
 
@@ -85,7 +86,7 @@ OpenAPI, codegen, CI). Produces `stack-forge-audit.md`. If no prior analysis exi
 targeted scan of just the typed pipeline layers.
 
 **`/rev-sprint`**: Requires either prior `/rev-full` analysis or enough context from conversation/memory
-to understand the project. Generates `tri-dev-ready/spec.md` and optionally `sprint-plan.md` for a
+to understand the project. Generates `app-architect-ready/spec.md` and optionally `sprint-plan.md` for a
 specified feature.
 
 **`/rev-status`**: Reads checkpoint (JSON, or legacy markdown). If no checkpoint exists,
@@ -131,7 +132,7 @@ Ask the user (or infer from context) which scope applies:
 |---|---|---|---|
 | **Monorepo** | Root path of a multi-app repo | Inventory all apps, shared libs, infra config. Generate top-level overview + per-app specs. | All spec docs + per-app summaries |
 | **Single App** | Path to one application | Full analysis: schema, API, UI, auth, integrations, config | All spec docs (00-10) |
-| **Feature/Module** | Path to a specific directory or set of files | Focused analysis: what this module does, its interfaces, dependencies | Targeted spec sections + tri-dev sprint docs |
+| **Feature/Module** | Path to a specific directory or set of files | Focused analysis: what this module does, its interfaces, dependencies | Targeted spec sections + app-architect sprint docs |
 | **Uploaded/Pasted** | Files in /mnt/user-data/uploads or pasted code | Best-effort analysis from available code | Whatever can be inferred; flag gaps prominently |
 
 ### Orientation Scan
@@ -236,9 +237,9 @@ reverse-spec-output/
 │   └── component-inventory.md      # Every component with props, states, usage
 ├── gap-analysis.md                 # What's missing vs. best practices
 ├── stack-forge-audit.md            # Typed pipeline gap analysis for stack-forge
-└── tri-dev-ready/
-    ├── spec.md                     # Tri-dev-format product spec
-    └── sprint-plan.md              # Ready for /td-build (if feature scope given)
+└── app-architect-ready/
+    ├── spec.md                     # app-architect-format product spec
+    └── sprint-plan.md              # Ready for app-architect /build (if feature scope given)
 ```
 
 ### Document Generation Rules
@@ -421,16 +422,16 @@ This output is designed to feed directly into stack-forge's retroactive use mode
 
 ---
 
-## Phase 5: Tri-Dev Onramp (`/rev-sprint`)
+## Phase 5: App-Architect Onramp (`/rev-sprint`)
 
-Generate the two files tri-dev needs to start building:
+Generate the two files app-architect Phase 6 needs to start building:
 
-### spec.md (Tri-Dev Format)
+### spec.md (app-architect Format)
 
-Use the tri-dev spec structure (Overview, Features, Design Direction, Technical
+Use the app-architect spec structure (Overview, Features, Design Direction, Technical
 Constraints, Out of Scope) but populate it from the reverse-engineered analysis.
-This describes the project AS IT EXISTS, so tri-dev's Planner has a baseline to
-extend from.
+This describes the project AS IT EXISTS, so app-architect's Generator (Phase 6) has a
+baseline to extend from.
 
 ### sprint-plan.md (For New Features)
 
@@ -465,7 +466,7 @@ Narrower analysis:
 2. Generate only the spec sections relevant to this module
 3. Focus on: data model (tables this module touches), API (endpoints it owns),
    components (UI it renders), and integration points (what it calls)
-4. Always generate a tri-dev sprint doc if the user wants to extend this module
+4. Always generate an app-architect sprint doc if the user wants to extend this module
 
 ### Uploaded/Pasted Code
 
@@ -506,7 +507,7 @@ Docs Generated:
 Pipeline Readiness:
   app-architect: READY (can run /roadmap with these specs)
   stack-forge:   PARTIAL (missing OpenAPI spec, see gap-analysis.md)
-  tri-dev:       READY (spec.md + sprint-plan.md generated)
+  app-architect: READY (spec.md + sprint-plan.md generated)
 
 Top 3 Gaps:
   1. No OpenAPI spec generation — blocks typed pipeline
@@ -553,11 +554,17 @@ doesn't want PM mirroring). When set:
 
 ### Hand-off to app-architect
 
-When `app-architect` is invoked next, it reads the
-reverse-spec checkpoint and finds the PM-ticket pointers. It then
-operates as if the user had run `/discover --ticket {parent-id}` —
-the spec is already on file; Phase 4 (`/roadmap`) writes the new
-sprint plan back to the same parent or a new sibling.
+After `/rev-full` completes, actively chain to app-architect per orchestrator.md §3
+(Active Invocation):
+
+1. State the chain: "Reverse-spec analysis complete. Now using app-architect to extend
+   from this baseline."
+2. Read `app-architect/SKILL.md` and `app-architect/references/orchestrator.md`.
+3. Check for `.checkpoints/app-architect.checkpoint.json` (resume if present).
+4. Execute the appropriate command: `/discover --ticket {parent-id}` if PM tickets were
+   filed (treats this run as the discovery), otherwise `/spec` directly.
+5. App-architect reads the reverse-spec checkpoint and PM-ticket pointers. Phase 4
+   (`/roadmap`) then writes the new sprint plan back to the same parent or a new sibling.
 
 ### Findings as sub-tickets
 

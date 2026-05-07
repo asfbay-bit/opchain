@@ -1,4 +1,4 @@
-# Checkpoint Protocol v1.0
+# Checkpoint Protocol v1.2
 
 A cross-skill convention for session persistence. Any skill that runs multi-step
 workflows across conversations adopts this protocol to save, resume, and recover
@@ -38,7 +38,7 @@ directory. JSON (not markdown) because it's machine-parseable for cross-skill re
 Example paths:
 ```
 /home/claude/gtrack/.checkpoints/app-architect.checkpoint.json
-/home/claude/gtrack/.checkpoints/tri-dev.checkpoint.json
+/home/claude/gtrack/.checkpoints/code-auditor.checkpoint.json
 /home/claude/gtrack/.checkpoints/reverse-spec.checkpoint.json
 ```
 
@@ -49,8 +49,8 @@ Multiple skills can checkpoint the same project simultaneously without collision
 ```jsonc
 {
   // === HEADER (required) ===
-  "protocol_version": "1.0",
-  "skill": "tri-dev",                    // Skill that owns this checkpoint
+  "protocol_version": "1.2",
+  "skill": "app-architect",              // Skill that owns this checkpoint
   "project": "gtrack",                   // Human-readable project name
   "project_dir": "/home/claude/gtrack",  // Absolute path
   "created_at": "2026-03-31T14:00:00Z",
@@ -246,8 +246,8 @@ Skills can read each other's checkpoints (read-only) for coordination:
 
 | Reader | Reads | Why |
 |---|---|---|
-| tri-dev | app-architect checkpoint | Know which spec sections are approved |
-| deploy-ops | tri-dev checkpoint | Know which sprints have passed QA |
+| app-architect | reverse-spec checkpoint | Know what analysis exists for the codebase |
+| deploy-ops | app-architect checkpoint | Know which sprints have passed QA |
 | git-ops | any skill checkpoint | Know what files to commit |
 | code-auditor | reverse-spec checkpoint | Know what analysis has been done |
 
@@ -260,35 +260,56 @@ Skills can read each other's checkpoints (read-only) for coordination:
 
 ---
 
-## Migration: Existing Skills
+## Tooling
 
-Each skill that adopts this protocol needs minimal changes:
+Three commands keep checkpoints honest. They live in `package.json` and
+shell out to `scripts/checkpoint.mjs` (zero deps, pure Node):
 
-### reverse-spec (already close)
-- **Current:** Writes `checkpoint.md` (markdown) to `reverse-spec-output/`
-- **Migration:** Convert to JSON schema, move to `.checkpoints/reverse-spec.checkpoint.json`
-- **Effort:** Small — structure already matches, just format change
+```bash
+npm run checkpoint:status         # markdown summary — "where did I leave off?"
+npm run checkpoint:validate       # schema enforcement, runs in CI
+npm run checkpoint -- update <skill> --field=value [...]
+                                  # apply field updates, auto-stamp updated_at
+```
 
-### tri-dev (file-based state, no resume)
-- **Current:** State lives in `tri-dev-config.md`, `sprints/*/contract.md`, `sprints/*/eval-round-*.md`
-- **Migration:** Add checkpoint writes after each sprint pass/fail. Resume protocol reads
-  checkpoint first, then loads the relevant sprint files.
-- **Effort:** Medium — needs resume logic added to `/td-build` and `/td-status`
+`update` supports three operators:
 
-### app-architect (gates, no persistence)
-- **Current:** Gates are conversational — "do you approve?" lives only in chat history
-- **Migration:** After each gate approval, write checkpoint with phase status and approved
-  decisions. Resume protocol re-presents the gate status on session start.
-- **Effort:** Medium — needs checkpoint writes at every gate + resume at `/status`
+- `--key=value`     — replace a scalar
+- `--key+=value`    — append to an array (creates if missing)
+- `--key:json=...`  — parse the value as JSON for objects/arrays/numbers
 
-### stack-forge (no persistence)
-- **Current:** Outputs are inline or in app-architect spec files
-- **Migration:** When used standalone or for `/feature`, write checkpoint tracking which
-  decisions have been made and which sprint plans generated.
-- **Effort:** Small — mostly just tracking decision-tree state
+Dotted paths work for nested fields (`--context_primer.key_decisions+="..."`).
+The validator runs after every `update` so you can't silently corrupt a file.
 
-### Future skills (code-auditor, deploy-ops, git-ops)
-- **Built with protocol from day 1** — no migration needed
+`npm run checkpoint:validate` is wired into CI as a gate. A failing
+checkpoint blocks merges — same posture as type-check or unit tests.
+
+The canonical writer is `scripts/checkpoint.mjs` at the repo root. Skills
+do not bundle their own writers — call the root .mjs from any skill that
+needs to update its checkpoint.
+
+---
+
+## Scaffold Phase
+
+When this skill is invoked on a fresh project that has no
+`.checkpoints/` directory yet, drop these files:
+
+1. `.checkpoints/README.md` — schema reference + tooling docs.
+2. `scripts/checkpoint.mjs` — the validator/status/update CLI.
+3. `package.json` scripts — `checkpoint`, `checkpoint:status`,
+   `checkpoint:validate`.
+4. CI step — call `npm run checkpoint:validate` from your CI pipeline.
+5. `.github/workflows/checkpoint-after-merge.yml` (optional but
+   recommended) — auto-stamps the git-ops checkpoint on every merge to
+   `main` so the team doesn't have to remember.
+
+**Do not** add `.checkpoints/` to `.gitignore`. Tracking the directory in
+git is what makes checkpoints survive across sessions and machines —
+including ephemeral runners like Claude Code on the web.
+
+The opchain.dev repo is the reference implementation; `cp` from there
+is faster than re-typing.
 
 ---
 
@@ -314,19 +335,104 @@ The behavior is identical regardless of which skill the user is currently in.
 project-dir/
 ├── .checkpoints/
 │   ├── app-architect.checkpoint.json
-│   ├── tri-dev.checkpoint.json
+│   ├── code-auditor.checkpoint.json
 │   ├── reverse-spec.checkpoint.json
 │   └── deploy-ops.checkpoint.json
 ├── spec/           (app-architect output)
-├── sprints/        (tri-dev output)
+├── sprints/        (app-architect Phase 6 build loop output)
 ├── src/            (project source)
 └── ...
 ```
 
 The `.checkpoints/` directory is:
-- Git-ignored by default (add to `.gitignore` in scaffold phase)
-- Not copied to `/mnt/user-data/outputs/` (internal state, not a deliverable)
+- **Tracked in git** (was gitignored in v1.0; flipped to tracked because
+  Claude Code on the web has an ephemeral worker — gitignored state
+  doesn't survive sessions). Treat checkpoints as living "session state
+  docs" the team can read in PRs alongside the code change.
 - Readable by any skill in the ecosystem
+- Validated by CI via `npm run checkpoint:validate` (see
+  `.checkpoints/README.md` and `scripts/checkpoint.mjs` for the schema
+  and tooling)
+- Surfaced via `npm run checkpoint:status` — the canonical "where did I
+  leave off?" command for new sessions
+
+---
+
+## v1.2 schema additions: `pm_refs`
+
+v1.2 adds a top-level optional field to the checkpoint schema so
+every skill's checkpoint can carry the PM tickets it touched.
+Downstream skills read it to find context without re-asking.
+
+### Field shape
+
+```jsonc
+{
+  // ...existing fields
+  "pm_refs": [
+    {
+      "provider": "linear",                  // or "jira" | "github-issues"
+      "id": "PLAT-4471",                     // ticket id
+      "url": "https://linear.app/onramp/issue/PLAT-4471",
+      "role": "source",                      // "source" | "child" | "deploy" | "incident" | "linked"
+      "created_by_skill": "app-architect",   // which skill linked it
+      "first_seen_at": "2026-05-04T12:00:00Z"
+    }
+  ]
+}
+```
+
+`role` semantics:
+
+- `source` — the originating ticket (one per checkpoint, typically).
+- `child` — sprint / step / sub-ticket created by this skill.
+- `deploy` — deploy-ops-created deploy ticket.
+- `incident` — monitoring-ops-created incident ticket.
+- `linked` — a related ticket the skill referenced but didn't author.
+
+### Read pattern (downstream skills)
+
+When any skill starts, after reading its own checkpoint, it
+**also reads `pm_refs` from sibling-skill checkpoints** to find
+context. Example: git-ops, on `/git-sync` with no explicit ticket
+id, looks at `app-architect.checkpoint.json#pm_refs` to find the
+source ticket from the most recent build phase.
+
+### Write pattern
+
+Every skill that touches a PM ticket appends to its own
+`pm_refs` array at the same time it writes the ticket. The array
+is append-only within a session; entries are not deduplicated
+across sessions (the audit trail is per-session).
+
+### Status surface
+
+`npm run checkpoint:status` includes a one-line PM summary per
+skill in v1.2:
+
+```
+app-architect    spec-approved    PM: PLAT-4471 (source) + 3 children
+git-ops          PR-merged        PM: PLAT-4471 (linked)
+deploy-ops       shipped          PM: PLAT-4485 (deploy) → PLAT-4471
+monitoring-ops   resolved         PM: PLAT-4503 (incident) → PLAT-4485
+```
+
+This makes the cross-skill PM thread legible at session resume.
+
+### Validation
+
+`npm run checkpoint:validate` accepts the new field as optional;
+existing v1.1 checkpoints validate unchanged. Schema migrations
+only happen on the next write — there is no batch migration.
+
+### Privacy in regulated environments
+
+The `pm_refs` array stores ticket ids + URLs. **It does not
+store ticket bodies.** Tickets in regulated environments may
+contain CUI / PHI; the body retrieval path runs through the
+broker + redactor on each access (see `mcp-enterprise-f500` and
+`mcp-enterprise-defense` scenarios). The checkpoint is therefore
+safe to commit + share within the project.
 
 ---
 

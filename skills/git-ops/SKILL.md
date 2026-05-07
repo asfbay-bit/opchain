@@ -1,7 +1,7 @@
 ---
 name: git-ops
 displayName: Git Ops
-version: 1.2.0
+version: 1.3.0
 shortDesc: Branch, commit, PR, sync workflows. v1.2 is PM-aware — `/git-sync TICKET-1234` reads ticket; transitions on merge.
 phases: [build]
 triAgent: false
