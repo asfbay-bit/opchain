@@ -4,21 +4,57 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-08T20:50:30Z",
+  "updated_at": "2026-05-08T21:52:49Z",
   "phase": "gate",
   "step": "v14-mobile-scope-expansion-passed",
   "status": "complete",
   "progress_summary": "Pre-commit gate for the v1.4 mobile scope expansion: 2 files on main (.opchain/pm.yaml + .checkpoints/stack-forge.checkpoint.json). Bringing Android, Flutter, React Native into v1.4 (release-ops shipped in v1.3, opening the gate that originally deferred them). State-only diff; build/type/lint skipped as vacuous. Vitest: 124/124 in 3.77s. Anti-pattern grep on diff: clean. Secret scan: clean. checkpoint:validate: 7/7 valid. validate-pm-mcp: 5 skills, 0 warnings. Verdict: PASS.",
   "progress_table": [
-    { "id": "schema",        "label": "Checkpoint schema validation — 7/7 valid",                       "status": "complete" },
-    { "id": "secrets",       "label": "Secret scan on changed file — 0 hits",                          "status": "complete" },
-    { "id": "type_safety",   "label": "astro check / tsc — skipped (no source files in diff)",         "status": "not_started" },
-    { "id": "lint",          "label": "ESLint (no repo config; skipped, same as prior runs)",          "status": "not_started" },
-    { "id": "tests",         "label": "Vitest run — 124/124 in 3.69s (no flake)",                      "status": "complete" },
-    { "id": "anti_patterns", "label": "Anti-pattern grep on staged diff — 0 hits",                     "status": "complete" },
-    { "id": "build",         "label": "npm run build — skipped (no source/build-input changes)",       "status": "not_started" },
-    { "id": "dependencies",  "label": "npm audit --audit-level=critical — 0 vulnerabilities",          "status": "complete" },
-    { "id": "pm_mcp",        "label": "validate-pm-mcp — 5 skills, 0 warnings",                        "status": "complete" }
+    {
+      "id": "schema",
+      "label": "Checkpoint schema validation — 7/7 valid",
+      "status": "complete"
+    },
+    {
+      "id": "secrets",
+      "label": "Secret scan on changed file — 0 hits",
+      "status": "complete"
+    },
+    {
+      "id": "type_safety",
+      "label": "astro check / tsc — skipped (no source files in diff)",
+      "status": "not_started"
+    },
+    {
+      "id": "lint",
+      "label": "ESLint (no repo config; skipped, same as prior runs)",
+      "status": "not_started"
+    },
+    {
+      "id": "tests",
+      "label": "Vitest run — 124/124 in 3.69s (no flake)",
+      "status": "complete"
+    },
+    {
+      "id": "anti_patterns",
+      "label": "Anti-pattern grep on staged diff — 0 hits",
+      "status": "complete"
+    },
+    {
+      "id": "build",
+      "label": "npm run build — skipped (no source/build-input changes)",
+      "status": "not_started"
+    },
+    {
+      "id": "dependencies",
+      "label": "npm audit --audit-level=critical — 0 vulnerabilities",
+      "status": "complete"
+    },
+    {
+      "id": "pm_mcp",
+      "label": "validate-pm-mcp — 5 skills, 0 warnings",
+      "status": "complete"
+    }
   ],
   "context_primer": {
     "key_decisions": [
@@ -38,25 +74,35 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-08T20:50:30Z",
+      "at": "2026-05-08T21:52:49Z",
       "verdict": "PASS",
-      "duration_s": 5,
-      "scope": "staged-diff (state-only; build/type/lint skipped as vacuous)",
+      "duration_ms": 5370,
       "checks": {
-        "type_safety": "SKIPPED",
-        "lint": "SKIPPED",
+        "type_safety": "PASS",
+        "lint": "SKIP",
         "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "SKIPPED",
-        "dependencies": "PASS",
-        "checkpoint_validate": "PASS",
-        "pm_mcp_validate": "PASS"
+        "build": "PASS",
+        "dependencies": "PASS"
       },
       "warnings": 0,
-      "errors": 0
+      "errors": 0,
+      "notes": "Diff: 2 .astro files (architecture.astro + MobileArchitecture.astro). Pure SVG/template content. astro build passed (27 pages). Vitest 124/124 in 5.37s. Anti-pattern + secret grep on diff: clean. npm audit: 0 vulns. checkpoint:validate: 7/7."
     },
     "bypasses": [],
-    "carried_debt": 0
-  }
+    "carried_debt": 0,
+    "run_history": [
+      {
+        "at": "2026-05-08T21:52:49Z",
+        "verdict": "PASS",
+        "warnings": 0
+      }
+    ],
+    "streak": {
+      "passes": 1,
+      "since": "2026-05-08T21:52:49Z"
+    }
+  },
+  "field": "progress_summary=Pre-commit gate for architecture Treatment B (release-ops added as 18th skill to /architecture diagram, desktop + mobile). Diff: 2 .astro files (pure SVG/template). astro build passed (27 pages). Vitest: 124/124 in 5.37s. Anti-pattern grep on diff: 0 hits. Secret scan on diff: 0 hits. npm audit: 0 vulns. checkpoint:validate: 7/7. astro check: 0 errors, 0 warnings, 33 pre-existing hints. Verdict: PASS."
 }

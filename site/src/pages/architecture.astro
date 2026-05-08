@@ -5,7 +5,7 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
 
 <Base
   title="Architecture · opchain"
-  description="Checkpoint-driven pipeline of 17 opchain skills across 5 phases — interactive diagram of how skills chain through .checkpoints/<skill>.json."
+  description="Checkpoint-driven pipeline of 18 opchain skills across 5 phases — interactive diagram of how skills chain through .checkpoints/<skill>.json."
   active="/architecture"
 >
   <!-- Mobile-only static architecture (≤767px). Hidden on desktop via the
@@ -80,7 +80,7 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
       <div class="header">
         <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2</div>
         <h1>opchain skills ecosystem</h1>
-        <p class="subtitle">Checkpoint-driven pipeline · 17 skills · 5 phases · 5 tri-agent · 3 audit gates · spine ordinals</p>
+        <p class="subtitle">Checkpoint-driven pipeline · 18 skills · 5 phases · 5 tri-agent · 3 audit gates · spine ordinals</p>
       </div>
 
       <div class="diagram-container">
@@ -209,7 +209,7 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
           <!-- ── Orchestrator detail card with routing-decision animation ── -->
           <div class="orch-detail-expand" id="orch-detail-top">
             <div class="cpd-inner">
-              <p class="cpd-intro">The orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/ops</code> queries. Reads all 17 checkpoints; writes its own pipeline state.</p>
+              <p class="cpd-intro">The orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/ops</code> queries. Reads all 18 checkpoints; writes its own pipeline state.</p>
               <svg class="orch-route-svg" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orchestrator routing decision: app-architect checkpoint update routed to ux-engineer, dash-forge, and api-dev in parallel">
                 <defs>
                   <marker id="orch-rt-end" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
@@ -530,19 +530,42 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
               <span class="band-label-text">SHIP</span>
             </div>
             <div class="band-content">
-              <svg viewBox="0 0 760 180" role="img" aria-label="Ship phase: bug-check, git-ops, code-auditor, security-auditor, deploy-ops">
-                <rect x="180" y="14" width="160" height="50" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" opacity="0.97"><title>git-ops — specialist; branch, commit, PR, sync</title></rect>
-                <rect x="180" y="14" width="160" height="50" rx="5" fill="rgba(13,148,136,0.06)" stroke="#0D9488" stroke-width="0.5"/>
-                <text x="260" y="30" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">git-ops</text>
-                <text x="260" y="42" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Workflow</text>
-                <text x="260" y="56" fill="#0D9488" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/git · /commit · /pr · /push</text>
-                <rect x="303" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="303" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="314" y="16.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                <rect x="329" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="329" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="340" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
-                <g class="spine-chip"><rect x="230" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="230" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="260" y="17" fill="#0D9488" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑2·3·↓4</text></g>
+              <svg viewBox="0 0 760 190" role="img" aria-label="Ship phase: bug-check, git-ops, release-ops, code-auditor, security-auditor, deploy-ops">
+                <rect x="20" y="14" width="140" height="50" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" opacity="0.97"><title>git-ops — specialist; branch, commit, PR, sync</title></rect>
+                <rect x="20" y="14" width="140" height="50" rx="5" fill="rgba(13,148,136,0.06)" stroke="#0D9488" stroke-width="0.5"/>
+                <text x="90" y="30" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">git-ops</text>
+                <text x="90" y="42" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Workflow</text>
+                <text x="90" y="56" fill="#0D9488" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/git · /commit · /pr · /push</text>
+                <rect x="123" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="123" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="134" y="16.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="149" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="149" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="160" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <g class="spine-chip"><rect x="60" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="60" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="90" y="17" fill="#0D9488" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑2·3·↓4</text></g>
+
+                <rect x="200" y="14" width="170" height="64" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" filter="url(#glow-mint)" opacity="0.97"><title>release-ops — specialist · workflow; plan/draft/bump/announce/ship a versioned release. Sits between git-ops and deploy-ops at release boundaries. (18th skill)</title></rect>
+                <rect x="200" y="14" width="170" height="64" rx="5" fill="rgba(13,148,136,0.10)" stroke="#0D9488" stroke-width="0.5"/>
+                <text x="285" y="26" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">release-ops</text>
+                <text x="285" y="36" fill="#c4b89e" font-size="6" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Workflow · NEW</text>
+                <circle cx="361" cy="22" r="6" fill="#0D9488" opacity="0.9"><title>18th skill in the opchain pipeline</title></circle>
+                <text x="361" y="24.5" fill="#0a0807" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">18</text>
+                <rect x="208" y="50" width="28" height="11" rx="2" fill="rgba(13,148,136,0.18)" stroke="#0D9488" stroke-width="0.6"/>
+                <text x="222" y="58" fill="#0D9488" font-size="5.5" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">plan</text>
+                <line x1="237" y1="55.5" x2="240" y2="55.5" stroke="#0D9488" stroke-width="0.7" marker-end="url(#ah-success-sm)"/>
+                <rect x="241" y="50" width="28" height="11" rx="2" fill="rgba(13,148,136,0.18)" stroke="#0D9488" stroke-width="0.6"/>
+                <text x="255" y="58" fill="#0D9488" font-size="5.5" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">draft</text>
+                <line x1="270" y1="55.5" x2="273" y2="55.5" stroke="#0D9488" stroke-width="0.7" marker-end="url(#ah-success-sm)"/>
+                <rect x="274" y="50" width="28" height="11" rx="2" fill="rgba(13,148,136,0.18)" stroke="#0D9488" stroke-width="0.6"/>
+                <text x="288" y="58" fill="#0D9488" font-size="5.5" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">bump</text>
+                <line x1="303" y1="55.5" x2="306" y2="55.5" stroke="#0D9488" stroke-width="0.7" marker-end="url(#ah-success-sm)"/>
+                <rect x="307" y="50" width="32" height="11" rx="2" fill="rgba(13,148,136,0.18)" stroke="#0D9488" stroke-width="0.6"/>
+                <text x="323" y="58" fill="#0D9488" font-size="5.5" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">announce</text>
+                <line x1="340" y1="55.5" x2="343" y2="55.5" stroke="#0D9488" stroke-width="0.7" marker-end="url(#ah-success-sm)"/>
+                <rect x="344" y="50" width="22" height="11" rx="2" fill="rgba(13,148,136,0.28)" stroke="#0D9488" stroke-width="0.7"/>
+                <text x="355" y="58" fill="#0D9488" font-size="5.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ship</text>
+                <text x="285" y="73" fill="#c4b89e" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.7">/release · changelog · semver bump · ticket · post</text>
+                <g class="spine-chip"><rect x="255" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="255" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="285" y="17" fill="#0D9488" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑3·4·↓5</text></g>
 
                 <rect x="430" y="14" width="190" height="50" rx="5" fill="#1c1710" stroke="#e05c18" stroke-width="1" filter="url(#glow-orch)" opacity="0.97"><title>deploy-ops — orchestrator; staging, prod, rollback, audit gate enforcement</title></rect>
                 <rect x="430" y="14" width="190" height="50" rx="5" fill="rgba(224,92,24,.08)" stroke="#e05c18" stroke-width="0.5"/>
@@ -555,56 +578,59 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
                 <rect x="609" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
                 <rect x="609" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
                 <text x="620" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
-                <g class="spine-chip"><rect x="495" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="495" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="525" y="17" fill="#0D9488" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑3·4·↓5</text></g>
+                <g class="spine-chip"><rect x="495" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="495" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="525" y="17" fill="#0D9488" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑4·5·↓6</text></g>
 
-                <rect x="50" y="92" width="140" height="72" rx="5" fill="#1c1710" stroke="#F43F5E" stroke-width="1" opacity="0.97"><title>bug-check — audit gate; pre-commit type/lint/secret/vulnerability scan</title></rect>
-                <rect x="50" y="92" width="140" height="72" rx="5" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="0.5"/>
-                <text x="120" y="108" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">bug-check</text>
-                <text x="120" y="120" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate · pre-commit</text>
-                <text x="120" y="134" fill="#F43F5E" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">type · lint · secrets · vuln</text>
-                <text x="120" y="146" fill="#F43F5E" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/bugcheck</text>
-                <rect x="153" y="85" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="153" y="85" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="164" y="94.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                <rect x="179" y="85" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="179" y="85" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="190" y="94.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <line x1="160" y1="39" x2="200" y2="39" stroke="#0D9488" stroke-width="1.4" opacity="0.85" marker-end="url(#ah-success)"/>
+                <line x1="370" y1="39" x2="430" y2="39" stroke="#0D9488" stroke-width="1.4" opacity="0.85" marker-end="url(#ah-success)"/>
 
-                <rect x="240" y="92" width="170" height="72" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1" opacity="0.97"><title>code-auditor — tri-agent: Auditor / Fixer / Verifier; functions as audit gate (red dashed exits gate the production deploy)</title></rect>
-                <rect x="240" y="92" width="170" height="72" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
-                <text x="325" y="108" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">code-auditor</text>
-                <text x="325" y="120" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · gates prod</text>
-                <text x="325" y="134" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Auditor · Fixer · Verifier</text>
-                <text x="325" y="146" fill="#f59e0b" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/audit · score ≥ 7/10</text>
-                <g class="branch-tag"><rect x="276" y="151" width="98" height="11" rx="2" fill="rgba(13,148,136,.12)" stroke="#0D9488" stroke-width="0.5"/><text x="325.0" y="159" fill="#0D9488" font-size="7" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">→ security-auditor</text></g>
-                <rect x="373" y="85" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="373" y="85" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="384" y="94.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                <rect x="399" y="85" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="399" y="85" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="410" y="94.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="50" y="104" width="140" height="72" rx="5" fill="#1c1710" stroke="#F43F5E" stroke-width="1" opacity="0.97"><title>bug-check — audit gate; pre-commit type/lint/secret/vulnerability scan</title></rect>
+                <rect x="50" y="104" width="140" height="72" rx="5" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="0.5"/>
+                <text x="120" y="120" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">bug-check</text>
+                <text x="120" y="132" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate · pre-commit</text>
+                <text x="120" y="146" fill="#F43F5E" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">type · lint · secrets · vuln</text>
+                <text x="120" y="158" fill="#F43F5E" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/bugcheck</text>
+                <rect x="153" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="153" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="164" y="106.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="179" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="179" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="190" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
 
-                <rect x="460" y="92" width="200" height="72" rx="5" fill="#1c1710" stroke="#F43F5E" stroke-width="1" opacity="0.97"><title>security-auditor — audit gate; STRIDE threat model, OWASP Top 10, infra hardening</title></rect>
-                <rect x="460" y="92" width="200" height="72" rx="5" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="0.5"/>
-                <text x="560" y="108" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">security-auditor</text>
-                <text x="560" y="120" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate · posture review</text>
-                <text x="560" y="134" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">STRIDE · OWASP · TLS · CSP</text>
-                <text x="560" y="146" fill="#F43F5E" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/security · /threat-model</text>
-                <rect x="623" y="85" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="623" y="85" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="634" y="94.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                <rect x="649" y="85" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="649" y="85" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="660" y="94.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="240" y="104" width="170" height="72" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1" opacity="0.97"><title>code-auditor — tri-agent: Auditor / Fixer / Verifier; functions as audit gate (red dashed exits gate the production deploy)</title></rect>
+                <rect x="240" y="104" width="170" height="72" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
+                <text x="325" y="120" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">code-auditor</text>
+                <text x="325" y="132" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · gates prod</text>
+                <text x="325" y="146" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Auditor · Fixer · Verifier</text>
+                <text x="325" y="158" fill="#f59e0b" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/audit · score ≥ 7/10</text>
+                <g class="branch-tag"><rect x="276" y="163" width="98" height="11" rx="2" fill="rgba(13,148,136,.12)" stroke="#0D9488" stroke-width="0.5"/><text x="325.0" y="171" fill="#0D9488" font-size="7" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">→ security-auditor</text></g>
+                <rect x="373" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="373" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="384" y="106.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="399" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="399" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="410" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
 
-                <polyline points="120,92 120,78 260,78 260,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
-                <text x="208" y="74" fill="#ef4444" font-size="6.8" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">pre-commit</text>
+                <rect x="460" y="104" width="200" height="72" rx="5" fill="#1c1710" stroke="#F43F5E" stroke-width="1" opacity="0.97"><title>security-auditor — audit gate; STRIDE threat model, OWASP Top 10, infra hardening</title></rect>
+                <rect x="460" y="104" width="200" height="72" rx="5" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="0.5"/>
+                <text x="560" y="120" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">security-auditor</text>
+                <text x="560" y="132" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate · posture review</text>
+                <text x="560" y="146" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">STRIDE · OWASP · TLS · CSP</text>
+                <text x="560" y="158" fill="#F43F5E" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/security · /threat-model</text>
+                <rect x="623" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="623" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="634" y="106.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="649" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="649" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="660" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
 
-                <polyline points="325,92 325,78 510,78 510,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
-                <text x="430" y="98" fill="#ef4444" font-size="6.8" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">audit gate</text>
+                <polyline points="120,104 120,92 90,92 90,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
+                <text x="155" y="88" fill="#ef4444" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">pre-commit</text>
 
-                <polyline points="560,92 560,78 540,78 540,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
-                <text x="568" y="74" fill="#ef4444" font-size="6.8" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">posture gate</text>
+                <polyline points="325,104 325,92 525,92 525,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
+                <text x="430" y="88" fill="#ef4444" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">audit gate</text>
+
+                <polyline points="560,104 560,92 540,92 540,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
+                <text x="592" y="88" fill="#ef4444" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">posture gate</text>
               </svg>
               <div class="band-detail">
                 <div class="bd-inner" style="background:rgba(224,92,24,0.04);border:0.5px solid rgba(224,92,24,0.2)">
@@ -613,20 +639,22 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
                       <div class="bd-meta-row"><span class="bd-meta-label">skills</span><div class="bd-tags">
                         <span class="bd-tag" style="background:rgba(244,63,94,0.1);border:0.5px solid rgba(244,63,94,0.4);color:#F43F5E">bug-check</span>
                         <span class="bd-tag" style="background:rgba(13,148,136,0.1);border:0.5px solid rgba(13,148,136,0.35);color:#0D9488">git-ops</span>
+                        <span class="bd-tag" style="background:rgba(13,148,136,0.1);border:0.5px solid rgba(13,148,136,0.35);color:#0D9488">release-ops</span>
                         <span class="bd-tag" style="background:rgba(245,158,11,0.1);border:0.5px solid rgba(245,158,11,0.4);color:#f59e0b">code-auditor</span>
                         <span class="bd-tag" style="background:rgba(244,63,94,0.1);border:0.5px solid rgba(244,63,94,0.4);color:#F43F5E">security-auditor</span>
                         <span class="bd-tag" style="background:rgba(224,92,24,0.1);border:0.5px solid rgba(224,92,24,0.4);color:#e05c18">deploy-ops</span>
                       </div></div>
-                      <div class="bd-meta-row"><span class="bd-meta-label">checkpt</span><div class="bd-cp"><span class="bd-cp-badge">CP</span> phase · audit_score · posture · branch · pr · deploy_status</div></div>
+                      <div class="bd-meta-row"><span class="bd-meta-label">checkpt</span><div class="bd-cp"><span class="bd-cp-badge">CP</span> phase · audit_score · posture · branch · pr · release_tag · deploy_status</div></div>
                       <div class="bd-meta-row"><span class="bd-meta-label">links</span><div class="bd-cross">
                         <span class="bd-cross-tag" style="background:rgba(244,63,94,0.06);border:0.5px solid rgba(244,63,94,0.2);color:#F43F5E">3 audit gates block prod</span>
+                        <span class="bd-cross-tag" style="background:rgba(13,148,136,0.06);border:0.5px solid rgba(13,148,136,0.2);color:#0D9488">release-ops at release boundaries</span>
                         <span class="bd-cross-tag" style="background:rgba(224,92,24,0.06);border:0.5px solid rgba(224,92,24,0.2);color:#e05c18">↓ handoff to monitor</span>
                       </div></div>
                     </div>
                     <div class="bd-text">
                       <div class="bd-badge" style="color:var(--ember)">Phase 4 of 5</div>
                       <div class="bd-title">Ship</div>
-                      <div class="bd-desc">Three audit gates (bug-check pre-commit, code-auditor for code-level findings, security-auditor for STRIDE/OWASP/infra) all must pass before deploy-ops will run the production sequence. The spine flows git-ops → deploy-ops; the gate cluster sits below and writes blocker status into shared checkpoints.</div>
+                      <div class="bd-desc">Three audit gates (bug-check pre-commit, code-auditor for code-level findings, security-auditor for STRIDE/OWASP/infra) all must pass before deploy-ops will run the production sequence. At release boundaries the spine threads git-ops → <strong style="color:#0D9488">release-ops</strong> → deploy-ops; release-ops produces changelog · version bump · release ticket · announcement, then hands off (it is <em>not</em> itself a deployer). The gate cluster sits below and writes blocker status into shared checkpoints.</div>
                     </div>
                   </div>
                 </div>
@@ -658,7 +686,7 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
                 <rect x="469" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
                 <rect x="469" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
                 <text x="480" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
-                <g class="spine-chip"><rect x="350" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="350" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="380" y="17" fill="#0D9488" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑4·5</text></g>
+                <g class="spine-chip"><rect x="350" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="350" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="380" y="17" fill="#0D9488" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑5·6</text></g>
               </svg>
               <div class="band-detail">
                 <div class="bd-inner" style="background:rgba(13,148,136,0.04);border:0.5px solid rgba(13,148,136,0.2)">
@@ -695,7 +723,7 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title">Spine Ordinal</div>
                 The 5 primary-spine skills wear numbered ember chips showing handoff position. Each chip carries <code>↑prev·↓next</code> indicators. Replaces the green handoff lines that previously connected them. Branch handoffs use inline mint <code>→ target</code> pills inside source rects.
-                <div class="legend-card-examples">1 rev-spec → 2 app-arch → 3 git-ops → 4 deploy-ops → 5 monitoring-ops</div>
+                <div class="legend-card-examples">1 rev-spec → 2 app-arch → 3 git-ops → 4 release-ops → 5 deploy-ops → 6 monitoring-ops</div>
               </div>
             </span>
             <span class="legend-item" tabindex="0" role="button"
@@ -779,7 +807,7 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title" style="color:#14B8A6">Standalone Specialist</div>
                 Single-purpose skills that produce a concrete artifact and hand it off. No internal loop, no orchestration of others.
-                <div class="legend-card-examples">reverse-spec · dash-forge · git-ops · migration-ops · monitoring-ops</div>
+                <div class="legend-card-examples">reverse-spec · dash-forge · git-ops · release-ops · migration-ops · monitoring-ops</div>
               </div>
             </span>
             <span class="legend-item" tabindex="0" role="button"
@@ -814,7 +842,7 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
           </div>
           <ul>
             <li>· Ember chips on the 5 spine skills mark the handoff sequence</li>
-            <li>· <strong style="color:var(--success)">1</strong> reverse-spec → <strong style="color:var(--success)">2</strong> app-architect → <strong style="color:var(--success)">3</strong> git-ops → <strong style="color:var(--success)">4</strong> deploy-ops → <strong style="color:var(--success)">5</strong> monitoring-ops</li>
+            <li>· <strong style="color:var(--success)">1</strong> reverse-spec → <strong style="color:var(--success)">2</strong> app-architect → <strong style="color:var(--success)">3</strong> git-ops → <strong style="color:var(--success)">4</strong> release-ops → <strong style="color:var(--success)">5</strong> deploy-ops → <strong style="color:var(--success)">6</strong> monitoring-ops</li>
             <li>· Each chip carries <code>↑prev·↓next</code> for direction</li>
             <li>· Branch handoffs as inline mint pills inside source rects:</li>
             <li>&nbsp;&nbsp;ux-engineer <span style="color:#14B8A6">→ dash-forge</span></li>
@@ -855,7 +883,7 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
           <ul>
             <li>· JSON files at .checkpoints/&lt;skill&gt;.json</li>
             <li>· Keys: phase · progress_table · context_primer · blockers · next_actions</li>
-            <li>· All 17 skills read all 17 checkpoints (no ACL)</li>
+            <li>· All 18 skills read all 18 checkpoints (no ACL)</li>
             <li>· Resume: own → upstream → novice mode</li>
             <li>· Framework-agnostic — no platform lock-in</li>
           </ul>
@@ -877,7 +905,7 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
         </div>
       </div>
 
-      <p class="footer">opchain skills ecosystem v2 · asfbay-bit/opchain · 17 skills · 5 phases · 5 tri-agent · 3 audit gates · spine ordinals · checkpoint-driven</p>
+      <p class="footer">opchain skills ecosystem v2 · asfbay-bit/opchain · 18 skills · 5 phases · 5 tri-agent · 3 audit gates · spine ordinals · checkpoint-driven</p>
     </div>
   </main>
 
@@ -901,11 +929,12 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
       'dash-forge':            { band: 'build',    x: 206, y: 22,  w: 160, h: 76,  vbW: 760, vbH: 120 },
       'api-dev':               { band: 'build',    x: 388, y: 22,  w: 170, h: 76,  vbW: 760, vbH: 120 },
       'integrations-engineer': { band: 'build',    x: 580, y: 22,  w: 160, h: 76,  vbW: 760, vbH: 120 },
-      'bug-check':             { band: 'ship',     x: 50,  y: 92,  w: 140, h: 72,  vbW: 760, vbH: 180 },
-      'git-ops':               { band: 'ship',     x: 180, y: 14,  w: 160, h: 50,  vbW: 760, vbH: 180 },
-      'code-auditor':          { band: 'ship',     x: 240, y: 92,  w: 170, h: 72,  vbW: 760, vbH: 180 },
-      'security-auditor':      { band: 'ship',     x: 460, y: 92,  w: 200, h: 72,  vbW: 760, vbH: 180 },
-      'deploy-ops':            { band: 'ship',     x: 430, y: 14,  w: 190, h: 50,  vbW: 760, vbH: 180 },
+      'bug-check':             { band: 'ship',     x: 50,  y: 104, w: 140, h: 72,  vbW: 760, vbH: 190 },
+      'git-ops':               { band: 'ship',     x: 20,  y: 14,  w: 140, h: 50,  vbW: 760, vbH: 190 },
+      'release-ops':           { band: 'ship',     x: 200, y: 14,  w: 170, h: 64,  vbW: 760, vbH: 190 },
+      'code-auditor':          { band: 'ship',     x: 240, y: 104, w: 170, h: 72,  vbW: 760, vbH: 190 },
+      'security-auditor':      { band: 'ship',     x: 460, y: 104, w: 200, h: 72,  vbW: 760, vbH: 190 },
+      'deploy-ops':            { band: 'ship',     x: 430, y: 14,  w: 190, h: 50,  vbW: 760, vbH: 190 },
       'monitoring-ops':        { band: 'monitor',  x: 280, y: 14,  w: 200, h: 52,  vbW: 760, vbH: 80  }
     };
 

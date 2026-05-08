@@ -77,7 +77,7 @@
     <div class="ma-header">
       <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE</div>
       <h1>opchain skills ecosystem</h1>
-      <p class="ma-subtitle">Checkpoint-driven pipeline · 17 skills · 5 phases · 5 tri-agent · 3 audit gates · spine ordinals</p>
+      <p class="ma-subtitle">Checkpoint-driven pipeline · 18 skills · 5 phases · 5 tri-agent · 3 audit gates · spine ordinals</p>
     </div>
 
     <!-- Diagram container -->
@@ -262,7 +262,7 @@
           <span class="ma-band-of">Phase 4 of 5</span>
         </summary>
         <div class="ma-band-svg-wrap">
-          <svg viewBox="0 0 330 720" role="img" aria-label="Ship phase: bug-check pre-commit, git-ops spine, three audit gates must pass before deploy-ops orchestrates production">
+          <svg viewBox="0 0 330 880" role="img" aria-label="Ship phase: bug-check pre-commit, git-ops spine, three audit gates, release-ops at release boundaries, deploy-ops orchestrates production">
             <rect x="20" y="14" width="290" height="86" rx="6" fill="#1c1710" stroke="#fb7185" stroke-width="1.8" filter="url(#ma-glow-rose)"/>
             <rect x="20" y="14" width="290" height="86" rx="6" fill="rgba(251,113,133,.06)" stroke="#fb7185" stroke-width="1"/>
             <circle cx="298" cy="24" r="3" fill="#e05c18"/>
@@ -305,26 +305,55 @@
             <text x="165" y="482" fill="#fb7185" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/security · /threat-model</text>
             <text x="165" y="498" fill="#fb7185" font-size="11" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">3rd of 3 gates</text>
             <line x1="165" y1="506" x2="165" y2="540" stroke="#fb7185" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ma-ah-rose)"/>
-            <text x="165" y="554" fill="#c4b89e" font-size="11" font-weight="600" letter-spacing="0.08em" font-family="JetBrains Mono,monospace" text-anchor="middle">3 GATES PASSED → DEPLOY</text>
-            <rect x="20" y="568" width="290" height="106" rx="7" fill="#1c1710" stroke="#e05c18" stroke-width="2.2" filter="url(#ma-glow-ember)"/>
-            <rect x="20" y="568" width="290" height="106" rx="7" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="1"/>
+            <text x="165" y="554" fill="#c4b89e" font-size="11" font-weight="600" letter-spacing="0.08em" font-family="JetBrains Mono,monospace" text-anchor="middle">3 GATES PASSED → RELEASE</text>
+            <rect x="20" y="568" width="290" height="124" rx="6" fill="#1c1710" stroke="#14b8a6" stroke-width="1.8" filter="url(#ma-glow-mint)"/>
+            <rect x="20" y="568" width="290" height="124" rx="6" fill="rgba(20,184,166,.10)" stroke="#14b8a6" stroke-width="1"/>
             <rect x="148" y="558" width="34" height="20" rx="4" fill="#1c1710"/>
             <rect x="148" y="558" width="34" height="20" rx="4" fill="rgba(20,184,166,.22)" stroke="#14b8a6" stroke-width="1.2" filter="url(#ma-glow-mint)"/>
             <text x="165" y="572" fill="#14b8a6" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">4</text>
             <circle cx="298" cy="578" r="3" fill="#e05c18"/>
             <circle cx="290" cy="578" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="598" fill="#e8dfd0" font-size="17" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">deploy-ops</text>
-            <text x="165" y="616" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Orchestrator · Workflow</text>
-            <text x="165" y="636" fill="#e05c18" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/deploy</text>
-            <text x="165" y="654" fill="#e05c18" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">gates → prod → rollback</text>
-            <text x="165" y="670" fill="#c4b89e" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">enforces all 3 audit gates</text>
-            <line x1="165" y1="684" x2="165" y2="708" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
-            <text x="165" y="717" fill="#14b8a6" font-size="11" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">↓ spine 4 → 5 (monitor)</text>
+            <circle cx="44" cy="584" r="10" fill="#14b8a6" opacity="0.92"><title>18th skill in the opchain pipeline</title></circle>
+            <text x="44" y="588" fill="#0a0807" font-size="11" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">18</text>
+            <text x="165" y="600" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">release-ops</text>
+            <text x="165" y="618" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Workflow · NEW</text>
+            <rect x="64" y="627" width="32" height="14" rx="3" fill="rgba(20,184,166,.20)" stroke="#14b8a6" stroke-width="0.8"/>
+            <text x="80" y="637" fill="#14b8a6" font-size="9" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">plan</text>
+            <line x1="98" y1="634" x2="101" y2="634" stroke="#14b8a6" stroke-width="1" marker-end="url(#ma-ah-mint)"/>
+            <rect x="103" y="627" width="32" height="14" rx="3" fill="rgba(20,184,166,.20)" stroke="#14b8a6" stroke-width="0.8"/>
+            <text x="119" y="637" fill="#14b8a6" font-size="9" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">draft</text>
+            <line x1="137" y1="634" x2="140" y2="634" stroke="#14b8a6" stroke-width="1" marker-end="url(#ma-ah-mint)"/>
+            <rect x="142" y="627" width="32" height="14" rx="3" fill="rgba(20,184,166,.20)" stroke="#14b8a6" stroke-width="0.8"/>
+            <text x="158" y="637" fill="#14b8a6" font-size="9" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">bump</text>
+            <line x1="176" y1="634" x2="179" y2="634" stroke="#14b8a6" stroke-width="1" marker-end="url(#ma-ah-mint)"/>
+            <rect x="181" y="627" width="50" height="14" rx="3" fill="rgba(20,184,166,.20)" stroke="#14b8a6" stroke-width="0.8"/>
+            <text x="206" y="637" fill="#14b8a6" font-size="9" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">announce</text>
+            <line x1="233" y1="634" x2="236" y2="634" stroke="#14b8a6" stroke-width="1" marker-end="url(#ma-ah-mint)"/>
+            <rect x="238" y="627" width="28" height="14" rx="3" fill="rgba(20,184,166,.32)" stroke="#14b8a6" stroke-width="1"/>
+            <text x="252" y="637" fill="#14b8a6" font-size="9" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ship</text>
+            <text x="165" y="658" fill="#c4b89e" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">activates at release boundaries only</text>
+            <text x="165" y="678" fill="#14b8a6" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">/release · changelog · semver bump · ticket · post</text>
+            <line x1="165" y1="692" x2="165" y2="716" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
+            <text x="206" y="708" fill="#14b8a6" font-size="10" font-style="italic" font-family="JetBrains Mono,monospace">hand off</text>
+            <rect x="20" y="722" width="290" height="106" rx="7" fill="#1c1710" stroke="#e05c18" stroke-width="2.2" filter="url(#ma-glow-ember)"/>
+            <rect x="20" y="722" width="290" height="106" rx="7" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="1"/>
+            <rect x="148" y="712" width="34" height="20" rx="4" fill="#1c1710"/>
+            <rect x="148" y="712" width="34" height="20" rx="4" fill="rgba(20,184,166,.22)" stroke="#14b8a6" stroke-width="1.2" filter="url(#ma-glow-mint)"/>
+            <text x="165" y="726" fill="#14b8a6" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">5</text>
+            <circle cx="298" cy="732" r="3" fill="#e05c18"/>
+            <circle cx="290" cy="732" r="3" fill="#e05c18" opacity="0.55"/>
+            <text x="165" y="752" fill="#e8dfd0" font-size="17" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">deploy-ops</text>
+            <text x="165" y="770" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Orchestrator · Workflow</text>
+            <text x="165" y="790" fill="#e05c18" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/deploy</text>
+            <text x="165" y="808" fill="#e05c18" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">gates → prod → rollback</text>
+            <text x="165" y="824" fill="#c4b89e" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">enforces all 3 audit gates</text>
+            <line x1="165" y1="838" x2="165" y2="862" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
+            <text x="165" y="871" fill="#14b8a6" font-size="11" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">↓ spine 5 → 6 (monitor)</text>
           </svg>
         </div>
         <div class="ma-band-caption">
-          <p>Three audit gates (<code>bug-check</code> pre-commit, <code>code-auditor</code> for code-level findings, <code>security-auditor</code> for STRIDE/OWASP/infra) all must pass before <code>deploy-ops</code> will run the production sequence. The spine flows <code>git-ops → deploy-ops</code>; the gate cluster sits between them and writes blocker status into shared checkpoints.</p>
-          <div class="ma-bc-cp"><span class="ma-bc-cp-badge">CP</span><span>phase · audit_score · posture · branch · pr · deploy_status</span></div>
+          <p>Three audit gates (<code>bug-check</code> pre-commit, <code>code-auditor</code> for code-level findings, <code>security-auditor</code> for STRIDE/OWASP/infra) all must pass before <code>deploy-ops</code> will run the production sequence. At release boundaries the spine threads <code>git-ops → release-ops → deploy-ops</code>; <strong style="color:#14b8a6">release-ops</strong> produces the changelog · version bump · release ticket · announcement, then hands off (it is <em>not</em> itself a deployer).</p>
+          <div class="ma-bc-cp"><span class="ma-bc-cp-badge">CP</span><span>phase · audit_score · posture · branch · pr · release_tag · deploy_status</span></div>
         </div>
       </details>
 
@@ -336,12 +365,12 @@
           <span class="ma-band-of">Phase 5 of 5</span>
         </summary>
         <div class="ma-band-svg-wrap">
-          <svg viewBox="0 0 330 130" role="img" aria-label="Monitor phase: monitoring-ops specialist with spine ordinal 5">
+          <svg viewBox="0 0 330 130" role="img" aria-label="Monitor phase: monitoring-ops specialist with spine ordinal 6">
             <rect x="20" y="22" width="290" height="92" rx="7" fill="#1c1710" stroke="#14b8a6" stroke-width="2" filter="url(#ma-glow-mint)"/>
             <rect x="20" y="22" width="290" height="92" rx="7" fill="rgba(20,184,166,.08)" stroke="#14b8a6" stroke-width="1"/>
             <rect x="148" y="12" width="34" height="20" rx="4" fill="#1c1710"/>
             <rect x="148" y="12" width="34" height="20" rx="4" fill="rgba(20,184,166,.22)" stroke="#14b8a6" stroke-width="1.2" filter="url(#ma-glow-mint)"/>
-            <text x="165" y="26" fill="#14b8a6" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">5</text>
+            <text x="165" y="26" fill="#14b8a6" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">6</text>
             <circle cx="298" cy="32" r="3" fill="#e05c18"/>
             <circle cx="290" cy="32" r="3" fill="#e05c18" opacity="0.55"/>
             <text x="165" y="56" fill="#e8dfd0" font-size="17" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">monitoring-ops</text>
@@ -362,7 +391,7 @@
           <div class="ma-appendix-eyebrow">Appendix A · Cross-cutting</div>
           <div class="ma-appendix-title">Checkpoint Protocol — sync topology</div>
         </summary>
-        <p class="ma-appendix-desc">Every skill (all 17) writes a JSON checkpoint after each state change. The orchestrator both reads from and writes to each — bidirectional sync. Diagram below shows 6 representative connections; the same topology extends to all 17 skills.</p>
+        <p class="ma-appendix-desc">Every skill (all 18) writes a JSON checkpoint after each state change. The orchestrator both reads from and writes to each — bidirectional sync. Diagram below shows 6 representative connections; the same topology extends to all 18 skills.</p>
         <svg viewBox="0 0 330 360" role="img" aria-label="Orchestrator bidirectionally syncs checkpoints with all skills (6 shown)">
           <rect x="20" y="14" width="92" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="1.5"/>
           <text x="66" y="32" fill="#e05c18" font-size="11" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
@@ -448,7 +477,7 @@
             <div class="ma-li-name">Spine ordinal</div>
           </div>
           <div class="ma-li-desc">Numbered mint pill on the 5 primary-spine skills marks handoff position. Replaces directional arrows between bands — vertical reading order is the sequence.</div>
-          <div class="ma-li-eg">1 reverse-spec → 2 app-architect → 3 git-ops → 4 deploy-ops → 5 monitoring-ops</div>
+          <div class="ma-li-eg">1 reverse-spec → 2 app-architect → 3 git-ops → 4 release-ops → 5 deploy-ops → 6 monitoring-ops</div>
         </div>
         <div class="ma-legend-item">
           <div class="ma-legend-head">
@@ -479,7 +508,7 @@
             <div class="ma-li-swatch" style="background:var(--ma-ember);border-radius:50%;width:14px;height:14px"></div>
             <div class="ma-li-name">CP · checkpoint indicator</div>
           </div>
-          <div class="ma-li-desc">Solid ember dot in each skill's top-right corner indicates the skill writes a checkpoint. <strong>All 17 skills carry CP</strong> — desktop version shows full CP badge on each rect; mobile uses the dot for legibility.</div>
+          <div class="ma-li-desc">Solid ember dot in each skill's top-right corner indicates the skill writes a checkpoint. <strong>All 18 skills carry CP</strong> — desktop version shows full CP badge on each rect; mobile uses the dot for legibility.</div>
           <div class="ma-li-eg"><code>.checkpoints/&lt;skill&gt;.json</code> · phase · progress · blockers · next_actions</div>
         </div>
         <div class="ma-legend-item">
@@ -487,7 +516,7 @@
             <div class="ma-li-swatch" style="background:var(--ma-ember);border-radius:50%;width:14px;height:14px;opacity:0.55"></div>
             <div class="ma-li-name">ORC · orchestrator indicator</div>
           </div>
-          <div class="ma-li-desc">Faded ember dot adjacent to the CP dot indicates the skill participates in <code>/ops</code> routing. <strong>All 17 skills carry ORC</strong> — every skill is route-addressable by the orchestrator.</div>
+          <div class="ma-li-desc">Faded ember dot adjacent to the CP dot indicates the skill participates in <code>/ops</code> routing. <strong>All 18 skills carry ORC</strong> — every skill is route-addressable by the orchestrator.</div>
           <div class="ma-li-eg"><code>/ops</code> · cross-project routing · gate enforcement · "what should I do next"</div>
         </div>
         <div class="ma-legend-divider"></div>
@@ -514,7 +543,7 @@
             <div class="ma-li-name" style="color:var(--ma-specialist)">Standalone specialist</div>
           </div>
           <div class="ma-li-desc">Single-purpose skills that produce a concrete artifact and hand it off. No internal loop, no orchestration of others.</div>
-          <div class="ma-li-eg">reverse-spec · dash-forge · git-ops · migration-ops · monitoring-ops</div>
+          <div class="ma-li-eg">reverse-spec · dash-forge · git-ops · release-ops · migration-ops · monitoring-ops</div>
         </div>
         <div class="ma-legend-item">
           <div class="ma-legend-head">
@@ -549,7 +578,7 @@
           </div>
           <ul>
             <li>Mint pills on the 5 spine skills mark the handoff sequence</li>
-            <li><strong style="color:var(--ma-specialist)">1</strong> reverse-spec → <strong style="color:var(--ma-specialist)">2</strong> app-architect → <strong style="color:var(--ma-specialist)">3</strong> git-ops → <strong style="color:var(--ma-specialist)">4</strong> deploy-ops → <strong style="color:var(--ma-specialist)">5</strong> monitoring-ops</li>
+            <li><strong style="color:var(--ma-specialist)">1</strong> reverse-spec → <strong style="color:var(--ma-specialist)">2</strong> app-architect → <strong style="color:var(--ma-specialist)">3</strong> git-ops → <strong style="color:var(--ma-specialist)">4</strong> release-ops → <strong style="color:var(--ma-specialist)">5</strong> deploy-ops → <strong style="color:var(--ma-specialist)">6</strong> monitoring-ops</li>
             <li>Direction is implicit from vertical reading order</li>
             <li>Branch handoffs noted inline as captions:</li>
             <li>&nbsp;&nbsp;ux-engineer <span style="color:var(--ma-specialist)">→ dash-forge</span></li>
@@ -590,7 +619,7 @@
           <ul>
             <li>JSON files at <code>.checkpoints/&lt;skill&gt;.json</code></li>
             <li>Keys: phase · progress_table · context_primer · blockers · next_actions</li>
-            <li>All 17 skills read all 17 checkpoints (no ACL)</li>
+            <li>All 18 skills read all 18 checkpoints (no ACL)</li>
             <li>Resume order: own → upstream → novice mode</li>
             <li>Framework-agnostic — no platform lock-in</li>
           </ul>
