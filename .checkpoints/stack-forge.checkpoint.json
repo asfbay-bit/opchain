@@ -1,0 +1,97 @@
+{
+  "protocol_version": "1.0",
+  "skill": "stack-forge",
+  "project": "opchain.dev v1.4",
+  "project_dir": "/home/user/opchain",
+  "created_at": "2026-05-08T05:40:00Z",
+  "updated_at": "2026-05-08T05:40:00Z",
+
+  "phase": "plan-approved",
+  "step": "pr-1-starting",
+  "status": "in_progress",
+  "progress_summary": "v1.4 plan approved. Theme: 'Coverage as a plugin registry — drastically expand language and platform support in one release.' Replacing the 5 hardcoded stacks (TS/Python/Ruby/Go/Rust) with skills/stack-forge/packs/<id>/pack.yml + reference docs. Scope at v1.4.0 cut: 20 packs (5 backfilled + 15 new) → 11+ languages, 9 deploy targets including App Store, 15+ frameworks. Mobile coverage limited to Apple/iOS/Swift in v1.4 (proves kind: mobile dispatch); Android/Flutter/RN deferred to v1.5 once release-ops ships. Distribution: bundle-everything in opchain-skills.zip, per-pack flags filter visibility not download. 8 PRs sequenced, PRs 4-7 parallelizable after PR 3. Linear parent ADEV-327; PR tickets ADEV-328 through ADEV-337 (sans 332/333). Branch: claude/expand-language-platform-support-t7Uu7. No code written yet — next step is PR 1 implementation (schema + generator + auto-flag wiring).",
+
+  "progress_table": [
+    { "id": "scope",         "label": "Scope + 8-PR plan approved (incl. iOS pivot, distribution model)", "status": "complete" },
+    { "id": "linear",        "label": "Linear tickets ADEV-327..337 created and aligned with current scope", "status": "complete" },
+    { "id": "pr-1",          "label": "PR 1 — Architecture: schema, gen-stack-packs, auto-flag wiring, parity validator (ADEV-328)", "status": "in_progress" },
+    { "id": "pr-2",          "label": "PR 2 — Backfill 5 existing stacks + 4 platform adapters + equivalence fixtures (ADEV-329)", "status": "not_started" },
+    { "id": "pr-3",          "label": "PR 3 — deploy-ops dispatcher + api-dev pack-read + kind:mobile branch (ADEV-330)", "status": "not_started" },
+    { "id": "pr-4",          "label": "PR 4 — Modern web bulk: phoenix, remix, sveltekit, solid, bun, deno (ADEV-334)", "status": "not_started" },
+    { "id": "pr-5",          "label": "PR 5 — Enterprise bulk: spring-java, dotnet-aspnet, spring-kotlin, laravel-php (ADEV-335)", "status": "not_started" },
+    { "id": "pr-6",          "label": "PR 6 — Apple/iOS/Swift pack + app-store adapter, release-checklist dispatch (ADEV-336)", "status": "not_started" },
+    { "id": "pr-7",          "label": "PR 7 — Hosting adapters: railway, netlify, heroku, aws-amplify (ADEV-337)", "status": "not_started" },
+    { "id": "pr-8",          "label": "PR 8 — Site /coverage page, v1.4 pill, 5 skill version bumps, release (ADEV-331)", "status": "not_started" }
+  ],
+
+  "context_primer": {
+    "key_decisions": [
+      "Theme: pack registry replaces hardcoded stack tables in stack-forge / api-dev / deploy-ops / app-architect / migration-ops.",
+      "Each pack is skills/stack-forge/packs/<id>/pack.yml + references/*.md; kind ∈ { server | mobile | platform-adapter }.",
+      "Coverage flags auto-generated as skills.coverage.<pack-id>.enabled (server + mobile only; adapters don't get a flag). Default = true if status:stable, else false.",
+      "Distribution: bundle-everything via existing make-skills-zip.sh. Flags filter what stack-forge OFFERS, not what's downloaded. Keeps regulated/air-gapped installs working.",
+      "Apple/iOS ships in v1.4.0 (PR 6); Android/Flutter/React Native deferred to v1.5 gated on release-ops (ADEV-308).",
+      "kind: mobile dispatch renders deploymentRef as a release checklist instead of executing commands. Output starts with explicit 'checklist-driven, not automated' notice.",
+      "Cloudflare stays the default platform after PR 3's dispatcher refactor; CF user output unchanged. Contract tests guard regressions.",
+      "Backfill (PR 2) ships snapshot equivalence fixtures so the 5 existing stacks produce byte-identical output to v1.2.",
+      "Only 5 skills version-bump 1.2.0 → 1.4.0 (stack-forge, api-dev, deploy-ops, app-architect, migration-ops). The other ~13 stay on 1.2.0.",
+      "Future option (v1.6+): split into opchain-core.zip + opchain-extras.zip if pack count crosses ~100 or refs get heavy. Document in CONTRIBUTING.md as guidance for pack authors.",
+      "PRs 4-7 parallelizable after PR 3 lands. PR 8 must merge last (badge count depends on final pack count).",
+      "ADEV-333 created in error during scope shift; cancelled as duplicate of ADEV-332. ADEV-332 repurposed as a rolling v1.4.x patch tracker (no fixed queue)."
+    ],
+    "generated_files": [],
+    "user_preferences": [
+      "Pulls scope INTO releases when it expands the value prop; comfortable with bigger releases when 8-PR sequencing is clear.",
+      "Asks sharp clarifying questions about user-visible mechanics (downloads vs. visibility, plugin pattern) before approving implementation.",
+      "Prefers 'show me the implementation plan' as a checkpoint before writing code.",
+      "Wants Linear kept current with the actual plan — re-aligns tickets when scope shifts."
+    ]
+  },
+
+  "blockers": [],
+
+  "next_actions": [
+    "PR 1: read existing src/lib/flags/registry.js, scripts/gen-flags.mjs, scripts/gen-skills-catalog.mjs, scripts/make-skills-zip.sh to ground the design in the current build pipeline.",
+    "PR 1: write skills/stack-forge/packs/_schema.json (JSON Schema for pack.yml — id/kind/status/since/language/runtime/frameworks/testRunner/buildCmd/lintCmd/defaultPlatform/supportedPlatforms/*Ref).",
+    "PR 1: write skills/stack-forge/packs/CONTRIBUTING.md — how to add a pack, ref-file conventions, status lifecycle, 50KB ref budget guidance.",
+    "PR 1: write scripts/gen-stack-packs.mjs — schema validation, ref-existence checks, adapter graph resolution, emits site/src/lib/stack-packs.generated.ts + skills/stack-forge/packs.generated.json.",
+    "PR 1: patch scripts/gen-flags.mjs to register skills.coverage.<pack-id>.enabled per server/mobile pack (default = status === 'stable').",
+    "PR 1: patch scripts/gen-skills-catalog.mjs to validate flags.required/exposes references resolve against generated coverage flags.",
+    "PR 1: reorder package.json prebuild → gen-stack-packs → gen-flags → gen-catalog → sync-docs → make-zip → astro build.",
+    "PR 1: add tests/stack-packs.test.js (schema + adapter graph + ref existence).",
+    "PR 1: zero-pack baseline — run npm run build + npm test, confirm green before any pack moves into the directory.",
+    "PR 1: open PR on claude/expand-language-platform-support-t7Uu7, link ADEV-328, mark it In Review."
+  ],
+
+  "skill_state": {
+    "release_target": "v1.4.0",
+    "linear_parent": "ADEV-327",
+    "linear_pr_tickets": {
+      "pr-1": "ADEV-328",
+      "pr-2": "ADEV-329",
+      "pr-3": "ADEV-330",
+      "pr-4": "ADEV-334",
+      "pr-5": "ADEV-335",
+      "pr-6": "ADEV-336",
+      "pr-7": "ADEV-337",
+      "pr-8": "ADEV-331"
+    },
+    "linear_patch_tracker": "ADEV-332",
+    "linear_cancelled": ["ADEV-333"],
+    "branch": "claude/expand-language-platform-support-t7Uu7",
+    "scope_at_cut": {
+      "packs_total": 20,
+      "packs_backfilled": 5,
+      "packs_new": 15,
+      "languages": ["typescript", "javascript", "python", "ruby", "go", "rust", "elixir", "java", "csharp", "kotlin", "php", "swift"],
+      "platforms": ["cloudflare-workers", "fly", "render", "vercel", "deno-deploy", "railway", "netlify", "heroku", "aws-amplify", "app-store"],
+      "frameworks_added": ["phoenix", "remix", "sveltekit", "solid-start", "bun-elysia", "deno-fresh", "spring-java", "dotnet-aspnet", "spring-kotlin", "laravel", "swiftui"]
+    },
+    "skills_to_bump": ["stack-forge", "api-dev", "deploy-ops", "app-architect", "migration-ops"],
+    "skills_unchanged": ["bug-check", "checkpoint-protocol", "code-auditor", "dash-forge", "git-ops", "integrations-engineer", "monitoring-ops", "orchestrator", "release-ops", "reverse-spec", "scale-ops", "security-auditor", "ux-engineer"],
+    "deferred_to_v15": ["kotlin-android", "flutter", "react-native-expo"],
+    "deferred_to_v16_plus": ["python-ml", "r", "julia", "tauri", "electron"],
+    "depends_on": "v1.3 ships first (manual deploy 2026-05-11 per app-architect checkpoint).",
+    "deploy_method": "manual wrangler from laptop"
+  }
+}
