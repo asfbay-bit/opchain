@@ -4,12 +4,12 @@
   "project": "opchain.dev v1.3",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-05-07T00:00:00Z",
+  "updated_at": "2026-05-08T19:20:00Z",
 
-  "phase": "launch-pending",
-  "step": "all-sprints-complete",
-  "status": "in_progress",
-  "progress_summary": "v1.3 all 4 sprints complete. Build-time artefacts ready: 18 skills validate, 92 flags, 124 vitest tests pass, validate-pm-mcp OK, site builds 27 pages including new /skills/release-ops + 3 new /demo scenarios + v1.3 /changelog entry. Linear thread fully dogfooded: ADEV-306 parent + 4 child tickets all Done. The only remaining step is manual deploy from a wrangler-logged-in laptop on Monday 2026-05-11: npm run deploy:staging → eyeball → npm run deploy. ADEV-306 stays In Progress until then.",
+  "phase": "launched",
+  "step": "shipped",
+  "status": "complete",
+  "progress_summary": "v1.3 shipped. Manual deploy ran ahead of the planned 2026-05-11 target: opchain.dev and staging.opchain.dev both serve commit 526a9a2; homepage release pill displays v1.3. All 4 sprints, the 18th skill (release-ops), platform expansion (Django/Rails/Go/Rust), and the 3 new /demo scenarios are live. Hand-off to stack-forge for v1.4 (coverage-as-a-plugin-registry, ADEV-327 parent / ADEV-328 PR 1 first).",
 
   "progress_table": [
     { "id": "scope",        "label": "Scope + sprint plan approval",                                       "status": "complete" },
@@ -17,7 +17,7 @@
     { "id": "sprint-2",     "label": "Sprint 2: New skill release-ops (the 18th)",                         "status": "complete" },
     { "id": "sprint-3",     "label": "Sprint 3: Platform expansion (Django / Rails / Go / Rust)",          "status": "complete" },
     { "id": "sprint-4",     "label": "Sprint 4: Scenarios + carry-over + /changelog + ship",               "status": "complete" },
-    { "id": "deploy",       "label": "Manual deploy: staging eyeball → prod (Monday 2026-05-11)",       "status": "not_started" }
+    { "id": "deploy",       "label": "Manual deploy: staging eyeball → prod (live at 526a9a2)",            "status": "complete" }
   ],
 
   "context_primer": {
@@ -42,20 +42,22 @@
   "blockers": [],
 
   "next_actions": [
-    "Sprint 1 build: survey existing src/lib (feedback handler, retry helpers) + existing SKILL.md PM-MCP prose to determine the right shape for the runtime layer.",
-    "Sprint 1 build: implement shared PM helper, retry/backoff, idempotency, deferred-action queue + flush command.",
-    "Sprint 1 build: wire the four PM-aware skills (app-architect, git-ops, deploy-ops, monitoring-ops) to the helper.",
-    "Sprint 1 DoD: vitest covers retry/backoff/idempotency; live Linear ADEV ticket round-trips through the loop."
+    "Flip Linear ADEV-306 (and any still-open child tickets) from In Progress → Done — release is live.",
+    "Hand off to stack-forge: kick off v1.4 PR 1 (ADEV-328) — pack registry schema + generator + auto-flag wiring + parity validator.",
+    "Reconcile other stale checkpoints (git-ops still says last-merge #151; orchestrator dated 2026-05-02)."
   ],
 
   "skill_state": {
     "release_target": "2026-05-11",
+    "release_shipped_at": "2026-05-08",
+    "release_sha": "526a9a2",
     "themes": { "primary": "A: runtime PM-MCP", "secondary": "E: platform expansion", "tertiary": "B: release-ops" },
     "scenarios_planned": ["runtime-pm-loop", "release-ops-dogfood", "django-render-shipped"],
     "new_skill": "release-ops",
     "skills_to_bump": "all 18 (17 existing + release-ops new) → 1.3.0",
     "carry_over_from_v12": ["playwright e2e for /changelog and v1.2 scenarios", "LHCI warn assertions"],
     "deploy_method": "manual wrangler from laptop",
-    "depends_on": "v1.2 release shipped; .opchain/pm.yaml exists with provider=linear team=ADEV"
+    "depends_on": "v1.2 release shipped; .opchain/pm.yaml exists with provider=linear team=ADEV",
+    "next_release": { "version": "1.4.0", "parent_ticket": "ADEV-327", "first_pr_ticket": "ADEV-328" }
   }
 }

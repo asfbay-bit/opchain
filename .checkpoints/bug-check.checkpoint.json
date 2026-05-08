@@ -2,22 +2,23 @@
   "protocol_version": "1.0",
   "skill": "bug-check",
   "project": "opchain.dev",
-  "project_dir": "/home/user/opchain",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-08T06:18:00Z",
+  "updated_at": "2026-05-08T19:48:31Z",
   "phase": "gate",
-  "step": "orchestrator-checkpoint-update-passed",
+  "step": "post-ship-reconciliation-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate run for the orchestrator checkpoint update on claude/a11y-lhci-cleanup (single modified file: .checkpoints/orchestrator.checkpoint.json — JSON only, recording v1.4 plan-merged + a11y cleanup track standup). Astro check: 0 errors / 0 warnings (1 unused-variable hint pre-existing in architecture.astro line 1027). Build: 27 pages green in 5.48s + worker dist + zip. Vitest: first run had 1 flake on tests/flags-skills.test.js > 'passes with a clean fixture' (a fixture-spawning test that runs at ~1150ms and is race-prone); re-run was clean 124/124. Anti-pattern grep on the JSON diff: clean. Secret scan: clean. Root npm audit: 0 vulnerabilities. Checkpoint:validate: 7/7 valid. 6 OG PNGs re-touched by build are non-deterministic regen noise (identical issue from prior run); discarded before commit. Verdict: PASS. Note: bug-check.checkpoint.json conflicted with the auto-stamp from PR #188 (which recorded a 06:15:30Z gate for the git-ops update); resolved by keeping this newer run since checkpoint records most-recent gate.",
+  "progress_summary": "Pre-commit gate for the v1.3-ship reconciliation diff on main: 4 files (.checkpoints/app-architect, .checkpoints/git-ops, .checkpoints/orchestrator, .opchain/pm.yaml). All JSON/YAML — no source changes, so build / type-check / lint were skipped as vacuous (build inputs are unchanged from PR #189). Vitest: 124/124 in 3.69s (no flake this time). Anti-pattern grep on staged diff: clean. Secret scan on staged diff: clean. npm audit --audit-level=critical: 0 vulnerabilities. checkpoint:validate: 7/7 valid. validate-pm-mcp: 5 skills, 0 warnings. Verdict: PASS. Also fixed project_dir leftover (/home/user/opchain → /Users/aidanelsesser/...) on this checkpoint while updating it — same one-line typo as the orchestrator + git-ops checkpoints.",
   "progress_table": [
     { "id": "schema",        "label": "Checkpoint schema validation — 7/7 valid",                       "status": "complete" },
     { "id": "secrets",       "label": "Secret scan on changed file — 0 hits",                          "status": "complete" },
-    { "id": "type_safety",   "label": "astro check — 0 errors / 0 warnings (1 hint, pre-existing)",    "status": "complete" },
+    { "id": "type_safety",   "label": "astro check / tsc — skipped (no source files in diff)",         "status": "not_started" },
     { "id": "lint",          "label": "ESLint (no repo config; skipped, same as prior runs)",          "status": "not_started" },
-    { "id": "tests",         "label": "Vitest run — 124/124 on re-run (1 flake on first run)",         "status": "complete" },
-    { "id": "anti_patterns", "label": "Anti-pattern grep on diff — 0 hits",                            "status": "complete" },
-    { "id": "build",         "label": "npm run build — 27 pages + worker + zip",                       "status": "complete" },
-    { "id": "dependencies",  "label": "npm audit — 0 vulnerabilities at root",                         "status": "complete" }
+    { "id": "tests",         "label": "Vitest run — 124/124 in 3.69s (no flake)",                      "status": "complete" },
+    { "id": "anti_patterns", "label": "Anti-pattern grep on staged diff — 0 hits",                     "status": "complete" },
+    { "id": "build",         "label": "npm run build — skipped (no source/build-input changes)",       "status": "not_started" },
+    { "id": "dependencies",  "label": "npm audit --audit-level=critical — 0 vulnerabilities",          "status": "complete" },
+    { "id": "pm_mcp",        "label": "validate-pm-mcp — 5 skills, 0 warnings",                        "status": "complete" }
   ],
   "context_primer": {
     "key_decisions": [
@@ -33,27 +34,26 @@
   },
   "blockers": [],
   "next_actions": [
-    "Proceed with the commit of .checkpoints/orchestrator.checkpoint.json + this file on claude/a11y-lhci-cleanup.",
-    "Do NOT push yet — the branch has no a11y fixes on it. Push when ADEV-339-342 land.",
-    "Consider filing a maintenance ticket: make tests/flags-skills.test.js deterministic (drop the 1100ms+ tests, mock the spawn).",
-    "Consider filing a maintenance ticket: make OG PNG generation byte-deterministic so the build stops dirtying the working tree."
+    "Proceed with the commit of the 4 reconciliation files + this checkpoint update on main."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-08T06:18:00Z",
+      "at": "2026-05-08T19:48:31Z",
       "verdict": "PASS",
-      "duration_s": 90,
+      "duration_s": 5,
+      "scope": "staged-diff (state-only; build/type/lint skipped as vacuous)",
       "checks": {
-        "type_safety": "PASS",
+        "type_safety": "SKIPPED",
         "lint": "SKIPPED",
         "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "PASS",
-        "dependencies": "PASS"
+        "build": "SKIPPED",
+        "dependencies": "PASS",
+        "checkpoint_validate": "PASS",
+        "pm_mcp_validate": "PASS"
       },
-      "warnings": 1,
-      "warning_notes": ["tests/flags-skills.test.js had a flake on first run; re-run clean. Diff cannot have caused it (JSON-only)."],
+      "warnings": 0,
       "errors": 0
     },
     "bypasses": [],

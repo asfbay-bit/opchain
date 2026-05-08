@@ -2,14 +2,14 @@
   "protocol_version": "1.0",
   "skill": "orchestrator",
   "project": "opchain.dev",
-  "project_dir": "/home/user/opchain",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:50:00Z",
-  "updated_at": "2026-05-08T06:15:00Z",
+  "updated_at": "2026-05-08T19:35:00Z",
 
   "phase": "routing",
-  "step": "two-tracks-in-flight",
+  "step": "post-ship-reconciliation",
   "status": "in_progress",
-  "progress_summary": "Session pivoted from v1.4 implementation into v1.4 planning. Approved an 8-PR pack-registry architecture: replaces 5 hardcoded stacks with skills/stack-forge/packs/<id>/pack.yml + reference docs, drastically expanding to 11+ languages and 9 platforms (App Store included via PR 6 swift-ios). User explicitly pulled scope INTO the release rather than spreading across patches. Distribution stays bundle-everything; per-pack flags filter visibility, not download. Linear updated end-to-end: parent ADEV-327, PR tickets ADEV-328-337 (sans 333), patch tracker ADEV-332. Saved stack-forge.checkpoint.json as the single source of truth for the v1.4 plan; merged via PR #187 (squash, all 4 CI checks green). LHCI bot surfaced 4 pre-existing a11y failures unrelated to the doc-only PR; user authorized standing them up as a separate workstream. Cut a11y branch off main, filed ADEV-338 parent + ADEV-339/340/341/342 children, no code written yet on either track.",
+  "progress_summary": "Reconciliation session after v1.3 actually shipped (526a9a2 in prod + staging — confirmed via /api/health and homepage release pill). Earlier checkpoints had v1.3 as 'launch-pending / ready-to-deploy' targeting Mon 2026-05-11; the real deploy ran ahead of schedule. Brought stale state in line: app-architect → launched/shipped/complete, git-ops → last-merge #183 → #189 with missing PR rows (#185-#189) added, project_dir paths corrected (orchestrator + git-ops both had /home/user/opchain leftover from a sandbox run), .opchain/pm.yaml advanced from v1.3.0 (now archived under previous_releases) to v1.4.0 with parent ADEV-327 + 8 PR children, sprint/PR key aligned to `prs:` across both releases. Linear ADEV-306 + children ADEV-307..310 verified already Done — release-ops auto-flow had handled them. v1.4 PR 1 (ADEV-328) is the active front-of-queue per stack-forge.checkpoint.json `pr-1-starting`; a11y cleanup (ADEV-338) is the parallelizable secondary track.",
 
   "progress_table": [
     { "id": "intake-1.4",     "label": "Intake: 1.4 scope expansion (5 langs → 11+ langs + iOS)",     "status": "complete" },
@@ -20,7 +20,11 @@
     { "id": "lhci-triage",    "label": "Triage LHCI a11y failures from #187 build",                   "status": "complete" },
     { "id": "a11y-tickets",   "label": "Linear: ADEV-338 parent + 4 sub-issues (TOC, code, bands, links)", "status": "complete" },
     { "id": "a11y-branch",    "label": "Cut claude/a11y-lhci-cleanup off main (fast-forwarded)",      "status": "complete" },
-    { "id": "v1.4-pr1",       "label": "v1.4 PR 1 — schema, generator, auto-flag wiring (ADEV-328)",   "status": "not_started" },
+    { "id": "v13-shipped",    "label": "Verify v1.3 shipped (526a9a2 live in prod + staging)",         "status": "complete" },
+    { "id": "reconcile-cps",  "label": "Reconcile stale checkpoints (app-architect + git-ops)",        "status": "complete" },
+    { "id": "reconcile-pm",   "label": "Reconcile .opchain/pm.yaml (v1.3 archive + v1.4 advance)",     "status": "complete" },
+    { "id": "fix-project-dirs","label": "Fix /home/user/opchain → /Users/... in orchestrator + git-ops","status": "complete" },
+    { "id": "v1.4-pr1",       "label": "v1.4 PR 1 — schema, generator, auto-flag wiring (ADEV-328)",   "status": "in_progress" },
     { "id": "a11y-fixes",     "label": "Land 4 a11y fixes on claude/a11y-lhci-cleanup (ADEV-339-342)", "status": "not_started" }
   ],
 
@@ -36,7 +40,10 @@
     ],
     "generated_files": [
       ".checkpoints/stack-forge.checkpoint.json",
-      ".checkpoints/orchestrator.checkpoint.json (this file, updated)"
+      ".checkpoints/orchestrator.checkpoint.json (this file, updated)",
+      ".checkpoints/app-architect.checkpoint.json (launch-pending → launched/shipped/complete; release_shipped_at + release_sha + next_release added to skill_state)",
+      ".checkpoints/git-ops.checkpoint.json (last-merge-#183 → #189; PRs #185-#189 added to merged_prs; project_dir corrected)",
+      ".opchain/pm.yaml (v1.3.0 archived to previous_releases; v1.4.0 active with ADEV-327 parent + 8 PRs; key renamed sprints → prs in both)"
     ],
     "user_preferences": [
       "Pulls scope INTO releases when it expands the value prop; comfortable with bigger releases when the PR sequence is clear.",
@@ -50,10 +57,10 @@
   "blockers": [],
 
   "next_actions": [
-    "Pick a track. v1.4 PR 1 (ADEV-328) is the highest-leverage starting point — it unblocks PRs 2-7. a11y cleanup (ADEV-338) is small and parallelizable; can land as a single PR in <1 session.",
-    "If picking v1.4: read stack-forge.checkpoint.json `next_actions[0]` — start with surveying src/lib/flags/registry.js, scripts/gen-flags.mjs, scripts/gen-skills-catalog.mjs, scripts/make-skills-zip.sh.",
-    "If picking a11y: confirm on `claude/a11y-lhci-cleanup`, then start with ADEV-339 (TOC touch-target — affects all skill pages, biggest visible win). Four commits (one per child ticket) so each fix is independently revertible.",
-    "Either branch needs `npm install` and `npm install --prefix site` before first build (lockfile drift detected this session was npm 10→11 metadata only — discarded with git restore)."
+    "Commit reconciliation diff. Three files touched (.checkpoints/app-architect, .checkpoints/git-ops, .checkpoints/orchestrator, .opchain/pm.yaml) — one commit, message scope `chore(state)` or similar. No code change, all validators green.",
+    "Resume v1.4 PR 1 (ADEV-328) — stack-forge.checkpoint.json says `pr-1-starting / in_progress`. Read its next_actions[0] for the actual starting move.",
+    "a11y cleanup (ADEV-338) remains parallelizable — small, single PR, four commits (ADEV-339/340/341/342). Can be picked up by anyone not on the v1.4 critical path.",
+    "Either branch needs `npm install` and `npm install --prefix site` before first build (lockfile drift detected last session was npm 10→11 metadata only — discarded with git restore)."
   ],
 
   "skill_state": {
@@ -76,6 +83,13 @@
       "git-ops",
       "release-ops"
     ],
-    "supersedes_prior_orchestrator_state": "Prior session shipped #140/#143/#146/#148/#150/#151 and returned 'Session done — open a fresh session.' That work is now part of main; this session continues forward from there."
+    "supersedes_prior_orchestrator_state": "Prior session shipped #140/#143/#146/#148/#150/#151 and returned 'Session done — open a fresh session.' That work is now part of main; this session continues forward from there.",
+    "reconciliation_2026_05_08": {
+      "trigger": "User asked /orchestrator to analyze open action items + v1.4 plan. Surfaced that v1.3 had already shipped while local checkpoints still showed 'launch-pending'.",
+      "verified_via": ["curl https://opchain.dev/api/health → version 526a9a2", "curl https://staging.opchain.dev/api/health → version 526a9a2", "homepage release pill → v1.3", "git rev-parse HEAD → 526a9a2 == origin/main"],
+      "linear_state_verified": "ADEV-306 + ADEV-307/308/309/310 all status=Done, completedAt 2026-05-08 — no flips needed",
+      "files_changed": 4,
+      "validators_run": ["npm run checkpoint:validate (7/7)", "npm run validate-pm-mcp (5 skills, 0 warnings)"]
+    }
   }
 }
