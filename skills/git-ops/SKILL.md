@@ -468,10 +468,12 @@ git-ops shapes branch / commit / PR / state from the ticket.**
 3. **Branch name** — slug `{type}/{id}-{title-kebab-truncated-50}`,
    where `type` is derived from the ticket type / labels:
    `feat`, `fix`, `chore`, `docs`, `refactor`. Default `feat` if
-   ambiguous. **The ticket id is mandatory and must be uppercase in the
-   branch name** (for example, `feat/ADEV-307-runtime-pm-mcp-made-real`).
-   Do not drop or lowercase the id: Linear's GitHub integration auto-links
-   PRs by detecting `ADEV-307` in the branch / PR metadata.
+   ambiguous. **The ticket id is mandatory and must preserve the PM tool's
+   canonical casing in the branch name** (for example,
+   `feat/TICKET-1234-runtime-pm-mcp-made-real` or
+   `fix/PROJ-57-auth-session-expiry`). Do not drop or rewrite the id:
+   Linear / Jira / GitHub integrations auto-link PRs by detecting the ticket
+   id in branch / PR metadata.
 4. **Commit message** — first line: `{type}({scope}): {title}`.
    Body: short paragraph summarising the change; trailer
    `Refs: TICKET-1234` (or `Closes:` if the ticket is in a

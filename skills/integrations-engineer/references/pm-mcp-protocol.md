@@ -164,10 +164,10 @@ array to its checkpoint (alongside the existing `skill_state`):
       "operation": "add_comment",
       "provider": "linear",
       "tool_name": "mcp__claude_ai_Linear__save_comment",
-      "ticket_id": "ADEV-142",
+      "ticket_id": "PROJ-142",
       "marker": "<!-- opchain:app-architect:sprint-contract:sprint-1 -->",
       "payload": {
-        "issue_id": "ADEV-142",
+        "issue_id": "PROJ-142",
         "body": "Sprint 1: Runtime PM-MCP made real ..."
       },
       "queued_at": "2026-05-07T18:21:33Z",
@@ -311,19 +311,19 @@ the skill leaves the state unchanged and posts a comment instead.
 
 ---
 
-## Appendix B — Worked example: `git-ops /git-sync ADEV-142 --retry-pm`
+## Appendix B — Worked example: `git-ops /git-sync PROJ-142 --retry-pm`
 
 A concrete trace of every rule above firing in sequence, drawn from the v1.3
 hero scenario.
 
-1. User runs `/git-sync ADEV-142 --retry-pm` after a previous attempt deferred
+1. User runs `/git-sync PROJ-142 --retry-pm` after a previous attempt deferred
    a PR-opened comment due to a 503.
 2. git-ops reads `.checkpoints/git-ops.checkpoint.json`, finds one entry in
    `pm_deferred_actions[]` with `marker: <!-- opchain:git-ops:pr-opened:#412 -->`,
    `retriable: true`.
 3. Resolves provider from `.opchain/pm.yaml` → `linear`. Resolves tool name from
    the registry: `mcp__claude_ai_Linear__save_comment`. No override applies.
-4. Pre-write check: calls `mcp__claude_ai_Linear__list_comments` for `ADEV-142`,
+4. Pre-write check: calls `mcp__claude_ai_Linear__list_comments` for `PROJ-142`,
    greps for the marker. **No match** → safe to write.
 5. Write: `mcp__claude_ai_Linear__save_comment` with the deferred payload.
    Succeeds on attempt 1.

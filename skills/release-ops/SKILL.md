@@ -352,7 +352,7 @@ SKILL.md files, not a single `package.json`.
     "semver": "1.3.0",
     "theme": "Runtime PM, real platforms, automated releases",
     "phase": "bump-applied",
-    "release_ticket_id": "ADEV-201",
+    "release_ticket_id": "REL-201",
     "started_at": "2026-05-07T19:00:00Z"
   },
   "history": [
