@@ -25,7 +25,8 @@ type Name =
   | "cpu"
   | "target"
   | "sparkles"
-  | "message-square";
+  | "message-square"
+  | "refresh-cw";
 
 interface Props {
   name: Name;
@@ -61,6 +62,7 @@ const paths: Record<Name, string> = {
   "target":        '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
   "sparkles":      '<path d="M12 3v4"/><path d="M12 17v4"/><path d="M3 12h4"/><path d="M17 12h4"/><path d="M5.636 5.636l2.828 2.828"/><path d="M15.536 15.536l2.828 2.828"/><path d="M5.636 18.364l2.828-2.828"/><path d="M15.536 8.464l2.828-2.828"/>',
   "message-square":'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  "refresh-cw":    '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
 };
 ---
 

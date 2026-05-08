@@ -27,7 +27,18 @@ const v12_SCENARIOS = [
   "pm-pipeline-linear",
 ];
 
-const ALL_LINKED = [...v13_SCENARIOS, ...v12_SCENARIOS];
+// The /changelog v1.3 entry deep-links to v1.3's own scenarios plus the
+// v1.2 enterprise scenarios (carried forward as ongoing context).
+// pm-pipeline-linear is the v1.2 hero — demoted into its own release
+// section and intentionally not re-linked from v1.3.
+const v13_LINKED = [
+  ...v13_SCENARIOS,
+  "mcp-enterprise-f500",
+  "mcp-enterprise-defense",
+];
+
+// All scenario folders that must be pickable on /demo.
+const ALL_PICKABLE = [...v13_SCENARIOS, ...v12_SCENARIOS];
 
 test.describe("/changelog", () => {
   test("v1.3 is the current release; v1.2 is demoted", async ({ page }) => {
@@ -46,10 +57,10 @@ test.describe("/changelog", () => {
 
   test("every scenario the v1.3 entry links to has a /demo deep link", async ({ page }) => {
     await page.goto("/changelog");
-    for (const id of ALL_LINKED) {
-      const link = page.locator(`section.release--current a[href="/demo#${id}"]`);
+    for (const id of v13_LINKED) {
+      const link = page.locator(`section.release--current a[href="/demo#${id}"]`).first();
       await expect(link, `expected /changelog v1.3 entry to deep-link to /demo#${id}`)
-        .toHaveCount(1);
+        .toBeVisible();
     }
   });
 
@@ -78,7 +89,7 @@ test.describe("/demo — v1.3 + v1.2 scenarios pickable", () => {
     });
   });
 
-  for (const id of ALL_LINKED) {
+  for (const id of ALL_PICKABLE) {
     test(`${id} folder is pickable and reveals its summary pane`, async ({ page }) => {
       await page.goto("/demo");
       const folder = page.locator(`.tree-folder[data-scenario="${id}"]`);

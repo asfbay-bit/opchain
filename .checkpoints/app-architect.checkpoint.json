@@ -8,7 +8,7 @@
 
   "phase": "launch-pending",
   "step": "all-sprints-complete",
-  "status": "ready-to-deploy",
+  "status": "in_progress",
   "progress_summary": "v1.3 all 4 sprints complete. Build-time artefacts ready: 18 skills validate, 92 flags, 124 vitest tests pass, validate-pm-mcp OK, site builds 27 pages including new /skills/release-ops + 3 new /demo scenarios + v1.3 /changelog entry. Linear thread fully dogfooded: ADEV-306 parent + 4 child tickets all Done. The only remaining step is manual deploy from a wrangler-logged-in laptop on Monday 2026-05-11: npm run deploy:staging → eyeball → npm run deploy. ADEV-306 stays In Progress until then.",
 
   "progress_table": [
@@ -17,7 +17,7 @@
     { "id": "sprint-2",     "label": "Sprint 2: New skill release-ops (the 18th)",                         "status": "complete" },
     { "id": "sprint-3",     "label": "Sprint 3: Platform expansion (Django / Rails / Go / Rust)",          "status": "complete" },
     { "id": "sprint-4",     "label": "Sprint 4: Scenarios + carry-over + /changelog + ship",               "status": "complete" },
-    { "id": "deploy",       "label": "Manual deploy: staging eyeball → prod (Monday 2026-05-11)",       "status": "ready" }
+    { "id": "deploy",       "label": "Manual deploy: staging eyeball → prod (Monday 2026-05-11)",       "status": "not_started" }
   ],
 
   "context_primer": {
