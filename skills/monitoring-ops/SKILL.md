@@ -1,7 +1,7 @@
 ---
 name: monitoring-ops
 displayName: Monitoring Ops
-version: 1.2.0
+version: 1.3.0
 shortDesc: Post-deploy observability — uptime, errors, alerts, incidents. v1.2 opens PM incident tickets when alerts fire.
 phases: [build]
 triAgent: false
@@ -596,17 +596,28 @@ project-dir/
 
 ---
 
-## PM-Tool MCP Integration (v1.2+)
+## PM-Tool MCP Integration (v1.3+)
 
 monitoring-ops opens **incident tickets** in the PM tool when
 alerts fire, and back-references them through resolution.
+
+The runtime contract — concrete tool names, retry policy, idempotency
+markers, the `pm_deferred_actions[]` schema, and the extended state
+vocabulary (`resolved-pending-postmortem`) — lives in
+[`integrations-engineer/references/pm-mcp-protocol.md`](../integrations-engineer/references/pm-mcp-protocol.md).
+**All MCP calls below honour that contract; this section says only how
+monitoring-ops shapes incidents and per-event updates.**
 
 ### On alert fire
 
 1. Look up the alert in the runbook registry (configured per
    alert id; see `runbooks/`).
-2. Compose incident body:
+2. Compose incident description, prefixed with the idempotency marker
+   per protocol §3:
+
    ```
+   <!-- opchain:monitoring-ops:incident-fired:<alert-event-id> -->
+
    Alert: {alert-name} ({severity})
    Fired at: {iso-timestamp}
    Service: {service}
@@ -615,46 +626,81 @@ alerts fire, and back-references them through resolution.
    On-call: {on-call-engineer-from-pagerduty}
    Recent deploys: {list-of-deploys-in-last-2h-from-deploy-ops-checkpoint}
    ```
-3. Call `mcp.<provider>.save_issue`:
-   - issue_type = `incident` (from `.opchain/pm.yaml`; default "Incident").
+
+3. Pre-create check: call the registry-resolved `list_issues` tool
+   (Linear: `mcp__claude_ai_Linear__list_issues`; GitHub:
+   `mcp__mcp-server-github__list_issues`) filtered to the configured
+   project + the `incident` issue type from `pm.yaml.issue_types`,
+   description-text query for the marker. If a match exists, **reuse**
+   the existing incident id (mid-burst alert dedupe).
+4. Otherwise call the registry-resolved `create_issue` tool (Linear:
+   `mcp__claude_ai_Linear__save_issue` with no `id`; GitHub:
+   `mcp__mcp-server-github__issue_write` action=create) with:
+   - `issue_type` from `pm.yaml.issue_types.incident` (default "Incident").
    - priority from alert severity mapping.
-   - labels from runbook (`incident`, `service:<name>`, `severity:<level>`).
+   - labels from runbook (`incident`, `service:<name>`,
+     `severity:<level>`), merged with `pm.yaml.labels_default`.
    - parent / blocked-by relation to the most recent deploy ticket
-     if one is open (likely culprit).
-4. Record incident id in `monitoring-ops.checkpoint.json` with the
-   correlating Sentry / PagerDuty event id.
+     if one is open (likely culprit) — read from
+     `deploy-ops.checkpoint.json` `skill_state.pm.deploy_tickets[]`.
+5. Record incident id in `monitoring-ops.checkpoint.json`
+   `skill_state.pm.incidents[]` with the correlating Sentry /
+   PagerDuty event id.
 
 ### Per-event updates during the incident
 
-| Event | Action |
-|---|---|
-| Alert auto-resolves (back to baseline) | `add_comment`: "Auto-resolved — {duration}"; transition → `resolved-pending-postmortem`. Do not close. |
-| Engineer ack via PagerDuty | `add_comment`: "{engineer} acknowledged"; transition → `in_progress` |
-| Status page update | `add_comment` mirroring the public update |
-| Postmortem published | `add_comment` with link; transition → `done` |
+Each row uses a unique idempotency marker. Pre-write check via
+`list_comments` (Linear) or `issue_read` (GitHub) before every
+`add_comment`. State strings come from `pm.yaml.states` /
+`pm.yaml.states.extended` — never hard-coded.
+
+| Event | Marker | Action |
+|---|---|---|
+| Alert auto-resolves (back to baseline) | `<!-- opchain:monitoring-ops:auto-resolved:<incident-id> -->` | `add_comment`: "Auto-resolved — {duration}"; transition → `resolved-pending-postmortem` (resolved from `pm.yaml.states.extended`). Do not close. |
+| Engineer ack via PagerDuty | `<!-- opchain:monitoring-ops:acked:<incident-id>:<engineer-id> -->` | `add_comment`: "{engineer} acknowledged"; transition → `in_progress`. |
+| Status page update | `<!-- opchain:monitoring-ops:status-update:<incident-id>:<update-id> -->` | `add_comment` mirroring the public update. |
+| Postmortem published | `<!-- opchain:monitoring-ops:postmortem:<incident-id> -->` | `add_comment` with link; transition → `done`. |
 
 ### Postmortem back-reference
 
-When the postmortem is written, monitoring-ops appends an action-item
-sub-ticket per remediation item, parent = the incident ticket. Each
-remediation sub-ticket assigned to the owning team's default
-assignee (from `.opchain/pm.yaml` `remediation_owners` map), with a
-target close date.
+When the postmortem is written, monitoring-ops appends an
+action-item sub-ticket per remediation item, parent = the incident
+ticket. Each remediation sub-ticket carries marker
+`<!-- opchain:monitoring-ops:remediation:<incident-id>:<item-n> -->`
+in its description and is created via the `create_issue` tool with
+the pre-create check pattern above. Each remediation sub-ticket is
+assigned to the owning team's default assignee (from
+`pm.yaml.remediation_owners` map), with a target close date.
 
 ### Alert hygiene
 
 If an alert fires more than N times in 24h (default 5; configurable
-per alert), monitoring-ops adds a `noisy-alert` label to the
-incident and surfaces a tuning recommendation rather than spamming
-new tickets — same incident gets new comments, not new tickets.
+per alert), monitoring-ops adds a `noisy-alert` label (per protocol
+Appendix A — labels, not state) to the incident and surfaces a
+tuning recommendation rather than spamming new tickets — same
+incident gets new comments, not new tickets. The pre-create check
+in step 3 above ensures this naturally for in-window alerts.
+
+### `/monitor --retry-pm` flush
+
+Invokes the protocol §4 flush against
+`monitoring-ops.checkpoint.json` `pm_deferred_actions[]`. Filter to
+`skill: "monitoring-ops"` and `retriable: true`. Critical alerts
+should NOT depend on flush succeeding — Telegram / PagerDuty fire
+regardless; the flush is reconciliation only.
 
 ### Failure modes
 
 - MCP unavailable → alert fires through Telegram / PagerDuty as
-  always; intended PM-MCP write is logged in checkpoint as deferred.
+  always; intended PM-MCP write is deferred per protocol §4.
+  Operator visibility is unaffected.
 - PM provider rate-limits during a major incident burst → batch into
-  a single rollup ticket with N alerts as comments rather than
-  retrying each.
+  a single rollup ticket via the marker dedupe in step 3 (the same
+  alert-event-id naturally folds into one incident); separate
+  comments per alert event with marker
+  `<!-- opchain:monitoring-ops:burst-event:<incident-id>:<event-n> -->`.
+- 403 on incident creation → defer with `retriable: false`; surface
+  to the on-call channel as a side message; never silently widen scope.
 
 ---
 

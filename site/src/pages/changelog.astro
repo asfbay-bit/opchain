@@ -22,7 +22,109 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
 
     <section class="release release--current">
       <header class="rel-head">
-        <span class="rel-tag">v1.2</span>
+        <span class="rel-tag">v1.3</span>
+        <h2>Runtime PM, real platforms, automated releases</h2>
+        <span class="rel-date">2026-05-11</span>
+      </header>
+
+      <p class="rel-summary">
+        opchain v1.3 makes the v1.2 PM-MCP prose executable end-to-end,
+        expands the platform menu beyond JS / Cloudflare, and ships
+        <code>release-ops</code> — the 18th skill — to automate the
+        "scope → /changelog → bump → ship" cadence opchain uses for itself.
+      </p>
+
+      <h3>What's new</h3>
+      <ul>
+        <li>
+          <strong>The PM-MCP loop is real.</strong> v1.2 taught the skills to
+          <em>describe</em> PM-tool calls; v1.3 actually invokes them. A
+          concrete tool-name registry, retry / backoff, idempotency markers,
+          and a deferred-action queue mean the four PM-aware skills
+          (<code>app-architect</code>, <code>git-ops</code>,
+          <code>deploy-ops</code>, <code>monitoring-ops</code>) can crash-restart
+          mid-flow without polluting Linear / Jira / GitHub Issues.
+        </li>
+        <li>
+          <strong><code>release-ops</code> is the 18th skill.</strong> Verbs:
+          <code>/release plan|draft|bump|announce|ship</code>. Reads every
+          skill's checkpoint to propose the next semver, drafts the changelog
+          entry from sprint outputs, atomically bumps all skill versions,
+          opens a release ticket via PM-MCP, hands off to <code>git-ops</code>
+          for the merge and <code>deploy-ops</code> for staging + prod.
+        </li>
+        <li>
+          <strong>Platform menu grew.</strong> Django + Postgres + Render,
+          Rails + Postgres + Heroku, Go + Fly.io, and Rust + Axum +
+          Shuttle.rs are first-class in <code>stack-forge</code>'s decision
+          tree, <code>app-architect</code>'s scaffold recipes, and
+          <code>deploy-ops</code>'s provider sections.
+        </li>
+        <li>
+          <strong>Build-time PM-MCP validator.</strong>
+          <code>scripts/validate-pm-mcp.mjs</code> runs in <code>npm run prebuild</code>
+          and CI; blocks the build on placeholder drift, missing protocol
+          citations, or unknown tool names.
+        </li>
+      </ul>
+
+      <h3>Three new scenarios</h3>
+      <ul>
+        <li>
+          <a href="/demo#runtime-pm-loop">Ticket → ship → incident → postmortem on one Linear thread</a>
+          — the v1.3 hero. Six skills, one Linear thread, runtime PM-MCP
+          end-to-end with a transient 503 mid-deploy that the deferred-action
+          queue handles cleanly.
+        </li>
+        <li>
+          <a href="/demo#release-ops-dogfood">release-ops ships its own release</a>
+          — opchain v1.3.0 shipped via opchain v1.3.0. Meta proof that the
+          new skill works for any opchain-managed project.
+        </li>
+        <li>
+          <a href="/demo#django-render-shipped">Django + Postgres + Render, shipped by opchain</a>
+          — solo founder, GitHub Issues for tracking, Render Blueprint for
+          deploy. Same opchain pipeline, no Cloudflare in sight.
+        </li>
+      </ul>
+
+      <h3>Configuration</h3>
+      <p>
+        v1.3 adds <code>tool_overrides</code> to <code>.opchain/pm.yaml</code>
+        for brokered / regulated MCP environments and an
+        <code>extended</code> map under <code>states</code> for deploy /
+        incident workflow names. See the
+        <a href="/demo#runtime-pm-loop">runtime-pm-loop scenario</a> for the
+        full schema.
+      </p>
+
+      <h3>Compatibility</h3>
+      <p>
+        Back-compatible with v1.2. No migration steps required. The new
+        validator's first run will fail-closed if any of the five PM-aware
+        SKILL.md files still carry the legacy
+        <code>mcp.&lt;provider&gt;.&lt;verb&gt;</code> placeholder; if you
+        forked v1.2 prose, search-replace those before upgrading. Every skill
+        version is in lockstep at <code>1.3.0</code>.
+      </p>
+
+      <h3>Security posture</h3>
+      <p>
+        The runtime PM loop is enrichment, not load-bearing — every PM-aware
+        verb still completes its primary job (sprint plan / commit / deploy /
+        incident open) when the MCP server is unreachable. In regulated
+        environments (HIPAA / FedRAMP / CMMC), set <code>tool_overrides</code>
+        in <code>.opchain/pm.yaml</code> to point each operation at the
+        broker / redactor / audit-pipeline that fronts your Linear or Jira
+        tenant. The <a href="/demo#mcp-enterprise-f500">F500 healthcare</a>
+        and <a href="/demo#mcp-enterprise-defense">defense CMMC L3</a>
+        scenarios from v1.2 remain the reference architectures.
+      </p>
+    </section>
+
+    <section class="release">
+      <header class="rel-head">
+        <span class="rel-tag rel-tag--past">v1.2</span>
         <h2>PM-tool MCP integration</h2>
         <span class="rel-date">2026-05-05</span>
       </header>

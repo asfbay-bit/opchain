@@ -1,7 +1,7 @@
 ---
 name: bug-check
 displayName: Bug Check
-version: 1.2.0
+version: 1.3.0
 shortDesc: Pre-commit QA gate — fast checks on every commit. v1.2 attaches the failure report to the linked PM ticket on block.
 phases: [build]
 triAgent: false

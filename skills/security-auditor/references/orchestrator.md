@@ -58,7 +58,10 @@ This is the canonical flow. Every skill knows where it sits and what comes befor
 
 ```
 reverse-spec ──► app-architect ──► git-ops ──► deploy-ops ──► monitoring-ops
-                      │                │
+                      │                │           ▲
+                      │                │           │ release-ops sits between
+                      │                │           │ git-ops and deploy-ops
+                      │                │           │ at release boundaries
                       │                └── auto-invokes bug-check before /commit + /sync
                       ├── Phase 2: auto-invokes stack-forge
                       ├── Phase 3: design pipeline
@@ -81,6 +84,11 @@ quality gates (run before deploy):
 
 post-deploy:
   monitoring-ops ──► uptime, errors, alerts, incidents
+
+release boundary:
+  release-ops ──► plan / draft / bump / announce / ship a versioned release
+                  (sits between git-ops and deploy-ops; only invoked at
+                  release time, not on every PR)
 
 cross-cutting:
   api-dev ──► runs when designing/building the app's own first-party API
@@ -108,6 +116,7 @@ cross-cutting:
 | **bug-check** | git-ops (gate trigger) | git-ops (returns pass / fail / bypass; failure blocks the commit) |
 | **deploy-ops** | code-auditor (audit grade), security-auditor (posture), git-ops (branch status) | monitoring-ops (post-ship observability) |
 | **monitoring-ops** | deploy-ops (what shipped) | — (incident loops back to app-architect / code-auditor as needed) |
+| **release-ops** | every skill's `*.checkpoint.json` (what shipped per skill since last release), app-architect (sprint outputs feed changelog draft), git-ops (merged-PR list), deploy-ops (last-shipped commit SHA) | git-ops (release PR / tag), deploy-ops (staging then prod ship) |
 | **scale-ops** | stack-forge (platform limits) | — (advisory, no chain) |
 | **reverse-spec** | — (entry point for existing code) | app-architect (handoff specs) |
 
@@ -145,6 +154,9 @@ RIGHT (active invocation):
 | Stack decision needed | app-architect (Phase 2) | stack-forge | Auto-invoke (already wired in app-architect) |
 | UI sprint detected | app-architect (Phase 6) | ux-engineer | Auto-attach Design Evaluator (already wired) |
 | Data-heavy screen flagged | ux-engineer (Phase 1 intake) or app-architect (Phase 3 design) | dash-forge | Package tokens + design spec into dash-forge context, invoke /data-forge; hand the resulting spec + prototype back to the caller |
+| Release boundary reached (user says "cut a release", "ship v1.3", "bump versions") | any skill | release-ops | Invoke release-ops `/release plan` to propose the next semver and theme, then walk through `draft → bump → announce → ship` |
+| `/release ship` advances to PR | release-ops | git-ops | Invoke git-ops `/git-sync v<semver>` with the bump commit; release-ops resumes after merge |
+| `/release ship` advances to deploy | release-ops | deploy-ops | Invoke deploy-ops `/deploy staging` then `/deploy` on user confirmation; release-ops closes the release ticket on prod ship |
 
 ### How to Invoke Another Skill
 
@@ -218,6 +230,7 @@ right skill and phase based on the request.
 | "Deploy this" / "Ship it" | deploy-ops | /deploy staging |
 | "Commit my changes" / "Push to git" | git-ops | /git-sync |
 | "Can this handle more users?" | scale-ops | /scale audit |
+| "Cut a release" / "Ship v1.3" / "Bump versions" / "Draft the changelog" / "Tag the release" | release-ops | /release plan |
 | "Continue where we left off" | [check all checkpoints] | [resume most recent] |
 
 ---
@@ -386,6 +399,17 @@ description: >
   "what's the status", "where did I leave off", "which project", "what should I work on",
   "show me everything". Also trigger when the user seems lost, references multiple
   projects, or asks a vague dev question that needs routing. Trigger liberally.
+
+# release-ops
+description: >
+  Release-cadence operator. Plan, draft, bump, announce, and ship versioned
+  releases of opchain (or any opchain-managed project). Reads sprint
+  checkpoints, proposes the next semver, drafts the /changelog entry from
+  what actually shipped, bumps every skill version atomically, and hands
+  off to git-ops + deploy-ops. Use for /release, /release plan, /release
+  draft, /release bump, /release announce, /release ship, "cut a release",
+  "ship v1.3", "tag the release", "draft the changelog", "what's in this
+  release", "version bump". Trigger liberally on release-cadence work.
 ```
 
 ---
@@ -403,6 +427,9 @@ Every skill should know these facts:
   app-architect UI sprints; dash-forge from ux-engineer or app-architect on data-heavy
   screens; bug-check from git-ops before every `/git-commit` and `/git-sync`.
 - **Pipeline flow:** reverse-spec → app-architect → git-ops → deploy-ops → monitoring-ops.
+- **Release boundary:** release-ops sits between git-ops and deploy-ops; runs only on
+  versioned-release events (`/release plan` / `draft` / `bump` / `announce` / `ship`),
+  not on every PR. v1.3 added it as the 18th skill; opchain itself dogfoods it.
 - **Pre-commit gate:** bug-check (fast metal-detector — type / lint / tests / secrets /
   build / dep scan in <2 min; blocks the commit on failure).
 - **Quality gates (pre-deploy):** code-auditor → security-auditor (runs above code-auditor

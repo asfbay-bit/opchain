@@ -385,6 +385,193 @@ After generating the scaffold, verify before handing to the user:
 
 ---
 
+## Platform-Specific Recipes (v1.3+)
+
+The recipes below cover the four full-stack patterns added in v1.3's
+platform-expansion sprint. Each recipe is self-contained: directory layout, the
+key config files, the test command, the dev-loop command, and the deploy
+hand-off to deploy-ops. Consult `stack-forge` "Platform Matrix" for when each
+stack is the right pick.
+
+### Django + Postgres + Render
+
+**Layout:**
+```
+project/
+├── manage.py
+├── requirements.txt              # or pyproject.toml + uv lock
+├── pytest.ini                    # rootdir = project; addopts = -ra
+├── render.yaml                   # Render Blueprint: web service + Postgres
+├── .env.example                  # DATABASE_URL, SECRET_KEY, DJANGO_SETTINGS_MODULE
+├── core/
+│   ├── settings/{base,dev,prod}.py
+│   ├── urls.py
+│   └── wsgi.py
+└── apps/
+    └── <feature>/
+        ├── models.py
+        ├── views.py
+        ├── urls.py
+        ├── tests/
+        └── migrations/
+```
+
+**Key invariants:**
+- Settings split into `base / dev / prod`; `DJANGO_SETTINGS_MODULE` env var
+  picks the active one. Never have a single `settings.py` for both.
+- `render.yaml` Blueprint provisions the Postgres + the web service together;
+  Render reads it on first push. Subsequent deploys are pure git push.
+- Postgres URL comes from `DATABASE_URL` env var; `dj-database-url` parses it
+  in `prod.py`. No hardcoded credentials in any settings file.
+- Tests use `pytest-django` (not `manage.py test`); `pytest.ini` points at the
+  Django settings module via `DJANGO_SETTINGS_MODULE = core.settings.dev`.
+
+**Dev loop:**
+```
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
+
+**Deploy:** `git push render main` after Blueprint provisioning; `deploy-ops`
+section "Render" has the audit-gate sequence. Render auto-runs migrations via
+the `release` command in `render.yaml`.
+
+### Rails + Postgres + Heroku
+
+**Layout:**
+```
+project/
+├── Gemfile
+├── Gemfile.lock
+├── Procfile                      # web: bundle exec puma; release: bundle exec rake db:migrate
+├── app.json                      # Heroku review-apps + Postgres add-on declaration
+├── .env                          # gitignored — use bin/dotenv in dev
+├── config/
+│   ├── application.rb
+│   ├── database.yml
+│   └── environments/{development,test,production}.rb
+├── app/
+│   ├── controllers/
+│   ├── models/
+│   └── views/
+└── spec/                         # rspec-rails
+```
+
+**Key invariants:**
+- Heroku Pipelines: review apps (per PR) → staging → prod. The pipeline is
+  defined in `app.json`; review apps spin up automatically on PR open.
+- `Procfile` `release:` step runs `db:migrate` on every deploy — never run
+  migrations manually.
+- Use `rspec-rails`, not Minitest, for v1.3 scaffolds (matches the existing
+  scenario coverage and integrates more cleanly with bug-check).
+- Postgres URL from `DATABASE_URL`; Rails reads it natively via `database.yml`
+  pointing at the env var.
+
+**Dev loop:**
+```
+bundle install
+bin/rails db:setup
+bin/rails server
+```
+
+**Deploy:** `git push heroku main` — review apps are automatic per PR;
+`deploy-ops` "Heroku" section covers staging promotion + rollback.
+
+### Go + Postgres + Fly.io
+
+**Layout:**
+```
+project/
+├── go.mod
+├── go.sum
+├── main.go                       # net/http or chi router; tiny — just wires deps
+├── fly.toml                      # primary_region, internal_port, env, [[mounts]]
+├── Dockerfile                    # multi-stage; final stage = distroless or scratch
+├── .env.example                  # DATABASE_URL, PORT
+├── internal/
+│   ├── handlers/
+│   ├── store/                    # sqlc-generated or hand-written queries
+│   └── domain/
+├── migrations/                   # plain .sql files; goose or atlas runs them
+└── cmd/migrate/main.go           # standalone migrator binary
+```
+
+**Key invariants:**
+- Two binaries from one go.mod: the web server (`./main.go`) and the migrator
+  (`./cmd/migrate/`). The migrator runs in `fly.toml`'s `release_command`.
+- Use `sqlc` (preferred) or hand-written SQL via `database/sql` —
+  **avoid ORMs**. Go's strength is explicitness.
+- Tests: stdlib `testing` + `testify/require`; integration tests use
+  `dockertest` for ephemeral Postgres.
+- `fly.toml` declares regional placement; opt for `primary_region = "ord"`
+  (or wherever your users are) over edge-everywhere.
+
+**Dev loop:**
+```
+go mod download
+go run ./cmd/migrate up
+go run .
+```
+
+**Deploy:** `fly deploy` — Fly's release_command runs migrations; `deploy-ops`
+"Fly.io" section has the audit gate + rollback (`fly releases list` →
+`fly deploy --image <prior-tag>`).
+
+### Rust + Axum + Postgres + Shuttle.rs
+
+**Layout:**
+```
+project/
+├── Cargo.toml
+├── Cargo.lock
+├── Shuttle.toml                  # name = "..."; (Shuttle reads infrastructure from main.rs)
+├── .env.example                  # local-only; Shuttle manages secrets in prod
+├── src/
+│   ├── main.rs                   # #[shuttle_runtime::main] — declares Postgres + secrets
+│   ├── handlers/
+│   │   └── mod.rs
+│   ├── domain/
+│   │   └── mod.rs
+│   └── store/
+│       ├── mod.rs                # sqlx queries
+│       └── migrations/           # sqlx-managed; .sql files run on boot
+└── tests/                        # integration tests; Shuttle provides a test runtime
+```
+
+**Key invariants:**
+- Shuttle's "infra in main.rs" model: Postgres provisioning is a
+  `#[shuttle_shared_db::Postgres]` annotation in `main.rs`. No separate
+  Terraform / Pulumi / dashboard config needed for the standard case.
+- Use `axum` (not `actix-web`) for v1.3 scaffolds — Shuttle's first-party
+  examples lean axum, and it composes better with `tower` middleware that
+  the integrations-engineer skill expects.
+- Use `sqlx` (compile-time-checked queries) over `diesel` (heavier ORM).
+  `sqlx::migrate!()` runs `.sql` files in `src/store/migrations/` on boot.
+- `cargo test` runs integration tests against an ephemeral Postgres that
+  Shuttle's test runtime provisions; no extra fixtures needed.
+
+**Dev loop:**
+```
+cargo install cargo-shuttle
+cargo shuttle login
+cargo shuttle run                  # spawns local Shuttle runtime + Postgres
+```
+
+**Deploy:** `cargo shuttle deploy` — Shuttle reads `main.rs` for infra,
+provisions Postgres + secrets on first deploy, hot-swaps the binary on
+subsequent ones. `deploy-ops` "Shuttle.rs" section covers staging via
+project-aliasing + rollback (`cargo shuttle deployment list` →
+`cargo shuttle deployment <id> redeploy`).
+
+**Alt deploy (Fly.io):** if the team wants more infra control or already
+runs other services on Fly, see the Go/Fly.io recipe — same `Dockerfile`
+shape with `FROM rust:1.83-slim AS build` → `FROM gcr.io/distroless/cc-debian12`
+final stage; `fly.toml` `release_command = ["./migrate"]`.
+
+---
+
 ## What NOT to Scaffold
 
 - Placeholder files with TODO comments — write real code or don't create the file

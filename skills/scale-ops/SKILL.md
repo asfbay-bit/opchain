@@ -1,7 +1,7 @@
 ---
 name: scale-ops
 displayName: Scale Ops
-version: 1.2.0
+version: 1.3.0
 shortDesc: Load, caching, capacity planning. v1.2 posts load-test reports to the PM ticket; HIGH risks as sub-tickets.
 phases: [plan]
 triAgent: false

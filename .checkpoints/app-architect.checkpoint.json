@@ -6,17 +6,18 @@
   "created_at": "2026-05-07T00:00:00Z",
   "updated_at": "2026-05-07T00:00:00Z",
 
-  "phase": "sprint-plan-approved",
-  "step": "sprint-1-starting",
+  "phase": "launch-pending",
+  "step": "all-sprints-complete",
   "status": "in_progress",
-  "progress_summary": "v1.3 scope + sprint plan approved. Theme: 'Runtime PM, real platforms, automated releases.' Primary A (Runtime PM-MCP), secondary E (platform expansion: Django + Rails + Go), tertiary B (new skill release-ops). Ship target: Monday 2026-05-11. Four sprints scoped; Sprint 4 includes carry-over (Playwright e2e + LHCI for /changelog and the v1.2 scenarios). Hero scenario: 'Ticket → ship → incident → postmortem' on a real Linear thread; supporting scenarios: release-ops dogfood + Django/Render shipped.",
+  "progress_summary": "v1.3 all 4 sprints complete. Build-time artefacts ready: 18 skills validate, 92 flags, 124 vitest tests pass, validate-pm-mcp OK, site builds 27 pages including new /skills/release-ops + 3 new /demo scenarios + v1.3 /changelog entry. Linear thread fully dogfooded: ADEV-306 parent + 4 child tickets all Done. The only remaining step is manual deploy from a wrangler-logged-in laptop on Monday 2026-05-11: npm run deploy:staging → eyeball → npm run deploy. ADEV-306 stays In Progress until then.",
 
   "progress_table": [
-    { "id": "scope",        "label": "Scope + sprint plan approval",                            "status": "complete" },
-    { "id": "sprint-1",     "label": "Sprint 1: Runtime PM-MCP made real",                      "status": "in_progress" },
-    { "id": "sprint-2",     "label": "Sprint 2: New skill release-ops (the 18th)",              "status": "not_started" },
-    { "id": "sprint-3",     "label": "Sprint 3: Platform expansion (Django/Rails/Go)",          "status": "not_started" },
-    { "id": "sprint-4",     "label": "Sprint 4: Scenarios + carry-over + /changelog + ship",    "status": "not_started" }
+    { "id": "scope",        "label": "Scope + sprint plan approval",                                       "status": "complete" },
+    { "id": "sprint-1",     "label": "Sprint 1: Runtime PM-MCP made real",                                 "status": "complete" },
+    { "id": "sprint-2",     "label": "Sprint 2: New skill release-ops (the 18th)",                         "status": "complete" },
+    { "id": "sprint-3",     "label": "Sprint 3: Platform expansion (Django / Rails / Go / Rust)",          "status": "complete" },
+    { "id": "sprint-4",     "label": "Sprint 4: Scenarios + carry-over + /changelog + ship",               "status": "complete" },
+    { "id": "deploy",       "label": "Manual deploy: staging eyeball → prod (Monday 2026-05-11)",       "status": "not_started" }
   ],
 
   "context_primer": {

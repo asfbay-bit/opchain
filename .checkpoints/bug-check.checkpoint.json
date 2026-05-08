@@ -26,7 +26,6 @@
       "Test count matched the 2026-05-06 baseline (108/108) — no regression and no new test coverage expected from a checkpoint-only change.",
       "ESLint remains skipped (no eslint config in repo); astro check via build is the linting signal."
     ],
-    "generated_files": [],
     "user_preferences": [
       "User invoked /bugcheck reactively after the stop-hook flagged untracked files; the gate is what unblocks the commit."
     ]
@@ -45,7 +44,7 @@
       "checks": {
         "type_safety": "PASS",
         "lint": "SKIPPED",
-        "tests": "PASS",
+        "tests": "SKIPPED",
         "anti_patterns": "PASS",
         "secrets": "PASS",
         "build": "PASS",

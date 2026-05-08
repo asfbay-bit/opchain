@@ -1,7 +1,7 @@
 ---
 name: ux-engineer
 displayName: UX Engineer
-version: 1.2.0
+version: 1.3.0
 shortDesc: Design Planner → Generator → Evaluator. v1.2 posts eval scores to the PM ticket; a11y as sub-tickets.
 phases: [plan]
 triAgent: true
@@ -28,16 +28,16 @@ description: >
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
 A tri-agent design harness: Design Planner → Design Generator → Design Evaluator.
-The same architecture that makes tri-dev's code quality high — skeptical evaluation
-with agent separation — applied to UI/UX design.
+The same architecture that makes app-architect's Phase 6 build loop produce honest
+quality scores — skeptical evaluation with agent separation — applied to UI/UX design.
 
 Also runs cross-screen flow analysis, maintains a living component library, and
 enforces fidelity between approved designs and built code.
 
 Works in two modes:
 - **Standalone**: Full tri-design workflow for new or existing projects
-- **Tri-dev plugin**: Adds a Design Evaluator alongside the Code Evaluator during
-  UI-heavy sprints
+- **app-architect plugin**: Adds a Design Evaluator alongside the Code Evaluator
+  during UI-heavy app-architect Phase 6 build sprints
 
 ## /ux-engineer — Command Reference
 
@@ -56,8 +56,8 @@ UX ENGINEER COMMANDS
   /uxe fidelity      Compare built code against approved design artifacts
   /uxe dash          Route data-heavy UI to dash-forge for specialized design
 
-  TRI-DEV PLUGIN
-  /uxe attach        Activate Design Evaluator for current tri-dev session
+  APP-ARCHITECT PLUGIN
+  /uxe attach        Activate Design Evaluator for current app-architect Phase 6 build session
   /uxe detach        Deactivate Design Evaluator (code-only evaluation)
 
   UTILITIES
@@ -542,8 +542,8 @@ Adds Design Evaluator alongside Code Evaluator during UI sprints.
 
 ### How It Works
 
-1. `/uxe attach` during a tri-dev session
-2. Read tri-dev checkpoint for current sprint
+1. `/uxe attach` during an app-architect Phase 6 build session
+2. Read app-architect checkpoint for current sprint
 3. For each sprint with UI work:
    - Code Evaluator runs (functionality, completeness, code quality)
    - Design Evaluator runs (hierarchy, states, consistency, a11y)
@@ -621,14 +621,14 @@ project-dir/
 | Flow map generated | Flow data, coherence score |
 | Component added/modified | Registry update |
 | Fidelity check run | Fidelity scores |
-| Attached to tri-dev | Session link |
+| Attached to app-architect Phase 6 | Session link |
 
 ### skill_state
 
 ```json
 {
   "mode": "standalone",
-  "attached_to_tridev": false,
+  "attached_to_app_architect": false,
   "current_sprint": 2,
   "total_sprints": 3,
   "component_count": 24,
@@ -646,15 +646,14 @@ project-dir/
 
 | Reads from | Why |
 |---|---|
-| app-architect | Style book, wireframes, punch list → baseline |
-| tri-dev | Sprint contracts → plugin mode context |
+| app-architect | Style book, wireframes, punch list → baseline; Phase 6 sprint contracts → plugin mode context |
 | reverse-spec | Extracted design system → existing project baseline |
 | code-auditor | `/audit ux` findings → avoid duplicating work |
 | frontend-design | Aesthetic direction → Generator reference |
 
 | Read by | Why |
 |---|---|
-| tri-dev | Design scores → combined sprint verdict |
+| app-architect | Design scores → Phase 6 combined sprint verdict |
 | code-auditor | Component health → UX audit context |
 | deploy-ops | Fidelity score → deploy confidence |
 

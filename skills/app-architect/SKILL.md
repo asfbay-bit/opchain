@@ -1,7 +1,7 @@
 ---
 name: app-architect
 displayName: App Architect
-version: 1.2.0
+version: 1.3.0
 shortDesc: Idea → spec → design → build → launch in one skill. v1.2 reads PM tickets and writes sprints back via PM-MCP.
 phases: [plan, build]
 triAgent: true
@@ -106,9 +106,9 @@ CONCEPT
 
 ### Why One Skill?
 
-Previously this was two skills (app-architect for planning, tri-dev for building) with
-a fuzzy handoff between them. Both produced specs. Both decomposed sprints. Both tried
-to scaffold. Merging them eliminates:
+Earlier versions of opchain split planning and building into two skills with a fuzzy
+handoff between them. Both produced specs. Both decomposed sprints. Both tried to
+scaffold. Merging them into app-architect eliminates:
 - Duplicate spec generation
 - Conflicting sprint formats
 - The "which skill do I use now?" question
@@ -176,16 +176,16 @@ Write checkpoint: phase "discovery".
 
 ## Phase 2: Spec Generation (`/spec`)
 
-### Stack Selection (auto-invokes stack-forge)
+### Stack Selection (chains to stack-forge)
 
-Before generating spec files, **automatically run stack-forge's decision tree** using
-discovery context. Stack-forge walks: platform → backend → database → auth → frontend.
-Web searches for current framework status before recommending.
+Before generating spec files, chain to stack-forge per orchestrator.md §3 (Active Invocation):
 
-If user already stated preferences during discovery, stack-forge validates the choice
-against requirements rather than re-interviewing.
-
-Present stack recommendation → user confirms → stack informs all remaining spec files.
+1. State the chain: "Discovery is approved. Now using stack-forge to choose the stack."
+2. Read `stack-forge/SKILL.md` and `stack-forge/references/orchestrator.md`.
+3. Check for `.checkpoints/stack-forge.checkpoint.json` (resume if present).
+4. Execute `/stack-decide` with the discovery context (platform → backend → database → auth → frontend). Stack-forge web-searches for current framework status before recommending.
+5. Stack-forge returns the recommendation; if the user already stated preferences during discovery, stack-forge validates the choice rather than re-interviewing.
+6. Present recommendation → user confirms → stack informs all remaining spec files in this phase.
 
 ### Spec Documents
 
@@ -237,29 +237,13 @@ navigation paths.
 - Empty / loading / error / success states (all four)
 - Responsive behavior at 375 / 768 / 1280px (or declare "desktop only" with reason)
 
-**As part of this review, scan for data-heavy surfaces:**
+**Data-heavy surfaces chain to dash-forge.** When a screen is data-heavy (≥3 charts/tables, real-time updates, BI/monitoring/analyst archetype, or downstream of a data-architect handoff), invoke dash-forge per orchestrator.md §3:
 
-- Any screen where the primary job is "show data" rather than "enable action"
-- Screens with ≥3 charts or ≥5 KPIs on one view
-- Any "dashboard", "analytics", "BI", "monitoring", or "report" screen
-- Any screen downstream of a data-architect handoff
+1. Read `dash-forge/SKILL.md` for the canonical archetype scoping table.
+2. Execute `/data-forge` with the design tokens + spec context.
+3. Mark the screen `source: dash-forge` and skip inline wireframes — dash-forge's handoff bundle plugs into the Phase 3e punch list directly.
 
-For each detected surface, route to dash-forge (`/data-forge`):
-
-```
-Detected data-heavy screen: [screen name]
-Suggested routing: dash-forge for specialized design
-
-dash-forge produces:
-  - Archetype-appropriate design (exec / ops / analyst)
-  - Density + semantic color + chart selection
-  - Working React prototype with mock data
-
-  (Y) Route to dash-forge
-  (N) Handle in app-architect design pipeline
-```
-
-When routed, skip detailed wireframes for that screen — mark it `source: dash-forge` and dash-forge's handoff bundle plugs into the Phase 3e punch list directly.
+Non-data-heavy screens get wireframes generated inline using the Phase 3a token system.
 
 ### 3c. Wireframe Mockup Build
 Interactive HTML prototypes: clickable navigation, real layout, realistic data,
@@ -293,8 +277,7 @@ Write checkpoint: phase "punch-list-approved".
 ## Phase 4: Sprint Plan (`/roadmap`)
 
 Convert the punch list and spec into an ordered sprint plan. Each sprint is a coherent,
-demoable chunk of work. This replaces both app-architect's old roadmap AND tri-dev's
-planner — one sprint plan, one format.
+demoable chunk of work. One sprint plan, one format — used directly by Phase 6 build loop.
 
 ### Sprint Structure
 
@@ -505,11 +488,15 @@ After each outcome: update checkpoint, suggest git-ops commit if appropriate.
 
 ### Pre-Launch Pipeline
 
-Suggest the full pipeline:
-1. `/audit pre-deploy` — quality gate
-2. `/git-sync` — commit and push
-3. `/deploy staging` — staging + smoke tests
-4. `/deploy prod` — production with user confirmation
+Chain through the launch pipeline per orchestrator.md §3. Each step actively invokes the
+next skill — read its SKILL.md, check its checkpoint, execute the command — rather than
+suggesting it:
+
+1. **code-auditor** — read `code-auditor/SKILL.md`, execute `/audit pre-deploy`. Block on CRITICAL/HIGH findings.
+2. **security-auditor** — read `security-auditor/SKILL.md`, execute `/security posture`. Block on CRITICAL findings.
+3. **git-ops** — read `git-ops/SKILL.md`, execute `/git-sync`. (git-ops auto-invokes bug-check before commit.)
+4. **deploy-ops** — read `deploy-ops/SKILL.md`, execute `/deploy staging`. After staging smoke-tests pass and user confirms, execute `/deploy prod`.
+5. **monitoring-ops** — read `monitoring-ops/SKILL.md`, execute `/monitor` to wire post-deploy observability.
 
 ### Launch Checklist
 - [ ] DNS configured
@@ -632,19 +619,29 @@ project-dir/
 
 ---
 
-## PM-Tool MCP Integration (v1.2+)
+## PM-Tool MCP Integration (v1.3+)
 
-This skill consumes the patterns defined in `integrations-engineer`'s
-"PM-Tool MCP Integration" section. Three phases are PM-aware:
+This skill consumes the patterns defined in `integrations-engineer` and the
+runtime contract in
+[`integrations-engineer/references/pm-mcp-protocol.md`](../integrations-engineer/references/pm-mcp-protocol.md).
+**All concrete tool names, retry / backoff numbers, idempotency marker
+formats, and the `pm_deferred_actions[]` schema come from that doc — this
+section says only how the contract applies to the three PM-aware phases of
+this skill.**
 
 ### Phase 1 — `/discover` reads ticket context
 
 If the user's prompt includes a recognised ticket id (or
 `/discover --ticket TICKET-1234`):
 
-1. Detect provider from `.opchain/pm.yaml`; default Linear if missing
-   and ticket pattern is `[A-Z]+-\d+`.
-2. Call `mcp.<provider>.get_issue` for the id.
+1. Detect provider from `.opchain/pm.yaml`; default Linear if missing and
+   the ticket pattern is `[A-Z]+-\d+`. Apply `tool_overrides` from `pm.yaml`
+   before falling through to the registry.
+2. Call the registry-resolved `get_issue` tool for the id (Linear:
+   `mcp__claude_ai_Linear__get_issue`; GitHub Issues:
+   `mcp__mcp-server-github__issue_read`; Jira:
+   `mcp__atlassian__jira_get_issue`). Apply the retry policy from
+   protocol §2.
 3. Use `title`, `description`, `labels`, recent comments as discovery
    seed. Treat the ticket as user-authored input — do not skip the
    normal Discovery questions, but pre-fill answers where the ticket
@@ -658,10 +655,14 @@ sprint-level decomposition that Phase 4 wants.
 
 ### Phase 4 — `/roadmap` writes sprint plan back
 
-When the sprint plan is approved:
+When the sprint plan is approved, for each sprint:
 
-1. For each sprint, compose a structured comment on the source ticket:
+1. Compose the structured comment body, prefixed with the idempotency
+   marker per protocol §3:
+
    ```
+   <!-- opchain:app-architect:sprint-contract:sprint-N -->
+
    Sprint N: [Name]
    Deliverables: ...
    Test requirements: ...
@@ -669,32 +670,62 @@ When the sprint plan is approved:
    Effort: CLAUDE Xh / USER Yh
    Generated by app-architect /roadmap on {date}.
    ```
-2. Call `add_comment` on the source ticket.
-3. If the PM tool supports child tickets and project config has
-   `create_child_tickets: true`, create a child ticket per sprint
-   linked back to the source.
-4. Record the comment id (and child ticket ids, if any) in the
-   `app-architect.checkpoint.json` for traceability.
+
+2. Pre-write check: call the registry-resolved `list_comments` (Linear)
+   or `issue_read` (GitHub, returns comments inline). If a comment with
+   the same `<!-- opchain:app-architect:sprint-contract:sprint-N -->`
+   marker exists, **skip the write** and record to
+   `pm_idempotent_skips[]`.
+3. Otherwise call the registry-resolved `add_comment` tool (Linear:
+   `mcp__claude_ai_Linear__save_comment`; GitHub:
+   `mcp__mcp-server-github__add_issue_comment`).
+4. If `pm.yaml` has `create_child_tickets: true` and the provider
+   supports children, create a child ticket per sprint via the
+   `create_issue` tool (Linear: `save_issue` with no `id`; GitHub:
+   `issue_write` action=create), parent-linked to the source. The
+   description carries the marker
+   `<!-- opchain:app-architect:sprint-child:sprint-N -->`; pre-create
+   check via `list_issues` filtered by project + issue type +
+   description-text query for the marker.
+5. Record the comment id (and child ticket ids, if any) in
+   `app-architect.checkpoint.json` `skill_state.pm.sprint_comments[]`
+   for traceability.
+6. On retry-budget exhaustion, defer per protocol §4 with marker
+   preserved so a later `/roadmap --retry-pm` flush is idempotent.
 
 ### Phase 6 — `/build` updates sprint state
 
 On each sprint pass / fail:
 
-- Pass → transition the corresponding child ticket to `done`
-  (state names from `.opchain/pm.yaml`); add a comment with the
-  evaluator score.
-- Fail (max iterations) → transition to `blocked` (or
-  `needs-attention`); add a comment with the failure summary;
-  surface the user-facing escalation as usual.
+- **Pass** → resolve the `done` state string from `pm.yaml.states`
+  (do not hard-code), call the `transition` tool on the
+  corresponding child ticket, then `add_comment` with marker
+  `<!-- opchain:app-architect:sprint-result:sprint-N -->` carrying
+  the evaluator score.
+- **Fail (max iterations)** → resolve `blocked` from
+  `pm.yaml.states.extended` (fallback: leave state unchanged and
+  comment only); `add_comment` with marker
+  `<!-- opchain:app-architect:sprint-result:sprint-N -->` carrying
+  the failure summary. Surface the user-facing escalation as usual.
+
+### `--retry-pm` flush
+
+`/roadmap --retry-pm` and `/build --retry-pm` both invoke the protocol §4
+flush sequence against `app-architect.checkpoint.json`
+`pm_deferred_actions[]`. Filter to entries with `skill: "app-architect"`
+and `retriable: true`. Surface a one-line `flushed N / failed M` summary
+to the user.
 
 ### Failure modes
 
-- No ticket reference in user prompt → skill operates as v1.1
-  (no PM context). Never invents a ticket.
-- MCP call fails → log to checkpoint as deferred PM action; user
-  can `/roadmap --retry-pm` later. Phase output is unchanged.
-- Cross-team scope-violation (broker 403) → surface the error;
-  the spec docs and sprint plan are still produced locally.
+- No ticket reference in user prompt → skill operates as v1.1 (no PM
+  context). Never invents a ticket.
+- MCP call fails (transient) → defer per protocol §4 with
+  `retriable: true`; user can `/roadmap --retry-pm` later. Phase
+  output is unchanged.
+- Cross-team scope-violation (broker 403) → defer with
+  `retriable: false`, surface the permission error, never auto-flush.
+  The spec docs and sprint plan are still produced locally.
 
 ---
 

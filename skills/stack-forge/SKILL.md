@@ -1,7 +1,7 @@
 ---
 name: stack-forge
 displayName: Stack Forge
-version: 1.2.0
+version: 1.3.0
 shortDesc: Stack decisions, Cloudflare patterns, typed pipeline. v1.2 records the chosen stack on the linked PM ticket as an ADR.
 phases: [plan, build]
 triAgent: false
@@ -47,7 +47,7 @@ tree runs automatically to generate `01-tech-stack.md` and `02-architecture.md`.
 doesn't need to call `/stack-forge` separately. Stack-forge reads the discovery interview
 results and recommends the best stack for the project's requirements.
 
-**Tri-dev uses stack-forge** for stack-ordered sprint decomposition regardless of stack choice.
+**App-architect Phase 6 uses stack-forge** for stack-ordered sprint decomposition regardless of stack choice.
 
 ---
 
@@ -265,9 +265,65 @@ Read `references/deployment-patterns.md` for detailed patterns per platform.
 
 ---
 
+## Platform Matrix (v1.3+)
+
+opchain v1.3 expands the platform menu beyond the JS / Cloudflare bias of v1.0–v1.2.
+Four full-stack patterns are first-class targets: stack-forge recommends them,
+app-architect's `references/scaffold-guide.md` knows how to scaffold them, and
+deploy-ops knows how to ship them.
+
+| Stack | DB | Deploy target | When to pick it |
+|---|---|---|---|
+| **Node + Hono / Astro** | D1 / Postgres | Cloudflare Workers | The opchain default; static-leaning sites + edge APIs. Cheapest at low scale. |
+| **Django + Postgres** | Managed Postgres | Render (primary) / Fly.io | Solo founders / small teams who want batteries-included (admin, ORM, migrations) without ops overhead. |
+| **Rails + Postgres** | Managed Postgres | Heroku (primary) / Render | Teams that already know Rails; scaffolding / convention-over-configuration buy speed. |
+| **Go (`net/http` or chi)** | Postgres / SQLite | Fly.io (primary) / Cloud Run | Latency-sensitive APIs, long-running connections, high-throughput workers; prefer single-binary deploy. |
+| **Rust + Axum** | Postgres / SQLite | Shuttle.rs (primary) / Fly.io | Performance-critical APIs, deep correctness requirements, teams comfortable with the ecosystem. Shuttle gives Postgres + secrets provisioning out of the box. |
+
+### Decision criteria (for /stack-decide)
+
+- **Django/Render** — picks itself when: solo dev, no ops appetite, server-rendered UI, admin panel needed, time-to-first-deploy is the dominant cost. Render's free tier covers the entire app; Postgres is one click. Skip if: you need <50ms global latency or sub-second cold-starts.
+- **Rails/Heroku** — picks itself when: team has Rails experience, Hotwire/Turbo replaces a SPA, the app is CRUD-heavy with traditional auth. Heroku's pipeline (review apps + staging + prod) is the smoothest mainstream path. Skip if: cost-at-scale matters more than dev velocity.
+- **Go/Fly.io** — picks itself when: performance is the headline requirement, single-binary deploys are aesthetically preferred, the team values explicit error handling. Fly's edge VMs give regional placement without configuring a CDN. Skip if: the team has no Go experience and the app is CRUD-heavy (Django/Rails will ship faster).
+- **Rust/Shuttle.rs** — picks itself when: the team wants Rust's correctness guarantees, the app is library-shaped (financial calc, parsers, codecs), and Shuttle's "infra as code in your `main.rs`" model fits. Skip if: the team has no Rust experience (the learning curve is real) or the app is mostly CRUD (Django/Rails ship dramatically faster).
+
+### Cost band (rough monthly, hobby → small-team scale)
+
+| Stack | Hobby | Small team (10k MAU) |
+|---|---|---|
+| Node + CF Workers | $0 | $5–25 |
+| Django/Render | $0 | $14 (Render starter web + Postgres) – $50 |
+| Rails/Heroku | $0 (eco) | $50 (Hobby web + mini Postgres) – $150 |
+| Go/Fly.io | $0 (3 shared-cpu-1x) | $20 (1 dedicated + Postgres cluster) |
+| Rust/Shuttle | $0 (free tier) | $25–60 (Pro tier) |
+
+Costs are 2026-Q2 estimates from public pricing; check the platform docs at decision time.
+
+### Per-stack quick references
+
+| Stack | Scaffold recipe | Deploy recipe |
+|---|---|---|
+| Django + Postgres + Render | [`scaffold-guide.md` § Django](../app-architect/references/scaffold-guide.md) | [`deploy-ops` § Render](../deploy-ops/SKILL.md) |
+| Rails + Postgres + Heroku | [`scaffold-guide.md` § Rails](../app-architect/references/scaffold-guide.md) | [`deploy-ops` § Heroku](../deploy-ops/SKILL.md) |
+| Go + Fly.io | [`scaffold-guide.md` § Go](../app-architect/references/scaffold-guide.md) | [`deploy-ops` § Fly.io](../deploy-ops/SKILL.md) |
+| Rust + Axum + Shuttle.rs | [`scaffold-guide.md` § Rust](../app-architect/references/scaffold-guide.md) | [`deploy-ops` § Shuttle.rs](../deploy-ops/SKILL.md) |
+
+### What NOT to add to this matrix
+
+The matrix is intentionally short. New stacks earn a row only when:
+
+1. There's a documented `scaffold-guide.md` recipe AND a `deploy-ops` provider section.
+2. At least one in-action `/demo` scenario exercises the stack end-to-end.
+3. The pairing (language + framework + DB + deploy) is opinionated — opchain
+   recommends ONE deploy target per stack rather than listing every option.
+
+Adding a stack without all three is a stack-forge bug; the matrix becomes noise instead of guidance.
+
+---
+
 ## Feature Decomposition (`/feature`)
 
-Decomposes a feature into stack-ordered sprints for tri-dev regardless of platform:
+Decomposes a feature into stack-ordered sprints for app-architect Phase 6 regardless of platform:
 
 ```
 1. DB layer (schema, migrations)
@@ -283,20 +339,19 @@ verified ground truth. This ordering is universal across stacks.
 
 ---
 
-## App-Architect Auto-Invocation
+## Invocation by app-architect
 
-**Stack-forge is automatically called by app-architect during Phase 2.** The flow:
+**Stack-forge is actively invoked by app-architect during Phase 2** per orchestrator.md §3.
+When called, stack-forge:
 
-1. App-architect completes Phase 1 (discovery interview)
-2. Phase 2 starts → app-architect reads stack-forge's decision tree
-3. Stack-forge runs the decision tree using discovery context (requirements, users,
-   constraints, budget, team experience)
-4. Stack-forge produces the stack recommendation
-5. App-architect writes `01-tech-stack.md` and `02-architecture.md` using stack-forge's output
-6. User reviews stack at the Spec Approval Gate
+1. Reads the discovery context from `.checkpoints/app-architect.checkpoint.json` (requirements, users, constraints, budget, team experience).
+2. Runs the decision tree (platform → backend → database → auth → frontend), web-searching for current framework status.
+3. Produces the stack recommendation.
+4. Writes its own checkpoint and returns control to app-architect, which then writes `01-tech-stack.md` and `02-architecture.md`.
+5. User reviews stack at app-architect's Spec Approval Gate.
 
-**The user never needs to call `/stack-forge` separately for new projects.** It happens
-inside app-architect. `/stack-forge` is only needed standalone for:
+**The user does not call `/stack-forge` separately for new projects** — app-architect
+chains to it via the active-invocation pattern. `/stack-forge` is only invoked standalone for:
 - Quick stack questions outside a project context
 - Feature decomposition (`/feature`) for existing projects
 - Gap analysis on existing codebases (with reverse-spec)
@@ -342,8 +397,7 @@ Checkpoint location: `{project-dir}/.checkpoints/stack-forge.checkpoint.json`
 
 | Read by | Why |
 |---|---|
-| app-architect | Stack recommendation → Phase 2 spec (automatic) |
-| tri-dev | Sprint decomposition patterns |
+| app-architect | Stack recommendation → Phase 2 spec (automatic); Phase 6 uses sprint decomposition patterns |
 | code-auditor | Type pipeline standard → compliance check |
 | scale-ops | Platform limits → scaling constraints |
 | deploy-ops | Platform → deployment patterns |
@@ -358,7 +412,7 @@ Checkpoint location: `{project-dir}/.checkpoints/stack-forge.checkpoint.json`
 | /testing | `references/testing-patterns.md` | Testing pyramid per framework |
 | /deploy | `references/deployment-patterns.md` | Deploy patterns per platform |
 | /errors | `references/error-handling.md` | Structured errors, logging |
-| /feature | `references/feature-decomposition.md` | Sprint templates for tri-dev |
+| /feature | `references/feature-decomposition.md` | Sprint templates for app-architect Phase 6 |
 | — | `references/cf-deployment.md` | CF-specific patterns (Workers, D1, KV) |
 
 **When a reference doc doesn't cover the selected stack**, web search for current

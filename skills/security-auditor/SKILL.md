@@ -1,7 +1,7 @@
 ---
 name: security-auditor
 displayName: Security Auditor
-version: 1.2.0
+version: 1.3.0
 shortDesc: Threat modeling, OWASP hardening, attack-surface review. v1.2 files CRITICAL findings as PM incident tickets.
 phases: [build]
 triAgent: false
@@ -32,13 +32,6 @@ description: >
 # Security Auditor
 
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
-
-**Note:** The shared `orchestrator.md` pipeline map does not yet include security-auditor.
-When installing this skill, update the orchestrator's pipeline map and upstream/downstream
-table to include:
-- Pipeline: `security-auditor ──► runs after code-auditor, feeds deploy-ops gate`
-- Upstream: reads from reverse-spec, app-architect, code-auditor, deploy-ops
-- Downstream: read by deploy-ops, code-auditor, app-architect, scale-ops
 
 Practice-level security assessment that operates above code-auditor. Where code-auditor
 greps for SQL injection and hardcoded secrets, security-auditor asks: *What's the threat
