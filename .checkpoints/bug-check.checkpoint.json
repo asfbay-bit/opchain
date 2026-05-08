@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-08T04:39:50Z",
+  "updated_at": "2026-05-08T05:00:48Z",
   "phase": "gate",
-  "step": "v1.4-install-upgrade-section-passed",
+  "step": "v1.4-install-upgrade-plus-demo-mobile-fix-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for v1.4 install-page upgrade flow (site/src/pages/install.astro adds Update an existing install section with CLI/Claude.ai/team commands and a /api/health version-check; site/src/components/Icon.astro adds a refresh-cw Feather icon). Scope is two .astro files. astro check 0/0 errors+warnings; anti-pattern grep on changed files clean; secret scan on changed files clean; astro build green (26 pages, install/index.html rebuilt). Vitest skipped (no test touches these files; build covers render). Dep audit unchanged (carried debt: 6 moderate, pre-existing). Verdict: PASS.",
+  "progress_summary": "Pre-commit gate for v1.4 install-page upgrade flow + cherry-picked demo-mobile e2e count fix (6→9). Three changed files: site/src/pages/install.astro (Upgrade section), site/src/components/Icon.astro (refresh-cw icon), site/tests/e2e/demo-mobile.spec.ts (scenario count from 6 to 9 to match v1.2 walkthrough additions). astro check 0/0 errors+warnings; anti-pattern + secret scan on diff clean. Verdict: PASS.",
   "progress_table": [
     { "id": "schema",        "label": "Checkpoint schema validation",                "status": "complete" },
     { "id": "secrets",       "label": "Secret scan on changed files",                "status": "complete" },
@@ -41,7 +41,7 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-08T04:39:50Z",
+      "at": "2026-05-08T05:00:48Z",
       "verdict": "PASS",
       "duration_s": 18,
       "checks": {
