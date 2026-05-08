@@ -4,51 +4,54 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-07T20:36:00Z",
+  "updated_at": "2026-05-08T04:39:50Z",
   "phase": "gate",
-  "step": "v1.3-sprint-3-staged-passed-clean",
+  "step": "v1.4-install-upgrade-section-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate run against the combined audit + v1.3 Sprint 1 working tree. Audit deliverables: 14 fixes from 16 findings (ADEV-311..ADEV-326), 15 deprecated checkpoint.sh deleted, scripts/sync-skill-bundles.mjs added with prebuild/pretest CI gate, all 15 bundled references regenerated. vitest 124/124 pass, gen-catalog 18 skills validate (release-ops now indexed), validate-pm-mcp OK (5 skills, 0 warnings), sync-bundles:check OK (all bundles in sync), secret scan clean. Same WARN as previous run: scripts/validate-pm-mcp.mjs:61 intentional CLI console.log. Verdict: PASS with 1 advisory.",
+  "progress_summary": "Pre-commit gate for v1.4 install-page upgrade flow (site/src/pages/install.astro adds Update an existing install section with CLI/Claude.ai/team commands and a /api/health version-check; site/src/components/Icon.astro adds a refresh-cw Feather icon). Scope is two .astro files. astro check 0/0 errors+warnings; anti-pattern grep on changed files clean; secret scan on changed files clean; astro build green (26 pages, install/index.html rebuilt). Vitest skipped (no test touches these files; build covers render). Dep audit unchanged (carried debt: 6 moderate, pre-existing). Verdict: PASS.",
   "progress_table": [
-    { "id": "schema",        "label": "Checkpoint schema validation",                                     "status": "complete" },
-    { "id": "secrets",       "label": "Secret scan on staged files — 0 hits",                             "status": "complete" },
-    { "id": "type_safety",   "label": "TS / astro check — N/A this commit (no TS source touched)",        "status": "complete" },
-    { "id": "lint",          "label": "ESLint (no repo config; skipped)",                                 "status": "not_started" },
-    { "id": "tests",         "label": "Vitest run — 124/124 passed",                                      "status": "complete" },
-    { "id": "anti_patterns", "label": "Anti-pattern grep on staged — 1 advisory console.log in CLI",      "status": "complete" },
-    { "id": "build",         "label": "Build verification — N/A this commit (Astro build runs in Sprint 4)", "status": "complete" },
-    { "id": "dependencies",  "label": "npm audit — no new deps in this commit",                           "status": "complete" }
+    { "id": "schema",        "label": "Checkpoint schema validation",                "status": "complete" },
+    { "id": "secrets",       "label": "Secret scan on changed files",                "status": "complete" },
+    { "id": "type_safety",   "label": "astro check — 0 errors, 0 warnings",          "status": "complete" },
+    { "id": "lint",          "label": "ESLint (no repo config; skipped)",            "status": "not_started" },
+    { "id": "tests",         "label": "Vitest skipped — no test touches the 2 changed files; build covers render", "status": "not_started" },
+    { "id": "anti_patterns", "label": "Anti-pattern grep on diff — 0 hits",          "status": "complete" },
+    { "id": "build",         "label": "astro build — 26 pages, install/index.html rebuilt", "status": "complete" },
+    { "id": "dependencies",  "label": "site npm audit — 6 moderate (pre-existing carried debt)", "status": "complete" }
   ],
   "context_primer": {
     "key_decisions": [
-      "Staged Sprint 1 of v1.3: pm-mcp-protocol.md NEW + 5 SKILL.md prose updates + scripts/validate-pm-mcp.mjs + scripts/lib/pm-mcp-checks.mjs + tests/pm-mcp-validator.test.js + package.json wiring. Version bumps held for Sprint 4 per release-ops `lockstep` convention.",
-      "Single anti-pattern hit: scripts/validate-pm-mcp.mjs:61 console.log for the CLI-status line. Pattern matches the existing gen-* / sync-* scripts; not a debug artefact. WARN, not FAIL.",
-      "TS / build skipped: no TS source touched (only .mjs scripts + .md / .json), and the Astro build is Sprint 4 work."
+      "Scope: two .astro files (install page + Icon component). Ran type-check, build, anti-pattern grep, and secret scan on the diff.",
+      "ESLint skipped because the repo has no eslint config; astro check provides the linting signal.",
+      "Vitest skipped intentionally: no unit/integration test imports either file, and astro build verified the install/index.html renders with the new section.",
+      "site npm audit unchanged from prior run (4 low / 6 moderate). Carried debt, not introduced here."
     ],
-    "generated_files": [],
+    "generated_files": [
+      "site/dist/install/index.html (rebuilt with the new Upgrade section)"
+    ],
     "user_preferences": [
-      "User asked to split the v1.3 work into 4 sprint commits. Each sprint commit re-runs bug-check before staging via this skill."
+      "User is planning v1.4 release; this commit adds the upgrade-flow docs that 1.4 needs."
     ]
   },
   "blockers": [],
   "next_actions": [
-    "Proceed with the Sprint 1 commit (gate passed).",
-    "Re-run bug-check before each subsequent sprint commit (the gate has a 10-minute freshness window).",
-    "After Sprint 4 commit, validate the full site:build before manual deploy."
+    "Proceed with the v1.4 install-upgrade commit (gate passed).",
+    "Push branch claude/add-upgrade-instructions-yvBC8 and open PR.",
+    "After merge, deploy via npm run deploy:staging then npm run deploy."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-07T20:42:00Z",
+      "at": "2026-05-08T04:39:50Z",
       "verdict": "PASS",
-      "duration_s": 8,
+      "duration_s": 18,
       "checks": {
-        "type_safety": "SKIPPED",
+        "type_safety": "PASS",
         "lint": "SKIPPED",
-        "tests": "PASS",
-        "anti_patterns": "WARN",
+        "tests": "SKIPPED",
+        "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "SKIPPED",
-        "dependencies": "PASS"
+        "build": "PASS",
+        "dependencies": "WARN"
       },
       "warnings": 1,
       "errors": 0

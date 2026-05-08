@@ -17,6 +17,14 @@ claude
 const teamCmd = `git add .claude/skills/
 git commit -m "chore: add opchain skills"
 git push`;
+
+const upgradeCmd = `# .checkpoints/ is a sibling of .claude/ — never touched by this swap
+rm -rf .claude/skills/
+curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
+unzip opchain-skills.zip -d .claude/skills/
+rm opchain-skills.zip`;
+
+const versionCmd = `curl -sS https://opchain.dev/api/health | jq .version`;
 ---
 
 <Base
@@ -116,6 +124,102 @@ git push`;
           </button>
         </div>
       </div>
+    </section>
+
+    <!-- ───────────── Upgrade ───────────── -->
+    <section class="upgrade">
+      <Eyebrow>upgrade</Eyebrow>
+      <h2><Icon name="refresh-cw" /> Update an existing install</h2>
+      <p>
+        Already running opchain in a project? Replace the skills in place.
+        Your <code class="ic">.checkpoints/</code> directory lives
+        <em>outside</em> <code class="ic">.claude/skills/</code>, so every
+        skill's session state — phase, step, next actions, decisions — is
+        preserved across the swap. The new skills pick up the existing
+        checkpoints on their next invocation.
+      </p>
+
+      <h3><Icon name="terminal" /> Claude Code CLI</h3>
+      <p>
+        Run from your project root. This wipes the old skills directory
+        and replaces it with the latest bundle.
+      </p>
+      <div class="code-row">
+        <pre class="codeblock"><code>{upgradeCmd}</code></pre>
+        <button class="copy" type="button" data-copy={upgradeCmd} data-flow="upgrade-cli" aria-label="Copy upgrade command">
+          <Icon name="copy" size={12} />
+          <span class="copy-label">copy</span>
+        </button>
+      </div>
+      <p class="verify">
+        <strong>Verify the new version is live.</strong> Check what the
+        site is currently shipping with
+        <code class="ic">curl https://opchain.dev/api/health</code> (the
+        <code class="ic">version</code> field is the build SHA), then
+        start a new Claude Code session and run
+        <code class="ic">/ops</code> — the orchestrator should report your
+        existing checkpoints exactly where you left them.
+      </p>
+
+      <h3><Icon name="layers" /> Claude.ai / Claude Desktop</h3>
+      <ol class="steps">
+        <li>
+          {installZipEnabled ? (
+            <>Download the latest <a href="/opchain-skills.zip">bundle ZIP</a> or the individual <code class="ic">SKILL.md</code> files you use from the <a href="/skills">Skill Library</a>.</>
+          ) : (
+            <>Download the latest <code class="ic">SKILL.md</code> files from the <a href="/skills">Skill Library</a>.</>
+          )}
+        </li>
+        <li>Open Claude → <strong>Settings → Customize → Skills</strong>.</li>
+        <li>For each skill you've installed, click the existing entry and choose <strong>Replace</strong> (or delete and re-upload). Skills are matched by name, so the new file overrides the old one.</li>
+        <li>Checkpoints in Claude.ai live in the project, not the skill, so they survive the upload.</li>
+      </ol>
+
+      <h3><Icon name="github" /> Team (git-tracked install)</h3>
+      <p>
+        If you committed <code class="ic">.claude/skills/</code> with the
+        team flow, do the upgrade on a branch so the skill diff lands in
+        review:
+      </p>
+      <div class="code-row">
+        <pre class="codeblock"><code>{`git checkout -b chore/upgrade-opchain
+rm -rf .claude/skills/
+curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
+unzip opchain-skills.zip -d .claude/skills/
+rm opchain-skills.zip
+git add .claude/skills/
+git commit -m "chore: upgrade opchain skills"`}</code></pre>
+        <button class="copy" type="button" data-copy={`git checkout -b chore/upgrade-opchain
+rm -rf .claude/skills/
+curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
+unzip opchain-skills.zip -d .claude/skills/
+rm opchain-skills.zip
+git add .claude/skills/
+git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-label="Copy team upgrade command">
+          <Icon name="copy" size={12} />
+          <span class="copy-label">copy</span>
+        </button>
+      </div>
+      <p>
+        Reviewers see exactly which skills changed, and
+        <code class="ic">.checkpoints/</code> is untouched because it's a
+        separate top-level directory.
+      </p>
+
+      <h3><Icon name="target" /> Check which version you're on</h3>
+      <div class="code-row">
+        <pre class="codeblock"><code>{versionCmd}</code></pre>
+        <button class="copy" type="button" data-copy={versionCmd} data-flow="upgrade-version" aria-label="Copy version-check command">
+          <Icon name="copy" size={12} />
+          <span class="copy-label">copy</span>
+        </button>
+      </div>
+      <p>
+        Returns the build SHA currently published at
+        <code class="ic">opchain.dev</code>. Re-run after upgrading and
+        confirm a fresh Claude session sees the new skills under
+        <code class="ic">.claude/skills/&lt;name&gt;/SKILL.md</code>.
+      </p>
     </section>
 
     <!-- ───────────── Configuration table ───────────── -->
@@ -310,6 +414,40 @@ git push`;
     gap: 0.45rem;
   }
   .steps strong { color: var(--text); }
+
+  .upgrade { margin-top: 0.5rem; margin-bottom: 2.5rem; }
+  .upgrade h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0.5rem 0 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .upgrade h3 {
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    font-weight: 600;
+    color: var(--text);
+    margin: 1.5rem 0 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .upgrade p { color: var(--muted); margin: 0 0 0.85rem; }
+  .upgrade a { color: var(--accent); }
+  .upgrade .verify {
+    margin-top: 0.9rem;
+    padding: 0.75rem 0.95rem;
+    border-left: 2px solid var(--accent);
+    background: var(--surface);
+    border-radius: var(--r-xs);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .upgrade .verify strong { color: var(--text); }
 
   .config { margin-top: 2.5rem; }
   .config h2 {
