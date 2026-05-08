@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-06T04:52:55Z",
+  "updated_at": "2026-05-08T04:58:53Z",
   "phase": "gate",
-  "step": "v1.2-pm-mcp-batch-passed",
+  "step": "demo-mobile-scenario-count-fix-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate run for the v1.2 feature batch (12 SKILL.md updates, 3 new walkthrough scenarios, /changelog page, homepage v1.2 pill, footer link, styleguide bump, .opchain/pm.yaml schema, getSkillUpdatedAt REPO_ROOT walk-up bug fix). astro check 0/0 errors+warnings; vitest 108/108 pass; anti-pattern grep clean; secret scan clean (one bug-check doc string + package-lock task-list-item substring both false positives); npm run build green (26 pages + worker dist 550KB); root npm audit 0 vulnerabilities; site npm audit 4 low / 6 moderate (no critical, no high) — WARN, pre-existing not from this batch. Verdict: PASS.",
+  "progress_summary": "Pre-commit gate for tests/e2e/demo-mobile.spec.ts:45 — bumped expected scenario count from 6 to 9 (drift from v1.2 walkthrough additions). Single-line test fix on a fresh branch off main. astro check 0/0 errors+warnings; anti-pattern grep on changed file clean; secret scan on changed file clean. Vitest skipped (Playwright spec, not vitest). Build skipped (no source change). Verdict: PASS.",
   "progress_table": [
     { "id": "schema",        "label": "Checkpoint schema validation",                "status": "complete" },
     { "id": "secrets",       "label": "Secret scan on changed files",                "status": "complete" },
@@ -41,19 +41,19 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-06T04:52:55Z",
+      "at": "2026-05-08T04:58:53Z",
       "verdict": "PASS",
-      "duration_s": 25,
+      "duration_s": 8,
       "checks": {
         "type_safety": "PASS",
         "lint": "SKIPPED",
-        "tests": "PASS",
+        "tests": "SKIPPED",
         "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "PASS",
-        "dependencies": "WARN"
+        "build": "SKIPPED",
+        "dependencies": "SKIPPED"
       },
-      "warnings": 1,
+      "warnings": 0,
       "errors": 0
     },
     "bypasses": [],
