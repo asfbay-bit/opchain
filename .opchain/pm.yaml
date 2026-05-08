@@ -52,6 +52,9 @@ current_release:
     - ticket: ADEV-336
       label: "PR 6: Apple/iOS/Swift pack + app-store adapter"
       status: todo
+    - ticket: ADEV-343
+      label: "PR 6.5: Mobile bulk — Android + Flutter + React Native + play-store adapter"
+      status: todo
     - ticket: ADEV-337
       label: "PR 7: Hosting adapter packs (railway, netlify, heroku, aws-amplify)"
       status: todo
