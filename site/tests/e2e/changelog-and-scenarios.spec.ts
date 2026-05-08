@@ -47,9 +47,9 @@ test.describe("/changelog", () => {
   test("every scenario the v1.3 entry links to has a /demo deep link", async ({ page }) => {
     await page.goto("/changelog");
     for (const id of ALL_LINKED) {
-      const link = page.locator(`section.release--current a[href="/demo#${id}"]`);
+      const link = page.locator(`section.release--current a[href="/demo#${id}"]`).first();
       await expect(link, `expected /changelog v1.3 entry to deep-link to /demo#${id}`)
-        .toHaveCount(1);
+        .toBeVisible();
     }
   });
 
