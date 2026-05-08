@@ -4,20 +4,52 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-08T06:15:30Z",
+  "updated_at": "2026-05-08T06:23:31Z",
   "phase": "gate",
   "step": "git-ops-checkpoint-update-passed",
   "status": "complete",
   "progress_summary": "Pre-commit gate for a state-file-only commit on branch claude/checkpoint-after-pr183: single change is .checkpoints/git-ops.checkpoint.json bringing it from last-merge-#151 to last-merge-#183. No source code touched. Ran the targeted checks: checkpoint:validate 7/7 green; secret scan on diff clean; anti-pattern grep on diff clean; type-check / build / vitest skipped intentionally (no .ts/.js/.astro source in the diff). Verdict: PASS.",
   "progress_table": [
-    { "id": "schema",        "label": "Checkpoint schema validation — 7/7 valid (incl. new stack-forge)", "status": "complete" },
-    { "id": "secrets",       "label": "Secret scan on changed file — 0 hits",                          "status": "complete" },
-    { "id": "type_safety",   "label": "astro check via build — 0 errors",                              "status": "complete" },
-    { "id": "lint",          "label": "ESLint (no repo config; skipped, same as prior runs)",          "status": "not_started" },
-    { "id": "tests",         "label": "Vitest run — 108/108 passed",                                   "status": "complete" },
-    { "id": "anti_patterns", "label": "Anti-pattern grep on diff — 0 hits",                            "status": "complete" },
-    { "id": "build",         "label": "npm run build — 26 pages",                                      "status": "complete" },
-    { "id": "dependencies",  "label": "npm audit — 0 vulnerabilities at root",                         "status": "complete" }
+    {
+      "id": "schema",
+      "label": "Checkpoint schema validation — 7/7 valid (incl. new stack-forge)",
+      "status": "complete"
+    },
+    {
+      "id": "secrets",
+      "label": "Secret scan on changed file — 0 hits",
+      "status": "complete"
+    },
+    {
+      "id": "type_safety",
+      "label": "astro check via build — 0 errors",
+      "status": "complete"
+    },
+    {
+      "id": "lint",
+      "label": "ESLint (no repo config; skipped, same as prior runs)",
+      "status": "not_started"
+    },
+    {
+      "id": "tests",
+      "label": "Vitest run — 108/108 passed",
+      "status": "complete"
+    },
+    {
+      "id": "anti_patterns",
+      "label": "Anti-pattern grep on diff — 0 hits",
+      "status": "complete"
+    },
+    {
+      "id": "build",
+      "label": "npm run build — 26 pages",
+      "status": "complete"
+    },
+    {
+      "id": "dependencies",
+      "label": "npm audit — 0 vulnerabilities at root",
+      "status": "complete"
+    }
   ],
   "context_primer": {
     "key_decisions": [
@@ -38,7 +70,7 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-08T06:15:30Z",
+      "at": "2026-05-08T06:23:31Z",
       "verdict": "PASS",
       "duration_s": 30,
       "checks": {
