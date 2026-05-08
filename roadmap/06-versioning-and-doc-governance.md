@@ -1,0 +1,206 @@
+# Versioning & Document Governance — Scoping Decision
+
+> Decision doc for the prompt: *"Versioning and document governance should be a
+> new skill or baked into the 1.4 release."* Captures the chosen path, scope,
+> non-goals, and rollout sequence. Implementation lands in follow-up PRs.
+
+**Status:** proposed — 2026-05-08
+**Owner:** opchain core
+**Related tickets:** ADEV-308 (release-ops), ADEV-310 (/changelog + ship)
+**Branch where this was authored:** `claude/versioning-document-governance-0vVKP`
+
+---
+
+## TL;DR
+
+- **One skill, not two.** Fold versioning + document governance into the
+  in-flight `release-ops` skill (already on the v1.3 sprint plan as ADEV-308).
+  Don't spin a separate `doc-governance` skill — the surfaces overlap and a
+  second skill doubles the discovery + checkpoint burden.
+- **v1.3 = the skill.** Ship `release-ops` with `/release`, `/changelog`,
+  and `/governance` verbs. Scaffold lands on this branch; logic fills in
+  during ADEV-308 and ADEV-310.
+- **v1.4 = the catalog rollout.** A migration-ops bulk upgrade adds
+  governance frontmatter to every `skills/<id>/SKILL.md`, seeds
+  `skills/CHANGELOG.md`, and stamps doc-version fields into every
+  checkpoint. The 1.4 bump on every skill is the visible signal that
+  governance is live.
+
+```
+v1.3                                       v1.4
+─────────────────────────────────────────  ─────────────────────────────────────
+Sprint 2: release-ops skill (ADEV-308)     migration-ops bulk SKILL.md upgrade
+Sprint 4: /changelog + ship  (ADEV-310)    skills/CHANGELOG.md seeded
+                                           every skill bumps to 1.4.0
+                                           every checkpoint gains doc-version
+```
+
+---
+
+## Why a skill, not "just a policy doc"
+
+A markdown policy alone is not enforceable. Three things have to happen on
+every change for governance to mean anything:
+
+1. **Detect** — flag breaking changes to skill commands, checkpoint shape,
+   or SKILL.md frontmatter on the PR that introduces them.
+2. **Record** — append a `skills/CHANGELOG.md` entry with the breaking-change
+   taxonomy applied (added / behavior / breaking).
+3. **Communicate** — bump `version:` in frontmatter, stamp the checkpoint, and
+   surface the change on the public skill page.
+
+That's a skill's job, not a README's. `release-ops` becomes the place where
+the rules and the enforcement live in the same directory.
+
+---
+
+## Why one skill, not two
+
+Considered splitting into:
+
+- **`release-ops`** — owns versioning, CHANGELOG, breaking-change taxonomy,
+  release notes.
+- **`doc-governance`** — owns SKILL.md frontmatter rules, `GOVERNANCE.md`
+  per-project, doc lifecycle/ownership.
+
+Rejected because:
+
+| Concern              | One skill                      | Two skills                          |
+|----------------------|--------------------------------|-------------------------------------|
+| Discovery            | `/release` is one entry point  | Users have to learn which is which  |
+| Checkpoint           | One checkpoint to babysit      | Two, often updated in lockstep      |
+| Inputs               | Both read SKILL.md frontmatter | Duplicate parsers, drift risk       |
+| v1.3 sprint plan     | Already names `release-ops`    | Requires inventing a second skill   |
+| git-ops:341 stub     | Subsumed cleanly               | Goes to the second skill instead    |
+
+The boundary that *would* exist between them is artificial: a CHANGELOG entry
+without a frontmatter version bump is incoherent, and a frontmatter version
+bump without a CHANGELOG entry is exactly the gap M4 calls out. They want to
+be enforced together.
+
+---
+
+## Scope: what release-ops owns
+
+### A. Skill versioning (the "version stamp" half)
+
+- **Semver discipline for `skills/<id>/SKILL.md` `version:` field.** Today
+  every skill carries `version: 1.2.0` (moving to 1.3.0); there is no
+  documented policy for what bumps which digit.
+- **Breaking-change taxonomy.** Mirrors api-dev's
+  `references/versioning-and-deprecation.md` shape but for skills:
+  - **Major** — checkpoint shape change, command verb removal/rename,
+    frontmatter field removal, phase change.
+  - **Minor** — new command verb, new optional frontmatter field, new
+    reference doc, new flag in `flags.exposes`.
+  - **Patch** — copy edits, prompt tuning, internal refactors that don't
+    affect the contract a downstream session sees.
+- **`skills/CHANGELOG.md`** — single file at the catalog root, one section
+  per release (`## v1.4.0 — 2026-05-15`), grouped by skill.
+- **`/changelog gen`** — diffs `git log` against the last tagged release and
+  drafts CHANGELOG entries by skill, applying the taxonomy. User edits, then
+  `/changelog ship` writes it and tags.
+
+### B. Document governance (the "doc lifecycle" half)
+
+- **`GOVERNANCE.md` at project root** — already referenced by
+  `skills/git-ops/SKILL.md:341` ("If a `GOVERNANCE.md` file exists in the
+  project root (generated by app-architect or the project-governance skill),
+  read it before committing"). That stub has had no owner. release-ops fills
+  it.
+- **Per-project doc inventory.** Master copies vs working drafts; which
+  documents need a review cadence; who signs off on changes.
+- **SKILL.md frontmatter additions (v1.4):**
+  ```yaml
+  governance:
+    breaking_change_policy: skills/CHANGELOG.md
+    last_reviewed: 2026-05-15
+    owner: opchain
+    docs:
+      - { path: SKILL.md,                kind: contract, lifecycle: stable }
+      - { path: references/orchestrator.md, kind: shared,  lifecycle: stable }
+  ```
+  Validated by `scripts/gen-skills-catalog.mjs` like every other field.
+- **Checkpoint stamps.** Each checkpoint gains `doc_version` and
+  `governance_reviewed_at` fields so resume sessions know whether they're
+  reading current doctrine.
+
+### Non-goals
+
+- **Release engineering for the *site*.** The Worker / Astro deploy is owned
+  by deploy-ops and CLAUDE.md's manual-deploy procedure. release-ops is
+  about the skill catalog, not the marketing site.
+- **API versioning for first-party APIs.** Stays in api-dev. release-ops
+  doesn't touch `references/versioning-and-deprecation.md`.
+- **Generic "documentation generation."** reverse-spec already does this.
+  release-ops *governs* docs once they exist; it doesn't write them.
+- **CI gates on every PR.** v1.3 is opt-in (`/governance scan`). Hard gates
+  wait until v1.4 once frontmatter is consistent across the catalog.
+
+---
+
+## Rollout
+
+### v1.3 — the skill itself
+
+| Sprint | Ticket   | Deliverable                                                    |
+|--------|----------|----------------------------------------------------------------|
+| 2      | ADEV-308 | `skills/release-ops/` SKILL.md + references + checkpoint.sh    |
+| 2      | ADEV-308 | `release-ops` registered in `src/lib/flags/registry.js`        |
+| 2      | ADEV-308 | `/release plan` + `/release ship` + `/release rollback` stubs  |
+| 4      | ADEV-310 | `/changelog gen` against `git log`, drafts entries per skill   |
+| 4      | ADEV-310 | `/governance scan` reads SKILL.md, reports missing fields      |
+| 4      | ADEV-310 | `references/release-policy.md` published (this proposal → policy) |
+
+This branch (`claude/versioning-document-governance-0vVKP`) lands the
+**scaffold** — directory structure, frontmatter, command menu, reference
+stubs, registry entries — so ADEV-308 starts with green builds and a clear
+shape to fill in.
+
+### v1.4 — the catalog rollout
+
+Driven by **migration-ops** (`/migrate` is already documented for "skill
+format change", "checkpoint protocol upgrade", and "bulk update SKILL.md").
+Migration-ops is the right operator: it generates a per-skill plan with a
+rollback at every step.
+
+| Step | Action                                                                            |
+|------|-----------------------------------------------------------------------------------|
+| 1    | Add `governance:` block to the Astro content schema as `optional()` first        |
+| 2    | Add `governance:` to `gen-skills-catalog.mjs` validator (still optional)         |
+| 3    | Bulk PR: every `skills/<id>/SKILL.md` gains the `governance:` block + `1.4.0`    |
+| 4    | Make `governance:` required in the validator                                      |
+| 5    | Seed `skills/CHANGELOG.md` with a `## v1.4.0` entry summarizing the rollout      |
+| 6    | Bulk PR: every checkpoint gains `doc_version` + `governance_reviewed_at`         |
+| 7    | Wire `/governance scan` into `bug-check` (warn-only, not block)                  |
+| 8    | After one release cycle clean: flip `/governance scan` in `bug-check` to block   |
+
+Each step has a discrete rollback (revert the PR / drop the field / loosen
+the validator). No flag day.
+
+---
+
+## Open questions
+
+1. **Site surfacing.** Should the public `/skills/<id>` page show the
+   governance block (last-reviewed date, lifecycle, breaking-change link)?
+   Probably yes for credibility, but the design treatment is for ux-engineer
+   in v1.4. Out of scope for this branch.
+2. **`GOVERNANCE.md` template.** Lives in `references/governance-policy.md`
+   in this branch as a stub. The actual `app-architect` integration ("when
+   `/scaffold` runs, drop a starter GOVERNANCE.md") is a v1.4 task.
+3. **Cross-cutting flags.** `platform.governance.changelog-required` — a
+   kill switch for the bug-check gate. Adding it pre-emptively in v1.3 is
+   cheap; deciding the default is a v1.4 question.
+4. **Tag strategy.** `git tag skills-v1.4.0` vs per-skill tags? Recommend
+   one catalog-wide tag — per-skill tags have proven noisy in dry runs.
+
+---
+
+## Decision
+
+Adopt path A (one skill, two-version rollout). Land the scaffold on this
+branch; ship logic in ADEV-308 + ADEV-310; bulk-upgrade the catalog in v1.4
+via migration-ops. Revisit splitting into `doc-governance` only if the
+release-ops command surface exceeds ~12 verbs or the checkpoint outgrows a
+single skill_state shape.
