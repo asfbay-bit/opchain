@@ -4,9 +4,9 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-08T05:52:39Z",
+  "updated_at": "2026-05-08T05:56:07Z",
   "phase": "gate",
-  "step": "post-rebase-ci-unblock-followup-2-passed",
+  "step": "post-rebase-ci-unblock-followup-3-passed",
   "status": "complete",
   "progress_summary": "Pre-commit gate for the rebase-unblock commit on PR #183. Three small fixes that repair pre-existing brokenness inherited from main's v1.3 merge: (a) add .claude/skills/release-ops symlink so the worker job's drift check passes, (b) add link-in-text-block to /changelog disabledRules in site/tests/e2e/routes.spec.ts (matches existing per-route a11y debt pattern), (c) repair app-architect.checkpoint.json statuses (\"ready-to-deploy\" → in_progress, \"ready\" → not_started — schema only allows the documented enum). Local validation: checkpoint:validate 6/6 OK, vitest 124/124 PASS, astro check 0/0, secret scan clean, anti-pattern grep clean. Playwright skipped locally (no browsers installed); CI will validate. Verdict: PASS.",
   "progress_table": [
@@ -41,7 +41,7 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-08T05:52:39Z",
+      "at": "2026-05-08T05:56:07Z",
       "verdict": "PASS",
       "duration_s": 18,
       "checks": {

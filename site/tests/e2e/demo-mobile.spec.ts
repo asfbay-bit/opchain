@@ -42,11 +42,11 @@ test.describe("mobile workbench (Pixel 5)", () => {
     await expect(page.locator(".dw-desktop .ide")).toBeHidden();
   });
 
-  test("scenarios tab is active by default and lists all 9 scenarios", async ({ page }) => {
+  test("scenarios tab is active by default and lists all 12 scenarios", async ({ page }) => {
     await page.goto("/demo");
     const root = page.locator("[data-mobile-workbench]");
     await expect(root.locator('[data-mw-tab="scenarios"]')).toHaveAttribute("aria-selected", "true");
-    await expect(root.locator("[data-mw-scenario]")).toHaveCount(9);
+    await expect(root.locator("[data-mw-scenario]")).toHaveCount(12);
   });
 
   test("tapping a scenario card auto-switches to Stream and renders the transcript", async ({ page }) => {
