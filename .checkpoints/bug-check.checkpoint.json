@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-08T05:55:00Z",
+  "updated_at": "2026-05-08T06:15:30Z",
   "phase": "gate",
-  "step": "v14-plan-checkpoint-passed",
+  "step": "git-ops-checkpoint-update-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate run for the v1.4 plan checkpoint (single new file: .checkpoints/stack-forge.checkpoint.json — JSON only, no source code touched). Fresh container required `npm install` at root and inside site/ before build/test could execute. After install: vitest 108/108 pass (6.29s, identical count to 2026-05-06 baseline); npm run build green (26 pages, 10.06s); anti-pattern grep on the new JSON file clean; secret scan clean (no AKIA, sk_live_, ghp_, BEGIN PRIVATE KEY, sk- substring matches); root npm audit 0 vulnerabilities; checkpoint:validate green for all 7 checkpoints including the new stack-forge entry. Verdict: PASS.",
+  "progress_summary": "Pre-commit gate for a state-file-only commit on branch claude/checkpoint-after-pr183: single change is .checkpoints/git-ops.checkpoint.json bringing it from last-merge-#151 to last-merge-#183. No source code touched. Ran the targeted checks: checkpoint:validate 7/7 green; secret scan on diff clean; anti-pattern grep on diff clean; type-check / build / vitest skipped intentionally (no .ts/.js/.astro source in the diff). Verdict: PASS.",
   "progress_table": [
     { "id": "schema",        "label": "Checkpoint schema validation — 7/7 valid (incl. new stack-forge)", "status": "complete" },
     { "id": "secrets",       "label": "Secret scan on changed file — 0 hits",                          "status": "complete" },
@@ -38,7 +38,7 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-08T05:55:00Z",
+      "at": "2026-05-08T06:15:30Z",
       "verdict": "PASS",
       "duration_s": 30,
       "checks": {
