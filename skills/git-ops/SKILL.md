@@ -262,6 +262,8 @@ Pull from all available sources to build a comprehensive PR description:
 
 [2-3 sentences: what this PR does and why]
 
+**Linked ticket:** [TICKET-1234](ticket-url)
+
 ## Changes
 
 [Auto-generated from commit messages, grouped by type]
@@ -291,6 +293,8 @@ Pull from all available sources to build a comprehensive PR description:
 
 [Any migration steps, env var additions, or config changes needed]
 [Auto-detected from: new migration files, .env.example changes, wrangler.toml changes]
+
+Refs: TICKET-1234
 ```
 
 ### Creating the PR
@@ -464,14 +468,21 @@ git-ops shapes branch / commit / PR / state from the ticket.**
 3. **Branch name** — slug `{type}/{id}-{title-kebab-truncated-50}`,
    where `type` is derived from the ticket type / labels:
    `feat`, `fix`, `chore`, `docs`, `refactor`. Default `feat` if
-   ambiguous.
+   ambiguous. **The ticket id is mandatory and must be uppercase in the
+   branch name** (for example, `feat/ADEV-307-runtime-pm-mcp-made-real`).
+   Do not drop or lowercase the id: Linear's GitHub integration auto-links
+   PRs by detecting `ADEV-307` in the branch / PR metadata.
 4. **Commit message** — first line: `{type}({scope}): {title}`.
    Body: short paragraph summarising the change; trailer
    `Refs: TICKET-1234` (or `Closes:` if the ticket is in a
    "ready-to-close" state).
-5. **PR body** — generated from the ticket description, the diff
-   summary, and the auditor / bug-check report (if present).
-   Includes a top-line `**Linked ticket:** [TICKET-1234](url)`.
+5. **PR title + body** — title begins with `[TICKET-1234]` followed by
+   the concise change summary. Body is generated from the ticket
+   description, the diff summary, and the auditor / bug-check report
+   (if present). It includes a top-line
+   `**Linked ticket:** [TICKET-1234](url)` and a plain-text `Refs:
+   TICKET-1234` footer so Linear can auto-link even if branch detection
+   fails.
 6. **PR open** — pre-write check via the `list_comments` tool (Linear)
    or `issue_read` (GitHub, comments inline) for marker
    `<!-- opchain:git-ops:pr-opened:#<pr-number> -->`. If absent, call
