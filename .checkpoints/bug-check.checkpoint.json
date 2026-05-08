@@ -4,85 +4,56 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-08T06:23:31Z",
+  "updated_at": "2026-05-08T06:18:00Z",
   "phase": "gate",
-  "step": "git-ops-checkpoint-update-passed",
+  "step": "orchestrator-checkpoint-update-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for a state-file-only commit on branch claude/checkpoint-after-pr183: single change is .checkpoints/git-ops.checkpoint.json bringing it from last-merge-#151 to last-merge-#183. No source code touched. Ran the targeted checks: checkpoint:validate 7/7 green; secret scan on diff clean; anti-pattern grep on diff clean; type-check / build / vitest skipped intentionally (no .ts/.js/.astro source in the diff). Verdict: PASS.",
+  "progress_summary": "Pre-commit gate run for the orchestrator checkpoint update on claude/a11y-lhci-cleanup (single modified file: .checkpoints/orchestrator.checkpoint.json — JSON only, recording v1.4 plan-merged + a11y cleanup track standup). Astro check: 0 errors / 0 warnings (1 unused-variable hint pre-existing in architecture.astro line 1027). Build: 27 pages green in 5.48s + worker dist + zip. Vitest: first run had 1 flake on tests/flags-skills.test.js > 'passes with a clean fixture' (a fixture-spawning test that runs at ~1150ms and is race-prone); re-run was clean 124/124. Anti-pattern grep on the JSON diff: clean. Secret scan: clean. Root npm audit: 0 vulnerabilities. Checkpoint:validate: 7/7 valid. 6 OG PNGs re-touched by build are non-deterministic regen noise (identical issue from prior run); discarded before commit. Verdict: PASS. Note: bug-check.checkpoint.json conflicted with the auto-stamp from PR #188 (which recorded a 06:15:30Z gate for the git-ops update); resolved by keeping this newer run since checkpoint records most-recent gate.",
   "progress_table": [
-    {
-      "id": "schema",
-      "label": "Checkpoint schema validation — 7/7 valid (incl. new stack-forge)",
-      "status": "complete"
-    },
-    {
-      "id": "secrets",
-      "label": "Secret scan on changed file — 0 hits",
-      "status": "complete"
-    },
-    {
-      "id": "type_safety",
-      "label": "astro check via build — 0 errors",
-      "status": "complete"
-    },
-    {
-      "id": "lint",
-      "label": "ESLint (no repo config; skipped, same as prior runs)",
-      "status": "not_started"
-    },
-    {
-      "id": "tests",
-      "label": "Vitest run — 108/108 passed",
-      "status": "complete"
-    },
-    {
-      "id": "anti_patterns",
-      "label": "Anti-pattern grep on diff — 0 hits",
-      "status": "complete"
-    },
-    {
-      "id": "build",
-      "label": "npm run build — 26 pages",
-      "status": "complete"
-    },
-    {
-      "id": "dependencies",
-      "label": "npm audit — 0 vulnerabilities at root",
-      "status": "complete"
-    }
+    { "id": "schema",        "label": "Checkpoint schema validation — 7/7 valid",                       "status": "complete" },
+    { "id": "secrets",       "label": "Secret scan on changed file — 0 hits",                          "status": "complete" },
+    { "id": "type_safety",   "label": "astro check — 0 errors / 0 warnings (1 hint, pre-existing)",    "status": "complete" },
+    { "id": "lint",          "label": "ESLint (no repo config; skipped, same as prior runs)",          "status": "not_started" },
+    { "id": "tests",         "label": "Vitest run — 124/124 on re-run (1 flake on first run)",         "status": "complete" },
+    { "id": "anti_patterns", "label": "Anti-pattern grep on diff — 0 hits",                            "status": "complete" },
+    { "id": "build",         "label": "npm run build — 27 pages + worker + zip",                       "status": "complete" },
+    { "id": "dependencies",  "label": "npm audit — 0 vulnerabilities at root",                         "status": "complete" }
   ],
   "context_primer": {
     "key_decisions": [
-      "Doc-only commit (one JSON checkpoint). Ran the full check suite anyway because bug-check's contract is project-wide — but the only changes that could break anything were anti-pattern/secret/JSON-schema, all clean.",
-      "Container started with no node_modules in either root or site/. Ran `npm install` in both before build/test. Both installs were fast (6s + ~few s) with no advisory output beyond pre-existing site moderate warnings.",
-      "Test count matched the 2026-05-06 baseline (108/108) — no regression and no new test coverage expected from a checkpoint-only change.",
-      "ESLint remains skipped (no eslint config in repo); astro check via build is the linting signal."
+      "Doc-only commit (one JSON checkpoint). Ran the full check suite anyway because bug-check's contract is project-wide.",
+      "Test flake on first run: tests/flags-skills.test.js > gen-skills-catalog — flag validation > 'passes with a clean fixture'. The test spawns a subprocess against a temp fixture and runs at ~1150ms, which is race-prone in a fresh container. Re-run was clean 124/124. Worth filing a follow-up to make the test deterministic but NOT a regression caused by this diff (JSON-only).",
+      "ESLint remains skipped (no eslint config in repo); astro check is the linting signal.",
+      "OG PNG regen noise persists — the build emits non-deterministic PNG bytes for /og/*.png on every full build. Discarded with git restore both times this session. Worth a separate ticket to make the OG generation deterministic so we stop chasing this."
     ],
     "user_preferences": [
-      "User invoked /bugcheck reactively after the stop-hook flagged untracked files; the gate is what unblocks the commit."
+      "User invoked /bugcheck reactively after the pre-commit hook flagged a stale gate (>10min since last run); the gate is what unblocks the commit.",
+      "Comfortable with re-running flaky tests once to confirm vs. blocking on the first failure when the diff couldn't possibly cause it."
     ]
   },
   "blockers": [],
   "next_actions": [
-    "Proceed with the commit of .checkpoints/stack-forge.checkpoint.json + this file.",
-    "Push to origin claude/expand-language-platform-support-t7Uu7.",
-    "Open or update the PR for the v1.4 plan branch."
+    "Proceed with the commit of .checkpoints/orchestrator.checkpoint.json + this file on claude/a11y-lhci-cleanup.",
+    "Do NOT push yet — the branch has no a11y fixes on it. Push when ADEV-339-342 land.",
+    "Consider filing a maintenance ticket: make tests/flags-skills.test.js deterministic (drop the 1100ms+ tests, mock the spawn).",
+    "Consider filing a maintenance ticket: make OG PNG generation byte-deterministic so the build stops dirtying the working tree."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-08T06:23:31Z",
+      "at": "2026-05-08T06:18:00Z",
       "verdict": "PASS",
-      "duration_s": 30,
+      "duration_s": 90,
       "checks": {
         "type_safety": "PASS",
         "lint": "SKIPPED",
-        "tests": "SKIPPED",
+        "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
         "build": "PASS",
         "dependencies": "PASS"
       },
-      "warnings": 0,
+      "warnings": 1,
+      "warning_notes": ["tests/flags-skills.test.js had a flake on first run; re-run clean. Diff cannot have caused it (JSON-only)."],
       "errors": 0
     },
     "bypasses": [],

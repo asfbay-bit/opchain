@@ -4,63 +4,78 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-01T16:50:00Z",
-  "updated_at": "2026-05-08T06:23:00Z",
+  "updated_at": "2026-05-08T06:15:00Z",
+
   "phase": "routing",
-  "step": "v14-prep-shipped",
+  "step": "two-tracks-in-flight",
   "status": "in_progress",
-  "progress_summary": "Two-PR session triaging the v1.4 roadmap-decision branch (#185) and a pre-existing demo sidebar drift (#186). #185 (versioning + doc-governance decision doc) merged after a heavy rebase: the original branch carried release-ops scaffold + symlink + four CI unblockers, but main absorbed the equivalents independently via the v1.3 sprint 3/4 merge and #187 v1.4-plan-checkpoint. Trimmed the branch down to just `roadmap/06-versioning-and-doc-governance.md` (1 file, 206 lines) and squash-merged. #186 was rebased to the one residual change still missing on main — replacing `<div class=\"side-head\">scenarios · 6</div>` at DesktopWorkbench.astro:92 with `{sidebar.length}` so the desktop sidebar header tracks the catalog (currently 12 scenarios, was 6 when hardcoded). All other halves of the original PR landed via main. CI on #186 is still queued at session-handoff.",
+  "progress_summary": "Session pivoted from v1.4 implementation into v1.4 planning. Approved an 8-PR pack-registry architecture: replaces 5 hardcoded stacks with skills/stack-forge/packs/<id>/pack.yml + reference docs, drastically expanding to 11+ languages and 9 platforms (App Store included via PR 6 swift-ios). User explicitly pulled scope INTO the release rather than spreading across patches. Distribution stays bundle-everything; per-pack flags filter visibility, not download. Linear updated end-to-end: parent ADEV-327, PR tickets ADEV-328-337 (sans 333), patch tracker ADEV-332. Saved stack-forge.checkpoint.json as the single source of truth for the v1.4 plan; merged via PR #187 (squash, all 4 CI checks green). LHCI bot surfaced 4 pre-existing a11y failures unrelated to the doc-only PR; user authorized standing them up as a separate workstream. Cut a11y branch off main, filed ADEV-338 parent + ADEV-339/340/341/342 children, no code written yet on either track.",
+
   "progress_table": [
-    { "id": "triage-185",       "label": "Triage #185 vs current main (release-ops landed independently)",       "status": "complete" },
-    { "id": "rebase-185",       "label": "Rebase #185 → trim to roadmap doc only (1 file / 206 lines)",          "status": "complete" },
-    { "id": "merge-185",        "label": "Squash-merge #185 — roadmap/06-versioning-and-doc-governance.md",      "status": "complete" },
-    { "id": "triage-186",       "label": "Triage #186 vs current main (3 of 4 commits redundant via #187)",      "status": "complete" },
-    { "id": "rebase-186",       "label": "Rebase #186 → trim to DesktopWorkbench.astro:92 fix (1 line)",          "status": "complete" },
-    { "id": "bugcheck-186",     "label": "bug-check gate on #186 — vitest 124/124, build green, scans clean",    "status": "complete" },
-    { "id": "ci-186",           "label": "CI on #186 (Worker / Site / Playwright / LHCI)",                       "status": "in_progress" },
-    { "id": "merge-186",        "label": "Squash-merge #186",                                                    "status": "not_started" }
+    { "id": "intake-1.4",     "label": "Intake: 1.4 scope expansion (5 langs → 11+ langs + iOS)",     "status": "complete" },
+    { "id": "route-architect","label": "Route → app-architect for sprint planning",                   "status": "complete" },
+    { "id": "linear-tickets", "label": "Linear: ADEV-327 parent + ADEV-328-337 PR sub-issues",        "status": "complete" },
+    { "id": "stackforge-cp",  "label": "Save stack-forge.checkpoint.json (v1.4 plan, 10 next_actions)", "status": "complete" },
+    { "id": "merge-187",      "label": "PR #187 merged (squash) — v1.4 plan checkpoint on main",      "status": "complete" },
+    { "id": "lhci-triage",    "label": "Triage LHCI a11y failures from #187 build",                   "status": "complete" },
+    { "id": "a11y-tickets",   "label": "Linear: ADEV-338 parent + 4 sub-issues (TOC, code, bands, links)", "status": "complete" },
+    { "id": "a11y-branch",    "label": "Cut claude/a11y-lhci-cleanup off main (fast-forwarded)",      "status": "complete" },
+    { "id": "v1.4-pr1",       "label": "v1.4 PR 1 — schema, generator, auto-flag wiring (ADEV-328)",   "status": "not_started" },
+    { "id": "a11y-fixes",     "label": "Land 4 a11y fixes on claude/a11y-lhci-cleanup (ADEV-339-342)", "status": "not_started" }
   ],
+
   "context_primer": {
     "key_decisions": [
-      "v1.3 ships release-ops as the 18th skill; v1.4 owns the catalog rollout (governance frontmatter + per-skill CHANGELOG). Recorded in roadmap/06-versioning-and-doc-governance.md.",
-      "Don't carry redundant CI unblockers across rebases. Main's #187 (v1.4-plan-checkpoint) landed walkthroughs.length, /changelog axe disable, V13_DEEP_LINKS split, and app-architect schema fix — equivalent or better than this session's cherry-picks. Took main's version and dropped the duplicates rather than fighting with merge conflicts that produce divergent-but-equivalent code.",
-      "DesktopWorkbench.astro:92 was the one residual change worth keeping from #186. Pattern matches line 363 of the same file ('{sidebar.length} scenarios loaded') so it's drift-proof going forward.",
-      "Pre-commit hook (.claude/hooks/pre-commit-bugcheck.sh) reads skill_state.last_run.at — updating only `updated_at` is not enough; `skill_state.last_run.at` and `verdict` must be bumped for the gate to recognise a fresh run. Worth knowing for future automated commit flows.",
-      "Manual deploy stays manual (CLAUDE.md): merging to main does not deploy; staging.opchain.dev needs `npm run deploy:staging` from a logged-in laptop, then `npm run deploy` for prod."
+      "v1.4 theme: coverage-as-a-plugin-registry. skills/stack-forge/packs/<id>/pack.yml + reference docs replace hardcoded stack tables.",
+      "Apple/iOS ships in v1.4.0 (PR 6) — pressure-tests the kind: mobile dispatch branch. Android/Flutter/RN deferred to v1.5 once release-ops handles Play Store + EAS.",
+      "Distribution model: bundle-everything in opchain-skills.zip. Per-pack flags (skills.coverage.<pack-id>.enabled) filter what stack-forge OFFERS, not what's downloaded — keeps regulated/air-gapped installs intact.",
+      "5 skills version-bump 1.2.0 → 1.4.0 (stack-forge, api-dev, deploy-ops, app-architect, migration-ops). Other ~13 skills stay at 1.2.0.",
+      "8-PR sequencing: PRs 1-3 serial (architecture → backfill → dispatcher), PRs 4-7 parallelizable, PR 8 last (release).",
+      "ADEV-333 was created in error during scope shift; cancelled as duplicate of ADEV-332.",
+      "LHCI a11y failures on #187 (TOC touch size, code-block contrast, band labels, changelog links) are pre-existing — unrelated to the JSON-only diff. Standing up as ADEV-338 family on a separate branch off main, NOT BLOCKING v1.4."
     ],
     "generated_files": [
-      "roadmap/06-versioning-and-doc-governance.md (via #185, merged)",
-      "site/src/components/DesktopWorkbench.astro:92 (via #186, pending merge)"
+      ".checkpoints/stack-forge.checkpoint.json",
+      ".checkpoints/orchestrator.checkpoint.json (this file, updated)"
     ],
     "user_preferences": [
-      "Wants both PRs merged in a single ask; happy with squash-merge as the default.",
-      "Tolerates noisy webhook channels (LHCI advisory comments) without action — only flags when something is genuinely tractable.",
-      "Comfortable taking main's version of conflicting equivalents during rebase rather than re-litigating prose."
+      "Pulls scope INTO releases when it expands the value prop; comfortable with bigger releases when the PR sequence is clear.",
+      "Asks sharp clarifying questions about user-visible mechanics (downloads vs visibility, plugin pattern) before approving implementation.",
+      "Wants Linear kept current with the actual plan — re-aligns tickets when scope shifts.",
+      "Approves merges promptly once CI is green; deploys are always manual.",
+      "Skips non-actionable bot replies on PRs (no noise back to LHCI bot)."
     ]
   },
+
   "blockers": [],
+
   "next_actions": [
-    "Wait for #186 CI (Worker / Site / Playwright; LHCI is advisory) and merge once green.",
-    "Post-merge: visually verify /demo desktop sidebar header reads 'scenarios · 12' on next staging deploy.",
-    "Next session: run npm run checkpoint:status to resume; v1.4 sprint planning (governance frontmatter + per-skill CHANGELOG) is the next big-rock per the roadmap doc."
+    "Pick a track. v1.4 PR 1 (ADEV-328) is the highest-leverage starting point — it unblocks PRs 2-7. a11y cleanup (ADEV-338) is small and parallelizable; can land as a single PR in <1 session.",
+    "If picking v1.4: read stack-forge.checkpoint.json `next_actions[0]` — start with surveying src/lib/flags/registry.js, scripts/gen-flags.mjs, scripts/gen-skills-catalog.mjs, scripts/make-skills-zip.sh.",
+    "If picking a11y: confirm on `claude/a11y-lhci-cleanup`, then start with ADEV-339 (TOC touch-target — affects all skill pages, biggest visible win). Four commits (one per child ticket) so each fix is independently revertible.",
+    "Either branch needs `npm install` and `npm install --prefix site` before first build (lockfile drift detected this session was npm 10→11 metadata only — discarded with git restore)."
   ],
+
   "skill_state": {
-    "active_prs": [
-      "asfbay-bit/opchain#186"
+    "active_branches": [
+      { "name": "claude/expand-language-platform-support-t7Uu7", "purpose": "v1.4 implementation (PRs 1-8)", "next_pr": "ADEV-328" },
+      { "name": "claude/a11y-lhci-cleanup",                       "purpose": "ADEV-338 a11y fixes",          "next_pr": "single PR, 4 commits" }
     ],
     "merged_prs_this_session": [
-      "asfbay-bit/opchain#185"
+      "asfbay-bit/opchain#187"
     ],
-    "merged_prs": [
-      "asfbay-bit/opchain#140",
-      "asfbay-bit/opchain#143",
-      "asfbay-bit/opchain#146",
-      "asfbay-bit/opchain#148",
-      "asfbay-bit/opchain#185"
+    "linear_active_parents": [
+      { "id": "ADEV-327", "title": "opchain v1.4 — Drastically expand language & platform coverage", "children": ["ADEV-328", "ADEV-329", "ADEV-330", "ADEV-331", "ADEV-332", "ADEV-334", "ADEV-335", "ADEV-336", "ADEV-337"] },
+      { "id": "ADEV-338", "title": "a11y cleanup — LHCI failing audits across /skills, /architecture, /changelog", "children": ["ADEV-339", "ADEV-340", "ADEV-341", "ADEV-342"] }
     ],
+    "linear_cancelled_this_session": ["ADEV-333"],
     "skills_invoked_this_session": [
       "orchestrator",
+      "app-architect",
+      "stack-forge",
       "git-ops",
-      "bug-check"
-    ]
+      "release-ops"
+    ],
+    "supersedes_prior_orchestrator_state": "Prior session shipped #140/#143/#146/#148/#150/#151 and returned 'Session done — open a fresh session.' That work is now part of main; this session continues forward from there."
   }
 }
