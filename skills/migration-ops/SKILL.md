@@ -1,7 +1,7 @@
 ---
 name: migration-ops
 displayName: Migration Ops
-version: 1.2.0
+version: 1.3.0
 shortDesc: Change the engine mid-flight — DB, framework, auth, platform. v1.2 mirrors the plan as parent + step children.
 phases: [plan, build]
 triAgent: false
@@ -362,26 +362,9 @@ Write checkpoint: phase "planned".
 
 ## Phase 2: Execution (`/migrate execute`)
 
-Execute the migration plan step by step. Each step is a mini-cycle:
-pre-check → execute → verify → checkpoint.
-
-### Execution Flow
-
-```
-For each step in the plan:
-    │
-    ├─ Pre-check: Are pre-conditions met?
-    │   └─ NO → block, show what's missing
-    │
-    ├─ Execute: Run the procedure
-    │   └─ ERROR → attempt rollback for this step, report
-    │
-    ├─ Verify: Run verification checks
-    │   ├─ ALL PASS → checkpoint, advance to next step
-    │   └─ FAIL → offer: retry, manual fix, or rollback
-    │
-    └─ Checkpoint: Save progress + verification results
-```
+Execute the migration plan step by step. Each step is a mini-cycle: pre-check (block on missing
+preconditions) → execute (rollback on error) → verify (retry / manual fix / rollback on fail) →
+checkpoint (save progress + verification).
 
 ### Execution Rules
 
@@ -697,53 +680,17 @@ Type-specific fields by migration type:
 
 ---
 
-## Diff View (`/migrate diff`)
+## Diff View (`/migrate diff`) and History (`/migrate history`)
 
-Compare current system state against the target state at any point during migration.
-Shows what's been migrated and what remains.
+`/migrate diff` compares current system state against target state, showing per-area progress
+(Schema / Data / API / Auth / Config) with completion percentages, current dual-write posture,
+and the next step.
 
-```
-MIGRATION DIFF — [project]
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Migration: D1 → Supabase Postgres
-  Progress: 4/9 steps complete
+`/migrate history` reads `steps_verified` and `step_failures` from the checkpoint and lists each
+completed step with outcome (✅/❌→✅ retry/❌ failed), duration, and session number. Both
+views are read-only summaries — execution happens via `/migrate execute`.
 
-  Schema:    ██████████░░░░░░░░░░  50% (6/12 tables migrated)
-  Data:      ████░░░░░░░░░░░░░░░░  20% (users + sessions done, 4 tables remaining)
-  API:       ░░░░░░░░░░░░░░░░░░░░   0% (still reading from D1)
-  Auth:      ██████████████████░░  90% (new provider configured, not yet primary)
-  Config:    ████████░░░░░░░░░░░░  40% (env vars updated, CI not yet)
-
-  Currently: Dual-write active, D1 is primary, Postgres is secondary
-  Next step: Step 5 — Migrate remaining data tables
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
-
----
-
-## Migration History (`/migrate history`)
-
-Shows completed steps with outcomes, timing, and any rollback events. Reads from
-the checkpoint's `steps_verified` and `step_failures` arrays.
-
-```
-MIGRATION HISTORY — [project]
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Migration: D1 → Supabase Postgres
-  Started: 2026-04-21 (Session 1)
-
-  Step  Title                   Status      Duration   Session
-  ───── ─────────────────────── ─────────── ────────── ───────
-  1     Backup D1               ✅ PASSED    3 min      1
-  2     Create Postgres + schema ✅ PASSED   8 min      1
-  3     Set up dual-write       ✅ PASSED    12 min     2
-  4     Migrate users table     ❌→✅ RETRY  15 min     2
-        (attempt 1 failed: FK constraint, fixed, retried)
-  5     Migrate remaining data  🔄 NEXT      —          —
-
-  Total elapsed: 38 min across 2 sessions
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
+For the full output formats and example renders, see `references/migration-playbooks.md`.
 
 ---
 

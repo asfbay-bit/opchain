@@ -23,8 +23,10 @@ module.exports = {
         "http://127.0.0.1:4321/",
         "http://127.0.0.1:4321/skills",
         "http://127.0.0.1:4321/skills/app-architect",
+        "http://127.0.0.1:4321/skills/release-ops",
         "http://127.0.0.1:4321/architecture",
         "http://127.0.0.1:4321/demo",
+        "http://127.0.0.1:4321/changelog",
       ],
       numberOfRuns: 3,
       settings: { preset: "desktop" },
@@ -74,6 +76,30 @@ module.exports = {
             "categories:accessibility":  ["error", { minScore: 0.95 }],
             "categories:best-practices": ["error", { minScore: 0.95 }],
             "categories:seo":            ["error", { minScore: 0.95 }],
+          },
+        },
+        {
+          // v1.3 carry-over from v1.2: /changelog joined LHCI; warn-level
+          // until a stable median is known (matches the calibration
+          // pattern used for /architecture and /skills/app-architect).
+          matchingUrlPattern: "/changelog$",
+          assertions: {
+            "categories:performance":    ["warn", { minScore: 0.95 }],
+            "categories:accessibility":  ["warn", { minScore: 0.95 }],
+            "categories:best-practices": ["warn", { minScore: 0.95 }],
+            "categories:seo":            ["warn", { minScore: 0.95 }],
+          },
+        },
+        {
+          // v1.3 — release-ops is the 18th skill; same template as the
+          // other /skills/[id] pages, so one warn-level entry is enough
+          // to catch template regressions while we calibrate.
+          matchingUrlPattern: "/skills/release-ops$",
+          assertions: {
+            "categories:performance":    ["warn", { minScore: 0.95 }],
+            "categories:accessibility":  ["warn", { minScore: 0.95 }],
+            "categories:best-practices": ["warn", { minScore: 0.95 }],
+            "categories:seo":            ["warn", { minScore: 0.95 }],
           },
         },
       ],

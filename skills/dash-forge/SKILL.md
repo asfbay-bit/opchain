@@ -1,7 +1,7 @@
 ---
 name: dash-forge
 displayName: Dash Forge
-version: 1.2.0
+version: 1.3.0
 shortDesc: Dashboards, BI, dense data — design spec + React prototype. v1.2 attaches the handoff bundle to the linked PM ticket.
 phases: [plan]
 triAgent: false
@@ -37,7 +37,7 @@ Dashboard and dense-information UI designer. Takes data (from data-architect han
 
 1. **Design spec** — layout, density, component choices, interaction model, design tokens
 2. **Working React prototype** — renderable artifact with mock data, archetype-appropriate viz stack
-3. **Handoff packet** — spec + prototype + integration notes for app-architect / tri-dev build
+3. **Handoff packet** — spec + prototype + integration notes for app-architect Phase 6 build
 
 **Scope:** Design and prototype. Not production data wiring, not backend. Prototype uses mock data that looks realistic.
 
@@ -356,7 +356,7 @@ INTERACTION MODEL
 
 ## Phase 4: Handoff
 
-Single artifact for app-architect / tri-dev to build against:
+Single artifact for app-architect Phase 6 to build against:
 
 ```
 {project-dir}/dash-forge-handoff/
@@ -366,7 +366,7 @@ Single artifact for app-architect / tri-dev to build against:
 └── integration-notes.md    ← how to wire to real data source
 ```
 
-**Tell user:** "Hand this to `/app-architect` for build, or to `/tri-dev` for sprint decomposition."
+**Tell user:** "Hand this to `/app-architect` Phase 6 for build (which decomposes sprints internally)."
 
 ---
 
@@ -450,7 +450,7 @@ Large artifacts (prototype file, full spec) stored as file pointers, not inline 
 
 ```
                            ┌──────────────┐
-data-architect ──handoff──►│  dash-forge  │──handoff──► app-architect / tri-dev
+data-architect ──handoff──►│  dash-forge  │──handoff──► app-architect (Phase 6 build)
                            └──────────────┘
                                   ▲
                                   │ routes when UI is data-heavy
@@ -466,7 +466,7 @@ data-architect ──handoff──►│  dash-forge  │──handoff──► 
 
 - **Upstream (common):** data-architect handoff, ux-engineer design referral, app-architect design phase
 - **Upstream (rare):** direct invocation with just "design me a dashboard"
-- **Downstream:** app-architect build phase, tri-dev sprint decomposition
+- **Downstream:** app-architect Phase 6 build (handles sprint decomposition internally)
 - **Peer:** ux-engineer handles non-data UI; consistent token handoff both ways
 
 ---

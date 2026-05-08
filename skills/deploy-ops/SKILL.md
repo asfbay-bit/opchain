@@ -1,7 +1,7 @@
 ---
 name: deploy-ops
 displayName: Deploy Ops
-version: 1.2.0
+version: 1.3.0
 shortDesc: Audit gate → staging → production → monitor. v1.2 creates deploy tickets and updates linked PM tickets per env.
 phases: [build]
 triAgent: false
@@ -446,14 +446,14 @@ notify "✅ *gtrack* deployed to production — $(git rev-parse --short HEAD)"
 | Reads from | Why |
 |---|---|
 | code-auditor | Audit grade → deploy gate |
-| tri-dev | Sprint pass → deploy confidence |
+| app-architect | Phase 6 sprint pass → deploy confidence |
 | git-ops | Branch merged → ready to deploy |
 
 ### Triggered By
 
 Deploy-ops can be invoked directly, but also gets suggested by other skills:
 - **git-ops**: After `/git-sync` completes, git-ops suggests `/deploy staging`
-- **tri-dev**: After final sprint passes, tri-dev suggests `/audit pre-deploy` → `/deploy`
+- **app-architect**: After final Phase 6 sprint passes, app-architect suggests `/audit pre-deploy` → `/deploy`
 - **app-architect**: Phase 7 (Launch) suggests the deploy pipeline
 
 When triggered by another skill's suggestion, read that skill's checkpoint for context
@@ -476,6 +476,146 @@ jobs:
   smoke:       # post-deploy smoke tests
   notify:      # telegram notification
 ```
+
+---
+
+## Provider Reference (v1.3+)
+
+The walkthrough above is Cloudflare-Workers-flavored because that's opchain's
+own runtime. v1.3's platform-expansion sprint added first-class provider
+sections for the four other targets in `stack-forge`'s Platform Matrix. Each
+section gives the deploy command, env-var pattern, smoke-test surface, and
+rollback path. The audit gate, `/deploy audit`, runs the same way regardless
+of provider.
+
+### Render (Django, Node static, Rails alt)
+
+**Deploy command:** `git push render main` (Render auto-builds + deploys on
+push to the connected branch). For Blueprint-managed projects, the first
+deploy is `render blueprint launch` reading `render.yaml`.
+
+**Env vars:** Set via Render dashboard or `render.yaml`'s `envVarGroups`.
+Critical vars for opchain-managed projects:
+- `DATABASE_URL` — provisioned automatically when `render.yaml` declares a
+  `databases:` entry.
+- `RENDER_GIT_COMMIT` — Render injects this; surface it via `/health` so
+  smoke tests can verify the right SHA shipped.
+- `SECRET_KEY` — set as a `sync: false` env var (UI only) so it's never in git.
+
+**Migrations:** declared in `render.yaml` under the web service's
+`buildCommand:` or as a separate `release` step. Render runs them before
+swapping traffic.
+
+**Smoke tests:** `curl -s https://<service>.onrender.com/health` returns the
+deployed commit SHA; deploy-ops compares to local HEAD. Latency check uses
+`curl -w '%{time_total}'`.
+
+**Rollback:** `render deploys list --service=<id>` → `render deploys rollback
+--deploy=<id>`. Render keeps the prior image hot for ~30s after a swap so
+rollback is fast.
+
+**Audit gate:** `npm run validate-pm-mcp` + `npm run gen-catalog` run via the
+build-time pipeline; for Django projects, replace with
+`pytest && python manage.py check --deploy`.
+
+### Heroku (Rails primary, Django alt)
+
+**Deploy command:** `git push heroku main`. Heroku Pipelines: PRs → review
+apps (auto), main → staging, manual promote → prod.
+
+**Env vars:** `heroku config:set KEY=val -a <app>`. Critical vars:
+- `DATABASE_URL` — auto-set when the `heroku-postgresql` add-on is provisioned.
+- `RAILS_MASTER_KEY` (Rails) / `SECRET_KEY_BASE` (Rails legacy) — never in git.
+- `HEROKU_SLUG_COMMIT` — Heroku injects this in dyno env; surface via `/health`.
+
+**Migrations:** `Procfile` `release:` step (`bundle exec rake db:migrate` for
+Rails) — Heroku runs it before scaling new dynos. If the release step fails,
+the deploy aborts and traffic stays on the prior dyno.
+
+**Smoke tests:** `curl -s https://<app>.herokuapp.com/health` for SHA + DB
+ping. For review-app verification, the URL is dynamic
+(`<app>-pr-<N>.herokuapp.com`) — read it from the Heroku API.
+
+**Rollback:** `heroku releases -a <app>` (lists v123, v122, ...) →
+`heroku rollback v122 -a <app>`. The release step does NOT re-run on rollback —
+if you need to roll back a migration too, that's a separate
+`heroku run rails db:rollback`.
+
+**Audit gate:** Rails projects run `bundle exec brakeman` and
+`bundle exec rspec` in CI before promoting; deploy-ops orchestrates via
+`/deploy audit` which dispatches to the project's `bin/audit` if present.
+
+### Fly.io (Go primary, Rust alt, anything Dockerfile-based)
+
+**Deploy command:** `fly deploy` (reads `fly.toml`). For staging vs prod,
+use separate Fly apps (`fly deploy --app <name>-staging`).
+
+**Env vars:** `fly secrets set KEY=val --app <name>` (encrypted at rest;
+injected into the VM env). `fly.toml` `[env]` is for non-secret config.
+Critical vars:
+- `DATABASE_URL` — Fly Postgres clusters auto-attach via `fly postgres attach`,
+  which sets this var on the consumer app.
+- `PORT` — `fly.toml` `internal_port` must match what the binary listens on.
+
+**Migrations:** `fly.toml` `release_command = "/app/migrate up"` — runs in a
+one-shot VM before traffic swaps. Fly aborts the deploy if it exits non-zero.
+
+**Smoke tests:** `curl -s https://<app>.fly.dev/health` returns commit SHA.
+For multi-region apps, smoke each region:
+`fly status -a <app> --json | jq '.Allocations[].Region'` → loop curls.
+
+**Rollback:** `fly releases list -a <app>` → `fly deploy --image <prior-tag>`
+or `fly deploy --rollback`. Fly keeps the prior image registered until the
+next successful deploy, so rollback is image-swap fast.
+
+**Audit gate:** Go: `go vet ./... && go test ./... && govulncheck ./...`. Rust:
+`cargo clippy -- -D warnings && cargo test && cargo audit`. deploy-ops
+dispatches by reading the project root for `go.mod` / `Cargo.toml`.
+
+### Shuttle.rs (Rust primary)
+
+**Deploy command:** `cargo shuttle deploy` (reads `Shuttle.toml` for project
+name; reads `main.rs` for infra annotations).
+
+**Env vars:** `cargo shuttle secrets set KEY=val` — Shuttle stores them
+encrypted; available via `#[shuttle_runtime::Secrets]` injection in `main.rs`.
+Local dev reads `Secrets.toml` (gitignored) instead.
+
+**Provisioning:** Shuttle's infra-as-code-in-main.rs model:
+`#[shuttle_shared_db::Postgres]` annotation on the entry function provisions
+a managed Postgres on first deploy. No separate dashboard step.
+
+**Migrations:** `sqlx::migrate!("./src/store/migrations")` runs in `main.rs`
+on each cold start; idempotent so safe to re-run. Shuttle hot-swaps the
+binary on deploy without downtime.
+
+**Smoke tests:** `curl -s https://<project>.shuttleapp.rs/health` returns
+SHA. Shuttle assigns one stable subdomain per project; staging is via a
+separate project (e.g. `<project>-staging`).
+
+**Rollback:** `cargo shuttle deployment list` (lists deployment ids in
+reverse-chrono) → `cargo shuttle deployment <id> redeploy`. Shuttle keeps
+the prior binary until the next deploy succeeds.
+
+**Audit gate:** same as Fly.io for Rust:
+`cargo clippy -- -D warnings && cargo test && cargo audit`.
+
+### What's NOT first-class (and why)
+
+The Platform Matrix is intentionally short. These platforms are common but
+not first-class in v1.3:
+
+| Platform | Status | Why |
+|---|---|---|
+| Vercel | Reachable via stack-forge `references/deployment-patterns.md`, but no v1.3 scaffold recipe | Overlaps too closely with CF Workers for opchain's audience; pick one. |
+| AWS Lambda | Same | Steep operational ramp; deploy-ops would need dramatically different audit/rollback shape. |
+| Railway | Same | Render covers the same niche; redundant. |
+| Cloud Run | Same | Fly.io covers the same niche with a simpler dev loop. |
+| Bare-metal / VPS | Out of scope | deploy-ops is opinionated about managed deploys; bare-metal needs migration-ops, not deploy-ops. |
+
+A future minor release can promote any of these by adding a scaffold recipe
+in `app-architect/references/scaffold-guide.md` AND a provider section here
+AND at least one in-action `/demo` scenario.
 
 ---
 

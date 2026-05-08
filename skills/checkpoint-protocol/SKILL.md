@@ -1,7 +1,7 @@
 ---
 name: checkpoint-protocol
 displayName: Checkpoint Protocol
-version: 1.2.0
+version: 1.3.0
 shortDesc: Session persistence across skills. v1.2 adds a `pm_refs` schema field so checkpoints carry linked PM ticket ids.
 phases: [foundation]
 triAgent: false
@@ -13,7 +13,7 @@ description: >
   survives across conversations.
 ---
 
-# Checkpoint Protocol v1.0
+# Checkpoint Protocol v1.2
 
 A cross-skill convention for session persistence. Any skill that runs multi-step
 workflows across conversations adopts this protocol to save, resume, and recover
@@ -53,7 +53,7 @@ directory. JSON (not markdown) because it's machine-parseable for cross-skill re
 Example paths:
 ```
 /home/claude/gtrack/.checkpoints/app-architect.checkpoint.json
-/home/claude/gtrack/.checkpoints/tri-dev.checkpoint.json
+/home/claude/gtrack/.checkpoints/code-auditor.checkpoint.json
 /home/claude/gtrack/.checkpoints/reverse-spec.checkpoint.json
 ```
 
@@ -64,8 +64,8 @@ Multiple skills can checkpoint the same project simultaneously without collision
 ```jsonc
 {
   // === HEADER (required) ===
-  "protocol_version": "1.0",
-  "skill": "tri-dev",                    // Skill that owns this checkpoint
+  "protocol_version": "1.2",
+  "skill": "app-architect",              // Skill that owns this checkpoint
   "project": "gtrack",                   // Human-readable project name
   "project_dir": "/home/claude/gtrack",  // Absolute path
   "created_at": "2026-03-31T14:00:00Z",
@@ -261,8 +261,8 @@ Skills can read each other's checkpoints (read-only) for coordination:
 
 | Reader | Reads | Why |
 |---|---|---|
-| tri-dev | app-architect checkpoint | Know which spec sections are approved |
-| deploy-ops | tri-dev checkpoint | Know which sprints have passed QA |
+| app-architect | reverse-spec checkpoint | Know what analysis exists for the codebase |
+| deploy-ops | app-architect checkpoint | Know which sprints have passed QA |
 | git-ops | any skill checkpoint | Know what files to commit |
 | code-auditor | reverse-spec checkpoint | Know what analysis has been done |
 
@@ -272,38 +272,6 @@ Skills can read each other's checkpoints (read-only) for coordination:
 - Never write to another skill's checkpoint
 - If you need to coordinate, write to your own checkpoint and reference the other:
   `"depends_on": "app-architect checkpoint shows spec approved at 2026-03-31T12:00:00Z"`
-
----
-
-## Migration: Existing Skills
-
-Each skill that adopts this protocol needs minimal changes:
-
-### reverse-spec (already close)
-- **Current:** Writes `checkpoint.md` (markdown) to `reverse-spec-output/`
-- **Migration:** Convert to JSON schema, move to `.checkpoints/reverse-spec.checkpoint.json`
-- **Effort:** Small — structure already matches, just format change
-
-### tri-dev (file-based state, no resume)
-- **Current:** State lives in `tri-dev-config.md`, `sprints/*/contract.md`, `sprints/*/eval-round-*.md`
-- **Migration:** Add checkpoint writes after each sprint pass/fail. Resume protocol reads
-  checkpoint first, then loads the relevant sprint files.
-- **Effort:** Medium — needs resume logic added to `/td-build` and `/td-status`
-
-### app-architect (gates, no persistence)
-- **Current:** Gates are conversational — "do you approve?" lives only in chat history
-- **Migration:** After each gate approval, write checkpoint with phase status and approved
-  decisions. Resume protocol re-presents the gate status on session start.
-- **Effort:** Medium — needs checkpoint writes at every gate + resume at `/status`
-
-### stack-forge (no persistence)
-- **Current:** Outputs are inline or in app-architect spec files
-- **Migration:** When used standalone or for `/feature`, write checkpoint tracking which
-  decisions have been made and which sprint plans generated.
-- **Effort:** Small — mostly just tracking decision-tree state
-
-### Future skills (code-auditor, deploy-ops, git-ops)
-- **Built with protocol from day 1** — no migration needed
 
 ---
 
@@ -331,13 +299,9 @@ The validator runs after every `update` so you can't silently corrupt a file.
 `npm run checkpoint:validate` is wired into CI as a gate. A failing
 checkpoint blocks merges — same posture as type-check or unit tests.
 
-> **Deprecation note:** Each skill bundles a `scripts/checkpoint.sh`
-> bash+python writer that predates `scripts/checkpoint.mjs`. The .sh
-> writer does a shallow merge with no schema validation and no
-> `updated_at` auto-stamp, which means it can produce checkpoints
-> that the .mjs validator (and CI) then reject. Prefer
-> `node scripts/checkpoint.mjs update <skill> ...` everywhere. The
-> .sh files are kept for backward compatibility only.
+The canonical writer is `scripts/checkpoint.mjs` at the repo root. Skills
+do not bundle their own writers — call the root .mjs from any skill that
+needs to update its checkpoint.
 
 ---
 
@@ -386,11 +350,11 @@ The behavior is identical regardless of which skill the user is currently in.
 project-dir/
 ├── .checkpoints/
 │   ├── app-architect.checkpoint.json
-│   ├── tri-dev.checkpoint.json
+│   ├── code-auditor.checkpoint.json
 │   ├── reverse-spec.checkpoint.json
 │   └── deploy-ops.checkpoint.json
 ├── spec/           (app-architect output)
-├── sprints/        (tri-dev output)
+├── sprints/        (app-architect Phase 6 build loop output)
 ├── src/            (project source)
 └── ...
 ```

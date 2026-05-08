@@ -1,4 +1,4 @@
-# opchain PM-tool configuration
+1# opchain PM-tool configuration
 # Read by opchain skills during Claude Code sessions to route issue reads/writes
 # via the Linear MCP server. See skills/integrations-engineer/SKILL.md §PM-Tool MCP Integration.
 #

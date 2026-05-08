@@ -1,7 +1,7 @@
 ---
 name: integrations-engineer
 displayName: Integrations Engineer
-version: 1.2.0
+version: 1.3.0
 shortDesc: Third-party APIs, OAuth, webhooks. v1.2 adds PM-tool MCP integration patterns (Linear / Jira / GitHub Issues).
 phases: [build]
 triAgent: true
