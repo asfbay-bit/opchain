@@ -2,48 +2,46 @@
   "protocol_version": "1.0",
   "skill": "bug-check",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-06T04:52:55Z",
+  "updated_at": "2026-05-08T05:55:00Z",
   "phase": "gate",
-  "step": "v1.2-pm-mcp-batch-passed",
+  "step": "v14-plan-checkpoint-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate run for the v1.2 feature batch (12 SKILL.md updates, 3 new walkthrough scenarios, /changelog page, homepage v1.2 pill, footer link, styleguide bump, .opchain/pm.yaml schema, getSkillUpdatedAt REPO_ROOT walk-up bug fix). astro check 0/0 errors+warnings; vitest 108/108 pass; anti-pattern grep clean; secret scan clean (one bug-check doc string + package-lock task-list-item substring both false positives); npm run build green (26 pages + worker dist 550KB); root npm audit 0 vulnerabilities; site npm audit 4 low / 6 moderate (no critical, no high) — WARN, pre-existing not from this batch. Verdict: PASS.",
+  "progress_summary": "Pre-commit gate run for the v1.4 plan checkpoint (single new file: .checkpoints/stack-forge.checkpoint.json — JSON only, no source code touched). Fresh container required `npm install` at root and inside site/ before build/test could execute. After install: vitest 108/108 pass (6.29s, identical count to 2026-05-06 baseline); npm run build green (26 pages, 10.06s); anti-pattern grep on the new JSON file clean; secret scan clean (no AKIA, sk_live_, ghp_, BEGIN PRIVATE KEY, sk- substring matches); root npm audit 0 vulnerabilities; checkpoint:validate green for all 7 checkpoints including the new stack-forge entry. Verdict: PASS.",
   "progress_table": [
-    { "id": "schema",        "label": "Checkpoint schema validation",                "status": "complete" },
-    { "id": "secrets",       "label": "Secret scan on changed files",                "status": "complete" },
-    { "id": "type_safety",   "label": "astro check — 0 errors, 0 warnings",          "status": "complete" },
-    { "id": "lint",          "label": "ESLint (no repo config; skipped)",            "status": "not_started" },
-    { "id": "tests",         "label": "Vitest run — 108/108 passed",                 "status": "complete" },
-    { "id": "anti_patterns", "label": "Anti-pattern grep on diff — 0 hits",          "status": "complete" },
-    { "id": "build",         "label": "npm run build — 26 pages + worker dist",      "status": "complete" },
-    { "id": "dependencies",  "label": "npm audit — 0 critical (root); 6 moderate (site, pre-existing)", "status": "complete" }
+    { "id": "schema",        "label": "Checkpoint schema validation — 7/7 valid (incl. new stack-forge)", "status": "complete" },
+    { "id": "secrets",       "label": "Secret scan on changed file — 0 hits",                          "status": "complete" },
+    { "id": "type_safety",   "label": "astro check via build — 0 errors",                              "status": "complete" },
+    { "id": "lint",          "label": "ESLint (no repo config; skipped, same as prior runs)",          "status": "not_started" },
+    { "id": "tests",         "label": "Vitest run — 108/108 passed",                                   "status": "complete" },
+    { "id": "anti_patterns", "label": "Anti-pattern grep on diff — 0 hits",                            "status": "complete" },
+    { "id": "build",         "label": "npm run build — 26 pages",                                      "status": "complete" },
+    { "id": "dependencies",  "label": "npm audit — 0 vulnerabilities at root",                         "status": "complete" }
   ],
   "context_primer": {
     "key_decisions": [
-      "Source-touching commit — ran the full applicable check suite (type-check, tests, build, anti-patterns, secrets, dep audit).",
-      "ESLint skipped because the repo has no eslint config; astro check and TS provide the linting signal.",
-      "Secret-scan grep matched two strings: (1) the literal regex inside bug-check/SKILL.md documenting private-key detection, (2) substring 'sk-' inside `task-list-item` in package-lock.json. Both verified false positives.",
-      "site npm audit reports 4 low + 6 moderate (no critical, no high). Not introduced by this batch; tracked as carried debt for a separate dependency-bump pass.",
-      "Walking-up REPO_ROOT bug fix verified: skill detail pages now render the Updated badge with real ISO timestamps."
+      "Doc-only commit (one JSON checkpoint). Ran the full check suite anyway because bug-check's contract is project-wide — but the only changes that could break anything were anti-pattern/secret/JSON-schema, all clean.",
+      "Container started with no node_modules in either root or site/. Ran `npm install` in both before build/test. Both installs were fast (6s + ~few s) with no advisory output beyond pre-existing site moderate warnings.",
+      "Test count matched the 2026-05-06 baseline (108/108) — no regression and no new test coverage expected from a checkpoint-only change.",
+      "ESLint remains skipped (no eslint config in repo); astro check via build is the linting signal."
     ],
     "generated_files": [],
     "user_preferences": [
-      "User asked for full publish (commit + staging deploy + prod). Pause for explicit approval before prod deploy per CLAUDE.md flow."
+      "User invoked /bugcheck reactively after the stop-hook flagged untracked files; the gate is what unblocks the commit."
     ]
   },
   "blockers": [],
   "next_actions": [
-    "Proceed with the v1.2 feature commit (gate passed).",
-    "Stage deploy via npm run deploy:staging.",
-    "curl staging health, verify version SHA matches HEAD.",
-    "Pause for user prod approval before npm run deploy."
+    "Proceed with the commit of .checkpoints/stack-forge.checkpoint.json + this file.",
+    "Push to origin claude/expand-language-platform-support-t7Uu7.",
+    "Open or update the PR for the v1.4 plan branch."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-06T04:52:55Z",
+      "at": "2026-05-08T05:55:00Z",
       "verdict": "PASS",
-      "duration_s": 25,
+      "duration_s": 30,
       "checks": {
         "type_safety": "PASS",
         "lint": "SKIPPED",
@@ -51,9 +49,9 @@
         "anti_patterns": "PASS",
         "secrets": "PASS",
         "build": "PASS",
-        "dependencies": "WARN"
+        "dependencies": "PASS"
       },
-      "warnings": 1,
+      "warnings": 0,
       "errors": 0
     },
     "bypasses": [],
