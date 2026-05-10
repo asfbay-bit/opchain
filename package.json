@@ -41,6 +41,6 @@
     "wrangler": "^4.85.0"
   },
   "dependencies": {
-    "zod": "^4.3.6"
+    "zod": "^4.4.3"
   }
 }
