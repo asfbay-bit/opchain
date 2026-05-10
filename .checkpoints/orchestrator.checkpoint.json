@@ -4,12 +4,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:50:00Z",
-  "updated_at": "2026-05-10T00:00:00Z",
+  "updated_at": "2026-05-10T23:10:00Z",
 
   "phase": "routing",
-  "step": "handoff-stack-forge",
+  "step": "handoff-stack-forge-pr-2",
   "status": "in_progress",
-  "progress_summary": "Post-ship reconciliation is now landed on main. The state-only commits (4927bc1 'chore(state): reconcile checkpoints + pm.yaml after v1.3 ship' and 60ac971 'chore(state): expand v1.4 mobile scope — Android + Flutter + RN') captured every reconciliation diff from the 2026-05-08 session. PR #190 (release-ops added to /architecture diagram, Treatment B) also merged. Production remains on 526a9a2 — opchain.dev + staging.opchain.dev verified in sync. Orchestrator handoff is now to stack-forge for v1.4 PR 1 (ADEV-328): pack registry architecture, schema + generator + auto-flag wiring + parity validator. stack-forge.checkpoint.json status `pr-1-starting / in_progress` with a 10-step starting checklist; branch aidan/adev-328-v14-pr-1-pack-architecture has the schema sketched but uncommitted. a11y cleanup ADEV-338 (4 sub-tickets) remains parallelizable off the v1.4 critical path. No blockers on the orchestrator side.",
+  "progress_summary": "v1.4 PR 1 (ADEV-328) shipped as #192 → 4cb0b09 — pack registry architecture is live on main (schema + CONTRIBUTING + gen-stack-packs.mjs + registry.js coverage-flag synthesis + 13 tests, vitest 137/137). Earlier in this session #191 (orchestrator re-stamp post-v1.3) also merged → 149f67f. Production remains on 526a9a2 (v1.4 not yet released — PR 8 ADEV-331 ships the release). Orchestrator handoff continues to stack-forge for PR 2 (ADEV-329): backfill the 5 existing stacks (typescript/python/ruby/go/rust) as language packs to dogfood the schema. Approved scope: all 5 in one PR, compress existing references/ into per-pack langRef docs (≤50KB), no framework packs (those land in PRs 4-7). stack-forge.checkpoint.json advanced to pr-1-shipped-pr-2-starting. a11y cleanup ADEV-338 remains parallelizable secondary track. No blockers.",
 
   "progress_table": [
     { "id": "intake-1.4",     "label": "Intake: 1.4 scope expansion (5 langs → 11+ langs + iOS)",     "status": "complete" },
@@ -25,7 +25,8 @@
     { "id": "reconcile-pm",   "label": "Reconcile .opchain/pm.yaml (v1.3 archive + v1.4 advance)",     "status": "complete" },
     { "id": "fix-project-dirs","label": "Fix /home/user/opchain → /Users/... in orchestrator + git-ops","status": "complete" },
     { "id": "commit-reconcile","label": "Commit reconciliation diff to main (4927bc1 + 60ac971)",      "status": "complete" },
-    { "id": "v1.4-pr1",       "label": "v1.4 PR 1 — schema, generator, auto-flag wiring (ADEV-328)",   "status": "in_progress" },
+    { "id": "v1.4-pr1",       "label": "v1.4 PR 1 — schema, generator, auto-flag wiring (ADEV-328 / #192 / 4cb0b09)", "status": "complete" },
+    { "id": "v1.4-pr2",       "label": "v1.4 PR 2 — backfill 5 existing stacks as language packs (ADEV-329)", "status": "in_progress" },
     { "id": "a11y-fixes",     "label": "Land 4 a11y fixes on claude/a11y-lhci-cleanup (ADEV-339-342)", "status": "not_started" }
   ],
 
@@ -58,20 +59,22 @@
   "blockers": [],
 
   "next_actions": [
-    "Resume v1.4 PR 1 (ADEV-328) — stack-forge.checkpoint.json says `pr-1-starting / in_progress`. Read its next_actions[0] for the actual starting move (skim src/lib/flags/registry.js + scripts/gen-flags.mjs + gen-skills-catalog.mjs + make-skills-zip.sh).",
-    "Sync local main before cutting the v1.4 PR branch: `git checkout main && git fetch origin && git reset --hard origin/main` to clear any squash-merge drift, then branch from there.",
+    "Resume v1.4 PR 2 (ADEV-329) — stack-forge.checkpoint.json says `pr-1-shipped-pr-2-starting / in_progress`. Backfill 5 language packs (typescript, python, ruby, go, rust). Read stack-forge.next_actions[0] for the starting move.",
+    "Cut PR 2 branch from current origin/main (4cb0b09 — includes ADEV-328 architecture). Use a descriptive name like claude/adev-329-pack-backfill.",
     "a11y cleanup (ADEV-338) remains parallelizable — small, single PR, four commits (ADEV-339/340/341/342). Can be picked up by anyone not on the v1.4 critical path.",
-    "Either branch needs `npm install` and `npm install --prefix site` before first build (lockfile drift detected last session was npm 10→11 metadata only — discarded with git restore)."
+    "After PR 2 lands, stack-forge moves to pr-3-starting (ADEV-330 — deploy-ops dispatcher + api-dev pack-read + kind:mobile branch). PRs 4-7 parallelize after PR 3."
   ],
 
   "skill_state": {
     "active_branches": [
-      { "name": "claude/expand-language-platform-support-t7Uu7", "purpose": "v1.4 implementation (PRs 1-8)", "next_pr": "ADEV-328" },
+      { "name": "claude/expand-language-platform-support-t7Uu7", "purpose": "v1.4 implementation (planned parent for PRs 1-8); actual PR 1 shipped from claude/adev-328-pack-registry", "next_pr": "ADEV-329" },
       { "name": "claude/a11y-lhci-cleanup",                       "purpose": "ADEV-338 a11y fixes",          "next_pr": "single PR, 4 commits" }
     ],
     "merged_prs_this_session": [
       "asfbay-bit/opchain#187",
-      "asfbay-bit/opchain#190"
+      "asfbay-bit/opchain#190",
+      "asfbay-bit/opchain#191",
+      "asfbay-bit/opchain#192"
     ],
     "direct_to_main_commits_this_session": [
       "4927bc1 chore(state): reconcile checkpoints + pm.yaml after v1.3 ship",

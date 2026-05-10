@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-10T22:50:00Z",
+  "updated_at": "2026-05-10T23:15:00Z",
   "phase": "gate",
-  "step": "adev-328-pack-registry-passed",
+  "step": "restamp-after-adev-328-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for ADEV-328 (v1.4 PR 1 — pack registry architecture). 9 files staged: .gitignore (src/generated/ → glob + coverage-flags.json exemption), package.json + package-lock.json (gen-stack-packs script, prebuild + pretest reorder, js-yaml ^3.14.2 promoted from transitive to direct devDep), src/lib/flags/registry.js (import baseline coverage-flags.json + skillCoverageFlags helper + PUBLIC_FLAG_NAMES prefix), scripts/gen-stack-packs.mjs (new — schema validator + adapter graph resolver + ref-file checks, OPCHAIN_PACKS_DIR/OPCHAIN_OUT_DIR env overrides for tests), src/generated/coverage-flags.json (new — `[]` baseline), skills/stack-forge/packs/_schema.json + CONTRIBUTING.md (new — spec + author guide), tests/stack-packs.test.js (new — 13 fixture cases). Vitest: 137/137 in 3.80s (124 prior + 13 new). Anti-pattern grep on diff: 1 hit (console.log in scripts/gen-stack-packs.mjs, but bug-check's real rule restricts to src/**/*.ts; build tooling expected to log — same pattern as gen-flags/gen-catalog). Secret scan on diff: 0 hits. Prebuild green up through gen-stack-packs → gen-flags (92 flags) → gen-catalog (18 skills) → validate-pm-mcp (5 skills, 0 warnings) → sync-bundles. astro build failed in local env due to missing site/node_modules — unrelated to this diff, will be green in CI. checkpoint:validate: 7/7. Verdict: PASS.",
+  "progress_summary": "Pre-commit gate for the post-ADEV-328 housekeeping commit. 2 files staged: .checkpoints/stack-forge.checkpoint.json (pr-1-starting → pr-1-shipped-pr-2-starting; next_actions rewritten for PR 2 backfill; PR #192/4cb0b09 logged in skill_state.shipped_prs) and .checkpoints/orchestrator.checkpoint.json (handoff-stack-forge → handoff-stack-forge-pr-2; v1.4-pr1 marked complete, v1.4-pr2 added in_progress; merged_prs_this_session bumped with #191 + #192). State-only diff. checkpoint:validate: 7/7 valid. Anti-pattern + secret grep on diff: clean. Verdict: PASS.",
   "progress_table": [
     {
       "id": "schema",
@@ -74,25 +74,30 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-10T22:50:00Z",
+      "at": "2026-05-10T23:15:00Z",
       "verdict": "PASS",
-      "duration_ms": 3800,
+      "duration_ms": 200,
       "checks": {
         "type_safety": "SKIP",
         "lint": "SKIP",
-        "tests": "PASS",
+        "tests": "SKIP",
         "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "PASS",
-        "dependencies": "PASS"
+        "build": "SKIP",
+        "dependencies": "SKIP"
       },
       "warnings": 0,
       "errors": 0,
-      "notes": "ADEV-328 PR 1 — pack registry architecture. 9 files staged (4 new, 5 modified). Vitest 137/137 in 3.80s (124 prior + 13 new in tests/stack-packs.test.js). Anti-pattern grep: 1 informational hit (console.log in scripts/gen-stack-packs.mjs — matches gen-flags/gen-catalog precedent, scripts/ is build tooling not src/). Secret grep: clean. Prebuild green through gen-stack-packs (0/0 baseline) → gen-flags (92 flags) → gen-catalog (18 skills) → validate-pm-mcp → sync-bundles. astro build needs site/node_modules locally; unrelated to diff."
+      "notes": "State-only diff: 2 checkpoint JSON files (stack-forge + orchestrator) advancing post-ADEV-328 ship. No code touched; build/type/lint/tests/deps skipped as vacuous. checkpoint:validate 7/7. Anti-pattern + secret grep on diff: clean."
     },
     "bypasses": [],
     "carried_debt": 0,
     "run_history": [
+      {
+        "at": "2026-05-10T23:15:00Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
       {
         "at": "2026-05-10T22:50:00Z",
         "verdict": "PASS",
@@ -110,7 +115,7 @@
       }
     ],
     "streak": {
-      "passes": 3,
+      "passes": 4,
       "since": "2026-05-08T21:52:49Z"
     }
   },
