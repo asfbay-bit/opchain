@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-10T23:17:34.294Z",
+  "updated_at": "2026-05-10T23:35:51.006Z",
   "phase": "gate",
-  "step": "demo-scenarios-9-10-12-rewrites-passed",
+  "step": "demo-scenarios-6-7-8-11-rewrites-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for demo scenario rewrites (scenarios 9, 10, 12). Diff: 3 TS files in site/src/data/walkthroughs/ (pm-pipeline-linear, runtime-pm-loop, django-render-shipped). Vitest 124/124 in 4.28s. Validators all green: gen-flags 92, gen-catalog 18 skills, validate-pm-mcp 5 skills + 0 warn, sync-bundles in sync. astro check: 0 errors, 0 warnings, 33 pre-existing hints. Anti-pattern + secret grep on diff: clean. npm audit: 0 vulns. Verdict: PASS.",
+  "progress_summary": "Pre-commit gate for demo scenario rewrites (scenarios 6, 7, 8, 11). Diff: 4 TS files (security-hardening, mcp-enterprise-f500, mcp-enterprise-defense, release-ops-dogfood). Vitest 124/124 in 4.61s. Validators all green: gen-flags 92, gen-catalog 18 skills, validate-pm-mcp 5 + 0 warn, sync-bundles in sync. astro check: 0 errors, 0 warnings, 33 pre-existing hints. Anti-pattern + secret grep on diff: clean. npm audit: 0 vulns. Fixed one escape bug (unescaped backticks in template literal in mcp-enterprise-f500.ts line 1087). Verdict: PASS.",
   "progress_table": [
     {
       "id": "schema",
@@ -74,9 +74,9 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-10T23:17:34.294Z",
+      "at": "2026-05-10T23:35:51.006Z",
       "verdict": "PASS",
-      "duration_ms": 4280,
+      "duration_ms": 4610,
       "checks": {
         "type_safety": "PASS",
         "lint": "SKIP",
@@ -88,11 +88,16 @@
       },
       "warnings": 0,
       "errors": 0,
-      "notes": "Diff: 3 TS files in site/src/data/walkthroughs/. astro check 0/0. Vitest 124/124 in 4.28s. Validators all green. Anti-pattern + secret grep clean."
+      "notes": "Diff: 4 TS files in site/src/data/walkthroughs/. astro check 0/0/33 (hints only). Vitest 124/124 in 4.61s. Validators all green. Anti-pattern + secret grep clean."
     },
     "bypasses": [],
     "carried_debt": 0,
     "run_history": [
+      {
+        "at": "2026-05-10T23:35:51.006Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
       {
         "at": "2026-05-10T23:17:34.294Z",
         "verdict": "PASS",
@@ -110,7 +115,7 @@
       }
     ],
     "streak": {
-      "passes": 3,
+      "passes": 4,
       "since": "2026-05-08T21:52:49Z"
     }
   },
