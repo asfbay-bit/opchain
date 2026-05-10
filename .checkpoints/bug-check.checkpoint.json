@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-08T21:52:49Z",
+  "updated_at": "2026-05-10T22:22:30Z",
   "phase": "gate",
-  "step": "v14-mobile-scope-expansion-passed",
+  "step": "orchestrator-restamp-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for the v1.4 mobile scope expansion: 2 files on main (.opchain/pm.yaml + .checkpoints/stack-forge.checkpoint.json). Bringing Android, Flutter, React Native into v1.4 (release-ops shipped in v1.3, opening the gate that originally deferred them). State-only diff; build/type/lint skipped as vacuous. Vitest: 124/124 in 3.77s. Anti-pattern grep on diff: clean. Secret scan: clean. checkpoint:validate: 7/7 valid. validate-pm-mcp: 5 skills, 0 warnings. Verdict: PASS.",
+  "progress_summary": "Pre-commit gate for the orchestrator checkpoint re-stamp: 1 file staged (.checkpoints/orchestrator.checkpoint.json — advance from post-ship-reconciliation/in_progress to handoff-stack-forge, drop now-shipped next_action[0], add merged PRs #187/#190 + direct-to-main commits 4927bc1/60ac971 to skill_state). State-only diff; build/type/lint skipped as vacuous. Vitest: 124/124 in 5.14s. Anti-pattern grep on diff: 0 hits. Secret scan on diff: 0 hits. npm ci: 95 packages, 0 vulnerabilities. Prebuild validators all green (gen-flags 92, gen-catalog 18 skills, validate-pm-mcp 5 skills + 0 warnings, sync-bundles in sync). checkpoint:validate: 7/7 valid. Verdict: PASS.",
   "progress_table": [
     {
       "id": "schema",
@@ -70,29 +70,34 @@
   },
   "blockers": [],
   "next_actions": [
-    "Proceed with the commit of the 4 reconciliation files + this checkpoint update on main."
+    "Proceed with the commit of the orchestrator checkpoint re-stamp + this bug-check update on claude/orchestrator-ops-update-EAquW."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-08T21:52:49Z",
+      "at": "2026-05-10T22:22:30Z",
       "verdict": "PASS",
-      "duration_ms": 5370,
+      "duration_ms": 5140,
       "checks": {
-        "type_safety": "PASS",
+        "type_safety": "SKIP",
         "lint": "SKIP",
         "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "PASS",
+        "build": "SKIP",
         "dependencies": "PASS"
       },
       "warnings": 0,
       "errors": 0,
-      "notes": "Diff: 2 .astro files (architecture.astro + MobileArchitecture.astro). Pure SVG/template content. astro build passed (27 pages). Vitest 124/124 in 5.37s. Anti-pattern + secret grep on diff: clean. npm audit: 0 vulns. checkpoint:validate: 7/7."
+      "notes": "Diff: 1 JSON file (.checkpoints/orchestrator.checkpoint.json). Pure state. Vitest 124/124 in 5.14s. Anti-pattern + secret grep on diff: clean. npm ci: 95 packages, 0 vulnerabilities. Prebuild green: gen-flags (92 flags), gen-catalog (18 skills), validate-pm-mcp (5 skills, 0 warnings), sync-bundles in sync. checkpoint:validate: 7/7."
     },
     "bypasses": [],
     "carried_debt": 0,
     "run_history": [
+      {
+        "at": "2026-05-10T22:22:30Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
       {
         "at": "2026-05-08T21:52:49Z",
         "verdict": "PASS",
@@ -100,7 +105,7 @@
       }
     ],
     "streak": {
-      "passes": 1,
+      "passes": 2,
       "since": "2026-05-08T21:52:49Z"
     }
   },
