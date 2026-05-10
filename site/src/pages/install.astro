@@ -619,8 +619,16 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
     line-height: var(--lh-base);
   }
   .path-steps li { margin-bottom: 0.35rem; }
-  .path-steps a { color: var(--accent); text-decoration: none; }
-  .path-steps a:hover { text-decoration: underline; }
+  /* Axe `link-in-text-block`: links inside <li> prose must be
+     distinguishable without relying on colour alone. Underline by
+     default; the ember-on-hover stays as a secondary affordance. */
+  .path-steps a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 0.5px;
+    text-underline-offset: 2px;
+  }
+  .path-steps a:hover { text-decoration-thickness: 1px; }
   :global([data-theme="light"]) .path-steps a { color: var(--accent-hover); }
   .path-steps code {
     font-family: var(--font-mono);
