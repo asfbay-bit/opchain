@@ -16,6 +16,7 @@
  *   skills.registry.<id>.enabled Show / hide an individual skill in the catalog
  *   skills.capability.<name>     Cross-cutting capability (tri-agent, checkpoint)
  *   skills.command.<cmd>.enabled Individual slash command on/off
+ *   skills.coverage.<id>.enabled Show / hide a stack-forge pack (language, framework, mobile)
  *   skills.experiment.<id>.<f>   Experimental skill features
  *
  *   platform.observability.<sink>
@@ -28,6 +29,9 @@
  * Defaults MUST preserve current behaviour. Day-one rollout is supposed to
  * be invisible.
  */
+
+import coveragePacks from "../../generated/coverage-flags.json" with { type: "json" };
+
 
 export const CATEGORIES = /** @type {const} */ (
   ["release", "ops", "experiment", "permission", "consent"]
@@ -231,6 +235,13 @@ const DEFINITIONS = [
     "/threat-model", "/uxe",
   ]),
 
+  // ── skills.coverage.<id>.enabled — one per stack-forge pack ──────────────
+  // Generated from skills/stack-forge/packs/<id>/pack.yml by
+  // scripts/gen-stack-packs.mjs (prebuild step 1). Only language, framework,
+  // and mobile packs produce flags; deploy-target packs are sub-selections.
+  // Flag default mirrors pack status: stable → true, anything else → false.
+  ...skillCoverageFlags(coveragePacks),
+
   // ── skills.experiment ────────────────────────────────────────────────────
   {
     name: "skills.experiment.app-architect.parallel-evaluators",
@@ -321,6 +332,17 @@ function skillCommandFlags(commands) {
   }));
 }
 
+function skillCoverageFlags(packs) {
+  return packs.map((p) => ({
+    name: `skills.coverage.${p.id}.enabled`,
+    type: /** @type {FlagType} */ ("boolean"),
+    default: p.status === "stable",
+    category: /** @type {FlagCategory} */ ("release"),
+    owner: "stack-forge",
+    description: `Show ${p.displayName ?? p.id} (${p.kind}) as a stack-forge coverage option. Off → hidden from recommendations and scaffolds.`,
+  }));
+}
+
 // Validate the whole table once at import time. Catches duplicate names,
 // malformed names, and default-type mismatches without waiting for a test.
 const _seen = new Set();
@@ -372,6 +394,7 @@ export const PUBLIC_FLAG_NAMES = Object.freeze(
     name.startsWith("skills.registry.") ||
     name.startsWith("skills.capability.") ||
     name.startsWith("skills.command.") ||
+    name.startsWith("skills.coverage.") ||
     name === "platform.observability.posthog-client" ||
     name === "platform.observability.cloudflare-beacon"
   ),

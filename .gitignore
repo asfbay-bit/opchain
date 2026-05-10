@@ -17,7 +17,12 @@ site/blob-report/
 # Anchored to project root so Astro's site/public/ static-asset folder still
 # tracks design previews and other source-of-truth files committed there.
 /public/
-src/generated/
+src/generated/*
+
+# Baseline emitted by scripts/gen-stack-packs.mjs. Tracked so a fresh checkout
+# can import it via src/lib/flags/registry.js before any prebuild has run; the
+# build overwrites it on every run.
+!src/generated/coverage-flags.json
 
 # Codegen — regenerated on every prebuild from src/lib/flags/registry.js
 site/src/lib/flags/registry.ts
