@@ -255,6 +255,68 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
         through six end-to-end opchain sessions, end to end.
       </p>
     </section>
+
+    <!-- ───────────── What next — starter paths ───────────── -->
+    <section class="whatnext">
+      <Eyebrow>what next</Eyebrow>
+      <h2><Icon name="arrow-right" /> Your first 30 minutes</h2>
+      <p class="whatnext-lede">
+        Skills are inert until you trigger one. Here are three starter
+        paths — pick whichever matches the moment.
+      </p>
+
+      <div class="paths">
+        <article class="path">
+          <div class="path-head">
+            <span class="path-num">01</span>
+            <h3>Starting fresh</h3>
+          </div>
+          <p class="path-sub">No code yet · greenfield project</p>
+          <ol class="path-steps">
+            <li>Trigger <code class="ic">/discover</code> — <a href="/skills/app-architect">app-architect</a> runs the spec interview</li>
+            <li>Let <a href="/skills/stack-forge">stack-forge</a> pick the platform; review and confirm</li>
+            <li><a href="/skills/ux-engineer">ux-engineer</a> generates a style book and screens</li>
+            <li>Sprint loop produces a working prototype</li>
+            <li><a href="/skills/git-ops">git-ops</a> + <a href="/skills/deploy-ops">deploy-ops</a> ship it</li>
+          </ol>
+        </article>
+
+        <article class="path">
+          <div class="path-head">
+            <span class="path-num">02</span>
+            <h3>Joining an existing repo</h3>
+          </div>
+          <p class="path-sub">Code already on disk · no opchain history</p>
+          <ol class="path-steps">
+            <li>Run <code class="ic">/rev-spec</code> — <a href="/skills/reverse-spec">reverse-spec</a> backfills a spec from the code</li>
+            <li>Type <code class="ic">/ops</code> for the orchestrator's read on what's open</li>
+            <li><a href="/skills/code-auditor">code-auditor</a> tells you the top-five concerns before your next commit</li>
+          </ol>
+        </article>
+
+        <article class="path">
+          <div class="path-head">
+            <span class="path-num">03</span>
+            <h3>Shipping a fix in flight</h3>
+          </div>
+          <p class="path-sub">Bug or feature already in progress</p>
+          <ol class="path-steps">
+            <li><a href="/skills/bug-check">bug-check</a> on the diff — type / lint / secrets / vulns</li>
+            <li><a href="/skills/code-auditor">code-auditor</a> for an Auditor/Fixer/Verifier pass</li>
+            <li><a href="/skills/git-ops">git-ops</a> opens the PR with shape-aware title + body</li>
+            <li><a href="/skills/deploy-ops">deploy-ops</a> blocks prod until every audit gate is green</li>
+          </ol>
+        </article>
+      </div>
+
+      <p class="whatnext-cta">
+        Not sure what fits? Try the
+        <a href="/pipeline-builder">pipeline builder</a> — four
+        questions, custom recommendations, a starter
+        <code class="ic">CLAUDE.md</code>. Or browse
+        <a href="/skills">every skill</a> and pick by hand.
+      </p>
+    </section>
   </main>
 
   <CaptureModal />
@@ -488,6 +550,109 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
   }
   .what strong { color: var(--text); }
   .what a { color: var(--accent); }
+
+  /* ── What next — starter paths ── */
+  .whatnext {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .whatnext h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0.4rem 0 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    letter-spacing: var(--ls-tight);
+  }
+  .whatnext-lede {
+    color: var(--muted);
+    margin: 0 0 1.5rem;
+    line-height: var(--lh-base);
+  }
+  .paths {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.85rem;
+  }
+  .path {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 1rem 1.1rem;
+  }
+  .path-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    margin-bottom: 0.25rem;
+  }
+  .path-num {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--accent);
+    letter-spacing: var(--ls-widest);
+  }
+  .path h3 {
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+    letter-spacing: var(--ls-tight);
+  }
+  .path-sub {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+    margin: 0 0 0.75rem;
+  }
+  .path-steps {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-base);
+  }
+  .path-steps li { margin-bottom: 0.35rem; }
+  .path-steps a { color: var(--accent); text-decoration: none; }
+  .path-steps a:hover { text-decoration: underline; }
+  :global([data-theme="light"]) .path-steps a { color: var(--accent-hover); }
+  .path-steps code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  .whatnext-cta {
+    margin-top: 1.5rem;
+    padding: 0.85rem 1rem;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-left: 2px solid var(--accent);
+    border-radius: var(--r-xs);
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-base);
+  }
+  .whatnext-cta a { color: var(--accent); }
+  .whatnext-cta code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
 
   @media (max-width: 540px) {
     .flow { grid-template-columns: 1fr; }

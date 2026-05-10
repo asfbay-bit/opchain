@@ -60,6 +60,7 @@ const updatedLabel = updatedIso
 const triAgentEnabled = isCapabilityEnabled("tri-agent");
 const checkpointProtocolEnabled = isCapabilityEnabled("checkpoint-protocol");
 const installZipEnabled = defaultFor("site.feature.install-zip-download") as boolean;
+const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
 const visibleCommands = (skill.data.commands as string[]).filter(isCommandEnabled);
 
 // 18 — Prev / next skill nav. Catalog ordered by role (the same
@@ -174,6 +175,18 @@ const consumers = isFoundational
             </Button>
           </div>
         )}
+        <div class="related-row">
+          {demoEnabled && (
+            <a class="related-link" href={`/demo?skill=${skill.data.name}#workbench`}>
+              <Icon name="sparkles" size={12} />
+              see it run in the demo
+            </a>
+          )}
+          <a class="related-link" href={`/changelog#${skill.data.name}`}>
+            <Icon name="refresh-cw" size={12} />
+            what changed in this skill
+          </a>
+        </div>
       </Card>
     </section>
 
@@ -868,6 +881,28 @@ const consumers = isFoundational
     gap: 0.4rem;
     margin-top: 0.25rem;
   }
+  /* Cross-links from the "Get this skill" card — demo deep-link +
+     changelog anchor. Surface the related context without crowding the
+     primary download CTA. */
+  .related-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    margin-top: 0.7rem;
+    padding-top: 0.6rem;
+    border-top: 0.5px dashed var(--border);
+  }
+  .related-link {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    color: var(--muted);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .related-link:hover { color: var(--accent); }
 
   .usage {
     margin-bottom: 2.5rem;
