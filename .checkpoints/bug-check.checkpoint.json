@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-10T22:50:00Z",
+  "updated_at": "2026-05-10T23:28:02Z",
   "phase": "gate",
   "step": "adev-328-pack-registry-passed",
   "status": "complete",
@@ -74,7 +74,7 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-10T22:50:00Z",
+      "at": "2026-05-10T23:28:02Z",
       "verdict": "PASS",
       "duration_ms": 3800,
       "checks": {
@@ -114,5 +114,5 @@
       "since": "2026-05-08T21:52:49Z"
     }
   },
-  "field": "progress_summary=Pre-commit gate for architecture Treatment B (release-ops added as 18th skill to /architecture diagram, desktop + mobile). Diff: 2 .astro files (pure SVG/template). astro build passed (27 pages). Vitest: 124/124 in 5.37s. Anti-pattern grep on diff: 0 hits. Secret scan on diff: 0 hits. npm audit: 0 vulns. checkpoint:validate: 7/7. astro check: 0 errors, 0 warnings, 33 pre-existing hints. Verdict: PASS."
+  "field": "status=complete"
 }
