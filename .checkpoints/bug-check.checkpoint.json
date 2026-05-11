@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-11T03:43:49Z",
+  "updated_at": "2026-05-11T04:12:59.406Z",
   "phase": "gate",
-  "step": "adev-329-pack-backfill-passed",
+  "step": "demo-toc-flash-cleanup-safety-net-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for claude/fix-merge-conflicts-XC6Kl. Adds custom git merge driver for .checkpoints/*.checkpoint.json + .gitattributes + npm prepare hook. 4 synthetic merge scenarios verified locally (telemetry-only divergence, real content conflict, asymmetric content+telemetry, agreed content edit). Secret scan + anti-pattern grep on staged diff: clean (one false-positive on doc comment 'any skill'). tsc/vitest/build: skipped — dev deps not installed in container. checkpoint:validate: 7/7 pass. Verdict: PASS based on diff scope (no source code touched; pure tooling + JS scripts validated with node --check).",
+  "progress_summary": "Belt-and-suspenders cleanup: kept animationend listener + added setTimeout safety net so the flash class is reliably cleared even when the animation gets optimised out in headless CI (the failure on PR #202 second CI run). Bumped Playwright test timeouts 4600→5000ms to accommodate the 150ms safety-net buffer. Vitest 137/137 in 5.60s (one flake on first run, clean on retry — same vitest race observed earlier on this branch). tsc clean.",
   "progress_table": [
     {
       "id": "schema",
@@ -74,32 +74,37 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-11T03:43:49Z",
+      "at": "2026-05-11T04:12:59.406Z",
       "verdict": "PASS",
-      "duration_ms": 0,
+      "duration_ms": 5600,
       "checks": {
-        "type_safety": "SKIP",
+        "type_safety": "PASS",
         "lint": "SKIP",
-        "tests": "SKIP",
+        "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
         "build": "SKIP",
-        "dependencies": "SKIP"
+        "dependencies": "PASS"
       },
       "warnings": 0,
       "errors": 0,
-      "notes": "ADEV-329 v1.4 PR 2 — 5 language packs (typescript, python, ruby, go, rust): vitest 153/153 (5 new packs validated via gen-stack-packs; 16 new equivalence tests pass), astro check 0 errors. Anti-pattern + secret grep clean."
+      "notes": "Flash-cleanup safety-net + test timeout bump."
     },
     "bypasses": [],
     "carried_debt": 0,
     "run_history": [
       {
-        "at": "2026-05-11T03:38:21Z",
+        "at": "2026-05-11T04:12:59.406Z",
         "verdict": "PASS",
         "warnings": 0
       },
       {
-        "at": "2026-05-11T03:18:15Z",
+        "at": "2026-05-11T03:46:35.331Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-11T03:40:17.232Z",
         "verdict": "PASS",
         "warnings": 0
       },
@@ -135,7 +140,7 @@
       }
     ],
     "streak": {
-      "passes": 6,
+      "passes": 9,
       "since": "2026-05-08T21:52:49Z"
     }
   },
