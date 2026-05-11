@@ -10,6 +10,8 @@ interface Row {
   opchain: Cell;
   cursor: Cell;
   copilot: Cell;
+  zed: Cell;
+  vscode: Cell;
   devin: Cell;
   defaults: Cell;
 }
@@ -19,7 +21,9 @@ const rows: Row[] = [
     label: "Where the prompts live",
     opchain: { v: "Markdown files in .claude/skills/", note: "MIT, in your repo, plain text — diffable, reviewable" },
     cursor: { v: ".cursorrules / .mdc rules", note: "Per-project, editor-coupled" },
-    copilot: { v: "Hosted instructions + .github/copilot-instructions.md", note: "Vendor-managed" },
+    copilot: { v: ".github/copilot-instructions.md + hosted instructions", note: "Vendor-managed" },
+    zed: { v: ".zed/settings.json + Agent Profiles", note: "Project + per-profile system prompts" },
+    vscode: { v: "Per-extension (Copilot / Continue / Cline)", note: "Whatever your AI extension wants" },
     devin: { v: "Hosted, internal", note: "Black box" },
     defaults: { v: "CLAUDE.md (single file)", note: "All-or-nothing" },
   },
@@ -28,6 +32,8 @@ const rows: Row[] = [
     opchain: { v: "JSON checkpoints in .checkpoints/", note: "Survive across chats; auto-resume next session" },
     cursor: "Per-chat memory; no formal protocol",
     copilot: "Per-IDE-session",
+    zed: "Persistent assistant panel per workspace; no cross-session protocol",
+    vscode: "Per extension; usually per-IDE-session",
     devin: { v: "Hosted task state", note: "Tied to a Devin task, not your repo" },
     defaults: { v: "Single CLAUDE.md context", note: "Re-read on every session" },
   },
@@ -36,6 +42,8 @@ const rows: Row[] = [
     opchain: { v: "Yes — orchestrator routes between 18 skills", note: "Knows what phase you're in and what's next" },
     cursor: "No — rules apply globally",
     copilot: "No — chat is single-turn-ish",
+    zed: "No — single agent, no pipeline concept",
+    vscode: "No — depends entirely on extension",
     devin: "Yes, but as one monolithic agent",
     defaults: "No",
   },
@@ -44,6 +52,8 @@ const rows: Row[] = [
     opchain: { v: "5 skills (app-architect, code-auditor, integrations-engineer, api-dev, ux-engineer)", note: "Planner → Generator → Evaluator built in" },
     cursor: "No",
     copilot: "No",
+    zed: { v: "Agent profiles can chain", note: "Manual setup; not a contract" },
+    vscode: "No",
     devin: { v: "Implicit", note: "Not surfaced as a contract" },
     defaults: "No",
   },
@@ -52,6 +62,8 @@ const rows: Row[] = [
     opchain: { v: "Three (bug-check, code-auditor, security-auditor)", note: "deploy-ops blocks prod if any gate fails" },
     cursor: "No",
     copilot: "No",
+    zed: "No",
+    vscode: "No",
     devin: { v: "Internal checks", note: "No external contract" },
     defaults: "No",
   },
@@ -60,6 +72,8 @@ const rows: Row[] = [
     opchain: { v: "Free, MIT", note: "Pay only your Claude usage" },
     cursor: "$20–40 / user / mo",
     copilot: "$10–39 / user / mo",
+    zed: { v: "Editor free · Zed Pro $20/mo or BYOK", note: "AI usage gated; editor is fully free" },
+    vscode: { v: "Editor free · extension pricing varies", note: "Copilot, Continue, Cline each priced separately" },
     devin: "$500 / mo seat (last published)",
     defaults: "Free",
   },
@@ -68,6 +82,8 @@ const rows: Row[] = [
     opchain: { v: "None — every skill is one Markdown file", note: "Fork, edit, fork again" },
     cursor: { v: "IDE-coupled", note: "Rules only run inside Cursor" },
     copilot: { v: "GitHub-coupled", note: "Runs against the Copilot service" },
+    zed: { v: "Editor-coupled", note: "Profiles only run inside Zed" },
+    vscode: { v: "Extension-coupled", note: "Tied to whichever AI extension you use" },
     devin: { v: "Service-coupled", note: "All work runs on Devin infra" },
     defaults: { v: "Claude-coupled", note: "But trivial to migrate" },
   },
@@ -76,6 +92,8 @@ const rows: Row[] = [
     opchain: "Claude Code · Claude.ai · Claude Desktop",
     cursor: "Cursor IDE",
     copilot: "VS Code · JetBrains · GitHub.com",
+    zed: "Zed editor (Mac · Linux · Windows beta)",
+    vscode: "VS Code (Mac · Linux · Windows · Web)",
     devin: "Devin web UI",
     defaults: "Anywhere Claude runs",
   },
@@ -84,6 +102,8 @@ const rows: Row[] = [
     opchain: { v: "Write a SKILL.md, drop it in .claude/skills/", note: "Reverse-spec skill backfills one from existing code" },
     cursor: "Write a .cursorrules file",
     copilot: "Edit copilot-instructions.md",
+    zed: "Add an Agent Profile or edit .zed/settings.json",
+    vscode: "Configure your extension's prompt or rules file",
     devin: { v: "Limited", note: "Custom playbooks in Beta" },
     defaults: "Edit CLAUDE.md",
   },
@@ -92,6 +112,8 @@ const rows: Row[] = [
     opchain: { v: "/ops command shows every project's last checkpoint", note: "Cross-repo dashboard built in" },
     cursor: "No",
     copilot: "No",
+    zed: "No",
+    vscode: "No",
     devin: { v: "Per-task dashboard", note: "Devin-hosted" },
     defaults: "No",
   },
@@ -140,6 +162,8 @@ function renderCell(c: Cell) {
             <th class="me">opchain</th>
             <th>Cursor</th>
             <th>GH Copilot</th>
+            <th>Zed</th>
+            <th>VS Code</th>
             <th>Devin</th>
             <th>Claude defaults</th>
           </tr>
@@ -150,6 +174,8 @@ function renderCell(c: Cell) {
               renderCell(r.opchain),
               renderCell(r.cursor),
               renderCell(r.copilot),
+              renderCell(r.zed),
+              renderCell(r.vscode),
               renderCell(r.devin),
               renderCell(r.defaults),
             ];
@@ -286,7 +312,9 @@ function renderCell(c: Cell) {
   }
   .cmp {
     width: 100%;
-    min-width: 800px;
+    /* 7 data columns + label column — needs ~1100px to read comfortably;
+       below that the .table-wrap scrolls horizontally. */
+    min-width: 1100px;
     border-collapse: collapse;
     font-size: var(--fs-sm);
   }

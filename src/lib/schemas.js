@@ -10,12 +10,20 @@ const email = z.string().trim().min(3).max(254).email();
 
 /** POST /api/feedback */
 export const FeedbackSchema = z.object({
-  type: z.enum(["bug", "feature", "improvement", "general"]),
+  type: z.enum(["bug", "feature", "improvement", "general", "security"]),
   title: z.string().trim().min(3).max(200),
   description: z.string().trim().max(5000).optional().default(""),
   priority: z.coerce.number().int().min(0).max(4).optional().default(0),
   skill: z.string().trim().max(60).optional(),
   email: email.optional(),
+  // ── Security-disclosure-only fields ────────────────────────────
+  // Surfaced by the /security page form. Optional on the schema so
+  // the existing feedback widget keeps working unchanged; the worker
+  // composes them into the Linear issue body when type === "security".
+  component: z.string().trim().max(200).optional(),
+  reproduction: z.string().trim().max(5000).optional(),
+  impact: z.string().trim().max(2000).optional(),
+  severity: z.enum(["low", "medium", "high", "critical"]).optional(),
 });
 
 /**

@@ -1,0 +1,7 @@
+# Skill checkpoints get rewritten on every pre-commit /bugcheck run,
+# so two branches with non-overlapping real diffs still conflict on
+# `updated_at` and `skill_state.last_run.at`. The opchain-checkpoint
+# driver parses the JSON, takes the newer side for telemetry fields,
+# and only raises a conflict on real content collisions. See
+# scripts/merge-checkpoint.mjs.
+.checkpoints/*.checkpoint.json merge=opchain-checkpoint

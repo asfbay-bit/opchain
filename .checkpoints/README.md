@@ -64,6 +64,17 @@ npm run checkpoint:validate
 node scripts/checkpoint.mjs update <skill> --status=in_progress --step=...
 ```
 
+## Merge driver
+
+`.gitattributes` maps every `<skill>.checkpoint.json` to a custom merge
+driver (`scripts/merge-checkpoint.mjs`) that auto-resolves telemetry-only
+conflicts. Two PRs that both ran `/bugcheck` will bump `updated_at` and
+`skill_state.last_run.at` to different "now" values; the driver picks
+the side with the newer `updated_at` for those fields and only raises a
+real conflict on substantive content (`progress_summary`, `next_actions`,
+`progress_table`, etc.). The driver is registered per-clone by
+`npm prepare`, so `npm install` is the only setup step.
+
 ## Resume protocol (informal)
 
 When starting a new session on this repo:
