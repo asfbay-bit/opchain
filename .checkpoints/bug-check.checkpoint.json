@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-11T03:40:17.232Z",
+  "updated_at": "2026-05-11T03:46:35.331Z",
   "phase": "gate",
-  "step": "demo-toc-scroll-flash-passed",
+  "step": "demo-toc-spec-fix-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for demo TOC scroll-offset fix + ember flash highlight. Diff: 2 files (site/src/pages/demo.astro modified, site/tests/e2e/demo-modal-toc.spec.ts added). Vitest 137/137 in 3.70s. Validators all green (gen-stack-packs 0, gen-flags 92, gen-catalog 18 skills, validate-pm-mcp 5 + 0 warn, sync-bundles in sync). astro check: 0 errors. TypeScript: clean. Anti-pattern + secret grep on diff: clean. Playwright spec type-checks cleanly; sandbox cannot download chromium so will run in CI. Verdict: PASS.",
+  "progress_summary": "Pre-commit gate for Playwright spec fix — selector `[id=\"x\"]` instead of `#x` so digit-leading slugs work. Vitest 137/137 in 2.45s. tsc clean.",
   "progress_table": [
     {
       "id": "schema",
@@ -74,9 +74,9 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-11T03:40:17.232Z",
+      "at": "2026-05-11T03:46:35.331Z",
       "verdict": "PASS",
-      "duration_ms": 3700,
+      "duration_ms": 2450,
       "checks": {
         "type_safety": "PASS",
         "lint": "SKIP",
@@ -88,11 +88,16 @@
       },
       "warnings": 0,
       "errors": 0,
-      "notes": "Diff: 2 files (demo.astro + new e2e spec). Vitest 137/137. astro check 0/0. TS clean. Sandbox skipped Playwright run (no chromium fetch)."
+      "notes": "Playwright spec selector fix."
     },
     "bypasses": [],
     "carried_debt": 0,
     "run_history": [
+      {
+        "at": "2026-05-11T03:46:35.331Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
       {
         "at": "2026-05-11T03:40:17.232Z",
         "verdict": "PASS",
@@ -130,7 +135,7 @@
       }
     ],
     "streak": {
-      "passes": 7,
+      "passes": 8,
       "since": "2026-05-08T21:52:49Z"
     }
   },

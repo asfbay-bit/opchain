@@ -111,7 +111,10 @@ test.describe("demo modal — TOC scroll + flash", () => {
     await link.click();
 
     // Flash class applied immediately.
-    const heading = page.locator(`#${headingId}`);
+    // Use `[id="..."]` rather than `#...` because slugify can produce
+    // ids starting with a digit (e.g. "2-outcome-..."), which is a
+    // valid HTML id but an invalid CSS selector.
+    const heading = page.locator(`[id="${headingId}"]`);
     await expect(heading).toHaveClass(/is-flash-heading/);
 
     // The class is removed by the time the 4s animation ends. Give
@@ -129,7 +132,7 @@ test.describe("demo modal — TOC scroll + flash", () => {
     });
 
     await link.click();
-    const heading = page.locator(`#${headingId}`);
+    const heading = page.locator(`[id="${headingId}"]`);
     await expect(heading).toHaveClass(/is-flash-heading/);
 
     // Wait for the class to clear, then re-click and assert the class
@@ -164,7 +167,8 @@ test.describe("demo modal — TOC under reduced motion", () => {
     });
 
     await link.click();
-    const heading = page.locator(`#${headingId}`);
+    // Attribute-selector form — slugify can produce digit-leading ids.
+    const heading = page.locator(`[id="${headingId}"]`);
     await expect(heading).toHaveClass(/is-flash-heading/);
 
     // Under reduced motion the keyframes don't run, so animationend
