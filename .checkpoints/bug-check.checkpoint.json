@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-11T03:18:15Z",
+  "updated_at": "2026-05-11T03:40:17.232Z",
   "phase": "gate",
-  "step": "feedback-textarea-slot-fix-passed",
+  "step": "demo-toc-scroll-flash-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for claude/remove-feedback-prefill-xgmQC. Single-file fix: site/src/components/ui/Textarea.astro — removed `<slot />` from inside `<textarea>` so the literal string '<slot />' stops appearing as the description field's pre-filled value in the FeedbackWidget modal (browsers parse textarea content as raw text, so the unrendered slot tag was leaking through to the user). No callers pass slot children (only FeedbackWidget + styleguide, both self-closing). Anti-pattern + secret grep on diff: clean. tsc/vitest/astro check: skipped — dev deps not installed in this container (js-yaml missing on pretest). Verdict: PASS based on diff scope (1 line, raw HTML behaviour, no logic).",
+  "progress_summary": "Pre-commit gate for demo TOC scroll-offset fix + ember flash highlight. Diff: 2 files (site/src/pages/demo.astro modified, site/tests/e2e/demo-modal-toc.spec.ts added). Vitest 137/137 in 3.70s. Validators all green (gen-stack-packs 0, gen-flags 92, gen-catalog 18 skills, validate-pm-mcp 5 + 0 warn, sync-bundles in sync). astro check: 0 errors. TypeScript: clean. Anti-pattern + secret grep on diff: clean. Playwright spec type-checks cleanly; sandbox cannot download chromium so will run in CI. Verdict: PASS.",
   "progress_table": [
     {
       "id": "schema",
@@ -74,25 +74,30 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-11T03:18:15Z",
+      "at": "2026-05-11T03:40:17.232Z",
       "verdict": "PASS",
-      "duration_ms": 0,
+      "duration_ms": 3700,
       "checks": {
-        "type_safety": "SKIP",
+        "type_safety": "PASS",
         "lint": "SKIP",
-        "tests": "SKIP",
+        "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
         "build": "SKIP",
-        "dependencies": "SKIP"
+        "dependencies": "PASS"
       },
       "warnings": 0,
       "errors": 0,
-      "notes": "Single-line .astro template fix; container missing js-yaml + astro deps so tsc/vitest/build couldn't run. Anti-pattern + secret grep on diff clean."
+      "notes": "Diff: 2 files (demo.astro + new e2e spec). Vitest 137/137. astro check 0/0. TS clean. Sandbox skipped Playwright run (no chromium fetch)."
     },
     "bypasses": [],
     "carried_debt": 0,
     "run_history": [
+      {
+        "at": "2026-05-11T03:40:17.232Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
       {
         "at": "2026-05-11T02:55:26Z",
         "verdict": "PASS",
@@ -125,7 +130,7 @@
       }
     ],
     "streak": {
-      "passes": 6,
+      "passes": 7,
       "since": "2026-05-08T21:52:49Z"
     }
   },
