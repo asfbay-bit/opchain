@@ -1545,17 +1545,20 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; position: relative;
     margin-left: 7px;
-    /* LHCI band-label contrast (ADEV-345): walking the text color all
-       the way to --text (~14.5:1 in isolation) still failed on
-       band-ship and band-monitor — axe samples actual rendered pixels,
-       and the SVG glow filters on those bands (filter="url(#glow-mint)"
-       etc.) paint outside the SVG's layout box and bleed across this
-       strip. Solid --bg here occludes the bleed so the contrast sample
-       under the vertical text matches the page background and the
-       audit passes deterministically. The 18px strip is visually
-       continuous with the surrounding page on both themes — same
+    /* LHCI band-label contrast (ADEV-345 → ADEV-347 follow-up): the
+       band's SVG glow filters (filter="url(#glow-mint)" etc.) paint
+       outside the SVG's layout box and bleed across this strip. Solid
+       --bg + z-index lift the strip ABOVE the sibling .band-content
+       in stacking order so the audit samples the page bg under the
+       text instead of the leaked glow. Both .band-label and
+       .band-content are position:relative with z-index:auto, which
+       means paint order is document order — .band-content comes
+       second and overpainted this strip even with the solid bg added
+       in ADEV-345. z-index:1 wins back the z-order. The 18px strip
+       is visually continuous with the page on both themes — same
        --bg — so nothing visible changes. */
     background: var(--bg);
+    z-index: 1;
   }
   .arch-v2 .band-label:focus-visible { outline: 1.5px solid var(--ember); outline-offset: 2px; border-radius: 2px; }
   .arch-v2 .band-label-text {
