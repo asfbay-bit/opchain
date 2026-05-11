@@ -4,9 +4,9 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-11T03:25:01Z",
+  "updated_at": "2026-05-11T03:43:49Z",
   "phase": "gate",
-  "step": "feedback-textarea-slot-fix-passed",
+  "step": "adev-329-pack-backfill-passed",
   "status": "complete",
   "progress_summary": "Pre-commit gate for claude/remove-feedback-prefill-xgmQC. Single-file fix: site/src/components/ui/Textarea.astro — removed `<slot />` from inside `<textarea>` so the literal string '<slot />' stops appearing as the description field's pre-filled value in the FeedbackWidget modal (browsers parse textarea content as raw text, so the unrendered slot tag was leaking through to the user). No callers pass slot children (only FeedbackWidget + styleguide, both self-closing). Anti-pattern + secret grep on diff: clean. tsc/vitest/astro check: skipped — dev deps not installed in this container (js-yaml missing on pretest). Verdict: PASS based on diff scope (1 line, raw HTML behaviour, no logic).",
   "progress_table": [
@@ -74,7 +74,7 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-11T03:25:01Z",
+      "at": "2026-05-11T03:43:49Z",
       "verdict": "PASS",
       "duration_ms": 0,
       "checks": {
@@ -88,7 +88,7 @@
       },
       "warnings": 0,
       "errors": 0,
-      "notes": "Single-line .astro template fix; container missing js-yaml + astro deps so tsc/vitest/build couldn't run. Anti-pattern + secret grep on diff clean."
+      "notes": "ADEV-329 v1.4 PR 2 — 5 language packs (typescript, python, ruby, go, rust): vitest 153/153 (5 new packs validated via gen-stack-packs; 16 new equivalence tests pass), astro check 0 errors. Anti-pattern + secret grep clean."
     },
     "bypasses": [],
     "carried_debt": 0,
