@@ -24,6 +24,11 @@ src/generated/*
 # build overwrites it on every run.
 !src/generated/coverage-flags.json
 
+# Baseline emitted by scripts/gen-api-dev-adapters.mjs (v1.4 PR 3). Same
+# pattern as coverage-flags.json — tracked so api-dev can import the typed
+# adapter list without a build-first dependency; the build overwrites it.
+!src/generated/api-dev-adapters.json
+
 # Codegen — regenerated on every prebuild from src/lib/flags/registry.js
 site/src/lib/flags/registry.ts
 
