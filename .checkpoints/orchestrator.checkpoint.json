@@ -4,12 +4,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:50:00Z",
-  "updated_at": "2026-05-10T23:10:00Z",
+  "updated_at": "2026-05-11T03:22:00Z",
 
   "phase": "routing",
   "step": "handoff-stack-forge-pr-2",
   "status": "in_progress",
-  "progress_summary": "v1.4 PR 1 (ADEV-328) shipped as #192 → 4cb0b09 — pack registry architecture is live on main (schema + CONTRIBUTING + gen-stack-packs.mjs + registry.js coverage-flag synthesis + 13 tests, vitest 137/137). Earlier in this session #191 (orchestrator re-stamp post-v1.3) also merged → 149f67f. Production remains on 526a9a2 (v1.4 not yet released — PR 8 ADEV-331 ships the release). Orchestrator handoff continues to stack-forge for PR 2 (ADEV-329): backfill the 5 existing stacks (typescript/python/ruby/go/rust) as language packs to dogfood the schema. Approved scope: all 5 in one PR, compress existing references/ into per-pack langRef docs (≤50KB), no framework packs (those land in PRs 4-7). stack-forge.checkpoint.json advanced to pr-1-shipped-pr-2-starting. a11y cleanup ADEV-338 remains parallelizable secondary track. No blockers.",
+  "progress_summary": "v1.4 PR 1 (ADEV-328) shipped as #192 → 4cb0b09 — pack registry architecture is live on main. The a11y track also wrapped this session: PR #196 (ADEV-339-342, squash 08377ea) cleared the original ADEV-338 LHCI batch (TOC min-height, Shiki dual-theme, band-label color, /changelog underlines), and PR #197 (ADEV-343-347, squash ba8d0cc) shipped the root-cause follow-ups when the first batch did not fully clear LHCI: walker uses closest() to skip Shiki nested spans (kills phantom <mark>), TOC scope-attribute copy so JS-injected <li>/<a> inherit Astro scoped CSS (min-height 44px now applies), .band-label gets background:var(--bg) + z-index:1 to occlude SVG glow bleed, and a global Shiki dark-theme CSS switch so dark-mode pages use the dark palette instead of the low-contrast light theme. Final LHCI: every audited route at A11y 1.00 (architecture and changelog perf 0.89/0.92 unchanged, both warn-level). Production remains on 526a9a2 (v1.4 not yet released — PR 8 ADEV-331 ships the release). Orchestrator handoff continues to stack-forge for PR 2 (ADEV-329): backfill the 5 existing stacks (typescript/python/ruby/go/rust) as language packs to dogfood the schema. Approved scope: all 5 in one PR, conservative ≤50KB compression of existing references/ into per-pack langRef docs, no framework packs (those land in PRs 4-7). No blockers.",
 
   "progress_table": [
     { "id": "intake-1.4",     "label": "Intake: 1.4 scope expansion (5 langs → 11+ langs + iOS)",     "status": "complete" },
@@ -27,7 +27,7 @@
     { "id": "commit-reconcile","label": "Commit reconciliation diff to main (4927bc1 + 60ac971)",      "status": "complete" },
     { "id": "v1.4-pr1",       "label": "v1.4 PR 1 — schema, generator, auto-flag wiring (ADEV-328 / #192 / 4cb0b09)", "status": "complete" },
     { "id": "v1.4-pr2",       "label": "v1.4 PR 2 — backfill 5 existing stacks as language packs (ADEV-329)", "status": "in_progress" },
-    { "id": "a11y-fixes",     "label": "Land 4 a11y fixes on claude/a11y-lhci-cleanup (ADEV-339-342)", "status": "not_started" }
+    { "id": "a11y-fixes",     "label": "Land a11y fixes via PRs #196 (ADEV-339-342, squash 08377ea) + #197 (ADEV-343-347 root-cause follow-ups, squash ba8d0cc)", "status": "complete" }
   ],
 
   "context_primer": {
@@ -60,29 +60,31 @@
 
   "next_actions": [
     "Resume v1.4 PR 2 (ADEV-329) — stack-forge.checkpoint.json says `pr-1-shipped-pr-2-starting / in_progress`. Backfill 5 language packs (typescript, python, ruby, go, rust). Read stack-forge.next_actions[0] for the starting move.",
-    "Cut PR 2 branch from current origin/main (4cb0b09 — includes ADEV-328 architecture). Use a descriptive name like claude/adev-329-pack-backfill.",
-    "a11y cleanup (ADEV-338) remains parallelizable — small, single PR, four commits (ADEV-339/340/341/342). Can be picked up by anyone not on the v1.4 critical path.",
+    "Cut PR 2 branch from current origin/main (fd0db7f — includes ADEV-328 architecture + the seven new pages from #194 + the demo expansion from #195 + the a11y track from #196/#197). Use a descriptive name like claude/adev-329-pack-backfill.",
     "After PR 2 lands, stack-forge moves to pr-3-starting (ADEV-330 — deploy-ops dispatcher + api-dev pack-read + kind:mobile branch). PRs 4-7 parallelize after PR 3."
   ],
 
   "skill_state": {
     "active_branches": [
-      { "name": "claude/expand-language-platform-support-t7Uu7", "purpose": "v1.4 implementation (planned parent for PRs 1-8); actual PR 1 shipped from claude/adev-328-pack-registry", "next_pr": "ADEV-329" },
-      { "name": "claude/a11y-lhci-cleanup",                       "purpose": "ADEV-338 a11y fixes",          "next_pr": "single PR, 4 commits" }
+      { "name": "claude/expand-language-platform-support-t7Uu7", "purpose": "v1.4 implementation (planned parent for PRs 1-8); actual PR 1 shipped from claude/adev-328-pack-registry", "next_pr": "ADEV-329" }
     ],
     "merged_prs_this_session": [
       "asfbay-bit/opchain#187",
       "asfbay-bit/opchain#190",
       "asfbay-bit/opchain#191",
-      "asfbay-bit/opchain#192"
+      "asfbay-bit/opchain#192",
+      "asfbay-bit/opchain#196",
+      "asfbay-bit/opchain#197"
     ],
     "direct_to_main_commits_this_session": [
       "4927bc1 chore(state): reconcile checkpoints + pm.yaml after v1.3 ship",
       "60ac971 chore(state): expand v1.4 mobile scope — Android + Flutter + RN"
     ],
     "linear_active_parents": [
-      { "id": "ADEV-327", "title": "opchain v1.4 — Drastically expand language & platform coverage", "children": ["ADEV-328", "ADEV-329", "ADEV-330", "ADEV-331", "ADEV-332", "ADEV-334", "ADEV-335", "ADEV-336", "ADEV-337"] },
-      { "id": "ADEV-338", "title": "a11y cleanup — LHCI failing audits across /skills, /architecture, /changelog", "children": ["ADEV-339", "ADEV-340", "ADEV-341", "ADEV-342"] }
+      { "id": "ADEV-327", "title": "opchain v1.4 — Drastically expand language & platform coverage", "children": ["ADEV-328", "ADEV-329", "ADEV-330", "ADEV-331", "ADEV-332", "ADEV-334", "ADEV-335", "ADEV-336", "ADEV-337"] }
+    ],
+    "linear_completed_this_session": [
+      { "id": "ADEV-338", "title": "a11y cleanup — LHCI failing audits across /skills, /architecture, /changelog", "children": ["ADEV-339", "ADEV-340", "ADEV-341", "ADEV-342", "ADEV-343", "ADEV-344", "ADEV-345", "ADEV-346", "ADEV-347"], "shipped_via": ["asfbay-bit/opchain#196", "asfbay-bit/opchain#197"] }
     ],
     "linear_cancelled_this_session": ["ADEV-333"],
     "skills_invoked_this_session": [
