@@ -1,1 +1,47 @@
-[]
+[
+  {
+    "id": "go",
+    "displayName": "Go",
+    "status": "stable",
+    "testRunner": "go test",
+    "buildCmd": "go build ./...",
+    "lintCmd": "golangci-lint run",
+    "langRef": "language.md"
+  },
+  {
+    "id": "python",
+    "displayName": "Python",
+    "status": "stable",
+    "testRunner": "pytest",
+    "buildCmd": "python -m build",
+    "lintCmd": "ruff check .",
+    "langRef": "language.md"
+  },
+  {
+    "id": "ruby",
+    "displayName": "Ruby",
+    "status": "stable",
+    "testRunner": "rspec",
+    "buildCmd": "bundle exec rake build",
+    "lintCmd": "bundle exec rubocop",
+    "langRef": "language.md"
+  },
+  {
+    "id": "rust",
+    "displayName": "Rust",
+    "status": "stable",
+    "testRunner": "cargo test",
+    "buildCmd": "cargo build",
+    "lintCmd": "cargo clippy -- -D warnings",
+    "langRef": "language.md"
+  },
+  {
+    "id": "typescript",
+    "displayName": "TypeScript",
+    "status": "stable",
+    "testRunner": "vitest",
+    "buildCmd": "npm run build",
+    "lintCmd": "eslint .",
+    "langRef": "language.md"
+  }
+]
