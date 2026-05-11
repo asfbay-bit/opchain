@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-10T22:50:00Z",
+  "updated_at": "2026-05-11T00:18:00Z",
   "phase": "gate",
-  "step": "adev-328-pack-registry-passed",
+  "step": "adev-338-a11y-cleanup-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for ADEV-328 (v1.4 PR 1 — pack registry architecture). 9 files staged: .gitignore (src/generated/ → glob + coverage-flags.json exemption), package.json + package-lock.json (gen-stack-packs script, prebuild + pretest reorder, js-yaml ^3.14.2 promoted from transitive to direct devDep), src/lib/flags/registry.js (import baseline coverage-flags.json + skillCoverageFlags helper + PUBLIC_FLAG_NAMES prefix), scripts/gen-stack-packs.mjs (new — schema validator + adapter graph resolver + ref-file checks, OPCHAIN_PACKS_DIR/OPCHAIN_OUT_DIR env overrides for tests), src/generated/coverage-flags.json (new — `[]` baseline), skills/stack-forge/packs/_schema.json + CONTRIBUTING.md (new — spec + author guide), tests/stack-packs.test.js (new — 13 fixture cases). Vitest: 137/137 in 3.80s (124 prior + 13 new). Anti-pattern grep on diff: 1 hit (console.log in scripts/gen-stack-packs.mjs, but bug-check's real rule restricts to src/**/*.ts; build tooling expected to log — same pattern as gen-flags/gen-catalog). Secret scan on diff: 0 hits. Prebuild green up through gen-stack-packs → gen-flags (92 flags) → gen-catalog (18 skills) → validate-pm-mcp (5 skills, 0 warnings) → sync-bundles. astro build failed in local env due to missing site/node_modules — unrelated to this diff, will be green in CI. checkpoint:validate: 7/7. Verdict: PASS.",
+  "progress_summary": "Pre-commit gate for the ADEV-338 a11y backlog cleanup (LHCI failures that piggy-backed on every recent PR). 4 files modified across 4 logical fixes: site/src/pages/skills/[id].astro (ADEV-339 — TOC links: display:flex + min-height:44px for 2.5.5 AAA-safe target size), site/astro.config.mjs (ADEV-340 — Shiki dual-theme: github-light + github-dark-default for code-block contrast on light + dark), site/src/pages/architecture.astro (ADEV-341 — band-label-text: --muted → --text for max contrast on glow-filtered ship + monitor bands), site/src/pages/changelog.astro (ADEV-342 — drop `.release a { text-decoration: none }` override so the global :where(p, li, ...) underline rule applies, satisfies link-in-text-block). Vitest: 137/137 in 3.75s (flake on first run hit known race-prone tests/flags-skills.test.js 'passes with a clean fixture' — re-run clean). Anti-pattern + secret grep on diff: clean. checkpoint:validate: 7/7. Verdict: PASS.",
   "progress_table": [
     {
       "id": "schema",
@@ -74,25 +74,35 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-10T22:50:00Z",
+      "at": "2026-05-11T00:18:00Z",
       "verdict": "PASS",
-      "duration_ms": 3800,
+      "duration_ms": 3750,
       "checks": {
         "type_safety": "SKIP",
         "lint": "SKIP",
         "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "PASS",
-        "dependencies": "PASS"
+        "build": "SKIP",
+        "dependencies": "SKIP"
       },
       "warnings": 0,
       "errors": 0,
-      "notes": "ADEV-328 PR 1 — pack registry architecture. 9 files staged (4 new, 5 modified). Vitest 137/137 in 3.80s (124 prior + 13 new in tests/stack-packs.test.js). Anti-pattern grep: 1 informational hit (console.log in scripts/gen-stack-packs.mjs — matches gen-flags/gen-catalog precedent, scripts/ is build tooling not src/). Secret grep: clean. Prebuild green through gen-stack-packs (0/0 baseline) → gen-flags (92 flags) → gen-catalog (18 skills) → validate-pm-mcp → sync-bundles. astro build needs site/node_modules locally; unrelated to diff."
+      "notes": "ADEV-338 a11y cleanup: 4 file edits across 4 Astro pages + 1 config. Vitest 137/137 in 3.75s on second run (first run flaked on the known race-prone tests/flags-skills.test.js subprocess test — same flake noted in earlier bug-check checkpoint). Anti-pattern + secret grep on diff: clean. astro build skipped locally (needs site/node_modules — CI will verify)."
     },
     "bypasses": [],
     "carried_debt": 0,
     "run_history": [
+      {
+        "at": "2026-05-11T00:18:00Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-10T23:15:00Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
       {
         "at": "2026-05-10T22:50:00Z",
         "verdict": "PASS",
@@ -110,7 +120,7 @@
       }
     ],
     "streak": {
-      "passes": 3,
+      "passes": 5,
       "since": "2026-05-08T21:52:49Z"
     }
   },

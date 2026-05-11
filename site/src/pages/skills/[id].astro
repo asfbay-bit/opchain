@@ -1446,16 +1446,17 @@ const consumers = isFoundational
     color: var(--subtle);
     text-decoration: none;
     border-left: 2px solid transparent;
-    /* LHCI target-size: previous attempt used inline-block with 4px
-       padding (~27.6px box). Lighthouse still flagged the links —
-       likely because adjacent li margins shrink the effective offset
-       below the 24px threshold. Switched to display: block so each
-       link spans the full rail width (clear horizontal target) and
-       bumped padding to 6px top/bottom so the box is ~31.6px tall.
-       Dropped the inline-block-era negative margin since the block
-       link no longer needs the visual pull-back. */
-    display: block;
-    padding: 6px 0 6px 0.55rem;
+    /* LHCI target-size (ADEV-339): prior attempts (inline-block 4px,
+       then block 6px) gave a ~31.6px-tall box — over WCAG 2.5.8 AA's
+       24x24 threshold, but Lighthouse still flagged the links. The
+       defensive fix targets 2.5.5 AAA (44x44): explicit min-height
+       with flex centering so the click target is unambiguously 44px
+       tall regardless of how the audit measures it. The text's
+       visual weight doesn't change — only the hit area grows. */
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 4px 0 4px 0.55rem;
     transition:
       color var(--dur-base) var(--ease-standard),
       border-color var(--dur-fast) var(--ease-standard);
