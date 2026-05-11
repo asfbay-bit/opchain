@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>/compare RFC — two variations</title>
+<link rel="stylesheet" href="_styles.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+<main class="page">
+  <span class="eyebrow">RFC · compare page</span>
+  <h1>/compare — column-picker redesign</h1>
+  <p class="lede">
+    Two variations on the same brief: opchain and Claude defaults are
+    always-on left columns, the rest are user-selected from a pool of
+    seven (Cursor, Copilot, Devin, Zed, VS Code, OpenAI Codex, Google
+    Antigravity). Pick one, then look through both variations and tell
+    me which to ship.
+  </p>
+
+  <p class="lede" style="font-size: 13px;">
+    <strong style="color: var(--text);">Codex</strong> = OpenAI's new
+    coding agent (CLI + ChatGPT-hosted UI). <strong style="color: var(--text);">Antigravity</strong>
+    = Google's new agentic coding platform — content marked <span class="review-badge" style="text-transform: lowercase;">review</span>
+    needs an eye before merge.
+  </p>
+
+  <div class="variant-grid">
+    <a class="variant-card" href="a.html">
+      <span class="eyebrow" style="background: transparent; border-color: var(--subtle); color: var(--subtle);">A</span>
+      <h2>Inline header selectors</h2>
+      <p style="color: var(--muted); margin: 0.5rem 0;">
+        Each user-controlled column has its own dropdown <em>inside</em>
+        the table header. Click <code style="font-family: var(--font-mono);">+ compare more</code>
+        to reveal more columns, one slot at a time. Remove with the
+        <code>×</code> on each header.
+      </p>
+      <p class="pros">Compact, table-native. No extra UI surface.</p>
+      <p class="cons">Picker discoverability is lower — you have to notice the dropdown.</p>
+      <span class="open">open variation A →</span>
+    </a>
+
+    <a class="variant-card" href="b.html">
+      <span class="eyebrow" style="background: transparent; border-color: var(--subtle); color: var(--subtle);">B</span>
+      <h2>Chip-tray picker above table</h2>
+      <p style="color: var(--muted); margin: 0.5rem 0;">
+        A persistent strip above the table shows every comparable
+        platform as a chip. Click chips to toggle them in or out — the
+        table reflows columns to match.
+      </p>
+      <p class="pros">All seven options visible at a glance. Reset is one click.</p>
+      <p class="cons">Adds a UI surface above the table — slightly heavier first impression.</p>
+      <span class="open">open variation B →</span>
+    </a>
+  </div>
+
+  <div class="note-strip" style="margin-top: 2rem;">
+    Both variations share the same data file (<code>_data.js</code>) so
+    the comparison content is identical and only the chrome differs.
+    Edit <code>_data.js</code> to tweak cells; both previews pick up
+    the change on refresh.
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Variation A — inline header selectors · /compare RFC</title>
+<link rel="stylesheet" href="_styles.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+<main class="page">
+  <a href="./" style="font-family: var(--font-mono); font-size: 12px; color: var(--subtle); text-decoration: none;">← back to RFC index</a>
+  <span class="eyebrow">RFC · variation A</span>
+  <h1>Inline header selectors</h1>
+  <p class="lede">
+    Each user-controlled column gets its own dropdown <em>inside</em>
+    the table header. The 3rd column starts as a picker; click <code>+ compare more</code>
+    to reveal columns 4, 5, and 6 (each a fresh dropdown). The two
+    fixed columns (opchain, Claude defaults) never move and never get
+    a remove button.
+  </p>
+
+  <div class="table-wrap">
+    <table class="cmp" id="cmp">
+      <thead>
+        <tr id="thead-row">
+          <!-- Populated by JS: feature label cell + N column headers + add-column button -->
+        </tr>
+      </thead>
+      <tbody id="tbody"><!-- Populated by JS --></tbody>
+    </table>
+  </div>
+
+  <p class="note-strip">
+    UX note: dropdowns live in the table header, so when you swap a
+    platform the column re-renders in place. Removing a column shifts
+    the others left. The dashed <code>+ compare more</code> column is
+    visually quiet until you hover.
+  </p>
+</main>
+
+<script src="_data.js"></script>
+<script>
+  /* ════════════════════════════════════════════════════════════════
+   * Variation A — inline header selectors.
+   *
+   * State: an array of selected platform ids in display order. Always
+   * begins with the FIXED_ORDER ("opchain", "claude") and one initial
+   * selectable platform. The user adds up to MAX_ADDED extras.
+   * ════════════════════════════════════════════════════════════════ */
+  const { FEATURES, PLATFORMS, FIXED_ORDER, SELECTABLE, MAX_ADDED } = window.COMPARE_DATA;
+
+  // Initial selected: 2 fixed + 1 picked column (Cursor by default).
+  let selected = [...FIXED_ORDER, "cursor"];
+
+  function pickedExtras() {
+    return selected.slice(FIXED_ORDER.length);
+  }
+
+  function availableForSlot(currentId) {
+    // Anything that isn't already selected (except the slot's own id).
+    return SELECTABLE.filter(
+      (id) => id === currentId || !selected.includes(id),
+    );
+  }
+
+  function renderHead() {
+    const tr = document.getElementById("thead-row");
+    tr.innerHTML = "";
+
+    // Empty top-left for the row-label column.
+    const corner = document.createElement("th");
+    tr.appendChild(corner);
+
+    selected.forEach((id, idx) => {
+      const platform = PLATFORMS[id];
+      const th = document.createElement("th");
+      if (platform.accent) th.className = "me";
+
+      if (idx < FIXED_ORDER.length) {
+        // Fixed column header — no dropdown.
+        th.innerHTML = `<div class="col-head"><div class="head-row"><span>${platform.name}</span></div></div>`;
+      } else {
+        // User-picked column — dropdown + remove button.
+        const isSelectable = SELECTABLE.includes(id);
+        const opts = availableForSlot(id)
+          .map(
+            (optId) =>
+              `<option value="${optId}"${optId === id ? " selected" : ""}>${PLATFORMS[optId].name}</option>`,
+          )
+          .join("");
+        const reviewBadge = platform.needsReview
+          ? `<span class="review-badge" title="Confirm content before merge">review</span>`
+          : "";
+        th.innerHTML = `
+          <div class="col-head">
+            <div class="head-row">
+              <select data-slot="${idx}">${opts}</select>
+              <button type="button" class="col-remove" data-remove="${idx}" aria-label="Remove ${platform.name}">×</button>
+            </div>
+            ${reviewBadge}
+          </div>
+        `;
+      }
+      tr.appendChild(th);
+    });
+
+    // Add-column button column — only if under cap.
+    if (pickedExtras().length < MAX_ADDED) {
+      const th = document.createElement("th");
+      const remaining = SELECTABLE.filter((id) => !selected.includes(id)).length;
+      const disabled = remaining === 0 ? " disabled" : "";
+      th.innerHTML = `<button type="button" class="add-column-btn" id="add-col"${disabled}>+ compare more</button>`;
+      tr.appendChild(th);
+    }
+  }
+
+  function renderBody() {
+    const tbody = document.getElementById("tbody");
+    tbody.innerHTML = "";
+    FEATURES.forEach((feat) => {
+      const tr = document.createElement("tr");
+      const th = document.createElement("th");
+      th.scope = "row";
+      th.textContent = feat.label;
+      tr.appendChild(th);
+
+      selected.forEach((id) => {
+        const cell = PLATFORMS[id].cells[feat.id] || { v: "—", note: null };
+        const td = document.createElement("td");
+        if (PLATFORMS[id].accent) td.className = "me";
+        const noteHtml = cell.note ? `<span class="cell-note">${escapeHtml(cell.note)}</span>` : "";
+        td.innerHTML = `<span class="cell-v">${escapeHtml(cell.v)}</span>${noteHtml}`;
+        tr.appendChild(td);
+      });
+
+      // Empty cell under the add-column button.
+      if (pickedExtras().length < MAX_ADDED) {
+        const td = document.createElement("td");
+        td.className = "empty-col-cell";
+        td.textContent = "·";
+        tr.appendChild(td);
+      }
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  function rerender() {
+    renderHead();
+    renderBody();
+    wireEvents();
+  }
+
+  function wireEvents() {
+    document.querySelectorAll("[data-slot]").forEach((sel) => {
+      sel.addEventListener("change", (ev) => {
+        const slot = parseInt(sel.dataset.slot, 10);
+        selected[slot] = sel.value;
+        rerender();
+      });
+    });
+    document.querySelectorAll("[data-remove]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const slot = parseInt(btn.dataset.remove, 10);
+        selected.splice(slot, 1);
+        rerender();
+      });
+    });
+    const addBtn = document.getElementById("add-col");
+    if (addBtn) {
+      addBtn.addEventListener("click", () => {
+        const next = SELECTABLE.find((id) => !selected.includes(id));
+        if (!next) return;
+        selected.push(next);
+        rerender();
+      });
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"]/g, (c) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+    }[c]));
+  }
+
+  rerender();
+</script>
+</body>
+</html>

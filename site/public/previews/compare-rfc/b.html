@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Variation B — chip-tray picker · /compare RFC</title>
+<link rel="stylesheet" href="_styles.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+<main class="page">
+  <a href="./" style="font-family: var(--font-mono); font-size: 12px; color: var(--subtle); text-decoration: none;">← back to RFC index</a>
+  <span class="eyebrow">RFC · variation B</span>
+  <h1>Chip-tray picker</h1>
+  <p class="lede">
+    A persistent strip above the table shows every comparable platform
+    as a chip. Click chips to toggle them in or out — the table reflows
+    its columns to match. The two fixed columns (opchain, Claude
+    defaults) are always rendered and not toggleable.
+  </p>
+
+  <div class="chrome-bar">
+    <div class="chrome-label">Compare opchain + Claude defaults vs:</div>
+    <div class="chip-tray" id="chip-tray">
+      <!-- Populated by JS -->
+      <span class="chip-counter" id="counter"></span>
+      <button type="button" class="chip-reset" id="reset-btn">reset</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="cmp" id="cmp">
+      <thead>
+        <tr id="thead-row"><!-- Populated by JS --></tr>
+      </thead>
+      <tbody id="tbody"><!-- Populated by JS --></tbody>
+    </table>
+  </div>
+
+  <p class="note-strip">
+    UX note: the picker is always visible and shows everything at a
+    glance — useful when a visitor doesn't know what they want to
+    compare yet. Order in the table reflects chip-click order.
+  </p>
+</main>
+
+<script src="_data.js"></script>
+<script>
+  /* ════════════════════════════════════════════════════════════════
+   * Variation B — chip-tray picker.
+   *
+   * State: an ordered array of platform ids the user has toggled on.
+   * The two fixed columns always render first; selectedExtras follow
+   * in click order.
+   * ════════════════════════════════════════════════════════════════ */
+  const { FEATURES, PLATFORMS, FIXED_ORDER, SELECTABLE, MAX_ADDED } = window.COMPARE_DATA;
+
+  // Default selection: a couple of well-known options on by default so
+  // the table isn't empty on first render.
+  let selectedExtras = ["devin", "zed"];
+
+  function fullSelection() {
+    return [...FIXED_ORDER, ...selectedExtras];
+  }
+
+  function renderChips() {
+    const tray = document.getElementById("chip-tray");
+    // Clear all chips except the persistent counter + reset button.
+    tray.querySelectorAll("[data-chip]").forEach((el) => el.remove());
+
+    const counter = document.getElementById("counter");
+    const resetBtn = document.getElementById("reset-btn");
+
+    SELECTABLE.forEach((id) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.dataset.chip = id;
+      chip.dataset.selected = selectedExtras.includes(id) ? "true" : "false";
+      const reviewMark = PLATFORMS[id].needsReview ? ' <span class="review-badge">review</span>' : "";
+      chip.innerHTML = PLATFORMS[id].name + reviewMark;
+      chip.disabled = !selectedExtras.includes(id) && selectedExtras.length >= MAX_ADDED;
+      chip.title = chip.disabled ? `Max ${MAX_ADDED} extra columns — remove one first` : `Toggle ${PLATFORMS[id].name}`;
+      tray.insertBefore(chip, counter);
+    });
+
+    counter.textContent = `${selectedExtras.length} of ${MAX_ADDED} extra columns`;
+    resetBtn.style.display = selectedExtras.length > 0 ? "inline" : "none";
+  }
+
+  function renderTable() {
+    const cols = fullSelection();
+
+    const thead = document.getElementById("thead-row");
+    thead.innerHTML = "";
+    const corner = document.createElement("th");
+    thead.appendChild(corner);
+    cols.forEach((id) => {
+      const th = document.createElement("th");
+      if (PLATFORMS[id].accent) th.className = "me";
+      const reviewMark = PLATFORMS[id].needsReview ? ' <span class="review-badge">review</span>' : "";
+      th.innerHTML = PLATFORMS[id].name + reviewMark;
+      thead.appendChild(th);
+    });
+
+    const tbody = document.getElementById("tbody");
+    tbody.innerHTML = "";
+    FEATURES.forEach((feat) => {
+      const tr = document.createElement("tr");
+      const th = document.createElement("th");
+      th.scope = "row";
+      th.textContent = feat.label;
+      tr.appendChild(th);
+
+      cols.forEach((id) => {
+        const cell = PLATFORMS[id].cells[feat.id] || { v: "—", note: null };
+        const td = document.createElement("td");
+        if (PLATFORMS[id].accent) td.className = "me";
+        const noteHtml = cell.note ? `<span class="cell-note">${escapeHtml(cell.note)}</span>` : "";
+        td.innerHTML = `<span class="cell-v">${escapeHtml(cell.v)}</span>${noteHtml}`;
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  function rerender() {
+    renderChips();
+    renderTable();
+    wireEvents();
+  }
+
+  function wireEvents() {
+    document.querySelectorAll("[data-chip]").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const id = chip.dataset.chip;
+        if (selectedExtras.includes(id)) {
+          selectedExtras = selectedExtras.filter((s) => s !== id);
+        } else {
+          if (selectedExtras.length >= MAX_ADDED) return;
+          selectedExtras.push(id);
+        }
+        rerender();
+      });
+    });
+    document.getElementById("reset-btn").onclick = () => {
+      selectedExtras = [];
+      rerender();
+    };
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"]/g, (c) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+    }[c]));
+  }
+
+  rerender();
+</script>
+</body>
+</html>
