@@ -93,6 +93,59 @@ All 18, in lockstep. Catalog-wide-lockstep rule (semver-decisions.md
 - [ ] Approve / override semver: **v1.3.0** ← proposed
 - [ ] Approve / edit theme: **"Runtime PM, real platforms, automated releases"** ← proposed
 - [ ] Approve headline ranking ← proposed above
+
+## Risks for this release
+
+| # | Risk | Likelihood | Impact | Mitigation |
+|---|---|---|---|---|
+| R1 | Downstream consumers vendoring v1.2 prose hit the validator failing on legacy \`mcp.<provider>.<verb>\` placeholders | MED | MED | Documented in /changelog migration note; validator emits clear error pointing at the search-replace command |
+| R2 | release-ops itself has a subtle bug (it's brand-new); a mistake here is a release-on-release-ops bug | LOW | HIGH | Sprint 4 evaluator passed at 95+; manual dogfood rehearsal completed on a tag-and-revert branch before this proposed real run |
+| R3 | The 18-skill atomic version bump misses a file | LOW | MED | gen-catalog validates the bump end-to-end; CI fails if any SKILL.md is still on v1.2.0 after the bump commit |
+| R4 | Linear ADEV-306 (the parent ticket) isn't found by the pre-create check due to marker drift | LOW | LOW | Pre-create check confirmed via dry-run during \`/release plan\`; idempotent re-runs are safe |
+| R5 | Cloudflare deploy from staging → prod takes longer than expected and the window slips | LOW | LOW | Manual operator workflow per CLAUDE.md; no automation involved; release can be paused at any point |
+
+## Rollback plan
+
+If post-release regression observed within 30 minutes:
+
+\`\`\`bash
+# 1. Revert the release tag
+git push origin :refs/tags/v1.3.0
+# 2. Restore all 18 SKILL.md to v1.2.0
+git revert <release-bump-sha>
+# 3. Re-deploy v1.2.0 to prod
+npm run deploy
+# 4. Surface the rollback on /changelog (next release adds a "v1.3 deferred" note)
+\`\`\`
+
+The skill bump is the only invasive change; reverting the SHA restores all 18 skills atomically.
+
+## Cadence vs prior
+
+| Release | Date | Days since prior | Lines diff | Contributors |
+|---|---|---:|---:|---:|
+| v1.0 | 2026-02-08 | — | 28,142 (initial) | 1 |
+| v1.1 | 2026-03-15 | 35 | 4,201 | 1 |
+| v1.2 | 2026-05-05 | 51 | 6,418 | 1 |
+| **v1.3 (proposed)** | **2026-05-11** | **6** | **8,917** | **1** |
+
+v1.3 is the fastest cadence yet — six days after v1.2 — because release-ops itself landed Sprint 2 and finished evaluator on Sprint 4 quickly. Future cadence should normalise to 2-4 weeks per release.
+
+## What's in this release
+
+- **1 new skill** (\`release-ops\` — the 18th)
+- **4 new platforms** in stack-forge's matrix (Django/Render, Rails/Heroku, Go/Fly, Rust/Shuttle)
+- **3 new scenarios** (\`runtime-pm-loop\`, \`release-ops-dogfood\`, \`django-render-shipped\`)
+- **3 new reference docs** (pm-mcp-protocol.md, semver-decisions.md, version-locations.md, changelog-recipe.md)
+- **1 new validator** (\`scripts/validate-pm-mcp.mjs\`)
+- **2 new flags** (\`skills.registry.release-ops.enabled\`, \`skills.command.release.enabled\`)
+
+## Open questions
+
+- Do we wait for any v1.2 dogfood feedback before cutting v1.3? (Sprint-4 checkpoint says we've heard from 2 design partners; no blockers.)
+- Should the v1.3 announcement explicitly invite v1.2 fork-vendors to upgrade? (Recommendation: yes — soft mention in §"Compatibility".)
+
+Checkpoint: \`.checkpoints/release-ops.checkpoint.json\` (Phase 1 — plan).
 `,
     },
     {
@@ -197,9 +250,41 @@ The v1.2 entry's class flipped from \`release release--current\` to
 \`release\`, and its tag from \`rel-tag\` to \`rel-tag rel-tag--past\` — the
 existing CSS in changelog.astro recognises both classes.
 
-User decisions:
+## Reading the change (markdown preview)
+
+Same content rendered as the reader will see it, minus the Astro chrome:
+
+> ### v1.3 — Runtime PM, real platforms, automated releases · 2026-05-11
+>
+> opchain v1.3 makes the v1.2 PM-MCP prose executable end-to-end, expands the platform menu beyond JS / Cloudflare, and ships \`release-ops\` — the 18th skill — to automate the "scope → /changelog → bump → ship" cadence opchain uses for itself.
+>
+> **What's new**
+>
+> - **The PM-MCP loop is real.** v1.2 taught the skills to *describe* PM-tool calls; v1.3 actually invokes them. Concrete tool-name registry, retry / backoff, idempotency markers, and a deferred-action queue mean the four PM-aware skills (\`app-architect\`, \`git-ops\`, \`deploy-ops\`, \`monitoring-ops\`) can crash-restart mid-flow without polluting Linear / Jira / GitHub Issues.
+> - **\`release-ops\` is the 18th skill.** Verbs: \`/release plan|draft|bump|announce|ship\`. Reads every skill's checkpoint to propose the next semver, drafts the changelog entry from sprint outputs, atomically bumps all skill versions, opens a release ticket via PM-MCP, hands off to \`git-ops\` for the merge and \`deploy-ops\` for staging + prod.
+> - **Platform menu grew.** Django + Postgres + Render, Rails + Postgres + Heroku, Go + Fly.io, and Rust + Axum + Shuttle.rs are first-class in \`stack-forge\`'s decision tree, \`app-architect\`'s scaffold recipes, and \`deploy-ops\`'s provider sections.
+> - **Build-time PM-MCP validator.** \`scripts/validate-pm-mcp.mjs\` runs in \`npm run prebuild\` and CI; blocks the build on placeholder drift, missing protocol citations, or unknown tool names.
+>
+> **Three new scenarios** — runtime-pm-loop (v1.3 hero), release-ops-dogfood, django-render-shipped.
+>
+> **Configuration** — v1.3 adds \`tool_overrides\` to \`.opchain/pm.yaml\` for brokered / regulated MCP environments and an \`extended\` map under \`states\` for deploy / incident workflow names.
+>
+> **Compatibility** — back-compatible with v1.2. No migration steps required. The validator's first run will fail-closed if any of the 5 PM-aware SKILL.md files still carry the legacy \`mcp.<provider>.<verb>\` placeholder; if you forked v1.2 prose, search-replace those before upgrading.
+
+## Migration notes (downstream vendors)
+
+For anyone vendoring opchain into their own repo:
+
+- **Forks of \`integrations-engineer\`, \`app-architect\`, \`git-ops\`, \`deploy-ops\`, or \`monitoring-ops\`:** v1.3's \`validate-pm-mcp\` script will fail your CI on \`mcp\\.<provider>\\.<verb>\` placeholders. Fix: search-replace those with concrete tool names from \`integrations-engineer/references/pm-mcp-protocol.md §1\`. Time: ~5 min per skill if you haven't customised the prose.
+- **Custom MCP servers in your \`.opchain/pm.yaml\`:** \`tool_overrides\` is the new escape hatch — point specific operations at your corp-prefixed MCP tool names. See the \`runtime-pm-loop\` scenario \`pm-yaml\` artifact for the shape.
+- **Checkpoint schema:** v1.3 adds \`pm_deferred_actions[]\` and \`pm_flush_log[]\` to several skill checkpoints. These are additive; v1.2 checkpoints continue to validate against the v1.3 schema.
+
+## User decisions
+
 - [ ] Approve as-is
 - [ ] Edit any bullet (release-ops will accept a counter-draft)
+
+Checkpoint: \`.checkpoints/release-ops.checkpoint.json\` (Phase 2 — draft).
 `,
     },
     {
@@ -228,6 +313,37 @@ Atomic single-batch write. Either all-or-nothing.
 \`\`\`
 release-ops: bumped 18 skill versions + styleguide + homepage pill in 142ms
 \`\`\`
+
+## Per-skill bump table
+
+Atomic write — all 18 files committed in one diff. \`last_modified\` is the file's mtime at the moment of the bump; useful to confirm the batch was atomic.
+
+| # | Path | v1.2.0 → v1.3.0 | last_modified |
+|---|---|---|---|
+| 1 | \`skills/app-architect/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 2 | \`skills/bug-check/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 3 | \`skills/checkpoint-protocol/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 4 | \`skills/code-auditor/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 5 | \`skills/dash-forge/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 6 | \`skills/deploy-ops/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 7 | \`skills/git-ops/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 8 | \`skills/integrations-engineer/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 9 | \`skills/migration-ops/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 10 | \`skills/monitoring-ops/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 11 | \`skills/orchestrator/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 12 | \`skills/release-ops/SKILL.md\` | (new at v1.3.0) | 2026-05-11T08:14:02Z |
+| 13 | \`skills/reverse-spec/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 14 | \`skills/scale-ops/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 15 | \`skills/security-auditor/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 16 | \`skills/stack-forge/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 17 | \`skills/ux-engineer/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+| 18 | \`skills/api-dev/SKILL.md\` | ✓ | 2026-05-11T08:14:02Z |
+
+## Atomicity proof
+
+The 18 SKILL.md files are bumped in **one git commit**, not 18. If the commit fails (lint failure, validator failure, anything), git's atomic-write semantics mean none of the files change — we're never in a half-bumped state.
+
+If the commit succeeds but the bump introduces a regression (e.g. one skill's v1.3.0 frontmatter is malformed), the next \`/release verify\` step catches it before the release proceeds. The bump can be reverted with a single \`git revert <bump-sha>\`.
 
 ## What was NOT bumped
 
@@ -314,6 +430,43 @@ release-ops is in flight. See pipeline note in release-ops SKILL.md).
 Transitioned: Shipped.
 \`\`\`
 
+## Dependencies in this release
+
+ADEV-307 through ADEV-310 are the four sprint child tickets that landed under ADEV-306. Each is a 1-line summary of what landed:
+
+- **ADEV-307 — Sprint 1: release-ops skill** — verbs, references, checkpoint schema, validator
+- **ADEV-308 — Sprint 2: PM-MCP runtime (deferred-action queue + idempotency markers)**
+- **ADEV-309 — Sprint 3: platform-matrix expansion + three new platform scenarios**
+- **ADEV-310 — Sprint 4: dogfood-rehearsal + /changelog draft + QA pass**
+
+All four are in \`Done\` state as of this release-ticket transition to \`Shipped\`.
+
+## Announcement plan
+
+| Audience | Channel | Cadence | Who sends |
+|---|---|---|---|
+| Internal team (just me, today) | Slack DM to self | T+0 (immediately on ship) | release-ops auto |
+| /changelog readers | opchain.dev/changelog | T+0 (auto, part of ship) | deploy-ops auto |
+| Design partners (the 2 v1.2 dogfood firms) | Email | T+1d | Founder manual |
+| Public (blog + social) | opchain.dev/blog + LinkedIn + Twitter | T+2-3d | Founder manual |
+| GitHub Releases | github.com/asfbay-bit/opchain/releases | T+0 (auto, after merge) | release-ops auto |
+
+## Activity log (ADEV-306)
+
+\`\`\`
+2026-05-07 09:00  founder  ADEV-306 created (Release, In Progress)
+2026-05-07 09:01  founder  description marker added: <!-- opchain:release-ops:release-ticket:v1.3.0 -->
+2026-05-07 09:14  app-architect  /discover --ticket ADEV-306 → 4-sprint plan
+2026-05-07 09:42  app-architect  child tickets created: ADEV-307..310
+2026-05-08-09    (Sprints 1-4 execute; checkpoints update)
+2026-05-11 08:12  release-ops  /release plan run; proposed v1.3.0
+2026-05-11 08:14  release-ops  /release bump committed
+2026-05-11 11:18  release-ops  /release announce — bump-committed comment posted
+2026-05-11 11:24  deploy-ops    staging shipped comment posted
+2026-05-11 11:31  deploy-ops    prod shipped comment posted
+2026-05-11 11:31  release-ops   ADEV-306 transitioned → Shipped
+\`\`\`
+
 ## What this proves
 
 - **The pre-create check works** — \`list_issues\` with the marker query
@@ -323,6 +476,8 @@ Transitioned: Shipped.
 - **Cross-skill state respected** — release-ops checks
   \`deploy-ops.checkpoint.json\` to decide whether deploy-ops should
   also create its own deploy ticket (no, when a release is in flight).
+
+Checkpoint: \`.checkpoints/release-ops.checkpoint.json\` (Phase 4 — announce).
 `,
     },
     {
@@ -332,42 +487,105 @@ Transitioned: Shipped.
       body:
 `# Internal announcement — opchain v1.3.0 shipped
 
-(release-ops generates this as \`releases/v1.3.0/announcement-internal.md\`.)
+(release-ops generates this as \`releases/v1.3.0/announcement-internal.md\`. The external/blog version is at \`releases/v1.3.0/announcement-external.md\` with similar shape, blog/social tone, no internal jargon.)
 
 ---
 
 **opchain v1.3.0 — Runtime PM, real platforms, automated releases**
+Shipped 2026-05-11 ~11:31Z (~07:31 PT) from \`opchain.dev\` (Cloudflare Worker).
+Tag: \`v1.3.0\` · SHA: \`8f3c7d2\` · Release ticket: [ADEV-306](https://linear.app/asfbay/issue/ADEV-306)
 
-Shipped 2026-05-11 ~11:30 PT.
+## TL;DR
 
-**The headline:** v1.2's PM-MCP prose is now real runtime. Linear /
-Jira / GitHub Issues calls actually fire from app-architect, git-ops,
-deploy-ops, monitoring-ops; concrete tool names, retry/backoff,
-idempotency markers, deferred-action queue. The runtime-pm-loop
-scenario at /demo#runtime-pm-loop walks the full thing on a single
-Linear thread — ticket → branch → PR → staging → prod → incident →
-postmortem.
+v1.2 taught the opchain skills to talk *about* PM tools; v1.3 makes them actually call PM-tool MCPs at runtime with idempotency markers + a deferred-action queue. We added a new skill (\`release-ops\`, the 18th) that automates the release cadence; four new platforms in stack-forge; three new demo scenarios. Back-compat with v1.2 — drop-in.
 
-**The new skill:** release-ops (the 18th). Verbs:
-\`/release plan|draft|bump|announce|ship\`. Reads sprint checkpoints,
-proposes semver, drafts the /changelog entry, bumps every skill
-version atomically, opens the release ticket. We dogfooded it on
-this very release — the /release-ops-dogfood scenario at
-/demo#release-ops-dogfood is the actual transcript.
+## Headlines
 
-**The expansion:** opchain stops being Cloudflare-only on the page.
-Django + Render, Rails + Heroku, Go + Fly.io, and Rust + Axum +
-Shuttle.rs are first-class — stack-forge recommends them, scaffold
-recipes exist, deploy-ops has provider sections per platform.
+### 1. The PM-MCP loop is real
 
-**Compatibility:** back-compat with v1.2. The validator
-(\`scripts/validate-pm-mcp.mjs\`) blocks the build if any v1.2-flavored
-\`mcp.<provider>.<verb>\` placeholders remain — search-replace if you
-forked v1.2 prose.
+In v1.2, the four PM-aware skills (\`app-architect\`, \`git-ops\`, \`deploy-ops\`, \`monitoring-ops\`) had prose that *described* PM-tool calls. A Claude session reading the prose would guess at tool names (\`mcp.<provider>.<verb>\`). In v1.3, that prose is replaced by a concrete tool-name registry in \`integrations-engineer/references/pm-mcp-protocol.md §1\` plus a runtime mechanism: every comment carries a stable idempotency marker (\`<!-- opchain:<skill>:<event>:<id> -->\`), every write goes through a marker pre-check, retries short-circuit, and failures land in a deferred-action queue that's safe to flush later.
 
-Full changelog: https://opchain.dev/changelog#v1.3
+The result: the runtime-pm-loop demo scenario at \`/demo#runtime-pm-loop\` walks a real Linear ticket end-to-end — file the bug → \`/git-sync\` → audit → \`/deploy staging\` → \`/deploy prod\` (with a transient Linear 503 mid-deploy, queued + flushed cleanly) → incident → postmortem. Six skills, one Linear thread, audit-ready.
+
+### 2. \`release-ops\` is the 18th skill
+
+Verbs: \`/release plan|draft|bump|announce|ship\`. \`plan\` reads every skill's checkpoint to propose the next semver from a decision tree; \`draft\` generates the \`/changelog\` entry; \`bump\` atomically rewrites all 18 SKILL.md frontmatter versions plus the styleguide badge plus the homepage release-pill; \`announce\` opens the release ticket and emits the announcement copy; \`ship\` hands off to git-ops + deploy-ops with the audit gate cached. We dogfooded it on this very release — the \`/demo#release-ops-dogfood\` scenario is the actual transcript.
+
+### 3. Platform menu grew beyond Cloudflare
+
+Django + Postgres + Render, Rails + Postgres + Heroku, Go + Fly.io, and Rust + Axum + Shuttle.rs are first-class in stack-forge's decision tree, app-architect's scaffold recipes, and deploy-ops's provider sections. The \`django-render-shipped\` demo scenario walks the full path for a solo founder building a B2B invoicing tool — two weeks ideation to first paying customer.
+
+### 4. Build-time PM-MCP validator
+
+\`scripts/validate-pm-mcp.mjs\` runs in \`npm run prebuild\` and CI. Blocks the build if any v1.2-flavored \`mcp\\.<provider>\\.<verb>\` placeholders remain, if any \`SKILL.md\` references an unknown tool name, or if the PM-MCP protocol citation is missing.
+
+## Who's affected
+
+| Segment | Impact | Action |
+|---|---|---|
+| opchain end users (fresh install) | nothing changes; v1.3 is the default | \`opchain install\` pulls v1.3.0 |
+| opchain end users (vendored copy) | back-compat; the validator might complain on first run if your fork still has v1.2 prose | Run \`npm run validate-pm-mcp\` once after pulling v1.3; fix flagged files; re-run |
+| Contributors | new skill in the catalog; new reference doc to skim | \`skills/release-ops/SKILL.md\` + the three new reference docs in \`integrations-engineer/references/\` |
+| Downstream skill consumers (extensions, integrations) | checkpoint schema added \`pm_deferred_actions[]\` and \`pm_flush_log[]\`; additive, no breaking change | No action required; new fields are optional |
+
+## Migration steps
+
+**None.** v1.3 is back-compatible with v1.2.
+
+**But:** run \`npm run validate-pm-mcp\` once after pulling v1.3 to detect legacy v1.2 prose drift in your fork (if any). Time: < 30s.
+
+## Breaking changes
+
+**None in this release.**
+
+We considered making \`tool_overrides\` mandatory but deferred — making it optional keeps the OSS install path zero-config.
+
+## Kudos / contributors
+
+Solo dev; that's me, founder. The dogfooding milestone (release-ops shipping its own release) is a small ceremonial moment for the project. Future releases will list contributors as we add them.
+
+## Links
+
+- **Full changelog:** https://opchain.dev/changelog#v1.3
+- **Runtime PM demo:** https://opchain.dev/demo#runtime-pm-loop
+- **Release-ops dogfood demo:** https://opchain.dev/demo#release-ops-dogfood
+- **Django + Render demo:** https://opchain.dev/demo#django-render-shipped
+- **Install / upgrade:** https://opchain.dev/install
+- **PM-MCP protocol reference:** https://opchain.dev/docs/integrations-engineer/references/pm-mcp-protocol.md
+- **GitHub release:** https://github.com/asfbay-bit/opchain/releases/tag/v1.3.0
+
+## FAQ
+
+**Q: Do I need to upgrade my MCP servers?**
+A: No. v1.3 uses the same MCP servers v1.2 did. The new tool-name registry maps to existing tool names exposed by Anthropic's Linear / Atlassian / GitHub MCPs.
+
+**Q: Does v1.3 require a checkpoint migration?**
+A: No. v1.3's checkpoint schema is additive; v1.2 checkpoints continue to validate.
+
+**Q: Will my existing fork keep working?**
+A: Yes, with one caveat — \`validate-pm-mcp\` will block your build if your fork still carries v1.2-flavored \`mcp.<provider>.<verb>\` placeholders. Search-replace is fast (~5 min per skill); the protocol reference doc shows the mapping table.
+
+**Q: When's v1.4?**
+A: TBD. Probable themes: deeper IDE integrations + multi-language scaffold recipes. No firm timeline.
+
+**Q: Where do I report bugs?**
+A: GitHub Issues at https://github.com/asfbay-bit/opchain/issues; tag with \`type:bug\` and the version (\`version:1.3.0\`).
+
+## Comms cadence
+
+- **Now:** this announcement is auto-posted as a comment on ADEV-306 and goes live on opchain.dev/changelog.
+- **T+1d:** founder emails the 2 design-partner firms (manual, personalised).
+- **T+2-3d:** blog post lives at opchain.dev/blog; LinkedIn + Twitter posts.
+- **T+1w:** founder reviews any v1.3 feedback in the issue tracker; updates this announcement with FAQ additions if any pattern emerges.
+
+## Contact
+
+- GitHub: https://github.com/asfbay-bit/opchain
+- Email: hi@opchain.dev (read same-day weekdays)
 
 — release-ops (on behalf of opchain)
+
+Checkpoint: \`.checkpoints/release-ops.checkpoint.json\` (Phase 4 — announce).
 `,
     },
     {
@@ -441,6 +659,62 @@ Every line that wrote to a Linear ticket carries a marker. A re-run
 of \`/release ship\` would match all markers and short-circuit, so the
 release process is **safe to retry on partial failure** — exactly
 what protocol §3 + §4 promise.
+
+## Post-ship verification (founder hand-run)
+
+\`\`\`
+[founder] post-ship sentinel — 6 checks, all manual, all run within 5 min of prod ship
+
+1. /api/health returns the new SHA
+   $ curl -fsS https://opchain.dev/api/health | jq -r '.version'
+   8f3c7d2                                                          ✓
+
+2. Cloudflare deployments list confirms the latest deployment
+   $ npx wrangler deployments list | head -3
+   8f3c7d2  2026-05-11 11:31:02Z  opchain-dev (production)          ✓
+
+3. Linear ADEV-306 is in Shipped state
+   $ <browser> https://linear.app/asfbay/issue/ADEV-306
+   state: Shipped                                                    ✓
+
+4. GitHub Releases shows v1.3.0
+   $ <browser> https://github.com/asfbay-bit/opchain/releases/tag/v1.3.0
+   tag: v1.3.0 · published: 2026-05-11 · 0 assets                    ✓
+
+5. /changelog page renders v1.3 entry
+   $ curl -fsS https://opchain.dev/changelog | grep -c 'v1.3'
+   2                                                                 ✓ (rel-tag + h2)
+
+6. /install page reflects the new version
+   $ curl -fsS https://opchain.dev/install | grep -c '1.3.0'
+   1                                                                 ✓
+\`\`\`
+
+All 6 PASS. Post-ship hand-off complete.
+
+## Sentry / monitoring confirmation (first 30 min)
+
+\`\`\`
+[monitoring-ops] 30-min post-ship sentinel
+  - Cloudflare Workers Analytics: requests ~baseline (12/min)         no anomalies
+  - Sentry: 0 new issues tagged version=8f3c7d2                       no anomalies
+  - PostHog: pageviews on /demo + /changelog up ~10% (expected announcement bump)
+  - GitHub: 1 new star, 0 issues filed                                no anomalies
+  → sentinel clean
+\`\`\`
+
+## Retry semantics
+
+If \`/release ship\` is re-run by mistake or after partial failure:
+
+- **All Linear writes** match their existing markers → no-op.
+- **The release tag** already exists → git push refuses; release-ops surfaces "tag exists; assuming already shipped" and proceeds to post-ship verification only.
+- **The deploy** is idempotent at the Cloudflare layer (wrangler deploy of the same SHA is a no-op).
+- **Net effect:** re-running \`/release ship\` is safe; nothing duplicates; the worst case is wasted seconds running the post-ship verification a second time.
+
+If a comment-post fails mid-flush (Linear 503), the deferred-action queue catches it; \`/release ship --retry-pm\` flushes once Linear recovers.
+
+Checkpoint: \`.checkpoints/release-ops.checkpoint.json\` (Phase 5 — shipped).
 `,
     },
   ],
