@@ -119,7 +119,7 @@ test.describe("demo modal — TOC scroll + flash", () => {
 
     // The class is removed by the time the 4s animation ends. Give
     // the runtime a 600ms slack window for animation+timeout drift.
-    await expect(heading).not.toHaveClass(/is-flash-heading/, { timeout: 4600 });
+    await expect(heading).not.toHaveClass(/is-flash-heading/, { timeout: 5000 });
   });
 
   test("re-clicking the same TOC link re-fires the flash", async ({ page }) => {
@@ -137,7 +137,7 @@ test.describe("demo modal — TOC scroll + flash", () => {
 
     // Wait for the class to clear, then re-click and assert the class
     // is back. This is the "force reflow → re-trigger" path.
-    await expect(heading).not.toHaveClass(/is-flash-heading/, { timeout: 4600 });
+    await expect(heading).not.toHaveClass(/is-flash-heading/, { timeout: 5000 });
 
     await link.click();
     await expect(heading).toHaveClass(/is-flash-heading/);
@@ -173,6 +173,6 @@ test.describe("demo modal — TOC under reduced motion", () => {
 
     // Under reduced motion the keyframes don't run, so animationend
     // never fires. The JS falls back to a 4s setTimeout cleanup.
-    await expect(heading).not.toHaveClass(/is-flash-heading/, { timeout: 4600 });
+    await expect(heading).not.toHaveClass(/is-flash-heading/, { timeout: 5000 });
   });
 });

@@ -446,14 +446,18 @@ const artifacts = walkthroughs.flatMap((w) =>
      * Apply an ember flash highlight to a heading so a TOC-driven scroll
      * lands with a 4-second visual confirmation. Force-reflow before
      * adding the class so re-clicking the same link restarts the
-     * animation. Cleanup happens on `animationend`; under reduced-motion
-     * the animation never fires so we fall back to a setTimeout with the
-     * same 4-second budget.
+     * animation. Cleanup is belt-and-suspenders: an `animationend`
+     * listener fires under normal conditions, and a setTimeout safety
+     * net guarantees the class is cleared even in environments where
+     * the animation is optimised out (headless browsers in CI, some
+     * accessibility modes). Whichever fires first wins; the second
+     * call is idempotent.
      */
     const FLASH_CLASS = 'is-flash-heading';
     const FLASH_DURATION_MS = 4000;
-    const prefersReducedMotion =
-      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+    /* Safety-net runs slightly after the animation so animationend gets
+       a chance under normal conditions before the timeout intervenes. */
+    const FLASH_CLEANUP_BUDGET_MS = FLASH_DURATION_MS + 150;
 
     function flashHeading(target) {
       if (!target) return;
@@ -463,18 +467,14 @@ const artifacts = walkthroughs.flatMap((w) =>
       void target.offsetWidth;
       target.classList.add(FLASH_CLASS);
 
-      const reduced = !!(prefersReducedMotion && prefersReducedMotion.matches);
-      if (reduced) {
-        // No keyframes will fire; clear after the same 4s budget.
-        window.setTimeout(() => {
-          target.classList.remove(FLASH_CLASS);
-        }, FLASH_DURATION_MS);
-      } else {
-        // animationend fires once for the single forward-running keyframe.
-        target.addEventListener('animationend', () => {
-          target.classList.remove(FLASH_CLASS);
-        }, { once: true });
-      }
+      let cleared = false;
+      const clear = () => {
+        if (cleared) return;
+        cleared = true;
+        target.classList.remove(FLASH_CLASS);
+      };
+      target.addEventListener('animationend', clear, { once: true });
+      window.setTimeout(clear, FLASH_CLEANUP_BUDGET_MS);
     }
 
     function buildToc() {
