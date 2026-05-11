@@ -60,6 +60,7 @@ const updatedLabel = updatedIso
 const triAgentEnabled = isCapabilityEnabled("tri-agent");
 const checkpointProtocolEnabled = isCapabilityEnabled("checkpoint-protocol");
 const installZipEnabled = defaultFor("site.feature.install-zip-download") as boolean;
+const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
 const visibleCommands = (skill.data.commands as string[]).filter(isCommandEnabled);
 
 // 18 — Prev / next skill nav. Catalog ordered by role (the same
@@ -174,6 +175,18 @@ const consumers = isFoundational
             </Button>
           </div>
         )}
+        <div class="related-row">
+          {demoEnabled && (
+            <a class="related-link" href={`/demo?skill=${skill.data.name}#workbench`}>
+              <Icon name="sparkles" size={12} />
+              see it run in the demo
+            </a>
+          )}
+          <a class="related-link" href={`/changelog#${skill.data.name}`}>
+            <Icon name="refresh-cw" size={12} />
+            what changed in this skill
+          </a>
+        </div>
       </Card>
     </section>
 
@@ -868,6 +881,28 @@ const consumers = isFoundational
     gap: 0.4rem;
     margin-top: 0.25rem;
   }
+  /* Cross-links from the "Get this skill" card — demo deep-link +
+     changelog anchor. Surface the related context without crowding the
+     primary download CTA. */
+  .related-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    margin-top: 0.7rem;
+    padding-top: 0.6rem;
+    border-top: 0.5px dashed var(--border);
+  }
+  .related-link {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    color: var(--muted);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .related-link:hover { color: var(--accent); }
 
   .usage {
     margin-bottom: 2.5rem;
@@ -1446,16 +1481,17 @@ const consumers = isFoundational
     color: var(--subtle);
     text-decoration: none;
     border-left: 2px solid transparent;
-    /* LHCI target-size: previous attempt used inline-block with 4px
-       padding (~27.6px box). Lighthouse still flagged the links —
-       likely because adjacent li margins shrink the effective offset
-       below the 24px threshold. Switched to display: block so each
-       link spans the full rail width (clear horizontal target) and
-       bumped padding to 6px top/bottom so the box is ~31.6px tall.
-       Dropped the inline-block-era negative margin since the block
-       link no longer needs the visual pull-back. */
-    display: block;
-    padding: 6px 0 6px 0.55rem;
+    /* LHCI target-size (ADEV-339): prior attempts (inline-block 4px,
+       then block 6px) gave a ~31.6px-tall box — over WCAG 2.5.8 AA's
+       24x24 threshold, but Lighthouse still flagged the links. The
+       defensive fix targets 2.5.5 AAA (44x44): explicit min-height
+       with flex centering so the click target is unambiguously 44px
+       tall regardless of how the audit measures it. The text's
+       visual weight doesn't change — only the hit area grows. */
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 4px 0 4px 0.55rem;
     transition:
       color var(--dur-base) var(--ease-standard),
       border-color var(--dur-fast) var(--ease-standard);

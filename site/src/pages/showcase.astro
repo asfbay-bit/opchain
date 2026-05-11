@@ -1,0 +1,453 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Card from "../components/ui/Card.astro";
+import Icon from "../components/Icon.astro";
+
+interface Project {
+  name: string;
+  blurb: string;
+  url?: string;
+  stack: string[];
+  skills: string[];
+  byline: string;
+  shipped: string;
+}
+
+// Curated initial set. As real submissions come in we'll backfill from
+// KV + a moderation pass.
+const projects: Project[] = [
+  {
+    name: "opchain.dev",
+    blurb: "The site you're on — marketing surface and skill showcase for opchain itself. Dogfooded end-to-end.",
+    url: "https://opchain.dev",
+    stack: ["Astro 5", "Cloudflare Workers", "Tailwind 4"],
+    skills: ["app-architect", "ux-engineer", "code-auditor", "deploy-ops"],
+    byline: "the opchain team",
+    shipped: "2026-02",
+  },
+];
+---
+
+<Base
+  title="Showcase · opchain"
+  description="Real projects shipped with opchain — what got built, on what stack, with which skills. Submit yours."
+  active="/"
+>
+  <main class="page">
+    <div class="page-head">
+      <div>
+        <Eyebrow>showcase</Eyebrow>
+        <h1>Built with opchain.</h1>
+      </div>
+      <a href="#submit" class="submit-cta">
+        <Icon name="arrow-right" size={12} />
+        submit yours
+      </a>
+    </div>
+
+    <p class="lede">
+      Real projects, real stacks. Each card lists the skills that did
+      the heavy lifting and the stack they ran on — useful if you're
+      sizing up whether opchain fits a project that looks like yours.
+    </p>
+
+    {projects.length === 1 && (
+      <p class="seeding">
+        We're seeding this gallery. Be the second listing.
+      </p>
+    )}
+
+    <section class="grid">
+      {projects.map((p) => (
+        <article class="proj">
+          <header class="proj-head">
+            <h2>{p.name}</h2>
+            <span class="proj-date">{p.shipped}</span>
+          </header>
+          <p class="proj-blurb">{p.blurb}</p>
+          <dl class="proj-meta">
+            <dt>Stack</dt>
+            <dd>
+              {p.stack.map((s, i) => (
+                <>
+                  {i > 0 && <span class="sep"> · </span>}
+                  <span class="stack-tag">{s}</span>
+                </>
+              ))}
+            </dd>
+            <dt>Skills</dt>
+            <dd class="skills-row">
+              {p.skills.map((s, i) => (
+                <>
+                  {i > 0 && <span class="sep"> · </span>}
+                  <a href={`/skills/${s}`} class="skill-tag">{s}</a>
+                </>
+              ))}
+            </dd>
+            <dt>By</dt>
+            <dd>{p.byline}</dd>
+          </dl>
+          {p.url && (
+            <a class="proj-link" href={p.url} rel="noopener">
+              visit <Icon name="arrow-right" size={12} />
+            </a>
+          )}
+        </article>
+      ))}
+    </section>
+
+    <section class="submit" id="submit">
+      <Card variant="surface" glow={false}>
+        <Eyebrow>submit</Eyebrow>
+        <h2>Show us what you shipped.</h2>
+        <p>
+          Drop a link and a one-liner. We'll write the card in your voice
+          (you'll see it before it goes live) and add it to the gallery.
+          Email is required so we can confirm authorship; everything else
+          is optional but makes the entry stronger.
+        </p>
+
+        <form class="form" id="showcase-form" autocomplete="on">
+          <label class="field">
+            <span class="label">Email</span>
+            <input
+              type="email"
+              name="email"
+              id="sc-email"
+              placeholder="you@example.com"
+              required
+              autocomplete="email"
+              inputmode="email"
+            />
+          </label>
+
+          <label class="field">
+            <span class="label">Project name + one-liner</span>
+            <input
+              type="text"
+              name="building"
+              id="sc-name"
+              placeholder="Acme Tasks — focus mode for ADHD freelancers"
+              maxlength="280"
+              required
+            />
+          </label>
+
+          <div class="field-row">
+            <label class="field">
+              <span class="label">Role <span class="opt">(optional)</span></span>
+              <select name="role" id="sc-role">
+                <option value="">—</option>
+                <option value="engineer">Engineer</option>
+                <option value="engineering-manager">Engineering Manager</option>
+                <option value="product-manager">Product Manager</option>
+                <option value="designer">Designer</option>
+                <option value="founder">Founder</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="label">Team size <span class="opt">(optional)</span></span>
+              <select name="teamSize" id="sc-team">
+                <option value="">—</option>
+                <option value="solo">Solo</option>
+                <option value="2-5">2–5</option>
+                <option value="6-20">6–20</option>
+                <option value="21-plus">21+</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="form-status" id="sc-status" hidden>
+            <span id="sc-status-msg"></span>
+          </div>
+
+          <div class="form-foot">
+            <button type="submit" class="submit-btn" id="sc-submit">submit project</button>
+          </div>
+
+          <p class="legal">
+            By submitting you confirm you have rights to the project name
+            and URL. We'll never use your email for anything other than
+            confirming the entry and (optionally) checkpoint nudges. See
+            <a href="/privacy">privacy</a>.
+          </p>
+        </form>
+      </Card>
+    </section>
+
+    <p class="footnote">
+      Looking for the canonical pipeline reference instead?
+      <a href="/architecture">See the architecture</a>, or
+      <a href="/pipeline-builder">design a stack of your own</a>.
+    </p>
+  </main>
+</Base>
+
+<style>
+  .page { max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  .page-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
+  .lede { color: var(--muted); margin: 0 0 1.5rem; max-width: 42rem; }
+  .seeding {
+    color: var(--subtle);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    margin: 0 0 1.25rem;
+  }
+
+  .submit-cta {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    color: var(--accent);
+    text-decoration: none;
+    border: 0.5px solid var(--accent);
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--r-xs);
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: background var(--dur-fast) var(--ease-standard);
+  }
+  .submit-cta:hover { background: var(--accent-dim); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 3rem;
+  }
+
+  .proj {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 1.1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: border-color var(--dur-fast) var(--ease-standard);
+  }
+  .proj:hover { border-color: var(--accent); }
+
+  .proj-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .proj-head h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+  }
+  .proj-date {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+  }
+  .proj-blurb { color: var(--muted); font-size: var(--fs-sm); margin: 0; line-height: var(--lh-base); }
+
+  .proj-meta {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 0.35rem 0.85rem;
+    margin: 0.4rem 0 0;
+    font-size: var(--fs-xs);
+  }
+  .proj-meta dt {
+    font-family: var(--font-mono);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+  }
+  .proj-meta dd { margin: 0; color: var(--muted); }
+  .stack-tag {
+    font-family: var(--font-mono);
+    color: var(--text);
+  }
+  .skill-tag {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .skill-tag:hover { text-decoration: underline; }
+  :global([data-theme="light"]) .skill-tag { color: var(--accent-hover); }
+  .sep { color: var(--dim); }
+
+  .proj-link {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    color: var(--accent);
+    text-decoration: none;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: auto;
+  }
+  .proj-link:hover { text-decoration: underline; }
+  :global([data-theme="light"]) .proj-link { color: var(--accent-hover); }
+
+  .submit { margin: 0 auto 2rem; max-width: 640px; scroll-margin-top: 80px; }
+  .submit h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0.5rem 0 0.5rem;
+    letter-spacing: var(--ls-tight);
+  }
+  .submit p { color: var(--muted); margin: 0 0 1rem; line-height: var(--lh-base); font-size: var(--fs-sm); }
+  .submit a { color: var(--accent); }
+
+  .form { display: flex; flex-direction: column; gap: 0.8rem; }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1;
+  }
+  .field .label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+  .field .opt { text-transform: none; font-style: italic; color: var(--dim); }
+  .field input,
+  .field select {
+    appearance: none;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--fs-base);
+    padding: 0.55rem 0.85rem;
+  }
+  .field input:focus,
+  .field select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+  }
+  .field-row { display: flex; gap: 0.6rem; }
+  @media (max-width: 540px) { .field-row { flex-direction: column; } }
+
+  .form-status {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+    padding: 0.3rem 0;
+  }
+  .form-foot { display: flex; justify-content: flex-end; margin-top: 0.4rem; }
+  .submit-btn {
+    appearance: none;
+    background: var(--accent);
+    color: #1c1710;
+    border: 0.5px solid var(--accent);
+    font: inherit;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    padding: 0.55rem 1rem;
+    border-radius: var(--r-xs);
+    cursor: pointer;
+  }
+  .submit-btn:hover { filter: brightness(1.05); }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .legal {
+    font-size: var(--fs-xs) !important;
+    color: var(--subtle) !important;
+    margin-top: 0.5rem !important;
+  }
+
+  .footnote {
+    margin-top: 2rem;
+    color: var(--subtle);
+    font-size: var(--fs-sm);
+    font-family: var(--font-mono);
+    letter-spacing: var(--ls-wide);
+    text-align: center;
+  }
+  .footnote a { color: var(--accent); }
+</style>
+
+<script>
+  const form = document.getElementById("showcase-form") as HTMLFormElement | null;
+  const statusEl = document.getElementById("sc-status")!;
+  const statusMsg = document.getElementById("sc-status-msg")!;
+  const submitBtn = document.getElementById("sc-submit") as HTMLButtonElement | null;
+
+  form?.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    if (!submitBtn) return;
+    const data = new FormData(form);
+    const payload: Record<string, unknown> = {
+      email: String(data.get("email") || "").trim(),
+      // We squeeze showcase submissions through the existing /api/notify
+      // surface. The project name + one-liner rides in `building`; the
+      // source enum doesn't have a `showcase` value yet, so use `other`.
+      // When the registry grows a dedicated value we'll swap.
+      source: "other",
+    };
+    const building = String(data.get("building") || "").trim();
+    const role = String(data.get("role") || "").trim();
+    const teamSize = String(data.get("teamSize") || "").trim();
+    if (building) payload.building = `[showcase] ${building}`;
+    if (role)     payload.role = role;
+    if (teamSize) payload.teamSize = teamSize;
+
+    submitBtn.disabled = true;
+    statusEl.hidden = false;
+    statusMsg.textContent = "Sending…";
+    statusMsg.setAttribute("style", "color: var(--muted)");
+
+    try {
+      const res = await fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        statusMsg.textContent = body.error || `Couldn't save (HTTP ${res.status}). Try again later.`;
+        statusMsg.setAttribute("style", "color: var(--in-progress, #f59e0b)");
+        return;
+      }
+      statusMsg.textContent = "Got it — we'll be in touch to confirm the listing.";
+      statusMsg.setAttribute("style", "color: var(--success, #0D9488)");
+      form.reset();
+    } catch {
+      statusMsg.textContent = "Network error — try again in a moment.";
+      statusMsg.setAttribute("style", "color: var(--in-progress, #f59e0b)");
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>

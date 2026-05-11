@@ -1,0 +1,269 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+
+interface Term {
+  id: string;
+  term: string;
+  short: string;
+  long?: string;
+  related?: Array<{ label: string; href: string }>;
+}
+
+const terms: Term[] = [
+  {
+    id: "skill",
+    term: "Skill",
+    short: "A single Markdown file that teaches Claude how to do one job — discover a product, audit a diff, ship a deploy.",
+    long: "Lives at .claude/skills/<name>/SKILL.md. The frontmatter declares triggers, phase, and required flags; the body is the prompt Claude reads on invocation. Skills are inert by themselves — Claude Code (or Claude.ai with Skills enabled) loads them and routes to them by name or slash command.",
+    related: [{ label: "Skill Library", href: "/skills" }, { label: "Install", href: "/install" }],
+  },
+  {
+    id: "skillchain",
+    term: "Skillchain",
+    short: "The full set of opchain skills working together as a pipeline — discover → spec → design → build → audit → ship → monitor → migrate → scale.",
+    long: "Skills hand work to each other across phase boundaries by writing to and reading from each other's checkpoints. The orchestrator routes invocations so you never have to name the next skill by hand.",
+    related: [{ label: "Architecture", href: "/architecture" }],
+  },
+  {
+    id: "checkpoint",
+    term: "Checkpoint",
+    short: "JSON state file each skill writes to .checkpoints/<skill>.checkpoint.json after a meaningful step.",
+    long: "Survives across sessions: phase, current step, progress table, blockers, decisions, next actions, and a two-sentence context primer. The next session reads them back so Claude picks up where you left off instead of re-asking everything.",
+    related: [{ label: "checkpoint-protocol", href: "/skills/checkpoint-protocol" }],
+  },
+  {
+    id: "checkpoint-protocol",
+    term: "Checkpoint protocol",
+    short: "The contract every skill obeys when it reads or writes a checkpoint — same JSON shape, same fields, same lifecycle.",
+    long: "Foundational skill, not invoked directly. Every other skill implements it so any skill can read any other's state without bespoke parsing. Validated in CI by npm run checkpoint:validate.",
+    related: [{ label: "checkpoint-protocol skill", href: "/skills/checkpoint-protocol" }],
+  },
+  {
+    id: "orchestrator",
+    term: "Orchestrator",
+    short: "Routing skill that decides which skill should run next based on what you said, what phase you're in, and what the open checkpoints look like.",
+    long: "Exposes /ops — \"where did I leave off?\" Answers across every project on the machine. Reads all 18 checkpoints; writes its own pipeline state.",
+    related: [{ label: "Architecture", href: "/architecture" }],
+  },
+  {
+    id: "tri-agent",
+    term: "Tri-agent loop",
+    short: "A skill that runs three internal roles in sequence — Planner / Generator / Evaluator (or Auditor / Fixer / Verifier) — instead of one shot.",
+    long: "The Planner scopes the work, the Generator produces output, and the Evaluator critiques it against the spec. Failures kick back to the Generator. Five skills use this pattern: app-architect, code-auditor, integrations-engineer, api-dev, ux-engineer.",
+    related: [{ label: "Architecture", href: "/architecture" }, { label: "Skill Library", href: "/skills" }],
+  },
+  {
+    id: "audit-gate",
+    term: "Audit gate",
+    short: "A skill that must pass before deploy-ops will ship to production — bug-check, code-auditor, or security-auditor.",
+    long: "Deploy is blocked until every audit gate's checkpoint shows passed. Gates can be overridden manually, but the override is recorded in the deploy checkpoint.",
+    related: [{ label: "code-auditor", href: "/skills/code-auditor" }, { label: "security-auditor", href: "/skills/security-auditor" }, { label: "bug-check", href: "/skills/bug-check" }],
+  },
+  {
+    id: "phase",
+    term: "Phase",
+    short: "One of the eight stages a project moves through — discover, spec, design, build, audit, ship, monitor, migrate.",
+    long: "Each skill declares which phases it owns in its frontmatter. The Skill Library and architecture diagram are both organised by phase. A project usually traverses them linearly; migrations re-enter the build phase from the migrate phase.",
+    related: [{ label: "Architecture", href: "/architecture" }],
+  },
+  {
+    id: "slash-command",
+    term: "Slash command",
+    short: "Short verb users type in Claude (like /discover, /audit, /deploy) that invokes a specific skill.",
+    long: "Each skill declares its commands in frontmatter. The flags registry can disable a verb globally with skills.command.<verb>.enabled. Subcommands inherit the parent verb's gate.",
+    related: [{ label: "Skill Library", href: "/skills" }],
+  },
+  {
+    id: "pm-mcp",
+    term: "PM-MCP loop",
+    short: "Project-management tool integration through Claude's MCP protocol — Linear, Jira, GitHub Issues. The ticket becomes the thread of execution.",
+    long: "Four skills are PM-aware (app-architect, git-ops, deploy-ops, monitoring-ops). They read the ticket on entry, transition its state on phase change, and post structured comments at boundaries. Config lives in .opchain/pm.yaml.",
+    related: [{ label: "v1.3 release notes", href: "/changelog" }, { label: "integrations-engineer", href: "/skills/integrations-engineer" }],
+  },
+  {
+    id: "evaluator",
+    term: "Evaluator",
+    short: "The third leg of a tri-agent loop — critiques the Generator's output, lists what's wrong, and decides whether to send work back.",
+    long: "The Evaluator is opinionated by design: it cites the spec, names the failure modes, and grades the output. The Generator's next pass addresses each finding line-by-line.",
+    related: [{ label: "tri-agent", href: "/glossary#tri-agent" }],
+  },
+  {
+    id: "feature-flag",
+    term: "Feature flag",
+    short: "Named toggle in the registry that gates a skill, command, surface, or experiment without a redeploy.",
+    long: "Source of truth is src/lib/flags/registry.js. Hierarchy is dot-namespaced: site.feature.*, site.ops.*.kill, skills.registry.<id>.enabled, skills.command.<verb>.enabled. PostHog supplies runtime overrides; the registry default is the fail-closed value.",
+  },
+  {
+    id: "checkpoint-rollup",
+    term: "Checkpoint rollup",
+    short: "Cross-skill snapshot the orchestrator builds by reading every .checkpoints/*.checkpoint.json on the machine.",
+    long: "Generated on demand by /ops or npm run checkpoint:status. Useful when you're returning to a project after a week and want a one-page answer to \"what was I doing?\"",
+  },
+  {
+    id: "scenario",
+    term: "Scenario",
+    short: "Curated end-to-end opchain session you can replay in the /demo workbench.",
+    long: "Each scenario is a real transcript — orchestrator routing, skill invocations, generated artifacts. Used to show how the pipeline behaves under specific conditions (regulated environments, runtime PM, multi-platform deploys).",
+    related: [{ label: "Demo", href: "/demo" }],
+  },
+  {
+    id: "next-actions",
+    term: "Next actions",
+    short: "List of recommended commands the orchestrator surfaces at the end of every skill invocation.",
+    long: "Read from the most recent checkpoint's next_actions array. The orchestrator merges across all open checkpoints so you see one ordered queue, not 18 separate ones.",
+  },
+];
+---
+
+<Base
+  title="Glossary · opchain"
+  description="Definitions for every opchain concept — skill, checkpoint, tri-agent, orchestrator, audit gate, phase, and the rest."
+  active="/skills"
+>
+  <main class="page">
+    <div class="page-head">
+      <Eyebrow>glossary</Eyebrow>
+      <h1>Definitions.</h1>
+    </div>
+
+    <p class="lede">
+      Quick reference for every opchain concept. New to skills? Start
+      with <a href="#skill">skill</a> and <a href="#checkpoint">checkpoint</a>,
+      then trace links from there.
+    </p>
+
+    <nav class="tocnav" aria-label="Jump to term">
+      <ul>
+        {terms.map((t) => (
+          <li><a href={`#${t.id}`}>{t.term}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    <dl class="glossary">
+      {terms.map((t) => (
+        <div class="entry" id={t.id}>
+          <dt>{t.term}</dt>
+          <dd>
+            <p class="short"><strong>{t.short}</strong></p>
+            {t.long && <p class="long">{t.long}</p>}
+            {t.related && t.related.length > 0 && (
+              <p class="related">
+                <span class="related-label">See also:</span>
+                {t.related.map((r, i) => (
+                  <>
+                    {i > 0 && <span class="related-sep"> · </span>}
+                    <a href={r.href}>{r.label}</a>
+                  </>
+                ))}
+              </p>
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
+
+    <p class="footnote">
+      Missing a term? <a href="https://github.com/asfbay-bit/opchain/issues/new" rel="noopener">Open an issue</a>
+      or send <button type="button" data-feedback-launcher class="inline-link">feedback</button>.
+    </p>
+  </main>
+</Base>
+
+<style>
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+  }
+  .page-head { margin-bottom: 1.25rem; }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
+  .lede { color: var(--muted); margin: 0 0 1.5rem; max-width: 42rem; }
+  .lede a { color: var(--accent); }
+
+  .tocnav {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 0.9rem 1rem;
+    margin: 0 0 2rem;
+  }
+  .tocnav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.85rem;
+  }
+  .tocnav a {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .tocnav a:hover { color: var(--accent); }
+
+  .glossary { margin: 0; padding: 0; }
+  .entry {
+    margin: 0 0 1.75rem;
+    padding: 1rem 0 0;
+    border-top: 0.5px solid var(--border);
+    scroll-margin-top: 80px;
+  }
+  .entry:first-of-type { border-top: 0; padding-top: 0; }
+
+  dt {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin-bottom: 0.45rem;
+  }
+  dd { margin: 0; color: var(--muted); }
+  dd p { margin: 0 0 0.55rem; line-height: var(--lh-base); }
+  dd .short { color: var(--text); font-size: var(--fs-base); }
+  dd .short strong { color: var(--text); font-weight: 500; }
+  dd .long { font-size: var(--fs-sm); }
+  dd .related {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+    margin-top: 0.65rem;
+  }
+  .related-label { color: var(--subtle); margin-right: 0.4rem; }
+  .related-sep { color: var(--dim); }
+  .related a { color: var(--accent); text-decoration: none; }
+  .related a:hover { text-decoration: underline; }
+  :global([data-theme="light"]) .related a { color: var(--accent-hover); }
+
+  .footnote {
+    margin-top: 3rem;
+    color: var(--subtle);
+    font-size: var(--fs-xs);
+    font-family: var(--font-mono);
+    letter-spacing: var(--ls-wide);
+  }
+  .footnote a, .inline-link {
+    color: var(--accent);
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .footnote a:hover, .inline-link:hover { text-decoration: underline; }
+</style>
+</Base>

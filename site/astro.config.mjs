@@ -19,6 +19,18 @@ export default defineConfig({
     // aria-label so axe's `label` rule passes. See B-11 in
     // roadmap/05-post-sprint-7-backlog.md.
     rehypePlugins: [rehypeTaskListLabels],
+    // Shiki dual-theme (ADEV-340): Astro's default github-dark has known
+    // low-contrast tokens (comments fail WCAG AA on the dark page bg).
+    // github-dark-default is the GitHub-published refresh that bumps every
+    // token to AA-compliant ratios. Pair with github-light for the light
+    // theme. Astro emits CSS variables and Shiki's runtime switches on
+    // data-theme via the .astro-code .astro-code-themes CSS hook.
+    shikiConfig: {
+      themes: {
+        light: "github-light",
+        dark: "github-dark-default",
+      },
+    },
   },
   vite: {
     plugins: [tailwindcss()],

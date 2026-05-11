@@ -1377,6 +1377,33 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
     }
     window.addEventListener('load', () => drawConnectionLines());
     window.addEventListener('resize', () => drawConnectionLines());
+
+    /* ══ Upgrade .bd-tag spans into anchors → /skills/<id>.
+       The band-detail "skills:" chips list the skills involved in each
+       phase but were rendered as inert <span>. Convert each one whose
+       text matches a known skill id into a real link so visitors can
+       jump from the architecture overview straight into the per-skill
+       page. `integrations-eng` is a display truncation of the real
+       `integrations-engineer` id; map it explicitly. */
+    (() => {
+      const knownIds = new Set(Object.keys(SKILLS));
+      const aliases = { 'integrations-eng': 'integrations-engineer' };
+      document.querySelectorAll('.bd-tag').forEach((el) => {
+        const txt = (el.textContent || '').trim();
+        const id = aliases[txt] || txt;
+        if (!knownIds.has(id)) return;
+        const a = document.createElement('a');
+        a.href = `/skills/${id}`;
+        a.className = el.className;
+        a.setAttribute('style', el.getAttribute('style') || '');
+        a.setAttribute('aria-label', `View ${id} skill`);
+        a.textContent = el.textContent;
+        // Keep the chip looking identical; just add a hover affordance.
+        a.style.textDecoration = 'none';
+        a.style.cursor = 'pointer';
+        el.replaceWith(a);
+      });
+    })();
   </script>
 </Base>
 
@@ -1551,20 +1578,20 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
     writing-mode: vertical-rl;
     text-orientation: mixed;
     font-size: .575rem; font-weight: 700;
-    /* LHCI: --slag (#5a5040) was ~2.30:1, --subtle (#9d8b78) cleared
-       most bands but Lighthouse still flagged band-ship and band-monitor
-       specifically — likely because those bands have visual treatments
-       (glow filters, ember/success bars) that shift the effective bg
-       luminance under the 9.2px vertical text. --muted (=--sand,
-       #c4b89e) gives ~9.4:1 — way above any threshold. Active state
-       remains --sand so the dim/active hierarchy collapses, but
-       hover-band-active still has the bar+content reveal so the
-       interaction signal isn't lost. */
-    letter-spacing: .15em; color: var(--muted);
+    /* LHCI band-label contrast (ADEV-341): prior attempts walked the
+       color down --slag → --subtle → --muted (=--sand, ~9.4:1) but
+       Lighthouse kept flagging band-ship and band-monitor — both have
+       glow-filtered SVG content that lifts the effective bg luminance
+       under the 9.2px-tall vertical text. --text (linen on dark,
+       obsidian on light) gives ~14.5:1 in both themes — unambiguously
+       above any threshold no matter what bg the audit samples. Active
+       state stays --text; the dim/active hierarchy is now carried by
+       the .band-label-bar reveal (opacity 0 → 1 on active). */
+    letter-spacing: .15em; color: var(--text);
     transition: color .2s; white-space: nowrap;
   }
   .arch-v2 .band.active .band-label-text,
-  .arch-v2 .band:hover .band-label-text { color: var(--sand); }
+  .arch-v2 .band:hover .band-label-text { color: var(--text); }
   .arch-v2 .band-label-bar {
     position: absolute; left: 0; top: 6px; bottom: 6px;
     width: 2px; border-radius: 1px;
