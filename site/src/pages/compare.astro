@@ -3,131 +3,193 @@ import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
 import Card from "../components/ui/Card.astro";
 
-type Cell = string | { v: string; note?: string };
-
-interface Row {
-  label: string;
-  opchain: Cell;
-  cursor: Cell;
-  copilot: Cell;
-  zed: Cell;
-  vscode: Cell;
-  devin: Cell;
-  defaults: Cell;
+interface Cell {
+  v: string;
+  note?: string | null;
 }
 
-const rows: Row[] = [
-  {
-    label: "Where the prompts live",
-    opchain: { v: "Markdown files in .claude/skills/", note: "MIT, in your repo, plain text — diffable, reviewable" },
-    cursor: { v: ".cursorrules / .mdc rules", note: "Per-project, editor-coupled" },
-    copilot: { v: ".github/copilot-instructions.md + hosted instructions", note: "Vendor-managed" },
-    zed: { v: ".zed/settings.json + Agent Profiles", note: "Project + per-profile system prompts" },
-    vscode: { v: "Per-extension (Copilot / Continue / Cline)", note: "Whatever your AI extension wants" },
-    devin: { v: "Hosted, internal", note: "Black box" },
-    defaults: { v: "CLAUDE.md (single file)", note: "All-or-nothing" },
-  },
-  {
-    label: "Session persistence",
-    opchain: { v: "JSON checkpoints in .checkpoints/", note: "Survive across chats; auto-resume next session" },
-    cursor: "Per-chat memory; no formal protocol",
-    copilot: "Per-IDE-session",
-    zed: "Persistent assistant panel per workspace; no cross-session protocol",
-    vscode: "Per extension; usually per-IDE-session",
-    devin: { v: "Hosted task state", note: "Tied to a Devin task, not your repo" },
-    defaults: { v: "Single CLAUDE.md context", note: "Re-read on every session" },
-  },
-  {
-    label: "Pipeline awareness",
-    opchain: { v: "Yes — orchestrator routes between 18 skills", note: "Knows what phase you're in and what's next" },
-    cursor: "No — rules apply globally",
-    copilot: "No — chat is single-turn-ish",
-    zed: "No — single agent, no pipeline concept",
-    vscode: "No — depends entirely on extension",
-    devin: "Yes, but as one monolithic agent",
-    defaults: "No",
-  },
-  {
-    label: "Tri-agent quality loops",
-    opchain: { v: "5 skills (app-architect, code-auditor, integrations-engineer, api-dev, ux-engineer)", note: "Planner → Generator → Evaluator built in" },
-    cursor: "No",
-    copilot: "No",
-    zed: { v: "Agent profiles can chain", note: "Manual setup; not a contract" },
-    vscode: "No",
-    devin: { v: "Implicit", note: "Not surfaced as a contract" },
-    defaults: "No",
-  },
-  {
-    label: "Audit gates before deploy",
-    opchain: { v: "Three (bug-check, code-auditor, security-auditor)", note: "deploy-ops blocks prod if any gate fails" },
-    cursor: "No",
-    copilot: "No",
-    zed: "No",
-    vscode: "No",
-    devin: { v: "Internal checks", note: "No external contract" },
-    defaults: "No",
-  },
-  {
-    label: "Cost",
-    opchain: { v: "Free, MIT", note: "Pay only your Claude usage" },
-    cursor: "$20–40 / user / mo",
-    copilot: "$10–39 / user / mo",
-    zed: { v: "Editor free · Zed Pro $20/mo or BYOK", note: "AI usage gated; editor is fully free" },
-    vscode: { v: "Editor free · extension pricing varies", note: "Copilot, Continue, Cline each priced separately" },
-    devin: "$500 / mo seat (last published)",
-    defaults: "Free",
-  },
-  {
-    label: "Vendor lock-in",
-    opchain: { v: "None — every skill is one Markdown file", note: "Fork, edit, fork again" },
-    cursor: { v: "IDE-coupled", note: "Rules only run inside Cursor" },
-    copilot: { v: "GitHub-coupled", note: "Runs against the Copilot service" },
-    zed: { v: "Editor-coupled", note: "Profiles only run inside Zed" },
-    vscode: { v: "Extension-coupled", note: "Tied to whichever AI extension you use" },
-    devin: { v: "Service-coupled", note: "All work runs on Devin infra" },
-    defaults: { v: "Claude-coupled", note: "But trivial to migrate" },
-  },
-  {
-    label: "Where it runs",
-    opchain: "Claude Code · Claude.ai · Claude Desktop",
-    cursor: "Cursor IDE",
-    copilot: "VS Code · JetBrains · GitHub.com",
-    zed: "Zed editor (Mac · Linux · Windows beta)",
-    vscode: "VS Code (Mac · Linux · Windows · Web)",
-    devin: "Devin web UI",
-    defaults: "Anywhere Claude runs",
-  },
-  {
-    label: "Adding your own",
-    opchain: { v: "Write a SKILL.md, drop it in .claude/skills/", note: "Reverse-spec skill backfills one from existing code" },
-    cursor: "Write a .cursorrules file",
-    copilot: "Edit copilot-instructions.md",
-    zed: "Add an Agent Profile or edit .zed/settings.json",
-    vscode: "Configure your extension's prompt or rules file",
-    devin: { v: "Limited", note: "Custom playbooks in Beta" },
-    defaults: "Edit CLAUDE.md",
-  },
-  {
-    label: "Multi-project status",
-    opchain: { v: "/ops command shows every project's last checkpoint", note: "Cross-repo dashboard built in" },
-    cursor: "No",
-    copilot: "No",
-    zed: "No",
-    vscode: "No",
-    devin: { v: "Per-task dashboard", note: "Devin-hosted" },
-    defaults: "No",
-  },
+interface Platform {
+  name: string;
+  /** Marks opchain — ember accent column header + cells */
+  accent?: boolean;
+  /** Always-on; not exposed as a chip and never removable */
+  fixed?: boolean;
+  /** Surfaces a "review" badge in the column header (e.g. for un-vetted content) */
+  needsReview?: boolean;
+  cells: Record<string, Cell>;
+}
+
+interface Feature {
+  id: string;
+  label: string;
+}
+
+const FEATURES: Feature[] = [
+  { id: "prompts",     label: "Where the prompts live" },
+  { id: "session",     label: "Session persistence" },
+  { id: "pipeline",    label: "Pipeline awareness" },
+  { id: "tri-agent",   label: "Tri-agent quality loops" },
+  { id: "gates",       label: "Audit gates before deploy" },
+  { id: "cost",        label: "Cost" },
+  { id: "lockin",      label: "Vendor lock-in" },
+  { id: "runs-on",     label: "Where it runs" },
+  { id: "extend",      label: "Adding your own" },
+  { id: "multi-proj",  label: "Multi-project status" },
 ];
 
-function renderCell(c: Cell) {
-  if (typeof c === "string") return { v: c, note: null };
-  return { v: c.v, note: c.note ?? null };
-}
+const PLATFORMS: Record<string, Platform> = {
+  opchain: {
+    name: "opchain", accent: true, fixed: true,
+    cells: {
+      "prompts":    { v: "Markdown files in .claude/skills/", note: "MIT, in your repo, plain text — diffable, reviewable" },
+      "session":    { v: "JSON checkpoints in .checkpoints/", note: "Survive across chats; auto-resume next session" },
+      "pipeline":   { v: "Yes — orchestrator routes between 18 skills", note: "Knows what phase you're in and what's next" },
+      "tri-agent":  { v: "5 skills (app-architect, code-auditor, integrations-engineer, api-dev, ux-engineer)", note: "Planner → Generator → Evaluator built in" },
+      "gates":      { v: "Three (bug-check, code-auditor, security-auditor)", note: "deploy-ops blocks prod if any gate fails" },
+      "cost":       { v: "Free, MIT", note: "Pay only your Claude usage" },
+      "lockin":     { v: "None — every skill is one Markdown file", note: "Fork, edit, fork again" },
+      "runs-on":    { v: "Claude Code · Claude.ai · Claude Desktop" },
+      "extend":     { v: "Write a SKILL.md, drop it in .claude/skills/", note: "reverse-spec backfills one from existing code" },
+      "multi-proj": { v: "/ops command shows every project's last checkpoint", note: "Cross-repo dashboard built in" },
+    },
+  },
+  claude: {
+    name: "Claude defaults", fixed: true,
+    cells: {
+      "prompts":    { v: "CLAUDE.md (single file)", note: "All-or-nothing" },
+      "session":    { v: "Single CLAUDE.md context", note: "Re-read on every session" },
+      "pipeline":   { v: "No" },
+      "tri-agent":  { v: "No" },
+      "gates":      { v: "No" },
+      "cost":       { v: "Free" },
+      "lockin":     { v: "Claude-coupled", note: "But trivial to migrate" },
+      "runs-on":    { v: "Anywhere Claude runs" },
+      "extend":     { v: "Edit CLAUDE.md" },
+      "multi-proj": { v: "No" },
+    },
+  },
+  cursor: {
+    name: "Cursor",
+    cells: {
+      "prompts":    { v: ".cursorrules / .mdc rules", note: "Per-project, editor-coupled" },
+      "session":    { v: "Per-chat memory; no formal protocol" },
+      "pipeline":   { v: "No — rules apply globally" },
+      "tri-agent":  { v: "No" },
+      "gates":      { v: "No" },
+      "cost":       { v: "$20–40 / user / mo" },
+      "lockin":     { v: "IDE-coupled", note: "Rules only run inside Cursor" },
+      "runs-on":    { v: "Cursor IDE" },
+      "extend":     { v: "Write a .cursorrules file" },
+      "multi-proj": { v: "No" },
+    },
+  },
+  copilot: {
+    name: "GH Copilot",
+    cells: {
+      "prompts":    { v: ".github/copilot-instructions.md + hosted instructions", note: "Vendor-managed" },
+      "session":    { v: "Per-IDE-session" },
+      "pipeline":   { v: "No — chat is single-turn-ish" },
+      "tri-agent":  { v: "No" },
+      "gates":      { v: "No" },
+      "cost":       { v: "$10–39 / user / mo" },
+      "lockin":     { v: "GitHub-coupled", note: "Runs against the Copilot service" },
+      "runs-on":    { v: "VS Code · JetBrains · GitHub.com" },
+      "extend":     { v: "Edit copilot-instructions.md" },
+      "multi-proj": { v: "No" },
+    },
+  },
+  devin: {
+    name: "Devin",
+    cells: {
+      "prompts":    { v: "Hosted, internal", note: "Black box" },
+      "session":    { v: "Hosted task state", note: "Tied to a Devin task, not your repo" },
+      "pipeline":   { v: "Yes, but as one monolithic agent" },
+      "tri-agent":  { v: "Implicit", note: "Not surfaced as a contract" },
+      "gates":      { v: "Internal checks", note: "No external contract" },
+      "cost":       { v: "$500 / mo seat (last published)" },
+      "lockin":     { v: "Service-coupled", note: "All work runs on Devin infra" },
+      "runs-on":    { v: "Devin web UI" },
+      "extend":     { v: "Limited", note: "Custom playbooks in Beta" },
+      "multi-proj": { v: "Per-task dashboard", note: "Devin-hosted" },
+    },
+  },
+  zed: {
+    name: "Zed",
+    cells: {
+      "prompts":    { v: ".zed/settings.json + Agent Profiles", note: "Project + per-profile system prompts" },
+      "session":    { v: "Persistent assistant panel per workspace; no cross-session protocol" },
+      "pipeline":   { v: "No — single agent, no pipeline concept" },
+      "tri-agent":  { v: "Agent profiles can chain", note: "Manual setup; not a contract" },
+      "gates":      { v: "No" },
+      "cost":       { v: "Editor free · Zed Pro $20/mo or BYOK", note: "AI usage gated; editor is fully free" },
+      "lockin":     { v: "Editor-coupled", note: "Profiles only run inside Zed" },
+      "runs-on":    { v: "Zed editor (Mac · Linux · Windows beta)" },
+      "extend":     { v: "Add an Agent Profile or edit .zed/settings.json" },
+      "multi-proj": { v: "No" },
+    },
+  },
+  vscode: {
+    name: "VS Code",
+    cells: {
+      "prompts":    { v: "Per-extension (Copilot / Continue / Cline)", note: "Whatever your AI extension wants" },
+      "session":    { v: "Per extension; usually per-IDE-session" },
+      "pipeline":   { v: "No — depends entirely on extension" },
+      "tri-agent":  { v: "No" },
+      "gates":      { v: "No" },
+      "cost":       { v: "Editor free · extension pricing varies", note: "Copilot, Continue, Cline each priced separately" },
+      "lockin":     { v: "Extension-coupled", note: "Tied to whichever AI extension you use" },
+      "runs-on":    { v: "VS Code (Mac · Linux · Windows · Web)" },
+      "extend":     { v: "Configure your extension's prompt or rules file" },
+      "multi-proj": { v: "No" },
+    },
+  },
+  codex: {
+    name: "OpenAI Codex",
+    cells: {
+      "prompts":    { v: "AGENTS.md in repo + ChatGPT custom instructions", note: "Per-repo; vendor model controls behaviour" },
+      "session":    { v: "Per-task cloud session + ChatGPT memory", note: "No formal cross-task protocol" },
+      "pipeline":   { v: "No — single autonomous reasoning loop" },
+      "tri-agent":  { v: "No (single-agent)" },
+      "gates":      { v: "No" },
+      "cost":       { v: "Bundled with ChatGPT Plus/Pro ($20–200/mo)", note: "CLI free with API usage" },
+      "lockin":     { v: "OpenAI-coupled", note: "GPT-5/4 only; no model swap" },
+      "runs-on":    { v: "chatgpt.com/codex · codex CLI · IDE extension" },
+      "extend":     { v: "Edit AGENTS.md or ChatGPT instructions" },
+      "multi-proj": { v: "Per-project; no cross-repo dashboard" },
+    },
+  },
+  antigravity: {
+    name: "Google Antigravity", needsReview: true,
+    cells: {
+      "prompts":    { v: "Workspace instructions + Knowledge files", note: "Cross-session memory via Knowledge" },
+      "session":    { v: "Knowledge persists; agent state per workspace" },
+      "pipeline":   { v: "Multi-agent — Editor + Manager dispatch parallel agents", note: "Coordinated, but not a phase pipeline" },
+      "tri-agent":  { v: "Yes — Manager dispatches and verifies via screenshot/recording" },
+      "gates":      { v: "Built-in verification (browser proof / screenshot)" },
+      "cost":       { v: "Free tier · paid tiers announced" },
+      "lockin":     { v: "Google-coupled", note: "Gemini-first; Claude / GPT-OSS optional" },
+      "runs-on":    { v: "Antigravity desktop app (Mac · Linux · Windows)" },
+      "extend":     { v: "Add Knowledge files or workspace settings" },
+      "multi-proj": { v: "Manager view shows every running workspace" },
+    },
+  },
+};
+
+const FIXED_ORDER = ["opchain", "claude"];
+const SELECTABLE = ["cursor", "copilot", "devin", "zed", "vscode", "codex", "antigravity"];
+const MAX_EXTRAS = 4;
+
+// Server-rendered default: shows a useful 4-platform comparison on
+// first visit so a no-JS / pre-hydration reader still sees a populated
+// table. The client script restores the user's last selection from
+// localStorage on load if one exists.
+const DEFAULT_EXTRAS = ["cursor", "copilot", "devin", "zed"];
+const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
 ---
 
 <Base
   title="Compare · opchain"
-  description="opchain vs. Cursor rules, GitHub Copilot, Devin, and stock Claude Code defaults — feature-by-feature."
+  description="opchain vs. Cursor, Copilot, Devin, Zed, VS Code, OpenAI Codex, Google Antigravity, and stock Claude defaults — pick which to compare against, feature by feature."
   active="/"
 >
   <main class="page">
@@ -137,9 +199,10 @@ function renderCell(c: Cell) {
     </div>
 
     <p class="lede">
-      Honest, opinionated comparison against four common alternatives.
-      Every row links back to where opchain actually does the thing —
-      these are claims you can verify, not marketing checkmarks.
+      Honest, opinionated comparison against seven popular AI-coding
+      tools. opchain and stock Claude defaults are pinned on the left;
+      pick up to four more to compare against — chips below the intro,
+      one click toggles each column in or out.
     </p>
 
     <section class="quick">
@@ -148,49 +211,74 @@ function renderCell(c: Cell) {
         <ul class="when-list">
           <li><strong>One prompt file your whole team edits</strong> → stock <code>CLAUDE.md</code> is fine</li>
           <li><strong>Editor autocomplete with style</strong> → Cursor or Copilot</li>
-          <li><strong>A managed agent that ships PRs unattended</strong> → Devin</li>
+          <li><strong>A managed agent that ships PRs unattended</strong> → Devin or OpenAI Codex</li>
+          <li><strong>A multi-agent dispatcher with browser-verified output</strong> → Google Antigravity</li>
           <li><strong>A pipeline of skills you own, free, in your repo</strong> → opchain</li>
         </ul>
       </Card>
     </section>
 
+    <section class="picker-bar" aria-label="Comparison platform picker">
+      <div class="picker-label">Compare opchain + Claude defaults vs:</div>
+      <div class="chip-tray" id="chip-tray" role="group" aria-label="Toggleable platforms">
+        {SELECTABLE.map((id) => {
+          const p = PLATFORMS[id];
+          const selected = DEFAULT_EXTRAS.includes(id);
+          return (
+            <button
+              type="button"
+              class="chip"
+              data-chip={id}
+              data-selected={selected ? "true" : "false"}
+              aria-pressed={selected ? "true" : "false"}
+            >
+              <span class="chip-name">{p.name}</span>
+              {p.needsReview && <span class="review-badge">review</span>}
+            </button>
+          );
+        })}
+        <span class="chip-counter" id="chip-counter">
+          {DEFAULT_EXTRAS.length} of {MAX_EXTRAS} extra columns
+        </span>
+        <button type="button" class="chip-reset" id="chip-reset">reset</button>
+      </div>
+    </section>
+
     <section class="table-wrap">
-      <table class="cmp">
+      <table class="cmp" id="cmp-table">
         <thead>
-          <tr>
+          <tr id="cmp-head">
             <th></th>
-            <th class="me">opchain</th>
-            <th>Cursor</th>
-            <th>GH Copilot</th>
-            <th>Zed</th>
-            <th>VS Code</th>
-            <th>Devin</th>
-            <th>Claude defaults</th>
+            {initialSelection.map((id) => {
+              const p = PLATFORMS[id];
+              return (
+                <th
+                  class:list={[{ me: p.accent }]}
+                  data-col={id}
+                >
+                  {p.name}
+                  {p.needsReview && <span class="review-badge">review</span>}
+                </th>
+              );
+            })}
           </tr>
         </thead>
-        <tbody>
-          {rows.map((r) => {
-            const cells = [
-              renderCell(r.opchain),
-              renderCell(r.cursor),
-              renderCell(r.copilot),
-              renderCell(r.zed),
-              renderCell(r.vscode),
-              renderCell(r.devin),
-              renderCell(r.defaults),
-            ];
-            return (
-              <tr>
-                <th scope="row">{r.label}</th>
-                {cells.map((c, i) => (
-                  <td class:list={[{ me: i === 0 }]}>
-                    <span class="cell-v">{c.v}</span>
-                    {c.note && <span class="cell-note">{c.note}</span>}
+        <tbody id="cmp-body">
+          {FEATURES.map((feat) => (
+            <tr data-feature={feat.id}>
+              <th scope="row">{feat.label}</th>
+              {initialSelection.map((id) => {
+                const p = PLATFORMS[id];
+                const cell = p.cells[feat.id] ?? { v: "—" };
+                return (
+                  <td class:list={[{ me: p.accent }]} data-col={id}>
+                    <span class="cell-v">{cell.v}</span>
+                    {cell.note && <span class="cell-note">{cell.note}</span>}
                   </td>
-                ))}
-              </tr>
-            );
-          })}
+                );
+              })}
+            </tr>
+          ))}
         </tbody>
       </table>
     </section>
@@ -269,6 +357,175 @@ function renderCell(c: Cell) {
   </main>
 </Base>
 
+<!-- Inline data island used by the client picker script. JSON-Astro
+     keeps the shape stable across server / client and avoids re-encoding
+     the catalog into the script body. -->
+<script
+  type="application/json"
+  id="cmp-data"
+  set:html={JSON.stringify({ PLATFORMS, FEATURES, FIXED_ORDER, SELECTABLE, MAX_EXTRAS, DEFAULT_EXTRAS })}
+/>
+
+<script>
+  /* ════════════════════════════════════════════════════════════════
+   * /compare picker — chip-tray toggles, table reflow, persistence.
+   *
+   * State: an ordered array of selected "extra" platform ids (the
+   * platforms after the two fixed ones). The user can have 0..4
+   * extras. Persists to localStorage("opchain-compare-selection").
+   * On invalid stored state (unknown ids, length > MAX_EXTRAS), fall
+   * back to DEFAULT_EXTRAS — never break the page.
+   * ════════════════════════════════════════════════════════════════ */
+  interface Cell { v: string; note?: string | null }
+  interface Platform { name: string; accent?: boolean; fixed?: boolean; needsReview?: boolean; cells: Record<string, Cell> }
+  interface Feature { id: string; label: string }
+  interface Catalog {
+    PLATFORMS: Record<string, Platform>;
+    FEATURES: Feature[];
+    FIXED_ORDER: string[];
+    SELECTABLE: string[];
+    MAX_EXTRAS: number;
+    DEFAULT_EXTRAS: string[];
+  }
+
+  const dataEl = document.getElementById("cmp-data");
+  if (!dataEl) throw new Error("cmp-data island missing");
+  const CATALOG = JSON.parse(dataEl.textContent || "{}") as Catalog;
+  const { PLATFORMS, FEATURES, FIXED_ORDER, SELECTABLE, MAX_EXTRAS, DEFAULT_EXTRAS } = CATALOG;
+
+  const STORAGE_KEY = "opchain-compare-selection";
+
+  function loadExtras(): string[] {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [...DEFAULT_EXTRAS];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [...DEFAULT_EXTRAS];
+      // Validate every entry is a known selectable id; cap at the max.
+      const valid = parsed.filter((id: unknown): id is string =>
+        typeof id === "string" && SELECTABLE.includes(id),
+      );
+      return valid.slice(0, MAX_EXTRAS);
+    } catch {
+      return [...DEFAULT_EXTRAS];
+    }
+  }
+  function saveExtras(extras: string[]) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(extras)); }
+    catch { /* private mode / quota — keep the page working */ }
+  }
+
+  let extras = loadExtras();
+
+  function escapeHtml(s: string) {
+    return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
+  }
+
+  function renderChips() {
+    const counter = document.getElementById("chip-counter");
+    const resetBtn = document.getElementById("chip-reset");
+    document.querySelectorAll<HTMLButtonElement>("[data-chip]").forEach((chip) => {
+      const id = chip.dataset.chip!;
+      const on = extras.includes(id);
+      chip.dataset.selected = on ? "true" : "false";
+      chip.setAttribute("aria-pressed", on ? "true" : "false");
+      // Disable un-selected chips at the cap so users can't exceed MAX_EXTRAS.
+      chip.disabled = !on && extras.length >= MAX_EXTRAS;
+      chip.title = chip.disabled
+        ? `Max ${MAX_EXTRAS} extra columns — remove one first`
+        : `Toggle ${PLATFORMS[id].name}`;
+    });
+    if (counter) counter.textContent = `${extras.length} of ${MAX_EXTRAS} extra columns`;
+    if (resetBtn) (resetBtn as HTMLButtonElement).hidden = extras.length === 0;
+  }
+
+  function renderTable() {
+    const cols = [...FIXED_ORDER, ...extras];
+
+    const thead = document.getElementById("cmp-head");
+    if (thead) {
+      thead.innerHTML = "";
+      thead.appendChild(document.createElement("th")); // corner
+      cols.forEach((id) => {
+        const p = PLATFORMS[id];
+        const th = document.createElement("th");
+        if (p.accent) th.className = "me";
+        th.dataset.col = id;
+        const review = p.needsReview ? '<span class="review-badge">review</span>' : "";
+        th.innerHTML = escapeHtml(p.name) + (review ? " " + review : "");
+        thead.appendChild(th);
+      });
+    }
+
+    const tbody = document.getElementById("cmp-body");
+    if (tbody) {
+      tbody.innerHTML = "";
+      FEATURES.forEach((feat) => {
+        const tr = document.createElement("tr");
+        tr.dataset.feature = feat.id;
+        const rowHead = document.createElement("th");
+        rowHead.scope = "row";
+        rowHead.textContent = feat.label;
+        tr.appendChild(rowHead);
+
+        cols.forEach((id) => {
+          const p = PLATFORMS[id];
+          const cell = p.cells[feat.id] ?? { v: "—", note: null };
+          const td = document.createElement("td");
+          if (p.accent) td.className = "me";
+          td.dataset.col = id;
+          const noteHtml = cell.note
+            ? `<span class="cell-note">${escapeHtml(cell.note)}</span>`
+            : "";
+          td.innerHTML = `<span class="cell-v">${escapeHtml(cell.v)}</span>${noteHtml}`;
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+  }
+
+  function rerender() {
+    renderChips();
+    renderTable();
+  }
+
+  // Wire chip toggles once (chip nodes never get re-created — only
+  // their data-selected attribute flips), and the reset button.
+  document.querySelectorAll<HTMLButtonElement>("[data-chip]").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      if (chip.disabled) return;
+      const id = chip.dataset.chip!;
+      if (extras.includes(id)) {
+        extras = extras.filter((s) => s !== id);
+      } else {
+        if (extras.length >= MAX_EXTRAS) return;
+        extras.push(id);
+      }
+      saveExtras(extras);
+      rerender();
+    });
+  });
+  document.getElementById("chip-reset")?.addEventListener("click", () => {
+    extras = [];
+    saveExtras(extras);
+    rerender();
+  });
+
+  // Initial paint: if the server-rendered default matches our loaded
+  // state we can skip the table rebuild; otherwise, rebuild from
+  // stored state.
+  const isDefault =
+    extras.length === DEFAULT_EXTRAS.length &&
+    extras.every((id, i) => id === DEFAULT_EXTRAS[i]);
+  if (!isDefault) {
+    rerender();
+  } else {
+    renderChips(); // still toggle the chip state in case page paint differs
+  }
+</script>
+
 <style>
   .page { max-width: 1040px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
   .page-head { margin-bottom: 1.25rem; }
@@ -282,7 +539,7 @@ function renderCell(c: Cell) {
   }
   .lede { color: var(--muted); margin: 0 0 2rem; max-width: 42rem; line-height: var(--lh-base); }
 
-  .quick { margin-bottom: 2rem; max-width: 760px; }
+  .quick { margin-bottom: 1.5rem; max-width: 760px; }
   .quick-head {
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
@@ -304,6 +561,97 @@ function renderCell(c: Cell) {
     color: var(--text);
   }
 
+  /* ── Picker bar (chip tray) ────────────────────────────────────── */
+  .picker-bar {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 0.9rem 1.1rem;
+    margin: 0 0 1rem;
+  }
+  .picker-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--subtle);
+    margin: 0 0 0.55rem;
+  }
+  .chip-tray {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+  }
+  .chip {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    border: 0.5px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    cursor: pointer;
+    transition:
+      background var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
+  }
+  .chip:hover { color: var(--text); border-color: var(--accent); }
+  .chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .chip[data-selected="true"] {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  /* B-10 light-mode contrast — match what /skills uses for accent on surface */
+  :global([data-theme="light"]) .chip[data-selected="true"] { color: var(--accent-hover); }
+  .chip[data-selected="true"] .chip-name::before { content: "✓ "; font-weight: 700; }
+  .chip:disabled { opacity: 0.45; cursor: not-allowed; }
+  .chip:disabled:hover { color: var(--muted); border-color: var(--border); }
+
+  .chip-counter {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+  }
+  .chip-reset {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--subtle);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0.45rem 0.4rem;
+  }
+  .chip-reset:hover { color: var(--text); }
+  .chip-reset[hidden] { display: none; }
+
+  .review-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--warning, #f59e0b);
+    border: 0.5px solid var(--warning, #f59e0b);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+  }
+
+  /* ── Table ─────────────────────────────────────────────────────── */
   .table-wrap {
     overflow-x: auto;
     margin: 0 0 2.5rem;
@@ -312,9 +660,10 @@ function renderCell(c: Cell) {
   }
   .cmp {
     width: 100%;
-    /* 7 data columns + label column — needs ~1100px to read comfortably;
-       below that the .table-wrap scrolls horizontally. */
-    min-width: 1100px;
+    /* 2 fixed + up to 4 extras + label column = up to 7 cells. Width
+       caps the layout at a reasonable read-friendly density; wider
+       viewports get a centered table with slack space. */
+    min-width: 900px;
     border-collapse: collapse;
     font-size: var(--fs-sm);
   }
@@ -335,6 +684,7 @@ function renderCell(c: Cell) {
     font-weight: 500;
   }
   .cmp thead th.me { color: var(--accent); }
+  :global([data-theme="light"]) .cmp thead th.me { color: var(--accent-hover); }
   .cmp tbody th[scope="row"] {
     font-family: var(--font-display);
     font-weight: 600;
@@ -363,6 +713,7 @@ function renderCell(c: Cell) {
   .cmp td.me .cell-v { color: var(--accent); font-weight: 500; }
   :global([data-theme="light"]) .cmp td.me .cell-v { color: var(--accent-hover); }
 
+  /* ── Below-table sections (carried over from prior /compare) ───── */
   .block { margin: 0 0 2.5rem; max-width: 720px; }
   .block h2 {
     font-family: var(--font-display);
