@@ -1,0 +1,401 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Card from "../components/ui/Card.astro";
+
+type Cell = string | { v: string; note?: string };
+
+interface Row {
+  label: string;
+  opchain: Cell;
+  cursor: Cell;
+  copilot: Cell;
+  devin: Cell;
+  defaults: Cell;
+}
+
+const rows: Row[] = [
+  {
+    label: "Where the prompts live",
+    opchain: { v: "Markdown files in .claude/skills/", note: "MIT, in your repo, plain text — diffable, reviewable" },
+    cursor: { v: ".cursorrules / .mdc rules", note: "Per-project, editor-coupled" },
+    copilot: { v: "Hosted instructions + .github/copilot-instructions.md", note: "Vendor-managed" },
+    devin: { v: "Hosted, internal", note: "Black box" },
+    defaults: { v: "CLAUDE.md (single file)", note: "All-or-nothing" },
+  },
+  {
+    label: "Session persistence",
+    opchain: { v: "JSON checkpoints in .checkpoints/", note: "Survive across chats; auto-resume next session" },
+    cursor: "Per-chat memory; no formal protocol",
+    copilot: "Per-IDE-session",
+    devin: { v: "Hosted task state", note: "Tied to a Devin task, not your repo" },
+    defaults: { v: "Single CLAUDE.md context", note: "Re-read on every session" },
+  },
+  {
+    label: "Pipeline awareness",
+    opchain: { v: "Yes — orchestrator routes between 18 skills", note: "Knows what phase you're in and what's next" },
+    cursor: "No — rules apply globally",
+    copilot: "No — chat is single-turn-ish",
+    devin: "Yes, but as one monolithic agent",
+    defaults: "No",
+  },
+  {
+    label: "Tri-agent quality loops",
+    opchain: { v: "5 skills (app-architect, code-auditor, integrations-engineer, api-dev, ux-engineer)", note: "Planner → Generator → Evaluator built in" },
+    cursor: "No",
+    copilot: "No",
+    devin: { v: "Implicit", note: "Not surfaced as a contract" },
+    defaults: "No",
+  },
+  {
+    label: "Audit gates before deploy",
+    opchain: { v: "Three (bug-check, code-auditor, security-auditor)", note: "deploy-ops blocks prod if any gate fails" },
+    cursor: "No",
+    copilot: "No",
+    devin: { v: "Internal checks", note: "No external contract" },
+    defaults: "No",
+  },
+  {
+    label: "Cost",
+    opchain: { v: "Free, MIT", note: "Pay only your Claude usage" },
+    cursor: "$20–40 / user / mo",
+    copilot: "$10–39 / user / mo",
+    devin: "$500 / mo seat (last published)",
+    defaults: "Free",
+  },
+  {
+    label: "Vendor lock-in",
+    opchain: { v: "None — every skill is one Markdown file", note: "Fork, edit, fork again" },
+    cursor: { v: "IDE-coupled", note: "Rules only run inside Cursor" },
+    copilot: { v: "GitHub-coupled", note: "Runs against the Copilot service" },
+    devin: { v: "Service-coupled", note: "All work runs on Devin infra" },
+    defaults: { v: "Claude-coupled", note: "But trivial to migrate" },
+  },
+  {
+    label: "Where it runs",
+    opchain: "Claude Code · Claude.ai · Claude Desktop",
+    cursor: "Cursor IDE",
+    copilot: "VS Code · JetBrains · GitHub.com",
+    devin: "Devin web UI",
+    defaults: "Anywhere Claude runs",
+  },
+  {
+    label: "Adding your own",
+    opchain: { v: "Write a SKILL.md, drop it in .claude/skills/", note: "Reverse-spec skill backfills one from existing code" },
+    cursor: "Write a .cursorrules file",
+    copilot: "Edit copilot-instructions.md",
+    devin: { v: "Limited", note: "Custom playbooks in Beta" },
+    defaults: "Edit CLAUDE.md",
+  },
+  {
+    label: "Multi-project status",
+    opchain: { v: "/ops command shows every project's last checkpoint", note: "Cross-repo dashboard built in" },
+    cursor: "No",
+    copilot: "No",
+    devin: { v: "Per-task dashboard", note: "Devin-hosted" },
+    defaults: "No",
+  },
+];
+
+function renderCell(c: Cell) {
+  if (typeof c === "string") return { v: c, note: null };
+  return { v: c.v, note: c.note ?? null };
+}
+---
+
+<Base
+  title="Compare · opchain"
+  description="opchain vs. Cursor rules, GitHub Copilot, Devin, and stock Claude Code defaults — feature-by-feature."
+  active="/"
+>
+  <main class="page">
+    <div class="page-head">
+      <Eyebrow>compare</Eyebrow>
+      <h1>opchain vs. the others.</h1>
+    </div>
+
+    <p class="lede">
+      Honest, opinionated comparison against four common alternatives.
+      Every row links back to where opchain actually does the thing —
+      these are claims you can verify, not marketing checkmarks.
+    </p>
+
+    <section class="quick">
+      <Card variant="surface" glow={false}>
+        <div class="quick-head">If you want…</div>
+        <ul class="when-list">
+          <li><strong>One prompt file your whole team edits</strong> → stock <code>CLAUDE.md</code> is fine</li>
+          <li><strong>Editor autocomplete with style</strong> → Cursor or Copilot</li>
+          <li><strong>A managed agent that ships PRs unattended</strong> → Devin</li>
+          <li><strong>A pipeline of skills you own, free, in your repo</strong> → opchain</li>
+        </ul>
+      </Card>
+    </section>
+
+    <section class="table-wrap">
+      <table class="cmp">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="me">opchain</th>
+            <th>Cursor</th>
+            <th>GH Copilot</th>
+            <th>Devin</th>
+            <th>Claude defaults</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => {
+            const cells = [
+              renderCell(r.opchain),
+              renderCell(r.cursor),
+              renderCell(r.copilot),
+              renderCell(r.devin),
+              renderCell(r.defaults),
+            ];
+            return (
+              <tr>
+                <th scope="row">{r.label}</th>
+                {cells.map((c, i) => (
+                  <td class:list={[{ me: i === 0 }]}>
+                    <span class="cell-v">{c.v}</span>
+                    {c.note && <span class="cell-note">{c.note}</span>}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="block">
+      <h2>What opchain isn't</h2>
+      <p>
+        opchain isn't an IDE. It doesn't autocomplete as you type, and
+        it won't open a PR against a remote repo for you while you sleep.
+        It's a set of <a href="/skills">skills</a> that turn Claude (in
+        any of its surfaces) into a pipeline you can lean on for the
+        slow work — discovery, spec, audits, deploys, postmortems — and
+        a <a href="/glossary#checkpoint-protocol">checkpoint protocol</a>
+        that survives the gap between chats.
+      </p>
+      <p>
+        If you use Cursor or Copilot for line-by-line code, opchain
+        sits on top of them — it's the long-form thinking layer, not
+        the keystroke layer.
+      </p>
+    </section>
+
+    <section class="block">
+      <h2>Switching from…</h2>
+      <div class="switch-grid">
+        <Card variant="surface" glow={false}>
+          <div class="quick-head">From Cursor rules</div>
+          <p>
+            Keep Cursor for keystrokes. Add the opchain skill bundle to
+            <code>.claude/skills/</code> and use it via Claude Code in a
+            second terminal pane for the work Cursor isn't great at —
+            spec interviews, security audits, multi-file refactors with
+            an evaluator loop.
+          </p>
+        </Card>
+        <Card variant="surface" glow={false}>
+          <div class="quick-head">From a single CLAUDE.md</div>
+          <p>
+            Run <a href="/skills/reverse-spec"><code>reverse-spec</code></a>
+            against your project — it'll backfill the spec opchain
+            wants. Then unzip the bundle, commit it, and start invoking
+            skills by name.
+          </p>
+        </Card>
+        <Card variant="surface" glow={false}>
+          <div class="quick-head">From Devin</div>
+          <p>
+            opchain is the local-first analog. Same pipeline (plan →
+            build → audit → ship → monitor), no hosted agent — Claude
+            does the work in your editor with full repo access.
+          </p>
+        </Card>
+        <Card variant="surface" glow={false}>
+          <div class="quick-head">From "nothing yet"</div>
+          <p>
+            Try the <a href="/pipeline-builder">pipeline builder</a> —
+            4 questions, a recommended skill bundle, and an
+            install snippet for your stack.
+          </p>
+        </Card>
+      </div>
+    </section>
+
+    <section class="cta">
+      <p>
+        Want to test the claims above? <a href="/install">Install opchain</a>,
+        run <code>/discover</code>, and watch the orchestrator route
+        through five skills before lunch.
+      </p>
+    </section>
+
+    <p class="footnote">
+      Comparisons reflect publicly published features as of 2026-05.
+      Spot a mistake? <button type="button" class="inline-link" data-feedback-launcher>tell us</button>.
+    </p>
+  </main>
+</Base>
+
+<style>
+  .page { max-width: 1040px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  .page-head { margin-bottom: 1.25rem; }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
+  .lede { color: var(--muted); margin: 0 0 2rem; max-width: 42rem; line-height: var(--lh-base); }
+
+  .quick { margin-bottom: 2rem; max-width: 760px; }
+  .quick-head {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--subtle);
+    margin-bottom: 0.5rem;
+  }
+  .when-list { margin: 0; padding-left: 1.1rem; color: var(--muted); }
+  .when-list li { margin-bottom: 0.35rem; line-height: var(--lh-base); }
+  .when-list strong { color: var(--text); font-weight: 500; }
+  .when-list code, .block code, .cta code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 0 0 2.5rem;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+  }
+  .cmp {
+    width: 100%;
+    min-width: 800px;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+  }
+  .cmp th, .cmp td {
+    padding: 0.7rem 0.8rem;
+    border-bottom: 0.5px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+  .cmp thead th {
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--subtle);
+    border-bottom: 0.5px solid var(--border);
+    font-weight: 500;
+  }
+  .cmp thead th.me { color: var(--accent); }
+  .cmp tbody th[scope="row"] {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--text);
+    font-size: var(--fs-sm);
+    width: 180px;
+  }
+  .cmp td { color: var(--muted); }
+  .cmp td.me {
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+    border-left: 2px solid var(--accent);
+  }
+  .cell-v {
+    display: block;
+    color: var(--text);
+    margin-bottom: 0.2rem;
+  }
+  .cell-note {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+    line-height: 1.35;
+  }
+  .cmp td.me .cell-v { color: var(--accent); font-weight: 500; }
+  :global([data-theme="light"]) .cmp td.me .cell-v { color: var(--accent-hover); }
+
+  .block { margin: 0 0 2.5rem; max-width: 720px; }
+  .block h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 0.8rem;
+  }
+  .block p {
+    color: var(--muted);
+    margin: 0 0 0.75rem;
+    line-height: var(--lh-base);
+  }
+  .block a { color: var(--accent); }
+
+  .switch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.7rem;
+  }
+  .switch-grid p {
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-base);
+    margin: 0;
+  }
+  .switch-grid p a { color: var(--accent); }
+  .switch-grid p code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  .cta {
+    margin: 2.5rem 0 1rem;
+    padding: 1rem 1.2rem;
+    border-left: 2px solid var(--accent);
+    background: var(--surface);
+    border-radius: var(--r-xs);
+  }
+  .cta p { margin: 0; color: var(--muted); }
+  .cta a { color: var(--accent); }
+
+  .footnote {
+    margin-top: 2rem;
+    color: var(--subtle);
+    font-size: var(--fs-sm);
+    font-family: var(--font-mono);
+    letter-spacing: var(--ls-wide);
+  }
+  .inline-link {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    color: var(--accent);
+    font: inherit;
+    cursor: pointer;
+  }
+  .inline-link:hover { text-decoration: underline; }
+</style>

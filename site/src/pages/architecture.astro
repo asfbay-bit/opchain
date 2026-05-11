@@ -1377,6 +1377,33 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
     }
     window.addEventListener('load', () => drawConnectionLines());
     window.addEventListener('resize', () => drawConnectionLines());
+
+    /* ══ Upgrade .bd-tag spans into anchors → /skills/<id>.
+       The band-detail "skills:" chips list the skills involved in each
+       phase but were rendered as inert <span>. Convert each one whose
+       text matches a known skill id into a real link so visitors can
+       jump from the architecture overview straight into the per-skill
+       page. `integrations-eng` is a display truncation of the real
+       `integrations-engineer` id; map it explicitly. */
+    (() => {
+      const knownIds = new Set(Object.keys(SKILLS));
+      const aliases = { 'integrations-eng': 'integrations-engineer' };
+      document.querySelectorAll('.bd-tag').forEach((el) => {
+        const txt = (el.textContent || '').trim();
+        const id = aliases[txt] || txt;
+        if (!knownIds.has(id)) return;
+        const a = document.createElement('a');
+        a.href = `/skills/${id}`;
+        a.className = el.className;
+        a.setAttribute('style', el.getAttribute('style') || '');
+        a.setAttribute('aria-label', `View ${id} skill`);
+        a.textContent = el.textContent;
+        // Keep the chip looking identical; just add a hover affordance.
+        a.style.textDecoration = 'none';
+        a.style.cursor = 'pointer';
+        el.replaceWith(a);
+      });
+    })();
   </script>
 </Base>
 

@@ -1,0 +1,876 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Icon from "../components/Icon.astro";
+---
+
+<Base
+  title="Pipeline Builder · opchain"
+  description="Four questions in, custom opchain pipeline out — recommended skills, install snippet, and a CLAUDE.md preset for your stack."
+  active="/"
+>
+  <main class="page" id="pipeline-builder">
+    <div class="page-head">
+      <Eyebrow>pipeline builder</Eyebrow>
+      <h1>Design your opchain stack.</h1>
+    </div>
+
+    <p class="lede">
+      Four questions. We propose a skill bundle, an install snippet, and
+      a starter <code>CLAUDE.md</code> tuned to what you're building.
+      Skippable — every answer has a sensible default.
+    </p>
+
+    <ol class="progress" aria-label="Builder progress">
+      <li data-step="1" class="active">What</li>
+      <li data-step="2">Team</li>
+      <li data-step="3">Deploy</li>
+      <li data-step="4">AI</li>
+      <li data-step="5">Result</li>
+    </ol>
+
+    <form class="wizard" id="wizard" novalidate>
+      <!-- ───────────── Step 1 — what ───────────── -->
+      <section class="step" data-step="1">
+        <h2>What are you shipping?</h2>
+        <div class="grid">
+          <label class="opt-card">
+            <input type="radio" name="kind" value="web-app" checked />
+            <span class="opt-title">Web app</span>
+            <span class="opt-sub">SaaS, dashboard, internal tool</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="kind" value="api" />
+            <span class="opt-title">API / backend</span>
+            <span class="opt-sub">REST, GraphQL, gRPC service</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="kind" value="marketing-site" />
+            <span class="opt-title">Marketing site</span>
+            <span class="opt-sub">Landing, docs, blog</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="kind" value="data" />
+            <span class="opt-title">Data product</span>
+            <span class="opt-sub">Dashboard, BI, reports</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="kind" value="cli" />
+            <span class="opt-title">CLI / library</span>
+            <span class="opt-sub">Tool, SDK, OSS package</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="kind" value="legacy" />
+            <span class="opt-title">Migrating a legacy app</span>
+            <span class="opt-sub">Platform / framework swap</span>
+          </label>
+        </div>
+        <div class="step-foot">
+          <span class="hint">Pick the closest match — we'll add a fallback skill for anything we missed.</span>
+          <button type="button" class="next" data-next>continue <Icon name="arrow-right" size={12} /></button>
+        </div>
+      </section>
+
+      <!-- ───────────── Step 2 — team ───────────── -->
+      <section class="step" data-step="2" hidden>
+        <h2>Team size?</h2>
+        <div class="grid grid-3">
+          <label class="opt-card">
+            <input type="radio" name="team" value="solo" checked />
+            <span class="opt-title">Solo</span>
+            <span class="opt-sub">Just me + Claude</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="team" value="small" />
+            <span class="opt-title">2–5</span>
+            <span class="opt-sub">Tight team</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="team" value="medium" />
+            <span class="opt-title">6–20</span>
+            <span class="opt-sub">Multiple squads</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="team" value="large" />
+            <span class="opt-title">21+</span>
+            <span class="opt-sub">Org-wide</span>
+          </label>
+        </div>
+        <div class="step-foot">
+          <button type="button" class="back" data-back><Icon name="arrow-left" size={12} /> back</button>
+          <button type="button" class="next" data-next>continue <Icon name="arrow-right" size={12} /></button>
+        </div>
+      </section>
+
+      <!-- ───────────── Step 3 — deploy ───────────── -->
+      <section class="step" data-step="3" hidden>
+        <h2>Where will it run?</h2>
+        <div class="grid">
+          <label class="opt-card">
+            <input type="radio" name="deploy" value="cloudflare" checked />
+            <span class="opt-title">Cloudflare Workers / Pages</span>
+            <span class="opt-sub">edge-first</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="deploy" value="vercel" />
+            <span class="opt-title">Vercel</span>
+            <span class="opt-sub">Next.js, edge functions</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="deploy" value="aws" />
+            <span class="opt-title">AWS</span>
+            <span class="opt-sub">ECS, Lambda, RDS</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="deploy" value="fly" />
+            <span class="opt-title">Fly.io</span>
+            <span class="opt-sub">long-running containers</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="deploy" value="render" />
+            <span class="opt-title">Render / Railway</span>
+            <span class="opt-sub">managed PaaS</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="deploy" value="self-hosted" />
+            <span class="opt-title">Self-hosted</span>
+            <span class="opt-sub">Kubernetes, bare metal</span>
+          </label>
+        </div>
+        <div class="step-foot">
+          <button type="button" class="back" data-back><Icon name="arrow-left" size={12} /> back</button>
+          <button type="button" class="next" data-next>continue <Icon name="arrow-right" size={12} /></button>
+        </div>
+      </section>
+
+      <!-- ───────────── Step 4 — AI surface ───────────── -->
+      <section class="step" data-step="4" hidden>
+        <h2>Which Claude surface?</h2>
+        <div class="grid grid-3">
+          <label class="opt-card">
+            <input type="radio" name="surface" value="claude-code" checked />
+            <span class="opt-title">Claude Code</span>
+            <span class="opt-sub">terminal-first</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="surface" value="claude-ai" />
+            <span class="opt-title">Claude.ai / Desktop</span>
+            <span class="opt-sub">GUI-first</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="surface" value="both" />
+            <span class="opt-title">Both</span>
+            <span class="opt-sub">team flexibility</span>
+          </label>
+        </div>
+        <div class="step-foot">
+          <button type="button" class="back" data-back><Icon name="arrow-left" size={12} /> back</button>
+          <button type="button" class="next" data-next>see my pipeline <Icon name="arrow-right" size={12} /></button>
+        </div>
+      </section>
+
+      <!-- ───────────── Step 5 — result ───────────── -->
+      <section class="step result" data-step="5" hidden>
+        <h2>Your opchain pipeline</h2>
+        <p class="result-sub" id="result-sub">based on what you told us</p>
+
+        <div class="result-section">
+          <div class="result-head">Recommended skills</div>
+          <div class="skill-list" id="rec-skills"></div>
+        </div>
+
+        <div class="result-section">
+          <div class="result-head">Install</div>
+          <pre class="codeblock" id="install-cmd"></pre>
+          <button type="button" class="copy" id="copy-install">
+            <Icon name="copy" size={12} /> copy
+          </button>
+        </div>
+
+        <div class="result-section">
+          <div class="result-head">CLAUDE.md starter</div>
+          <pre class="codeblock claude-md" id="claude-md"></pre>
+          <button type="button" class="copy" id="copy-claude">
+            <Icon name="copy" size={12} /> copy
+          </button>
+        </div>
+
+        <div class="result-section email-block">
+          <div class="result-head">Email me this</div>
+          <p class="email-sub">
+            Drop your email and we'll send the full pipeline + a follow-up
+            when a relevant new skill ships. Skippable.
+          </p>
+          <form class="email-form" id="email-form" autocomplete="on">
+            <input
+              type="email"
+              name="email"
+              id="email-input"
+              placeholder="you@example.com"
+              autocomplete="email"
+              inputmode="email"
+              required
+            />
+            <button type="submit" class="email-submit" id="email-submit">email it to me</button>
+          </form>
+          <div class="email-status" id="email-status" hidden></div>
+        </div>
+
+        <div class="result-section">
+          <div class="result-head">Next steps</div>
+          <div class="cta-row">
+            <a class="cta-primary" href="/install">
+              <Icon name="download" size={12} /> install opchain
+            </a>
+            <a class="cta-ghost" href="/skills">
+              browse all skills
+            </a>
+            <button type="button" class="cta-ghost" data-back data-restart>
+              start over
+            </button>
+          </div>
+        </div>
+      </section>
+    </form>
+
+    <p class="footnote">
+      Wired together by hand — no LLM round-trip. Recommendations come
+      from a static decision table you can audit in
+      <code>site/src/pages/pipeline-builder.astro</code>.
+    </p>
+  </main>
+</Base>
+
+<style>
+  .page { max-width: 760px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  .page-head { margin-bottom: 1.25rem; }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
+  .lede { color: var(--muted); margin: 0 0 1.5rem; max-width: 42rem; }
+  .lede code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  .progress {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem;
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .progress li {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    padding: 0.4rem 0.7rem;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+    color: var(--subtle);
+    background: var(--surface);
+  }
+  .progress li::before {
+    content: attr(data-step) " · ";
+    color: var(--dim);
+  }
+  .progress li.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .progress li.done { color: var(--muted); border-color: var(--muted); }
+  .progress li.done::before { color: var(--success, #0D9488); }
+
+  .wizard { display: block; }
+  .step {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 1.5rem 1.5rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .step h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 1.2rem;
+    letter-spacing: var(--ls-tight);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.55rem;
+    margin-bottom: 1.25rem;
+  }
+  .grid.grid-3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 540px) {
+    .grid, .grid.grid-3 { grid-template-columns: 1fr; }
+  }
+
+  .opt-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.8rem 0.95rem;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+    background: var(--card);
+    cursor: pointer;
+    transition: border-color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard);
+  }
+  .opt-card:hover { border-color: var(--accent); }
+  .opt-card input[type="radio"] {
+    appearance: none;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    opacity: 0;
+  }
+  .opt-card:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .opt-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--text);
+    font-size: var(--fs-base);
+  }
+  .opt-sub {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+  }
+
+  .step-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+  .step-foot .hint {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+  }
+  .back, .next {
+    appearance: none;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    padding: 0.5rem 0.95rem;
+    border-radius: var(--r-xs);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+  }
+  .back:hover { color: var(--text); border-color: var(--accent); }
+  .next {
+    background: var(--accent);
+    color: #1c1710;
+    border-color: var(--accent);
+    font-weight: 600;
+    margin-left: auto;
+  }
+  .next:hover { filter: brightness(1.05); }
+
+  /* ── Result ────────────────────────────────────────────────── */
+  .result h2 {
+    margin-bottom: 0.3rem;
+  }
+  .result-sub {
+    color: var(--subtle);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    margin: 0 0 1.5rem;
+  }
+  .result-section {
+    margin-bottom: 1.75rem;
+    position: relative;
+  }
+  .result-head {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  .skill-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .rec-skill {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.55rem 0.8rem;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+    background: var(--card);
+    text-decoration: none;
+    transition: border-color var(--dur-fast) var(--ease-standard);
+  }
+  .rec-skill:hover { border-color: var(--accent); }
+  .rec-skill .name {
+    font-family: var(--font-mono);
+    color: var(--text);
+    font-weight: 500;
+    min-width: 11rem;
+  }
+  .rec-skill .why {
+    color: var(--muted);
+    font-size: var(--fs-sm);
+  }
+  .rec-skill .arrow {
+    color: var(--accent);
+    margin-left: auto;
+    font-family: var(--font-mono);
+  }
+
+  .codeblock {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: var(--lh-base);
+    background: var(--obsidian);
+    color: var(--linen);
+    border: 0.5px solid var(--slag);
+    border-radius: var(--r-md);
+    padding: 0.85rem 1.1rem;
+    overflow-x: auto;
+    margin: 0;
+    white-space: pre;
+  }
+  .claude-md { max-height: 320px; overflow: auto; white-space: pre-wrap; }
+
+  .copy {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: var(--ls-wide);
+    color: var(--muted);
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 0.35rem 0.6rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    text-transform: uppercase;
+  }
+  .copy:hover { color: var(--accent); border-color: var(--accent); }
+
+  .email-block { border-top: 0.5px dashed var(--border); padding-top: 1rem; }
+  .email-sub {
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    margin: 0 0 0.6rem;
+    line-height: var(--lh-base);
+  }
+  .email-form {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .email-form input[type="email"] {
+    flex: 1 1 220px;
+    appearance: none;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--fs-base);
+    padding: 0.55rem 0.85rem;
+  }
+  .email-form input[type="email"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+  }
+  .email-submit {
+    appearance: none;
+    background: var(--accent);
+    color: #1c1710;
+    border: 0.5px solid var(--accent);
+    font: inherit;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    padding: 0.55rem 1rem;
+    border-radius: var(--r-xs);
+    cursor: pointer;
+  }
+  .email-submit:hover { filter: brightness(1.05); }
+  .email-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+  .email-status {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    margin-top: 0.5rem;
+    color: var(--muted);
+  }
+
+  .cta-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .cta-primary, .cta-ghost {
+    appearance: none;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    padding: 0.55rem 1rem;
+    border-radius: var(--r-xs);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+    border: 0.5px solid var(--border);
+  }
+  .cta-primary {
+    background: var(--accent);
+    color: #1c1710;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .cta-primary:hover { filter: brightness(1.05); }
+  .cta-ghost {
+    background: transparent;
+    color: var(--muted);
+  }
+  .cta-ghost:hover { color: var(--text); border-color: var(--accent); }
+
+  .footnote {
+    margin-top: 2rem;
+    color: var(--subtle);
+    font-size: var(--fs-sm);
+    font-family: var(--font-mono);
+    letter-spacing: var(--ls-wide);
+  }
+  .footnote code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+</style>
+
+<script>
+  type Step = 1 | 2 | 3 | 4 | 5;
+  type Kind = "web-app" | "api" | "marketing-site" | "data" | "cli" | "legacy";
+  type Team = "solo" | "small" | "medium" | "large";
+  type Deploy = "cloudflare" | "vercel" | "aws" | "fly" | "render" | "self-hosted";
+  type Surface = "claude-code" | "claude-ai" | "both";
+
+  interface Answers {
+    kind: Kind;
+    team: Team;
+    deploy: Deploy;
+    surface: Surface;
+  }
+
+  // ── Skill recommendation table ────────────────────────────────
+  // The Foundation set is always recommended. Everything else is
+  // additive based on answers.
+  const FOUNDATION = ["app-architect", "orchestrator", "checkpoint-protocol", "code-auditor", "git-ops"];
+
+  const KIND_SKILLS: Record<Kind, string[]> = {
+    "web-app":        ["stack-forge", "ux-engineer", "api-dev", "deploy-ops", "monitoring-ops"],
+    "api":            ["stack-forge", "api-dev", "integrations-engineer", "deploy-ops", "monitoring-ops", "scale-ops"],
+    "marketing-site": ["ux-engineer", "deploy-ops"],
+    "data":           ["dash-forge", "api-dev", "deploy-ops", "monitoring-ops"],
+    "cli":            ["stack-forge", "bug-check"],
+    "legacy":         ["reverse-spec", "migration-ops", "code-auditor", "security-auditor", "deploy-ops"],
+  };
+
+  const DEPLOY_NOTE: Record<Deploy, string> = {
+    "cloudflare":  "Cloudflare Workers — deploy-ops has a dedicated section for wrangler",
+    "vercel":      "Vercel — deploy-ops knows the `vercel deploy --prod` flow",
+    "aws":         "AWS — deploy-ops + scale-ops cover ECS / Lambda / RDS",
+    "fly":         "Fly.io — long-running containers, deploy-ops handles flyctl",
+    "render":      "Render / Railway — Blueprint-based provisioning via deploy-ops",
+    "self-hosted": "Self-hosted — deploy-ops + security-auditor for hardening, monitoring-ops for SLOs",
+  };
+
+  const SKILL_BLURB: Record<string, string> = {
+    "app-architect":        "Plans, builds, and evaluates with a Generator/Evaluator loop",
+    "orchestrator":         "Routes between skills; answers /ops queries",
+    "checkpoint-protocol":  "Survives across sessions — every skill reads / writes its checkpoint",
+    "code-auditor":         "Auditor / Fixer / Verifier — gates production",
+    "git-ops":              "Branches, commits, PRs — shapes them from the checkpoint",
+    "stack-forge":          "Picks the platform / framework / database for you",
+    "ux-engineer":          "Design system + screens + working prototype",
+    "api-dev":              "OpenAPI / GraphQL contract with parity to the implementation",
+    "integrations-engineer":"OAuth, webhooks, third-party API integrations",
+    "deploy-ops":           "Staging → prod → rollback with audit-gate enforcement",
+    "monitoring-ops":       "Uptime, errors, alerts, on-call, postmortems",
+    "scale-ops":            "Load testing, perf budgets, caching, capacity planning",
+    "reverse-spec":         "Reverse-engineers a spec from existing code",
+    "migration-ops":        "Live migrations with rollback at every step",
+    "security-auditor":     "Threat model, OWASP, runtime / infra hardening",
+    "dash-forge":           "Dense-info dashboards (Tufte density)",
+    "bug-check":            "Pre-commit type / lint / secrets / vulnerability scan",
+  };
+
+  function recommend(a: Answers): string[] {
+    const set = new Set<string>(FOUNDATION);
+    KIND_SKILLS[a.kind].forEach((s) => set.add(s));
+
+    // Team-size deltas: larger teams benefit from security-auditor and
+    // scale-ops on the default path.
+    if (a.team === "medium" || a.team === "large") {
+      set.add("security-auditor");
+      set.add("scale-ops");
+    }
+
+    // Self-hosted always wants security-auditor and monitoring-ops.
+    if (a.deploy === "self-hosted") {
+      set.add("security-auditor");
+      set.add("monitoring-ops");
+    }
+
+    return Array.from(set);
+  }
+
+  function installSnippet(a: Answers, _skills: string[]): string {
+    if (a.surface === "claude-ai") {
+      return [
+        "# Claude.ai / Desktop install",
+        "# 1. Open https://opchain.dev/skills",
+        "# 2. Download each recommended SKILL.md (or the full bundle)",
+        "# 3. In Claude → Settings → Customize → Skills → Upload",
+        "# 4. Start a chat and type /discover",
+      ].join("\n");
+    }
+    const lines = [
+      "# In your project root:",
+      "curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip",
+      "unzip opchain-skills.zip -d .claude/skills/",
+      "claude",
+      "> /discover",
+    ];
+    if (a.surface === "both") {
+      lines.push("");
+      lines.push("# Then mirror the .claude/skills/ directory into Claude.ai");
+      lines.push("# via Settings → Customize → Skills → Upload");
+    }
+    return lines.join("\n");
+  }
+
+  function claudeMdStarter(a: Answers, skills: string[]): string {
+    const kindTitle = {
+      "web-app":        "web app",
+      "api":            "API / backend service",
+      "marketing-site": "marketing site",
+      "data":           "data product / dashboard",
+      "cli":            "CLI / library",
+      "legacy":         "legacy migration",
+    }[a.kind];
+
+    const teamLabel = {
+      "solo": "solo founder", "small": "team of 2–5", "medium": "team of 6–20", "large": "org of 21+",
+    }[a.team];
+
+    return `# ${kindTitle} — opchain pipeline
+
+## Context
+
+A ${kindTitle} maintained by a ${teamLabel}. Deploys to ${a.deploy}.
+Built with Claude via ${a.surface === "both" ? "Claude Code + Claude.ai" : a.surface}.
+
+## opchain skills installed
+
+${skills.map((s) => `- ${s} — ${SKILL_BLURB[s] || ""}`).join("\n")}
+
+## How to work in this repo
+
+- Start every session with \`/ops\` to read open checkpoints
+- For new work, trigger \`app-architect\` with "I have an app idea" or \`/discover\`
+- Code changes go through \`code-auditor\` before merge${a.team === "medium" || a.team === "large" || a.deploy === "self-hosted" ? " plus \`security-auditor\` on security-sensitive paths" : ""}
+- Ship via \`deploy-ops\` — staging first, then production
+- The orchestrator routes between skills; you don't need to name the next one
+
+## Deploy target
+
+${DEPLOY_NOTE[a.deploy]}
+
+## Conventions
+
+- Branch per feature; PRs reviewed by \`code-auditor\` before merge
+- Checkpoints in \`.checkpoints/\` survive across sessions
+- Feature flags live in \`src/lib/flags/registry.ts\` (or your equivalent)
+`;
+  }
+
+  // ── State + DOM ───────────────────────────────────────────────
+  const form = document.getElementById("wizard") as HTMLFormElement;
+  const progress = document.querySelectorAll<HTMLLIElement>(".progress li");
+  const steps = document.querySelectorAll<HTMLElement>(".step");
+  let current: Step = 1;
+
+  function showStep(s: Step) {
+    current = s;
+    steps.forEach((el) => {
+      const sn = Number(el.dataset.step) as Step;
+      el.hidden = sn !== s;
+    });
+    progress.forEach((li) => {
+      const sn = Number(li.dataset.step);
+      li.classList.toggle("active", sn === s);
+      li.classList.toggle("done", sn < s);
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function readAnswers(): Answers {
+    const fd = new FormData(form);
+    return {
+      kind: (fd.get("kind") || "web-app") as Kind,
+      team: (fd.get("team") || "solo") as Team,
+      deploy: (fd.get("deploy") || "cloudflare") as Deploy,
+      surface: (fd.get("surface") || "claude-code") as Surface,
+    };
+  }
+
+  function renderResult() {
+    const a = readAnswers();
+    const skills = recommend(a);
+    const subEl = document.getElementById("result-sub")!;
+    subEl.textContent = `${a.kind.replace("-", " ")} · team ${a.team} · ${a.deploy} · ${a.surface}`;
+
+    const list = document.getElementById("rec-skills")!;
+    list.innerHTML = "";
+    skills.forEach((s) => {
+      const a = document.createElement("a");
+      a.className = "rec-skill";
+      a.href = `/skills/${s}`;
+      a.innerHTML = `
+        <span class="name">${s}</span>
+        <span class="why">${SKILL_BLURB[s] || ""}</span>
+        <span class="arrow">→</span>
+      `;
+      list.appendChild(a);
+    });
+
+    document.getElementById("install-cmd")!.textContent = installSnippet(a, skills);
+    document.getElementById("claude-md")!.textContent = claudeMdStarter(a, skills);
+  }
+
+  document.querySelectorAll<HTMLButtonElement>("[data-next]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (current >= 5) return;
+      const next = (current + 1) as Step;
+      if (next === 5) renderResult();
+      showStep(next);
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>("[data-back]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.restart) {
+        showStep(1);
+        return;
+      }
+      if (current <= 1) return;
+      showStep((current - 1) as Step);
+    });
+  });
+
+  // Copy buttons
+  function wireCopy(btnId: string, srcId: string) {
+    const btn = document.getElementById(btnId) as HTMLButtonElement | null;
+    const src = document.getElementById(srcId);
+    if (!btn || !src) return;
+    btn.addEventListener("click", async () => {
+      const text = src.textContent || "";
+      try {
+        await navigator.clipboard.writeText(text);
+        const orig = btn.innerHTML;
+        btn.textContent = "copied ✓";
+        setTimeout(() => { btn.innerHTML = orig; }, 1200);
+      } catch { /* ignore */ }
+    });
+  }
+  wireCopy("copy-install", "install-cmd");
+  wireCopy("copy-claude", "claude-md");
+
+  // Email capture for the recommendation
+  const emailForm = document.getElementById("email-form") as HTMLFormElement | null;
+  const emailStatus = document.getElementById("email-status")!;
+  const emailSubmit = document.getElementById("email-submit") as HTMLButtonElement | null;
+
+  emailForm?.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    if (!emailSubmit) return;
+    const fd = new FormData(emailForm);
+    const email = String(fd.get("email") || "").trim();
+    const a = readAnswers();
+    const payload = {
+      email,
+      source: "other" as const,
+      // Bundle the wizard answers into the optional `building` field so
+      // they get persisted alongside the email without changing the
+      // /api/notify schema.
+      building: `[pipeline-builder] ${a.kind} · team ${a.team} · ${a.deploy} · ${a.surface}`,
+    };
+    emailSubmit.disabled = true;
+    emailStatus.hidden = false;
+    emailStatus.textContent = "Sending…";
+    emailStatus.setAttribute("style", "color: var(--muted)");
+    try {
+      const res = await fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        emailStatus.textContent = body.error || `Couldn't save (HTTP ${res.status}).`;
+        emailStatus.setAttribute("style", "color: var(--in-progress, #f59e0b)");
+        return;
+      }
+      emailStatus.textContent = "Got it — we'll send this and ping you on relevant updates.";
+      emailStatus.setAttribute("style", "color: var(--success, #0D9488)");
+    } catch {
+      emailStatus.textContent = "Network error — try again in a moment.";
+      emailStatus.setAttribute("style", "color: var(--in-progress, #f59e0b)");
+    } finally {
+      emailSubmit.disabled = false;
+    }
+  });
+</script>

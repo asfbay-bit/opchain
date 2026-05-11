@@ -53,6 +53,16 @@ const phaseFilters = [
       per-skill download bundle.
     </p>
 
+    <a class="release-callout" href="/changelog" aria-label="See what's new in opchain v1.3">
+      <span class="release-callout-tag">v1.3 · NEW</span>
+      <span class="release-callout-text">
+        Runtime PM-MCP loop · Django / Rails / Go / Rust support · <code>release-ops</code>
+      </span>
+      <span class="release-callout-link">
+        see what changed →
+      </span>
+    </a>
+
     <section class="filter-panel" aria-labelledby="lib-heading">
       <h2 id="lib-heading" class="visually-hidden">Filters</h2>
       <Input
@@ -446,4 +456,64 @@ const phaseFilters = [
     font-style: italic;
     margin-top: 2rem;
   }
+
+  /* ── Release callout — surfaces the latest /changelog headline above the
+        filter panel. Links the Skill Library to the version history so a
+        first-time visitor browsing skills doesn't have to dig for what
+        moved in the latest release. ── */
+  .release-callout {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem 0.65rem 0.7rem;
+    margin: 0 0 1.5rem;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-left: 2px solid var(--accent);
+    border-radius: var(--r-xs);
+    color: var(--muted);
+    text-decoration: none;
+    transition:
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+    flex-wrap: wrap;
+  }
+  .release-callout:hover {
+    color: var(--text);
+    border-color: var(--accent);
+  }
+  .release-callout-tag {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 0.5px solid var(--accent);
+    padding: 2px 8px;
+    border-radius: var(--r-xs);
+    flex-shrink: 0;
+  }
+  .release-callout-text {
+    flex: 1 1 auto;
+    font-size: var(--fs-sm);
+    line-height: 1.4;
+  }
+  .release-callout-text code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+  .release-callout-link {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    color: var(--accent);
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  :global([data-theme="light"]) .release-callout-link { color: var(--accent-hover); }
 </style>

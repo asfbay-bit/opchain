@@ -1,0 +1,352 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Card from "../components/ui/Card.astro";
+---
+
+<Base
+  title="Status · opchain"
+  description="Live status for opchain.dev — last deploy SHA, API health, and historical uptime."
+  active="/"
+>
+  <main class="page">
+    <div class="page-head">
+      <Eyebrow>status</Eyebrow>
+      <h1>System status.</h1>
+    </div>
+
+    <p class="lede">
+      Live read from <code>opchain.dev/api/health</code>. Refreshes on
+      load and every 60 seconds while the tab is visible.
+    </p>
+
+    <section class="overall" id="overall" data-state="loading">
+      <div class="dot" aria-hidden="true"></div>
+      <div class="overall-text">
+        <div class="overall-label" id="overall-label">checking…</div>
+        <div class="overall-sub" id="overall-sub">contacting /api/health</div>
+      </div>
+      <button type="button" class="refresh" id="refresh-btn" aria-label="Refresh status">
+        refresh
+      </button>
+    </section>
+
+    <section class="grid">
+      <Card variant="surface" glow={false}>
+        <div class="quick-head">API health</div>
+        <div class="quick-val" id="api-status">—</div>
+        <div class="quick-sub" id="api-latency">measuring round-trip…</div>
+      </Card>
+
+      <Card variant="surface" glow={false}>
+        <div class="quick-head">Production version</div>
+        <div class="quick-val mono" id="version-val">—</div>
+        <div class="quick-sub" id="version-sub">SHA of the worker currently serving opchain.dev</div>
+      </Card>
+
+      <Card variant="surface" glow={false}>
+        <div class="quick-head">Last checked</div>
+        <div class="quick-val mono" id="checked-val">—</div>
+        <div class="quick-sub">auto-refreshes every 60 s</div>
+      </Card>
+    </section>
+
+    <section class="block">
+      <h2>What we measure</h2>
+      <ul>
+        <li>
+          <strong>API health.</strong> A <code>GET /api/health</code>
+          returning a 200 with <code>status: "ok"</code> means every
+          edge-served route is reachable and the worker is running.
+        </li>
+        <li>
+          <strong>Version.</strong> The <code>version</code> field is
+          the git SHA stamped at build time. Compare against the
+          <a href="https://github.com/asfbay-bit/opchain/commits/main" rel="noopener">main branch</a>
+          to see if a deploy is pending.
+        </li>
+        <li>
+          <strong>Latency.</strong> Round-trip from your browser to the
+          Cloudflare edge nearest you. Treat anything under 500 ms as
+          normal; anything over 2 s suggests a regional issue.
+        </li>
+      </ul>
+    </section>
+
+    <section class="block">
+      <h2>If something is broken</h2>
+      <p>
+        Production breakages get reverted by hand on a developer laptop —
+        there's no auto-rollback. The fastest signal that we're aware is
+        a non-current SHA in the version card above.
+      </p>
+      <ul>
+        <li>Cloudflare incidents that affect opchain: <a href="https://www.cloudflarestatus.com" rel="noopener">cloudflarestatus.com</a></li>
+        <li>Open issues: <a href="https://github.com/asfbay-bit/opchain/issues" rel="noopener">github.com/asfbay-bit/opchain/issues</a></li>
+        <li>Report a new problem: <button type="button" class="inline-link" data-feedback-launcher>send feedback</button></li>
+      </ul>
+    </section>
+
+    <p class="footnote">
+      opchain.dev runs on Cloudflare Workers with a static Astro site
+      served through the ASSETS binding. See
+      <a href="/uses">how opchain.dev is built</a> for the full stack
+      and <a href="/security">security</a> for hardening posture.
+    </p>
+  </main>
+</Base>
+
+<style>
+  .page { max-width: 760px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  .page-head { margin-bottom: 1.25rem; }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
+  .lede { color: var(--muted); margin: 0 0 2rem; max-width: 42rem; }
+  .lede code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  .overall {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.5rem;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    background: var(--surface);
+  }
+  .overall .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--muted);
+    box-shadow: 0 0 0 0 transparent;
+    transition: background var(--dur-base) var(--ease-standard), box-shadow var(--dur-base) var(--ease-standard);
+  }
+  .overall[data-state="ok"] .dot {
+    background: var(--success, #0D9488);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--success, #0D9488) 60%, transparent);
+  }
+  .overall[data-state="degraded"] .dot {
+    background: var(--warning, #f59e0b);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--warning, #f59e0b) 60%, transparent);
+  }
+  .overall[data-state="down"] .dot {
+    background: var(--danger, #F43F5E);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--danger, #F43F5E) 60%, transparent);
+  }
+  .overall[data-state="loading"] .dot {
+    background: var(--accent);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .overall-text { flex: 1; min-width: 0; }
+  .overall-label {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .overall-sub {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    color: var(--subtle);
+    margin-top: 0.2rem;
+  }
+
+  .refresh {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--r-xs);
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard);
+  }
+  .refresh:hover { color: var(--accent); border-color: var(--accent); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+  }
+  .quick-head {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--subtle);
+    margin-bottom: 0.4rem;
+  }
+  .quick-val {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.1;
+  }
+  .quick-val.mono { font-family: var(--font-mono); font-weight: 500; font-size: var(--fs-base); }
+  .quick-sub {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+    margin-top: 0.35rem;
+  }
+
+  .block { margin: 0 0 2rem; }
+  .block h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 0.8rem;
+  }
+  .block ul { color: var(--muted); margin: 0 0 0.75rem 1.25rem; padding: 0; line-height: var(--lh-base); }
+  .block li { margin-bottom: 0.45rem; }
+  .block p { color: var(--muted); margin: 0 0 0.75rem; line-height: var(--lh-base); }
+  .block a { color: var(--accent); }
+  .block strong { color: var(--text); }
+  .block code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  .inline-link {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    color: var(--accent);
+    font: inherit;
+    cursor: pointer;
+  }
+  .inline-link:hover { text-decoration: underline; }
+
+  .footnote {
+    margin-top: 2.5rem;
+    color: var(--subtle);
+    font-size: var(--fs-sm);
+    font-family: var(--font-mono);
+    letter-spacing: var(--ls-wide);
+  }
+  .footnote a { color: var(--accent); }
+</style>
+
+<script>
+  type State = "loading" | "ok" | "degraded" | "down";
+
+  const overall = document.getElementById("overall")!;
+  const overallLabel = document.getElementById("overall-label")!;
+  const overallSub = document.getElementById("overall-sub")!;
+  const apiStatus = document.getElementById("api-status")!;
+  const apiLatency = document.getElementById("api-latency")!;
+  const versionVal = document.getElementById("version-val")!;
+  const versionSub = document.getElementById("version-sub")!;
+  const checkedVal = document.getElementById("checked-val")!;
+  const refreshBtn = document.getElementById("refresh-btn")! as HTMLButtonElement;
+
+  function setState(s: State, label: string, sub: string) {
+    overall.dataset.state = s;
+    overallLabel.textContent = label;
+    overallSub.textContent = sub;
+  }
+
+  async function check() {
+    setState("loading", "checking…", "contacting /api/health");
+    apiStatus.textContent = "—";
+    apiLatency.textContent = "measuring round-trip…";
+
+    const start = performance.now();
+    try {
+      const res = await fetch("/api/health", { cache: "no-store" });
+      const elapsed = Math.round(performance.now() - start);
+      const ok = res.ok;
+      let json: { status?: string; version?: string } = {};
+      try { json = await res.json(); } catch { /* tolerate non-JSON */ }
+
+      apiStatus.textContent = ok ? "Operational" : `HTTP ${res.status}`;
+      apiLatency.textContent = `${elapsed} ms round-trip`;
+
+      if (json.version) {
+        versionVal.textContent = json.version;
+        versionSub.textContent = "SHA of the worker currently serving opchain.dev";
+      } else {
+        versionVal.textContent = "unknown";
+      }
+
+      const now = new Date();
+      checkedVal.textContent = now.toLocaleTimeString();
+
+      if (!ok) {
+        setState("down", "API not responding", `Got HTTP ${res.status} from /api/health`);
+      } else if (elapsed > 2000) {
+        setState("degraded", "Slow response", `Latency ${elapsed} ms — degraded`);
+      } else if (json.status && json.status !== "ok") {
+        setState("degraded", "API reports degraded", `status: ${json.status}`);
+      } else {
+        setState("ok", "All systems operational", `/api/health responded in ${elapsed} ms`);
+      }
+    } catch (err) {
+      apiStatus.textContent = "Unreachable";
+      apiLatency.textContent = "network error";
+      versionVal.textContent = "—";
+      checkedVal.textContent = new Date().toLocaleTimeString();
+      setState("down", "Cannot reach API", "Network error or DNS failure — check your connection");
+    }
+  }
+
+  refreshBtn.addEventListener("click", () => check());
+  check();
+
+  // Auto-refresh every minute while the tab is visible.
+  let timer: number | undefined;
+  function startTimer() {
+    stopTimer();
+    timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") check();
+    }, 60_000);
+  }
+  function stopTimer() {
+    if (timer !== undefined) window.clearInterval(timer);
+    timer = undefined;
+  }
+  startTimer();
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      check();
+      startTimer();
+    } else {
+      stopTimer();
+    }
+  });
+</script>
