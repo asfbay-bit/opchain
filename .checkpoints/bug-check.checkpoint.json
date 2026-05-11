@@ -4,9 +4,9 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-11T04:12:59.406Z",
+  "updated_at": "2026-05-11T04:14:02Z",
   "phase": "gate",
-  "step": "demo-toc-flash-cleanup-safety-net-passed",
+  "step": "restamp-after-pr-2-passed",
   "status": "complete",
   "progress_summary": "Belt-and-suspenders cleanup: kept animationend listener + added setTimeout safety net so the flash class is reliably cleared even when the animation gets optimised out in headless CI (the failure on PR #202 second CI run). Bumped Playwright test timeouts 4600→5000ms to accommodate the 150ms safety-net buffer. Vitest 137/137 in 5.60s (one flake on first run, clean on retry — same vitest race observed earlier on this branch). tsc clean.",
   "progress_table": [
@@ -70,11 +70,11 @@
   },
   "blockers": [],
   "next_actions": [
-    "Commit + push the FeedbackWidget textarea slot fix on claude/remove-feedback-prefill-xgmQC, then open a PR."
+    "Pre-commit gate for the next branch (claude/adev-330-dispatch-and-mobile / v1.4 PR 3). No pending work — gate stamps fresh on the next commit cycle."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-11T04:12:59.406Z",
+      "at": "2026-05-11T04:14:02Z",
       "verdict": "PASS",
       "duration_ms": 5600,
       "checks": {
@@ -88,7 +88,7 @@
       },
       "warnings": 0,
       "errors": 0,
-      "notes": "Flash-cleanup safety-net + test timeout bump."
+      "notes": "Re-stamp orchestrator + stack-forge after PR 2 (ADEV-329) shipped via #203 → 22c45cd. Vitest 158/158 (was 153 + 5 from #199 security disclosure tests on main). checkpoint:validate 7/7."
     },
     "bypasses": [],
     "carried_debt": 0,
