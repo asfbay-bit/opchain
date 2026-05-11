@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-10T23:15:00Z",
+  "updated_at": "2026-05-11T00:18:00Z",
   "phase": "gate",
-  "step": "restamp-after-adev-328-passed",
+  "step": "adev-338-a11y-cleanup-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for the post-ADEV-328 housekeeping commit. 2 files staged: .checkpoints/stack-forge.checkpoint.json (pr-1-starting → pr-1-shipped-pr-2-starting; next_actions rewritten for PR 2 backfill; PR #192/4cb0b09 logged in skill_state.shipped_prs) and .checkpoints/orchestrator.checkpoint.json (handoff-stack-forge → handoff-stack-forge-pr-2; v1.4-pr1 marked complete, v1.4-pr2 added in_progress; merged_prs_this_session bumped with #191 + #192). State-only diff. checkpoint:validate: 7/7 valid. Anti-pattern + secret grep on diff: clean. Verdict: PASS.",
+  "progress_summary": "Pre-commit gate for the ADEV-338 a11y backlog cleanup (LHCI failures that piggy-backed on every recent PR). 4 files modified across 4 logical fixes: site/src/pages/skills/[id].astro (ADEV-339 — TOC links: display:flex + min-height:44px for 2.5.5 AAA-safe target size), site/astro.config.mjs (ADEV-340 — Shiki dual-theme: github-light + github-dark-default for code-block contrast on light + dark), site/src/pages/architecture.astro (ADEV-341 — band-label-text: --muted → --text for max contrast on glow-filtered ship + monitor bands), site/src/pages/changelog.astro (ADEV-342 — drop `.release a { text-decoration: none }` override so the global :where(p, li, ...) underline rule applies, satisfies link-in-text-block). Vitest: 137/137 in 3.75s (flake on first run hit known race-prone tests/flags-skills.test.js 'passes with a clean fixture' — re-run clean). Anti-pattern + secret grep on diff: clean. checkpoint:validate: 7/7. Verdict: PASS.",
   "progress_table": [
     {
       "id": "schema",
@@ -74,13 +74,13 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-10T23:15:00Z",
+      "at": "2026-05-11T00:18:00Z",
       "verdict": "PASS",
-      "duration_ms": 200,
+      "duration_ms": 3750,
       "checks": {
         "type_safety": "SKIP",
         "lint": "SKIP",
-        "tests": "SKIP",
+        "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
         "build": "SKIP",
@@ -88,11 +88,16 @@
       },
       "warnings": 0,
       "errors": 0,
-      "notes": "State-only diff: 2 checkpoint JSON files (stack-forge + orchestrator) advancing post-ADEV-328 ship. No code touched; build/type/lint/tests/deps skipped as vacuous. checkpoint:validate 7/7. Anti-pattern + secret grep on diff: clean."
+      "notes": "ADEV-338 a11y cleanup: 4 file edits across 4 Astro pages + 1 config. Vitest 137/137 in 3.75s on second run (first run flaked on the known race-prone tests/flags-skills.test.js subprocess test — same flake noted in earlier bug-check checkpoint). Anti-pattern + secret grep on diff: clean. astro build skipped locally (needs site/node_modules — CI will verify)."
     },
     "bypasses": [],
     "carried_debt": 0,
     "run_history": [
+      {
+        "at": "2026-05-11T00:18:00Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
       {
         "at": "2026-05-10T23:15:00Z",
         "verdict": "PASS",
@@ -115,7 +120,7 @@
       }
     ],
     "streak": {
-      "passes": 4,
+      "passes": 5,
       "since": "2026-05-08T21:52:49Z"
     }
   },
