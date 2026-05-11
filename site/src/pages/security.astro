@@ -31,23 +31,136 @@ Acknowledgments: https://github.com/asfbay-bit/opchain/security/advisories`;
     <section class="block">
       <h2><Icon name="message-square" /> Report a vulnerability</h2>
       <p>
-        Email <a href="mailto:security@opchain.dev">security@opchain.dev</a>
-        with a description, reproduction steps, and impact assessment. We
-        respond within 3 business days.
-      </p>
-      <p>
-        For high-severity findings, request our PGP key in the first
-        message and we'll exchange before you share details. You can also
-        open a
-        <a href="https://github.com/asfbay-bit/opchain/security/advisories/new" rel="noopener">
-          private GitHub Security Advisory
-        </a> against the repo.
+        Use the form below for the fastest path — it routes straight
+        to our triage queue in Linear with a structured body so we can
+        respond quickly. We acknowledge within 3 business days.
       </p>
       <p class="callout">
         <strong>Please don't</strong> open a public GitHub issue, file
         feedback through the on-site widget, or post on social before we've
         had a chance to triage and patch.
       </p>
+
+      <form class="sec-form" id="sec-form" autocomplete="on" novalidate>
+        <label class="field">
+          <span class="label">Short title</span>
+          <input
+            type="text"
+            name="title"
+            id="sec-title"
+            placeholder="One-line summary — e.g. CSRF on /api/feedback"
+            required
+            maxlength="200"
+            minlength="3"
+            autocomplete="off"
+          />
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="label">Severity</span>
+            <select name="severity" id="sec-severity" required>
+              <option value="">Choose…</option>
+              <option value="critical">Critical — actively exploitable, data exposure</option>
+              <option value="high">High — exploitable with conditions</option>
+              <option value="medium" selected>Medium — bug with security implications</option>
+              <option value="low">Low — hardening / defence-in-depth</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="label">Affected component</span>
+            <input
+              type="text"
+              name="component"
+              id="sec-component"
+              placeholder="URL · endpoint · skill · file path"
+              maxlength="200"
+              autocomplete="off"
+            />
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="label">Steps to reproduce</span>
+          <textarea
+            name="reproduction"
+            id="sec-reproduction"
+            rows="5"
+            placeholder="1. …&#10;2. …&#10;3. Expected: …  Actual: …"
+            maxlength="5000"
+          ></textarea>
+        </label>
+
+        <label class="field">
+          <span class="label">Impact</span>
+          <textarea
+            name="impact"
+            id="sec-impact"
+            rows="3"
+            placeholder="What can an attacker do? Who is affected?"
+            maxlength="2000"
+          ></textarea>
+        </label>
+
+        <label class="field">
+          <span class="label">Additional notes <span class="opt">(optional)</span></span>
+          <textarea
+            name="description"
+            id="sec-description"
+            rows="3"
+            placeholder="Mitigations you've already tried, suggested fixes, related CVEs…"
+            maxlength="5000"
+          ></textarea>
+        </label>
+
+        <label class="field">
+          <span class="label">Your email</span>
+          <input
+            type="email"
+            name="email"
+            id="sec-email"
+            placeholder="you@example.com"
+            required
+            autocomplete="email"
+            inputmode="email"
+          />
+          <span class="hint">We'll only use this to follow up on this report.</span>
+        </label>
+
+        <div class="sec-status" id="sec-status" hidden>
+          <span id="sec-status-msg"></span>
+        </div>
+
+        <div class="sec-foot">
+          <button type="submit" class="sec-submit" id="sec-submit">submit report</button>
+          <span class="sec-foot-hint">
+            By submitting you agree to our coordinated disclosure terms above.
+          </span>
+        </div>
+      </form>
+
+      <div class="fallback">
+        <h3>Alternative channels</h3>
+        <p>
+          If your finding is too sensitive for a form (e.g. you need PGP
+          before sharing details, or the report includes user PII),
+          reach out directly:
+        </p>
+        <ul>
+          <li>
+            Email <a href="mailto:security@opchain.dev">security@opchain.dev</a> —
+            ask for our PGP key in the first message; we'll exchange
+            before you share details.
+          </li>
+          <li>
+            Open a
+            <a href="https://github.com/asfbay-bit/opchain/security/advisories/new" rel="noopener">
+              private GitHub Security Advisory
+            </a> against the repo.
+          </li>
+        </ul>
+      </div>
     </section>
 
     <section class="block">
@@ -265,7 +378,218 @@ Acknowledgments: https://github.com/asfbay-bit/opchain/security/advisories`;
   }
   .footnote a { color: var(--accent); }
 
+  /* ── Disclosure form ───────────────────────────────────────────── */
+  .sec-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin: 1.5rem 0 1.5rem;
+    padding: 1.2rem 1.3rem;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1;
+  }
+  .field .label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+  .field .opt {
+    text-transform: none;
+    font-style: italic;
+    color: var(--dim);
+  }
+  .field .hint {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    appearance: none;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--fs-base);
+    padding: 0.55rem 0.85rem;
+  }
+  .field textarea {
+    resize: vertical;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-base);
+    min-height: 4rem;
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+  }
+  .field-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .field-row .field { min-width: 12rem; }
+
+  .sec-status {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    padding: 0.5rem 0.7rem;
+    border-radius: var(--r-xs);
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+  }
+
+  .sec-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.3rem;
+  }
+  .sec-submit {
+    appearance: none;
+    background: var(--accent);
+    color: #1c1710;
+    border: 0.5px solid var(--accent);
+    font: inherit;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--r-xs);
+    cursor: pointer;
+  }
+  .sec-submit:hover { filter: brightness(1.05); }
+  .sec-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+  .sec-foot-hint {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+    flex: 1 1 200px;
+    text-align: right;
+  }
+
+  /* ── Fallback channels (mailto / GHSA) ─────────────────────────── */
+  .fallback {
+    margin-top: 0.5rem;
+    padding-top: 1.25rem;
+    border-top: 0.5px dashed var(--border);
+  }
+  .fallback h3 {
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 0.5rem;
+    letter-spacing: var(--ls-tight);
+  }
+  .fallback ul { margin: 0 0 0.5rem 1.1rem; }
+  .fallback li { margin-bottom: 0.4rem; }
+  .fallback a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 0.5px;
+    text-underline-offset: 2px;
+  }
+
   @media (max-width: 540px) {
     .kv { grid-template-columns: 1fr; gap: 0.25rem; }
+    .sec-foot { flex-direction: column; align-items: stretch; }
+    .sec-foot-hint { text-align: left; }
   }
 </style>
+
+<script>
+  const form = document.getElementById("sec-form") as HTMLFormElement | null;
+  const statusEl = document.getElementById("sec-status")!;
+  const statusMsg = document.getElementById("sec-status-msg")!;
+  const submitBtn = document.getElementById("sec-submit") as HTMLButtonElement | null;
+
+  function setStatus(message: string, kind: "info" | "ok" | "err") {
+    const colors = {
+      info: "var(--muted)",
+      ok:   "var(--success, #0D9488)",
+      err:  "var(--in-progress, #f59e0b)",
+    };
+    statusEl.hidden = false;
+    statusMsg.textContent = message;
+    statusEl.setAttribute("style", `color: ${colors[kind]}; border-color: ${colors[kind]}`);
+  }
+
+  form?.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    if (!submitBtn) return;
+    if (!form.reportValidity()) return;
+
+    const fd = new FormData(form);
+    const payload: Record<string, unknown> = {
+      type: "security",
+      title: String(fd.get("title") || "").trim(),
+      severity: String(fd.get("severity") || "medium"),
+      email: String(fd.get("email") || "").trim(),
+    };
+    const optional = ["component", "reproduction", "impact", "description"] as const;
+    for (const k of optional) {
+      const v = String(fd.get(k) || "").trim();
+      if (v) payload[k] = v;
+    }
+
+    submitBtn.disabled = true;
+    setStatus("Sending — encrypting in transit…", "info");
+
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setStatus(
+          `Received — tracking as ${body.id || "an internal ticket"}. We'll reach out within 3 business days.`,
+          "ok",
+        );
+        form.reset();
+        return;
+      }
+      let msg: string;
+      switch (body.code) {
+        case "not_configured":
+        case "upstream_unreachable":
+        case "upstream_error":
+          msg = "The form is temporarily unavailable. Please email security@opchain.dev instead.";
+          break;
+        case "invalid_body":
+        case "invalid_json":
+          msg = body.error || "Please check the form and try again.";
+          break;
+        default:
+          msg = body.error || `Failed (HTTP ${res.status}).`;
+      }
+      setStatus(msg, "err");
+    } catch {
+      setStatus("Network error — try again, or email security@opchain.dev.", "err");
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>

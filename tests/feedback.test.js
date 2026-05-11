@@ -29,6 +29,7 @@ describe("LABEL_MAP", () => {
       "feature",
       "general",
       "improvement",
+      "security",
     ]);
   });
 
@@ -297,5 +298,140 @@ describe("POST /api/feedback", () => {
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe("https://opchain.dev");
     expect(res.headers.get("Access-Control-Allow-Methods")).toContain("POST");
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  describe("type=security", () => {
+    it("prefixes the Linear title with [SECURITY] and structures the body", async () => {
+      await worker.fetch(
+        req("https://opchain.dev/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "security",
+            title: "csrf on /api/feedback",
+            severity: "high",
+            component: "/api/feedback",
+            reproduction: "1. open evil.example.com\n2. click button\n3. issue posts",
+            impact: "any logged-in user can be tricked into posting feedback",
+            email: "researcher@example.com",
+          }),
+        }),
+        envWith(),
+      );
+      const [, init] = fetchMock.mock.calls[0];
+      const sent = JSON.parse(init.body);
+      expect(sent.variables.input.title).toBe("[SECURITY] csrf on /api/feedback");
+      // Severity, component, reproduction, impact all surface as sections.
+      expect(sent.variables.input.description).toContain("## Severity");
+      expect(sent.variables.input.description).toContain("HIGH");
+      expect(sent.variables.input.description).toContain("## Affected component");
+      expect(sent.variables.input.description).toContain("/api/feedback");
+      expect(sent.variables.input.description).toContain("## Reproduction");
+      expect(sent.variables.input.description).toContain("## Impact");
+      expect(sent.variables.input.description).toContain("opchain.dev /security disclosure form");
+    });
+
+    it("forces urgent priority for critical and high severity", async () => {
+      for (const severity of ["critical", "high"]) {
+        fetchMock.mockResolvedValueOnce(linearOk());
+        await worker.fetch(
+          req("https://opchain.dev/api/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "security",
+              title: `severity ${severity} test`,
+              severity,
+              email: "r@example.com",
+              // Reporter tries to mark this as no-priority — gets ignored.
+              priority: 0,
+            }),
+          }),
+          envWith(),
+        );
+      }
+      // 2 calls; both ride severity → priority 1 (Linear urgent).
+      const calls = fetchMock.mock.calls.slice(-2);
+      for (const [, init] of calls) {
+        const sent = JSON.parse(init.body);
+        expect(sent.variables.input.priority).toBe(1);
+      }
+    });
+
+    it("defaults to medium-triage priority when severity is unset", async () => {
+      await worker.fetch(
+        req("https://opchain.dev/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "security",
+            title: "no severity submitted",
+            email: "r@example.com",
+          }),
+        }),
+        envWith(),
+      );
+      const [, init] = fetchMock.mock.calls[0];
+      const sent = JSON.parse(init.body);
+      // medium → Linear priority 2 (High).
+      expect(sent.variables.input.priority).toBe(2);
+    });
+
+    it("uses LINEAR_SECURITY_LABEL_ID when set, falls back to bug label otherwise", async () => {
+      // With override
+      await worker.fetch(
+        req("https://opchain.dev/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "security",
+            title: "labelled disclosure",
+            severity: "high",
+            email: "r@example.com",
+          }),
+        }),
+        envWith({ LINEAR_SECURITY_LABEL_ID: "sec-label-uuid" }),
+      );
+      let [, init] = fetchMock.mock.calls.at(-1);
+      let sent = JSON.parse(init.body);
+      expect(sent.variables.input.labelIds).toEqual(["sec-label-uuid"]);
+
+      // Without override → falls back to LABEL_MAP.security (== bug id)
+      fetchMock.mockResolvedValueOnce(linearOk());
+      await worker.fetch(
+        req("https://opchain.dev/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "security",
+            title: "unlabelled disclosure",
+            severity: "low",
+            email: "r@example.com",
+          }),
+        }),
+        envWith(),
+      );
+      [, init] = fetchMock.mock.calls.at(-1);
+      sent = JSON.parse(init.body);
+      expect(sent.variables.input.labelIds).toEqual([LABEL_MAP.security]);
+    });
+
+    it("rejects an unknown severity at the schema layer", async () => {
+      const res = await worker.fetch(
+        req("https://opchain.dev/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "security",
+            title: "bogus severity",
+            severity: "catastrophic",
+            email: "r@example.com",
+          }),
+        }),
+        envWith(),
+      );
+      expect(res.status).toBe(400);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
   });
 });

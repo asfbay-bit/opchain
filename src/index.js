@@ -33,9 +33,25 @@ export const LABEL_MAP = {
   feature: "a9f89cba-878b-4c2e-a9e4-871866a03592",
   improvement: "e9956661-28ed-4ca2-8d54-8e5457bbb773",
   general: "ec0403ab-31b9-4aa6-a097-e54e4bbff69c",
+  // Security disclosures: ops should create a dedicated "security"
+  // label in Linear and override this via env.LINEAR_SECURITY_LABEL_ID.
+  // Until then, fall back to the bug label so the issue still gets
+  // categorised — the [SECURITY] title prefix and forced P1 priority
+  // (see handleFeedback below) keep it visible regardless.
+  security: "68403073-fd71-44aa-95bc-aea91ed7e4de",
 };
 
 export const PRIORITY_MAP = { 0: 0, 1: 4, 2: 3, 3: 2, 4: 1 };
+
+// Linear's priority scale: 1=urgent, 2=high, 3=medium, 4=low, 0=none.
+// Security severity → Linear priority. Unconditional — the form's
+// "severity" field never lets a reporter downgrade past Linear high.
+const SECURITY_PRIORITY = {
+  critical: 1, // Urgent
+  high:     1, // Urgent (treat high-severity disclosures as urgent for triage)
+  medium:   2, // High
+  low:      3, // Medium
+};
 
 const ALLOWED_ORIGINS = [
   "https://opchain.dev",
@@ -169,7 +185,12 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
       { status: 400, headers: corsHeaders(origin, requestId) },
     );
   }
-  const { type, title, description, priority, skill, email } = parsed.data;
+  const {
+    type, title, description, priority, skill, email,
+    // Security-only fields — only read when type === "security".
+    component, reproduction, impact, severity,
+  } = parsed.data;
+  const isSecurity = type === "security";
 
   // Staging (and any env with the api-feedback kill flag on) accepts the
   // submission, logs it, and returns a synthetic 201 without calling
@@ -201,8 +222,19 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
 
   const teamId = env.LINEAR_TEAM_ID || DEFAULT_TEAM_ID;
   const projectId = env.LINEAR_PROJECT_ID || DEFAULT_PROJECT_ID;
-  const labelIds = LABEL_MAP[type] ? [LABEL_MAP[type]] : [];
-  const linearPriority = PRIORITY_MAP[priority] ?? 0;
+  // Label resolution. Security disclosures prefer a dedicated label
+  // (configurable via env.LINEAR_SECURITY_LABEL_ID); regular feedback
+  // uses the static LABEL_MAP entry. Empty → no label, never blocks.
+  let labelIds = LABEL_MAP[type] ? [LABEL_MAP[type]] : [];
+  if (isSecurity && env.LINEAR_SECURITY_LABEL_ID) {
+    labelIds = [env.LINEAR_SECURITY_LABEL_ID];
+  }
+  // Priority resolution. Security disclosures bypass the
+  // user-submitted priority and ride the SECURITY_PRIORITY table —
+  // reporters shouldn't be able to mark their own bug as "low."
+  const linearPriority = isSecurity
+    ? (SECURITY_PRIORITY[severity || "medium"])
+    : (PRIORITY_MAP[priority] ?? 0);
   // SKILL_NAMES used to map ids → display names from skill-prompts.js;
   // that file went away with the Try-It removal. The raw slug (e.g.
   // `code-auditor`) still carries enough signal to triage feedback in
@@ -210,16 +242,32 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
   const skillName = skill || null;
 
   const descParts = [];
-  if (description) descParts.push(description);
+  if (isSecurity) {
+    // Structured Markdown body for security disclosures — gives the
+    // triager a consistent layout regardless of how thorough the
+    // reporter was. Missing sections render as "_Not provided._" so
+    // gaps are obvious at a glance.
+    descParts.push(`## Severity\n\n${severity ? severity.toUpperCase() : "_Not specified — defaulting to medium triage._"}`);
+    descParts.push(`## Affected component\n\n${component || "_Not provided._"}`);
+    descParts.push(`## Reproduction\n\n${reproduction || "_Not provided._"}`);
+    descParts.push(`## Impact\n\n${impact || "_Not provided._"}`);
+    if (description) descParts.push(`## Additional notes\n\n${description}`);
+  } else if (description) {
+    descParts.push(description);
+  }
   if (skillName) descParts.push(`**Skill:** ${skillName}`);
   if (email) descParts.push(`**Contact:** ${email}`);
   descParts.push(`**Request ID:** ${requestId}`);
-  descParts.push("_Submitted via opchain.dev_");
+  descParts.push(
+    isSecurity
+      ? "_Submitted via opchain.dev /security disclosure form_"
+      : "_Submitted via opchain.dev_",
+  );
 
   const variables = {
     input: {
       teamId, projectId,
-      title: `[${type}] ${title}`,
+      title: isSecurity ? `[SECURITY] ${title}` : `[${type}] ${title}`,
       description: descParts.join("\n\n"),
       priority: linearPriority,
       labelIds,
