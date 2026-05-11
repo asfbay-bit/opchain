@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "id": "go",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "Go"
+  },
+  {
+    "id": "python",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "Python"
+  },
+  {
+    "id": "ruby",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "Ruby"
+  },
+  {
+    "id": "rust",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "Rust"
+  },
+  {
+    "id": "typescript",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "TypeScript"
+  }
+]
