@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-11T03:37:10Z",
+  "updated_at": "2026-05-11T03:38:21.840Z",
   "phase": "gate",
-  "step": "feedback-textarea-slot-fix-passed",
+  "step": "merge-driver-shipped",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for claude/remove-feedback-prefill-xgmQC. Single-file fix: site/src/components/ui/Textarea.astro — removed `<slot />` from inside `<textarea>` so the literal string '<slot />' stops appearing as the description field's pre-filled value in the FeedbackWidget modal (browsers parse textarea content as raw text, so the unrendered slot tag was leaking through to the user). No callers pass slot children (only FeedbackWidget + styleguide, both self-closing). Anti-pattern + secret grep on diff: clean. tsc/vitest/astro check: skipped — dev deps not installed in this container (js-yaml missing on pretest). Verdict: PASS based on diff scope (1 line, raw HTML behaviour, no logic).",
+  "progress_summary": "Pre-commit gate for claude/fix-merge-conflicts-XC6Kl. Adds custom git merge driver for .checkpoints/*.checkpoint.json + .gitattributes + npm prepare hook. 4 synthetic merge scenarios verified locally (telemetry-only divergence, real content conflict, asymmetric content+telemetry, agreed content edit). Secret scan + anti-pattern grep on staged diff: clean (one false-positive on doc comment 'any skill'). tsc/vitest/build: skipped — dev deps not installed in container. checkpoint:validate: 7/7 pass. Verdict: PASS based on diff scope (no source code touched; pure tooling + JS scripts validated with node --check).",
   "progress_table": [
     {
       "id": "schema",
@@ -74,7 +74,7 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-11T03:37:10Z",
+      "at": "2026-05-11T03:38:21Z",
       "verdict": "PASS",
       "duration_ms": 0,
       "checks": {
@@ -88,11 +88,21 @@
       },
       "warnings": 0,
       "errors": 0,
-      "notes": "Single-line .astro template fix; container missing js-yaml + astro deps so tsc/vitest/build couldn't run. Anti-pattern + secret grep on diff clean."
+      "notes": "Tooling-only change (custom git merge driver for .checkpoints/*.json + .gitattributes + npm prepare hook). 4 synthetic driver scenarios verified locally. Container missing js-yaml + astro deps so tsc/vitest/build couldn't run."
     },
     "bypasses": [],
     "carried_debt": 0,
     "run_history": [
+      {
+        "at": "2026-05-11T03:38:21Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-11T03:18:15Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
       {
         "at": "2026-05-11T02:55:26Z",
         "verdict": "PASS",
