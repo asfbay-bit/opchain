@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-10T23:35:51.006Z",
+  "updated_at": "2026-05-11T02:39:10.215Z",
   "phase": "gate",
-  "step": "demo-scenarios-6-7-8-11-rewrites-passed",
+  "step": "merge-main-into-audit-demo-quality-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for demo scenario rewrites (scenarios 6, 7, 8, 11). Diff: 4 TS files (security-hardening, mcp-enterprise-f500, mcp-enterprise-defense, release-ops-dogfood). Vitest 124/124 in 4.61s. Validators all green: gen-flags 92, gen-catalog 18 skills, validate-pm-mcp 5 + 0 warn, sync-bundles in sync. astro check: 0 errors, 0 warnings, 33 pre-existing hints. Anti-pattern + secret grep on diff: clean. npm audit: 0 vulns. Fixed one escape bug (unescaped backticks in template literal in mcp-enterprise-f500.ts line 1087). Verdict: PASS.",
+  "progress_summary": "Pre-commit gate for merging origin/main into claude/audit-demo-quality-NeACZ. Conflict in .checkpoints/bug-check.checkpoint.json resolved by taking main and re-stamping (this entry). All other files merged cleanly (10 modified/added from main; 7 scenario rewrites + 1 stack-forge merger file from this branch — no overlap on scenario bodies). Vitest 137/137 in 4.78s (124 prior + 13 new from main stack-packs). Validators all green (gen-flags 92, gen-catalog 18 skills, validate-pm-mcp 5 + 0 warn, sync-bundles in sync). Verdict: PASS.",
   "progress_table": [
     {
       "id": "schema",
@@ -74,9 +74,9 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-10T23:35:51.006Z",
+      "at": "2026-05-11T02:39:10.215Z",
       "verdict": "PASS",
-      "duration_ms": 4610,
+      "duration_ms": 4780,
       "checks": {
         "type_safety": "PASS",
         "lint": "SKIP",
@@ -88,18 +88,23 @@
       },
       "warnings": 0,
       "errors": 0,
-      "notes": "Diff: 4 TS files in site/src/data/walkthroughs/. astro check 0/0/33 (hints only). Vitest 124/124 in 4.61s. Validators all green. Anti-pattern + secret grep clean."
+      "notes": "Merge of origin/main (ADEV-328 stack-forge pack registry) into the scenario-rewrites branch. One conflict resolved (this file). Vitest 137/137. All prebuild validators green."
     },
     "bypasses": [],
     "carried_debt": 0,
     "run_history": [
       {
-        "at": "2026-05-10T23:35:51.006Z",
+        "at": "2026-05-11T02:39:10.215Z",
         "verdict": "PASS",
         "warnings": 0
       },
       {
-        "at": "2026-05-10T23:17:34.294Z",
+        "at": "2026-05-10T23:15:00Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-05-10T22:50:00Z",
         "verdict": "PASS",
         "warnings": 0
       },
@@ -115,9 +120,9 @@
       }
     ],
     "streak": {
-      "passes": 4,
+      "passes": 5,
       "since": "2026-05-08T21:52:49Z"
     }
   },
-  "field": "progress_summary=Pre-commit gate for demo scenario rewrites (scenarios 9, 10, 12). Diff: 3 TS files in site/src/data/walkthroughs/. Vitest 124/124 in 4.28s. Validators all green (gen-flags 92, gen-catalog 18 skills, validate-pm-mcp 5 + 0 warn, sync-bundles in sync). astro check: 0 errors, 0 warnings, 33 pre-existing hints. Anti-pattern + secret grep on diff: clean. Verdict: PASS."
+  "field": "progress_summary=Pre-commit gate for architecture Treatment B (release-ops added as 18th skill to /architecture diagram, desktop + mobile). Diff: 2 .astro files (pure SVG/template). astro build passed (27 pages). Vitest: 124/124 in 5.37s. Anti-pattern grep on diff: 0 hits. Secret scan on diff: 0 hits. npm audit: 0 vulns. checkpoint:validate: 7/7. astro check: 0 errors, 0 warnings, 33 pre-existing hints. Verdict: PASS."
 }
