@@ -4,14 +4,185 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Variation B — chip-tray picker · /compare RFC</title>
-<link rel="stylesheet" href="_styles.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:          #0e0a06;
+  --surface:     #1c1710;
+  --card:        #251e15;
+  --border:      #3a2f22;
+  --text:        #f6f0e8;
+  --muted:       #c4b89e;
+  --subtle:      #8a7d63;
+  --dim:         #5a4f3e;
+  --accent:      #e05c18;
+  --accent-hover:#f56a2a;
+  --accent-dim:  rgba(224, 92, 24, 0.15);
+  --warn:        #f59e0b;
+  --r-xs: 4px; --r-sm: 6px; --r-md: 10px;
+  --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --font-sans:    'Inter', system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); }
+.page { max-width: 1100px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 0.5px solid var(--accent);
+  padding: 3px 10px;
+  border-radius: var(--r-xs);
+}
+h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 32px;
+  letter-spacing: -0.01em;
+  margin: 0.6rem 0 0.2rem;
+}
+.lede { color: var(--muted); margin: 1rem 0 1.5rem; max-width: 50rem; }
+.chrome-bar {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 1rem 1.2rem;
+  margin: 0 0 1rem;
+}
+.chrome-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--subtle);
+  margin: 0 0 0.5rem;
+}
+.chip-tray { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 0.5px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.chip:hover { color: var(--text); border-color: var(--accent); }
+.chip[data-selected="true"] {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.chip[data-selected="true"]::before { content: "✓"; font-weight: bold; }
+.chip-counter {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--subtle);
+  letter-spacing: 0.05em;
+}
+.chip-reset {
+  background: transparent;
+  border: 0;
+  color: var(--subtle);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0.45rem 0.5rem;
+}
+.chip-reset:hover { color: var(--text); }
+.table-wrap { overflow-x: auto; border: 0.5px solid var(--border); border-radius: var(--r-md); }
+.cmp { width: 100%; border-collapse: collapse; font-size: 14px; }
+.cmp th, .cmp td {
+  padding: 0.7rem 0.85rem;
+  border-bottom: 0.5px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+.cmp thead th {
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--subtle);
+  font-weight: 500;
+}
+.cmp thead th.me { color: var(--accent); border-bottom: 1px solid var(--accent); }
+.cmp tbody th[scope="row"] {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--text);
+  font-size: 13px;
+  width: 180px;
+  vertical-align: middle;
+}
+.cmp td { color: var(--muted); }
+.cmp td.me {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border-left: 2px solid var(--accent);
+}
+.cell-v { display: block; color: var(--text); margin-bottom: 0.2rem; }
+.cell-note {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--subtle);
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+}
+.cmp td.me .cell-v { color: var(--accent); font-weight: 500; }
+.review-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--warn);
+  border: 0.5px solid var(--warn);
+  padding: 1px 6px;
+  border-radius: var(--r-xs);
+  margin-left: 6px;
+}
+.note-strip {
+  margin-top: 1rem;
+  padding: 0.7rem 1rem;
+  background: var(--surface);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--r-xs);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.back-link { font-family: var(--font-mono); font-size: 12px; color: var(--subtle); text-decoration: none; }
+.back-link:hover { color: var(--text); }
+</style>
 </head>
 <body>
 <main class="page">
-  <a href="./" style="font-family: var(--font-mono); font-size: 12px; color: var(--subtle); text-decoration: none;">← back to RFC index</a>
+  <a href="./index.html" class="back-link">← back to RFC index</a>
   <span class="eyebrow">RFC · variation B</span>
   <h1>Chip-tray picker</h1>
   <p class="lede">
@@ -24,7 +195,6 @@
   <div class="chrome-bar">
     <div class="chrome-label">Compare opchain + Claude defaults vs:</div>
     <div class="chip-tray" id="chip-tray">
-      <!-- Populated by JS -->
       <span class="chip-counter" id="counter"></span>
       <button type="button" class="chip-reset" id="reset-btn">reset</button>
     </div>
@@ -32,10 +202,8 @@
 
   <div class="table-wrap">
     <table class="cmp" id="cmp">
-      <thead>
-        <tr id="thead-row"><!-- Populated by JS --></tr>
-      </thead>
-      <tbody id="tbody"><!-- Populated by JS --></tbody>
+      <thead><tr id="thead-row"></tr></thead>
+      <tbody id="tbody"></tbody>
     </table>
   </div>
 
@@ -46,122 +214,236 @@
   </p>
 </main>
 
-<script src="_data.js"></script>
 <script>
-  /* ════════════════════════════════════════════════════════════════
-   * Variation B — chip-tray picker.
-   *
-   * State: an ordered array of platform ids the user has toggled on.
-   * The two fixed columns always render first; selectedExtras follow
-   * in click order.
-   * ════════════════════════════════════════════════════════════════ */
-  const { FEATURES, PLATFORMS, FIXED_ORDER, SELECTABLE, MAX_ADDED } = window.COMPARE_DATA;
+const FEATURES = [
+  { id: "prompts",     label: "Where the prompts live" },
+  { id: "session",     label: "Session persistence" },
+  { id: "pipeline",    label: "Pipeline awareness" },
+  { id: "tri-agent",   label: "Tri-agent quality loops" },
+  { id: "gates",       label: "Audit gates before deploy" },
+  { id: "cost",        label: "Cost" },
+  { id: "lockin",      label: "Vendor lock-in" },
+  { id: "runs-on",     label: "Where it runs" },
+  { id: "extend",      label: "Adding your own" },
+  { id: "multi-proj",  label: "Multi-project status" },
+];
+const PLATFORMS = {
+  opchain: {
+    name: "opchain", accent: true, fixed: true,
+    cells: {
+      "prompts":    { v: "Markdown files in .claude/skills/", note: "MIT, in your repo, plain text — diffable, reviewable" },
+      "session":    { v: "JSON checkpoints in .checkpoints/", note: "Survive across chats; auto-resume next session" },
+      "pipeline":   { v: "Yes — orchestrator routes between 18 skills", note: "Knows what phase you're in and what's next" },
+      "tri-agent":  { v: "5 skills (app-architect, code-auditor, integrations-engineer, api-dev, ux-engineer)", note: "Planner → Generator → Evaluator built in" },
+      "gates":      { v: "Three (bug-check, code-auditor, security-auditor)", note: "deploy-ops blocks prod if any gate fails" },
+      "cost":       { v: "Free, MIT", note: "Pay only your Claude usage" },
+      "lockin":     { v: "None — every skill is one Markdown file", note: "Fork, edit, fork again" },
+      "runs-on":    { v: "Claude Code · Claude.ai · Claude Desktop", note: null },
+      "extend":     { v: "Write a SKILL.md, drop it in .claude/skills/", note: "reverse-spec backfills one from existing code" },
+      "multi-proj": { v: "/ops command shows every project's last checkpoint", note: "Cross-repo dashboard built in" },
+    },
+  },
+  claude: {
+    name: "Claude defaults", fixed: true,
+    cells: {
+      "prompts":    { v: "CLAUDE.md (single file)", note: "All-or-nothing" },
+      "session":    { v: "Single CLAUDE.md context", note: "Re-read on every session" },
+      "pipeline":   { v: "No", note: null },
+      "tri-agent":  { v: "No", note: null },
+      "gates":      { v: "No", note: null },
+      "cost":       { v: "Free", note: null },
+      "lockin":     { v: "Claude-coupled", note: "But trivial to migrate" },
+      "runs-on":    { v: "Anywhere Claude runs", note: null },
+      "extend":     { v: "Edit CLAUDE.md", note: null },
+      "multi-proj": { v: "No", note: null },
+    },
+  },
+  cursor: {
+    name: "Cursor",
+    cells: {
+      "prompts":    { v: ".cursorrules / .mdc rules", note: "Per-project, editor-coupled" },
+      "session":    { v: "Per-chat memory; no formal protocol", note: null },
+      "pipeline":   { v: "No — rules apply globally", note: null },
+      "tri-agent":  { v: "No", note: null },
+      "gates":      { v: "No", note: null },
+      "cost":       { v: "$20–40 / user / mo", note: null },
+      "lockin":     { v: "IDE-coupled", note: "Rules only run inside Cursor" },
+      "runs-on":    { v: "Cursor IDE", note: null },
+      "extend":     { v: "Write a .cursorrules file", note: null },
+      "multi-proj": { v: "No", note: null },
+    },
+  },
+  copilot: {
+    name: "GH Copilot",
+    cells: {
+      "prompts":    { v: ".github/copilot-instructions.md + hosted instructions", note: "Vendor-managed" },
+      "session":    { v: "Per-IDE-session", note: null },
+      "pipeline":   { v: "No — chat is single-turn-ish", note: null },
+      "tri-agent":  { v: "No", note: null },
+      "gates":      { v: "No", note: null },
+      "cost":       { v: "$10–39 / user / mo", note: null },
+      "lockin":     { v: "GitHub-coupled", note: "Runs against the Copilot service" },
+      "runs-on":    { v: "VS Code · JetBrains · GitHub.com", note: null },
+      "extend":     { v: "Edit copilot-instructions.md", note: null },
+      "multi-proj": { v: "No", note: null },
+    },
+  },
+  devin: {
+    name: "Devin",
+    cells: {
+      "prompts":    { v: "Hosted, internal", note: "Black box" },
+      "session":    { v: "Hosted task state", note: "Tied to a Devin task, not your repo" },
+      "pipeline":   { v: "Yes, but as one monolithic agent", note: null },
+      "tri-agent":  { v: "Implicit", note: "Not surfaced as a contract" },
+      "gates":      { v: "Internal checks", note: "No external contract" },
+      "cost":       { v: "$500 / mo seat (last published)", note: null },
+      "lockin":     { v: "Service-coupled", note: "All work runs on Devin infra" },
+      "runs-on":    { v: "Devin web UI", note: null },
+      "extend":     { v: "Limited", note: "Custom playbooks in Beta" },
+      "multi-proj": { v: "Per-task dashboard", note: "Devin-hosted" },
+    },
+  },
+  zed: {
+    name: "Zed",
+    cells: {
+      "prompts":    { v: ".zed/settings.json + Agent Profiles", note: "Project + per-profile system prompts" },
+      "session":    { v: "Persistent assistant panel per workspace; no cross-session protocol", note: null },
+      "pipeline":   { v: "No — single agent, no pipeline concept", note: null },
+      "tri-agent":  { v: "Agent profiles can chain", note: "Manual setup; not a contract" },
+      "gates":      { v: "No", note: null },
+      "cost":       { v: "Editor free · Zed Pro $20/mo or BYOK", note: "AI usage gated; editor is fully free" },
+      "lockin":     { v: "Editor-coupled", note: "Profiles only run inside Zed" },
+      "runs-on":    { v: "Zed editor (Mac · Linux · Windows beta)", note: null },
+      "extend":     { v: "Add an Agent Profile or edit .zed/settings.json", note: null },
+      "multi-proj": { v: "No", note: null },
+    },
+  },
+  vscode: {
+    name: "VS Code",
+    cells: {
+      "prompts":    { v: "Per-extension (Copilot / Continue / Cline)", note: "Whatever your AI extension wants" },
+      "session":    { v: "Per extension; usually per-IDE-session", note: null },
+      "pipeline":   { v: "No — depends entirely on extension", note: null },
+      "tri-agent":  { v: "No", note: null },
+      "gates":      { v: "No", note: null },
+      "cost":       { v: "Editor free · extension pricing varies", note: "Copilot, Continue, Cline each priced separately" },
+      "lockin":     { v: "Extension-coupled", note: "Tied to whichever AI extension you use" },
+      "runs-on":    { v: "VS Code (Mac · Linux · Windows · Web)", note: null },
+      "extend":     { v: "Configure your extension's prompt or rules file", note: null },
+      "multi-proj": { v: "No", note: null },
+    },
+  },
+  codex: {
+    name: "OpenAI Codex",
+    cells: {
+      "prompts":    { v: "AGENTS.md in repo + ChatGPT custom instructions", note: "Per-repo; vendor model controls behaviour" },
+      "session":    { v: "Per-task cloud session + ChatGPT memory", note: "No formal cross-task protocol" },
+      "pipeline":   { v: "No — single autonomous reasoning loop", note: null },
+      "tri-agent":  { v: "No (single-agent)", note: null },
+      "gates":      { v: "No", note: null },
+      "cost":       { v: "Bundled with ChatGPT Plus/Pro ($20–200/mo)", note: "CLI free with API usage" },
+      "lockin":     { v: "OpenAI-coupled", note: "GPT-5/4 only; no model swap" },
+      "runs-on":    { v: "chatgpt.com/codex · codex CLI · IDE extension", note: null },
+      "extend":     { v: "Edit AGENTS.md or ChatGPT instructions", note: null },
+      "multi-proj": { v: "Per-project; no cross-repo dashboard", note: null },
+    },
+  },
+  antigravity: {
+    name: "Google Antigravity", needsReview: true,
+    cells: {
+      "prompts":    { v: "Workspace instructions + Knowledge files", note: "Cross-session memory via Knowledge" },
+      "session":    { v: "Knowledge persists; agent state per workspace", note: null },
+      "pipeline":   { v: "Multi-agent — Editor + Manager dispatch parallel agents", note: "Coordinated, but not a phase pipeline" },
+      "tri-agent":  { v: "Yes — Manager dispatches and verifies via screenshot/recording", note: null },
+      "gates":      { v: "Built-in verification (browser proof / screenshot)", note: null },
+      "cost":       { v: "Free tier · paid tiers announced", note: null },
+      "lockin":     { v: "Google-coupled", note: "Gemini-first; Claude / GPT-OSS optional" },
+      "runs-on":    { v: "Antigravity desktop app (Mac · Linux · Windows)", note: null },
+      "extend":     { v: "Add Knowledge files or workspace settings", note: null },
+      "multi-proj": { v: "Manager view shows every running workspace", note: null },
+    },
+  },
+};
+const FIXED_ORDER = ["opchain", "claude"];
+const SELECTABLE = ["cursor", "copilot", "devin", "zed", "vscode", "codex", "antigravity"];
+const MAX_ADDED = 4;
 
-  // Default selection: a couple of well-known options on by default so
-  // the table isn't empty on first render.
-  let selectedExtras = ["devin", "zed"];
-
-  function fullSelection() {
-    return [...FIXED_ORDER, ...selectedExtras];
-  }
-
-  function renderChips() {
-    const tray = document.getElementById("chip-tray");
-    // Clear all chips except the persistent counter + reset button.
-    tray.querySelectorAll("[data-chip]").forEach((el) => el.remove());
-
-    const counter = document.getElementById("counter");
-    const resetBtn = document.getElementById("reset-btn");
-
-    SELECTABLE.forEach((id) => {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "chip";
-      chip.dataset.chip = id;
-      chip.dataset.selected = selectedExtras.includes(id) ? "true" : "false";
-      const reviewMark = PLATFORMS[id].needsReview ? ' <span class="review-badge">review</span>' : "";
-      chip.innerHTML = PLATFORMS[id].name + reviewMark;
-      chip.disabled = !selectedExtras.includes(id) && selectedExtras.length >= MAX_ADDED;
-      chip.title = chip.disabled ? `Max ${MAX_ADDED} extra columns — remove one first` : `Toggle ${PLATFORMS[id].name}`;
-      tray.insertBefore(chip, counter);
-    });
-
-    counter.textContent = `${selectedExtras.length} of ${MAX_ADDED} extra columns`;
-    resetBtn.style.display = selectedExtras.length > 0 ? "inline" : "none";
-  }
-
-  function renderTable() {
-    const cols = fullSelection();
-
-    const thead = document.getElementById("thead-row");
-    thead.innerHTML = "";
-    const corner = document.createElement("th");
-    thead.appendChild(corner);
+let selectedExtras = ["devin", "zed"];
+function fullSelection() { return [...FIXED_ORDER, ...selectedExtras]; }
+function renderChips() {
+  const tray = document.getElementById("chip-tray");
+  tray.querySelectorAll("[data-chip]").forEach((el) => el.remove());
+  const counter = document.getElementById("counter");
+  const resetBtn = document.getElementById("reset-btn");
+  SELECTABLE.forEach((id) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.dataset.chip = id;
+    chip.dataset.selected = selectedExtras.includes(id) ? "true" : "false";
+    const reviewMark = PLATFORMS[id].needsReview ? ' <span class="review-badge">review</span>' : "";
+    chip.innerHTML = PLATFORMS[id].name + reviewMark;
+    chip.disabled = !selectedExtras.includes(id) && selectedExtras.length >= MAX_ADDED;
+    chip.title = chip.disabled ? `Max ${MAX_ADDED} extra columns — remove one first` : `Toggle ${PLATFORMS[id].name}`;
+    tray.insertBefore(chip, counter);
+  });
+  counter.textContent = `${selectedExtras.length} of ${MAX_ADDED} extra columns`;
+  resetBtn.style.display = selectedExtras.length > 0 ? "inline" : "none";
+}
+function renderTable() {
+  const cols = fullSelection();
+  const thead = document.getElementById("thead-row");
+  thead.innerHTML = "";
+  thead.appendChild(document.createElement("th"));
+  cols.forEach((id) => {
+    const th = document.createElement("th");
+    if (PLATFORMS[id].accent) th.className = "me";
+    const reviewMark = PLATFORMS[id].needsReview ? ' <span class="review-badge">review</span>' : "";
+    th.innerHTML = PLATFORMS[id].name + reviewMark;
+    thead.appendChild(th);
+  });
+  const tbody = document.getElementById("tbody");
+  tbody.innerHTML = "";
+  FEATURES.forEach((feat) => {
+    const tr = document.createElement("tr");
+    const th = document.createElement("th");
+    th.scope = "row";
+    th.textContent = feat.label;
+    tr.appendChild(th);
     cols.forEach((id) => {
-      const th = document.createElement("th");
-      if (PLATFORMS[id].accent) th.className = "me";
-      const reviewMark = PLATFORMS[id].needsReview ? ' <span class="review-badge">review</span>' : "";
-      th.innerHTML = PLATFORMS[id].name + reviewMark;
-      thead.appendChild(th);
+      const cell = PLATFORMS[id].cells[feat.id] || { v: "—", note: null };
+      const td = document.createElement("td");
+      if (PLATFORMS[id].accent) td.className = "me";
+      const noteHtml = cell.note ? `<span class="cell-note">${escapeHtml(cell.note)}</span>` : "";
+      td.innerHTML = `<span class="cell-v">${escapeHtml(cell.v)}</span>${noteHtml}`;
+      tr.appendChild(td);
     });
-
-    const tbody = document.getElementById("tbody");
-    tbody.innerHTML = "";
-    FEATURES.forEach((feat) => {
-      const tr = document.createElement("tr");
-      const th = document.createElement("th");
-      th.scope = "row";
-      th.textContent = feat.label;
-      tr.appendChild(th);
-
-      cols.forEach((id) => {
-        const cell = PLATFORMS[id].cells[feat.id] || { v: "—", note: null };
-        const td = document.createElement("td");
-        if (PLATFORMS[id].accent) td.className = "me";
-        const noteHtml = cell.note ? `<span class="cell-note">${escapeHtml(cell.note)}</span>` : "";
-        td.innerHTML = `<span class="cell-v">${escapeHtml(cell.v)}</span>${noteHtml}`;
-        tr.appendChild(td);
-      });
-
-      tbody.appendChild(tr);
-    });
-  }
-
-  function rerender() {
-    renderChips();
-    renderTable();
-    wireEvents();
-  }
-
-  function wireEvents() {
-    document.querySelectorAll("[data-chip]").forEach((chip) => {
-      chip.addEventListener("click", () => {
-        const id = chip.dataset.chip;
-        if (selectedExtras.includes(id)) {
-          selectedExtras = selectedExtras.filter((s) => s !== id);
-        } else {
-          if (selectedExtras.length >= MAX_ADDED) return;
-          selectedExtras.push(id);
-        }
-        rerender();
-      });
-    });
-    document.getElementById("reset-btn").onclick = () => {
-      selectedExtras = [];
+    tbody.appendChild(tr);
+  });
+}
+function rerender() { renderChips(); renderTable(); wireEvents(); }
+function wireEvents() {
+  document.querySelectorAll("[data-chip]").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const id = chip.dataset.chip;
+      if (selectedExtras.includes(id)) {
+        selectedExtras = selectedExtras.filter((s) => s !== id);
+      } else {
+        if (selectedExtras.length >= MAX_ADDED) return;
+        selectedExtras.push(id);
+      }
       rerender();
-    };
-  }
-
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"]/g, (c) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-    }[c]));
-  }
-
-  rerender();
+    });
+  });
+  document.getElementById("reset-btn").onclick = () => {
+    selectedExtras = [];
+    rerender();
+  };
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+rerender();
 </script>
 </body>
 </html>
