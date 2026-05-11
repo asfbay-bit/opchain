@@ -1,0 +1,295 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Card from "../components/ui/Card.astro";
+
+interface StackRow {
+  label: string;
+  value: string;
+  link?: string;
+}
+
+interface StackSection {
+  title: string;
+  blurb: string;
+  rows: StackRow[];
+}
+
+const stack: StackSection[] = [
+  {
+    title: "Frontend",
+    blurb: "Static site, dark-first, hand-tuned typography. Astro is the assembler; nothing ships as a React SPA.",
+    rows: [
+      { label: "Framework", value: "Astro 5 (static output)" },
+      { label: "Styling", value: "Tailwind 4 + a global tokens file" },
+      { label: "Type system", value: "TypeScript via Astro content collections" },
+      { label: "Icons", value: "Inline SVG component (no icon font)" },
+      { label: "Fonts", value: "Outfit (display) · JetBrains Mono · Inter (body)" },
+      { label: "Theme", value: "Light / dark with FOUC-preventing init script" },
+    ],
+  },
+  {
+    title: "Backend",
+    blurb: "A single Cloudflare Worker behind opchain.dev. Static assets are served via the ASSETS binding; the JS handler picks up /api/*.",
+    rows: [
+      { label: "Runtime", value: "Cloudflare Workers (edge)" },
+      { label: "Bundler", value: "esbuild via build.mjs · version stamped from git SHA" },
+      { label: "Validation", value: "zod schemas for every POST body" },
+      { label: "Storage", value: "KV (NOTIFY namespace) for lead capture" },
+      { label: "Auth", value: "None — no user accounts" },
+    ],
+  },
+  {
+    title: "Integrations",
+    blurb: "Each one is opt-out via a flag — every flag's default keeps the site running if the integration goes away.",
+    rows: [
+      { label: "Feedback channel", value: "Linear API · /api/feedback creates an issue with severity + label" },
+      { label: "Analytics", value: "PostHog (consent-gated, fail-closed)" },
+      { label: "Beacon", value: "Cloudflare Web Analytics (no cookies)" },
+      { label: "Errors", value: "Logged via Workers observability — no third-party APM" },
+    ],
+  },
+  {
+    title: "Hosting & DNS",
+    blurb: "Production and staging both run as Workers with custom-domain binding. Cloudflare manages DNS automatically on wrangler deploy.",
+    rows: [
+      { label: "Production", value: "opchain.dev (Worker: opchain-dev)" },
+      { label: "Staging", value: "staging.opchain.dev (Worker: opchain-staging)" },
+      { label: "Deploys", value: "Manual from a developer laptop — wrangler login + npm run deploy" },
+      { label: "CI", value: "GitHub Actions runs Vitest, astro check, Playwright e2e on every PR" },
+      { label: "Status", value: "Live at /status (consumes /api/health)", link: "/status" },
+    ],
+  },
+  {
+    title: "Tooling",
+    blurb: "Most of these are themselves opchain skills. The site is the product's reference customer.",
+    rows: [
+      { label: "Development", value: "Claude Code (with the opchain skills installed)" },
+      { label: "Editor", value: "VS Code · Vim where it counts" },
+      { label: "Source control", value: "git · GitHub · branch-per-feature workflow" },
+      { label: "PRs", value: "git-ops skill creates branch / commit / PR from intent" },
+      { label: "Audits", value: "code-auditor and bug-check run before every commit" },
+      { label: "Releases", value: "release-ops skill plans → drafts → bumps → announces" },
+      { label: "Monitoring", value: "monitoring-ops skill watches the Worker once shipped" },
+    ],
+  },
+  {
+    title: "Hardware",
+    blurb: "Skills are Markdown — they don't care what they run on, but the workflow optimises for keyboard speed.",
+    rows: [
+      { label: "Daily driver", value: "MacBook Pro · Apple Silicon" },
+      { label: "Terminal", value: "Ghostty · zsh · starship prompt" },
+      { label: "Keyboard", value: "Whatever has a real Escape key" },
+      { label: "Display", value: "One main; the second one is for the Claude Code transcript" },
+    ],
+  },
+];
+
+const meta = [
+  { label: "Repo", value: "github.com/asfbay-bit/opchain", href: "https://github.com/asfbay-bit/opchain" },
+  { label: "Live version", value: "see /status", href: "/status" },
+  { label: "License", value: "MIT" },
+  { label: "Last refresh", value: "2026-05" },
+];
+---
+
+<Base
+  title="Uses · opchain"
+  description="How opchain.dev is built and shipped — full stack, integrations, tooling, and which opchain skills run the project itself."
+  active="/"
+>
+  <main class="page">
+    <div class="page-head">
+      <Eyebrow>uses</Eyebrow>
+      <h1>How opchain.dev is built.</h1>
+    </div>
+
+    <p class="lede">
+      Meta-page. opchain is built using opchain — most pull requests on
+      this site were planned by <a href="/skills/app-architect"><code>app-architect</code></a>,
+      audited by <a href="/skills/code-auditor"><code>code-auditor</code></a>,
+      shipped by <a href="/skills/git-ops"><code>git-ops</code></a> +
+      <a href="/skills/deploy-ops"><code>deploy-ops</code></a>, and watched by
+      <a href="/skills/monitoring-ops"><code>monitoring-ops</code></a>.
+      Here's the rest of the stack.
+    </p>
+
+    <section class="meta-row">
+      {meta.map((m) => (
+        <div class="meta-item">
+          <div class="meta-label">{m.label}</div>
+          <div class="meta-value">
+            {m.href ? <a href={m.href} rel={m.href.startsWith("http") ? "noopener" : undefined}>{m.value}</a> : m.value}
+          </div>
+        </div>
+      ))}
+    </section>
+
+    {stack.map((sec) => (
+      <section class="section">
+        <h2>{sec.title}</h2>
+        <p class="blurb">{sec.blurb}</p>
+        <Card variant="surface" glow={false}>
+          <div class="kv-list">
+            {sec.rows.map((r) => (
+              <div class="kv">
+                <div class="key">{r.label}</div>
+                <div class="val">
+                  {r.link ? <a href={r.link}>{r.value}</a> : r.value}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </section>
+    ))}
+
+    <section class="section">
+      <h2>The recursion</h2>
+      <p class="blurb">
+        Yes, this site was built with the very skills it markets.
+        <a href="/skills/app-architect"><code>app-architect</code></a> ran
+        the spec, <a href="/skills/stack-forge"><code>stack-forge</code></a>
+        picked Astro 5 over Next.js, <a href="/skills/ux-engineer"><code>ux-engineer</code></a>
+        owned the design system, and <a href="/skills/code-auditor"><code>code-auditor</code></a>
+        catches type-safety regressions before merge. Every release is
+        cut by <a href="/skills/release-ops"><code>release-ops</code></a>
+        and shipped from a laptop via
+        <a href="/skills/deploy-ops"><code>deploy-ops</code></a>.
+      </p>
+      <p class="blurb">
+        That dogfooding is why the changelog moves fast — there's no
+        translation layer between "what we noticed" and "what
+        opchain ships next."
+      </p>
+      <p class="blurb cta">
+        Want to build the same way?
+        <a href="/install">Install opchain</a> · <a href="/pipeline-builder">build a pipeline for your stack</a>.
+      </p>
+    </section>
+
+    <p class="footnote">
+      Inspired by the <a href="https://uses.tech" rel="noopener">uses.tech</a> convention.
+      Edit this page in <code>site/src/pages/uses.astro</code>.
+    </p>
+  </main>
+</Base>
+
+<style>
+  .page { max-width: 760px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  .page-head { margin-bottom: 1.25rem; }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
+  .lede { color: var(--muted); margin: 0 0 1.5rem; max-width: 42rem; line-height: var(--lh-base); }
+  .lede a { color: var(--accent); }
+  .lede code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  .meta-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem;
+    padding: 0.9rem 1rem;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    margin-bottom: 2.5rem;
+  }
+  .meta-item { display: flex; flex-direction: column; gap: 0.2rem; }
+  .meta-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+  .meta-value { font-size: var(--fs-sm); color: var(--text); }
+  .meta-value a { color: var(--accent); text-decoration: none; }
+  .meta-value a:hover { text-decoration: underline; }
+
+  .section { margin: 0 0 2.5rem; }
+  .section h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 0.5rem;
+    letter-spacing: var(--ls-tight);
+  }
+  .blurb {
+    color: var(--muted);
+    margin: 0 0 0.85rem;
+    line-height: var(--lh-base);
+  }
+  .blurb.cta {
+    border-top: 0.5px dashed var(--border);
+    padding-top: 0.85rem;
+    margin-top: 0.85rem;
+  }
+  .blurb a { color: var(--accent); }
+  .blurb code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  .kv-list { display: flex; flex-direction: column; }
+  .kv {
+    display: grid;
+    grid-template-columns: minmax(130px, 180px) 1fr;
+    gap: 1rem;
+    align-items: baseline;
+    padding: 0.6rem 0;
+    border-bottom: 0.5px solid var(--border);
+    font-size: var(--fs-sm);
+  }
+  .kv:last-child { border-bottom: 0; }
+  .key {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+  }
+  .val { color: var(--muted); }
+  .val a { color: var(--accent); }
+
+  .footnote {
+    margin-top: 3rem;
+    color: var(--subtle);
+    font-size: var(--fs-sm);
+    font-family: var(--font-mono);
+    letter-spacing: var(--ls-wide);
+  }
+  .footnote a { color: var(--accent); }
+  .footnote code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  @media (max-width: 540px) {
+    .kv { grid-template-columns: 1fr; gap: 0.25rem; }
+  }
+</style>

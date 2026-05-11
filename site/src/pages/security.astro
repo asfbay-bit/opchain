@@ -1,0 +1,271 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Card from "../components/ui/Card.astro";
+import Icon from "../components/Icon.astro";
+
+const securityTxt = `Contact: mailto:security@opchain.dev
+Preferred-Languages: en
+Canonical: https://opchain.dev/.well-known/security.txt
+Policy: https://opchain.dev/security
+Acknowledgments: https://github.com/asfbay-bit/opchain/security/advisories`;
+---
+
+<Base
+  title="Security · opchain"
+  description="opchain security disclosure policy, scope, and contact. Responsible-disclosure channel for the opchain.dev site and the open-source skill catalog."
+  active="/"
+>
+  <main class="page">
+    <div class="page-head">
+      <Eyebrow>security</Eyebrow>
+      <h1>Security disclosure.</h1>
+    </div>
+
+    <p class="lede">
+      Found a vulnerability in opchain? Thank you. This page is the
+      contract for how to report it, what's in scope, and what to expect
+      from us in return.
+    </p>
+
+    <section class="block">
+      <h2><Icon name="message-square" /> Report a vulnerability</h2>
+      <p>
+        Email <a href="mailto:security@opchain.dev">security@opchain.dev</a>
+        with a description, reproduction steps, and impact assessment. We
+        respond within 3 business days.
+      </p>
+      <p>
+        For high-severity findings, request our PGP key in the first
+        message and we'll exchange before you share details. You can also
+        open a
+        <a href="https://github.com/asfbay-bit/opchain/security/advisories/new" rel="noopener">
+          private GitHub Security Advisory
+        </a> against the repo.
+      </p>
+      <p class="callout">
+        <strong>Please don't</strong> open a public GitHub issue, file
+        feedback through the on-site widget, or post on social before we've
+        had a chance to triage and patch.
+      </p>
+    </section>
+
+    <section class="block">
+      <h2><Icon name="target" /> Scope</h2>
+      <Card variant="surface" glow={false}>
+        <div class="kv-list">
+          <div class="kv">
+            <div class="key">In scope</div>
+            <div class="val">
+              <ul>
+                <li><code>opchain.dev</code> and <code>staging.opchain.dev</code> (Cloudflare Worker + Astro site)</li>
+                <li>The opchain skill catalog under <code>skills/</code> in the GitHub repo</li>
+                <li>The <code>/api/health</code>, <code>/api/feedback</code>, <code>/api/notify</code>, <code>/api/flags/public</code> endpoints</li>
+                <li>Build / supply-chain integrity of <code>opchain-skills.zip</code></li>
+              </ul>
+            </div>
+          </div>
+          <div class="kv">
+            <div class="key">Out of scope</div>
+            <div class="val">
+              <ul>
+                <li>Vulnerabilities in Claude Code, Claude.ai, or Anthropic infrastructure — report those to <a href="https://www.anthropic.com/security" rel="noopener">Anthropic</a></li>
+                <li>Third-party services we link to (Linear, PostHog, Cloudflare) — report directly to the vendor</li>
+                <li>Denial-of-service or load testing — Cloudflare handles edge protection, please don't probe</li>
+                <li>Social engineering, physical attacks, or anything requiring privileged access</li>
+                <li>Self-XSS, missing security headers without an exploit, theoretical CSRF on unauthenticated endpoints</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </section>
+
+    <section class="block">
+      <h2><Icon name="check" /> Safe harbor</h2>
+      <p>
+        Research conducted under this policy — good-faith, in-scope,
+        non-destructive — is authorised. We won't pursue legal action
+        against you for testing in line with this page, and we'll do our
+        best to extend that protection if a third party intercedes.
+      </p>
+      <p>
+        If you're uncertain whether something is in scope or whether your
+        plan is non-destructive, ask first.
+      </p>
+    </section>
+
+    <section class="block">
+      <h2><Icon name="check" /> What we ship in return</h2>
+      <ul class="rewards">
+        <li><strong>Acknowledgment</strong> in the GitHub Security Advisory and on this page (if you want it)</li>
+        <li><strong>A fix.</strong> Critical issues patched within 7 days; high within 30</li>
+        <li><strong>A CVE</strong> when the finding warrants one</li>
+        <li><strong>opchain swag</strong> for unique, high-impact findings — once we have swag</li>
+      </ul>
+      <p class="note">
+        opchain is a small open-source project. We don't have a paid bug
+        bounty, but every confirmed report earns public credit and our
+        gratitude.
+      </p>
+    </section>
+
+    <section class="block">
+      <h2><Icon name="terminal" /> security.txt</h2>
+      <p>
+        Machine-readable disclosure metadata per
+        <a href="https://www.rfc-editor.org/rfc/rfc9116" rel="noopener">RFC 9116</a>,
+        served at
+        <a href="/.well-known/security.txt"><code>/.well-known/security.txt</code></a>.
+      </p>
+      <pre class="codeblock"><code>{securityTxt}</code></pre>
+    </section>
+
+    <section class="block">
+      <h2><Icon name="layers" /> Posture &amp; hardening</h2>
+      <p>
+        Quick facts for anyone evaluating opchain for a regulated
+        environment:
+      </p>
+      <Card variant="surface" glow={false}>
+        <div class="kv-list">
+          <div class="kv">
+            <div class="key">Transport</div>
+            <div class="val">HTTPS only · HSTS preloaded · TLS 1.3 via Cloudflare</div>
+          </div>
+          <div class="kv">
+            <div class="key">Headers</div>
+            <div class="val">Strict CSP with per-response nonce · X-Frame-Options DENY · Referrer-Policy strict-origin-when-cross-origin · Permissions-Policy locked down</div>
+          </div>
+          <div class="kv">
+            <div class="key">Auth surface</div>
+            <div class="val">No user accounts. The site has zero auth surface to attack</div>
+          </div>
+          <div class="kv">
+            <div class="key">Data collected</div>
+            <div class="val">Optional analytics via PostHog (consent-gated) and optional email capture via <code>/api/notify</code>. See <a href="/privacy">privacy</a></div>
+          </div>
+          <div class="kv">
+            <div class="key">Skill supply chain</div>
+            <div class="val">Every SKILL.md is plain Markdown, MIT-licensed, validated at build time, and published on the GitHub repo. No binaries, no runtime deps</div>
+          </div>
+          <div class="kv">
+            <div class="key">Infra</div>
+            <div class="val">Cloudflare Workers · static assets via ASSETS binding · KV for lead capture · no databases, no servers</div>
+          </div>
+        </div>
+      </Card>
+    </section>
+
+    <p class="footnote">
+      For a deeper threat model and infrastructure hardening review on
+      your own systems, run the
+      <a href="/skills/security-auditor"><code>security-auditor</code></a>
+      skill. <a href="/uses">How opchain.dev is built</a> documents the
+      stack this page describes.
+    </p>
+  </main>
+</Base>
+
+<style>
+  .page { max-width: 760px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  .page-head { margin-bottom: 1.25rem; }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
+  .lede { color: var(--muted); margin: 0 0 2rem; max-width: 42rem; }
+  .lede a { color: var(--accent); }
+
+  .block { margin: 0 0 2.5rem; }
+  .block h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .block p { color: var(--muted); margin: 0 0 0.75rem; line-height: var(--lh-base); }
+  .block ul { color: var(--muted); margin: 0 0 0.75rem 1.25rem; padding: 0; line-height: var(--lh-base); }
+  .block li { margin-bottom: 0.4rem; }
+  .block a { color: var(--accent); }
+  .block code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  .callout {
+    border-left: 2px solid var(--accent);
+    background: var(--surface);
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--r-xs);
+    font-size: var(--fs-sm);
+  }
+  .callout strong { color: var(--text); }
+
+  .rewards strong { color: var(--text); }
+  .note { color: var(--subtle); font-size: var(--fs-sm); margin-top: 0.5rem; }
+
+  .codeblock {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: var(--lh-base);
+    background: var(--obsidian);
+    color: var(--linen);
+    border: 0.5px solid var(--slag);
+    border-radius: var(--r-md);
+    padding: 0.85rem 1.1rem;
+    overflow-x: auto;
+    margin: 0;
+  }
+
+  .kv-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .kv {
+    display: grid;
+    grid-template-columns: minmax(120px, 160px) 1fr;
+    gap: 1rem;
+    align-items: baseline;
+    padding: 0.7rem 0;
+    border-bottom: 0.5px solid var(--border);
+    font-size: var(--fs-sm);
+  }
+  .kv:last-child { border-bottom: 0; }
+  .key {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+  }
+  .val { color: var(--muted); }
+  .val ul { margin: 0 0 0 1.1rem; }
+  .val li { margin-bottom: 0.35rem; }
+
+  .footnote {
+    margin-top: 3rem;
+    color: var(--subtle);
+    font-size: var(--fs-sm);
+    font-family: var(--font-mono);
+    letter-spacing: var(--ls-wide);
+  }
+  .footnote a { color: var(--accent); }
+
+  @media (max-width: 540px) {
+    .kv { grid-template-columns: 1fr; gap: 0.25rem; }
+  }
+</style>
