@@ -19,19 +19,27 @@ const installZipEnabled = defaultFor("site.feature.install-zip-download") as boo
       <a href="/skills">Skill Library</a>
       <a href="/install">Install</a>
       <a href="/changelog">Changelog</a>
+      <a href="/compare">Compare</a>
     </div>
-    {(demoEnabled || installZipEnabled) && (
-      <div class="col">
-        <div class="col-head">demo</div>
-        {demoEnabled && <a href="/demo">Walkthrough</a>}
-        {installZipEnabled && <a href="/opchain-skills.zip">Download bundle</a>}
-      </div>
-    )}
+    <div class="col">
+      <div class="col-head">explore</div>
+      <a href="/pipeline-builder">Pipeline Builder</a>
+      {demoEnabled && <a href="/demo">Walkthrough</a>}
+      <a href="/showcase">Showcase</a>
+      <a href="/glossary">Glossary</a>
+      {installZipEnabled && <a href="/opchain-skills.zip">Download bundle</a>}
+    </div>
+    <div class="col">
+      <div class="col-head">trust</div>
+      <a href="/status">Status</a>
+      <a href="/security">Security</a>
+      <a href="/uses">How it's built</a>
+      <a href="/privacy">Privacy</a>
+    </div>
     <div class="col">
       <div class="col-head">source</div>
       <a href="https://github.com/asfbay-bit/opchain" rel="noopener">GitHub</a>
       <a href="https://opchain.dev/api/health" rel="noopener">API health</a>
-      <a href="/privacy">Privacy</a>
       <button type="button" id="opchain-privacy-reset" class="link-btn">Manage privacy</button>
     </div>
   </div>

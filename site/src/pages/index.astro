@@ -6,8 +6,11 @@ import Button from "../components/ui/Button.astro";
 import Icon from "../components/Icon.astro";
 import { walkthroughs } from "../data/walkthroughs";
 import { defaultFor } from "../lib/flags/build-defaults";
+import { getAllSkills } from "../lib/skills";
 
 const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
+const allSkills = await getAllSkills();
+const skillCount = allSkills.length;
 
 type Role =
   | "workflow"
@@ -149,6 +152,25 @@ const initialCover = covers[0];
       <span class="release-pill-arrow" aria-hidden="true">›</span>
     </a>
 
+    <section class="stats" aria-label="opchain at a glance">
+      <a class="stat" href="/skills">
+        <span class="stat-num">{skillCount}</span>
+        <span class="stat-label">skills shipped</span>
+      </a>
+      <a class="stat" href="/changelog">
+        <span class="stat-num">v1.3</span>
+        <span class="stat-label">latest release</span>
+      </a>
+      <a class="stat" href="/status">
+        <span class="stat-num">live</span>
+        <span class="stat-label">system status</span>
+      </a>
+      <a class="stat" href="https://github.com/asfbay-bit/opchain" rel="noopener">
+        <span class="stat-num">MIT</span>
+        <span class="stat-label">open source</span>
+      </a>
+    </section>
+
     <!-- Featured-scenario magazine cover — rotates every 10 s through
          every walkthrough in the catalog. "Open the workbench"
          deep-links into /demo so the click lands directly on the IDE
@@ -178,7 +200,7 @@ const initialCover = covers[0];
           <div class="phase-name">{p.name}</div>
           <div class="phase-pills">
             {p.skills.map((s) => (
-              <span class="phase-pill" data-role={s.role}>{s.id}</span>
+              <a class="phase-pill" data-role={s.role} href={`/skills/${s.id}`}>{s.id}</a>
             ))}
           </div>
           <div class="phase-blurb">{p.blurb}</div>
@@ -341,7 +363,10 @@ const initialCover = covers[0];
     border: 0.5px solid var(--pill-color);
     background: color-mix(in srgb, var(--pill-color) 15%, transparent);
     white-space: nowrap;
+    text-decoration: none;
+    transition: filter var(--dur-fast) var(--ease-standard);
   }
+  .phase-pill:hover { filter: brightness(1.2); text-decoration: underline; }
   /* Role colors — :root tokens map skill type → pill color.
      Border + text use the token directly; background is the same
      token at 15% via color-mix. */
@@ -439,6 +464,55 @@ const initialCover = covers[0];
     transition: color var(--dur-fast) var(--ease-standard);
   }
   .release-pill:hover .release-pill-arrow { color: var(--accent); }
+
+  /* ── Stat strip — social-proof row under the release pill. Mirrors the
+        release-pill's rounded chip aesthetic but tiles into a 4-up grid
+        so each stat doubles as a deep-link into the corresponding
+        surface (skills, changelog, status, repo). ── */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 640px;
+    margin: 1.25rem auto 0;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.7rem 0.85rem;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    color: var(--muted);
+    text-decoration: none;
+    transition:
+      color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard),
+      transform var(--dur-fast) var(--ease-standard);
+  }
+  .stat:hover {
+    color: var(--text);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    line-height: 1;
+  }
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
 
   /* ── Magazine cover (relocated from /demo, chunk 2). Sits between
         the intro body and the phase grid, full-bleed within the .intro

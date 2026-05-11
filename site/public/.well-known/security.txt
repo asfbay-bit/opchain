@@ -1,0 +1,5 @@
+Contact: mailto:security@opchain.dev
+Preferred-Languages: en
+Canonical: https://opchain.dev/.well-known/security.txt
+Policy: https://opchain.dev/security
+Acknowledgments: https://github.com/asfbay-bit/opchain/security/advisories
