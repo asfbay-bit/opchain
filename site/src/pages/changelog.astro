@@ -354,8 +354,12 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
     padding: 0;
   }
   .release li { margin-bottom: 0.55rem; }
-  .release a { color: var(--accent); text-decoration: none; }
-  .release a:hover { text-decoration: underline; }
+  /* ADEV-342: `text-decoration: none` was previously here, overriding
+     the global :where(p, li, ...) underline rule (global.css:111) and
+     leaving in-prose links distinguishable only by colour — axe's
+     `link-in-text-block` rule (WCAG 1.4.1 Use of Color) flagged it.
+     With the override removed the global rule supplies the underline;
+     colour + a:hover come from the global `a` rules. */
 
   .footer-note {
     margin-top: 3rem;
