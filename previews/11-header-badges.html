@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>11 — header badges & metadata</title>
+  <link rel="stylesheet" href="_shared.css" />
+  <style>
+    .version-chip {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 4px 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--subtle);
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-sm);
+      text-decoration: none;
+    }
+    .version-chip:hover { color: var(--accent); border-color: var(--accent); }
+    .version-chip .sha { color: var(--text); }
+
+    .nav-link .ml-badge { margin-left: 4px; }
+
+    .annotations {
+      max-width: 960px; margin: 1rem auto 0;
+      padding: 0 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--subtle);
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .annotations .a-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 0.75rem;
+    }
+    .annotations .a-card strong {
+      color: var(--accent);
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+  <p class="preview-caption">11 · header badges — new pill, interactive chip, skill-count, version chip (P-07/08/09/10)</p>
+
+  <div class="preview-frame">
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-header-brand"><span class="logo-mark">◆</span><span class="brand-word">opchain</span></a>
+        <nav class="nav">
+          <div class="group-wrap"><button class="nav-link">
+            PRODUCT <span class="badge badge-new ml-badge">NEW</span> <span class="caret"></span>
+          </button></div>
+          <div class="group-wrap"><button class="nav-link">
+            PIPELINE <span class="badge badge-tool ml-badge">⚡</span> <span class="caret"></span>
+          </button></div>
+          <div class="group-wrap"><button class="nav-link">
+            RESOURCES <span class="caret"></span>
+          </button></div>
+          <a class="nav-link" href="#" style="margin-left:0.5rem;padding:0 0.9rem;height:30px;background:var(--accent);color:var(--bg);border-radius:var(--r-pill);align-self:center;font-weight:600;">install</a>
+        </nav>
+
+        <a class="version-chip" href="#">
+          v1.3 · <span class="sha">a7f3c91</span>
+        </a>
+        <button class="cmdk-pill"><span class="kbd">⌘K</span></button>
+        <button class="icon-btn">☼</button>
+      </div>
+    </header>
+
+    <div class="annotations">
+      <div class="a-card">
+        <strong>P-07</strong> · "NEW" pill on Product surfaces a recent changelog entry. Auto-disappears 7d after release date.
+      </div>
+      <div class="a-card">
+        <strong>P-08</strong> · ⚡ chip flags Pipeline group as "interactive tool" — distinguishes from docs.
+      </div>
+      <div class="a-card">
+        <strong>P-10</strong> · Version chip shows deployed SHA, links to /changelog#commit-a7f3c91.
+      </div>
+    </div>
+  </div>
+
+  <p class="preview-caption" style="margin-top:2rem;">dropdown view — badges propagate to dropdown children</p>
+  <div class="preview-frame">
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-header-brand"><span class="logo-mark">◆</span><span class="brand-word">opchain</span></a>
+        <nav class="nav" style="position:relative;">
+          <div class="group-wrap" style="position:relative;">
+            <button class="nav-link" style="color:var(--text);border-bottom-color:var(--accent);">
+              PRODUCT <span class="badge badge-new ml-badge">NEW</span> <span class="caret"></span>
+            </button>
+            <div class="dropdown dropdown-mega" style="display:block;">
+              <div style="grid-column: 1 / -1;" class="dropdown-section">explore the system</div>
+              <a class="dropdown-item" href="#">
+                <span class="label">Architecture</span>
+                <span class="blurb">Skillchain & checkpoint protocol.</span>
+              </a>
+              <a class="dropdown-item" href="#">
+                <span class="label">Skills <span class="badge badge-soft">14</span></span>
+                <span class="blurb">Every skill, role-tagged.</span>
+              </a>
+              <a class="dropdown-item" href="#">
+                <span class="label">Compare</span>
+                <span class="blurb">opchain vs alternatives.</span>
+              </a>
+              <a class="dropdown-item" href="#">
+                <span class="label">Changelog <span class="badge badge-new">v1.3</span></span>
+                <span class="blurb">3 new skills shipped 2 days ago.</span>
+              </a>
+            </div>
+          </div>
+          <div class="group-wrap"><button class="nav-link">PIPELINE <span class="badge badge-tool ml-badge">⚡</span> <span class="caret"></span></button></div>
+          <div class="group-wrap"><button class="nav-link">RESOURCES <span class="caret"></span></button></div>
+          <a class="nav-link" href="#" style="margin-left:0.5rem;padding:0 0.9rem;height:30px;background:var(--accent);color:var(--bg);border-radius:var(--r-pill);align-self:center;font-weight:600;">install</a>
+        </nav>
+        <a class="version-chip" href="#">v1.3 · <span class="sha">a7f3c91</span></a>
+        <button class="cmdk-pill"><span class="kbd">⌘K</span></button>
+        <button class="icon-btn">☼</button>
+      </div>
+    </header>
+    <div style="height: 280px; background: var(--bg);"></div>
+  </div>
+</body>
+</html>

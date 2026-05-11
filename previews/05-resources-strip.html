@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>05 — resources strip + status pill</title>
+  <link rel="stylesheet" href="_shared.css" />
+  <style>
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 4px 10px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-pill);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--subtle);
+      text-decoration: none;
+      letter-spacing: var(--ls-wide);
+    }
+    .status-pill:hover { color: var(--text); border-color: var(--accent); }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--success, #10B981);
+      box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+    }
+
+    .resources {
+      margin: 5rem auto 0;
+    }
+    .section-head {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .section-head .eyebrow { margin-bottom: 0.5rem; }
+    .section-head h2 {
+      font-family: var(--font-display);
+      font-size: var(--fs-2xl);
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: var(--ls-tight);
+    }
+    .section-head p {
+      color: var(--muted);
+      max-width: 48ch;
+      margin: 0.5rem auto 0;
+    }
+
+    .res-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+    }
+    @media (max-width: 800px) { .res-grid { grid-template-columns: 1fr; } }
+    .res-card {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1.5rem;
+      text-decoration: none;
+      color: var(--text);
+      display: flex; flex-direction: column; gap: 0.5rem;
+      transition: border-color var(--dur-fast), transform var(--dur-fast);
+      position: relative;
+    }
+    .res-card:hover { border-color: var(--accent); transform: translateY(-1px); color: var(--text); }
+    .res-card .icon-circle {
+      width: 36px; height: 36px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-radius: 50%;
+      font-size: 18px;
+    }
+    .res-card h3 {
+      font-family: var(--font-display);
+      font-size: var(--fs-md);
+      font-weight: 600;
+      margin: 0;
+    }
+    .res-card p {
+      font-size: var(--fs-sm);
+      color: var(--muted);
+      line-height: var(--lh-snug);
+      margin: 0;
+    }
+    .res-card .read {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-wide);
+      color: var(--accent);
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+  <p class="preview-caption">05 · resources strip above footer + status pill in header (P-31, P-32)</p>
+
+  <div class="preview-frame">
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-header-brand"><span class="logo-mark">◆</span><span class="brand-word">opchain</span></a>
+        <nav class="nav">
+          <div class="group-wrap"><button class="nav-link">PRODUCT <span class="caret"></span></button></div>
+          <div class="group-wrap"><button class="nav-link">PIPELINE <span class="caret"></span></button></div>
+          <div class="group-wrap"><button class="nav-link">RESOURCES <span class="caret"></span></button></div>
+          <a class="nav-link" href="#" style="margin-left:0.5rem;padding:0 0.9rem;height:30px;background:var(--accent);color:var(--bg);border-radius:var(--r-pill);align-self:center;font-weight:600;">install</a>
+        </nav>
+        <a class="status-pill" href="#" title="API health">
+          <span class="status-dot"></span> all systems normal
+        </a>
+        <button class="cmdk-pill"><span class="kbd">⌘K</span></button>
+        <button class="icon-btn">☼</button>
+      </div>
+    </header>
+
+    <main class="page" style="padding-top: 1rem;">
+      <div style="text-align:center;padding:2rem 0;color:var(--subtle);font-family:var(--font-mono);font-size:11px;">
+        ⋮ (rest of homepage content above)
+      </div>
+
+      <section class="resources">
+        <div class="section-head">
+          <div class="eyebrow">go deeper</div>
+          <h2>resources</h2>
+          <p>References and trust signals you'd otherwise have to scroll all the way to the footer to find.</p>
+        </div>
+
+        <div class="res-grid">
+          <a class="res-card" href="#">
+            <span class="icon-circle">📖</span>
+            <h3>Glossary</h3>
+            <p>Plain-English definitions for every opchain term — checkpoint, tri-agent, audit gate, and the rest.</p>
+            <span class="read">read ›</span>
+          </a>
+          <a class="res-card" href="#">
+            <span class="icon-circle">◆</span>
+            <h3>How it's built</h3>
+            <p>opchain.dev is itself built with opchain. See the recursion — every commit ran through the gates.</p>
+            <span class="read">read ›</span>
+          </a>
+          <a class="res-card" href="#">
+            <span class="icon-circle">🔒</span>
+            <h3>Security</h3>
+            <p>Threat model, dependency posture, secret handling — what we actually do, not a checklist.</p>
+            <span class="read">read ›</span>
+          </a>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

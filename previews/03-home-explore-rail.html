@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>03 — home explore rail</title>
+  <link rel="stylesheet" href="_shared.css" />
+  <style>
+    .hero-stack {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 1.5rem; padding-top: 3rem; text-align: center;
+    }
+    .hero-logo {
+      width: 128px; height: 128px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--accent);
+      color: var(--bg);
+      border-radius: 24px;
+      font-size: 64px;
+    }
+    .hero-mark {
+      font-family: var(--font-display);
+      font-size: var(--fs-hero);
+      font-weight: 600;
+      letter-spacing: var(--ls-display);
+      margin: 0;
+    }
+    .hero-claim {
+      font-family: var(--font-display);
+      font-size: var(--fs-lg);
+      color: var(--muted);
+      margin: 0;
+    }
+    .release-pill {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.4rem 0.85rem;
+      background: var(--accent-dim);
+      border: 0.5px solid rgba(224, 92, 24, 0.4);
+      border-radius: var(--r-pill);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .release-pill .now {
+      display: inline-flex; align-items: center; gap: 4px;
+      color: var(--text);
+    }
+    .release-pill .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--ember-glow);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.5 } }
+
+    .cta-row {
+      display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;
+      margin-top: 1rem;
+    }
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: var(--ls-wide);
+      text-transform: uppercase;
+      padding: 0.7rem 1.25rem;
+      border-radius: var(--r-md);
+      text-decoration: none;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all var(--dur-fast);
+    }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { background: var(--accent-hover); color: var(--bg); }
+    .btn-outline { border-color: var(--border); color: var(--text); background: transparent; }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-ghost { color: var(--muted); background: transparent; }
+    .btn-ghost:hover { color: var(--text); }
+
+    .explore-rail {
+      margin: 4rem auto 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+    }
+    @media (max-width: 800px) {
+      .explore-rail { grid-template-columns: repeat(2, 1fr); }
+    }
+    .tile {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1.25rem;
+      text-decoration: none;
+      color: var(--text);
+      display: flex; flex-direction: column; gap: 0.5rem;
+      min-height: 140px;
+      position: relative;
+      transition: border-color var(--dur-fast), transform var(--dur-fast);
+    }
+    .tile:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      color: var(--text);
+    }
+    .tile .tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+      align-self: flex-start;
+    }
+    .tile .tag.tool { color: var(--specialist); }
+    .tile h3 {
+      font-family: var(--font-display);
+      font-size: var(--fs-md);
+      font-weight: 600;
+      margin: 0;
+    }
+    .tile p {
+      font-size: var(--fs-sm);
+      color: var(--muted);
+      margin: 0;
+      line-height: var(--lh-snug);
+    }
+    .tile .arrow {
+      position: absolute; right: 1rem; bottom: 1rem;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 14px;
+    }
+
+    .made-with {
+      margin-top: 3rem;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--subtle);
+      letter-spacing: var(--ls-wide);
+    }
+    .made-with a { color: var(--muted); border-bottom: 0.5px dotted var(--subtle); }
+    .made-with a:hover { color: var(--text); border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <p class="preview-caption">03 · home explore rail — 4 tiles under hero, rotating release pill, 3-button CTA row, "made with" strip</p>
+
+  <div class="preview-frame">
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-header-brand"><span class="logo-mark">◆</span><span class="brand-word">opchain</span></a>
+        <nav class="nav">
+          <div class="group-wrap"><button class="nav-link">PRODUCT <span class="caret"></span></button></div>
+          <div class="group-wrap"><button class="nav-link">PIPELINE <span class="caret"></span></button></div>
+          <div class="group-wrap"><button class="nav-link">RESOURCES <span class="caret"></span></button></div>
+          <a class="nav-link" href="#" style="margin-left:0.5rem;padding:0 0.9rem;height:30px;background:var(--accent);color:var(--bg);border-radius:var(--r-pill);align-self:center;font-weight:600;">install</a>
+        </nav>
+        <button class="cmdk-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          <span class="kbd">⌘K</span>
+        </button>
+        <button class="icon-btn">☼</button>
+      </div>
+    </header>
+
+    <main class="page">
+      <div class="eyebrow" style="text-align:center;">skill ecosystem</div>
+
+      <div class="hero-stack">
+        <div class="hero-logo">◆</div>
+        <h1 class="hero-mark">opchain</h1>
+        <p class="hero-claim">skills that ship.</p>
+
+        <a class="release-pill" href="#">
+          <span class="now"><span class="dot"></span>NEW</span>
+          v1.3 — release-ops, migration-ops, security-auditor
+          <span style="color:var(--subtle);">›</span>
+        </a>
+
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#">install opchain</a>
+          <a class="btn btn-outline" href="#">watch the demo</a>
+          <a class="btn btn-ghost" href="#">compare opchain ›</a>
+        </div>
+      </div>
+
+      <div class="explore-rail">
+        <a class="tile" href="#">
+          <span class="tag tool">⚡ TOOL</span>
+          <h3>Pipeline Builder</h3>
+          <p>Pick what you're shipping, get a curated opchain stack.</p>
+          <span class="arrow">›</span>
+        </a>
+        <a class="tile" href="#">
+          <span class="tag">⚖ DOC</span>
+          <h3>Compare</h3>
+          <p>opchain vs Cursor, Aider, plain Claude Code.</p>
+          <span class="arrow">›</span>
+        </a>
+        <a class="tile" href="#">
+          <span class="tag">▦ GALLERY</span>
+          <h3>Showcase</h3>
+          <p>Projects actually shipped with opchain.</p>
+          <span class="arrow">›</span>
+        </a>
+        <a class="tile" href="#">
+          <span class="tag">◆ META</span>
+          <h3>Uses</h3>
+          <p>How opchain.dev is built — with opchain.</p>
+          <span class="arrow">›</span>
+        </a>
+      </div>
+
+      <div class="made-with">
+        ◆ opchain.dev is <a href="#">built with opchain</a> — see the recursion
+      </div>
+    </main>
+  </div>
+</body>
+</html>

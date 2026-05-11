@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>01 — top-bar dropdowns</title>
+  <link rel="stylesheet" href="_shared.css" />
+  <style>
+    /* Install CTA — final leaf-link rendered as ember pill */
+    .nav-link.install-cta {
+      margin-left: 0.5rem;
+      padding: 0 0.9rem;
+      height: 30px;
+      background: var(--accent);
+      color: var(--bg);
+      border: 0;
+      border-radius: var(--r-pill);
+      align-self: center;
+      font-weight: 600;
+    }
+    .nav-link.install-cta:hover {
+      background: var(--accent-hover);
+      color: var(--bg);
+    }
+    .group-wrap { position: relative; }
+    .group-wrap.open .nav-link { color: var(--text); border-bottom-color: var(--accent); }
+    .group-wrap.active-section .nav-link { border-bottom-color: var(--accent); }
+
+    /* Open one dropdown for demonstration */
+    #product-dd { display: block; }
+  </style>
+</head>
+<body>
+  <p class="preview-caption">01 · top-bar dropdowns — Product / Pipeline / Resources groups, Install as leaf CTA, ⌘K pill visible</p>
+
+  <div class="preview-frame">
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-header-brand" href="#">
+          <span class="logo-mark">◆</span>
+          <span class="brand-word">opchain</span>
+        </a>
+
+        <nav class="nav">
+          <div class="group-wrap open active-section">
+            <button class="nav-link" aria-haspopup="true" aria-expanded="true">
+              PRODUCT <span class="caret"></span>
+            </button>
+            <div class="dropdown dropdown-mega" id="product-dd">
+              <div style="grid-column: 1 / -1;" class="dropdown-section">explore the system</div>
+              <a class="dropdown-item" href="#">
+                <span class="label">Architecture</span>
+                <span class="blurb">The skillchain & checkpoint protocol explained.</span>
+              </a>
+              <a class="dropdown-item" href="#">
+                <span class="label">Skills <span class="badge badge-soft">14</span></span>
+                <span class="blurb">Every skill in the chain, role-tagged.</span>
+              </a>
+              <a class="dropdown-item" href="#">
+                <span class="label">Compare</span>
+                <span class="blurb">opchain vs Cursor, Aider, plain Claude Code.</span>
+              </a>
+              <a class="dropdown-item" href="#">
+                <span class="label">Changelog <span class="badge badge-new">NEW</span></span>
+                <span class="blurb">v1.3 — release-ops, migration-ops, security-auditor.</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="group-wrap">
+            <button class="nav-link">
+              PIPELINE <span class="caret"></span>
+            </button>
+          </div>
+
+          <div class="group-wrap">
+            <button class="nav-link">
+              RESOURCES <span class="caret"></span>
+            </button>
+          </div>
+
+          <a class="nav-link install-cta" href="#">install</a>
+        </nav>
+
+        <button class="cmdk-pill" title="open command palette">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          search
+          <span class="kbd">⌘K</span>
+        </button>
+        <button class="icon-btn" title="theme">☼</button>
+      </div>
+    </header>
+
+    <main class="page">
+      <div class="eyebrow">skill ecosystem</div>
+      <h1 class="page-title">opchain</h1>
+      <p class="lede">P-01 collapses the flat 5-link nav into 4 grouped anchors. P-04: the Product group lights up because we're on /compare (which lives inside it). P-12: ⌘K pill is visible, not hidden behind a shortcut.</p>
+    </main>
+  </div>
+
+  <p class="preview-caption" style="margin-top: 2rem;">closed state · all three groups</p>
+  <div class="preview-frame">
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-header-brand" href="#">
+          <span class="logo-mark">◆</span>
+          <span class="brand-word">opchain</span>
+        </a>
+        <nav class="nav">
+          <div class="group-wrap"><button class="nav-link">PRODUCT <span class="caret"></span></button></div>
+          <div class="group-wrap"><button class="nav-link">PIPELINE <span class="caret"></span></button></div>
+          <div class="group-wrap"><button class="nav-link">RESOURCES <span class="caret"></span></button></div>
+          <a class="nav-link install-cta" href="#">install</a>
+        </nav>
+        <button class="cmdk-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          search <span class="kbd">⌘K</span>
+        </button>
+        <button class="icon-btn">☼</button>
+      </div>
+    </header>
+    <div style="height: 60px; background: var(--bg);"></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>opchain — nav proposal previews</title>
+  <link rel="stylesheet" href="_shared.css" />
+  <style>
+    body { padding: 0; }
+    .launcher-header {
+      padding: 3rem 1.5rem 2rem;
+      border-bottom: 0.5px solid var(--border);
+      text-align: center;
+    }
+    .launcher-header h1 {
+      font-family: var(--font-display);
+      font-size: var(--fs-2xl);
+      font-weight: 600;
+      letter-spacing: var(--ls-tight);
+      margin: 0 0 0.5rem;
+    }
+    .launcher-header p {
+      color: var(--muted);
+      max-width: 64ch; margin: 0 auto;
+    }
+    .launcher-header .meta {
+      margin-top: 1rem;
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-wide);
+      color: var(--subtle);
+    }
+    .launcher-header .meta a { color: var(--accent); }
+
+    .grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+    .preview-card {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      text-decoration: none;
+      color: var(--text);
+      display: flex; flex-direction: column;
+      transition: border-color var(--dur-fast), transform var(--dur-fast);
+    }
+    .preview-card:hover { border-color: var(--accent); transform: translateY(-1px); color: var(--text); }
+    .preview-card .thumb {
+      background: var(--ribbon);
+      height: 160px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 60px;
+      color: var(--accent);
+      letter-spacing: -0.05em;
+      border-bottom: 0.5px solid var(--ribbon-edge);
+    }
+    .preview-card .body {
+      padding: 1rem 1.25rem 1.25rem;
+      display: flex; flex-direction: column; gap: 0.4rem;
+    }
+    .preview-card .num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+    .preview-card .ttl {
+      font-family: var(--font-display);
+      font-size: var(--fs-md);
+      font-weight: 600;
+    }
+    .preview-card .blurb {
+      font-size: var(--fs-sm);
+      color: var(--muted);
+      line-height: var(--lh-snug);
+    }
+    .preview-card .tags {
+      margin-top: 0.5rem;
+      display: flex; flex-wrap: wrap; gap: 4px;
+    }
+    .ptag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: var(--ls-wide);
+      padding: 2px 6px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-xs);
+      color: var(--subtle);
+    }
+    .ptag.tool {
+      color: var(--specialist);
+      border-color: var(--specialist);
+      background: rgba(20,184,166,0.1);
+    }
+
+    .doc-link {
+      max-width: 1100px;
+      margin: 0 auto 2rem;
+      padding: 1.5rem;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem;
+    }
+    .doc-link h3 {
+      margin: 0 0 0.25rem;
+      font-family: var(--font-display);
+      font-weight: 600;
+    }
+    .doc-link p { margin: 0; color: var(--muted); font-size: var(--fs-sm); }
+    .doc-link a {
+      flex-shrink: 0;
+      padding: 0.5rem 1rem;
+      background: var(--accent);
+      color: var(--bg);
+      border-radius: var(--r-md);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: var(--ls-wide);
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+    .doc-link a:hover { background: var(--accent-hover); color: var(--bg); }
+  </style>
+</head>
+<body>
+  <div class="launcher-header">
+    <div class="eyebrow">scratch · gitignored · review only</div>
+    <h1>opchain navigation proposal</h1>
+    <p>41 proposed changes across 10 themes. Click any tile below to see the pixel-faithful mockup. The full enumerated list lives in <strong>PROPOSAL.md</strong>.</p>
+    <div class="meta">branch · <a href="#">claude/enhance-site-navigation-TyY5C</a> · nothing has shipped yet</div>
+  </div>
+
+  <div class="grid">
+    <a class="preview-card" href="00-baseline.html">
+      <div class="thumb">00</div>
+      <div class="body">
+        <span class="num">baseline</span>
+        <span class="ttl">What ships today</span>
+        <span class="blurb">The current 5-link flat nav. Side-by-side reference for evaluating the proposed changes.</span>
+      </div>
+    </a>
+
+    <a class="preview-card" href="01-top-bar-dropdowns.html">
+      <div class="thumb">01</div>
+      <div class="body">
+        <span class="num">top bar · A</span>
+        <span class="ttl">Grouped dropdowns</span>
+        <span class="blurb">Collapse 5 anchors into Product / Pipeline / Resources + Install CTA. Each group is a hover/focus dropdown with one-line blurbs.</span>
+        <div class="tags"><span class="ptag">P-01</span><span class="ptag">P-02</span><span class="ptag">P-03</span><span class="ptag">P-04</span><span class="ptag">P-05</span><span class="ptag">P-06</span><span class="ptag">P-12</span></div>
+      </div>
+    </a>
+
+    <a class="preview-card" href="02-command-palette.html">
+      <div class="thumb">02</div>
+      <div class="body">
+        <span class="num">command palette · C</span>
+        <span class="ttl">Global ⌘K</span>
+        <span class="blurb">Centered modal: pages, skills, glossary, actions. Empty state surfaces popular jumps; visible header pill makes it discoverable.</span>
+        <div class="tags"><span class="ptag tool">tool</span><span class="ptag">P-11</span><span class="ptag">P-13</span><span class="ptag">P-14</span></div>
+      </div>
+    </a>
+
+    <a class="preview-card" href="03-home-explore-rail.html">
+      <div class="thumb">03</div>
+      <div class="body">
+        <span class="num">homepage · D</span>
+        <span class="ttl">Explore rail</span>
+        <span class="blurb">4-tile rail under the hero CTAs (Compare, Pipeline Builder, Showcase, Uses), 3-button CTA row, "Made with opchain" attribution strip.</span>
+        <div class="tags"><span class="ptag">P-16</span><span class="ptag">P-17</span><span class="ptag">P-18</span><span class="ptag">P-19</span></div>
+      </div>
+    </a>
+
+    <a class="preview-card" href="04-related-blocks.html">
+      <div class="thumb">04</div>
+      <div class="body">
+        <span class="num">interior page · E/H</span>
+        <span class="ttl">Breadcrumbs + related cards + prev/next</span>
+        <span class="blurb">Skill detail page: breadcrumbs, glossary-terms aside, 3-up related cards at bottom, prev/next skill nav. Pattern repeats across all interior pages.</span>
+        <div class="tags"><span class="ptag">P-20</span><span class="ptag">P-21</span><span class="ptag">P-22</span><span class="ptag">P-25</span><span class="ptag">P-30</span><span class="ptag">P-36</span></div>
+      </div>
+    </a>
+
+    <a class="preview-card" href="05-resources-strip.html">
+      <div class="thumb">05</div>
+      <div class="body">
+        <span class="num">homepage · F</span>
+        <span class="ttl">Resources strip + status pill</span>
+        <span class="blurb">Resources section above footer (Glossary, Uses, Security) plus live status pill in header sourced from /api/health.</span>
+        <div class="tags"><span class="ptag">P-31</span><span class="ptag">P-32</span></div>
+      </div>
+    </a>
+
+    <a class="preview-card" href="08-sitemap-page.html">
+      <div class="thumb">08</div>
+      <div class="body">
+        <span class="num">new page · G</span>
+        <span class="ttl">/sitemap</span>
+        <span class="blurb">Every public page in one grouped list with one-line descriptions. SEO win, a11y win, fallback when ⌘K isn't reachable.</span>
+        <div class="tags"><span class="ptag">P-33</span><span class="ptag">P-34</span><span class="ptag">P-35</span></div>
+      </div>
+    </a>
+
+    <a class="preview-card" href="09-mobile-palette.html">
+      <div class="thumb">09</div>
+      <div class="body">
+        <span class="num">mobile · I</span>
+        <span class="ttl">Full-screen ⌘K sheet</span>
+        <span class="blurb">Mobile palette is a full-screen sheet from a dedicated search icon. Same data, same grouping, touch-friendly rows.</span>
+        <div class="tags"><span class="ptag">P-15</span><span class="ptag">P-40</span></div>
+      </div>
+    </a>
+
+    <a class="preview-card" href="10-mobile-drawer.html">
+      <div class="thumb">10</div>
+      <div class="body">
+        <span class="num">mobile · I</span>
+        <span class="ttl">Grouped drawer + quick chips</span>
+        <span class="blurb">Drawer replaces flat list with collapsible sections matching desktop dropdowns. Top row of quick-chips for Install / Demo / Compare.</span>
+        <div class="tags"><span class="ptag">P-38</span><span class="ptag">P-39</span></div>
+      </div>
+    </a>
+
+    <a class="preview-card" href="11-header-badges.html">
+      <div class="thumb">11</div>
+      <div class="body">
+        <span class="num">top bar · B</span>
+        <span class="ttl">Badges & version chip</span>
+        <span class="blurb">"NEW" pill on Product when a recent release exists, ⚡ chip on Pipeline, skill-count badge, deployed-SHA version chip.</span>
+        <div class="tags"><span class="ptag">P-07</span><span class="ptag">P-08</span><span class="ptag">P-09</span><span class="ptag">P-10</span></div>
+      </div>
+    </a>
+  </div>
+
+  <div class="doc-link">
+    <div>
+      <h3>Read the full proposal</h3>
+      <p>41 enumerated changes, grouped into 10 themes, with open questions you'll need to answer before code lands.</p>
+    </div>
+    <a href="PROPOSAL.md">open PROPOSAL.md</a>
+  </div>
+</body>
+</html>
