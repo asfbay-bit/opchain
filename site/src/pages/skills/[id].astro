@@ -670,10 +670,24 @@ const consumers = isFoundational
         // entries. Two clones so each TOC has its own DOM (active
         // highlighting needs distinct nodes).
         function render(into: HTMLOListElement) {
+          // Astro's scoped CSS adds data-astro-cid-XXX to every template
+          // element; selectors like `.toc-list li` compile to require the
+          // attribute on BOTH sides. Elements built here in JS would
+          // otherwise miss the attribute and inherit none of the rail's
+          // styling (min-height for target-size, padding, color). Copy
+          // the attribute from the <ol> parent so the rules match.
+          const scopeAttr = Array.from(into.attributes)
+            .map((a) => a.name)
+            .find((n) => n.startsWith("data-astro-cid-"));
+          const applyScope = (el: HTMLElement) => {
+            if (scopeAttr) el.setAttribute(scopeAttr, "");
+          };
           headings.forEach((h) => {
             const li = document.createElement("li");
+            applyScope(li);
             li.className = h.tagName === "H3" ? "toc-h3" : "toc-h2";
             const a = document.createElement("a");
+            applyScope(a);
             a.href = `#${h.id}`;
             // Keep the leading number on h2 entries so numbered sections
             // appear as headers in the ToC; strip only for h3 sub-items.
