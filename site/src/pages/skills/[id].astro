@@ -323,9 +323,10 @@ const consumers = isFoundational
 
         // 6 — Status / severity verbs in plain prose. Walk text nodes,
         // wrap matched tokens in <mark data-status="…"> so CSS can paint
-        // them. Skip headings, code blocks, links, and table cells (we
-        // don't want to double-emphasise things that already pop).
-        const SKIP = new Set(["CODE", "PRE", "A", "MARK", "H1", "H2", "H3", "H4"]);
+        // them. Skip headings, code blocks (Shiki wraps tokens in nested
+        // <span>s, so a parentElement-only check walks straight in — use
+        // closest() to climb the ancestor chain), links, and prior marks.
+        const SKIP_SEL = "code, pre, a, mark, h1, h2, h3, h4";
         const STATUS_PROSE = [
           { rx: /\b(CRITICAL|BLOCKER|FAIL(?:ED)?|REJECTED|ERROR)\b/g,           status: "danger"   },
           { rx: /\b(WARNING|CAUTION)\b/g,                                       status: "warn"     },
@@ -337,7 +338,7 @@ const consumers = isFoundational
         let node: Node | null;
         while ((node = walker.nextNode())) {
           const t = node as Text;
-          if (!t.parentElement || SKIP.has(t.parentElement.tagName)) continue;
+          if (!t.parentElement || t.parentElement.closest(SKIP_SEL)) continue;
           const original = t.nodeValue || "";
           if (!/[A-Z]/.test(original)) continue; // status tokens are uppercase
           let html = escapeHtml(original);
@@ -578,15 +579,15 @@ const consumers = isFoundational
         // for code/pre/a/heading skips) and replace ASCII quotes with
         // proper typographic glyphs. Apostrophes are matched on word
         // boundaries to avoid mangling `'foo'` quoted strings inside
-        // narrative prose. We re-use the same SKIP set as the status-
-        // verb walker so we never touch code or links.
-        const QUOTE_SKIP = new Set(["CODE", "PRE", "A", "MARK", "H1", "H2", "H3", "H4", "KBD"]);
+        // narrative prose. Use closest() so nested Shiki spans inside
+        // <pre> still count as "inside code".
+        const QUOTE_SKIP_SEL = "code, pre, a, mark, h1, h2, h3, h4, kbd";
         const qWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
         const qReplacements: Array<{ node: Text; text: string }> = [];
         let qNode: Node | null;
         while ((qNode = qWalker.nextNode())) {
           const t = qNode as Text;
-          if (!t.parentElement || QUOTE_SKIP.has(t.parentElement.tagName)) continue;
+          if (!t.parentElement || t.parentElement.closest(QUOTE_SKIP_SEL)) continue;
           const v = t.nodeValue || "";
           if (!/["']/.test(v)) continue;
           const next = v
@@ -682,10 +683,24 @@ const consumers = isFoundational
         // entries. Two clones so each TOC has its own DOM (active
         // highlighting needs distinct nodes).
         function render(into: HTMLOListElement) {
+          // Astro's scoped CSS adds data-astro-cid-XXX to every template
+          // element; selectors like `.toc-list li` compile to require the
+          // attribute on BOTH sides. Elements built here in JS would
+          // otherwise miss the attribute and inherit none of the rail's
+          // styling (min-height for target-size, padding, color). Copy
+          // the attribute from the <ol> parent so the rules match.
+          const scopeAttr = Array.from(into.attributes)
+            .map((a) => a.name)
+            .find((n) => n.startsWith("data-astro-cid-"));
+          const applyScope = (el: HTMLElement) => {
+            if (scopeAttr) el.setAttribute(scopeAttr, "");
+          };
           headings.forEach((h) => {
             const li = document.createElement("li");
+            applyScope(li);
             li.className = h.tagName === "H3" ? "toc-h3" : "toc-h2";
             const a = document.createElement("a");
+            applyScope(a);
             a.href = `#${h.id}`;
             // Keep the leading number on h2 entries so numbered sections
             // appear as headers in the ToC; strip only for h3 sub-items.
