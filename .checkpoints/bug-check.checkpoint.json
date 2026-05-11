@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-02T18:47:50Z",
-  "updated_at": "2026-05-11T02:55:26Z",
+  "updated_at": "2026-05-11T02:39:10.215Z",
   "phase": "gate",
-  "step": "adev-347-band-label-zindex-passed",
+  "step": "merge-main-into-audit-demo-quality-passed",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for ADEV-343 (walker ancestor check). Single file: site/src/pages/skills/[id].astro — status walker + smart-quote walker switched from parentElement.tagName Set check to closest(SKIP_SEL) so Shiki's nested <span> wrappers inside <pre><code> short-circuit. Eliminates phantom <mark> elements that were getting injected into highlighted code-block tokens like FAIL/COMPLETE on /skills/app-architect (LHCI flagged color-contrast on pre.astro-code > code > span.line > span > mark). Vitest: 137/137 (one flake on tests/flags-skills.test.js 'passes with a clean fixture' — re-run clean, known race). astro check: 0 errors. Anti-pattern + secret grep on diff: clean. checkpoint:validate: 7/7. Verdict: PASS.",
+  "progress_summary": "Pre-commit gate for merging origin/main into claude/audit-demo-quality-NeACZ. Conflict in .checkpoints/bug-check.checkpoint.json resolved by taking main and re-stamping (this entry). All other files merged cleanly (10 modified/added from main; 7 scenario rewrites + 1 stack-forge merger file from this branch — no overlap on scenario bodies). Vitest 137/137 in 4.78s (124 prior + 13 new from main stack-packs). Validators all green (gen-flags 92, gen-catalog 18 skills, validate-pm-mcp 5 + 0 warn, sync-bundles in sync). Verdict: PASS.",
   "progress_table": [
     {
       "id": "schema",
@@ -74,27 +74,27 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-05-11T02:55:26Z",
+      "at": "2026-05-11T02:39:10.215Z",
       "verdict": "PASS",
-      "duration_ms": 3320,
+      "duration_ms": 4780,
       "checks": {
         "type_safety": "PASS",
         "lint": "SKIP",
         "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "PASS",
-        "dependencies": "SKIP"
+        "build": "SKIP",
+        "dependencies": "PASS"
       },
       "warnings": 0,
       "errors": 0,
-      "notes": "ADEV-347 band-label z-index: vitest 137/137, anti-pattern + secret grep clean."
+      "notes": "Merge of origin/main (ADEV-328 stack-forge pack registry) into the scenario-rewrites branch. One conflict resolved (this file). Vitest 137/137. All prebuild validators green."
     },
     "bypasses": [],
     "carried_debt": 0,
     "run_history": [
       {
-        "at": "2026-05-11T00:18:00Z",
+        "at": "2026-05-11T02:39:10.215Z",
         "verdict": "PASS",
         "warnings": 0
       },
