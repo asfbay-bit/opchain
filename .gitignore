@@ -47,6 +47,15 @@ site/src/lib/flags/registry.ts
 # Tracked in git as living "session state docs" so they survive across
 # sessions and machines (incl. Claude Code on the web). Schema + tooling
 # in .checkpoints/README.md and scripts/checkpoint.mjs.
+#
+# Exception: bug-check is local-only. By its own SKILL.md contract it
+# "always runs fresh — no continue/restart prompt," so there's no
+# session-resume value in tracking it. Its run telemetry (updated_at,
+# step, last_run.*, run_history, streak) rewrites on every pre-commit
+# gate run, which generates 2-3 false merge conflicts per PR. The
+# pre-commit hook reads the file locally and handles the missing-file
+# case (it just prompts you to run /bugcheck first).
+.checkpoints/bug-check.checkpoint.json
 
 # Playwright (Sprint 7a)
 site/test-results/
