@@ -1,0 +1,1994 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>opchain · navigation proposal · single-file preview</title>
+
+  <!-- Same fonts as Base.astro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* ════════════════════════════════════════════════════════════
+       INLINED FROM site/src/styles/tokens.css — verbatim
+       ════════════════════════════════════════════════════════════ */
+    :root {
+      --obsidian:  #1c1710;
+      --forge:     #2a2218;
+      --slag:      #5a5040;
+      --sand:      #c4b89e;
+      --linen:     #e8dfd0;
+      --parchment: #f6f0e8;
+      --ember:     #e05c18;
+      --char:      #b84510;
+      --ember-dim: rgba(224, 92, 24, 0.10);
+      --ember-glow: rgba(224, 92, 24, 0.22);
+
+      --bg:          var(--obsidian);
+      --ribbon:      #231b13;
+      --ribbon-edge: #3a2f26;
+      --surface:     #251d14;
+      --card:        #241C15;
+      --border:      var(--slag);
+      --text:        var(--linen);
+      --muted:       var(--sand);
+      --subtle:      #9d8b78;
+      --accent:      #e05c18;
+      --accent-hover:#b84510;
+      --accent-dim:  rgba(224, 92, 24, 0.10);
+      --glow:        rgba(224, 92, 24, 0.14);
+
+      --danger:      #d86464;
+      --danger-dim:  rgba(216, 100, 100, 0.12);
+      --success:     #10B981;
+      --success-dim: rgba(16, 185, 129, 0.12);
+      --info:        #94A3B8;
+      --info-dim:    rgba(148, 163, 184, 0.12);
+      --warning:     #84CC16;
+      --warning-dim: rgba(132, 204, 22, 0.12);
+
+      --workflow:     #FB923C;
+      --tri-agent:    #F59E0B;
+      --audit-gate:   #FB7185;
+      --specialist:   #14B8A6;
+      --advisor:      #0EA5E9;
+      --orchestrator: #A78BFA;
+
+      --logo-stroke:   var(--text);
+      --logo-spine:    var(--subtle);
+      --logo-filled:   var(--accent);
+      --logo-dot-dark: var(--bg);
+
+      --font-display: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --font-body:    "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+      --fs-xs: 10px; --fs-sm: 12px; --fs-base: 14px; --fs-md: 16px;
+      --fs-lg: 20px; --fs-xl: 28px; --fs-2xl: 36px; --fs-3xl: 48px;
+      --fs-hero: clamp(2.25rem, 7vw, 3.75rem);
+
+      --lh-tight: 1.1; --lh-snug: 1.35; --lh-base: 1.55; --lh-loose: 1.75;
+      --ls-tight: -0.015em; --ls-base: 0; --ls-wide: 0.05em;
+      --ls-wider: 0.1em; --ls-widest: 0.15em; --ls-display: 0.22em;
+      --wordmark-weight: 600; --wordmark-tracking: var(--ls-display);
+
+      --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+      --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+      --space-12: 48px; --space-16: 64px; --space-20: 80px; --space-24: 96px;
+
+      --r-xs: 3px; --r-sm: 4px; --r-md: 6px; --r-lg: 8px; --r-xl: 12px; --r-pill: 999px;
+
+      --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.18);
+      --shadow-md:  0 2px 6px -1px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.12);
+      --shadow-lg:  0 8px 24px -6px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.12);
+      --shadow-xl:  0 16px 40px -8px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.18);
+      --glow-md: 0 0 24px -6px var(--glow, transparent);
+      --glow-ribbon: 0 8px 24px -8px var(--glow, transparent);
+
+      --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+      --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 320ms;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       BASE (mirrors global.css)
+       ════════════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: var(--fs-base);
+      line-height: var(--lh-base);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); }
+    ::selection { background: var(--accent); color: var(--obsidian); }
+    button { font-family: inherit; }
+
+    /* ════════════════════════════════════════════════════════════
+       HEADER (mirrors site/src/components/Header.astro + proposals)
+       ════════════════════════════════════════════════════════════ */
+    .site-header {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--ribbon);
+      border-bottom: 0.5px solid var(--ribbon-edge);
+      box-shadow: var(--glow-ribbon);
+    }
+    .site-header-inner {
+      max-width: 1080px; margin: 0 auto;
+      padding: 0 1.5rem; height: 56px;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .site-header-brand {
+      display: flex; align-items: center; gap: 0.6rem;
+      color: var(--text); text-decoration: none;
+      margin-right: auto;
+    }
+    .site-header-brand .wordmark {
+      font-family: var(--font-display);
+      font-weight: var(--wordmark-weight);
+      font-size: 15px;
+      letter-spacing: var(--wordmark-tracking);
+      color: var(--text);
+    }
+
+    /* Group anchors — replaces the flat 5-link nav */
+    .nav { display: flex; align-items: stretch; }
+    .nav-group { position: relative; }
+    .nav-link {
+      font-family: var(--font-mono);
+      font-size: 11px; font-weight: 500;
+      letter-spacing: var(--ls-wide);
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 1rem; height: 56px;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      border-top: 0; border-left: 0; border-right: 0;
+      cursor: pointer;
+      transition: color var(--dur-fast) var(--ease-standard),
+                  border-color var(--dur-fast) var(--ease-standard);
+    }
+    .nav-link:hover, .nav-link.is-open { color: var(--text); }
+    .nav-link.is-open { border-bottom-color: var(--accent); }
+    .nav-link.active-section { border-bottom-color: var(--accent); color: var(--text); }
+    .nav-caret {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-right: 1.5px solid currentColor;
+      border-bottom: 1.5px solid currentColor;
+      transform: translateY(-1px) rotate(45deg);
+      opacity: 0.7;
+    }
+
+    /* Badges (P-07, P-08, P-09) */
+    .nav-badge {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: var(--ls-wider);
+      padding: 2px 5px;
+      border-radius: var(--r-xs);
+      line-height: 1;
+    }
+    .nav-badge.new { background: var(--accent); color: var(--obsidian); }
+    .nav-badge.tool {
+      background: rgba(20, 184, 166, 0.16);
+      color: var(--specialist);
+      border: 0.5px solid var(--specialist);
+    }
+    .nav-badge.count {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 0.5px solid rgba(224, 92, 24, 0.4);
+    }
+
+    /* Install CTA leaf-link (P-03) */
+    .nav-install {
+      margin-left: 0.4rem;
+      padding: 0 0.95rem;
+      height: 32px; align-self: center;
+      background: var(--accent);
+      color: var(--obsidian);
+      border: 0;
+      border-radius: var(--r-pill);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: var(--ls-wide);
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-flex; align-items: center;
+    }
+    .nav-install:hover { background: var(--accent-hover); color: var(--obsidian); }
+
+    /* Status pill (P-32) */
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 4px 10px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-pill);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--subtle);
+      text-decoration: none;
+      letter-spacing: var(--ls-wide);
+      margin-left: 0.5rem;
+    }
+    .status-pill:hover { color: var(--text); border-color: var(--accent); }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+    }
+
+    /* Version chip (P-10) */
+    .version-chip {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 4px 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--subtle);
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-sm);
+      text-decoration: none;
+      margin-left: 0.4rem;
+    }
+    .version-chip:hover { color: var(--accent); border-color: var(--accent); }
+    .version-chip .sha { color: var(--text); }
+
+    /* ⌘K pill (P-12) */
+    .cmdk-pill {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-pill);
+      padding: 5px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--subtle);
+      cursor: pointer;
+      margin-left: 0.4rem;
+      transition: border-color var(--dur-fast), color var(--dur-fast);
+    }
+    .cmdk-pill:hover { border-color: var(--accent); color: var(--text); }
+    .cmdk-pill svg { width: 12px; height: 12px; opacity: 0.7; }
+    .kbd {
+      font-family: var(--font-mono);
+      font-size: 10px; line-height: 1;
+      padding: 3px 5px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-xs);
+      background: var(--ribbon);
+      color: var(--muted);
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-sm);
+      width: 32px; height: 32px;
+      padding: 0; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--muted);
+      margin-left: 0.4rem;
+      transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
+    }
+    .icon-btn:hover {
+      color: var(--text); border-color: var(--accent); background: var(--accent-dim);
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       DROPDOWN PANELS (P-02)
+       ════════════════════════════════════════════════════════════ */
+    .dropdown {
+      position: absolute;
+      top: 56px; left: 0;
+      min-width: 460px;
+      background: var(--ribbon);
+      border: 0.5px solid var(--ribbon-edge);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-lg);
+      padding: 0.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.25rem;
+      opacity: 0;
+      transform: translateY(-4px);
+      pointer-events: none;
+      transition: opacity var(--dur-fast) var(--ease-standard),
+                  transform var(--dur-fast) var(--ease-standard);
+    }
+    .nav-group.open .dropdown {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .dropdown-section-head {
+      grid-column: 1 / -1;
+      padding: 0.4rem 0.75rem 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+    .dropdown-item {
+      display: flex; flex-direction: column;
+      padding: 0.6rem 0.75rem;
+      border-radius: var(--r-sm);
+      text-decoration: none;
+      color: var(--text);
+      transition: background var(--dur-fast);
+    }
+    .dropdown-item:hover { background: var(--accent-dim); color: var(--text); }
+    .dropdown-item .label {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: var(--font-display);
+      font-size: var(--fs-sm);
+      font-weight: 500;
+    }
+    .dropdown-item .blurb {
+      font-family: var(--font-body);
+      font-size: 11px;
+      color: var(--subtle);
+      margin-top: 2px;
+      line-height: var(--lh-snug);
+    }
+    .dropdown-item .pillet {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: var(--ls-wider);
+      padding: 2px 5px;
+      border-radius: var(--r-xs);
+    }
+    .pillet.new { background: var(--accent); color: var(--obsidian); }
+    .pillet.tool {
+      background: rgba(20, 184, 166, 0.16);
+      color: var(--specialist);
+      border: 0.5px solid var(--specialist);
+    }
+    .pillet.count {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 0.5px solid rgba(224, 92, 24, 0.4);
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       HOMEPAGE (mirrors src/pages/index.astro inline styles, verbatim)
+       ════════════════════════════════════════════════════════════ */
+    .intro {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem 2rem;
+      display: flex; flex-direction: column;
+      align-items: center; text-align: center;
+    }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+    .intro-hero {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0.5rem;
+      margin: 0.4rem 0 0.5rem;
+    }
+    .intro-mark {
+      font-family: var(--font-display);
+      font-weight: var(--wordmark-weight);
+      font-size: var(--fs-hero);
+      letter-spacing: var(--ls-display);
+      line-height: 1;
+      color: var(--text);
+      margin: 0;
+    }
+    .intro-claim {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 20px;
+      line-height: 1.3;
+      letter-spacing: 0.2px;
+      color: var(--ember);
+      margin: 0 0 1rem;
+    }
+    .intro-tagline {
+      font-family: var(--font-mono);
+      font-size: var(--fs-sm);
+      letter-spacing: var(--ls-widest);
+      color: var(--muted);
+      max-width: 42rem;
+      margin: 0 auto 2rem;
+    }
+    .intro-body {
+      max-width: 42rem;
+      margin: 0 auto;
+      color: var(--muted);
+      text-align: left;
+    }
+    .intro-body p { margin: 0 0 1rem; color: var(--muted); }
+    .intro-body p:last-child { margin: 0; }
+
+    .release-pill {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      align-self: center;
+      margin: 1.75rem auto 0;
+      padding: 0.4rem 0.9rem 0.4rem 0.5rem;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: var(--fs-sm);
+      text-decoration: none;
+      transition: color var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast);
+    }
+    .release-pill:hover { color: var(--text); border-color: var(--accent); transform: translateY(-1px); }
+    .release-pill-tag {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 0.5px solid var(--accent);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .release-pill-text { letter-spacing: var(--ls-wide); }
+    .release-pill-arrow { color: var(--subtle); font-size: 16px; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.5rem;
+      width: 100%;
+      max-width: 640px;
+      margin: 1.25rem auto 0;
+    }
+    .stat {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0.15rem;
+      padding: 0.7rem 0.85rem;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      color: var(--muted);
+      text-decoration: none;
+      transition: color var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast);
+    }
+    .stat:hover { color: var(--text); border-color: var(--accent); transform: translateY(-1px); }
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: var(--fs-lg);
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: var(--ls-tight);
+      line-height: 1;
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+
+    .stage {
+      position: relative;
+      align-self: stretch;
+      margin: 2.5rem -1.5rem 2.5rem;
+      padding: clamp(1.1rem, 2.5vw, 1.8rem) clamp(1rem, 4vw, 2.4rem);
+      overflow: hidden;
+      text-align: left;
+      background:
+        radial-gradient(640px 320px at 75% 30%, var(--ember-glow), transparent 70%),
+        radial-gradient(420px 240px at 15% 80%, var(--ember-dim), transparent 70%),
+        var(--bg);
+      border-top: 0.5px solid var(--border);
+      border-bottom: 0.5px solid var(--border);
+    }
+    .stage-mid { max-width: 940px; margin: 0 auto; width: 100%; }
+    .stage-issue {
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .stage-h {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: clamp(1.15rem, 2.2vw, 1.7rem);
+      line-height: 1.15;
+      letter-spacing: var(--ls-tight);
+      margin: 0 0 0.4rem;
+      max-width: 36ch;
+      color: var(--text);
+    }
+    .stage-sub {
+      font-size: var(--fs-base);
+      color: var(--muted);
+      max-width: 44rem;
+      margin: 0 0 0.85rem;
+      line-height: var(--lh-snug);
+    }
+    .stage-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .stage .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.6rem 1.1rem;
+      font-family: var(--font-mono);
+      font-size: var(--fs-sm);
+      letter-spacing: var(--ls-wide);
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      border-radius: var(--r-xs);
+      transition: transform var(--dur-fast), background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+    }
+    .stage .btn-primary {
+      background: var(--accent);
+      color: var(--obsidian);
+      border: 0; font-weight: 600;
+    }
+    .stage .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .stage .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border: 0.5px solid var(--border);
+    }
+    .stage .btn-ghost:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* Phase grid */
+    .phase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.6rem;
+      margin: 2.5rem 0;
+      width: 100%;
+      max-width: 760px;
+      text-align: left;
+    }
+    .phase-card {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 0.85rem 0.95rem;
+      display: flex; flex-direction: column; gap: 0.3rem;
+      transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+    }
+    .phase-card:hover { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-dim); }
+    .phase-step {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-wider);
+      color: var(--subtle);
+      text-transform: uppercase;
+    }
+    .phase-name {
+      font-family: var(--font-display);
+      font-size: var(--fs-base);
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.02em;
+    }
+    .phase-pills {
+      display: flex; flex-wrap: wrap; gap: 0.3rem;
+      margin-top: 0.15rem;
+    }
+    .phase-pill {
+      display: inline-flex; align-items: center;
+      padding: 2px 7px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-wider);
+      border-radius: var(--r-xs);
+      background: color-mix(in srgb, var(--pill-color, var(--accent)) 16%, transparent);
+      color: var(--pill-color, var(--accent));
+      border: 0.5px solid color-mix(in srgb, var(--pill-color, var(--accent)) 50%, transparent);
+      text-decoration: none;
+    }
+    .phase-pill[data-role="workflow"]   { --pill-color: var(--workflow); }
+    .phase-pill[data-role="tri-agent"]  { --pill-color: var(--tri-agent); }
+    .phase-pill[data-role="audit-gate"] { --pill-color: var(--audit-gate); }
+    .phase-pill[data-role="specialist"] { --pill-color: var(--specialist); }
+    .phase-pill[data-role="advisor"]    { --pill-color: var(--advisor); }
+    .phase-pill[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
+    .phase-blurb {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: var(--lh-snug);
+      margin-top: 0.35rem;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       NEW: EXPLORE RAIL (P-16)
+       ════════════════════════════════════════════════════════════ */
+    .explore-rail {
+      width: 100%;
+      max-width: 960px;
+      margin: 1rem auto 0;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.6rem;
+    }
+    @media (max-width: 720px) { .explore-rail { grid-template-columns: repeat(2, 1fr); } }
+    .tile {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 1rem;
+      text-decoration: none;
+      color: var(--text);
+      display: flex; flex-direction: column; gap: 0.4rem;
+      min-height: 120px;
+      position: relative;
+      text-align: left;
+      transition: border-color var(--dur-fast), transform var(--dur-fast), box-shadow var(--dur-fast);
+    }
+    .tile:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 1px var(--accent-dim);
+      color: var(--text);
+    }
+    .tile .tile-tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+    .tile .tile-tag.tool { color: var(--specialist); }
+    .tile h3 {
+      font-family: var(--font-display);
+      font-size: var(--fs-md);
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+    .tile p {
+      font-size: var(--fs-sm);
+      color: var(--muted);
+      margin: 0;
+      line-height: var(--lh-snug);
+    }
+    .tile .arrow {
+      position: absolute; right: 0.9rem; bottom: 0.9rem;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 14px;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       NEW: RESOURCES STRIP (P-31)
+       ════════════════════════════════════════════════════════════ */
+    .resources-strip {
+      width: 100%; max-width: 960px;
+      margin: 4rem auto 0;
+      padding: 0 1.5rem;
+    }
+    .resources-strip .lead {
+      text-align: center; margin-bottom: 1.5rem;
+    }
+    .resources-strip .lead h2 {
+      font-family: var(--font-display);
+      font-size: var(--fs-2xl);
+      font-weight: 600;
+      letter-spacing: var(--ls-tight);
+      margin: 0.5rem 0 0;
+    }
+    .resources-strip .lead p {
+      color: var(--muted);
+      max-width: 48ch; margin: 0.5rem auto 0;
+      font-size: var(--fs-sm);
+    }
+    .res-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+    }
+    @media (max-width: 720px) { .res-grid { grid-template-columns: 1fr; } }
+    .res-card {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1.5rem;
+      text-decoration: none;
+      color: var(--text);
+      display: flex; flex-direction: column; gap: 0.6rem;
+      transition: border-color var(--dur-fast), transform var(--dur-fast);
+    }
+    .res-card:hover { border-color: var(--accent); transform: translateY(-1px); color: var(--text); }
+    .res-card .res-icon {
+      width: 36px; height: 36px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-radius: 50%;
+      font-family: var(--font-mono);
+      font-size: 16px;
+    }
+    .res-card h3 {
+      font-family: var(--font-display);
+      font-size: var(--fs-md);
+      font-weight: 600;
+      margin: 0; letter-spacing: 0.02em;
+    }
+    .res-card p {
+      font-size: var(--fs-sm);
+      color: var(--muted);
+      margin: 0;
+      line-height: var(--lh-snug);
+    }
+    .res-card .read {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-wide);
+      color: var(--accent);
+      margin-top: auto;
+      text-transform: uppercase;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       FOOTER (mirrors site/src/components/Footer.astro + P-33 reorg)
+       ════════════════════════════════════════════════════════════ */
+    .site-footer {
+      border-top: 0.5px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      margin-top: 6rem;
+    }
+    .site-footer-inner {
+      max-width: 960px; margin: 0 auto;
+      padding: 3rem 1.5rem 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 2rem;
+    }
+    .site-footer .col { display: flex; flex-direction: column; gap: 0.4rem; }
+    .site-footer .col-head {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+      margin-bottom: 0.2rem;
+    }
+    .site-footer .brand {
+      font-family: var(--font-display);
+      font-weight: var(--wordmark-weight);
+      font-size: 18px;
+      letter-spacing: var(--wordmark-tracking);
+      color: var(--text);
+    }
+    .site-footer .tagline { color: var(--ember); font-size: var(--fs-sm); margin: 0.25rem 0 0; }
+    .site-footer a {
+      color: var(--muted);
+      font-size: var(--fs-sm);
+      text-decoration: none;
+      padding: 2px 0;
+    }
+    .site-footer a:hover { color: var(--text); }
+    .site-footer-meta {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.5rem 1.5rem 2rem;
+      display: flex; justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-wide);
+      color: var(--subtle);
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       COMMAND PALETTE (P-11..P-14)
+       ════════════════════════════════════════════════════════════ */
+    .palette-scrim {
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: none;
+      align-items: flex-start; justify-content: center;
+      padding-top: 12vh;
+      z-index: 200;
+      backdrop-filter: blur(2px);
+    }
+    .palette-scrim.open { display: flex; }
+    .palette {
+      width: min(640px, 92vw);
+      background: var(--ribbon);
+      border: 0.5px solid var(--ribbon-edge);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-xl);
+      overflow: hidden;
+    }
+    .palette-input {
+      width: 100%;
+      padding: 1.1rem 1.25rem;
+      background: transparent;
+      border: 0;
+      border-bottom: 0.5px solid var(--ribbon-edge);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: var(--fs-md);
+      outline: none;
+    }
+    .palette-input::placeholder { color: var(--subtle); }
+    .palette-list { padding: 0.5rem 0 0; max-height: 50vh; overflow-y: auto; }
+    .palette-section {
+      padding: 0.6rem 0.85rem 0.3rem;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+    .palette-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.6rem 0.75rem;
+      cursor: pointer;
+      border-radius: var(--r-sm);
+      margin: 0 0.5rem 2px;
+      color: var(--text);
+      transition: background var(--dur-fast);
+      text-decoration: none;
+    }
+    .palette-row.selected, .palette-row:hover { background: var(--accent-dim); color: var(--text); }
+    .palette-row .icon {
+      width: 26px; height: 26px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-sm);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--subtle);
+    }
+    .palette-row .title {
+      font-size: var(--fs-sm); font-weight: 500;
+    }
+    .palette-row .blurb {
+      font-size: 11px; color: var(--subtle); margin-top: 1px;
+    }
+    .palette-row .crumb {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--subtle);
+      margin-left: auto;
+    }
+    .palette-row .meta { flex: 1; }
+    .palette-footer {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 0.55rem 0.85rem;
+      border-top: 0.5px solid var(--ribbon-edge);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--subtle);
+    }
+    .palette-footer .spacer { flex: 1; }
+
+    /* ════════════════════════════════════════════════════════════
+       PROPOSAL MARKERS — side rail callouts so each P-tag is locatable
+       ════════════════════════════════════════════════════════════ */
+    .proposal-band {
+      max-width: 1080px;
+      margin: 4rem auto 1.5rem;
+      padding: 1rem 1.5rem;
+      border-top: 0.5px dashed var(--ribbon-edge);
+      border-bottom: 0.5px dashed var(--ribbon-edge);
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .proposal-band .tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-wider);
+      color: var(--accent);
+      padding: 3px 7px;
+      border: 0.5px solid var(--accent);
+      border-radius: var(--r-xs);
+      text-transform: uppercase;
+    }
+    .proposal-band .title {
+      font-family: var(--font-display);
+      font-size: var(--fs-md);
+      font-weight: 600;
+      color: var(--text);
+    }
+    .proposal-band .blurb {
+      font-size: var(--fs-sm);
+      color: var(--muted);
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       SKILL DETAIL EXAMPLE (P-20, P-24, P-25, P-36)
+       ════════════════════════════════════════════════════════════ */
+    .skill-detail {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 1rem;
+    }
+    .crumbs {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-wide);
+      text-transform: uppercase;
+      color: var(--subtle);
+      margin-bottom: 1.5rem;
+    }
+    .crumbs a { color: var(--muted); }
+    .crumbs a:hover { color: var(--text); }
+    .crumbs .sep { opacity: 0.5; }
+    .crumbs .current { color: var(--text); }
+    .skill-head h1 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: clamp(2rem, 5vw, 2.75rem);
+      letter-spacing: var(--ls-tight);
+      margin: 0 0 0.5rem;
+      line-height: var(--lh-tight);
+    }
+    .skill-head .lede {
+      color: var(--muted);
+      font-size: var(--fs-md);
+      max-width: 56ch;
+      margin: 0 0 1.5rem;
+    }
+    code.inline {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      background: var(--surface);
+      padding: 1px 5px;
+      border-radius: var(--r-xs);
+    }
+    .skill-body-grid {
+      display: grid; grid-template-columns: 1fr 240px; gap: 2rem;
+      margin-top: 1rem;
+    }
+    @media (max-width: 720px) { .skill-body-grid { grid-template-columns: 1fr; } }
+    .skill-body-grid p { color: var(--muted); margin: 0 0 1rem; }
+    .terms-aside {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 1rem;
+      height: fit-content;
+    }
+    .terms-aside h4 {
+      margin: 0 0 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+    .term-chip {
+      display: inline-flex; align-items: center;
+      padding: 3px 8px;
+      margin: 0 4px 4px 0;
+      border-radius: var(--r-pill);
+      background: var(--accent-dim);
+      border: 0.5px solid rgba(224, 92, 24, 0.4);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .term-chip:hover { background: var(--accent); color: var(--obsidian); }
+    .related-block {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 0.5px solid var(--border);
+    }
+    .related-block h2 {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+      margin: 0 0 1rem;
+    }
+    .related-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+    }
+    @media (max-width: 720px) { .related-grid { grid-template-columns: 1fr; } }
+    .related-card {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 1rem;
+      text-decoration: none;
+      color: var(--text);
+      display: flex; flex-direction: column; gap: 0.3rem;
+      transition: border-color var(--dur-fast);
+    }
+    .related-card:hover { border-color: var(--accent); color: var(--text); }
+    .related-card .kind {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+    .related-card .name {
+      font-family: var(--font-display);
+      font-size: var(--fs-base);
+      font-weight: 600;
+    }
+    .related-card .why {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: var(--lh-snug);
+    }
+    .prev-next {
+      display: flex; justify-content: space-between; gap: 1rem;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 0.5px solid var(--border);
+    }
+    .prev-next a {
+      flex: 1;
+      padding: 1rem;
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color var(--dur-fast);
+    }
+    .prev-next a:hover { border-color: var(--accent); }
+    .prev-next .dir {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--subtle);
+      letter-spacing: var(--ls-wide);
+      text-transform: uppercase;
+    }
+    .prev-next .name {
+      font-family: var(--font-display);
+      font-size: var(--fs-base);
+      font-weight: 500;
+      margin-top: 4px;
+    }
+    .prev-next .next { text-align: right; }
+
+    /* ════════════════════════════════════════════════════════════
+       MOBILE-FRAME PREVIEWS (P-38, P-39, P-15)
+       ════════════════════════════════════════════════════════════ */
+    .phones-row {
+      max-width: 960px;
+      margin: 2rem auto 0;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+      justify-items: center;
+    }
+    @media (max-width: 720px) { .phones-row { grid-template-columns: 1fr; } }
+    .phone {
+      width: 360px; max-width: 100%;
+      height: 680px;
+      border-radius: 36px;
+      border: 8px solid #0c0a07;
+      box-shadow: var(--shadow-xl);
+      overflow: hidden;
+      background: var(--bg);
+      position: relative;
+    }
+    .phone .notch {
+      position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+      width: 92px; height: 22px;
+      background: #0c0a07; border-radius: 12px; z-index: 10;
+    }
+    .phone-inner { width: 100%; height: 100%; padding-top: 38px; position: relative; }
+    .m-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1rem; height: 50px;
+      background: var(--ribbon);
+      border-bottom: 0.5px solid var(--ribbon-edge);
+    }
+    .m-header .brand { display: flex; align-items: center; gap: 0.45rem; }
+    .m-header .wordmark { font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: var(--ls-display); color: var(--text); }
+    .m-header .row { display: flex; gap: 6px; }
+    .m-header .icon-btn { width: 30px; height: 28px; margin: 0; }
+    .scrim {
+      position: absolute; inset: 0; top: 38px;
+      background: rgba(0,0,0,0.5);
+      z-index: 30;
+    }
+    .drawer {
+      position: absolute; right: 0; top: 38px; bottom: 0;
+      width: 78%;
+      background: var(--ribbon);
+      border-left: 0.5px solid var(--ribbon-edge);
+      box-shadow: -8px 0 24px rgba(0,0,0,0.35);
+      padding: 0.75rem;
+      z-index: 40;
+      overflow-y: auto;
+    }
+    .drawer h3 {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+      margin: 1rem 0 0.4rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 0.5px solid var(--ribbon-edge);
+    }
+    .drawer h3:first-of-type { margin-top: 0.75rem; }
+    .drawer-link {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.55rem 0.5rem;
+      color: var(--text); text-decoration: none;
+      font-family: var(--font-display);
+      font-size: 14px;
+      border-radius: var(--r-sm);
+      border-left: 2px solid transparent;
+    }
+    .drawer-link:hover { background: var(--accent-dim); color: var(--text); }
+    .drawer-link.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-dim); }
+    .drawer-link .stack { flex: 1; }
+    .drawer-link .stack .blurb { font-family: var(--font-body); font-size: 11px; color: var(--subtle); margin-top: 1px; }
+    .drawer-link .arrow { color: var(--subtle); font-family: var(--font-mono); }
+    .quick-chips {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem;
+    }
+    .quick-chips a {
+      text-align: center;
+      padding: 0.55rem 0;
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-wide);
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .quick-chips a:hover { border-color: var(--accent); color: var(--accent); }
+    .quick-chips a.primary {
+      background: var(--accent); color: var(--obsidian); border-color: var(--accent);
+    }
+    .m-palette {
+      position: absolute; inset: 0; top: 38px;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      z-index: 50;
+    }
+    .m-palette-bar {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.55rem 0.75rem;
+      border-bottom: 0.5px solid var(--ribbon-edge);
+      background: var(--ribbon);
+    }
+    .m-palette-input {
+      flex: 1;
+      padding: 0.5rem 0.7rem;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: var(--fs-base);
+      outline: none;
+    }
+    .m-palette-cancel {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      background: transparent; border: 0;
+      padding: 4px 6px;
+    }
+    .m-palette-body { flex: 1; overflow-y: auto; padding: 0.4rem 0; }
+    .m-palette-section {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+      padding: 0.55rem 1rem 0.2rem;
+    }
+    .m-palette-row {
+      display: flex; align-items: center; gap: 0.7rem;
+      padding: 0.6rem 1rem;
+      border-bottom: 0.5px solid rgba(90,80,64,0.2);
+    }
+    .m-palette-row .icon {
+      width: 26px; height: 26px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--surface); border: 0.5px solid var(--border);
+      border-radius: var(--r-sm);
+      font-size: 12px; color: var(--subtle);
+    }
+    .m-palette-row .meta { flex: 1; }
+    .m-palette-row .title { font-size: 13px; }
+    .m-palette-row .crumb { font-family: var(--font-mono); font-size: 10px; color: var(--subtle); }
+
+    /* ════════════════════════════════════════════════════════════
+       SITEMAP SECTION (P-35)
+       ════════════════════════════════════════════════════════════ */
+    .sitemap-section { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 1rem; }
+    .sitemap-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;
+      margin-top: 1rem;
+    }
+    @media (max-width: 720px) { .sitemap-grid { grid-template-columns: 1fr; } }
+    .sitemap-col h3 {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+      margin: 0 0 0.5rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .sitemap-entry {
+      display: grid; grid-template-columns: 160px 1fr;
+      gap: 0.75rem;
+      padding: 0.45rem 0;
+      border-bottom: 0.5px solid rgba(90, 80, 64, 0.2);
+    }
+    .sitemap-entry a {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .sitemap-entry a:hover { color: var(--accent); }
+    .sitemap-entry .desc { font-size: 12px; color: var(--muted); line-height: var(--lh-snug); }
+
+    /* Hide proposal-banner content; we no longer use it inline */
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════════════════════════
+       HEADER (REDESIGNED — every proposal applied)
+       ════════════════════════════════════════════════════════════ -->
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-header-brand" href="#top">
+        <!-- Real Logo SVG, verbatim from site/src/components/Logo.astro -->
+        <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+          <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine, #5a5040)" stroke-width="1" />
+          <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke, #e8dfd0)" stroke-width="1.2" />
+          <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke, #e8dfd0)" stroke-width="1.2" />
+          <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled, #e05c18)" />
+          <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke, #e8dfd0)" />
+          <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke, #e8dfd0)" />
+          <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark, #1c1710)" />
+        </svg>
+        <span class="wordmark">opchain</span>
+      </a>
+
+      <nav class="nav" aria-label="Primary">
+        <div class="nav-group" data-group="product">
+          <button class="nav-link" aria-haspopup="true" aria-expanded="false">
+            Product
+            <span class="nav-badge new">NEW</span>
+            <span class="nav-caret"></span>
+          </button>
+          <div class="dropdown">
+            <div class="dropdown-section-head">explore the system</div>
+            <a class="dropdown-item" href="#">
+              <span class="label">Architecture</span>
+              <span class="blurb">Skillchain & checkpoint protocol with diagrams.</span>
+            </a>
+            <a class="dropdown-item" href="#">
+              <span class="label">Skills <span class="pillet count">14</span></span>
+              <span class="blurb">Every skill, role-tagged, filterable.</span>
+            </a>
+            <a class="dropdown-item" href="#">
+              <span class="label">Compare</span>
+              <span class="blurb">opchain vs Cursor, Aider, plain Claude Code.</span>
+            </a>
+            <a class="dropdown-item" href="#">
+              <span class="label">Changelog <span class="pillet new">v1.3</span></span>
+              <span class="blurb">release-ops, migration-ops, security-auditor.</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="nav-group" data-group="pipeline">
+          <button class="nav-link" aria-haspopup="true" aria-expanded="false">
+            Pipeline
+            <span class="nav-badge tool">⚡</span>
+            <span class="nav-caret"></span>
+          </button>
+          <div class="dropdown">
+            <div class="dropdown-section-head">interactive tools</div>
+            <a class="dropdown-item" href="#">
+              <span class="label">Pipeline Builder <span class="pillet tool">TOOL</span></span>
+              <span class="blurb">Answer 4 questions, get a curated stack.</span>
+            </a>
+            <a class="dropdown-item" href="#">
+              <span class="label">Demo <span class="pillet tool">TOOL</span></span>
+              <span class="blurb">Walkthroughs of opchain end-to-end.</span>
+            </a>
+            <a class="dropdown-item" href="#">
+              <span class="label">Showcase</span>
+              <span class="blurb">Projects actually shipped with opchain.</span>
+            </a>
+            <a class="dropdown-item" href="#">
+              <span class="label">Status</span>
+              <span class="blurb">Live API health from /api/health.</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="nav-group" data-group="resources">
+          <button class="nav-link" aria-haspopup="true" aria-expanded="false">
+            Resources
+            <span class="nav-caret"></span>
+          </button>
+          <div class="dropdown">
+            <div class="dropdown-section-head">references & trust</div>
+            <a class="dropdown-item" href="#">
+              <span class="label">Glossary</span>
+              <span class="blurb">Every opchain term, plain-English.</span>
+            </a>
+            <a class="dropdown-item" href="#">
+              <span class="label">How it's built</span>
+              <span class="blurb">opchain.dev built with opchain — the recursion.</span>
+            </a>
+            <a class="dropdown-item" href="#">
+              <span class="label">Security</span>
+              <span class="blurb">Threat model, dependency posture, secrets.</span>
+            </a>
+            <a class="dropdown-item" href="#">
+              <span class="label">Sitemap</span>
+              <span class="blurb">Every page, one-lined.</span>
+            </a>
+          </div>
+        </div>
+
+        <a class="nav-install" href="#">install</a>
+      </nav>
+
+      <a class="status-pill" href="#" title="API health"><span class="status-dot"></span>all systems normal</a>
+      <a class="version-chip" href="#"><span class="sha">a7f3c91</span></a>
+
+      <button class="cmdk-pill" id="open-palette" title="open command palette">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        <span class="kbd">⌘K</span>
+      </button>
+
+      <button class="icon-btn" title="feedback" aria-label="Send feedback">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </button>
+      <button class="icon-btn" title="theme" aria-label="Toggle theme">☼</button>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════════════════════════════════
+       HOMEPAGE (mirrors src/pages/index.astro content)
+       ════════════════════════════════════════════════════════════ -->
+  <main class="intro" id="top">
+    <span class="eyebrow">skill ecosystem</span>
+
+    <div class="intro-hero">
+      <svg width="128" height="128" viewBox="0 0 32 32" aria-hidden="true">
+        <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
+        <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+        <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+        <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
+        <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+        <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+        <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
+      </svg>
+      <h1 class="intro-mark">opchain</h1>
+    </div>
+
+    <p class="intro-claim">skills that ship.</p>
+
+    <div class="intro-tagline">
+      <span>a skillchain and checkpoint protocol designed to get you from concept to production to ops</span>
+    </div>
+
+    <div class="intro-body">
+      <p>If you've ever tried to build something real with Claude and watched it lose the plot between chats — forgetting your spec, redesigning what it already designed, repeating questions it asked an hour ago — opchain is what you've been looking for.</p>
+      <p>A set of Claude Code skills plus a checkpoint protocol. Each skill specializes in one piece of the puzzle (discovery, spec, design, build, audit, ship, monitor, migrate, scale). At the beginning of the next session, Claude reads them back to pick up right where you left off. A central orchestrator routes between them so you never have to think about which skill to call.</p>
+      <p>Install them, trigger by name, keep going. No API keys. No SaaS. No vendor lock-in — every skill is a single Markdown file.</p>
+    </div>
+
+    <a class="release-pill" href="#" aria-label="opchain v1.3 release notes">
+      <span class="release-pill-tag">v1.3</span>
+      <span class="release-pill-text">Runtime PM-MCP · Django / Rails / Go / Rust · release-ops</span>
+      <span class="release-pill-arrow">›</span>
+    </a>
+
+    <section class="stats">
+      <a class="stat" href="#"><span class="stat-num">14</span><span class="stat-label">skills shipped</span></a>
+      <a class="stat" href="#"><span class="stat-num">v1.3</span><span class="stat-label">latest release</span></a>
+      <a class="stat" href="#"><span class="stat-num">live</span><span class="stat-label">system status</span></a>
+      <a class="stat" href="#"><span class="stat-num">MIT</span><span class="stat-label">open source</span></a>
+    </section>
+
+    <!-- NEW: Explore rail (P-16) -->
+    <section class="explore-rail" aria-label="Explore opchain">
+      <a class="tile" href="#">
+        <span class="tile-tag tool">⚡ TOOL</span>
+        <h3>Pipeline Builder</h3>
+        <p>Pick what you're shipping, get a curated opchain stack.</p>
+        <span class="arrow">›</span>
+      </a>
+      <a class="tile" href="#">
+        <span class="tile-tag">⚖ DOC</span>
+        <h3>Compare</h3>
+        <p>opchain vs Cursor, Aider, plain Claude Code.</p>
+        <span class="arrow">›</span>
+      </a>
+      <a class="tile" href="#">
+        <span class="tile-tag">▦ GALLERY</span>
+        <h3>Showcase</h3>
+        <p>Projects actually shipped with opchain.</p>
+        <span class="arrow">›</span>
+      </a>
+      <a class="tile" href="#">
+        <span class="tile-tag">◆ META</span>
+        <h3>How it's built</h3>
+        <p>opchain.dev is built with opchain. See the recursion.</p>
+        <span class="arrow">›</span>
+      </a>
+    </section>
+
+    <section class="stage" aria-label="Featured scenario">
+      <div class="stage-mid">
+        <div class="stage-issue">opchain · scenario <span>01</span></div>
+        <h2 class="stage-h">Idea-to-shipped in a long weekend.</h2>
+        <p class="stage-sub">One conversation. Eight phases. opchain orchestrates discovery, spec, design, sprint loop, audit, deploy, monitor, migrate.</p>
+        <div class="stage-actions">
+          <a class="btn btn-primary" href="#">▶ open the workbench</a>
+          <a class="btn btn-ghost" href="#">install opchain</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="phase-grid" aria-label="Pipeline phases">
+      <article class="phase-card">
+        <div class="phase-step">01 · DISCOVER</div>
+        <div class="phase-name">Interview</div>
+        <div class="phase-pills">
+          <a class="phase-pill" data-role="workflow" href="#">app-architect</a>
+        </div>
+        <div class="phase-blurb">Interview — scope the idea, users, success criteria, and MVP boundaries.</div>
+      </article>
+      <article class="phase-card">
+        <div class="phase-step">02 · SPEC</div>
+        <div class="phase-name">Contract</div>
+        <div class="phase-pills">
+          <a class="phase-pill" data-role="advisor" href="#">stack-forge</a>
+          <a class="phase-pill" data-role="workflow" href="#">app-architect</a>
+          <a class="phase-pill" data-role="tri-agent" href="#">api-dev</a>
+        </div>
+        <div class="phase-blurb">Contract — typed spec, stack picks, integration shape, and the first-party API surface as an OpenAPI/GraphQL contract.</div>
+      </article>
+      <article class="phase-card">
+        <div class="phase-step">03 · DESIGN</div>
+        <div class="phase-name">Style book</div>
+        <div class="phase-pills">
+          <a class="phase-pill" data-role="tri-agent" href="#">ux-engineer</a>
+          <a class="phase-pill" data-role="specialist" href="#">dash-forge</a>
+        </div>
+        <div class="phase-blurb">Style book — design system, screens, components, working prototype.</div>
+      </article>
+      <article class="phase-card">
+        <div class="phase-step">04 · BUILD</div>
+        <div class="phase-name">Sprint loop</div>
+        <div class="phase-pills">
+          <a class="phase-pill" data-role="workflow" href="#">app-architect</a>
+        </div>
+        <div class="phase-blurb">Sprint loop — Generator/Evaluator build cycle, ship features behind quality gates.</div>
+      </article>
+      <article class="phase-card">
+        <div class="phase-step">05 · AUDIT</div>
+        <div class="phase-name">Quality gate</div>
+        <div class="phase-pills">
+          <a class="phase-pill" data-role="audit-gate" href="#">code-auditor</a>
+          <a class="phase-pill" data-role="audit-gate" href="#">security-auditor</a>
+        </div>
+        <div class="phase-blurb">Quality gate — Auditor/Fixer/Verifier loop plus security posture review before ship.</div>
+      </article>
+      <article class="phase-card">
+        <div class="phase-step">06 · SHIP</div>
+        <div class="phase-name">Deploy</div>
+        <div class="phase-pills">
+          <a class="phase-pill" data-role="specialist" href="#">git-ops</a>
+          <a class="phase-pill" data-role="orchestrator" href="#">deploy-ops</a>
+        </div>
+        <div class="phase-blurb">Deploy — branch, PR, audit gate, staging, production, rollback if needed.</div>
+      </article>
+      <article class="phase-card">
+        <div class="phase-step">07 · MONITOR</div>
+        <div class="phase-name">Observe</div>
+        <div class="phase-pills">
+          <a class="phase-pill" data-role="specialist" href="#">monitoring-ops</a>
+        </div>
+        <div class="phase-blurb">Observe — uptime, errors, alerts, SLOs, on-call, postmortems.</div>
+      </article>
+      <article class="phase-card">
+        <div class="phase-step">08 · MIGRATE</div>
+        <div class="phase-name">Engine swap</div>
+        <div class="phase-pills">
+          <a class="phase-pill" data-role="specialist" href="#">migration-ops</a>
+        </div>
+        <div class="phase-blurb">Engine swap — live migrations: database, framework, auth, platform — with rollback.</div>
+      </article>
+    </section>
+  </main>
+
+  <!-- ════════════════════════════════════════════════════════════
+       NEW: RESOURCES STRIP (P-31) — above footer
+       ════════════════════════════════════════════════════════════ -->
+  <section class="resources-strip" aria-label="Resources">
+    <div class="lead">
+      <span class="eyebrow">go deeper</span>
+      <h2>resources</h2>
+      <p>References and trust signals you'd otherwise have to scroll all the way to the footer to find.</p>
+    </div>
+    <div class="res-grid">
+      <a class="res-card" href="#">
+        <span class="res-icon">📖</span>
+        <h3>Glossary</h3>
+        <p>Plain-English definitions for every opchain term — checkpoint, tri-agent, audit gate.</p>
+        <span class="read">read ›</span>
+      </a>
+      <a class="res-card" href="#">
+        <span class="res-icon">◆</span>
+        <h3>How it's built</h3>
+        <p>opchain.dev is itself built with opchain. Every commit ran through the gates.</p>
+        <span class="read">read ›</span>
+      </a>
+      <a class="res-card" href="#">
+        <span class="res-icon">🔒</span>
+        <h3>Security</h3>
+        <p>Threat model, dependency posture, secret handling — what we actually do.</p>
+        <span class="read">read ›</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════
+       SKILL DETAIL — example of P-20 / P-24 / P-25 / P-36 in situ
+       ════════════════════════════════════════════════════════════ -->
+  <div class="proposal-band">
+    <span class="tag">P-20 · P-24 · P-25 · P-36</span>
+    <div>
+      <div class="title">Skill detail page with breadcrumbs, glossary aside, related cards, prev/next</div>
+      <div class="blurb">Below this banner is a real /skills/app-architect render with every interior-page nav enhancement applied.</div>
+    </div>
+  </div>
+  <section class="skill-detail" id="skill-detail-example">
+    <div class="crumbs">
+      <a href="#">opchain</a>
+      <span class="sep">›</span>
+      <a href="#">skills</a>
+      <span class="sep">›</span>
+      <span class="current">app-architect</span>
+    </div>
+    <div class="skill-head">
+      <span class="eyebrow">role: workflow · tier: tri-agent</span>
+      <h1>app-architect</h1>
+      <p class="lede">Unified app development from idea to launch. Runs the Generator/Evaluator QA loop. Auto-invokes <code class="inline">stack-forge</code> and <code class="inline">ux-engineer</code> at the relevant phases.</p>
+    </div>
+    <div class="skill-body-grid">
+      <div>
+        <p>app-architect is the orchestrator skill at the front of the pipeline. It owns the conversation from a vague prompt ("I want to build X") through to a deployable app, delegating to specialists at each <a href="#" class="inline-link" style="color:var(--accent);border-bottom:0.5px dotted var(--accent);">checkpoint</a>.</p>
+        <p>It pairs with <code class="inline">git-ops</code> and <code class="inline">deploy-ops</code> on the back end of the loop.</p>
+      </div>
+      <aside class="terms-aside">
+        <h4>Glossary terms here</h4>
+        <a class="term-chip" href="#">checkpoint</a>
+        <a class="term-chip" href="#">tri-agent</a>
+        <a class="term-chip" href="#">Generator/Evaluator</a>
+        <a class="term-chip" href="#">skillchain</a>
+      </aside>
+    </div>
+
+    <div class="related-block">
+      <h2>related</h2>
+      <div class="related-grid">
+        <a class="related-card" href="#">
+          <span class="kind">skill · advisor</span>
+          <span class="name">stack-forge</span>
+          <span class="why">Auto-invoked by app-architect when picking a stack.</span>
+        </a>
+        <a class="related-card" href="#">
+          <span class="kind">skill · tri-agent</span>
+          <span class="name">ux-engineer</span>
+          <span class="why">Drives the design phase inside this skill's loop.</span>
+        </a>
+        <a class="related-card" href="#">
+          <span class="kind">tool</span>
+          <span class="name">Pipeline Builder</span>
+          <span class="why">See how app-architect fits into your stack.</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="prev-next">
+      <a href="#">
+        <div class="dir">‹ prev skill</div>
+        <div class="name">api-dev</div>
+      </a>
+      <a href="#" class="next">
+        <div class="dir">next skill ›</div>
+        <div class="name">bug-check</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════
+       SITEMAP SECTION (P-35)
+       ════════════════════════════════════════════════════════════ -->
+  <div class="proposal-band">
+    <span class="tag">P-35</span>
+    <div>
+      <div class="title">New /sitemap page</div>
+      <div class="blurb">Every public route in a single grouped list. SEO + a11y safety net under the ⌘K palette.</div>
+    </div>
+  </div>
+  <section class="sitemap-section">
+    <span class="eyebrow">all destinations</span>
+    <h1 style="font-family:var(--font-display);font-weight:600;font-size:clamp(2rem,5vw,2.75rem);letter-spacing:var(--ls-tight);margin:0.5rem 0 1rem;line-height:1.1;">Sitemap</h1>
+    <p style="color:var(--muted);font-size:var(--fs-md);max-width:56ch;margin:0 0 1rem;">Every public page on opchain.dev, one-lined. Built from the same nav tree the header and ⌘K palette consume.</p>
+
+    <div class="sitemap-grid">
+      <div class="sitemap-col">
+        <h3>product</h3>
+        <div class="sitemap-entry"><a href="#">/</a><span class="desc">Hero, pipeline visual, primary CTAs.</span></div>
+        <div class="sitemap-entry"><a href="#">/architecture</a><span class="desc">Skillchain & checkpoint protocol with diagrams.</span></div>
+        <div class="sitemap-entry"><a href="#">/skills</a><span class="desc">All 14 skills, filterable by role and phase.</span></div>
+        <div class="sitemap-entry"><a href="#">/compare</a><span class="desc">opchain vs Cursor, Aider, plain Claude Code.</span></div>
+        <div class="sitemap-entry"><a href="#">/changelog</a><span class="desc">Release history, dated entries, version pins.</span></div>
+      </div>
+      <div class="sitemap-col">
+        <h3>pipeline</h3>
+        <div class="sitemap-entry"><a href="#">/pipeline-builder</a><span class="desc">Interactive stack picker — 4 questions, curated chain.</span></div>
+        <div class="sitemap-entry"><a href="#">/demo</a><span class="desc">Walkthroughs of opchain running end-to-end.</span></div>
+        <div class="sitemap-entry"><a href="#">/showcase</a><span class="desc">Projects shipped with opchain.</span></div>
+        <div class="sitemap-entry"><a href="#">/install</a><span class="desc">npm path, npx variant, manual skills-bundle.</span></div>
+        <h3 style="margin-top:1.5rem;">resources</h3>
+        <div class="sitemap-entry"><a href="#">/glossary</a><span class="desc">Terminology reference.</span></div>
+        <div class="sitemap-entry"><a href="#">/uses</a><span class="desc">How opchain.dev itself was built.</span></div>
+        <div class="sitemap-entry"><a href="#">/security</a><span class="desc">Threat model, dependency posture.</span></div>
+        <div class="sitemap-entry"><a href="#">/status</a><span class="desc">Live API health.</span></div>
+        <div class="sitemap-entry"><a href="#">/privacy</a><span class="desc">PostHog scope, cookies, consent.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════
+       MOBILE — drawer (P-38, P-39) + palette (P-15)
+       ════════════════════════════════════════════════════════════ -->
+  <div class="proposal-band">
+    <span class="tag">P-15 · P-38 · P-39 · P-40</span>
+    <div>
+      <div class="title">Mobile — grouped drawer with quick-chips + full-screen ⌘K sheet</div>
+      <div class="blurb">Replaces the flat 5-link drawer. Quick-chip row gets the three most-trafficked destinations one tap away.</div>
+    </div>
+  </div>
+  <section class="phones-row">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-inner">
+        <div class="m-header">
+          <div class="brand">
+            <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+              <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
+              <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+              <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+              <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
+              <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+              <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+              <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
+            </svg>
+            <span class="wordmark">opchain</span>
+          </div>
+          <div class="row">
+            <button class="icon-btn" style="border-color:var(--accent);color:var(--accent);">☰</button>
+            <button class="icon-btn">⌕</button>
+            <button class="icon-btn">☼</button>
+          </div>
+        </div>
+        <div class="scrim"></div>
+        <aside class="drawer">
+          <div class="quick-chips">
+            <a class="primary" href="#">install</a>
+            <a href="#">demo</a>
+            <a href="#">compare</a>
+          </div>
+          <h3>product</h3>
+          <a class="drawer-link active" href="#">
+            <div class="stack"><div>Architecture</div><div class="blurb">Skillchain & checkpoints.</div></div>
+            <span class="arrow">›</span>
+          </a>
+          <a class="drawer-link" href="#">
+            <div class="stack"><div>Skills <span class="nav-badge count" style="margin-left:4px;">14</span></div><div class="blurb">Every skill, role-tagged.</div></div>
+            <span class="arrow">›</span>
+          </a>
+          <a class="drawer-link" href="#">
+            <div class="stack"><div>Compare</div><div class="blurb">opchain vs alternatives.</div></div>
+            <span class="arrow">›</span>
+          </a>
+          <a class="drawer-link" href="#">
+            <div class="stack"><div>Changelog <span class="nav-badge new" style="margin-left:4px;">v1.3</span></div><div class="blurb">Release notes.</div></div>
+            <span class="arrow">›</span>
+          </a>
+          <h3>pipeline</h3>
+          <a class="drawer-link" href="#">
+            <div class="stack"><div>Pipeline Builder <span class="nav-badge tool" style="margin-left:4px;">⚡</span></div><div class="blurb">Pick a stack.</div></div>
+            <span class="arrow">›</span>
+          </a>
+          <a class="drawer-link" href="#">
+            <div class="stack"><div>Demo <span class="nav-badge tool" style="margin-left:4px;">⚡</span></div><div class="blurb">Walkthroughs.</div></div>
+            <span class="arrow">›</span>
+          </a>
+          <a class="drawer-link" href="#">
+            <div class="stack"><div>Showcase</div><div class="blurb">Shipped apps.</div></div>
+            <span class="arrow">›</span>
+          </a>
+          <h3>resources</h3>
+          <a class="drawer-link" href="#">
+            <div class="stack"><div>Glossary</div><div class="blurb">Definitions.</div></div>
+            <span class="arrow">›</span>
+          </a>
+          <a class="drawer-link" href="#">
+            <div class="stack"><div>How it's built</div><div class="blurb">Meta.</div></div>
+            <span class="arrow">›</span>
+          </a>
+          <a class="drawer-link" href="#">
+            <div class="stack"><div>Security</div><div class="blurb">Threat model.</div></div>
+            <span class="arrow">›</span>
+          </a>
+          <a class="drawer-link" href="#">
+            <div class="stack"><div>Status</div><div class="blurb">API health.</div></div>
+            <span class="arrow">›</span>
+          </a>
+        </aside>
+      </div>
+    </div>
+
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="phone-inner">
+        <div class="m-header">
+          <div class="brand">
+            <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+              <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
+              <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+              <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+              <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
+              <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+              <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+              <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
+            </svg>
+            <span class="wordmark">opchain</span>
+          </div>
+          <div class="row">
+            <button class="icon-btn">☰</button>
+            <button class="icon-btn" style="border-color:var(--accent);color:var(--accent);">⌕</button>
+            <button class="icon-btn">☼</button>
+          </div>
+        </div>
+        <div class="m-palette">
+          <div class="m-palette-bar">
+            <input class="m-palette-input" placeholder="search…" value="pip" />
+            <button class="m-palette-cancel">cancel</button>
+          </div>
+          <div class="m-palette-body">
+            <div class="m-palette-section">pages · 2</div>
+            <div class="m-palette-row">
+              <span class="icon">⚡</span>
+              <div class="meta"><div class="title">Pipeline Builder</div><div class="crumb">/pipeline-builder</div></div>
+            </div>
+            <div class="m-palette-row">
+              <span class="icon">▦</span>
+              <div class="meta"><div class="title">Architecture</div><div class="crumb">/architecture</div></div>
+            </div>
+            <div class="m-palette-section">skills · 1</div>
+            <div class="m-palette-row">
+              <span class="icon" style="color:var(--workflow)">●</span>
+              <div class="meta"><div class="title">app-architect</div><div class="crumb">/skills/app-architect</div></div>
+            </div>
+            <div class="m-palette-section">actions · 3</div>
+            <div class="m-palette-row">
+              <span class="icon">⌘</span>
+              <div class="meta"><div class="title">Copy install command</div></div>
+            </div>
+            <div class="m-palette-row">
+              <span class="icon">☼</span>
+              <div class="meta"><div class="title">Toggle theme</div></div>
+            </div>
+            <div class="m-palette-row">
+              <span class="icon">💬</span>
+              <div class="meta"><div class="title">Send feedback</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════
+       FOOTER (P-33 reorganized to mirror nav)
+       ════════════════════════════════════════════════════════════ -->
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <div class="col">
+        <div class="brand">opchain</div>
+        <p class="tagline">skills that ship.</p>
+      </div>
+      <div class="col">
+        <div class="col-head">product</div>
+        <a href="#">Architecture</a>
+        <a href="#">Skills</a>
+        <a href="#">Compare</a>
+        <a href="#">Changelog</a>
+      </div>
+      <div class="col">
+        <div class="col-head">pipeline</div>
+        <a href="#">Pipeline Builder</a>
+        <a href="#">Demo</a>
+        <a href="#">Showcase</a>
+        <a href="#">Install</a>
+      </div>
+      <div class="col">
+        <div class="col-head">resources</div>
+        <a href="#">Glossary</a>
+        <a href="#">How it's built</a>
+        <a href="#">Security</a>
+        <a href="#">Sitemap</a>
+      </div>
+      <div class="col">
+        <div class="col-head">trust</div>
+        <a href="#">Status</a>
+        <a href="#">Privacy</a>
+        <a href="https://github.com/asfbay-bit/opchain" rel="noopener">GitHub</a>
+        <a href="#">Manage privacy</a>
+      </div>
+    </div>
+    <div class="site-footer-meta">
+      <span>© 2026 opchain</span>
+      <span>open-source · MIT</span>
+    </div>
+  </footer>
+
+  <!-- ════════════════════════════════════════════════════════════
+       COMMAND PALETTE (overlay; click ⌘K pill in header to open)
+       ════════════════════════════════════════════════════════════ -->
+  <div class="palette-scrim" id="palette-scrim">
+    <div class="palette" role="dialog" aria-label="Command palette">
+      <input class="palette-input" id="palette-input" placeholder="Search pages, skills, glossary, actions…" autofocus />
+      <div class="palette-list" id="palette-list">
+        <div class="palette-section">start here</div>
+        <a class="palette-row selected" href="#">
+          <span class="icon">⚡</span>
+          <div class="meta">
+            <div class="title">Pipeline Builder</div>
+            <div class="blurb">Design your opchain stack — interactive picker.</div>
+          </div>
+          <span class="crumb">/pipeline-builder</span>
+        </a>
+        <a class="palette-row" href="#">
+          <span class="icon">⚖</span>
+          <div class="meta">
+            <div class="title">Compare opchain vs alternatives</div>
+            <div class="blurb">Cursor, Aider, plain Claude Code, Devin.</div>
+          </div>
+          <span class="crumb">/compare</span>
+        </a>
+        <a class="palette-row" href="#">
+          <span class="icon">▶</span>
+          <div class="meta">
+            <div class="title">Watch the demo</div>
+          </div>
+          <span class="crumb">/demo</span>
+        </a>
+
+        <div class="palette-section">skills</div>
+        <a class="palette-row" href="#">
+          <span class="icon" style="color:var(--workflow)">●</span>
+          <div class="meta">
+            <div class="title">app-architect</div>
+            <div class="blurb">Idea → spec → design → build → launch.</div>
+          </div>
+          <span class="crumb">/skills/app-architect</span>
+        </a>
+        <a class="palette-row" href="#">
+          <span class="icon" style="color:var(--audit-gate)">●</span>
+          <div class="meta">
+            <div class="title">security-auditor</div>
+            <div class="blurb">Threat model + OWASP mapping + hardening.</div>
+          </div>
+          <span class="crumb">/skills/security-auditor</span>
+        </a>
+
+        <div class="palette-section">actions</div>
+        <a class="palette-row" href="#">
+          <span class="icon">⌘</span>
+          <div class="meta"><div class="title">Copy install command</div></div>
+          <span class="crumb">action</span>
+        </a>
+        <a class="palette-row" href="#">
+          <span class="icon">☼</span>
+          <div class="meta"><div class="title">Toggle theme</div></div>
+          <span class="crumb">action</span>
+        </a>
+      </div>
+      <div class="palette-footer">
+        <span><span class="kbd">↑↓</span> navigate</span>
+        <span><span class="kbd">↵</span> open</span>
+        <span><span class="kbd">esc</span> close</span>
+        <span class="spacer"></span>
+        <span>opchain · ⌘K</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Click-to-toggle dropdowns (real header would use hover + focus + Esc;
+    // simplified here so click anywhere on the page reveals dropdowns).
+    document.querySelectorAll('.nav-group').forEach((group) => {
+      const trigger = group.querySelector('.nav-link');
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        const open = group.classList.toggle('open');
+        trigger.classList.toggle('is-open', open);
+        trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        // close siblings
+        document.querySelectorAll('.nav-group').forEach((g) => {
+          if (g !== group) {
+            g.classList.remove('open');
+            g.querySelector('.nav-link').classList.remove('is-open');
+            g.querySelector('.nav-link').setAttribute('aria-expanded', 'false');
+          }
+        });
+      });
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.nav-group')) {
+        document.querySelectorAll('.nav-group.open').forEach((g) => {
+          g.classList.remove('open');
+          g.querySelector('.nav-link').classList.remove('is-open');
+          g.querySelector('.nav-link').setAttribute('aria-expanded', 'false');
+        });
+      }
+    });
+
+    // ⌘K palette open/close
+    const scrim = document.getElementById('palette-scrim');
+    const openBtn = document.getElementById('open-palette');
+    const input = document.getElementById('palette-input');
+    const openPalette = () => { scrim.classList.add('open'); setTimeout(() => input?.focus(), 30); };
+    const closePalette = () => { scrim.classList.remove('open'); };
+    openBtn?.addEventListener('click', openPalette);
+    scrim?.addEventListener('click', (e) => { if (e.target === scrim) closePalette(); });
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        scrim.classList.contains('open') ? closePalette() : openPalette();
+      } else if (e.key === 'Escape' && scrim.classList.contains('open')) {
+        closePalette();
+      }
+    });
+  </script>
+</body>
+</html>
