@@ -329,10 +329,18 @@ const items = [...pages, ...skillItems, ...actions];
   //   - keystroke filtering (display: none on rows that don't match)
   //   - action dispatch (copy-install, toggle-theme, feedback)
   (() => {
-    const scrim = document.getElementById("palette-scrim") as HTMLDivElement | null;
-    const input = document.getElementById("palette-input") as HTMLInputElement | null;
-    const list  = document.getElementById("palette-list") as HTMLDivElement | null;
-    if (!scrim || !input || !list) return;
+    // Re-bind to fresh consts after the null-guard so TS preserves
+    // the narrowed types across the event-listener closures below.
+    // (Plain `const x = getElementById(...) as T | null; if (!x) ...`
+    // still widens to `T | null` inside async arrow callbacks under
+    // strict mode — bind to a typed const after the guard to lock it.)
+    const scrimEl = document.getElementById("palette-scrim");
+    const inputEl = document.getElementById("palette-input");
+    const listEl  = document.getElementById("palette-list");
+    if (!scrimEl || !inputEl || !listEl) return;
+    const scrim: HTMLDivElement = scrimEl as HTMLDivElement;
+    const input: HTMLInputElement = inputEl as HTMLInputElement;
+    const list: HTMLDivElement = listEl as HTMLDivElement;
 
     const allRows = Array.from(list.querySelectorAll<HTMLAnchorElement>(".palette-row"));
     const allGroups = Array.from(list.querySelectorAll<HTMLDivElement>(".palette-group"));
