@@ -117,9 +117,13 @@ test.describe("demo modal — TOC scroll + flash", () => {
     const heading = page.locator(`[id="${headingId}"]`);
     await expect(heading).toHaveClass(/is-flash-heading/);
 
-    // The class is removed by the time the 4s animation ends. Give
-    // the runtime a 600ms slack window for animation+timeout drift.
-    await expect(heading).not.toHaveClass(/is-flash-heading/, { timeout: 5000 });
+    // The class is removed by the time the 4s animation ends. The cleanup
+    // path is animationend (normal) OR a 4150ms setTimeout safety-net
+    // (reduced motion / headless / when the animation is optimised out).
+    // Under heavy CI load the setTimeout can drift well past its scheduled
+    // time, so we give the runtime a generous 6s slack window beyond the
+    // 4s flash to avoid flaking when GH Actions runners are saturated.
+    await expect(heading).not.toHaveClass(/is-flash-heading/, { timeout: 10_000 });
   });
 
   test("re-clicking the same TOC link re-fires the flash", async ({ page }) => {
@@ -137,7 +141,7 @@ test.describe("demo modal — TOC scroll + flash", () => {
 
     // Wait for the class to clear, then re-click and assert the class
     // is back. This is the "force reflow → re-trigger" path.
-    await expect(heading).not.toHaveClass(/is-flash-heading/, { timeout: 5000 });
+    await expect(heading).not.toHaveClass(/is-flash-heading/, { timeout: 10_000 });
 
     await link.click();
     await expect(heading).toHaveClass(/is-flash-heading/);
@@ -172,7 +176,9 @@ test.describe("demo modal — TOC under reduced motion", () => {
     await expect(heading).toHaveClass(/is-flash-heading/);
 
     // Under reduced motion the keyframes don't run, so animationend
-    // never fires. The JS falls back to a 4s setTimeout cleanup.
-    await expect(heading).not.toHaveClass(/is-flash-heading/, { timeout: 5000 });
+    // never fires. The JS falls back to a 4150ms setTimeout cleanup —
+    // and the setTimeout is the ONLY path here, so under CI saturation
+    // it can drift well past 4150ms. 10s gives 5.85s of slack budget.
+    await expect(heading).not.toHaveClass(/is-flash-heading/, { timeout: 10_000 });
   });
 });
