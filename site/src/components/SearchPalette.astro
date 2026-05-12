@@ -1,0 +1,492 @@
+---
+/**
+ * Global ⌘K command palette. Mounted once by Header.astro so it's
+ * present on every page.
+ *
+ * Items are server-rendered into the DOM; client-side filtering is
+ * a `display: none` toggle on every keystroke (no virtual list yet —
+ * the catalog is small enough that filtering N≈30 items per keypress
+ * is well under a frame budget).
+ *
+ * Opens via:
+ *   - ⌘K / Ctrl+K (handled in this component's inline script)
+ *   - any element with [data-palette-trigger] (e.g. the header search input)
+ * Closes via:
+ *   - Esc / scrim click / selecting an item
+ *
+ * Actions are dispatched as DOM events on document so the relevant
+ * widget (theme toggle, feedback launcher) handles them — keeps this
+ * component decoupled from FeedbackWidget / ThemeToggle internals.
+ */
+import { getAllSkills, getSkillRole, type Role } from "../lib/skills";
+import { defaultFor } from "../lib/flags/build-defaults";
+
+const skills = await getAllSkills();
+const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
+
+interface PaletteItem {
+  group: "pages" | "skills" | "actions";
+  title: string;
+  blurb?: string;
+  href?: string;
+  action?: "copy-install" | "toggle-theme" | "feedback";
+  role?: Role;
+}
+
+const pages: PaletteItem[] = [
+  { group: "pages", title: "Home",             href: "/",                 blurb: "Hero, pipeline overview, primary CTAs." },
+  { group: "pages", title: "Architecture",     href: "/architecture",     blurb: "Skillchain & checkpoint protocol with diagrams." },
+  { group: "pages", title: "Skills",           href: "/skills",           blurb: "Every skill, role-tagged." },
+  { group: "pages", title: "Compare",          href: "/compare",          blurb: "opchain vs Cursor, Aider, plain Claude Code." },
+  { group: "pages", title: "Changelog",        href: "/changelog",        blurb: "Release history." },
+  { group: "pages", title: "Pipeline Builder", href: "/pipeline-builder", blurb: "Answer 4 questions, get a curated stack." },
+  ...(demoEnabled ? [{ group: "pages" as const, title: "Demo",            href: "/demo",            blurb: "Walkthroughs of opchain end-to-end." }] : []),
+  { group: "pages", title: "Showcase",         href: "/showcase",         blurb: "Projects shipped with opchain." },
+  { group: "pages", title: "Status",           href: "/status",           blurb: "Live API health." },
+  { group: "pages", title: "Glossary",         href: "/glossary",         blurb: "Plain-English definitions." },
+  { group: "pages", title: "How it's built",   href: "/uses",             blurb: "opchain.dev built with opchain." },
+  { group: "pages", title: "Security",         href: "/security",         blurb: "Threat model, dependency posture." },
+  { group: "pages", title: "Install",          href: "/install",          blurb: "npm path, npx variant, manual bundle." },
+  { group: "pages", title: "Privacy",          href: "/privacy",          blurb: "PostHog scope, cookies, consent." },
+];
+
+const skillItems: PaletteItem[] = skills.map((s) => ({
+  group: "skills",
+  title: s.data.displayName,
+  blurb: s.data.shortDesc,
+  href: `/skills/${s.data.name}`,
+  role: getSkillRole(s.data.name),
+}));
+
+const actions: PaletteItem[] = [
+  { group: "actions", title: "Copy install command", blurb: "Drops the one-liner onto the clipboard.",       action: "copy-install" },
+  { group: "actions", title: "Toggle theme",         blurb: "Switch between dark and light.",                action: "toggle-theme" },
+  { group: "actions", title: "Send feedback",        blurb: "Opens the feedback widget.",                    action: "feedback" },
+];
+
+const items = [...pages, ...skillItems, ...actions];
+---
+
+<div
+  class="palette-scrim"
+  id="palette-scrim"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Search opchain"
+  hidden
+>
+  <div class="palette">
+    <div class="palette-input-row">
+      <svg class="palette-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"/>
+        <path d="m21 21-4.3-4.3"/>
+      </svg>
+      <input
+        class="palette-input"
+        id="palette-input"
+        type="text"
+        placeholder="Search pages, skills, actions…"
+        aria-controls="palette-list"
+        aria-autocomplete="list"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <kbd class="palette-kbd">esc</kbd>
+    </div>
+
+    <div class="palette-list" id="palette-list" role="listbox">
+      {(["pages", "skills", "actions"] as const).map((group) => (
+        <div class="palette-group" data-group={group}>
+          <div class="palette-section">{group === "pages" ? "Pages" : group === "skills" ? "Skills" : "Actions"}</div>
+          {items
+            .filter((it) => it.group === group)
+            .map((it, _i) => (
+              <a
+                class="palette-row"
+                role="option"
+                href={it.href ?? "#"}
+                data-action={it.action ?? ""}
+                data-search={`${it.title} ${it.blurb ?? ""}`.toLowerCase()}
+              >
+                <span class="palette-icon" aria-hidden="true" data-role={it.role ?? ""}>
+                  {it.group === "pages" ? "▸" : it.group === "skills" ? "●" : "⌘"}
+                </span>
+                <span class="palette-meta">
+                  <span class="palette-title">{it.title}</span>
+                  {it.blurb && <span class="palette-blurb">{it.blurb}</span>}
+                </span>
+                {it.href && <span class="palette-crumb">{it.href}</span>}
+                {it.action && <span class="palette-crumb">action</span>}
+              </a>
+            ))}
+        </div>
+      ))}
+      <div class="palette-empty" hidden>
+        No matches. Try a different word, or send feedback with what you're looking for.
+      </div>
+    </div>
+
+    <div class="palette-footer">
+      <span><kbd>↑↓</kbd> navigate</span>
+      <span><kbd>↵</kbd> open</span>
+      <span><kbd>esc</kbd> close</span>
+      <span class="palette-footer-spacer"></span>
+      <span class="palette-footer-brand">opchain · <kbd>⌘K</kbd></span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .palette-scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 12vh;
+    z-index: 200;
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-standard);
+  }
+  .palette-scrim[hidden] { display: none; }
+  .palette-scrim.is-open { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) {
+    .palette-scrim { transition: none; }
+  }
+
+  .palette {
+    width: min(640px, 92vw);
+    max-height: 70vh;
+    background: var(--ribbon);
+    border: 0.5px solid var(--ribbon-edge);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(-8px);
+    transition: transform var(--dur-base) var(--ease-standard);
+  }
+  .palette-scrim.is-open .palette { transform: translateY(0); }
+
+  .palette-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.95rem 1.1rem;
+    border-bottom: 0.5px solid var(--ribbon-edge);
+  }
+  .palette-input-icon {
+    width: 14px;
+    height: 14px;
+    color: var(--subtle);
+    flex-shrink: 0;
+  }
+  .palette-input {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: var(--fs-md);
+    outline: 0;
+    padding: 0;
+  }
+  .palette-input::placeholder { color: var(--subtle); }
+  .palette-kbd, .palette-footer kbd {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1;
+    padding: 3px 5px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-xs);
+    background: var(--surface);
+    color: var(--muted);
+  }
+
+  .palette-list {
+    overflow-y: auto;
+    flex: 1;
+    padding: 0.4rem 0;
+  }
+  .palette-section {
+    padding: 0.55rem 0.95rem 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+  .palette-group[data-empty="true"] { display: none; }
+
+  .palette-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 0.95rem;
+    margin: 0 0.5rem 1px;
+    border-radius: var(--r-sm);
+    color: var(--text);
+    text-decoration: none;
+    transition: background var(--dur-fast) var(--ease-standard);
+    cursor: pointer;
+  }
+  .palette-row[hidden] { display: none; }
+  .palette-row.is-selected,
+  .palette-row:hover {
+    background: var(--accent-dim);
+    color: var(--text);
+  }
+  .palette-icon {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--subtle);
+  }
+  /* Role-tinted dot for skill rows */
+  .palette-icon[data-role="workflow"]     { color: var(--workflow); }
+  .palette-icon[data-role="tri-agent"]    { color: var(--tri-agent); }
+  .palette-icon[data-role="audit-gate"]   { color: var(--audit-gate); }
+  .palette-icon[data-role="specialist"]   { color: var(--specialist); }
+  .palette-icon[data-role="advisor"]      { color: var(--advisor); }
+  .palette-icon[data-role="orchestrator"] { color: var(--orchestrator); }
+  .palette-icon[data-role="success"]      { color: var(--success); }
+
+  .palette-meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .palette-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .palette-blurb {
+    font-size: 11px;
+    color: var(--subtle);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .palette-crumb {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--subtle);
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .palette-empty {
+    padding: 1.5rem 1.1rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+  }
+  .palette-empty[hidden] { display: none; }
+
+  .palette-footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0.95rem;
+    border-top: 0.5px solid var(--ribbon-edge);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--subtle);
+  }
+  .palette-footer-spacer { flex: 1; }
+  .palette-footer-brand { letter-spacing: var(--ls-wide); }
+
+  @media (max-width: 540px) {
+    .palette-scrim { padding-top: 6vh; }
+    .palette-row { gap: 0.5rem; padding: 0.55rem 0.65rem; }
+    .palette-crumb { display: none; }
+    .palette-footer { gap: 0.5rem; font-size: 9px; }
+  }
+</style>
+
+<script>
+  // Global ⌘K palette controller. Owns:
+  //   - open / close lifecycle (with focus restore)
+  //   - keyboard navigation (↑↓ + ↵ + esc)
+  //   - keystroke filtering (display: none on rows that don't match)
+  //   - action dispatch (copy-install, toggle-theme, feedback)
+  (() => {
+    const scrim = document.getElementById("palette-scrim") as HTMLDivElement | null;
+    const input = document.getElementById("palette-input") as HTMLInputElement | null;
+    const list  = document.getElementById("palette-list") as HTMLDivElement | null;
+    if (!scrim || !input || !list) return;
+
+    const allRows = Array.from(list.querySelectorAll<HTMLAnchorElement>(".palette-row"));
+    const allGroups = Array.from(list.querySelectorAll<HTMLDivElement>(".palette-group"));
+    const emptyEl = list.querySelector<HTMLDivElement>(".palette-empty");
+
+    let lastFocused: HTMLElement | null = null;
+    let selectedIdx = 0;
+
+    function visibleRows(): HTMLAnchorElement[] {
+      return allRows.filter((r) => !r.hidden);
+    }
+
+    function paintSelection() {
+      const rows = visibleRows();
+      allRows.forEach((r) => r.classList.remove("is-selected"));
+      const row = rows[selectedIdx];
+      if (row) {
+        row.classList.add("is-selected");
+        row.scrollIntoView({ block: "nearest" });
+      }
+    }
+
+    function filter(query: string) {
+      const q = query.trim().toLowerCase();
+      let visible = 0;
+      allRows.forEach((row) => {
+        const haystack = row.dataset.search || "";
+        const match = q === "" || haystack.includes(q);
+        row.hidden = !match;
+        if (match) visible += 1;
+      });
+      // Hide groups whose rows all filtered out.
+      allGroups.forEach((g) => {
+        const hasVisible = g.querySelector<HTMLAnchorElement>(".palette-row:not([hidden])");
+        g.dataset.empty = hasVisible ? "false" : "true";
+      });
+      if (emptyEl) emptyEl.hidden = visible > 0;
+      selectedIdx = 0;
+      paintSelection();
+    }
+
+    function open(seed = "") {
+      lastFocused = document.activeElement as HTMLElement | null;
+      scrim.hidden = false;
+      requestAnimationFrame(() => scrim.classList.add("is-open"));
+      document.documentElement.style.overflow = "hidden";
+      input.value = seed;
+      filter(seed);
+      input.focus();
+      input.setSelectionRange(seed.length, seed.length);
+    }
+
+    function close() {
+      scrim.classList.remove("is-open");
+      document.documentElement.style.overflow = "";
+      // Wait for fade-out before hiding from the a11y tree.
+      window.setTimeout(() => { scrim.hidden = true; }, 200);
+      if (lastFocused && document.contains(lastFocused)) {
+        lastFocused.focus();
+      }
+    }
+
+    function activate(row: HTMLAnchorElement) {
+      const action = row.dataset.action;
+      if (action === "copy-install") {
+        navigator.clipboard?.writeText("npx opchain install").catch(() => {});
+        // Fire a custom event so the page (or a future toast widget) can react.
+        document.dispatchEvent(new CustomEvent("opchain:install-copied"));
+        close();
+      } else if (action === "toggle-theme") {
+        const btn = document.querySelector<HTMLButtonElement>("[data-theme-toggle]");
+        btn?.click();
+        close();
+      } else if (action === "feedback") {
+        close();
+        // Give the close transition time to clear focus, then trigger.
+        window.setTimeout(() => {
+          const launcher = document.querySelector<HTMLElement>("[data-feedback-launcher]");
+          launcher?.click();
+        }, 220);
+      } else if (row.href) {
+        close();
+        window.location.assign(row.href);
+      }
+    }
+
+    // ── Keyboard handling on the input ──
+    input.addEventListener("input", () => filter(input.value));
+    input.addEventListener("keydown", (e) => {
+      const rows = visibleRows();
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        selectedIdx = Math.min(rows.length - 1, selectedIdx + 1);
+        paintSelection();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        selectedIdx = Math.max(0, selectedIdx - 1);
+        paintSelection();
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        const row = rows[selectedIdx];
+        if (row) activate(row);
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        close();
+      }
+    });
+
+    // Click on a row activates it (instead of letting the anchor navigate
+    // directly — gives the action-typed rows their dispatch).
+    allRows.forEach((row) => {
+      row.addEventListener("click", (e) => {
+        e.preventDefault();
+        activate(row);
+      });
+    });
+
+    // Scrim click closes (but click on the palette body shouldn't bubble).
+    scrim.addEventListener("click", (e) => {
+      if (e.target === scrim) close();
+    });
+
+    // Global open: ⌘K / Ctrl+K, plus any [data-palette-trigger].
+    document.addEventListener("keydown", (e) => {
+      const isModK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k";
+      if (isModK) {
+        e.preventDefault();
+        if (scrim.hidden) open();
+        else close();
+      } else if (e.key === "/" && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
+        // "/" opens the palette like in Slack/GitHub. Only when not
+        // already typing in another input.
+        if (scrim.hidden) {
+          e.preventDefault();
+          open();
+        }
+      }
+    });
+
+    document.querySelectorAll<HTMLElement>("[data-palette-trigger]").forEach((trigger) => {
+      trigger.addEventListener("click", () => {
+        if (scrim.hidden) open();
+      });
+      // If the trigger is a text input, forward keystrokes into the palette
+      // input so typing in the header field "just works".
+      if (trigger instanceof HTMLInputElement) {
+        trigger.addEventListener("input", () => {
+          if (scrim.hidden) open(trigger.value);
+          else input.value = trigger.value;
+          filter(input.value);
+          // Clear the trigger so the next session starts fresh.
+          trigger.value = "";
+        });
+      }
+    });
+  })();
+</script>
