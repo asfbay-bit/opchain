@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>opchain · navigation proposal · single-file preview</title>
+  <title>opchain · banner placements + menu-bar alternatives</title>
 
   <!-- Same fonts as Base.astro -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -43,14 +43,10 @@
       --accent-dim:  rgba(224, 92, 24, 0.10);
       --glow:        rgba(224, 92, 24, 0.14);
 
-      --danger:      #d86464;
-      --danger-dim:  rgba(216, 100, 100, 0.12);
-      --success:     #10B981;
-      --success-dim: rgba(16, 185, 129, 0.12);
-      --info:        #94A3B8;
-      --info-dim:    rgba(148, 163, 184, 0.12);
-      --warning:     #84CC16;
-      --warning-dim: rgba(132, 204, 22, 0.12);
+      --danger:  #d86464;
+      --success: #10B981;
+      --info:    #94A3B8;
+      --warning: #84CC16;
 
       --workflow:     #FB923C;
       --tri-agent:    #F59E0B;
@@ -72,14 +68,10 @@
       --fs-lg: 20px; --fs-xl: 28px; --fs-2xl: 36px; --fs-3xl: 48px;
       --fs-hero: clamp(2.25rem, 7vw, 3.75rem);
 
-      --lh-tight: 1.1; --lh-snug: 1.35; --lh-base: 1.55; --lh-loose: 1.75;
+      --lh-tight: 1.1; --lh-snug: 1.35; --lh-base: 1.55;
       --ls-tight: -0.015em; --ls-base: 0; --ls-wide: 0.05em;
       --ls-wider: 0.1em; --ls-widest: 0.15em; --ls-display: 0.22em;
       --wordmark-weight: 600; --wordmark-tracking: var(--ls-display);
-
-      --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
-      --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
-      --space-12: 48px; --space-16: 64px; --space-20: 80px; --space-24: 96px;
 
       --r-xs: 3px; --r-sm: 4px; --r-md: 6px; --r-lg: 8px; --r-xl: 12px; --r-pill: 999px;
 
@@ -87,16 +79,13 @@
       --shadow-md:  0 2px 6px -1px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.12);
       --shadow-lg:  0 8px 24px -6px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.12);
       --shadow-xl:  0 16px 40px -8px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.18);
-      --glow-md: 0 0 24px -6px var(--glow, transparent);
-      --glow-ribbon: 0 8px 24px -8px var(--glow, transparent);
+      --glow-md: 0 0 24px -6px var(--glow);
+      --glow-ribbon: 0 8px 24px -8px var(--glow);
 
       --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
       --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 320ms;
     }
 
-    /* ════════════════════════════════════════════════════════════
-       BASE (mirrors global.css)
-       ════════════════════════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin: 0; min-height: 100%; }
     body {
@@ -106,18 +95,85 @@
       font-size: var(--fs-base);
       line-height: var(--lh-base);
       -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
     a { color: var(--accent); text-decoration: none; }
     a:hover { color: var(--accent-hover); }
-    ::selection { background: var(--accent); color: var(--obsidian); }
     button { font-family: inherit; }
+    ::selection { background: var(--accent); color: var(--obsidian); }
 
     /* ════════════════════════════════════════════════════════════
-       HEADER (mirrors site/src/components/Header.astro + proposals)
+       VARIANT FRAMES — labels + scope wrappers so headers don't
+       fight each other when stacked on one page.
+       ════════════════════════════════════════════════════════════ */
+    .variant-banner {
+      max-width: none; margin: 0;
+      padding: 1.25rem 1.5rem;
+      background: linear-gradient(180deg, #14100a 0%, var(--obsidian) 100%);
+      border-top: 1px solid var(--ribbon-edge);
+      border-bottom: 1px solid var(--ribbon-edge);
+    }
+    .variant-banner-inner {
+      max-width: 1080px; margin: 0 auto;
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    }
+    .variant-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 0.5px solid var(--accent);
+      padding: 5px 10px;
+      border-radius: var(--r-xs);
+    }
+    .variant-title {
+      font-family: var(--font-display);
+      font-size: var(--fs-lg); font-weight: 600;
+      color: var(--text); letter-spacing: var(--ls-tight);
+    }
+    .variant-blurb { color: var(--muted); font-size: var(--fs-sm); flex: 1 1 320px; }
+    .variant-frame {
+      /* Per-variant scope so each "page" renders independently
+         even though three are stacked on this preview doc. */
+    }
+
+    /* TOC at the very top */
+    .doc-toc {
+      max-width: 1080px; margin: 1rem auto;
+      padding: 0.75rem 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem 1.5rem;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      font-family: var(--font-mono);
+      font-size: var(--fs-sm);
+      color: var(--muted);
+    }
+    .doc-toc h3 {
+      grid-column: 1 / -1;
+      font-size: 10px;
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--subtle);
+      margin: 0 0 0.5rem;
+    }
+    .doc-toc a {
+      color: var(--text);
+      padding: 4px 0;
+      display: block;
+    }
+    .doc-toc a:hover { color: var(--accent); }
+    .doc-toc .ph { color: var(--accent); }
+
+    /* ════════════════════════════════════════════════════════════
+       HEADER (mirrors site/src/components/Header.astro)
+       Note: NOT sticky in this preview — three headers stacked
+       would all glue to top.
        ════════════════════════════════════════════════════════════ */
     .site-header {
-      position: sticky; top: 0; z-index: 50;
       background: var(--ribbon);
       border-bottom: 0.5px solid var(--ribbon-edge);
       box-shadow: var(--glow-ribbon);
@@ -125,7 +181,7 @@
     .site-header-inner {
       max-width: 1080px; margin: 0 auto;
       padding: 0 1.5rem; height: 56px;
-      display: flex; align-items: center; gap: 0.75rem;
+      display: flex; align-items: center; gap: 0.6rem;
     }
     .site-header-brand {
       display: flex; align-items: center; gap: 0.6rem;
@@ -140,7 +196,6 @@
       color: var(--text);
     }
 
-    /* Group anchors — replaces the flat 5-link nav */
     .nav { display: flex; align-items: stretch; }
     .nav-group { position: relative; }
     .nav-link {
@@ -152,26 +207,20 @@
       padding: 0 1rem; height: 56px;
       display: inline-flex; align-items: center; gap: 0.5rem;
       text-decoration: none;
+      border: 0; background: transparent;
       border-bottom: 2px solid transparent;
-      background: transparent;
-      border-top: 0; border-left: 0; border-right: 0;
       cursor: pointer;
-      transition: color var(--dur-fast) var(--ease-standard),
-                  border-color var(--dur-fast) var(--ease-standard);
+      transition: color var(--dur-fast), border-color var(--dur-fast);
     }
     .nav-link:hover, .nav-link.is-open { color: var(--text); }
     .nav-link.is-open { border-bottom-color: var(--accent); }
-    .nav-link.active-section { border-bottom-color: var(--accent); color: var(--text); }
     .nav-caret {
-      display: inline-block;
       width: 6px; height: 6px;
       border-right: 1.5px solid currentColor;
       border-bottom: 1.5px solid currentColor;
       transform: translateY(-1px) rotate(45deg);
       opacity: 0.7;
     }
-
-    /* Badges (P-07, P-08, P-09) */
     .nav-badge {
       font-family: var(--font-mono);
       font-size: 8.5px;
@@ -193,7 +242,6 @@
       border: 0.5px solid rgba(224, 92, 24, 0.4);
     }
 
-    /* Install CTA leaf-link (P-03) */
     .nav-install {
       margin-left: 0.4rem;
       padding: 0 0.95rem;
@@ -203,8 +251,7 @@
       border: 0;
       border-radius: var(--r-pill);
       font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 11px; font-weight: 600;
       letter-spacing: var(--ls-wide);
       text-transform: uppercase;
       text-decoration: none;
@@ -212,88 +259,7 @@
     }
     .nav-install:hover { background: var(--accent-hover); color: var(--obsidian); }
 
-    /* Status pill (P-32) */
-    .status-pill {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      padding: 4px 10px;
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: var(--r-pill);
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--subtle);
-      text-decoration: none;
-      letter-spacing: var(--ls-wide);
-      margin-left: 0.5rem;
-    }
-    .status-pill:hover { color: var(--text); border-color: var(--accent); }
-    .status-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--success);
-      box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
-    }
-
-    /* Version chip (P-10) */
-    .version-chip {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      padding: 4px 8px;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--subtle);
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: var(--r-sm);
-      text-decoration: none;
-      margin-left: 0.4rem;
-    }
-    .version-chip:hover { color: var(--accent); border-color: var(--accent); }
-    .version-chip .sha { color: var(--text); }
-
-    /* ⌘K pill (P-12) */
-    .cmdk-pill {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: var(--r-pill);
-      padding: 5px 10px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--subtle);
-      cursor: pointer;
-      margin-left: 0.4rem;
-      transition: border-color var(--dur-fast), color var(--dur-fast);
-    }
-    .cmdk-pill:hover { border-color: var(--accent); color: var(--text); }
-    .cmdk-pill svg { width: 12px; height: 12px; opacity: 0.7; }
-    .kbd {
-      font-family: var(--font-mono);
-      font-size: 10px; line-height: 1;
-      padding: 3px 5px;
-      border: 0.5px solid var(--border);
-      border-radius: var(--r-xs);
-      background: var(--ribbon);
-      color: var(--muted);
-    }
-
-    .icon-btn {
-      background: transparent;
-      border: 0.5px solid var(--border);
-      border-radius: var(--r-sm);
-      width: 32px; height: 32px;
-      padding: 0; cursor: pointer;
-      display: inline-flex; align-items: center; justify-content: center;
-      color: var(--muted);
-      margin-left: 0.4rem;
-      transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
-    }
-    .icon-btn:hover {
-      color: var(--text); border-color: var(--accent); background: var(--accent-dim);
-    }
-
-    /* ════════════════════════════════════════════════════════════
-       DROPDOWN PANELS (P-02)
-       ════════════════════════════════════════════════════════════ */
+    /* dropdown panels (kept from previous preview) */
     .dropdown {
       position: absolute;
       top: 56px; left: 0;
@@ -306,16 +272,13 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0.25rem;
-      opacity: 0;
-      transform: translateY(-4px);
+      opacity: 0; transform: translateY(-4px);
       pointer-events: none;
-      transition: opacity var(--dur-fast) var(--ease-standard),
-                  transform var(--dur-fast) var(--ease-standard);
+      transition: opacity var(--dur-fast), transform var(--dur-fast);
+      z-index: 100;
     }
     .nav-group.open .dropdown {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
+      opacity: 1; transform: translateY(0); pointer-events: auto;
     }
     .dropdown-section-head {
       grid-column: 1 / -1;
@@ -338,43 +301,100 @@
     .dropdown-item .label {
       display: flex; align-items: center; gap: 0.5rem;
       font-family: var(--font-display);
-      font-size: var(--fs-sm);
-      font-weight: 500;
+      font-size: var(--fs-sm); font-weight: 500;
     }
     .dropdown-item .blurb {
-      font-family: var(--font-body);
-      font-size: 11px;
-      color: var(--subtle);
-      margin-top: 2px;
-      line-height: var(--lh-snug);
+      font-size: 11px; color: var(--subtle);
+      margin-top: 2px; line-height: var(--lh-snug);
     }
-    .dropdown-item .pillet {
+    .pillet {
       font-family: var(--font-mono);
-      font-size: 8.5px;
-      font-weight: 700;
+      font-size: 8.5px; font-weight: 700;
       letter-spacing: var(--ls-wider);
-      padding: 2px 5px;
-      border-radius: var(--r-xs);
+      padding: 2px 5px; border-radius: var(--r-xs);
     }
-    .pillet.new { background: var(--accent); color: var(--obsidian); }
-    .pillet.tool {
-      background: rgba(20, 184, 166, 0.16);
-      color: var(--specialist);
-      border: 0.5px solid var(--specialist);
-    }
-    .pillet.count {
-      background: var(--accent-dim);
-      color: var(--accent);
-      border: 0.5px solid rgba(224, 92, 24, 0.4);
-    }
+    .pillet.new   { background: var(--accent); color: var(--obsidian); }
+    .pillet.tool  { background: rgba(20,184,166,0.16); color: var(--specialist); border: 0.5px solid var(--specialist); }
+    .pillet.count { background: var(--accent-dim); color: var(--accent); border: 0.5px solid rgba(224,92,24,0.4); }
 
     /* ════════════════════════════════════════════════════════════
-       HOMEPAGE (mirrors src/pages/index.astro inline styles, verbatim)
+       BASELINE RIGHT-CLUSTER (used in banner-placement variants;
+       overridden in menu-bar variants below)
+       ════════════════════════════════════════════════════════════ */
+    .right-cluster { display: flex; align-items: center; gap: 0.4rem; }
+
+    .util-status-pill {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 4px 10px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-pill);
+      font-family: var(--font-mono);
+      font-size: 10px; color: var(--subtle);
+      text-decoration: none;
+      letter-spacing: var(--ls-wide);
+    }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+      animation: dot-pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes dot-pulse {
+      0%,100% { box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
+      50%     { box-shadow: 0 0 0 5px rgba(16,185,129,0.25); }
+    }
+
+    .util-version-chip {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 4px 8px;
+      font-family: var(--font-mono);
+      font-size: 10px; color: var(--subtle);
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-sm);
+      text-decoration: none;
+    }
+    .util-version-chip .sha { color: var(--text); }
+
+    .util-cmdk-pill {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-pill);
+      padding: 5px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px; color: var(--subtle);
+      cursor: pointer;
+    }
+    .util-cmdk-pill svg { width: 12px; height: 12px; opacity: 0.7; }
+    .kbd {
+      font-family: var(--font-mono);
+      font-size: 10px; line-height: 1;
+      padding: 3px 5px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-xs);
+      background: var(--ribbon);
+      color: var(--muted);
+    }
+    .icon-btn {
+      background: transparent;
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-sm);
+      width: 32px; height: 32px;
+      cursor: pointer; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--muted);
+    }
+    .icon-btn:hover { color: var(--text); border-color: var(--accent); background: var(--accent-dim); }
+
+    /* ════════════════════════════════════════════════════════════
+       INTRO + RELEASE-BAR-GLOW (matching current+next, smaller)
        ════════════════════════════════════════════════════════════ */
     .intro {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 4rem 1.5rem 2rem;
+      max-width: 960px; margin: 0 auto;
+      padding: 3rem 1.5rem 2rem;
       display: flex; flex-direction: column;
       align-items: center; text-align: center;
     }
@@ -387,71 +407,115 @@
     }
     .intro-hero {
       display: flex; flex-direction: column; align-items: center;
-      gap: 0.5rem;
-      margin: 0.4rem 0 0.5rem;
+      gap: 0.5rem; margin: 0.4rem 0 0.5rem;
     }
     .intro-mark {
       font-family: var(--font-display);
       font-weight: var(--wordmark-weight);
       font-size: var(--fs-hero);
       letter-spacing: var(--ls-display);
-      line-height: 1;
-      color: var(--text);
+      line-height: 1; color: var(--text);
       margin: 0;
     }
     .intro-claim {
       font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 20px;
-      line-height: 1.3;
-      letter-spacing: 0.2px;
-      color: var(--ember);
-      margin: 0 0 1rem;
+      font-weight: 700; font-size: 20px;
+      line-height: 1.3; letter-spacing: 0.2px;
+      color: var(--ember); margin: 0 0 1rem;
     }
     .intro-tagline {
       font-family: var(--font-mono);
       font-size: var(--fs-sm);
       letter-spacing: var(--ls-widest);
       color: var(--muted);
-      max-width: 42rem;
-      margin: 0 auto 2rem;
+      max-width: 42rem; margin: 0 auto 2rem;
     }
     .intro-body {
-      max-width: 42rem;
-      margin: 0 auto;
-      color: var(--muted);
-      text-align: left;
+      max-width: 42rem; margin: 0 auto;
+      color: var(--muted); text-align: left;
     }
     .intro-body p { margin: 0 0 1rem; color: var(--muted); }
     .intro-body p:last-child { margin: 0; }
 
-    .release-pill {
-      display: inline-flex; align-items: center; gap: 0.6rem;
+    /* ── Glowing matching release bar (current + next) ──
+       Brought back per request, slightly smaller than the original
+       single-release pill. Two halves visually paired by the same
+       chip silhouette + a soft pulsing ember box-shadow. ── */
+    .release-bar-glow {
+      display: inline-flex; align-items: center;
+      gap: 0;
       align-self: center;
-      margin: 1.75rem auto 0;
-      padding: 0.4rem 0.9rem 0.4rem 0.5rem;
+      margin: 1.5rem auto 0;
+      padding: 4px 10px 4px 4px;
       background: var(--surface);
       border: 0.5px solid var(--border);
       border-radius: 999px;
       color: var(--muted);
-      font-size: var(--fs-sm);
+      font-size: 12px;
       text-decoration: none;
-      transition: color var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast);
+      box-shadow:
+        0 0 0 1px rgba(224,92,24,0.18),
+        0 0 24px -8px rgba(224,92,24,0.4);
+      animation: bar-pulse 3.4s ease-in-out infinite;
+      transition: transform var(--dur-fast), border-color var(--dur-fast);
     }
-    .release-pill:hover { color: var(--text); border-color: var(--accent); transform: translateY(-1px); }
-    .release-pill-tag {
+    @keyframes bar-pulse {
+      0%,100% {
+        box-shadow:
+          0 0 0 1px rgba(224,92,24,0.18),
+          0 0 18px -8px rgba(224,92,24,0.35);
+      }
+      50% {
+        box-shadow:
+          0 0 0 1px rgba(224,92,24,0.32),
+          0 0 30px -6px rgba(224,92,24,0.55);
+      }
+    }
+    .release-bar-glow:hover { color: var(--text); border-color: var(--accent); transform: translateY(-1px); }
+
+    .rb-half {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 0 8px;
+    }
+    .rb-tag {
       font-family: var(--font-mono);
-      font-size: var(--fs-xs);
+      font-size: 9.5px;
+      font-weight: 600;
       letter-spacing: var(--ls-widest);
       text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 999px;
       color: var(--accent);
       border: 0.5px solid var(--accent);
-      padding: 2px 8px;
-      border-radius: 999px;
+      background: rgba(224,92,24,0.06);
     }
-    .release-pill-text { letter-spacing: var(--ls-wide); }
-    .release-pill-arrow { color: var(--subtle); font-size: 16px; }
+    .rb-tag-next {
+      color: var(--subtle);
+      border-color: var(--slag);
+      background: transparent;
+    }
+    .rb-text {
+      font-family: var(--font-display);
+      font-size: 11.5px;
+      letter-spacing: var(--ls-wide);
+      color: var(--text);
+    }
+    .rb-text-next { color: var(--muted); }
+    .rb-divider {
+      display: inline-block;
+      width: 1px; height: 18px;
+      background: var(--ribbon-edge);
+      margin: 0 2px;
+    }
+    .rb-arrow {
+      color: var(--subtle);
+      font-size: 14px;
+      padding: 0 4px;
+    }
 
+    /* ════════════════════════════════════════════════════════════
+       STATS, STAGE (banner), PHASE GRID — base styles
+       ════════════════════════════════════════════════════════════ */
     .stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -469,16 +533,12 @@
       border-radius: var(--r-md);
       color: var(--muted);
       text-decoration: none;
-      transition: color var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast);
     }
-    .stat:hover { color: var(--text); border-color: var(--accent); transform: translateY(-1px); }
+    .stat:hover { color: var(--text); border-color: var(--accent); }
     .stat-num {
       font-family: var(--font-display);
-      font-size: var(--fs-lg);
-      font-weight: 600;
-      color: var(--text);
-      letter-spacing: var(--ls-tight);
-      line-height: 1;
+      font-size: var(--fs-lg); font-weight: 600;
+      color: var(--text); letter-spacing: var(--ls-tight); line-height: 1;
     }
     .stat-label {
       font-family: var(--font-mono);
@@ -488,13 +548,13 @@
       color: var(--subtle);
     }
 
+    /* Stage / banner — base shape */
     .stage {
       position: relative;
       align-self: stretch;
       margin: 2.5rem -1.5rem 2.5rem;
       padding: clamp(1.1rem, 2.5vw, 1.8rem) clamp(1rem, 4vw, 2.4rem);
-      overflow: hidden;
-      text-align: left;
+      overflow: hidden; text-align: left;
       background:
         radial-gradient(640px 320px at 75% 30%, var(--ember-glow), transparent 70%),
         radial-gradient(420px 240px at 15% 80%, var(--ember-dim), transparent 70%),
@@ -536,17 +596,15 @@
       font-size: var(--fs-sm);
       letter-spacing: var(--ls-wide);
       text-transform: uppercase;
-      cursor: pointer;
-      text-decoration: none;
+      cursor: pointer; text-decoration: none;
       border-radius: var(--r-xs);
-      transition: transform var(--dur-fast), background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
     }
     .stage .btn-primary {
       background: var(--accent);
       color: var(--obsidian);
       border: 0; font-weight: 600;
     }
-    .stage .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .stage .btn-primary:hover { background: var(--accent-hover); }
     .stage .btn-ghost {
       background: transparent;
       color: var(--text);
@@ -570,7 +628,6 @@
       border-radius: var(--r-md);
       padding: 0.85rem 0.95rem;
       display: flex; flex-direction: column; gap: 0.3rem;
-      transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
     }
     .phase-card:hover { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-dim); }
     .phase-step {
@@ -587,10 +644,7 @@
       color: var(--text);
       letter-spacing: 0.02em;
     }
-    .phase-pills {
-      display: flex; flex-wrap: wrap; gap: 0.3rem;
-      margin-top: 0.15rem;
-    }
+    .phase-pills { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.15rem; }
     .phase-pill {
       display: inline-flex; align-items: center;
       padding: 2px 7px;
@@ -603,90 +657,400 @@
       border: 0.5px solid color-mix(in srgb, var(--pill-color, var(--accent)) 50%, transparent);
       text-decoration: none;
     }
-    .phase-pill[data-role="workflow"]   { --pill-color: var(--workflow); }
-    .phase-pill[data-role="tri-agent"]  { --pill-color: var(--tri-agent); }
-    .phase-pill[data-role="audit-gate"] { --pill-color: var(--audit-gate); }
-    .phase-pill[data-role="specialist"] { --pill-color: var(--specialist); }
-    .phase-pill[data-role="advisor"]    { --pill-color: var(--advisor); }
+    .phase-pill[data-role="workflow"]     { --pill-color: var(--workflow); }
+    .phase-pill[data-role="tri-agent"]    { --pill-color: var(--tri-agent); }
+    .phase-pill[data-role="audit-gate"]   { --pill-color: var(--audit-gate); }
+    .phase-pill[data-role="specialist"]   { --pill-color: var(--specialist); }
+    .phase-pill[data-role="advisor"]      { --pill-color: var(--advisor); }
     .phase-pill[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
     .phase-blurb {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: var(--lh-snug);
-      margin-top: 0.35rem;
+      font-size: 11px; color: var(--muted);
+      line-height: var(--lh-snug); margin-top: 0.35rem;
     }
 
     /* ════════════════════════════════════════════════════════════
-       NEW: EXPLORE RAIL (P-16)
+       12-DOT INDICATORS (3 distinct treatments — one per banner)
        ════════════════════════════════════════════════════════════ */
-    .explore-rail {
-      width: 100%;
-      max-width: 960px;
-      margin: 1rem auto 0;
-      padding: 0 1.5rem;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.6rem;
+
+    /* A — horizontal pill-row (active dot grows + ember-glows) */
+    .dot-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px;
+      margin: 1rem 0 0;
+      padding: 0;
     }
-    @media (max-width: 720px) { .explore-rail { grid-template-columns: repeat(2, 1fr); } }
-    .tile {
-      background: var(--card);
-      border: 0.5px solid var(--border);
-      border-radius: var(--r-md);
-      padding: 1rem;
-      text-decoration: none;
-      color: var(--text);
-      display: flex; flex-direction: column; gap: 0.4rem;
-      min-height: 120px;
-      position: relative;
-      text-align: left;
-      transition: border-color var(--dur-fast), transform var(--dur-fast), box-shadow var(--dur-fast);
+    .dot-row .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(232, 223, 208, 0.22);
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      transition: transform var(--dur-base), background var(--dur-base), box-shadow var(--dur-base);
     }
-    .tile:hover {
-      border-color: var(--accent);
-      transform: translateY(-1px);
-      box-shadow: 0 0 0 1px var(--accent-dim);
-      color: var(--text);
+    .dot-row .dot:hover { background: var(--muted); }
+    .dot-row .dot.active {
+      width: 16px; height: 16px;
+      background: var(--ember);
+      box-shadow:
+        0 0 0 3px var(--ember-dim),
+        0 0 16px -4px var(--ember);
     }
-    .tile .tile-tag {
+    .dot-row .dot-counter {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--subtle);
+      letter-spacing: var(--ls-wider);
+      margin-left: 1rem;
+    }
+
+    /* B — vertical equalizer bars (filmstrip on right edge) */
+    .bar-col {
+      position: absolute;
+      right: 1rem; top: 50%;
+      transform: translateY(-50%);
+      display: flex; flex-direction: column;
+      gap: 4px;
+      z-index: 5;
+    }
+    .bar-col .bar {
+      width: 3px; height: 10px;
+      background: rgba(232,223,208,0.22);
+      border-radius: 2px;
+    }
+    .bar-col .bar.active {
+      width: 5px; height: 28px;
+      background: var(--ember);
+      box-shadow: 0 0 14px -2px var(--ember);
+    }
+    .bar-col .bar-label {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
       font-family: var(--font-mono);
       font-size: 9px;
-      letter-spacing: var(--ls-widest);
-      text-transform: uppercase;
       color: var(--subtle);
+      letter-spacing: var(--ls-widest);
+      margin-bottom: 8px;
     }
-    .tile .tile-tag.tool { color: var(--specialist); }
-    .tile h3 {
-      font-family: var(--font-display);
-      font-size: var(--fs-md);
-      font-weight: 600;
-      margin: 0;
-      letter-spacing: 0.02em;
+
+    /* C — chain-link nodes (mirrors brand logo: rectangle chain links) */
+    .chain-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: 4px;
+      margin: 1.25rem auto 0;
+      padding: 0.5rem 0;
+      position: relative;
     }
-    .tile p {
-      font-size: var(--fs-sm);
-      color: var(--muted);
-      margin: 0;
-      line-height: var(--lh-snug);
+    .chain-row::before {
+      content: ""; position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: calc(100% - 60px); height: 1px;
+      background: var(--slag);
+      z-index: 0;
     }
-    .tile .arrow {
-      position: absolute; right: 0.9rem; bottom: 0.9rem;
-      color: var(--accent);
+    .chain-row .link {
+      width: 12px; height: 18px;
+      border: 1px solid var(--linen);
+      border-radius: 2px;
+      background: var(--bg);
+      position: relative;
+      z-index: 1;
+      transition: all var(--dur-base);
+    }
+    .chain-row .link.active {
+      background: var(--ember);
+      border-color: var(--ember);
+      box-shadow: 0 0 18px -4px var(--ember);
+      transform: scale(1.25);
+    }
+    .chain-row .link-counter {
       font-family: var(--font-mono);
-      font-size: 14px;
+      font-size: 10px;
+      color: var(--subtle);
+      letter-spacing: var(--ls-wider);
+      margin-left: 0.75rem;
     }
 
     /* ════════════════════════════════════════════════════════════
-       NEW: RESOURCES STRIP (P-31)
+       BANNER PLACEMENT A — Above-everything cinema
+       Stage as the first thing under the header. Logo + wordmark
+       embedded inside. Replaces the standard hero stack.
+       ════════════════════════════════════════════════════════════ */
+    .stage-cinema {
+      position: relative;
+      margin: 0;
+      padding: 3rem 1.5rem 4rem;
+      min-height: 540px;
+      display: flex; flex-direction: column;
+      justify-content: center;
+      background:
+        radial-gradient(900px 400px at 75% 35%, var(--ember-glow), transparent 65%),
+        radial-gradient(640px 320px at 15% 80%, var(--ember-dim), transparent 70%),
+        linear-gradient(180deg, #0e0a06 0%, var(--obsidian) 100%);
+      border-bottom: 0.5px solid var(--ribbon-edge);
+      overflow: hidden;
+    }
+    .stage-cinema-mark {
+      max-width: 1080px; margin: 0 auto 2rem; width: 100%;
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .stage-cinema-mark .wordmark {
+      font-family: var(--font-display);
+      font-weight: var(--wordmark-weight);
+      font-size: 18px;
+      letter-spacing: var(--wordmark-tracking);
+      color: var(--text);
+    }
+    .stage-cinema-mid {
+      max-width: 1080px; margin: 0 auto; width: 100%;
+    }
+    .stage-cinema-eyebrow {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      display: inline-block;
+    }
+    .stage-cinema-h {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: clamp(2rem, 4.5vw, 3.25rem);
+      line-height: 1.05;
+      letter-spacing: var(--ls-tight);
+      margin: 0 0 1rem;
+      max-width: 22ch;
+      color: var(--text);
+    }
+    .stage-cinema-sub {
+      font-size: var(--fs-md);
+      color: var(--muted);
+      max-width: 56ch;
+      margin: 0 0 1.5rem;
+      line-height: var(--lh-snug);
+    }
+    .stage-cinema-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+    /* ════════════════════════════════════════════════════════════
+       BANNER PLACEMENT B — Split-the-claim
+       Banner sits BETWEEN the wordmark and the body text — replaces
+       the area where claim+tagline currently sit. Vertical bar
+       indicator on the right edge.
+       ════════════════════════════════════════════════════════════ */
+    .stage-split {
+      position: relative;
+      margin: 1.5rem -1.5rem 1.5rem;
+      padding: 2rem clamp(1.5rem, 4vw, 3rem) 2rem;
+      min-height: 280px;
+      display: flex; flex-direction: column; justify-content: center;
+      background:
+        radial-gradient(540px 260px at 70% 40%, var(--ember-glow), transparent 70%),
+        var(--bg);
+      border-top: 0.5px solid var(--border);
+      border-bottom: 0.5px solid var(--border);
+      text-align: left;
+    }
+    .stage-split-mid { max-width: 720px; }
+
+    /* ════════════════════════════════════════════════════════════
+       BANNER PLACEMENT C — Full-bleed cinema strip (chain-link dots)
+       Banner takes a full-bleed section AFTER the body text.
+       Cinematic gradient + the chain-link dot indicator that
+       echoes the opchain brand mark.
+       ════════════════════════════════════════════════════════════ */
+    .stage-bleed {
+      position: relative;
+      margin: 2rem 0 2rem;
+      padding: 4rem 1.5rem 2.5rem;
+      min-height: 440px;
+      display: flex; flex-direction: column;
+      justify-content: center;
+      background:
+        radial-gradient(1200px 500px at 60% 35%, var(--ember-glow), transparent 65%),
+        radial-gradient(700px 360px at 90% 90%, rgba(184, 69, 16, 0.18), transparent 70%),
+        linear-gradient(180deg, var(--bg) 0%, #0e0a06 100%);
+      border-top: 0.5px solid var(--ribbon-edge);
+      border-bottom: 0.5px solid var(--ribbon-edge);
+    }
+    .stage-bleed-mid { max-width: 960px; margin: 0 auto; width: 100%; }
+
+    /* ════════════════════════════════════════════════════════════
+       MENU BAR ALTERNATIVES — three right-cluster designs
+       (the segment from the install button to the right edge)
+       ════════════════════════════════════════════════════════════ */
+
+    /* Alt 1 — Tool tray with labels.
+       Each utility has explicit text. Status is a tiny dot inside
+       the version chip (no longer a search-pill lookalike).
+       Subtle vertical dividers separate the tools. */
+    .alt1-tray {
+      display: flex; align-items: center;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 2px 4px;
+    }
+    .alt1-tray > * + * { border-left: 0.5px solid var(--ribbon-edge); }
+    .alt1-tray .tray-item {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 10px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-wide);
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      background: transparent; border: 0;
+      text-decoration: none;
+    }
+    .alt1-tray .tray-item:hover { color: var(--accent); }
+    .alt1-tray .tray-item .glyph { font-size: 12px; }
+    .alt1-tray .tray-version {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 10px;
+      color: var(--text);
+    }
+    .alt1-tray .tray-version .sha {
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .alt1-tray .tray-version .status-dot {
+      width: 6px; height: 6px;
+    }
+
+    /* Alt 2 — Iconified minimal with tooltips.
+       Pure icon-only utility cluster. Status dot floats inside
+       the version chip. Tooltips explain on hover. */
+    .alt2-mini {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .alt2-version {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-pill);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .alt2-version .version-tag { color: var(--accent); font-weight: 600; }
+    .alt2-version .sha { color: var(--muted); font-size: 9.5px; }
+    .alt2-version .status-dot { width: 6px; height: 6px; margin-left: 2px; }
+
+    .alt2-icon {
+      position: relative;
+      width: 32px; height: 32px;
+      background: transparent;
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-sm);
+      cursor: pointer; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--muted);
+    }
+    .alt2-icon:hover {
+      color: var(--text);
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .alt2-icon[data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute; top: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%);
+      background: var(--ribbon);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      letter-spacing: var(--ls-wide);
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: var(--r-xs);
+      border: 0.5px solid var(--ribbon-edge);
+      white-space: nowrap;
+      z-index: 50;
+    }
+
+    /* Alt 3 — Search-first input.
+       ⌘K becomes a real input field. Status moves into version chip
+       (no second pill that could read as "search"). */
+    .alt3-search {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 4px 10px;
+      width: 260px;
+      transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+    }
+    .alt3-search:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-dim);
+    }
+    .alt3-search svg { width: 12px; height: 12px; color: var(--subtle); }
+    .alt3-search input {
+      flex: 1;
+      background: transparent;
+      border: 0;
+      outline: 0;
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--text);
+    }
+    .alt3-search input::placeholder { color: var(--subtle); }
+    .alt3-search .kbd {
+      background: var(--surface);
+    }
+    .alt3-version {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text);
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-sm);
+      text-decoration: none;
+    }
+    .alt3-version .status-dot { width: 6px; height: 6px; }
+    .alt3-version .sha { color: var(--muted); font-size: 10px; }
+
+    /* Hover-explainer band per menu alt */
+    .menu-explain {
+      max-width: 1080px; margin: 0.75rem auto 0;
+      padding: 0 1.5rem;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+    @media (max-width: 720px) { .menu-explain { grid-template-columns: 1fr; } }
+    .menu-explain .col {
+      padding: 0.6rem 0.75rem;
+      background: var(--surface);
+      border-left: 2px solid var(--accent);
+      border-radius: var(--r-xs);
+    }
+    .menu-explain .col strong {
+      color: var(--text);
+      font-size: 10px;
+      letter-spacing: var(--ls-wide);
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       RESOURCES STRIP — kept verbatim (user said it's great)
        ════════════════════════════════════════════════════════════ */
     .resources-strip {
       width: 100%; max-width: 960px;
       margin: 4rem auto 0;
       padding: 0 1.5rem;
     }
-    .resources-strip .lead {
-      text-align: center; margin-bottom: 1.5rem;
-    }
+    .resources-strip .lead { text-align: center; margin-bottom: 1.5rem; }
     .resources-strip .lead h2 {
       font-family: var(--font-display);
       font-size: var(--fs-2xl);
@@ -699,9 +1063,7 @@
       max-width: 48ch; margin: 0.5rem auto 0;
       font-size: var(--fs-sm);
     }
-    .res-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
-    }
+    .res-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
     @media (max-width: 720px) { .res-grid { grid-template-columns: 1fr; } }
     .res-card {
       background: var(--card);
@@ -711,14 +1073,12 @@
       text-decoration: none;
       color: var(--text);
       display: flex; flex-direction: column; gap: 0.6rem;
-      transition: border-color var(--dur-fast), transform var(--dur-fast);
     }
-    .res-card:hover { border-color: var(--accent); transform: translateY(-1px); color: var(--text); }
+    .res-card:hover { border-color: var(--accent); color: var(--text); transform: translateY(-1px); }
     .res-card .res-icon {
       width: 36px; height: 36px;
       display: inline-flex; align-items: center; justify-content: center;
-      background: var(--accent-dim);
-      color: var(--accent);
+      background: var(--accent-dim); color: var(--accent);
       border-radius: 50%;
       font-family: var(--font-mono);
       font-size: 16px;
@@ -726,13 +1086,11 @@
     .res-card h3 {
       font-family: var(--font-display);
       font-size: var(--fs-md);
-      font-weight: 600;
-      margin: 0; letter-spacing: 0.02em;
+      font-weight: 600; margin: 0;
     }
     .res-card p {
       font-size: var(--fs-sm);
-      color: var(--muted);
-      margin: 0;
+      color: var(--muted); margin: 0;
       line-height: var(--lh-snug);
     }
     .res-card .read {
@@ -745,190 +1103,16 @@
     }
 
     /* ════════════════════════════════════════════════════════════
-       FOOTER (mirrors site/src/components/Footer.astro + P-33 reorg)
+       SKILL DETAIL — kept verbatim (user said it's great)
        ════════════════════════════════════════════════════════════ */
-    .site-footer {
-      border-top: 0.5px solid var(--border);
-      background: var(--bg);
-      color: var(--muted);
-      margin-top: 6rem;
-    }
-    .site-footer-inner {
-      max-width: 960px; margin: 0 auto;
-      padding: 3rem 1.5rem 2rem;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 2rem;
-    }
-    .site-footer .col { display: flex; flex-direction: column; gap: 0.4rem; }
-    .site-footer .col-head {
-      font-family: var(--font-mono);
-      font-size: var(--fs-xs);
-      letter-spacing: var(--ls-widest);
-      text-transform: uppercase;
-      color: var(--subtle);
-      margin-bottom: 0.2rem;
-    }
-    .site-footer .brand {
-      font-family: var(--font-display);
-      font-weight: var(--wordmark-weight);
-      font-size: 18px;
-      letter-spacing: var(--wordmark-tracking);
-      color: var(--text);
-    }
-    .site-footer .tagline { color: var(--ember); font-size: var(--fs-sm); margin: 0.25rem 0 0; }
-    .site-footer a {
-      color: var(--muted);
-      font-size: var(--fs-sm);
-      text-decoration: none;
-      padding: 2px 0;
-    }
-    .site-footer a:hover { color: var(--text); }
-    .site-footer-meta {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 1.5rem 1.5rem 2rem;
-      display: flex; justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: var(--fs-xs);
-      letter-spacing: var(--ls-wide);
-      color: var(--subtle);
-    }
-
-    /* ════════════════════════════════════════════════════════════
-       COMMAND PALETTE (P-11..P-14)
-       ════════════════════════════════════════════════════════════ */
-    .palette-scrim {
-      position: fixed; inset: 0;
-      background: rgba(0, 0, 0, 0.55);
-      display: none;
-      align-items: flex-start; justify-content: center;
-      padding-top: 12vh;
-      z-index: 200;
-      backdrop-filter: blur(2px);
-    }
-    .palette-scrim.open { display: flex; }
-    .palette {
-      width: min(640px, 92vw);
-      background: var(--ribbon);
-      border: 0.5px solid var(--ribbon-edge);
-      border-radius: var(--r-lg);
-      box-shadow: var(--shadow-xl);
-      overflow: hidden;
-    }
-    .palette-input {
-      width: 100%;
-      padding: 1.1rem 1.25rem;
-      background: transparent;
-      border: 0;
-      border-bottom: 0.5px solid var(--ribbon-edge);
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: var(--fs-md);
-      outline: none;
-    }
-    .palette-input::placeholder { color: var(--subtle); }
-    .palette-list { padding: 0.5rem 0 0; max-height: 50vh; overflow-y: auto; }
-    .palette-section {
-      padding: 0.6rem 0.85rem 0.3rem;
-      font-family: var(--font-mono);
-      font-size: 9px;
-      letter-spacing: var(--ls-widest);
-      text-transform: uppercase;
-      color: var(--subtle);
-    }
-    .palette-row {
-      display: flex; align-items: center; gap: 0.75rem;
-      padding: 0.6rem 0.75rem;
-      cursor: pointer;
-      border-radius: var(--r-sm);
-      margin: 0 0.5rem 2px;
-      color: var(--text);
-      transition: background var(--dur-fast);
-      text-decoration: none;
-    }
-    .palette-row.selected, .palette-row:hover { background: var(--accent-dim); color: var(--text); }
-    .palette-row .icon {
-      width: 26px; height: 26px;
-      display: inline-flex; align-items: center; justify-content: center;
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: var(--r-sm);
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--subtle);
-    }
-    .palette-row .title {
-      font-size: var(--fs-sm); font-weight: 500;
-    }
-    .palette-row .blurb {
-      font-size: 11px; color: var(--subtle); margin-top: 1px;
-    }
-    .palette-row .crumb {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--subtle);
-      margin-left: auto;
-    }
-    .palette-row .meta { flex: 1; }
-    .palette-footer {
-      display: flex; align-items: center; gap: 1rem;
-      padding: 0.55rem 0.85rem;
-      border-top: 0.5px solid var(--ribbon-edge);
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--subtle);
-    }
-    .palette-footer .spacer { flex: 1; }
-
-    /* ════════════════════════════════════════════════════════════
-       PROPOSAL MARKERS — side rail callouts so each P-tag is locatable
-       ════════════════════════════════════════════════════════════ */
-    .proposal-band {
-      max-width: 1080px;
-      margin: 4rem auto 1.5rem;
-      padding: 1rem 1.5rem;
-      border-top: 0.5px dashed var(--ribbon-edge);
-      border-bottom: 0.5px dashed var(--ribbon-edge);
-      display: flex; align-items: center; gap: 1rem;
-    }
-    .proposal-band .tag {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: var(--ls-wider);
-      color: var(--accent);
-      padding: 3px 7px;
-      border: 0.5px solid var(--accent);
-      border-radius: var(--r-xs);
-      text-transform: uppercase;
-    }
-    .proposal-band .title {
-      font-family: var(--font-display);
-      font-size: var(--fs-md);
-      font-weight: 600;
-      color: var(--text);
-    }
-    .proposal-band .blurb {
-      font-size: var(--fs-sm);
-      color: var(--muted);
-    }
-
-    /* ════════════════════════════════════════════════════════════
-       SKILL DETAIL EXAMPLE (P-20, P-24, P-25, P-36)
-       ════════════════════════════════════════════════════════════ */
-    .skill-detail {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 1rem;
-    }
+    .skill-detail { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 1rem; }
     .crumbs {
       display: flex; align-items: center; gap: 0.5rem;
       font-family: var(--font-mono);
       font-size: var(--fs-xs);
       letter-spacing: var(--ls-wide);
       text-transform: uppercase;
-      color: var(--subtle);
-      margin-bottom: 1.5rem;
+      color: var(--subtle); margin-bottom: 1.5rem;
     }
     .crumbs a { color: var(--muted); }
     .crumbs a:hover { color: var(--text); }
@@ -945,8 +1129,7 @@
     .skill-head .lede {
       color: var(--muted);
       font-size: var(--fs-md);
-      max-width: 56ch;
-      margin: 0 0 1.5rem;
+      max-width: 56ch; margin: 0 0 1.5rem;
     }
     code.inline {
       font-family: var(--font-mono);
@@ -978,9 +1161,8 @@
       color: var(--subtle);
     }
     .term-chip {
-      display: inline-flex; align-items: center;
-      padding: 3px 8px;
-      margin: 0 4px 4px 0;
+      display: inline-flex;
+      padding: 3px 8px; margin: 0 4px 4px 0;
       border-radius: var(--r-pill);
       background: var(--accent-dim);
       border: 0.5px solid rgba(224, 92, 24, 0.4);
@@ -1003,9 +1185,7 @@
       color: var(--subtle);
       margin: 0 0 1rem;
     }
-    .related-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
-    }
+    .related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
     @media (max-width: 720px) { .related-grid { grid-template-columns: 1fr; } }
     .related-card {
       background: var(--card);
@@ -1015,7 +1195,6 @@
       text-decoration: none;
       color: var(--text);
       display: flex; flex-direction: column; gap: 0.3rem;
-      transition: border-color var(--dur-fast);
     }
     .related-card:hover { border-color: var(--accent); color: var(--text); }
     .related-card .kind {
@@ -1025,31 +1204,19 @@
       text-transform: uppercase;
       color: var(--subtle);
     }
-    .related-card .name {
-      font-family: var(--font-display);
-      font-size: var(--fs-base);
-      font-weight: 600;
-    }
-    .related-card .why {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: var(--lh-snug);
-    }
+    .related-card .name { font-family: var(--font-display); font-size: var(--fs-base); font-weight: 600; }
+    .related-card .why { font-size: 11px; color: var(--muted); line-height: var(--lh-snug); }
     .prev-next {
       display: flex; justify-content: space-between; gap: 1rem;
-      margin-top: 1.5rem;
-      padding-top: 1.5rem;
+      margin-top: 1.5rem; padding-top: 1.5rem;
       border-top: 0.5px solid var(--border);
     }
     .prev-next a {
-      flex: 1;
-      padding: 1rem;
+      flex: 1; padding: 1rem;
       background: var(--card);
       border: 0.5px solid var(--border);
       border-radius: var(--r-md);
-      text-decoration: none;
-      color: var(--text);
-      transition: border-color var(--dur-fast);
+      text-decoration: none; color: var(--text);
     }
     .prev-next a:hover { border-color: var(--accent); }
     .prev-next .dir {
@@ -1061,482 +1228,606 @@
     }
     .prev-next .name {
       font-family: var(--font-display);
-      font-size: var(--fs-base);
-      font-weight: 500;
+      font-size: var(--fs-base); font-weight: 500;
       margin-top: 4px;
     }
     .prev-next .next { text-align: right; }
 
     /* ════════════════════════════════════════════════════════════
-       MOBILE-FRAME PREVIEWS (P-38, P-39, P-15)
+       Footer (small)
        ════════════════════════════════════════════════════════════ */
-    .phones-row {
-      max-width: 960px;
-      margin: 2rem auto 0;
-      padding: 0 1.5rem;
+    .site-footer {
+      border-top: 0.5px solid var(--border);
+      background: var(--bg); color: var(--muted);
+      margin-top: 6rem;
+    }
+    .site-footer-inner {
+      max-width: 960px; margin: 0 auto;
+      padding: 3rem 1.5rem 1.5rem;
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 2rem;
-      justify-items: center;
     }
-    @media (max-width: 720px) { .phones-row { grid-template-columns: 1fr; } }
-    .phone {
-      width: 360px; max-width: 100%;
-      height: 680px;
-      border-radius: 36px;
-      border: 8px solid #0c0a07;
-      box-shadow: var(--shadow-xl);
-      overflow: hidden;
-      background: var(--bg);
-      position: relative;
-    }
-    .phone .notch {
-      position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
-      width: 92px; height: 22px;
-      background: #0c0a07; border-radius: 12px; z-index: 10;
-    }
-    .phone-inner { width: 100%; height: 100%; padding-top: 38px; position: relative; }
-    .m-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 1rem; height: 50px;
-      background: var(--ribbon);
-      border-bottom: 0.5px solid var(--ribbon-edge);
-    }
-    .m-header .brand { display: flex; align-items: center; gap: 0.45rem; }
-    .m-header .wordmark { font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: var(--ls-display); color: var(--text); }
-    .m-header .row { display: flex; gap: 6px; }
-    .m-header .icon-btn { width: 30px; height: 28px; margin: 0; }
-    .scrim {
-      position: absolute; inset: 0; top: 38px;
-      background: rgba(0,0,0,0.5);
-      z-index: 30;
-    }
-    .drawer {
-      position: absolute; right: 0; top: 38px; bottom: 0;
-      width: 78%;
-      background: var(--ribbon);
-      border-left: 0.5px solid var(--ribbon-edge);
-      box-shadow: -8px 0 24px rgba(0,0,0,0.35);
-      padding: 0.75rem;
-      z-index: 40;
-      overflow-y: auto;
-    }
-    .drawer h3 {
+    .site-footer .col { display: flex; flex-direction: column; gap: 0.4rem; }
+    .site-footer .col-head {
       font-family: var(--font-mono);
-      font-size: 9px;
+      font-size: var(--fs-xs);
       letter-spacing: var(--ls-widest);
       text-transform: uppercase;
       color: var(--subtle);
-      margin: 1rem 0 0.4rem;
-      padding-bottom: 0.4rem;
-      border-bottom: 0.5px solid var(--ribbon-edge);
+      margin-bottom: 0.2rem;
     }
-    .drawer h3:first-of-type { margin-top: 0.75rem; }
-    .drawer-link {
-      display: flex; align-items: center; gap: 0.5rem;
-      padding: 0.55rem 0.5rem;
-      color: var(--text); text-decoration: none;
+    .site-footer .brand {
       font-family: var(--font-display);
-      font-size: 14px;
-      border-radius: var(--r-sm);
-      border-left: 2px solid transparent;
-    }
-    .drawer-link:hover { background: var(--accent-dim); color: var(--text); }
-    .drawer-link.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-dim); }
-    .drawer-link .stack { flex: 1; }
-    .drawer-link .stack .blurb { font-family: var(--font-body); font-size: 11px; color: var(--subtle); margin-top: 1px; }
-    .drawer-link .arrow { color: var(--subtle); font-family: var(--font-mono); }
-    .quick-chips {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem;
-    }
-    .quick-chips a {
-      text-align: center;
-      padding: 0.55rem 0;
-      border: 0.5px solid var(--border);
-      border-radius: var(--r-md);
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: var(--ls-wide);
-      text-transform: uppercase;
-      color: var(--muted);
-      text-decoration: none;
-    }
-    .quick-chips a:hover { border-color: var(--accent); color: var(--accent); }
-    .quick-chips a.primary {
-      background: var(--accent); color: var(--obsidian); border-color: var(--accent);
-    }
-    .m-palette {
-      position: absolute; inset: 0; top: 38px;
-      background: var(--bg);
-      display: flex; flex-direction: column;
-      z-index: 50;
-    }
-    .m-palette-bar {
-      display: flex; align-items: center; gap: 0.5rem;
-      padding: 0.55rem 0.75rem;
-      border-bottom: 0.5px solid var(--ribbon-edge);
-      background: var(--ribbon);
-    }
-    .m-palette-input {
-      flex: 1;
-      padding: 0.5rem 0.7rem;
-      background: var(--surface);
-      border: 0.5px solid var(--border);
-      border-radius: var(--r-md);
+      font-weight: var(--wordmark-weight);
+      font-size: 18px;
+      letter-spacing: var(--wordmark-tracking);
       color: var(--text);
-      font-family: var(--font-body);
-      font-size: var(--fs-base);
-      outline: none;
     }
-    .m-palette-cancel {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--accent);
-      background: transparent; border: 0;
-      padding: 4px 6px;
-    }
-    .m-palette-body { flex: 1; overflow-y: auto; padding: 0.4rem 0; }
-    .m-palette-section {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      letter-spacing: var(--ls-widest);
-      text-transform: uppercase;
-      color: var(--subtle);
-      padding: 0.55rem 1rem 0.2rem;
-    }
-    .m-palette-row {
-      display: flex; align-items: center; gap: 0.7rem;
-      padding: 0.6rem 1rem;
-      border-bottom: 0.5px solid rgba(90,80,64,0.2);
-    }
-    .m-palette-row .icon {
-      width: 26px; height: 26px;
-      display: inline-flex; align-items: center; justify-content: center;
-      background: var(--surface); border: 0.5px solid var(--border);
-      border-radius: var(--r-sm);
-      font-size: 12px; color: var(--subtle);
-    }
-    .m-palette-row .meta { flex: 1; }
-    .m-palette-row .title { font-size: 13px; }
-    .m-palette-row .crumb { font-family: var(--font-mono); font-size: 10px; color: var(--subtle); }
-
-    /* ════════════════════════════════════════════════════════════
-       SITEMAP SECTION (P-35)
-       ════════════════════════════════════════════════════════════ */
-    .sitemap-section { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 1rem; }
-    .sitemap-grid {
-      display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;
-      margin-top: 1rem;
-    }
-    @media (max-width: 720px) { .sitemap-grid { grid-template-columns: 1fr; } }
-    .sitemap-col h3 {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: var(--ls-widest);
-      text-transform: uppercase;
-      color: var(--subtle);
-      margin: 0 0 0.5rem;
-      padding-bottom: 0.4rem;
-      border-bottom: 0.5px solid var(--border);
-    }
-    .sitemap-entry {
-      display: grid; grid-template-columns: 160px 1fr;
-      gap: 0.75rem;
-      padding: 0.45rem 0;
-      border-bottom: 0.5px solid rgba(90, 80, 64, 0.2);
-    }
-    .sitemap-entry a {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text);
-      text-decoration: none;
-    }
-    .sitemap-entry a:hover { color: var(--accent); }
-    .sitemap-entry .desc { font-size: 12px; color: var(--muted); line-height: var(--lh-snug); }
-
-    /* Hide proposal-banner content; we no longer use it inline */
+    .site-footer .tagline { color: var(--ember); font-size: var(--fs-sm); margin: 0.25rem 0 0; }
+    .site-footer a { color: var(--muted); font-size: var(--fs-sm); padding: 2px 0; }
+    .site-footer a:hover { color: var(--text); }
   </style>
 </head>
 <body>
 
   <!-- ════════════════════════════════════════════════════════════
-       HEADER (REDESIGNED — every proposal applied)
+       Doc TOC
        ════════════════════════════════════════════════════════════ -->
-  <header class="site-header">
-    <div class="site-header-inner">
-      <a class="site-header-brand" href="#top">
-        <!-- Real Logo SVG, verbatim from site/src/components/Logo.astro -->
-        <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
-          <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine, #5a5040)" stroke-width="1" />
-          <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke, #e8dfd0)" stroke-width="1.2" />
-          <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke, #e8dfd0)" stroke-width="1.2" />
-          <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled, #e05c18)" />
-          <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke, #e8dfd0)" />
-          <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke, #e8dfd0)" />
-          <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark, #1c1710)" />
-        </svg>
-        <span class="wordmark">opchain</span>
-      </a>
-
-      <nav class="nav" aria-label="Primary">
-        <div class="nav-group" data-group="product">
-          <button class="nav-link" aria-haspopup="true" aria-expanded="false">
-            Product
-            <span class="nav-badge new">NEW</span>
-            <span class="nav-caret"></span>
-          </button>
-          <div class="dropdown">
-            <div class="dropdown-section-head">explore the system</div>
-            <a class="dropdown-item" href="#">
-              <span class="label">Architecture</span>
-              <span class="blurb">Skillchain & checkpoint protocol with diagrams.</span>
-            </a>
-            <a class="dropdown-item" href="#">
-              <span class="label">Skills <span class="pillet count">14</span></span>
-              <span class="blurb">Every skill, role-tagged, filterable.</span>
-            </a>
-            <a class="dropdown-item" href="#">
-              <span class="label">Compare</span>
-              <span class="blurb">opchain vs Cursor, Aider, plain Claude Code.</span>
-            </a>
-            <a class="dropdown-item" href="#">
-              <span class="label">Changelog <span class="pillet new">v1.3</span></span>
-              <span class="blurb">release-ops, migration-ops, security-auditor.</span>
-            </a>
-          </div>
-        </div>
-
-        <div class="nav-group" data-group="pipeline">
-          <button class="nav-link" aria-haspopup="true" aria-expanded="false">
-            Pipeline
-            <span class="nav-badge tool">⚡</span>
-            <span class="nav-caret"></span>
-          </button>
-          <div class="dropdown">
-            <div class="dropdown-section-head">interactive tools</div>
-            <a class="dropdown-item" href="#">
-              <span class="label">Pipeline Builder <span class="pillet tool">TOOL</span></span>
-              <span class="blurb">Answer 4 questions, get a curated stack.</span>
-            </a>
-            <a class="dropdown-item" href="#">
-              <span class="label">Demo <span class="pillet tool">TOOL</span></span>
-              <span class="blurb">Walkthroughs of opchain end-to-end.</span>
-            </a>
-            <a class="dropdown-item" href="#">
-              <span class="label">Showcase</span>
-              <span class="blurb">Projects actually shipped with opchain.</span>
-            </a>
-            <a class="dropdown-item" href="#">
-              <span class="label">Status</span>
-              <span class="blurb">Live API health from /api/health.</span>
-            </a>
-          </div>
-        </div>
-
-        <div class="nav-group" data-group="resources">
-          <button class="nav-link" aria-haspopup="true" aria-expanded="false">
-            Resources
-            <span class="nav-caret"></span>
-          </button>
-          <div class="dropdown">
-            <div class="dropdown-section-head">references & trust</div>
-            <a class="dropdown-item" href="#">
-              <span class="label">Glossary</span>
-              <span class="blurb">Every opchain term, plain-English.</span>
-            </a>
-            <a class="dropdown-item" href="#">
-              <span class="label">How it's built</span>
-              <span class="blurb">opchain.dev built with opchain — the recursion.</span>
-            </a>
-            <a class="dropdown-item" href="#">
-              <span class="label">Security</span>
-              <span class="blurb">Threat model, dependency posture, secrets.</span>
-            </a>
-            <a class="dropdown-item" href="#">
-              <span class="label">Sitemap</span>
-              <span class="blurb">Every page, one-lined.</span>
-            </a>
-          </div>
-        </div>
-
-        <a class="nav-install" href="#">install</a>
-      </nav>
-
-      <a class="status-pill" href="#" title="API health"><span class="status-dot"></span>all systems normal</a>
-      <a class="version-chip" href="#"><span class="sha">a7f3c91</span></a>
-
-      <button class="cmdk-pill" id="open-palette" title="open command palette">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        <span class="kbd">⌘K</span>
-      </button>
-
-      <button class="icon-btn" title="feedback" aria-label="Send feedback">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      </button>
-      <button class="icon-btn" title="theme" aria-label="Toggle theme">☼</button>
-    </div>
-  </header>
+  <nav class="doc-toc">
+    <h3>this preview demonstrates</h3>
+    <a href="#a"><span class="ph">▌</span> Banner Placement A · Above-everything cinema</a>
+    <a href="#m1"><span class="ph">▌</span> Menu Alt 1 · Tool tray with labels</a>
+    <a href="#b"><span class="ph">▌</span> Banner Placement B · Split-the-claim</a>
+    <a href="#m2"><span class="ph">▌</span> Menu Alt 2 · Iconified minimal</a>
+    <a href="#c"><span class="ph">▌</span> Banner Placement C · Full-bleed cinema strip</a>
+    <a href="#m3"><span class="ph">▌</span> Menu Alt 3 · Search-first input</a>
+    <a href="#kept"><span class="ph">▌</span> Resources strip + Skill detail (kept — unchanged)</a>
+    <a href="#bar"><span class="ph">▌</span> Glowing current+next release bar (matching pair)</a>
+  </nav>
 
   <!-- ════════════════════════════════════════════════════════════
-       HOMEPAGE (mirrors src/pages/index.astro content)
+       VARIANT A — BANNER: above-everything cinema
+                   MENU: baseline (alts shown later in doc)
        ════════════════════════════════════════════════════════════ -->
-  <main class="intro" id="top">
-    <span class="eyebrow">skill ecosystem</span>
-
-    <div class="intro-hero">
-      <svg width="128" height="128" viewBox="0 0 32 32" aria-hidden="true">
-        <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
-        <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
-        <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
-        <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
-        <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
-        <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
-        <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
-      </svg>
-      <h1 class="intro-mark">opchain</h1>
+  <section id="a" class="variant-banner">
+    <div class="variant-banner-inner">
+      <span class="variant-tag">Variant A</span>
+      <span class="variant-title">Above-everything cinema banner</span>
+      <span class="variant-blurb">Banner is the first thing under the header. Logo + wordmark embed inside it; scenario dominates the fold. Twelve dots at bottom-center; active dot grows + ember-glows.</span>
     </div>
+  </section>
 
-    <p class="intro-claim">skills that ship.</p>
+  <div class="variant-frame">
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-header-brand" href="#">
+          <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+            <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
+            <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+            <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+            <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
+            <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+            <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+            <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
+          </svg>
+          <span class="wordmark">opchain</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <div class="nav-group">
+            <button class="nav-link">Product <span class="nav-badge new">NEW</span> <span class="nav-caret"></span></button>
+          </div>
+          <div class="nav-group">
+            <button class="nav-link">Pipeline <span class="nav-badge tool">⚡</span> <span class="nav-caret"></span></button>
+          </div>
+          <div class="nav-group">
+            <button class="nav-link">Resources <span class="nav-caret"></span></button>
+          </div>
+          <a class="nav-install" href="#">install</a>
+        </nav>
+        <div class="right-cluster">
+          <a class="util-status-pill" href="#"><span class="status-dot"></span>all systems normal</a>
+          <a class="util-version-chip" href="#"><span class="sha">a7f3c91</span></a>
+          <button class="util-cmdk-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span class="kbd">⌘K</span></button>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+          <button class="icon-btn">☼</button>
+        </div>
+      </div>
+    </header>
 
-    <div class="intro-tagline">
-      <span>a skillchain and checkpoint protocol designed to get you from concept to production to ops</span>
-    </div>
+    <!-- Above-everything cinema banner -->
+    <section class="stage-cinema" aria-label="Featured scenario">
+      <div class="stage-cinema-mark">
+        <svg width="36" height="36" viewBox="0 0 32 32" aria-hidden="true">
+          <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
+          <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+          <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+          <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
+          <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+          <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+          <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
+        </svg>
+        <span class="wordmark">opchain</span>
+      </div>
 
-    <div class="intro-body">
-      <p>If you've ever tried to build something real with Claude and watched it lose the plot between chats — forgetting your spec, redesigning what it already designed, repeating questions it asked an hour ago — opchain is what you've been looking for.</p>
-      <p>A set of Claude Code skills plus a checkpoint protocol. Each skill specializes in one piece of the puzzle (discovery, spec, design, build, audit, ship, monitor, migrate, scale). At the beginning of the next session, Claude reads them back to pick up right where you left off. A central orchestrator routes between them so you never have to think about which skill to call.</p>
-      <p>Install them, trigger by name, keep going. No API keys. No SaaS. No vendor lock-in — every skill is a single Markdown file.</p>
-    </div>
+      <div class="stage-cinema-mid">
+        <span class="stage-cinema-eyebrow">Scenario 03 of 12 · django on render, shipped over a long weekend</span>
+        <h1 class="stage-cinema-h">Idea-to-shipped in a long weekend.</h1>
+        <p class="stage-cinema-sub">One conversation. Eight phases. opchain orchestrates discovery, spec, design, sprint loop, audit, deploy, monitor, migrate — and the next session picks up where you left off.</p>
+        <div class="stage-cinema-actions">
+          <a class="btn btn-primary" href="#" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.7rem 1.3rem;font-family:var(--font-mono);font-size:var(--fs-sm);letter-spacing:var(--ls-wide);text-transform:uppercase;border-radius:var(--r-xs);background:var(--accent);color:var(--obsidian);font-weight:600;text-decoration:none;">▶ open the workbench</a>
+          <a class="btn btn-ghost" href="#" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.7rem 1.3rem;font-family:var(--font-mono);font-size:var(--fs-sm);letter-spacing:var(--ls-wide);text-transform:uppercase;border-radius:var(--r-xs);background:transparent;color:var(--text);border:0.5px solid var(--border);text-decoration:none;">install opchain</a>
+        </div>
 
-    <a class="release-pill" href="#" aria-label="opchain v1.3 release notes">
-      <span class="release-pill-tag">v1.3</span>
-      <span class="release-pill-text">Runtime PM-MCP · Django / Rails / Go / Rust · release-ops</span>
-      <span class="release-pill-arrow">›</span>
-    </a>
-
-    <section class="stats">
-      <a class="stat" href="#"><span class="stat-num">14</span><span class="stat-label">skills shipped</span></a>
-      <a class="stat" href="#"><span class="stat-num">v1.3</span><span class="stat-label">latest release</span></a>
-      <a class="stat" href="#"><span class="stat-num">live</span><span class="stat-label">system status</span></a>
-      <a class="stat" href="#"><span class="stat-num">MIT</span><span class="stat-label">open source</span></a>
-    </section>
-
-    <!-- NEW: Explore rail (P-16) -->
-    <section class="explore-rail" aria-label="Explore opchain">
-      <a class="tile" href="#">
-        <span class="tile-tag tool">⚡ TOOL</span>
-        <h3>Pipeline Builder</h3>
-        <p>Pick what you're shipping, get a curated opchain stack.</p>
-        <span class="arrow">›</span>
-      </a>
-      <a class="tile" href="#">
-        <span class="tile-tag">⚖ DOC</span>
-        <h3>Compare</h3>
-        <p>opchain vs Cursor, Aider, plain Claude Code.</p>
-        <span class="arrow">›</span>
-      </a>
-      <a class="tile" href="#">
-        <span class="tile-tag">▦ GALLERY</span>
-        <h3>Showcase</h3>
-        <p>Projects actually shipped with opchain.</p>
-        <span class="arrow">›</span>
-      </a>
-      <a class="tile" href="#">
-        <span class="tile-tag">◆ META</span>
-        <h3>How it's built</h3>
-        <p>opchain.dev is built with opchain. See the recursion.</p>
-        <span class="arrow">›</span>
-      </a>
-    </section>
-
-    <section class="stage" aria-label="Featured scenario">
-      <div class="stage-mid">
-        <div class="stage-issue">opchain · scenario <span>01</span></div>
-        <h2 class="stage-h">Idea-to-shipped in a long weekend.</h2>
-        <p class="stage-sub">One conversation. Eight phases. opchain orchestrates discovery, spec, design, sprint loop, audit, deploy, monitor, migrate.</p>
-        <div class="stage-actions">
-          <a class="btn btn-primary" href="#">▶ open the workbench</a>
-          <a class="btn btn-ghost" href="#">install opchain</a>
+        <!-- A: horizontal pill-row dots -->
+        <div class="dot-row" role="tablist" aria-label="Scenario 3 of 12">
+          <button class="dot"></button>
+          <button class="dot"></button>
+          <button class="dot active" aria-current="true"></button>
+          <button class="dot"></button>
+          <button class="dot"></button>
+          <button class="dot"></button>
+          <button class="dot"></button>
+          <button class="dot"></button>
+          <button class="dot"></button>
+          <button class="dot"></button>
+          <button class="dot"></button>
+          <button class="dot"></button>
+          <span class="dot-counter">03 / 12 — auto-rotating · 10s</span>
         </div>
       </div>
     </section>
 
-    <section class="phase-grid" aria-label="Pipeline phases">
-      <article class="phase-card">
-        <div class="phase-step">01 · DISCOVER</div>
-        <div class="phase-name">Interview</div>
-        <div class="phase-pills">
-          <a class="phase-pill" data-role="workflow" href="#">app-architect</a>
-        </div>
-        <div class="phase-blurb">Interview — scope the idea, users, success criteria, and MVP boundaries.</div>
-      </article>
-      <article class="phase-card">
-        <div class="phase-step">02 · SPEC</div>
-        <div class="phase-name">Contract</div>
-        <div class="phase-pills">
-          <a class="phase-pill" data-role="advisor" href="#">stack-forge</a>
-          <a class="phase-pill" data-role="workflow" href="#">app-architect</a>
-          <a class="phase-pill" data-role="tri-agent" href="#">api-dev</a>
-        </div>
-        <div class="phase-blurb">Contract — typed spec, stack picks, integration shape, and the first-party API surface as an OpenAPI/GraphQL contract.</div>
-      </article>
-      <article class="phase-card">
-        <div class="phase-step">03 · DESIGN</div>
-        <div class="phase-name">Style book</div>
-        <div class="phase-pills">
-          <a class="phase-pill" data-role="tri-agent" href="#">ux-engineer</a>
-          <a class="phase-pill" data-role="specialist" href="#">dash-forge</a>
-        </div>
-        <div class="phase-blurb">Style book — design system, screens, components, working prototype.</div>
-      </article>
-      <article class="phase-card">
-        <div class="phase-step">04 · BUILD</div>
-        <div class="phase-name">Sprint loop</div>
-        <div class="phase-pills">
-          <a class="phase-pill" data-role="workflow" href="#">app-architect</a>
-        </div>
-        <div class="phase-blurb">Sprint loop — Generator/Evaluator build cycle, ship features behind quality gates.</div>
-      </article>
-      <article class="phase-card">
-        <div class="phase-step">05 · AUDIT</div>
-        <div class="phase-name">Quality gate</div>
-        <div class="phase-pills">
-          <a class="phase-pill" data-role="audit-gate" href="#">code-auditor</a>
-          <a class="phase-pill" data-role="audit-gate" href="#">security-auditor</a>
-        </div>
-        <div class="phase-blurb">Quality gate — Auditor/Fixer/Verifier loop plus security posture review before ship.</div>
-      </article>
-      <article class="phase-card">
-        <div class="phase-step">06 · SHIP</div>
-        <div class="phase-name">Deploy</div>
-        <div class="phase-pills">
-          <a class="phase-pill" data-role="specialist" href="#">git-ops</a>
-          <a class="phase-pill" data-role="orchestrator" href="#">deploy-ops</a>
-        </div>
-        <div class="phase-blurb">Deploy — branch, PR, audit gate, staging, production, rollback if needed.</div>
-      </article>
-      <article class="phase-card">
-        <div class="phase-step">07 · MONITOR</div>
-        <div class="phase-name">Observe</div>
-        <div class="phase-pills">
-          <a class="phase-pill" data-role="specialist" href="#">monitoring-ops</a>
-        </div>
-        <div class="phase-blurb">Observe — uptime, errors, alerts, SLOs, on-call, postmortems.</div>
-      </article>
-      <article class="phase-card">
-        <div class="phase-step">08 · MIGRATE</div>
-        <div class="phase-name">Engine swap</div>
-        <div class="phase-pills">
-          <a class="phase-pill" data-role="specialist" href="#">migration-ops</a>
-        </div>
-        <div class="phase-blurb">Engine swap — live migrations: database, framework, auth, platform — with rollback.</div>
-      </article>
-    </section>
-  </main>
+    <main class="intro" id="bar">
+      <p class="intro-claim">skills that ship.</p>
+      <div class="intro-tagline">a skillchain and checkpoint protocol designed to get you from concept to production to ops</div>
+
+      <!-- Glowing current + next release bar (matching pair) -->
+      <a class="release-bar-glow" href="#" aria-label="opchain releases">
+        <span class="rb-half rb-current">
+          <span class="rb-tag">v1.3 · shipped</span>
+          <span class="rb-text">release-ops · Django · Rails · Go · Rust</span>
+        </span>
+        <span class="rb-divider"></span>
+        <span class="rb-half rb-next">
+          <span class="rb-tag rb-tag-next">v1.4 · in progress</span>
+          <span class="rb-text rb-text-next">Mobile · Apple · Android · Flutter</span>
+        </span>
+        <span class="rb-arrow">›</span>
+      </a>
+
+      <section class="stats">
+        <a class="stat" href="#"><span class="stat-num">14</span><span class="stat-label">skills shipped</span></a>
+        <a class="stat" href="#"><span class="stat-num">v1.3</span><span class="stat-label">latest release</span></a>
+        <a class="stat" href="#"><span class="stat-num">live</span><span class="stat-label">system status</span></a>
+        <a class="stat" href="#"><span class="stat-num">MIT</span><span class="stat-label">open source</span></a>
+      </section>
+
+      <div class="intro-body" style="margin-top:2.5rem;">
+        <p>If you've ever tried to build something real with Claude and watched it lose the plot between chats — forgetting your spec, redesigning what it already designed, repeating questions it asked an hour ago — opchain is what you've been looking for.</p>
+        <p>A set of Claude Code skills plus a checkpoint protocol. Each skill specializes in one piece of the puzzle. At the beginning of the next session, Claude reads them back to pick up right where you left off.</p>
+      </div>
+    </main>
+  </div>
 
   <!-- ════════════════════════════════════════════════════════════
-       NEW: RESOURCES STRIP (P-31) — above footer
+       MENU ALT 1 — Tool tray with labels
        ════════════════════════════════════════════════════════════ -->
+  <section id="m1" class="variant-banner">
+    <div class="variant-banner-inner">
+      <span class="variant-tag">Menu Alt 1</span>
+      <span class="variant-title">Tool tray with labels</span>
+      <span class="variant-blurb">Status moves into the version chip as a tiny pulsing dot — no more "all systems normal" pill that reads as a search box. Each utility carries an explicit text label and lives inside a single bordered tray with subtle dividers.</span>
+    </div>
+  </section>
+
+  <div class="variant-frame">
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-header-brand" href="#">
+          <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+            <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
+            <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+            <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+            <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
+            <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+            <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+            <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
+          </svg>
+          <span class="wordmark">opchain</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <div class="nav-group"><button class="nav-link">Product <span class="nav-badge new">NEW</span> <span class="nav-caret"></span></button></div>
+          <div class="nav-group"><button class="nav-link">Pipeline <span class="nav-badge tool">⚡</span> <span class="nav-caret"></span></button></div>
+          <div class="nav-group"><button class="nav-link">Resources <span class="nav-caret"></span></button></div>
+          <a class="nav-install" href="#">install</a>
+        </nav>
+
+        <!-- Alt 1: tool tray with labels -->
+        <div class="alt1-tray" aria-label="Utility tools">
+          <span class="tray-version" title="opchain v1.3 · all systems normal">
+            <span class="status-dot" aria-hidden="true"></span>
+            v1.3 <span class="sha">· a7f3c91</span>
+          </span>
+          <button class="tray-item">
+            <span class="glyph">⌕</span> search <span class="kbd" style="margin-left:4px;">⌘K</span>
+          </button>
+          <button class="tray-item">
+            <span class="glyph">💬</span> feedback
+          </button>
+          <button class="tray-item">
+            <span class="glyph">☼</span> theme
+          </button>
+        </div>
+      </div>
+    </header>
+    <div class="menu-explain">
+      <div class="col"><strong>What changed</strong>The status pill is gone. Health lives inside the version chip as a pulsing dot — same colour, half the visual weight.</div>
+      <div class="col"><strong>Why it works</strong>Labels remove guesswork: search, feedback, theme are obvious without hover. The bordered tray groups them as utilities (not navigation).</div>
+      <div class="col"><strong>Tradeoff</strong>Heaviest of the three — adds ~120px of width. Best on desktop ≥1080px; collapses to icons-only on narrow screens.</div>
+    </div>
+    <div style="height: 24px;"></div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       VARIANT B — BANNER: split-the-claim (vertical bar indicator)
+       ════════════════════════════════════════════════════════════ -->
+  <section id="b" class="variant-banner">
+    <div class="variant-banner-inner">
+      <span class="variant-tag">Variant B</span>
+      <span class="variant-title">Split-the-claim banner</span>
+      <span class="variant-blurb">Banner sits between the wordmark and the body text — replacing the "skills that ship" + tagline area as the hero focus. Vertical equalizer-style bar indicator on the right edge: 12 bars, the active one is tallest with an ember glow.</span>
+    </div>
+  </section>
+
+  <div class="variant-frame">
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-header-brand" href="#">
+          <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+            <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
+            <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+            <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+            <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
+            <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+            <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+            <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
+          </svg>
+          <span class="wordmark">opchain</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <div class="nav-group"><button class="nav-link">Product <span class="nav-badge new">NEW</span> <span class="nav-caret"></span></button></div>
+          <div class="nav-group"><button class="nav-link">Pipeline <span class="nav-badge tool">⚡</span> <span class="nav-caret"></span></button></div>
+          <div class="nav-group"><button class="nav-link">Resources <span class="nav-caret"></span></button></div>
+          <a class="nav-install" href="#">install</a>
+        </nav>
+        <div class="right-cluster">
+          <a class="util-status-pill" href="#"><span class="status-dot"></span>all systems normal</a>
+          <a class="util-version-chip" href="#"><span class="sha">a7f3c91</span></a>
+          <button class="util-cmdk-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span class="kbd">⌘K</span></button>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+          <button class="icon-btn">☼</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="intro" style="padding-top:2rem;">
+      <span class="eyebrow">skill ecosystem</span>
+      <div class="intro-hero">
+        <svg width="96" height="96" viewBox="0 0 32 32" aria-hidden="true">
+          <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
+          <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+          <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+          <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
+          <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+          <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+          <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
+        </svg>
+        <h1 class="intro-mark">opchain</h1>
+      </div>
+
+      <!-- Split-the-claim banner with vertical bar indicator -->
+      <section class="stage-split" aria-label="Featured scenario">
+        <div class="bar-col" role="tablist" aria-label="Scenario 3 of 12">
+          <span class="bar-label">03 / 12</span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar active"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </div>
+
+        <div class="stage-split-mid">
+          <div class="stage-issue">opchain · scenario 03 of 12</div>
+          <h2 class="stage-h">Idea-to-shipped in a long weekend.</h2>
+          <p class="stage-sub">One conversation. Eight phases. opchain orchestrates discovery, spec, design, sprint loop, audit, deploy, monitor, migrate.</p>
+          <div class="stage-actions">
+            <a class="btn btn-primary" href="#">▶ open the workbench</a>
+            <a class="btn btn-ghost" href="#">install opchain</a>
+          </div>
+        </div>
+      </section>
+
+      <p class="intro-claim">skills that ship.</p>
+      <div class="intro-tagline">a skillchain and checkpoint protocol designed to get you from concept to production to ops</div>
+
+      <a class="release-bar-glow" href="#" aria-label="opchain releases">
+        <span class="rb-half rb-current">
+          <span class="rb-tag">v1.3 · shipped</span>
+          <span class="rb-text">release-ops · Django · Rails · Go · Rust</span>
+        </span>
+        <span class="rb-divider"></span>
+        <span class="rb-half rb-next">
+          <span class="rb-tag rb-tag-next">v1.4 · in progress</span>
+          <span class="rb-text rb-text-next">Mobile · Apple · Android · Flutter</span>
+        </span>
+        <span class="rb-arrow">›</span>
+      </a>
+
+      <section class="stats">
+        <a class="stat" href="#"><span class="stat-num">14</span><span class="stat-label">skills shipped</span></a>
+        <a class="stat" href="#"><span class="stat-num">v1.3</span><span class="stat-label">latest release</span></a>
+        <a class="stat" href="#"><span class="stat-num">live</span><span class="stat-label">system status</span></a>
+        <a class="stat" href="#"><span class="stat-num">MIT</span><span class="stat-label">open source</span></a>
+      </section>
+
+      <div class="intro-body" style="margin-top:2.5rem;">
+        <p>If you've ever tried to build something real with Claude and watched it lose the plot between chats — forgetting your spec, redesigning what it already designed, repeating questions it asked an hour ago — opchain is what you've been looking for.</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       MENU ALT 2 — Iconified minimal
+       ════════════════════════════════════════════════════════════ -->
+  <section id="m2" class="variant-banner">
+    <div class="variant-banner-inner">
+      <span class="variant-tag">Menu Alt 2</span>
+      <span class="variant-title">Iconified minimal · with hover tooltips</span>
+      <span class="variant-blurb">Smallest footprint. Status dot pulses inside the version chip. Search/feedback/theme are pure icons; meaning explained on hover via tooltip. Trade-off: discoverability for first-time visitors is lower, but utilities never crowd the nav.</span>
+    </div>
+  </section>
+
+  <div class="variant-frame">
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-header-brand" href="#">
+          <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+            <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
+            <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+            <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+            <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
+            <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+            <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+            <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
+          </svg>
+          <span class="wordmark">opchain</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <div class="nav-group"><button class="nav-link">Product <span class="nav-badge new">NEW</span> <span class="nav-caret"></span></button></div>
+          <div class="nav-group"><button class="nav-link">Pipeline <span class="nav-badge tool">⚡</span> <span class="nav-caret"></span></button></div>
+          <div class="nav-group"><button class="nav-link">Resources <span class="nav-caret"></span></button></div>
+          <a class="nav-install" href="#">install</a>
+        </nav>
+
+        <div class="alt2-mini">
+          <a class="alt2-version" href="#" title="opchain v1.3 · a7f3c91 · all systems normal">
+            <span class="version-tag">v1.3</span>
+            <span class="sha">a7f3c91</span>
+            <span class="status-dot" aria-hidden="true"></span>
+          </a>
+          <button class="alt2-icon" data-tip="Search · ⌘K" aria-label="Search opchain">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          </button>
+          <button class="alt2-icon" data-tip="Send feedback" aria-label="Send feedback">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </button>
+          <button class="alt2-icon" data-tip="Toggle theme" aria-label="Toggle theme">☼</button>
+        </div>
+      </div>
+    </header>
+    <div class="menu-explain">
+      <div class="col"><strong>What changed</strong>The standalone status pill is removed. Health lives as a pulsing dot tucked next to the SHA inside the version chip — discoverable on hover.</div>
+      <div class="col"><strong>Why it works</strong>Cleanest possible header. Power users (the ones who care about icons) lose nothing; everyone else gets out-of-the-way utilities.</div>
+      <div class="col"><strong>Tradeoff</strong>First-time visitors won't immediately know what 💬 or ☼ do. Tooltip-on-hover mitigates but doesn't eliminate this. Strongest if traffic skews returning.</div>
+    </div>
+    <div style="height: 24px;"></div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       VARIANT C — BANNER: full-bleed cinema strip + chain-link dots
+       ════════════════════════════════════════════════════════════ -->
+  <section id="c" class="variant-banner">
+    <div class="variant-banner-inner">
+      <span class="variant-tag">Variant C</span>
+      <span class="variant-title">Full-bleed cinema strip · chain-link dots</span>
+      <span class="variant-blurb">Banner takes a full-bleed cinematic section after the hero text. Twelve indicator nodes are styled as miniature chain links — directly echoing the brand mark — with the active node filled ember just like the third logo segment.</span>
+    </div>
+  </section>
+
+  <div class="variant-frame">
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-header-brand" href="#">
+          <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+            <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
+            <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+            <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+            <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
+            <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+            <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+            <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
+          </svg>
+          <span class="wordmark">opchain</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <div class="nav-group"><button class="nav-link">Product <span class="nav-badge new">NEW</span> <span class="nav-caret"></span></button></div>
+          <div class="nav-group"><button class="nav-link">Pipeline <span class="nav-badge tool">⚡</span> <span class="nav-caret"></span></button></div>
+          <div class="nav-group"><button class="nav-link">Resources <span class="nav-caret"></span></button></div>
+          <a class="nav-install" href="#">install</a>
+        </nav>
+        <div class="right-cluster">
+          <a class="util-status-pill" href="#"><span class="status-dot"></span>all systems normal</a>
+          <a class="util-version-chip" href="#"><span class="sha">a7f3c91</span></a>
+          <button class="util-cmdk-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span class="kbd">⌘K</span></button>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+          <button class="icon-btn">☼</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="intro" style="padding-top:3rem;padding-bottom:0;">
+      <span class="eyebrow">skill ecosystem</span>
+      <div class="intro-hero">
+        <svg width="96" height="96" viewBox="0 0 32 32" aria-hidden="true">
+          <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
+          <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+          <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+          <rect x="21" y="10" width="8" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+          <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
+          <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+          <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+          <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
+        </svg>
+        <h1 class="intro-mark">opchain</h1>
+      </div>
+      <p class="intro-claim">skills that ship.</p>
+      <div class="intro-tagline">a skillchain and checkpoint protocol designed to get you from concept to production to ops</div>
+      <div class="intro-body">
+        <p>If you've ever tried to build something real with Claude and watched it lose the plot between chats — opchain is what you've been looking for.</p>
+      </div>
+    </main>
+
+    <!-- Full-bleed cinema strip with chain-link node indicator -->
+    <section class="stage-bleed" aria-label="Featured scenario">
+      <div class="stage-bleed-mid">
+        <div class="stage-issue">opchain · scenario 03 of 12 · django on render</div>
+        <h2 class="stage-h" style="font-size:clamp(1.5rem, 3.2vw, 2.2rem);max-width:24ch;">Idea-to-shipped in a long weekend.</h2>
+        <p class="stage-sub" style="font-size:var(--fs-md);max-width:54ch;">One conversation. Eight phases. opchain orchestrates discovery, spec, design, sprint loop, audit, deploy, monitor, migrate.</p>
+        <div class="stage-actions">
+          <a class="btn btn-primary" href="#">▶ open the workbench</a>
+          <a class="btn btn-ghost" href="#">install opchain</a>
+        </div>
+
+        <!-- C: chain-link node indicator (matches the opchain brand mark) -->
+        <div class="chain-row" role="tablist" aria-label="Scenario 3 of 12">
+          <span class="link"></span>
+          <span class="link"></span>
+          <span class="link active" aria-current="true"></span>
+          <span class="link"></span>
+          <span class="link"></span>
+          <span class="link"></span>
+          <span class="link"></span>
+          <span class="link"></span>
+          <span class="link"></span>
+          <span class="link"></span>
+          <span class="link"></span>
+          <span class="link"></span>
+          <span class="link-counter">03 / 12</span>
+        </div>
+      </div>
+    </section>
+
+    <main class="intro" style="padding-top:2rem;">
+      <a class="release-bar-glow" href="#" aria-label="opchain releases">
+        <span class="rb-half rb-current">
+          <span class="rb-tag">v1.3 · shipped</span>
+          <span class="rb-text">release-ops · Django · Rails · Go · Rust</span>
+        </span>
+        <span class="rb-divider"></span>
+        <span class="rb-half rb-next">
+          <span class="rb-tag rb-tag-next">v1.4 · in progress</span>
+          <span class="rb-text rb-text-next">Mobile · Apple · Android · Flutter</span>
+        </span>
+        <span class="rb-arrow">›</span>
+      </a>
+
+      <section class="stats">
+        <a class="stat" href="#"><span class="stat-num">14</span><span class="stat-label">skills shipped</span></a>
+        <a class="stat" href="#"><span class="stat-num">v1.3</span><span class="stat-label">latest release</span></a>
+        <a class="stat" href="#"><span class="stat-num">live</span><span class="stat-label">system status</span></a>
+        <a class="stat" href="#"><span class="stat-num">MIT</span><span class="stat-label">open source</span></a>
+      </section>
+    </main>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       MENU ALT 3 — Search-first input
+       ════════════════════════════════════════════════════════════ -->
+  <section id="m3" class="variant-banner">
+    <div class="variant-banner-inner">
+      <span class="variant-tag">Menu Alt 3</span>
+      <span class="variant-title">Search-first input</span>
+      <span class="variant-blurb">Solves the "search-bar confusion" head-on by making ⌘K an actual search input — not a pill that looks like one. Status moves into the version chip as a labeled pulse. Feedback + theme stay as icon-only buttons but now read as clearly-grouped utilities, not navigation.</span>
+    </div>
+  </section>
+
+  <div class="variant-frame">
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-header-brand" href="#">
+          <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+            <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
+            <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+            <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
+            <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
+            <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+            <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
+            <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
+          </svg>
+          <span class="wordmark">opchain</span>
+        </a>
+        <nav class="nav" aria-label="Primary" style="margin-right:0.5rem;">
+          <div class="nav-group"><button class="nav-link">Product <span class="nav-badge new">NEW</span> <span class="nav-caret"></span></button></div>
+          <div class="nav-group"><button class="nav-link">Pipeline <span class="nav-badge tool">⚡</span> <span class="nav-caret"></span></button></div>
+          <div class="nav-group"><button class="nav-link">Resources <span class="nav-caret"></span></button></div>
+          <a class="nav-install" href="#">install</a>
+        </nav>
+
+        <!-- Real input field, not a pill -->
+        <label class="alt3-search" aria-label="Search opchain">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" placeholder="Search pages, skills, glossary…" />
+          <span class="kbd">⌘K</span>
+        </label>
+
+        <a class="alt3-version" href="#" title="all systems normal · a7f3c91">
+          <span style="color:var(--accent);font-weight:600;">v1.3</span>
+          <span class="sha">a7f3c91</span>
+          <span class="status-dot" aria-hidden="true"></span>
+        </a>
+
+        <button class="icon-btn" title="Send feedback"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+        <button class="icon-btn" title="Toggle theme">☼</button>
+      </div>
+    </header>
+    <div class="menu-explain">
+      <div class="col"><strong>What changed</strong>⌘K is no longer a pill that looks like search — it IS search, with a real input affordance and visible kbd hint inside.</div>
+      <div class="col"><strong>Why it works</strong>Removes the entire class of "is this a search bar?" confusion. The input also doubles for keyboard users who don't know the ⌘K shortcut yet.</div>
+      <div class="col"><strong>Tradeoff</strong>Eats the most horizontal space (260px). On laptops &lt;1100px it would have to collapse back to an icon button — but on the typical 1440px+ design surface it dominates correctly.</div>
+    </div>
+    <div style="height: 24px;"></div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       KEPT COMPONENTS — Resources strip + Skill detail nav
+       (user said both are great; included for context, unchanged)
+       ════════════════════════════════════════════════════════════ -->
+  <section id="kept" class="variant-banner">
+    <div class="variant-banner-inner">
+      <span class="variant-tag" style="background:rgba(16,185,129,0.12);color:var(--success);border-color:var(--success);">KEPT</span>
+      <span class="variant-title">Resources strip + Skill detail nav</span>
+      <span class="variant-blurb">Unchanged from the previous preview — included so you can see the full page in context with the new banner placements above.</span>
+    </div>
+  </section>
+
   <section class="resources-strip" aria-label="Resources">
     <div class="lead">
       <span class="eyebrow">go deeper</span>
@@ -1565,17 +1856,7 @@
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════
-       SKILL DETAIL — example of P-20 / P-24 / P-25 / P-36 in situ
-       ════════════════════════════════════════════════════════════ -->
-  <div class="proposal-band">
-    <span class="tag">P-20 · P-24 · P-25 · P-36</span>
-    <div>
-      <div class="title">Skill detail page with breadcrumbs, glossary aside, related cards, prev/next</div>
-      <div class="blurb">Below this banner is a real /skills/app-architect render with every interior-page nav enhancement applied.</div>
-    </div>
-  </div>
-  <section class="skill-detail" id="skill-detail-example">
+  <section class="skill-detail">
     <div class="crumbs">
       <a href="#">opchain</a>
       <span class="sep">›</span>
@@ -1590,7 +1871,7 @@
     </div>
     <div class="skill-body-grid">
       <div>
-        <p>app-architect is the orchestrator skill at the front of the pipeline. It owns the conversation from a vague prompt ("I want to build X") through to a deployable app, delegating to specialists at each <a href="#" class="inline-link" style="color:var(--accent);border-bottom:0.5px dotted var(--accent);">checkpoint</a>.</p>
+        <p>app-architect is the orchestrator skill at the front of the pipeline. It owns the conversation from a vague prompt ("I want to build X") through to a deployable app, delegating to specialists at each <a href="#" style="color:var(--accent);border-bottom:0.5px dotted var(--accent);">checkpoint</a>.</p>
         <p>It pairs with <code class="inline">git-ops</code> and <code class="inline">deploy-ops</code> on the back end of the loop.</p>
       </div>
       <aside class="terms-aside">
@@ -1635,358 +1916,37 @@
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════
-       SITEMAP SECTION (P-35)
-       ════════════════════════════════════════════════════════════ -->
-  <div class="proposal-band">
-    <span class="tag">P-35</span>
-    <div>
-      <div class="title">New /sitemap page</div>
-      <div class="blurb">Every public route in a single grouped list. SEO + a11y safety net under the ⌘K palette.</div>
-    </div>
-  </div>
-  <section class="sitemap-section">
-    <span class="eyebrow">all destinations</span>
-    <h1 style="font-family:var(--font-display);font-weight:600;font-size:clamp(2rem,5vw,2.75rem);letter-spacing:var(--ls-tight);margin:0.5rem 0 1rem;line-height:1.1;">Sitemap</h1>
-    <p style="color:var(--muted);font-size:var(--fs-md);max-width:56ch;margin:0 0 1rem;">Every public page on opchain.dev, one-lined. Built from the same nav tree the header and ⌘K palette consume.</p>
-
-    <div class="sitemap-grid">
-      <div class="sitemap-col">
-        <h3>product</h3>
-        <div class="sitemap-entry"><a href="#">/</a><span class="desc">Hero, pipeline visual, primary CTAs.</span></div>
-        <div class="sitemap-entry"><a href="#">/architecture</a><span class="desc">Skillchain & checkpoint protocol with diagrams.</span></div>
-        <div class="sitemap-entry"><a href="#">/skills</a><span class="desc">All 14 skills, filterable by role and phase.</span></div>
-        <div class="sitemap-entry"><a href="#">/compare</a><span class="desc">opchain vs Cursor, Aider, plain Claude Code.</span></div>
-        <div class="sitemap-entry"><a href="#">/changelog</a><span class="desc">Release history, dated entries, version pins.</span></div>
-      </div>
-      <div class="sitemap-col">
-        <h3>pipeline</h3>
-        <div class="sitemap-entry"><a href="#">/pipeline-builder</a><span class="desc">Interactive stack picker — 4 questions, curated chain.</span></div>
-        <div class="sitemap-entry"><a href="#">/demo</a><span class="desc">Walkthroughs of opchain running end-to-end.</span></div>
-        <div class="sitemap-entry"><a href="#">/showcase</a><span class="desc">Projects shipped with opchain.</span></div>
-        <div class="sitemap-entry"><a href="#">/install</a><span class="desc">npm path, npx variant, manual skills-bundle.</span></div>
-        <h3 style="margin-top:1.5rem;">resources</h3>
-        <div class="sitemap-entry"><a href="#">/glossary</a><span class="desc">Terminology reference.</span></div>
-        <div class="sitemap-entry"><a href="#">/uses</a><span class="desc">How opchain.dev itself was built.</span></div>
-        <div class="sitemap-entry"><a href="#">/security</a><span class="desc">Threat model, dependency posture.</span></div>
-        <div class="sitemap-entry"><a href="#">/status</a><span class="desc">Live API health.</span></div>
-        <div class="sitemap-entry"><a href="#">/privacy</a><span class="desc">PostHog scope, cookies, consent.</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ════════════════════════════════════════════════════════════
-       MOBILE — drawer (P-38, P-39) + palette (P-15)
-       ════════════════════════════════════════════════════════════ -->
-  <div class="proposal-band">
-    <span class="tag">P-15 · P-38 · P-39 · P-40</span>
-    <div>
-      <div class="title">Mobile — grouped drawer with quick-chips + full-screen ⌘K sheet</div>
-      <div class="blurb">Replaces the flat 5-link drawer. Quick-chip row gets the three most-trafficked destinations one tap away.</div>
-    </div>
-  </div>
-  <section class="phones-row">
-    <div class="phone">
-      <div class="notch"></div>
-      <div class="phone-inner">
-        <div class="m-header">
-          <div class="brand">
-            <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
-              <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
-              <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
-              <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
-              <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
-              <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
-              <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
-              <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
-            </svg>
-            <span class="wordmark">opchain</span>
-          </div>
-          <div class="row">
-            <button class="icon-btn" style="border-color:var(--accent);color:var(--accent);">☰</button>
-            <button class="icon-btn">⌕</button>
-            <button class="icon-btn">☼</button>
-          </div>
-        </div>
-        <div class="scrim"></div>
-        <aside class="drawer">
-          <div class="quick-chips">
-            <a class="primary" href="#">install</a>
-            <a href="#">demo</a>
-            <a href="#">compare</a>
-          </div>
-          <h3>product</h3>
-          <a class="drawer-link active" href="#">
-            <div class="stack"><div>Architecture</div><div class="blurb">Skillchain & checkpoints.</div></div>
-            <span class="arrow">›</span>
-          </a>
-          <a class="drawer-link" href="#">
-            <div class="stack"><div>Skills <span class="nav-badge count" style="margin-left:4px;">14</span></div><div class="blurb">Every skill, role-tagged.</div></div>
-            <span class="arrow">›</span>
-          </a>
-          <a class="drawer-link" href="#">
-            <div class="stack"><div>Compare</div><div class="blurb">opchain vs alternatives.</div></div>
-            <span class="arrow">›</span>
-          </a>
-          <a class="drawer-link" href="#">
-            <div class="stack"><div>Changelog <span class="nav-badge new" style="margin-left:4px;">v1.3</span></div><div class="blurb">Release notes.</div></div>
-            <span class="arrow">›</span>
-          </a>
-          <h3>pipeline</h3>
-          <a class="drawer-link" href="#">
-            <div class="stack"><div>Pipeline Builder <span class="nav-badge tool" style="margin-left:4px;">⚡</span></div><div class="blurb">Pick a stack.</div></div>
-            <span class="arrow">›</span>
-          </a>
-          <a class="drawer-link" href="#">
-            <div class="stack"><div>Demo <span class="nav-badge tool" style="margin-left:4px;">⚡</span></div><div class="blurb">Walkthroughs.</div></div>
-            <span class="arrow">›</span>
-          </a>
-          <a class="drawer-link" href="#">
-            <div class="stack"><div>Showcase</div><div class="blurb">Shipped apps.</div></div>
-            <span class="arrow">›</span>
-          </a>
-          <h3>resources</h3>
-          <a class="drawer-link" href="#">
-            <div class="stack"><div>Glossary</div><div class="blurb">Definitions.</div></div>
-            <span class="arrow">›</span>
-          </a>
-          <a class="drawer-link" href="#">
-            <div class="stack"><div>How it's built</div><div class="blurb">Meta.</div></div>
-            <span class="arrow">›</span>
-          </a>
-          <a class="drawer-link" href="#">
-            <div class="stack"><div>Security</div><div class="blurb">Threat model.</div></div>
-            <span class="arrow">›</span>
-          </a>
-          <a class="drawer-link" href="#">
-            <div class="stack"><div>Status</div><div class="blurb">API health.</div></div>
-            <span class="arrow">›</span>
-          </a>
-        </aside>
-      </div>
-    </div>
-
-    <div class="phone">
-      <div class="notch"></div>
-      <div class="phone-inner">
-        <div class="m-header">
-          <div class="brand">
-            <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
-              <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
-              <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
-              <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
-              <rect x="21" y="10" width="8" height="12" rx="1.5" fill="var(--logo-filled)" />
-              <circle cx="6.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
-              <circle cx="15.5" cy="16" r="1.6" fill="var(--logo-stroke)" />
-              <circle cx="25" cy="16" r="1.6" fill="var(--logo-dot-dark)" />
-            </svg>
-            <span class="wordmark">opchain</span>
-          </div>
-          <div class="row">
-            <button class="icon-btn">☰</button>
-            <button class="icon-btn" style="border-color:var(--accent);color:var(--accent);">⌕</button>
-            <button class="icon-btn">☼</button>
-          </div>
-        </div>
-        <div class="m-palette">
-          <div class="m-palette-bar">
-            <input class="m-palette-input" placeholder="search…" value="pip" />
-            <button class="m-palette-cancel">cancel</button>
-          </div>
-          <div class="m-palette-body">
-            <div class="m-palette-section">pages · 2</div>
-            <div class="m-palette-row">
-              <span class="icon">⚡</span>
-              <div class="meta"><div class="title">Pipeline Builder</div><div class="crumb">/pipeline-builder</div></div>
-            </div>
-            <div class="m-palette-row">
-              <span class="icon">▦</span>
-              <div class="meta"><div class="title">Architecture</div><div class="crumb">/architecture</div></div>
-            </div>
-            <div class="m-palette-section">skills · 1</div>
-            <div class="m-palette-row">
-              <span class="icon" style="color:var(--workflow)">●</span>
-              <div class="meta"><div class="title">app-architect</div><div class="crumb">/skills/app-architect</div></div>
-            </div>
-            <div class="m-palette-section">actions · 3</div>
-            <div class="m-palette-row">
-              <span class="icon">⌘</span>
-              <div class="meta"><div class="title">Copy install command</div></div>
-            </div>
-            <div class="m-palette-row">
-              <span class="icon">☼</span>
-              <div class="meta"><div class="title">Toggle theme</div></div>
-            </div>
-            <div class="m-palette-row">
-              <span class="icon">💬</span>
-              <div class="meta"><div class="title">Send feedback</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ════════════════════════════════════════════════════════════
-       FOOTER (P-33 reorganized to mirror nav)
-       ════════════════════════════════════════════════════════════ -->
   <footer class="site-footer">
     <div class="site-footer-inner">
       <div class="col">
         <div class="brand">opchain</div>
         <p class="tagline">skills that ship.</p>
       </div>
-      <div class="col">
-        <div class="col-head">product</div>
-        <a href="#">Architecture</a>
-        <a href="#">Skills</a>
-        <a href="#">Compare</a>
-        <a href="#">Changelog</a>
-      </div>
-      <div class="col">
-        <div class="col-head">pipeline</div>
-        <a href="#">Pipeline Builder</a>
-        <a href="#">Demo</a>
-        <a href="#">Showcase</a>
-        <a href="#">Install</a>
-      </div>
-      <div class="col">
-        <div class="col-head">resources</div>
-        <a href="#">Glossary</a>
-        <a href="#">How it's built</a>
-        <a href="#">Security</a>
-        <a href="#">Sitemap</a>
-      </div>
-      <div class="col">
-        <div class="col-head">trust</div>
-        <a href="#">Status</a>
-        <a href="#">Privacy</a>
-        <a href="https://github.com/asfbay-bit/opchain" rel="noopener">GitHub</a>
-        <a href="#">Manage privacy</a>
-      </div>
-    </div>
-    <div class="site-footer-meta">
-      <span>© 2026 opchain</span>
-      <span>open-source · MIT</span>
+      <div class="col"><div class="col-head">product</div><a href="#">Architecture</a><a href="#">Skills</a><a href="#">Compare</a><a href="#">Changelog</a></div>
+      <div class="col"><div class="col-head">pipeline</div><a href="#">Pipeline Builder</a><a href="#">Demo</a><a href="#">Showcase</a><a href="#">Install</a></div>
+      <div class="col"><div class="col-head">resources</div><a href="#">Glossary</a><a href="#">How it's built</a><a href="#">Security</a><a href="#">Sitemap</a></div>
+      <div class="col"><div class="col-head">trust</div><a href="#">Status</a><a href="#">Privacy</a><a href="#">GitHub</a></div>
     </div>
   </footer>
 
-  <!-- ════════════════════════════════════════════════════════════
-       COMMAND PALETTE (overlay; click ⌘K pill in header to open)
-       ════════════════════════════════════════════════════════════ -->
-  <div class="palette-scrim" id="palette-scrim">
-    <div class="palette" role="dialog" aria-label="Command palette">
-      <input class="palette-input" id="palette-input" placeholder="Search pages, skills, glossary, actions…" autofocus />
-      <div class="palette-list" id="palette-list">
-        <div class="palette-section">start here</div>
-        <a class="palette-row selected" href="#">
-          <span class="icon">⚡</span>
-          <div class="meta">
-            <div class="title">Pipeline Builder</div>
-            <div class="blurb">Design your opchain stack — interactive picker.</div>
-          </div>
-          <span class="crumb">/pipeline-builder</span>
-        </a>
-        <a class="palette-row" href="#">
-          <span class="icon">⚖</span>
-          <div class="meta">
-            <div class="title">Compare opchain vs alternatives</div>
-            <div class="blurb">Cursor, Aider, plain Claude Code, Devin.</div>
-          </div>
-          <span class="crumb">/compare</span>
-        </a>
-        <a class="palette-row" href="#">
-          <span class="icon">▶</span>
-          <div class="meta">
-            <div class="title">Watch the demo</div>
-          </div>
-          <span class="crumb">/demo</span>
-        </a>
-
-        <div class="palette-section">skills</div>
-        <a class="palette-row" href="#">
-          <span class="icon" style="color:var(--workflow)">●</span>
-          <div class="meta">
-            <div class="title">app-architect</div>
-            <div class="blurb">Idea → spec → design → build → launch.</div>
-          </div>
-          <span class="crumb">/skills/app-architect</span>
-        </a>
-        <a class="palette-row" href="#">
-          <span class="icon" style="color:var(--audit-gate)">●</span>
-          <div class="meta">
-            <div class="title">security-auditor</div>
-            <div class="blurb">Threat model + OWASP mapping + hardening.</div>
-          </div>
-          <span class="crumb">/skills/security-auditor</span>
-        </a>
-
-        <div class="palette-section">actions</div>
-        <a class="palette-row" href="#">
-          <span class="icon">⌘</span>
-          <div class="meta"><div class="title">Copy install command</div></div>
-          <span class="crumb">action</span>
-        </a>
-        <a class="palette-row" href="#">
-          <span class="icon">☼</span>
-          <div class="meta"><div class="title">Toggle theme</div></div>
-          <span class="crumb">action</span>
-        </a>
-      </div>
-      <div class="palette-footer">
-        <span><span class="kbd">↑↓</span> navigate</span>
-        <span><span class="kbd">↵</span> open</span>
-        <span><span class="kbd">esc</span> close</span>
-        <span class="spacer"></span>
-        <span>opchain · ⌘K</span>
-      </div>
-    </div>
-  </div>
-
   <script>
-    // Click-to-toggle dropdowns (real header would use hover + focus + Esc;
-    // simplified here so click anywhere on the page reveals dropdowns).
-    document.querySelectorAll('.nav-group').forEach((group) => {
-      const trigger = group.querySelector('.nav-link');
-      trigger.addEventListener('click', (e) => {
+    // Make the dropdown groups click-toggleable so the variant headers
+    // can be inspected interactively. (Real header would also handle
+    // hover, focus, and Esc — kept simple here.)
+    document.querySelectorAll('.nav-group').forEach((g) => {
+      const btn = g.querySelector('.nav-link');
+      btn?.addEventListener('click', (e) => {
         e.preventDefault();
-        const open = group.classList.toggle('open');
-        trigger.classList.toggle('is-open', open);
-        trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
-        // close siblings
-        document.querySelectorAll('.nav-group').forEach((g) => {
-          if (g !== group) {
-            g.classList.remove('open');
-            g.querySelector('.nav-link').classList.remove('is-open');
-            g.querySelector('.nav-link').setAttribute('aria-expanded', 'false');
-          }
-        });
+        const open = g.classList.toggle('open');
+        btn.classList.toggle('is-open', open);
       });
     });
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.nav-group')) {
         document.querySelectorAll('.nav-group.open').forEach((g) => {
           g.classList.remove('open');
-          g.querySelector('.nav-link').classList.remove('is-open');
-          g.querySelector('.nav-link').setAttribute('aria-expanded', 'false');
+          g.querySelector('.nav-link')?.classList.remove('is-open');
         });
-      }
-    });
-
-    // ⌘K palette open/close
-    const scrim = document.getElementById('palette-scrim');
-    const openBtn = document.getElementById('open-palette');
-    const input = document.getElementById('palette-input');
-    const openPalette = () => { scrim.classList.add('open'); setTimeout(() => input?.focus(), 30); };
-    const closePalette = () => { scrim.classList.remove('open'); };
-    openBtn?.addEventListener('click', openPalette);
-    scrim?.addEventListener('click', (e) => { if (e.target === scrim) closePalette(); });
-    document.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        scrim.classList.contains('open') ? closePalette() : openPalette();
-      } else if (e.key === 'Escape' && scrim.classList.contains('open')) {
-        closePalette();
       }
     });
   </script>
