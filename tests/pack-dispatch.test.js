@@ -103,8 +103,11 @@ describe("pack-dispatch — real packs (PR 2 + PR 4 + PR 5 backfill)", () => {
   });
 
   it("getDispatchTarget returns {defaultPlatform:null, supportedPlatforms:[]} for the PR 4 + PR 5 framework packs", () => {
-    // PR 4 + PR 5 framework packs ship without declared platforms either —
-    // they're a no-op for deploy-ops until PR 7's hosting adapters land.
+    // PR 4 + PR 5 framework packs ship without declared platforms. PR 7
+    // introduces the hosting-adapter deploy-target packs (railway/netlify/
+    // heroku/aws-amplify) but intentionally does NOT cross-wire them onto
+    // existing packs — that lands in PR 8+. Until then framework packs stay
+    // no-ops for deploy-ops and the SKILL.md fallback matrix still applies.
     for (const id of [
       "phoenix", "remix", "sveltekit", "solid",
       "spring-java", "dotnet-aspnet", "spring-kotlin", "laravel-php",
@@ -118,6 +121,57 @@ describe("pack-dispatch — real packs (PR 2 + PR 4 + PR 5 backfill)", () => {
 
   it("getDispatchTarget returns null for a missing pack", () => {
     expect(getDispatchTarget("ghost")).toBeNull();
+  });
+});
+
+describe("pack-dispatch — real deploy-target packs (PR 7 hosting adapters)", () => {
+  // No env override — read the real skills/stack-forge/packs/ tree.
+  beforeEach(() => { delete process.env.OPCHAIN_PACKS_DIR; });
+
+  const DEPLOY_TARGET_PACKS = [
+    { id: "railway",     displayName: "Railway" },
+    { id: "netlify",     displayName: "Netlify" },
+    { id: "heroku",      displayName: "Heroku" },
+    { id: "aws-amplify", displayName: "AWS Amplify" },
+  ];
+
+  it("getLanguagePack returns each deploy-target pack with kind=deploy-target", () => {
+    // The helper loads any pack by id (despite the name). Deploy-target
+    // packs come back with kind=deploy-target; callers that wanted a
+    // language shape should kind-check themselves.
+    for (const { id, displayName } of DEPLOY_TARGET_PACKS) {
+      const pack = getLanguagePack(id);
+      expect(pack, `pack ${id}`).not.toBeNull();
+      expect(pack.id).toBe(id);
+      expect(pack.kind).toBe("deploy-target");
+      expect(pack.status).toBe("stable");
+      expect(pack.since).toBe("1.4.0");
+      expect(pack.displayName).toBe(displayName);
+      expect(pack.deployRef).toBe("deploy.md");
+    }
+  });
+
+  it("getDispatchTarget returns empty platform info — deploy-targets ARE the platforms", () => {
+    // PR 7 deploy-target packs do not declare defaultPlatform /
+    // supportedPlatforms — they are the leaves of the dispatch graph.
+    // Cross-wiring (language/framework packs pointing AT these
+    // deploy-targets) is deferred to PR 8+.
+    for (const { id } of DEPLOY_TARGET_PACKS) {
+      expect(getDispatchTarget(id), `pack ${id}`).toEqual({
+        defaultPlatform: null,
+        supportedPlatforms: [],
+      });
+    }
+  });
+
+  it("dispatchMobile(<deploy-target>) returns kind:not-mobile with actualKind=deploy-target", () => {
+    // Locks in the contract: hosting adapters are not mobile platforms;
+    // dispatchMobile must signal that with the actualKind discriminator
+    // so callers fall back to the language/framework dispatch path.
+    expect(dispatchMobile("railway")).toEqual({
+      kind: "not-mobile",
+      actualKind: "deploy-target",
+    });
   });
 });
 

@@ -1,16 +1,20 @@
 /**
- * Equivalence tests for the language + framework packs shipped in v1.4.
+ * Equivalence tests for the language + framework + deploy-target packs
+ * shipped in v1.4.
  *
  * These run against the REAL skills/stack-forge/packs/<id>/ tree (not the
  * synthetic fixtures used by stack-packs.test.js). The intent is to lock in:
  *
- *   1. The exact set of language + framework packs that ship in this release.
- *      PR 2 (ADEV-329) backfilled 5 language packs (typescript/python/ruby/
- *      go/rust). PR 4 (ADEV-334) adds 3 more language packs (elixir/bun/deno)
- *      and 4 framework packs (phoenix/remix/sveltekit/solid). PR 5 (ADEV-335)
- *      adds the enterprise bulk: 4 more language packs (java/csharp/kotlin/
- *      php) and 4 more framework packs (spring-java/dotnet-aspnet/
- *      spring-kotlin/laravel-php).
+ *   1. The exact set of language + framework + deploy-target packs that
+ *      ship in this release. PR 2 (ADEV-329) backfilled 5 language packs
+ *      (typescript/python/ruby/go/rust). PR 4 (ADEV-334) added 3 more
+ *      language packs (elixir/bun/deno) and 4 framework packs
+ *      (phoenix/remix/sveltekit/solid). PR 5 (ADEV-335) added 4 enterprise
+ *      language packs (java/csharp/kotlin/php) and 4 framework packs
+ *      (spring-java/dotnet-aspnet/spring-kotlin/laravel-php). PR 7
+ *      (ADEV-337) adds 4 deploy-target packs (railway/netlify/heroku/
+ *      aws-amplify) — these emit no coverage flag (kind=deploy-target is a
+ *      sub-selection only).
  *   2. The canonical testRunner / buildCmd / lintCmd commands stack-forge
  *      will recommend for each language.
  *   3. Every ref doc is present, non-empty, and under the 50KB soft cap so
@@ -164,7 +168,22 @@ const EXPECTED_FRAMEWORK_PACKS = [
   { id: "laravel-php",   displayName: "Laravel",             language: "php" },
 ];
 
-const EXPECTED_TOTAL_PACKS = EXPECTED_LANGUAGE_PACKS.length + EXPECTED_FRAMEWORK_PACKS.length;
+// PR 7 (ADEV-337) hosting-adapter deploy-target packs. These DO NOT emit
+// coverage flags (deploy-targets are sub-selections under language/framework
+// packs, not top-level coverage units — see COVERAGE_KINDS in
+// scripts/gen-stack-packs.mjs). They count toward the pack total but not the
+// coverage-flag total.
+const EXPECTED_DEPLOY_TARGET_PACKS = [
+  { id: "railway",     displayName: "Railway" },
+  { id: "netlify",     displayName: "Netlify" },
+  { id: "heroku",      displayName: "Heroku" },
+  { id: "aws-amplify", displayName: "AWS Amplify" },
+];
+
+const EXPECTED_COVERAGE_PACKS =
+  EXPECTED_LANGUAGE_PACKS.length + EXPECTED_FRAMEWORK_PACKS.length;
+const EXPECTED_TOTAL_PACKS =
+  EXPECTED_COVERAGE_PACKS + EXPECTED_DEPLOY_TARGET_PACKS.length;
 
 function loadPack(id) {
   const file = join(PACKS_DIR, id, "pack.yml");
@@ -242,6 +261,30 @@ describe("stack-forge packs — framework pack equivalence (ADEV-334 + ADEV-335)
   }
 });
 
+describe("stack-forge packs — deploy-target pack equivalence (ADEV-337)", () => {
+  for (const expected of EXPECTED_DEPLOY_TARGET_PACKS) {
+    describe(expected.id, () => {
+      it("pack.yml declares the expected canonical fields", () => {
+        const pack = loadPack(expected.id);
+        expect(pack.id).toBe(expected.id);
+        expect(pack.kind).toBe("deploy-target");
+        expect(pack.status).toBe("stable");
+        expect(pack.since).toBe("1.4.0");
+        expect(pack.displayName).toBe(expected.displayName);
+        expect(pack.deployRef).toBe("deploy.md");
+      });
+
+      it("deployRef file exists and is under the 50KB soft cap", () => {
+        const refPath = join(PACKS_DIR, expected.id, "deploy.md");
+        expect(existsSync(refPath)).toBe(true);
+        const size = statSync(refPath).size;
+        expect(size).toBeGreaterThan(0);
+        expect(size).toBeLessThanOrEqual(REF_SOFT_BYTES);
+      });
+    });
+  }
+});
+
 describe("stack-forge packs — generator output", () => {
   it("real packs/ tree validates and emits exactly the expected coverage flags", () => {
     const outDir = mkdtempSync(join(tmpdir(), "opchain-real-packs-out-"));
@@ -258,11 +301,13 @@ describe("stack-forge packs — generator output", () => {
     });
     const detail = `stdout:\n${result.stdout}\nstderr:\n${result.stderr}`;
     expect(result.status, detail).toBe(0);
-    // language packs + framework packs are all kind ∈ {language, framework},
-    // so the coverage-flag count equals the total pack count (no mobile or
-    // deploy-target packs yet — those land in PR 6 and PR 7 respectively).
+    // Pack total = language + framework + deploy-target packs.
+    // Coverage flag total = language + framework only — deploy-target packs
+    // are sub-selections under another offer and emit no flag (see
+    // COVERAGE_KINDS in scripts/gen-stack-packs.mjs). PR 7 (ADEV-337) adds
+    // 4 deploy-target packs without adding any coverage flags.
     expect(result.stdout).toMatch(
-      new RegExp(`${EXPECTED_TOTAL_PACKS} pack\\(s\\), ${EXPECTED_TOTAL_PACKS} coverage flag\\(s\\)`),
+      new RegExp(`${EXPECTED_TOTAL_PACKS} pack\\(s\\), ${EXPECTED_COVERAGE_PACKS} coverage flag\\(s\\)`),
     );
 
     const flags = JSON.parse(readFileSync(join(outDir, "coverage-flags.json"), "utf8"));
@@ -282,6 +327,10 @@ describe("stack-forge packs — generator output", () => {
         status: "stable",
         displayName: expected.displayName,
       });
+    }
+    // Deploy-target packs must NOT appear in the coverage-flag output.
+    for (const expected of EXPECTED_DEPLOY_TARGET_PACKS) {
+      expect(byId[expected.id]).toBeUndefined();
     }
   });
 });

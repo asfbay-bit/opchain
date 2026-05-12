@@ -171,6 +171,26 @@ describe("gen-api-dev-adapters — real packs", () => {
       expect(ids).not.toContain(fw);
     }
   });
+
+  it("skips deploy-target packs (PR 7 hosting adapters)", () => {
+    // PR 7 (ADEV-337) added railway/netlify/heroku/aws-amplify as
+    // kind=deploy-target packs. api-dev never emits scaffolds for hosting
+    // platforms — those are sub-selections under language/framework packs.
+    // Pin the skip-deploy-targets behavior on the real packs/ tree.
+    const work = mkdtempSync(join(tmpdir(), "opchain-api-dev-adapters-skip-dt-"));
+    const result = spawnSync("node", [SCRIPT], {
+      cwd: ROOT,
+      encoding: "utf8",
+      env: { ...process.env, OPCHAIN_OUT_DIR: work },
+    });
+    expect(result.status, `stderr:\n${result.stderr}`).toBe(0);
+
+    const adapters = JSON.parse(readFileSync(join(work, "api-dev-adapters.json"), "utf8"));
+    const ids = adapters.map((a) => a.id);
+    for (const dt of ["railway", "netlify", "heroku", "aws-amplify"]) {
+      expect(ids).not.toContain(dt);
+    }
+  });
 });
 
 describe("gen-api-dev-adapters — synthetic fixtures", () => {
