@@ -7,7 +7,10 @@
  *   1. The exact set of language + framework packs that ship in this release.
  *      PR 2 (ADEV-329) backfilled 5 language packs (typescript/python/ruby/
  *      go/rust). PR 4 (ADEV-334) adds 3 more language packs (elixir/bun/deno)
- *      and 4 framework packs (phoenix/remix/sveltekit/solid).
+ *      and 4 framework packs (phoenix/remix/sveltekit/solid). PR 5 (ADEV-335)
+ *      adds the enterprise bulk: 4 more language packs (java/csharp/kotlin/
+ *      php) and 4 more framework packs (spring-java/dotnet-aspnet/
+ *      spring-kotlin/laravel-php).
  *   2. The canonical testRunner / buildCmd / lintCmd commands stack-forge
  *      will recommend for each language.
  *   3. Every ref doc is present, non-empty, and under the 50KB soft cap so
@@ -39,8 +42,9 @@ const REF_SOFT_BYTES = 50 * 1024;
 // Map of language id → expected list of framework pack ids that target it.
 // PR 2 (ADEV-329) shipped languages with no frameworks; PR 4 (ADEV-334) adds
 // the first framework backfill: typescript gains remix/sveltekit/solid, and
-// the new elixir pack ships with phoenix. The rest stay frameworks-empty
-// until PR 5+ lands additional framework packs.
+// the new elixir pack ships with phoenix. PR 5 (ADEV-335) adds the enterprise
+// languages each with one framework pack: java→spring-java, csharp→
+// dotnet-aspnet, kotlin→spring-kotlin, php→laravel-php.
 const EXPECTED_FRAMEWORKS_BY_LANGUAGE = {
   typescript: ["remix", "sveltekit", "solid"],
   python: [],
@@ -50,6 +54,10 @@ const EXPECTED_FRAMEWORKS_BY_LANGUAGE = {
   elixir: ["phoenix"],
   bun: [],
   deno: [],
+  java: ["spring-java"],
+  csharp: ["dotnet-aspnet"],
+  kotlin: ["spring-kotlin"],
+  php: ["laravel-php"],
 };
 
 const EXPECTED_LANGUAGE_PACKS = [
@@ -111,15 +119,49 @@ const EXPECTED_LANGUAGE_PACKS = [
     buildCmd: "deno task build",
     lintCmd: "deno lint",
   },
+  // PR 5 (ADEV-335) enterprise bulk languages.
+  {
+    id: "java",
+    displayName: "Java",
+    testRunner: "mvn test",
+    buildCmd: "mvn package",
+    lintCmd: "mvn checkstyle:check",
+  },
+  {
+    id: "csharp",
+    displayName: "C#",
+    testRunner: "dotnet test",
+    buildCmd: "dotnet build",
+    lintCmd: "dotnet format --verify-no-changes",
+  },
+  {
+    id: "kotlin",
+    displayName: "Kotlin",
+    testRunner: "gradle test",
+    buildCmd: "gradle build",
+    lintCmd: "ktlint",
+  },
+  {
+    id: "php",
+    displayName: "PHP",
+    testRunner: "phpunit",
+    buildCmd: "composer install --no-dev",
+    lintCmd: "phpcs",
+  },
 ];
 
 // PR 4 (ADEV-334) framework packs. Each lists its underlying language pack;
-// the framework pack body lives in framework.md.
+// the framework pack body lives in framework.md. PR 5 (ADEV-335) adds the
+// enterprise framework packs alongside.
 const EXPECTED_FRAMEWORK_PACKS = [
-  { id: "phoenix",   displayName: "Phoenix",    language: "elixir" },
-  { id: "remix",     displayName: "Remix",      language: "typescript" },
-  { id: "sveltekit", displayName: "SvelteKit",  language: "typescript" },
-  { id: "solid",     displayName: "SolidStart", language: "typescript" },
+  { id: "phoenix",       displayName: "Phoenix",             language: "elixir" },
+  { id: "remix",         displayName: "Remix",               language: "typescript" },
+  { id: "sveltekit",     displayName: "SvelteKit",           language: "typescript" },
+  { id: "solid",         displayName: "SolidStart",          language: "typescript" },
+  { id: "spring-java",   displayName: "Spring Boot (Java)",  language: "java" },
+  { id: "dotnet-aspnet", displayName: "ASP.NET Core",        language: "csharp" },
+  { id: "spring-kotlin", displayName: "Spring Boot (Kotlin)", language: "kotlin" },
+  { id: "laravel-php",   displayName: "Laravel",             language: "php" },
 ];
 
 const EXPECTED_TOTAL_PACKS = EXPECTED_LANGUAGE_PACKS.length + EXPECTED_FRAMEWORK_PACKS.length;
@@ -129,7 +171,7 @@ function loadPack(id) {
   return yaml.load(readFileSync(file, "utf8"));
 }
 
-describe("stack-forge packs — language pack equivalence (ADEV-329 + ADEV-334)", () => {
+describe("stack-forge packs — language pack equivalence (ADEV-329 + ADEV-334 + ADEV-335)", () => {
   for (const expected of EXPECTED_LANGUAGE_PACKS) {
     describe(expected.id, () => {
       it("pack.yml declares the expected canonical fields", () => {
@@ -169,7 +211,7 @@ describe("stack-forge packs — language pack equivalence (ADEV-329 + ADEV-334)"
   }
 });
 
-describe("stack-forge packs — framework pack equivalence (ADEV-334)", () => {
+describe("stack-forge packs — framework pack equivalence (ADEV-334 + ADEV-335)", () => {
   for (const expected of EXPECTED_FRAMEWORK_PACKS) {
     describe(expected.id, () => {
       it("pack.yml declares the expected canonical fields", () => {

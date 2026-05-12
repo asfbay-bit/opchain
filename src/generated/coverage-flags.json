@@ -6,10 +6,22 @@
     "displayName": "Bun"
   },
   {
+    "id": "csharp",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "C#"
+  },
+  {
     "id": "deno",
     "kind": "language",
     "status": "stable",
     "displayName": "Deno"
+  },
+  {
+    "id": "dotnet-aspnet",
+    "kind": "framework",
+    "status": "stable",
+    "displayName": "ASP.NET Core"
   },
   {
     "id": "elixir",
@@ -24,10 +36,34 @@
     "displayName": "Go"
   },
   {
+    "id": "java",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "Java"
+  },
+  {
+    "id": "kotlin",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "Kotlin"
+  },
+  {
+    "id": "laravel-php",
+    "kind": "framework",
+    "status": "stable",
+    "displayName": "Laravel"
+  },
+  {
     "id": "phoenix",
     "kind": "framework",
     "status": "stable",
     "displayName": "Phoenix"
+  },
+  {
+    "id": "php",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "PHP"
   },
   {
     "id": "python",
@@ -58,6 +94,18 @@
     "kind": "framework",
     "status": "stable",
     "displayName": "SolidStart"
+  },
+  {
+    "id": "spring-java",
+    "kind": "framework",
+    "status": "stable",
+    "displayName": "Spring Boot (Java)"
+  },
+  {
+    "id": "spring-kotlin",
+    "kind": "framework",
+    "status": "stable",
+    "displayName": "Spring Boot (Kotlin)"
   },
   {
     "id": "sveltekit",

@@ -38,14 +38,17 @@ function makeFixture(packs) {
 
 // All language packs that ship in the current release. PR 2 (ADEV-329) seeded
 // the first 5; PR 4 (ADEV-334) added elixir/bun/deno alongside the modern web
-// framework packs. None of them declare deploy-target platforms yet — those
-// land in PR 7. Until then deploy-ops falls back to the SKILL.md matrix.
+// framework packs; PR 5 (ADEV-335) added java/csharp/kotlin/php alongside the
+// enterprise framework packs. None of them declare deploy-target platforms
+// yet — those land in PR 7. Until then deploy-ops falls back to the SKILL.md
+// matrix.
 const REAL_LANGUAGE_PACKS = [
   "typescript", "python", "ruby", "go", "rust",
   "elixir", "bun", "deno",
+  "java", "csharp", "kotlin", "php",
 ];
 
-describe("pack-dispatch — real packs (PR 2 + PR 4 backfill)", () => {
+describe("pack-dispatch — real packs (PR 2 + PR 4 + PR 5 backfill)", () => {
   // No env override — read the real skills/stack-forge/packs/ tree.
   beforeEach(() => { delete process.env.OPCHAIN_PACKS_DIR; });
 
@@ -67,6 +70,8 @@ describe("pack-dispatch — real packs (PR 2 + PR 4 backfill)", () => {
     for (const [id, expectedLanguage] of [
       ["phoenix", "elixir"], ["remix", "typescript"],
       ["sveltekit", "typescript"], ["solid", "typescript"],
+      ["spring-java", "java"], ["dotnet-aspnet", "csharp"],
+      ["spring-kotlin", "kotlin"], ["laravel-php", "php"],
     ]) {
       const pack = getLanguagePack(id);
       expect(pack, `pack ${id}`).not.toBeNull();
@@ -97,10 +102,13 @@ describe("pack-dispatch — real packs (PR 2 + PR 4 backfill)", () => {
     }
   });
 
-  it("getDispatchTarget returns {defaultPlatform:null, supportedPlatforms:[]} for the PR 4 framework packs", () => {
-    // PR 4 framework packs ship without declared platforms either — they're
-    // a no-op for deploy-ops until PR 7's hosting adapters land.
-    for (const id of ["phoenix", "remix", "sveltekit", "solid"]) {
+  it("getDispatchTarget returns {defaultPlatform:null, supportedPlatforms:[]} for the PR 4 + PR 5 framework packs", () => {
+    // PR 4 + PR 5 framework packs ship without declared platforms either —
+    // they're a no-op for deploy-ops until PR 7's hosting adapters land.
+    for (const id of [
+      "phoenix", "remix", "sveltekit", "solid",
+      "spring-java", "dotnet-aspnet", "spring-kotlin", "laravel-php",
+    ]) {
       expect(getDispatchTarget(id), `pack ${id}`).toEqual({
         defaultPlatform: null,
         supportedPlatforms: [],
