@@ -1,11 +1,20 @@
 /**
- * Types for the build-time roadmap pull (`scripts/gen-roadmap.mjs` →
- * `site/src/data/roadmap.json`).
+ * Types + loader for the build-time roadmap pull
+ * (`scripts/gen-roadmap.mjs` → `site/src/data/roadmap.json`).
  *
  * The JSON is gitignored. CI's prebuild step regenerates it before every
- * `astro check` / `astro build`. Locally, the JSON ships as an empty
- * placeholder if `LINEAR_API_KEY` isn't in the shell.
+ * `astro check` / `astro build`. Locally and in CI runs that haven't
+ * regenerated yet, `loadRoadmap()` reads the file from disk via fs and
+ * falls back to an empty shape if the file isn't there — so type-check
+ * passes regardless of whether the JSON exists at the moment.
  */
+
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROADMAP_PATH = path.join(__dirname, "roadmap.json");
 
 export type RoadmapBucket = "shipped" | "in-progress" | "planned" | "backlog";
 
@@ -44,17 +53,20 @@ export interface Roadmap {
 }
 
 /**
- * Loader for `site/src/data/roadmap.json`. Returns an empty shape if the
- * JSON is missing (i.e. prebuild hasn't run yet) so consumers never throw.
+ * Loads `roadmap.json` synchronously from the filesystem at build time.
+ * Astro is in static-output mode, so this only runs during SSG and the
+ * result is baked into the rendered HTML. Returns an empty roadmap if
+ * the file is missing (e.g. prebuild hasn't run yet, or CI's site job
+ * ran astro check before gen-roadmap).
  */
-export async function loadRoadmap(): Promise<Roadmap> {
+export function loadRoadmap(): Roadmap {
   try {
-    const mod = await import("./roadmap.json");
-    return (mod.default ?? mod) as Roadmap;
+    const raw = fs.readFileSync(ROADMAP_PATH, "utf8");
+    return JSON.parse(raw) as Roadmap;
   } catch {
     return {
       generated_at: new Date().toISOString(),
-      note: "roadmap.json missing — run `npm run gen-roadmap` (or the full prebuild).",
+      note: "roadmap.json missing — run `npm run gen-roadmap` (or the full prebuild) to refresh.",
       items: { shipped: [], "in-progress": [], planned: [], backlog: [] },
       milestones: [],
     };

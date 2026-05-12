@@ -174,6 +174,107 @@ async function fetchAsset(env, request, origin) {
   return res;
 }
 
+// ── Roadmap vote handlers ───────────────────────────────────────────────────
+// One vote per IP per day per Linear issue. Vote counts are stored in the
+// NOTIFY KV namespace under keys:
+//   vote-count:<OPCHN-NNN>                          → integer
+//   vote-lock:<OPCHN-NNN>:<YYYY-MM-DD>:<ip-hash>    → "1" (TTL 25h)
+// We hash the IP (first 16 hex chars of SHA-256) so the lock keys carry
+// no PII at rest. KV is eventually consistent — that's fine for a vote
+// counter; the worst case is a few seconds of stale display.
+
+const VOTE_ID_RE = /^OPCHN-\d{1,6}$/;
+const VOTE_BATCH_MAX = 50;
+const VOTE_TTL_SECONDS = 25 * 60 * 60; // 25h, so lock spans the next-day boundary
+
+async function ipHashHex(ip) {
+  const bytes = new TextEncoder().encode(String(ip || "0.0.0.0"));
+  const hash = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 16);
+}
+
+async function handleVotePost(request, env, ctx, origin, requestId, rawId) {
+  const log = bindLogger(requestId);
+  const id = String(rawId || "").toUpperCase();
+  if (!VOTE_ID_RE.test(id)) {
+    return new Response(
+      JSON.stringify({ error: "Invalid issue id.", code: "invalid_id" }),
+      { status: 400, headers: corsHeaders(origin, requestId) },
+    );
+  }
+  if (!env.NOTIFY) {
+    log.event(EVENTS.NOTIFY_NO_KV, { source: "vote" });
+    return new Response(
+      JSON.stringify({ error: "Vote storage unavailable.", code: "kv_not_configured" }),
+      { status: 503, headers: corsHeaders(origin, requestId) },
+    );
+  }
+  const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
+  const today = new Date().toISOString().slice(0, 10);
+  const ipHash = await ipHashHex(ip);
+  const lockKey = `vote-lock:${id}:${today}:${ipHash}`;
+  const countKey = `vote-count:${id}`;
+
+  const [existingLock, currentRaw] = await Promise.all([
+    env.NOTIFY.get(lockKey),
+    env.NOTIFY.get(countKey),
+  ]);
+  const current = Math.max(0, parseInt(currentRaw || "0", 10) || 0);
+
+  if (existingLock) {
+    return new Response(
+      JSON.stringify({ ok: true, count: current, alreadyVoted: true }),
+      { status: 200, headers: corsHeaders(origin, requestId) },
+    );
+  }
+
+  const next = current + 1;
+  await Promise.all([
+    env.NOTIFY.put(lockKey, "1", { expirationTtl: VOTE_TTL_SECONDS }),
+    env.NOTIFY.put(countKey, String(next)),
+  ]);
+  log.event(EVENTS.FEEDBACK_SUBMITTED, { type: "roadmap-vote", issue: id, count: next });
+  return new Response(
+    JSON.stringify({ ok: true, count: next, alreadyVoted: false }),
+    { status: 200, headers: corsHeaders(origin, requestId) },
+  );
+}
+
+async function handleVoteGet(request, env, origin, requestId) {
+  const url = new URL(request.url);
+  if (!env.NOTIFY) {
+    return new Response(
+      JSON.stringify({ counts: {} }),
+      { status: 200, headers: corsHeaders(origin, requestId) },
+    );
+  }
+  const ids = (url.searchParams.get("ids") || "")
+    .split(",")
+    .map((s) => s.trim().toUpperCase())
+    .filter((s) => VOTE_ID_RE.test(s))
+    .slice(0, VOTE_BATCH_MAX);
+  const counts = {};
+  await Promise.all(
+    ids.map(async (id) => {
+      const v = await env.NOTIFY.get(`vote-count:${id}`);
+      counts[id] = Math.max(0, parseInt(v || "0", 10) || 0);
+    }),
+  );
+  return new Response(
+    JSON.stringify({ counts }),
+    {
+      status: 200,
+      headers: {
+        ...corsHeaders(origin, requestId),
+        "Cache-Control": "no-store",
+      },
+    },
+  );
+}
+
 // ── Feedback Handler ────────────────────────────────────────────────────────
 
 async function handleFeedback(request, env, ctx, origin, requestId) {
@@ -189,8 +290,11 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
     type, title, description, priority, skill, email,
     // Security-only fields — only read when type === "security".
     component, reproduction, impact, severity,
+    // Roadmap community-submission field. Presence → community mode.
+    category,
   } = parsed.data;
   const isSecurity = type === "security";
+  const isCommunity = !!category && !isSecurity;
 
   // Staging (and any env with the api-feedback kill flag on) accepts the
   // submission, logs it, and returns a synthetic 201 without calling
@@ -224,10 +328,16 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
   const projectId = env.LINEAR_PROJECT_ID || DEFAULT_PROJECT_ID;
   // Label resolution. Security disclosures prefer a dedicated label
   // (configurable via env.LINEAR_SECURITY_LABEL_ID); regular feedback
-  // uses the static LABEL_MAP entry. Empty → no label, never blocks.
+  // uses the static LABEL_MAP entry. Community roadmap submissions
+  // additionally get LINEAR_COMMUNITY_LABEL_ID (optional env var) so
+  // triagers can see the new ask without flipping it onto the public
+  // roadmap. Empty → no label, never blocks.
   let labelIds = LABEL_MAP[type] ? [LABEL_MAP[type]] : [];
   if (isSecurity && env.LINEAR_SECURITY_LABEL_ID) {
     labelIds = [env.LINEAR_SECURITY_LABEL_ID];
+  }
+  if (isCommunity && env.LINEAR_COMMUNITY_LABEL_ID) {
+    labelIds = [...labelIds, env.LINEAR_COMMUNITY_LABEL_ID];
   }
   // Priority resolution. Security disclosures bypass the
   // user-submitted priority and ride the SECURITY_PRIORITY table —
@@ -256,18 +366,27 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
     descParts.push(description);
   }
   if (skillName) descParts.push(`**Skill:** ${skillName}`);
+  if (isCommunity) descParts.push(`**Category:** ${category}`);
   if (email) descParts.push(`**Contact:** ${email}`);
   descParts.push(`**Request ID:** ${requestId}`);
   descParts.push(
     isSecurity
       ? "_Submitted via opchain.dev /security disclosure form_"
+      : isCommunity
+      ? "_Submitted via opchain.dev /changelog roadmap form — community-submitted; needs `roadmap-visible` label to appear publicly._"
       : "_Submitted via opchain.dev_",
   );
+
+  const titlePrefix = isSecurity
+    ? "[SECURITY]"
+    : isCommunity
+    ? `[community/${type}]`
+    : `[${type}]`;
 
   const variables = {
     input: {
       teamId, projectId,
-      title: isSecurity ? `[SECURITY] ${title}` : `[${type}] ${title}`,
+      title: `${titlePrefix} ${title}`,
       description: descParts.join("\n\n"),
       priority: linearPriority,
       labelIds,
@@ -494,6 +613,22 @@ async function route(request, env, ctx, url, origin, requestId) {
 
     if (url.pathname === "/api/feedback" && request.method === "POST") {
       return handleFeedback(request, env, ctx, origin, requestId);
+    }
+
+    // POST /api/votes/:id — per-IP/day server-side dedup, returns new count.
+    // GET  /api/votes?ids=A,B,C — batched count read for the roadmap UI.
+    const voteMatch = url.pathname.match(/^\/api\/votes\/([^/]+)$/);
+    if (voteMatch && request.method === "POST") {
+      if (await evalFlag("site.ops.api-feedback.kill", { env, ctx })) {
+        return new Response(
+          JSON.stringify({ error: "Voting is paused.", code: "paused" }),
+          { status: 503, headers: corsHeaders(origin, requestId) },
+        );
+      }
+      return handleVotePost(request, env, ctx, origin, requestId, voteMatch[1]);
+    }
+    if (url.pathname === "/api/votes" && request.method === "GET") {
+      return handleVoteGet(request, env, origin, requestId);
     }
 
     if (url.pathname === "/api/notify" && request.method === "POST") {
