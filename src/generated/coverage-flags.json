@@ -36,6 +36,12 @@
     "displayName": "Go"
   },
   {
+    "id": "ios-swiftui",
+    "kind": "mobile",
+    "status": "stable",
+    "displayName": "iOS (SwiftUI)"
+  },
+  {
     "id": "java",
     "kind": "language",
     "status": "stable",
@@ -112,6 +118,18 @@
     "kind": "framework",
     "status": "stable",
     "displayName": "SvelteKit"
+  },
+  {
+    "id": "swift",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "Swift"
+  },
+  {
+    "id": "swiftui",
+    "kind": "framework",
+    "status": "stable",
+    "displayName": "SwiftUI"
   },
   {
     "id": "typescript",

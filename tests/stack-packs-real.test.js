@@ -62,6 +62,7 @@ const EXPECTED_FRAMEWORKS_BY_LANGUAGE = {
   csharp: ["dotnet-aspnet"],
   kotlin: ["spring-kotlin"],
   php: ["laravel-php"],
+  swift: ["swiftui"],
 };
 
 const EXPECTED_LANGUAGE_PACKS = [
@@ -152,38 +153,70 @@ const EXPECTED_LANGUAGE_PACKS = [
     buildCmd: "composer install --no-dev",
     lintCmd: "phpcs",
   },
+  // PR 6 (ADEV-336) Apple/iOS language.
+  {
+    id: "swift",
+    displayName: "Swift",
+    testRunner: "swift test",
+    buildCmd: "swift build",
+    lintCmd: "swiftlint",
+  },
 ];
 
-// PR 4 (ADEV-334) framework packs. Each lists its underlying language pack;
-// the framework pack body lives in framework.md. PR 5 (ADEV-335) adds the
-// enterprise framework packs alongside.
+// the framework pack body lives in framework.md. PR 5 (ADEV-335) added the
+// enterprise framework packs; PR 6 (ADEV-336) added `swiftui` on the new
+// `swift` language pack.
 const EXPECTED_FRAMEWORK_PACKS = [
-  { id: "phoenix",       displayName: "Phoenix",             language: "elixir" },
-  { id: "remix",         displayName: "Remix",               language: "typescript" },
-  { id: "sveltekit",     displayName: "SvelteKit",           language: "typescript" },
-  { id: "solid",         displayName: "SolidStart",          language: "typescript" },
-  { id: "spring-java",   displayName: "Spring Boot (Java)",  language: "java" },
-  { id: "dotnet-aspnet", displayName: "ASP.NET Core",        language: "csharp" },
+  { id: "phoenix",       displayName: "Phoenix",              language: "elixir" },
+  { id: "remix",         displayName: "Remix",                language: "typescript" },
+  { id: "sveltekit",     displayName: "SvelteKit",            language: "typescript" },
+  { id: "solid",         displayName: "SolidStart",           language: "typescript" },
+  { id: "spring-java",   displayName: "Spring Boot (Java)",   language: "java" },
+  { id: "dotnet-aspnet", displayName: "ASP.NET Core",         language: "csharp" },
   { id: "spring-kotlin", displayName: "Spring Boot (Kotlin)", language: "kotlin" },
-  { id: "laravel-php",   displayName: "Laravel",             language: "php" },
+  { id: "laravel-php",   displayName: "Laravel",              language: "php" },
+  { id: "swiftui",       displayName: "SwiftUI",              language: "swift" },
 ];
 
-// PR 7 (ADEV-337) hosting-adapter deploy-target packs. These DO NOT emit
-// coverage flags (deploy-targets are sub-selections under language/framework
-// packs, not top-level coverage units — see COVERAGE_KINDS in
-// scripts/gen-stack-packs.mjs). They count toward the pack total but not the
-// coverage-flag total.
+// PR 6 (ADEV-336) mobile packs. kind=mobile emits a coverage flag and
+// dispatches via dispatchMobile(); platform references resolve to
+// deploy-target packs (e.g. app-store).
+const EXPECTED_MOBILE_PACKS = [
+  {
+    id: "ios-swiftui",
+    displayName: "iOS (SwiftUI)",
+    mobilePlatform: "ios",
+    defaultPlatform: "app-store",
+    supportedPlatforms: ["app-store"],
+  },
+];
+
+// Deploy-target packs (kind=deploy-target) do NOT emit coverage flags
+// (sub-selections under language / framework / mobile packs — see
+// COVERAGE_KINDS in scripts/gen-stack-packs.mjs). PR 7 (ADEV-337) added
+// the hosting adapters (railway/netlify/heroku/aws-amplify); PR 6
+// (ADEV-336) added app-store.
 const EXPECTED_DEPLOY_TARGET_PACKS = [
   { id: "railway",     displayName: "Railway" },
   { id: "netlify",     displayName: "Netlify" },
   { id: "heroku",      displayName: "Heroku" },
   { id: "aws-amplify", displayName: "AWS Amplify" },
+  { id: "app-store",   displayName: "App Store" },
 ];
 
-const EXPECTED_COVERAGE_PACKS =
-  EXPECTED_LANGUAGE_PACKS.length + EXPECTED_FRAMEWORK_PACKS.length;
 const EXPECTED_TOTAL_PACKS =
-  EXPECTED_COVERAGE_PACKS + EXPECTED_DEPLOY_TARGET_PACKS.length;
+  EXPECTED_LANGUAGE_PACKS.length +
+  EXPECTED_FRAMEWORK_PACKS.length +
+  EXPECTED_MOBILE_PACKS.length +
+  EXPECTED_DEPLOY_TARGET_PACKS.length;
+
+// kind=deploy-target packs do NOT emit a coverage flag. The other three
+// kinds (language / framework / mobile) do. Keep this formula explicit so
+// future PRs adding deploy-targets don't accidentally bump the count.
+const EXPECTED_COVERAGE_FLAGS =
+  EXPECTED_LANGUAGE_PACKS.length +
+  EXPECTED_FRAMEWORK_PACKS.length +
+  EXPECTED_MOBILE_PACKS.length;
 
 function loadPack(id) {
   const file = join(PACKS_DIR, id, "pack.yml");
@@ -261,7 +294,45 @@ describe("stack-forge packs — framework pack equivalence (ADEV-334 + ADEV-335)
   }
 });
 
-describe("stack-forge packs — deploy-target pack equivalence (ADEV-337)", () => {
+describe("stack-forge packs — mobile pack equivalence (ADEV-336)", () => {
+  for (const expected of EXPECTED_MOBILE_PACKS) {
+    describe(expected.id, () => {
+      it("pack.yml declares the expected canonical fields", () => {
+        const pack = loadPack(expected.id);
+        expect(pack.id).toBe(expected.id);
+        expect(pack.kind).toBe("mobile");
+        expect(pack.status).toBe("stable");
+        expect(pack.since).toBe("1.4.0");
+        expect(pack.displayName).toBe(expected.displayName);
+        expect(pack.mobilePlatform).toBe(expected.mobilePlatform);
+        expect(pack.defaultPlatform).toBe(expected.defaultPlatform);
+        expect(pack.supportedPlatforms).toEqual(expected.supportedPlatforms);
+        expect(pack.mobileRef).toBe("mobile.md");
+      });
+
+      it("defaultPlatform + supportedPlatforms resolve to real deploy-target packs", () => {
+        // The graph pass in gen-stack-packs enforces this at build time;
+        // pinning it here gives a faster signal during pack authoring.
+        const dt = loadPack(expected.defaultPlatform);
+        expect(dt.kind).toBe("deploy-target");
+        for (const platformId of expected.supportedPlatforms) {
+          const sp = loadPack(platformId);
+          expect(sp.kind).toBe("deploy-target");
+        }
+      });
+
+      it("mobileRef file exists and is under the 50KB soft cap", () => {
+        const refPath = join(PACKS_DIR, expected.id, "mobile.md");
+        expect(existsSync(refPath)).toBe(true);
+        const size = statSync(refPath).size;
+        expect(size).toBeGreaterThan(0);
+        expect(size).toBeLessThanOrEqual(REF_SOFT_BYTES);
+      });
+    });
+  }
+});
+
+describe("stack-forge packs — deploy-target pack equivalence (ADEV-336 + ADEV-337)", () => {
   for (const expected of EXPECTED_DEPLOY_TARGET_PACKS) {
     describe(expected.id, () => {
       it("pack.yml declares the expected canonical fields", () => {
@@ -301,13 +372,12 @@ describe("stack-forge packs — generator output", () => {
     });
     const detail = `stdout:\n${result.stdout}\nstderr:\n${result.stderr}`;
     expect(result.status, detail).toBe(0);
-    // Pack total = language + framework + deploy-target packs.
-    // Coverage flag total = language + framework only — deploy-target packs
-    // are sub-selections under another offer and emit no flag (see
-    // COVERAGE_KINDS in scripts/gen-stack-packs.mjs). PR 7 (ADEV-337) adds
-    // 4 deploy-target packs without adding any coverage flags.
+    // Pack total = language + framework + mobile + deploy-target.
+    // Coverage flag total = language + framework + mobile only — deploy-target
+    // packs are sub-selections under another offer and emit no flag (see
+    // COVERAGE_KINDS in scripts/gen-stack-packs.mjs).
     expect(result.stdout).toMatch(
-      new RegExp(`${EXPECTED_TOTAL_PACKS} pack\\(s\\), ${EXPECTED_COVERAGE_PACKS} coverage flag\\(s\\)`),
+      new RegExp(`${EXPECTED_TOTAL_PACKS} pack\\(s\\), ${EXPECTED_COVERAGE_FLAGS} coverage flag\\(s\\)`),
     );
 
     const flags = JSON.parse(readFileSync(join(outDir, "coverage-flags.json"), "utf8"));
@@ -328,7 +398,15 @@ describe("stack-forge packs — generator output", () => {
         displayName: expected.displayName,
       });
     }
-    // Deploy-target packs must NOT appear in the coverage-flag output.
+    for (const expected of EXPECTED_MOBILE_PACKS) {
+      expect(byId[expected.id]).toEqual({
+        id: expected.id,
+        kind: "mobile",
+        status: "stable",
+        displayName: expected.displayName,
+      });
+    }
+    // deploy-target packs MUST NOT appear in coverage flags.
     for (const expected of EXPECTED_DEPLOY_TARGET_PACKS) {
       expect(byId[expected.id]).toBeUndefined();
     }

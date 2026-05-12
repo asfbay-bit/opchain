@@ -67,7 +67,7 @@ function packYml(obj) {
 }
 
 describe("gen-api-dev-adapters — real packs", () => {
-  it("emits 12 language adapters with the canonical command set", () => {
+  it("emits 13 language adapters with the canonical command set", () => {
     // Run against the real packs/ tree but write to a tempdir.
     const work = mkdtempSync(join(tmpdir(), "opchain-api-dev-adapters-real-"));
     const result = spawnSync("node", [SCRIPT], {
@@ -76,10 +76,10 @@ describe("gen-api-dev-adapters — real packs", () => {
       env: { ...process.env, OPCHAIN_OUT_DIR: work },
     });
     expect(result.status, `stderr:\n${result.stderr}`).toBe(0);
-    expect(result.stdout).toMatch(/12 language pack\(s\)/);
+    expect(result.stdout).toMatch(/13 language pack\(s\)/);
 
     const adapters = JSON.parse(readFileSync(join(work, "api-dev-adapters.json"), "utf8"));
-    expect(adapters).toHaveLength(12);
+    expect(adapters).toHaveLength(13);
 
     const byId = Object.fromEntries(adapters.map((a) => [a.id, a]));
     // PR 2 (ADEV-329) backfill.
@@ -145,15 +145,22 @@ describe("gen-api-dev-adapters — real packs", () => {
       testRunner: "phpunit", buildCmd: "composer install --no-dev", lintCmd: "phpcs",
       langRef: "language.md",
     });
+    // PR 6 (ADEV-336) Apple/iOS language pack.
+    expect(byId.swift).toEqual({
+      id: "swift", displayName: "Swift", status: "stable",
+      testRunner: "swift test", buildCmd: "swift build", lintCmd: "swiftlint",
+      langRef: "language.md",
+    });
   });
 
-  it("skips framework packs even though they share a directory tree with language packs", () => {
+  it("skips framework, mobile, and deploy-target packs even though they share a directory tree with language packs", () => {
     // PR 4 (ADEV-334) added phoenix/remix/sveltekit/solid as kind=framework
     // packs; PR 5 (ADEV-335) added spring-java/dotnet-aspnet/spring-kotlin/
-    // laravel-php. api-dev codegens scaffolds per *language*; a framework
-    // inherits the adapter of its underlying language pack. This test pins
-    // the skip-frameworks behavior on the real packs/ tree so future framework
-    // packs cannot accidentally smuggle themselves into the adapter list.
+    // laravel-php. PR 6 (ADEV-336) added swiftui (framework), ios-swiftui
+    // (mobile), and app-store (deploy-target). api-dev codegens scaffolds
+    // per *language* only; frameworks inherit their language adapter, mobile
+    // is checklist-dispatched via dispatchMobile(), and deploy-targets are
+    // sub-selections. This pin guards the real packs/ tree against drift.
     const work = mkdtempSync(join(tmpdir(), "opchain-api-dev-adapters-skip-fw-"));
     const result = spawnSync("node", [SCRIPT], {
       cwd: ROOT,
@@ -167,9 +174,14 @@ describe("gen-api-dev-adapters — real packs", () => {
     for (const fw of [
       "phoenix", "remix", "sveltekit", "solid",
       "spring-java", "dotnet-aspnet", "spring-kotlin", "laravel-php",
+      "swiftui",
     ]) {
       expect(ids).not.toContain(fw);
     }
+    // kind=mobile (PR 6) — dispatched as a release checklist, not an adapter.
+    expect(ids).not.toContain("ios-swiftui");
+    // kind=deploy-target (PR 6) — sub-selection, never an adapter.
+    expect(ids).not.toContain("app-store");
   });
 
   it("skips deploy-target packs (PR 7 hosting adapters)", () => {

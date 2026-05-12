@@ -99,6 +99,15 @@
     "langRef": "language.md"
   },
   {
+    "id": "swift",
+    "displayName": "Swift",
+    "status": "stable",
+    "testRunner": "swift test",
+    "buildCmd": "swift build",
+    "lintCmd": "swiftlint",
+    "langRef": "language.md"
+  },
+  {
     "id": "typescript",
     "displayName": "TypeScript",
     "status": "stable",
