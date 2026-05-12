@@ -317,3 +317,58 @@ describe("dispatchMobile", () => {
     }
   });
 });
+
+// PR 6.5 (ADEV-343) lands the first real mobile packs in the registry.
+// Where the synthetic test above exercised the dispatcher with a
+// parametric loop over the three non-iOS platforms, this block locks in
+// the concrete (pack-id → envelope) shape using the actual on-disk
+// pack.yml + mobile.md content. PR 6's iOS pack is intentionally NOT
+// referenced here (parallel-PR isolation; merge-time rebase reconciles).
+const REAL_MOBILE_PACKS = [
+  { id: "kotlin-android",    displayName: "Android (Kotlin)",    platform: "android" },
+  { id: "flutter",           displayName: "Flutter",              platform: "flutter" },
+  { id: "react-native-expo", displayName: "React Native (Expo)",  platform: "react-native" },
+];
+
+describe("pack-dispatch — real mobile packs (PR 6.5 Android/Flutter/RN)", () => {
+  // No env override — read the real skills/stack-forge/packs/ tree.
+  beforeEach(() => { delete process.env.OPCHAIN_PACKS_DIR; });
+
+  for (const expected of REAL_MOBILE_PACKS) {
+    describe(expected.id, () => {
+      it("getLanguagePack returns kind=mobile with the expected mobilePlatform", () => {
+        const pack = getLanguagePack(expected.id);
+        expect(pack, `pack ${expected.id}`).not.toBeNull();
+        expect(pack.kind).toBe("mobile");
+        expect(pack.mobilePlatform).toBe(expected.platform);
+        expect(pack.status).toBe("stable");
+      });
+
+      it("getDispatchTarget surfaces play-store as the default + sole supported platform", () => {
+        // The cross-platform packs (flutter, react-native-expo) will gain
+        // app-store in a follow-up PR; for now play-store is the only
+        // supportedPlatforms entry the registry can advertise.
+        expect(getDispatchTarget(expected.id)).toEqual({
+          defaultPlatform: "play-store",
+          supportedPlatforms: ["play-store"],
+        });
+      });
+
+      it("dispatchMobile returns the checklist envelope with the expected platform", () => {
+        const out = dispatchMobile(expected.id);
+        expect(out).toMatchObject({
+          kind: "mobile",
+          platform: expected.platform,
+          displayName: expected.displayName,
+          mobileRef: "mobile.md",
+        });
+        // The release-checklist string is the user-facing envelope —
+        // stack-forge's SKILL.md renders it verbatim so the agent does
+        // not accidentally try to run a deploy command.
+        expect(out.releaseChecklist).toContain("checklist-driven, not automated");
+        expect(out.releaseChecklist).toContain(expected.platform);
+        expect(out.releaseChecklist).toContain("mobile.md");
+      });
+    });
+  }
+});

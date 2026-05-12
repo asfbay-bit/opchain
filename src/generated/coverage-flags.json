@@ -30,6 +30,12 @@
     "displayName": "Elixir"
   },
   {
+    "id": "flutter",
+    "kind": "mobile",
+    "status": "stable",
+    "displayName": "Flutter"
+  },
+  {
     "id": "go",
     "kind": "language",
     "status": "stable",
@@ -54,6 +60,12 @@
     "displayName": "Kotlin"
   },
   {
+    "id": "kotlin-android",
+    "kind": "mobile",
+    "status": "stable",
+    "displayName": "Android (Kotlin)"
+  },
+  {
     "id": "laravel-php",
     "kind": "framework",
     "status": "stable",
@@ -76,6 +88,12 @@
     "kind": "language",
     "status": "stable",
     "displayName": "Python"
+  },
+  {
+    "id": "react-native-expo",
+    "kind": "mobile",
+    "status": "stable",
+    "displayName": "React Native (Expo)"
   },
   {
     "id": "remix",
