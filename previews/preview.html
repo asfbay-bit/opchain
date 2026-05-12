@@ -344,8 +344,11 @@
        INTRO (eyebrow → logo+wordmark → claim → tagline → body)
        ════════════════════════════════════════════════════════════ */
     .intro {
-      max-width: 960px; margin: 0 auto;
-      padding: 4rem 1.5rem 1rem;
+      /* Widened so the body wraps on fewer lines and the cinema
+         banner sits above the fold on a typical laptop viewport
+         (~900–1080px tall). */
+      max-width: 1100px; margin: 0 auto;
+      padding: 1.5rem 1.5rem 0.5rem;
       display: flex; flex-direction: column;
       align-items: center; text-align: center;
     }
@@ -358,12 +361,14 @@
     }
     .intro-hero {
       display: flex; flex-direction: column; align-items: center;
-      gap: 0.5rem; margin: 0.4rem 0 0.5rem;
+      gap: 0.4rem; margin: 0.25rem 0 0.4rem;
     }
     .intro-mark {
       font-family: var(--font-display);
       font-weight: var(--wordmark-weight);
-      font-size: var(--fs-hero);
+      /* Slightly tighter hero scale so the wordmark + logo stack
+         leaves room for the banner above the fold. */
+      font-size: clamp(2rem, 5.5vw, 3rem);
       letter-spacing: var(--ls-display);
       line-height: 1; color: var(--text);
       margin: 0;
@@ -372,20 +377,21 @@
       font-family: var(--font-display);
       font-weight: 700; font-size: 20px;
       line-height: 1.3; letter-spacing: 0.2px;
-      color: var(--ember); margin: 0 0 1rem;
+      color: var(--ember); margin: 0 0 0.7rem;
     }
     .intro-tagline {
       font-family: var(--font-mono);
       font-size: var(--fs-sm);
       letter-spacing: var(--ls-widest);
       color: var(--muted);
-      max-width: 42rem; margin: 0 auto 2rem;
+      max-width: 50rem; margin: 0 auto 1rem;
     }
     .intro-body {
-      max-width: 42rem; margin: 0 auto;
+      /* Wider wrap = fewer lines = shorter vertical stack. */
+      max-width: 52rem; margin: 0 auto;
       color: var(--muted); text-align: left;
     }
-    .intro-body p { margin: 0 0 1rem; color: var(--muted); }
+    .intro-body p { margin: 0 0 0.65rem; color: var(--muted); }
     .intro-body p:last-child { margin: 0; }
 
     /* ════════════════════════════════════════════════════════════
@@ -394,7 +400,7 @@
     .release-bar-glow {
       display: inline-flex; align-items: center; gap: 0;
       align-self: center;
-      margin: 1.75rem auto 1rem;
+      margin: 1rem auto 0.5rem;
       padding: 4px 10px 4px 4px;
       background: var(--surface);
       border: 0.5px solid var(--border);
@@ -474,9 +480,9 @@
     .stage-cinema {
       position: relative;
       align-self: stretch;
-      margin: 1rem -1.5rem 2rem;
-      padding: 1.5rem clamp(1.5rem, 4vw, 2.4rem) 1.25rem;
-      min-height: 280px;
+      margin: 0.4rem 0 1.5rem;
+      padding: 1.25rem clamp(1.5rem, 4vw, 2.4rem) 1rem;
+      min-height: 240px;
       display: flex; flex-direction: column;
       justify-content: center;
       overflow: hidden;
@@ -685,8 +691,9 @@
       max-width: 48ch; margin: 0.5rem auto 0;
       font-size: var(--fs-sm);
     }
-    .res-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
-    @media (max-width: 720px) { .res-grid { grid-template-columns: 1fr; } }
+    .res-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+    @media (max-width: 960px) { .res-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 540px) { .res-grid { grid-template-columns: 1fr; } }
     .res-card {
       background: var(--card);
       border: 0.5px solid var(--border);
@@ -1364,7 +1371,7 @@
     <span class="eyebrow">skill ecosystem</span>
 
     <div class="intro-hero">
-      <svg width="128" height="128" viewBox="0 0 32 32" aria-hidden="true">
+      <svg width="88" height="88" viewBox="0 0 32 32" aria-hidden="true">
         <line x1="3" y1="16" x2="29" y2="16" stroke="var(--logo-spine)" stroke-width="1" />
         <rect x="3" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
         <rect x="12" y="10" width="7" height="12" rx="1.5" fill="none" stroke="var(--logo-stroke)" stroke-width="1.2" />
@@ -1439,70 +1446,6 @@
       <a class="stat" href="#"><span class="stat-num">live</span><span class="stat-label">system status</span></a>
       <a class="stat" href="#"><span class="stat-num">MIT</span><span class="stat-label">open source</span></a>
     </section>
-
-    <section class="phase-grid" aria-label="Pipeline phases">
-      <article class="phase-card">
-        <div class="phase-step">01 · DISCOVER</div>
-        <div class="phase-name">Interview</div>
-        <div class="phase-pills"><a class="phase-pill" data-role="workflow" href="#">app-architect</a></div>
-        <div class="phase-blurb">Interview — scope the idea, users, success criteria, MVP boundaries.</div>
-      </article>
-      <article class="phase-card">
-        <div class="phase-step">02 · SPEC</div>
-        <div class="phase-name">Contract</div>
-        <div class="phase-pills">
-          <a class="phase-pill" data-role="advisor" href="#">stack-forge</a>
-          <a class="phase-pill" data-role="workflow" href="#">app-architect</a>
-          <a class="phase-pill" data-role="tri-agent" href="#">api-dev</a>
-        </div>
-        <div class="phase-blurb">Contract — typed spec, stack picks, integration shape, OpenAPI/GraphQL.</div>
-      </article>
-      <article class="phase-card">
-        <div class="phase-step">03 · DESIGN</div>
-        <div class="phase-name">Style book</div>
-        <div class="phase-pills">
-          <a class="phase-pill" data-role="tri-agent" href="#">ux-engineer</a>
-          <a class="phase-pill" data-role="specialist" href="#">dash-forge</a>
-        </div>
-        <div class="phase-blurb">Style book — design system, screens, components, working prototype.</div>
-      </article>
-      <article class="phase-card">
-        <div class="phase-step">04 · BUILD</div>
-        <div class="phase-name">Sprint loop</div>
-        <div class="phase-pills"><a class="phase-pill" data-role="workflow" href="#">app-architect</a></div>
-        <div class="phase-blurb">Sprint loop — Generator/Evaluator build cycle behind quality gates.</div>
-      </article>
-      <article class="phase-card">
-        <div class="phase-step">05 · AUDIT</div>
-        <div class="phase-name">Quality gate</div>
-        <div class="phase-pills">
-          <a class="phase-pill" data-role="audit-gate" href="#">code-auditor</a>
-          <a class="phase-pill" data-role="audit-gate" href="#">security-auditor</a>
-        </div>
-        <div class="phase-blurb">Quality gate — Auditor/Fixer/Verifier loop plus security review before ship.</div>
-      </article>
-      <article class="phase-card">
-        <div class="phase-step">06 · SHIP</div>
-        <div class="phase-name">Deploy</div>
-        <div class="phase-pills">
-          <a class="phase-pill" data-role="specialist" href="#">git-ops</a>
-          <a class="phase-pill" data-role="orchestrator" href="#">deploy-ops</a>
-        </div>
-        <div class="phase-blurb">Deploy — branch, PR, audit gate, staging, production, rollback if needed.</div>
-      </article>
-      <article class="phase-card">
-        <div class="phase-step">07 · MONITOR</div>
-        <div class="phase-name">Observe</div>
-        <div class="phase-pills"><a class="phase-pill" data-role="specialist" href="#">monitoring-ops</a></div>
-        <div class="phase-blurb">Observe — uptime, errors, alerts, SLOs, on-call, postmortems.</div>
-      </article>
-      <article class="phase-card">
-        <div class="phase-step">08 · MIGRATE</div>
-        <div class="phase-name">Engine swap</div>
-        <div class="phase-pills"><a class="phase-pill" data-role="specialist" href="#">migration-ops</a></div>
-        <div class="phase-blurb">Engine swap — live database, framework, auth, platform — with rollback.</div>
-      </article>
-    </section>
   </main>
 
   <!-- ════════════════════════════════════════════════════════════
@@ -1515,6 +1458,12 @@
       <p>References and trust signals you'd otherwise have to scroll all the way to the footer to find.</p>
     </div>
     <div class="res-grid">
+      <a class="res-card" href="#">
+        <span class="res-icon">⛬</span>
+        <h3>Skills</h3>
+        <p>Read the source. Every skill is a single Markdown file you can audit, fork, and rewire.</p>
+        <span class="read">read the files ›</span>
+      </a>
       <a class="res-card" href="#">
         <span class="res-icon">📖</span>
         <h3>Glossary</h3>
