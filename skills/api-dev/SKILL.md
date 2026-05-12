@@ -436,6 +436,59 @@ are *declarations* in the spec. Sibling skills implement them.
 
 ---
 
+## Per-language scaffold adapters (v1.4+)
+
+stack-forge ships a pack per language under `skills/stack-forge/packs/<id>/pack.yml`
+declaring the canonical testRunner, buildCmd, lintCmd, and a langRef. api-dev's
+Builder phase reads the **build-time codegen** output
+`src/generated/api-dev-adapters.json` to template the right commands into the
+generated scaffolds.
+
+The codegen runs in `prebuild` after `gen-stack-packs` (so the pack contract is
+already validated) and before `gen-flags`. Adding a new language pack auto-extends
+api-dev — no api-dev code changes needed once the pack lands.
+
+### Adapter shape
+
+```json
+{
+  "id": "python",
+  "displayName": "Python",
+  "status": "stable",
+  "testRunner": "pytest",
+  "buildCmd": "python -m build",
+  "lintCmd": "ruff check .",
+  "langRef": "language.md"
+}
+```
+
+`status: stable` → the adapter is on by default (the coverage flag
+`skills.coverage.<id>.enabled` defaults to `true`). `beta` / `experimental` /
+`deprecated` packs still appear in the adapter list but are gated by the flag.
+
+### Why codegen (and not runtime read)?
+
+api-dev's Builder writes generated source — test stubs, mock servers, CI config
+fragments. Those need the test/build commands templated *in*, not looked up at
+runtime. Codegen produces a stable JSON artifact api-dev can `import` once and
+template across many files in one Builder pass. (deploy-ops takes the opposite
+trade-off — runtime read, because it makes a single dispatch decision per
+deploy. See `deploy-ops/SKILL.md § Pack-aware dispatch`.)
+
+### Failure modes
+
+- **New pack added without rerunning prebuild** — `api-dev-adapters.json` lags
+  the packs/ tree. Builder generates scaffolds for the previously-committed
+  baseline. CI catches this via `tests/api-dev-adapters.test.js` snapshot.
+- **Pack ships malformed pack.yml** — `gen-stack-packs` fails first;
+  `gen-api-dev-adapters` never runs. Builder never sees a partial adapter set.
+- **Pack with `kind` other than language** — the codegen skips it explicitly.
+  Frameworks and mobile packs are out of api-dev's surface (frameworks pick up
+  the same language adapter; mobile dispatches through stack-forge's
+  release-checklist path, not api-dev).
+
+---
+
 ## Checkpoint Integration
 
 ### Checkpoint Location

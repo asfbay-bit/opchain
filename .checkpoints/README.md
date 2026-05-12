@@ -27,6 +27,17 @@ where the worker is ephemeral. Tracking them in git means:
 These are docs, not strict protocol artifacts — keep them readable, keep
 them honest, don't sweat the byte budget.
 
+### Exception: bug-check
+
+`bug-check.checkpoint.json` is **gitignored, not tracked.** Bug-check
+has no resumable state by design — its SKILL.md says it "always runs
+fresh — no continue/restart prompt." Every `/bugcheck` invocation
+rewrites `updated_at`, `step`, `progress_summary`, `last_run.*`,
+`run_history`, and `streak`, which used to generate 2-3 spurious merge
+conflicts per PR. The pre-commit hook reads the file locally and
+handles the missing-file case by prompting `/bugcheck run` before the
+first commit on a fresh clone.
+
 ## Schema (loose, validated in CI)
 
 | Field | Required | Type | Notes |

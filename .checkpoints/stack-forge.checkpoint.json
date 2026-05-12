@@ -4,19 +4,19 @@
   "project": "opchain.dev v1.4",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-08T05:40:00Z",
-  "updated_at": "2026-05-11T03:21:34Z",
+  "updated_at": "2026-05-11T03:58:00Z",
 
   "phase": "in-flight",
-  "step": "pr-1-shipped-pr-2-starting",
+  "step": "pr-2-shipped-pr-3-starting",
   "status": "in_progress",
-  "progress_summary": "v1.4 PR 1 (ADEV-328 — pack registry architecture) shipped as #192 → 4cb0b09 on main. Lands: skills/stack-forge/packs/_schema.json (JSON Schema spec) + CONTRIBUTING.md (author guide) + scripts/gen-stack-packs.mjs (hand-rolled validator + adapter graph resolver + ref-file checks) + src/lib/flags/registry.js synthesizing skills.coverage.<id>.enabled per language/framework/mobile pack from src/generated/coverage-flags.json (committed `[]` baseline) + tests/stack-packs.test.js (13 fixture cases) + package.json prebuild reorder (gen-stack-packs → gen-flags → gen-catalog → ...). Vitest: 137/137 in 3.80s. js-yaml ^3.14.2 promoted from transitive to direct devDep, no lockfile churn. Next: PR 2 (ADEV-329) backfill the 5 existing stacks (typescript, python, ruby, go, rust) as the first packs landing under the schema. Dogfooding pass before the 19 new packs come in PRs 4-7. Plan: 5 pack.yml + 5 compressed language.md ref docs from existing skills/stack-forge/references/ content (≤50KB each), no framework packs in PR 2 (those land in PRs 4-7 per the v1.4 sequence).",
+  "progress_summary": "v1.4 PR 1 (ADEV-328 — pack registry architecture) shipped as #192 → 4cb0b09. v1.4 PR 2 (ADEV-329 — backfill 5 language packs) shipped as #203 → 22c45cd: typescript, python, ruby, go, rust each with pack.yml (testRunner/buildCmd/lintCmd) + langRef language.md (4.9–6.2 KB; total 27.8 KB across all 5, well under the 50 KB soft cap). gen-stack-packs reports `5 pack(s), 5 coverage flag(s)`; site/src/lib/flags/registry.ts emits skills.coverage.{typescript,python,ruby,go,rust}.enabled. Equivalence test suite tests/stack-packs-real.test.js (16 cases) locks in the canonical commands per pack, the absence of frameworks: [...] (those arrive in PRs 4-7), each langRef under 50KB, and byte-equivalence of the generated coverage-flags.json. Vitest: 153/153 (was 137; +16 for the new equivalence suite). Next: PR 3 (ADEV-330) — three integration points in one PR per the v1.4 plan + user-approved hybrid driver semantics: (a) deploy-ops dispatcher reads pack.yml at runtime to pick deploy path per language (small, lookup-only), (b) api-dev codegens per-language scaffold templates at build time (richer; matches api-dev surface), (c) stack-forge dispatcher gains a kind:mobile branch as placeholder dispatch logic — iOS pack lands in PR 6, but the kind:mobile dispatch code + tests can land now to keep PR 6's diff narrow.",
 
   "progress_table": [
     { "id": "scope",         "label": "Scope + 8-PR plan approved (incl. iOS pivot, distribution model)", "status": "complete" },
     { "id": "linear",        "label": "Linear tickets ADEV-327..337 created and aligned with current scope", "status": "complete" },
     { "id": "pr-1",          "label": "PR 1 — Architecture: schema, gen-stack-packs, auto-flag wiring, parity validator (ADEV-328)", "status": "complete" },
-    { "id": "pr-2",          "label": "PR 2 — Backfill 5 existing stacks + 4 platform adapters + equivalence fixtures (ADEV-329)", "status": "in_progress" },
-    { "id": "pr-3",          "label": "PR 3 — deploy-ops dispatcher + api-dev pack-read + kind:mobile branch (ADEV-330)", "status": "not_started" },
+    { "id": "pr-2",          "label": "PR 2 — Backfill 5 existing stacks as language packs + equivalence fixtures (ADEV-329 / #203 / 22c45cd)", "status": "complete" },
+    { "id": "pr-3",          "label": "PR 3 — deploy-ops dispatcher (runtime) + api-dev pack-read (codegen) + kind:mobile branch (ADEV-330)", "status": "in_progress" },
     { "id": "pr-4",          "label": "PR 4 — Modern web bulk: phoenix, remix, sveltekit, solid, bun, deno (ADEV-334)", "status": "not_started" },
     { "id": "pr-5",          "label": "PR 5 — Enterprise bulk: spring-java, dotnet-aspnet, spring-kotlin, laravel-php (ADEV-335)", "status": "not_started" },
     { "id": "pr-6",          "label": "PR 6 — Apple/iOS/Swift pack + app-store adapter, release-checklist dispatch (ADEV-336)", "status": "not_started" },
@@ -61,12 +61,12 @@
   "blockers": [],
 
   "next_actions": [
-    "PR 2 (ADEV-329): write 5 pack.yml files under skills/stack-forge/packs/<id>/ — typescript, python, ruby, go, rust. All kind=language, status=stable, since=1.4.0. Each with testRunner (vitest, pytest, rspec, `go test`, `cargo test`), buildCmd, lintCmd, and a langRef pointing at a local language.md.",
-    "PR 2: compress relevant slices of skills/stack-forge/references/ into per-pack language.md files (≤50KB each). Re-use existing content where it fits; trim aggressively to keep the per-skill zip lean.",
-    "PR 2: explicitly NO framework packs in PR 2 — those land in PRs 4-7 per the v1.4 sequence. The 5 language packs go in alone to dogfood the schema + the coverage-flag synthesis path.",
-    "PR 2: run npm run gen-stack-packs; expect `5 pack(s), 5 coverage flag(s)`. Confirm site/src/lib/flags/registry.ts now contains skills.coverage.typescript.enabled + 4 others.",
-    "PR 2: add equivalence fixtures (per checkpoint key_decisions) — snapshot tests asserting the 5 backfilled stacks produce byte-identical stack-forge output to v1.2 hardcoded copy. Defer if compression of references changes user-visible copy; flag as a known cosmetic delta.",
-    "PR 2: open PR; link ADEV-329; merge once green."
+    "PR 3 (ADEV-330): three integration points in one PR per the v1.4 plan. (1) deploy-ops dispatcher — read pack.yml at runtime to pick the deploy path per language/framework. Small lookup, no codegen; loads from src/generated/coverage-flags.json + per-pack reads as needed. (2) api-dev pack-read — codegen per-language scaffold templates at build time from pack.yml. New script (e.g. scripts/gen-api-dev-adapters.mjs) emits typed scaffolding modules consumed by api-dev's Designer/Builder phases. (3) stack-forge dispatcher kind:mobile branch — add placeholder dispatch logic + tests for kind:mobile packs; renders deploymentRef as a release-checklist instead of executing commands. iOS pack lands in PR 6 but the kind:mobile dispatch code can land now to keep PR 6 narrow.",
+    "PR 3: driver semantics are HYBRID (user-approved 2026-05-11): deploy-ops runtime read (small lookup), api-dev build-time codegen (richer per-language scaffolds). This is the explicit shape of integration that gets locked in by the equivalence tests.",
+    "PR 3: add tests in tests/ for each new entrypoint — deploy-ops dispatcher snapshot per language, api-dev scaffold codegen snapshot per language, kind:mobile dispatcher snapshot (synthetic mobile pack fixture). Aim for vitest 153 → ~170+.",
+    "PR 3: run npm run prebuild end-to-end; expect gen-stack-packs unchanged at `5 pack(s), 5 coverage flag(s)` (no new packs in PR 3) plus the new gen-api-dev-adapters codegen output committed (baseline only; CI overwrites on every build per CONTRIBUTING.md pattern).",
+    "PR 3: cut branch claude/adev-330-dispatch-and-mobile from origin/main (22c45cd or later). Open PR; link ADEV-330; merge once green.",
+    "After PR 3 lands: stack-forge moves to pr-4-starting. PRs 4-7 parallelize. PR 4 (ADEV-334) modern web bulk, PR 5 (ADEV-335) enterprise bulk, PR 6 (ADEV-336) Apple/iOS/Swift, PR 6.5 (ADEV-343 — note the Linear ticket id collision with the ADEV-343 walker-fix commit message; resolved at PM-tool layer), PR 7 (ADEV-337) hosting adapters. PR 8 (ADEV-331) ships the v1.4 release."
   ],
 
   "skill_state": {
