@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>/compare RFC — two variations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:          #0e0a06;
+  --surface:     #1c1710;
+  --card:        #251e15;
+  --border:      #3a2f22;
+  --text:        #f6f0e8;
+  --muted:       #c4b89e;
+  --subtle:      #8a7d63;
+  --dim:         #5a4f3e;
+  --accent:      #e05c18;
+  --accent-hover:#f56a2a;
+  --accent-dim:  rgba(224, 92, 24, 0.15);
+  --warn:        #f59e0b;
+  --r-xs: 4px; --r-sm: 6px; --r-md: 10px;
+  --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --font-sans:    'Inter', system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); }
+.page { max-width: 1100px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 0.5px solid var(--accent);
+  padding: 3px 10px;
+  border-radius: var(--r-xs);
+}
+h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 32px;
+  letter-spacing: -0.01em;
+  margin: 0.6rem 0 0.2rem;
+}
+.lede { color: var(--muted); margin: 1rem 0 1.5rem; max-width: 50rem; }
+.review-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--warn);
+  border: 0.5px solid var(--warn);
+  padding: 1px 6px;
+  border-radius: var(--r-xs);
+  margin-left: 6px;
+}
+.note-strip {
+  margin-top: 1rem;
+  padding: 0.7rem 1rem;
+  background: var(--surface);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--r-xs);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.variant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.variant-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: border-color 120ms, transform 120ms;
+}
+.variant-card:hover { border-color: var(--accent); color: inherit; transform: translateY(-2px); }
+.variant-card h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0.5rem 0 0.3rem;
+  color: var(--text);
+}
+.variant-card .pros, .variant-card .cons {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  margin: 0.5rem 0 0;
+  color: var(--muted);
+}
+.variant-card .pros::before { content: "+ "; color: var(--accent); }
+.variant-card .cons::before { content: "− "; color: var(--subtle); }
+.variant-card .open {
+  display: inline-block;
+  margin-top: 1rem;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+code { font-family: var(--font-mono); font-size: 12px; color: var(--text); }
+</style>
+</head>
+<body>
+<main class="page">
+  <span class="eyebrow">RFC · compare page</span>
+  <h1>/compare — column-picker redesign</h1>
+  <p class="lede">
+    Two variations on the same brief: opchain and Claude defaults are
+    always-on left columns, the rest are user-selected from a pool of
+    seven (Cursor, Copilot, Devin, Zed, VS Code, OpenAI Codex, Google
+    Antigravity). Pick one, then look through both variations and tell
+    me which to ship.
+  </p>
+
+  <p class="lede" style="font-size: 13px;">
+    <strong style="color: var(--text);">Codex</strong> = OpenAI's new
+    coding agent (CLI + ChatGPT-hosted UI). <strong style="color: var(--text);">Antigravity</strong>
+    = Google's new agentic coding platform — content marked <span class="review-badge" style="text-transform: lowercase;">review</span>
+    needs an eye before merge.
+  </p>
+
+  <div class="variant-grid">
+    <a class="variant-card" href="a.html">
+      <span class="eyebrow" style="background: transparent; border-color: var(--subtle); color: var(--subtle);">A</span>
+      <h2>Inline header selectors</h2>
+      <p style="color: var(--muted); margin: 0.5rem 0;">
+        Each user-controlled column has its own dropdown <em>inside</em>
+        the table header. Click <code>+ compare more</code>
+        to reveal more columns, one slot at a time. Remove with the
+        <code>×</code> on each header.
+      </p>
+      <p class="pros">Compact, table-native. No extra UI surface.</p>
+      <p class="cons">Picker discoverability is lower — you have to notice the dropdown.</p>
+      <span class="open">open variation A →</span>
+    </a>
+
+    <a class="variant-card" href="b.html">
+      <span class="eyebrow" style="background: transparent; border-color: var(--subtle); color: var(--subtle);">B</span>
+      <h2>Chip-tray picker above table</h2>
+      <p style="color: var(--muted); margin: 0.5rem 0;">
+        A persistent strip above the table shows every comparable
+        platform as a chip. Click chips to toggle them in or out — the
+        table reflows columns to match.
+      </p>
+      <p class="pros">All seven options visible at a glance. Reset is one click.</p>
+      <p class="cons">Adds a UI surface above the table — slightly heavier first impression.</p>
+      <span class="open">open variation B →</span>
+    </a>
+  </div>
+
+  <div class="note-strip" style="margin-top: 2rem;">
+    Both files are fully self-contained — open <code>a.html</code> or
+    <code>b.html</code> directly in any browser via <code>file://</code>
+    (no server, no build step). Edit either file's inline data block
+    to tweak cell content.
+  </div>
+</main>
+</body>
+</html>
