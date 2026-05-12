@@ -4,22 +4,27 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-01T16:42:00Z",
-  "updated_at": "2026-05-02T12:00:00Z",
+  "updated_at": "2026-05-12T06:14:00Z",
 
   "phase": "design-iteration",
-  "step": "round-3-validated",
+  "step": "round-4-shipped",
   "status": "complete",
-  "progress_summary": "Three rounds of UI work merged. Round 1: 5 mobile-demo direction previews → Direction A picked → production MobileWorkbench. Round 2: mobile architecture diagram (vertical stack, no JS, dark default). Round 3: replaced page-summary + OnboardingTour with one-step WelcomePopup, full-bleed workbench, top-right feedback pill, skill detail TOC restyle (fade-in-bg → cream on region hover → ember on link hover → click-to-flash heading bump + 10s ember→cream fade).",
+  "progress_summary": "Four rounds of UI work merged. Round 1: 5 mobile-demo direction previews → Direction A picked → production MobileWorkbench. Round 2: mobile architecture diagram (vertical stack, no JS, dark default). Round 3: replaced page-summary + OnboardingTour with one-step WelcomePopup, full-bleed workbench, top-right feedback pill, skill detail TOC restyle. Round 4 (PR #213): navigation overhaul — homepage redesign (release double-pill in ember+slate, cinema banner with 12-dot rotator, 4-up resources strip with new Skills tile, phase grid removed, container widened, banner-above-fold), Header restructure into grouped Product/Pipeline/Resources dropdowns with install primary-CTA pill + right-cluster (search input → version chip with live-dot → \"feedback\" text-label → theme), and a new global ⌘K SearchPalette component (pages + skills + actions, keyboard nav, ⌘K/Ctrl+K/`/` shortcuts, decoupled action dispatch).",
 
   "progress_table": [
-    { "id": "previews",   "label": "5 mobile-demo direction previews (PR #140)",     "status": "complete" },
-    { "id": "evaluate",   "label": "User selected Direction A",                       "status": "complete" },
-    { "id": "production", "label": "MobileWorkbench production build (PR #143)",      "status": "complete" },
-    { "id": "arch-mob",   "label": "MobileArchitecture diagram (PR #146)",            "status": "complete" },
-    { "id": "popup",      "label": "WelcomePopup replaces banner + tour (PR #148)",   "status": "complete" },
-    { "id": "fullbleed",  "label": "Drop page-summary; workbench full-bleed",         "status": "complete" },
-    { "id": "feedback",   "label": "Move desktop feedback pill to top-right",         "status": "complete" },
-    { "id": "toc",        "label": "Skill TOC fade/region-hover/link-hover/flash",    "status": "complete" }
+    { "id": "previews",          "label": "5 mobile-demo direction previews (PR #140)",                "status": "complete" },
+    { "id": "evaluate",          "label": "User selected Direction A",                                  "status": "complete" },
+    { "id": "production",        "label": "MobileWorkbench production build (PR #143)",                 "status": "complete" },
+    { "id": "arch-mob",          "label": "MobileArchitecture diagram (PR #146)",                       "status": "complete" },
+    { "id": "popup",             "label": "WelcomePopup replaces banner + tour (PR #148)",              "status": "complete" },
+    { "id": "fullbleed",         "label": "Drop page-summary; workbench full-bleed",                    "status": "complete" },
+    { "id": "feedback",          "label": "Move desktop feedback pill to top-right",                    "status": "complete" },
+    { "id": "toc",               "label": "Skill TOC fade/region-hover/link-hover/flash",               "status": "complete" },
+    { "id": "nav-proposal",      "label": "41-change nav proposal in previews/PROPOSAL.md",             "status": "complete" },
+    { "id": "nav-iteration",     "label": "Single-file preview iteration (banner placement A/B/C, menu alt 1/2/3, glow bar, dot indicator variants)", "status": "complete" },
+    { "id": "nav-homepage",      "label": "Homepage redesign live in index.astro (PR #213, 2218590)",   "status": "complete" },
+    { "id": "nav-header",        "label": "Header dropdowns + right-cluster + ⌘K palette (PR #213, 25d96ba)", "status": "complete" },
+    { "id": "nav-axe-fixes",     "label": "WCAG fixes: target-size (.dot pseudo-element), color-contrast (.rb-tag + .vchip-tag), aria-required-children (dot-row)", "status": "complete" }
   ],
 
   "context_primer": {
@@ -30,33 +35,63 @@
       "Desktop full-bleed workbench: dropped page-summary card so the IDE owns the page (78vh height contract retained).",
       "Feedback pill desktop: top-right (top:1rem right:1rem z-index:100). Mobile unchanged — Header.astro already houses the launcher there.",
       "Skill TOC default state uses var(--subtle) (~4.85:1 on obsidian, AA pass) so it blends into bg without failing contrast. Region hover brightens to var(--text); per-link hover overrides to var(--accent). Active-in-viewport entry stays ember.",
-      "Click-to-flash uses 320ms scale+nudge bump and 10s linear color fade ember→cream. prefers-reduced-motion disables both."
+      "Click-to-flash uses 320ms scale+nudge bump and 10s linear color fade ember→cream. prefers-reduced-motion disables both.",
+      "Round 4: page order on the redesigned homepage is `eyebrow → logo+wordmark → claim → tagline → body → release double-pill → stats → cinema banner → resources strip → intro-actions`. User chose this over a hero-replacement banner so the brand stays primary; release pill + banner pair as a 'what's happening right now' block.",
+      "Round 4: cinema banner shorter than the preview (240px min-height vs 540px) and dropped its embedded logo/wordmark since the hero stack handles brand above it.",
+      "Round 4: release double-pill uses filled ember for v1.3 (current) and outlined slate (--info #94A3B8) for v1.4 (in progress). The filled/outlined split also gave us ~7:1 contrast on the v1.3 chip (was borderline as outlined-ember at 9.5px bold).",
+      "Round 4: search input in the header (Menu Alt 3) replaces the previous chat-bubble feedback button with a 'feedback' text label. The ⌘K palette was built from scratch (no existing palette in the codebase) — single mount in Header, server-renders 14 pages + every skill + 3 actions.",
+      "Round 4: WCAG 2.5.8 target-size on the 12-dot indicator solved with a pseudo-element pattern — buttons are 24×24 click targets; the visible 7/14px dot renders via ::before. No overlap. Gap reduced to 0 so adjacent click targets touch edge-to-edge.",
+      "Round 4: TypeScript closure-narrowing issue in SearchPalette.astro inline script — `const x = getElementById(...) as T | null; if (!x) ...` doesn't preserve the narrowed type across event-listener arrow callbacks under strict mode. Fixed by re-binding to typed consts (`const scrim: HTMLDivElement = scrimEl as HTMLDivElement`) after the guard."
     ],
     "generated_files": [
       "site/public/previews/mobile-demo/{index,a,b,c,d,e}.html",
-      "site/public/previews/mobile-demo/_shared/{tokens.css,data.js}",
       "site/src/components/MobileWorkbench.astro",
       "site/src/components/MobileArchitecture.astro",
-      "site/src/components/WelcomePopup.astro"
+      "site/src/components/WelcomePopup.astro",
+      "site/src/components/SearchPalette.astro (Round 4 — new)",
+      "previews/PROPOSAL.md (Round 4 — 41 P-NN nav proposals)",
+      "previews/preview.html (Round 4 — iteration sandbox; gitignored from build)"
+    ],
+    "modified_files_round_4": [
+      "site/src/pages/index.astro (homepage redesign)",
+      "site/src/components/Header.astro (group dropdowns + right-cluster + ⌘K mount)"
     ],
     "user_preferences": [
-      "Wants HTML previews to evaluate before approving direction (round 1).",
-      "Comfortable delegating defaults when no preference (\"go ahead and implement option A fully\").",
-      "Likes brand-on voice and full-bleed/immersive surfaces over heavy chrome."
+      "Wants HTML previews to evaluate before approving direction (rounds 1 + 4).",
+      "Comfortable delegating defaults when no preference (\"go ahead and implement option A fully\", round 4 feedback button treatment).",
+      "Likes brand-on voice and full-bleed/immersive surfaces over heavy chrome.",
+      "Round 4: prefers iterating live on the PR branch over local-test-per-commit cadence. Treats LHCI as informational; merges as soon as required checks (build/e2e/worker) clear."
     ]
   },
 
   "blockers": [],
 
   "next_actions": [
-    "No pending UX work. Round 3 validated on real device. B/C/D/E preview directions remain at /previews/mobile-demo/ as marketing artifacts."
+    "Follow-up PR queued: roadmap timeline on /changelog (vertical stack: v1.3 SHIPPED → v1.4 IN PROGRESS → v1.5 PLANNED → LATER BACKLOG) + Linear-connected feature-request form. Designed in previews/preview.html. Live impl pulls items from Linear at build time via existing LINEAR_API_KEY; form extends /api/feedback with `category` + `community-submitted` label; vote button hits same endpoint with `type=upvote` + issue id.",
+    "Wire version chip status dot to live /api/health (currently static green pulse).",
+    "Add /sitemap route — the Resources dropdown intentionally omits a sitemap entry until the page exists."
   ],
 
   "skill_state": {
     "directions_shipped_for_evaluation": ["A", "B", "C", "D", "E"],
     "winner": "A",
-    "tweak_rounds_complete": 3,
-    "components_owned": ["MobileWorkbench.astro", "MobileArchitecture.astro", "WelcomePopup.astro"],
+    "tweak_rounds_complete": 4,
+    "components_owned": [
+      "MobileWorkbench.astro",
+      "MobileArchitecture.astro",
+      "WelcomePopup.astro",
+      "SearchPalette.astro",
+      "Header.astro (round 4 restructure)",
+      "pages/index.astro (round 4 redesign)"
+    ],
+    "round_4_pr": {
+      "number": 213,
+      "merge_sha": "314df02b",
+      "merge_method": "squash",
+      "title": "feat(site): redesigned homepage + grouped header + ⌘K palette",
+      "merged_at": "2026-05-12T06:12:00Z",
+      "ci_final": "build ✅ · e2e ✅ · worker ✅ · LHCI perf/a11y/best/seo 1.00 across all routes"
+    },
     "depends_on": "checkpoint-protocol v1.0"
   }
 }
