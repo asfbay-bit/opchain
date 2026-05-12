@@ -36,17 +36,42 @@ function makeFixture(packs) {
   return work;
 }
 
-describe("pack-dispatch — real packs (PR 2 backfill)", () => {
+// All language packs that ship in the current release. PR 2 (ADEV-329) seeded
+// the first 5; PR 4 (ADEV-334) added elixir/bun/deno alongside the modern web
+// framework packs. None of them declare deploy-target platforms yet — those
+// land in PR 7. Until then deploy-ops falls back to the SKILL.md matrix.
+const REAL_LANGUAGE_PACKS = [
+  "typescript", "python", "ruby", "go", "rust",
+  "elixir", "bun", "deno",
+];
+
+describe("pack-dispatch — real packs (PR 2 + PR 4 backfill)", () => {
   // No env override — read the real skills/stack-forge/packs/ tree.
   beforeEach(() => { delete process.env.OPCHAIN_PACKS_DIR; });
 
-  it("getLanguagePack returns the 5 backfilled language packs", () => {
-    for (const id of ["typescript", "python", "ruby", "go", "rust"]) {
+  it("getLanguagePack returns every backfilled language pack", () => {
+    for (const id of REAL_LANGUAGE_PACKS) {
       const pack = getLanguagePack(id);
       expect(pack, `pack ${id}`).not.toBeNull();
       expect(pack.id).toBe(id);
       expect(pack.kind).toBe("language");
       expect(pack.status).toBe("stable");
+    }
+  });
+
+  it("getLanguagePack returns the parsed pack regardless of kind (framework packs included)", () => {
+    // The helper is named for its dominant caller but is a generic
+    // "load pack by id". Framework packs come back with kind=framework
+    // and the language field set — callers that need a language shape
+    // check `pack.kind === "language"` themselves.
+    for (const [id, expectedLanguage] of [
+      ["phoenix", "elixir"], ["remix", "typescript"],
+      ["sveltekit", "typescript"], ["solid", "typescript"],
+    ]) {
+      const pack = getLanguagePack(id);
+      expect(pack, `pack ${id}`).not.toBeNull();
+      expect(pack.kind).toBe("framework");
+      expect(pack.language).toBe(expectedLanguage);
     }
   });
 
@@ -60,11 +85,22 @@ describe("pack-dispatch — real packs (PR 2 backfill)", () => {
     expect(() => getLanguagePack("1bad")).toThrow(/invalid pack id/);
   });
 
-  it("getDispatchTarget returns {defaultPlatform:null, supportedPlatforms:[]} for the 5 language packs", () => {
-    // PR 2 language packs do not declare platforms — those land with the
+  it("getDispatchTarget returns {defaultPlatform:null, supportedPlatforms:[]} for every language pack", () => {
+    // Language packs do not declare platforms — those land with the
     // deploy-target packs in PR 7. deploy-ops should treat this as "fall
     // back to the SKILL.md hardcoded matrix".
-    for (const id of ["typescript", "python", "ruby", "go", "rust"]) {
+    for (const id of REAL_LANGUAGE_PACKS) {
+      expect(getDispatchTarget(id), `pack ${id}`).toEqual({
+        defaultPlatform: null,
+        supportedPlatforms: [],
+      });
+    }
+  });
+
+  it("getDispatchTarget returns {defaultPlatform:null, supportedPlatforms:[]} for the PR 4 framework packs", () => {
+    // PR 4 framework packs ship without declared platforms either — they're
+    // a no-op for deploy-ops until PR 7's hosting adapters land.
+    for (const id of ["phoenix", "remix", "sveltekit", "solid"]) {
       expect(getDispatchTarget(id), `pack ${id}`).toEqual({
         defaultPlatform: null,
         supportedPlatforms: [],

@@ -4,12 +4,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:50:00Z",
-  "updated_at": "2026-05-11T03:58:00Z",
+  "updated_at": "2026-05-12T02:35:00Z",
 
   "phase": "routing",
-  "step": "handoff-stack-forge-pr-3",
+  "step": "handoff-stack-forge-pr-4",
   "status": "in_progress",
-  "progress_summary": "v1.4 PR 1 (ADEV-328) shipped as #192 → 4cb0b09 — pack registry architecture. v1.4 PR 2 (ADEV-329) shipped as #203 → 22c45cd — 5 language packs (typescript/python/ruby/go/rust) backfilled under the schema with per-pack langRef docs (4.9-6.2KB each, total 27.8KB) and 16 new equivalence tests (vitest 153/153). The a11y track also wrapped earlier this session: PR #196 (ADEV-339-342, squash 08377ea) cleared the original ADEV-338 LHCI batch (TOC min-height, Shiki dual-theme, band-label color, /changelog underlines), and PR #197 (ADEV-343-347, squash ba8d0cc) shipped the root-cause follow-ups when the first batch did not fully clear LHCI: walker uses closest() to skip Shiki nested spans (kills phantom <mark>), TOC scope-attribute copy so JS-injected <li>/<a> inherit Astro scoped CSS (min-height 44px now applies), .band-label gets background:var(--bg) + z-index:1 to occlude SVG glow bleed, and a global Shiki dark-theme CSS switch so dark-mode pages use the dark palette instead of the low-contrast light theme. Final LHCI: every audited route at A11y 1.00 (architecture and changelog perf 0.89/0.92 unchanged, both warn-level). Production remains on 526a9a2 (v1.4 not yet released — PR 8 ADEV-331 ships the release). Orchestrator handoff continues to stack-forge for PR 3 (ADEV-330): deploy-ops dispatcher + api-dev pack-read + stack-forge kind:mobile branch. Approved driver semantics: hybrid — deploy-ops dispatcher does runtime pack lookup (small, lookup-only), api-dev codegens per-language scaffold templates at build time (richer; matches its api-dev surface). All three integrations land in one PR per the v1.4 plan. PRs 1-3 are serial; PRs 4-7 parallelize after PR 3. No blockers.",
+  "progress_summary": "v1.4 PRs 1-3 all shipped (serial leg complete): #192 → 4cb0b09 (ADEV-328 pack registry architecture), #203 → 22c45cd (ADEV-329 backfill 5 language packs), #207 → 29218da (ADEV-330 pack-aware dispatch + api-dev adapters + kind:mobile branch). Production still on 526a9a2 (v1.4 release ships in PR 8). PRs 4-7 now parallelize. THIS SESSION started v1.4 PR 4 (ADEV-334 modern web bulk) on branch claude/implement-v1.4-features-frpwm: 3 new language packs (elixir, bun, deno) + 4 new framework packs (phoenix on elixir; remix/sveltekit/solid on typescript). User-approved kind taxonomy for bun/deno: language packs (distinct toolchains — bun test / deno test diverge from vitest). typescript pack.yml updated with frameworks: [remix, sveltekit, solid] to satisfy the bidirectional invariant; elixir pack ships with frameworks: [phoenix]. gen-stack-packs: 5/5 → 12 pack(s), 12 coverage flag(s). gen-api-dev-adapters: 5 → 8 language pack(s). Flag registry grew from 97 → 104. Tests extended: stack-packs-real (language + new framework-pack equivalence + bidirectional invariant), api-dev-adapters (8 language adapters + explicit skip-frameworks assertion), pack-dispatch (all 8 languages + framework parsing). Vitest 198/198 green, prebuild + astro build clean. Ready to commit + push + open PR. No blockers.",
 
   "progress_table": [
     { "id": "intake-1.4",     "label": "Intake: 1.4 scope expansion (5 langs → 11+ langs + iOS)",     "status": "complete" },
@@ -27,7 +27,8 @@
     { "id": "commit-reconcile","label": "Commit reconciliation diff to main (4927bc1 + 60ac971)",      "status": "complete" },
     { "id": "v1.4-pr1",       "label": "v1.4 PR 1 — schema, generator, auto-flag wiring (ADEV-328 / #192 / 4cb0b09)", "status": "complete" },
     { "id": "v1.4-pr2",       "label": "v1.4 PR 2 — backfill 5 existing stacks as language packs (ADEV-329 / #203 / 22c45cd)", "status": "complete" },
-    { "id": "v1.4-pr3",       "label": "v1.4 PR 3 — deploy-ops dispatcher + api-dev pack-read + kind:mobile branch (ADEV-330)", "status": "in_progress" },
+    { "id": "v1.4-pr3",       "label": "v1.4 PR 3 — deploy-ops dispatcher + api-dev pack-read + kind:mobile branch (ADEV-330 / #207 / 29218da)", "status": "complete" },
+    { "id": "v1.4-pr4",       "label": "v1.4 PR 4 — Modern web bulk: elixir/bun/deno languages + phoenix/remix/sveltekit/solid frameworks (ADEV-334)", "status": "in_progress" },
     { "id": "a11y-fixes",     "label": "Land a11y fixes via PRs #196 (ADEV-339-342, squash 08377ea) + #197 (ADEV-343-347 root-cause follow-ups, squash ba8d0cc)", "status": "complete" }
   ],
 
@@ -60,9 +61,9 @@
   "blockers": [],
 
   "next_actions": [
-    "Start v1.4 PR 3 (ADEV-330) — stack-forge.checkpoint.json says `pr-2-shipped-pr-3-starting / in_progress`. Three integration points in one PR: (a) deploy-ops dispatcher reads pack.yml at runtime to pick the deploy path per language/framework (small lookup, runtime), (b) api-dev codegens per-language scaffold templates at build time from pack.yml (richer; matches api-dev surface), (c) stack-forge dispatcher gets a kind:mobile branch as placeholder (iOS pack lands in PR 6, but the dispatch logic + tests can land now). Driver semantics: hybrid (runtime deploy-ops + codegen api-dev).",
-    "Cut PR 3 branch from current origin/main (22c45cd — includes ADEV-329 5 language packs). Use a descriptive name like claude/adev-330-dispatch-and-mobile.",
-    "After PR 3 lands, stack-forge moves to pr-4-starting. PRs 4-7 parallelize: PR 4 (ADEV-334) modern web bulk (phoenix/remix/sveltekit/solid/bun/deno), PR 5 (ADEV-335) enterprise bulk (spring-java/dotnet-aspnet/spring-kotlin/laravel-php), PR 6 (ADEV-336) Apple/iOS/Swift + app-store adapter, PR 7 (ADEV-337) remaining language packs / cleanup. PR 8 (ADEV-331) ships the v1.4 release."
+    "Commit + push PR 4 from claude/implement-v1.4-features-frpwm and open the PR linked to ADEV-334. Diff: 7 new pack directories (3 language + 4 framework), updated typescript pack.yml, extended pack-dispatch / api-dev-adapter / stack-packs-real tests. Vitest 198/198 green; prebuild + astro build clean.",
+    "After PR 4 merges, parallelize PRs 5/6/6.5/7. PR 5 (ADEV-335) enterprise bulk needs NEW language packs first (java/csharp/kotlin/php) before the framework packs (spring-java/dotnet-aspnet/spring-kotlin/laravel-php). PR 6 (ADEV-336) Apple/iOS first dogfoods the dispatchMobile() envelope shipped in PR 3 (swift language + swiftui framework + ios-swiftui mobile pack + app-store adapter). PR 6.5 (ADEV-343) brings kotlin-android, flutter, react-native-expo, play-store. PR 7 (ADEV-337) hosting adapters: railway/netlify/heroku/aws-amplify deploy-target packs — no coverage flag emitted for kind=deploy-target.",
+    "PR 8 (ADEV-331) is the v1.4 release: /coverage page, v1.4 pill on homepage, version bump on the 5 changed skills (stack-forge, api-dev, deploy-ops, app-architect, migration-ops), CHANGELOG entry, prod deploy via wrangler from laptop."
   ],
 
   "skill_state": {
