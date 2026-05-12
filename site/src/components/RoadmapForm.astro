@@ -1,0 +1,366 @@
+---
+/**
+ * Roadmap feature-request form — sits below RoadmapTimeline on
+ * /changelog. POSTs to /api/feedback with type=feature + category.
+ *
+ * Category presence flips the worker into "community submission"
+ * mode: applies the `community-submitted` Linear label (when
+ * LINEAR_COMMUNITY_LABEL_ID is set in env), prefixes the issue title
+ * with [community/feature], and surfaces Category in the body. Items
+ * do NOT appear on the public roadmap until a team-member adds the
+ * `roadmap-visible` label during triage.
+ */
+---
+
+<section class="submit-block" aria-label="Request a feature">
+  <div class="submit-card">
+    <header class="submit-head">
+      <span class="submit-eyebrow">missing something?</span>
+      <h2>Request a feature</h2>
+      <p>
+        Lands as a Linear ticket the team triages. We label it
+        <code>community-submitted</code> and reply when it ships if you
+        leave an email. Submissions stay off the public roadmap until a
+        team-member promotes them during triage.
+      </p>
+    </header>
+
+    <form class="submit-grid" id="roadmap-request" novalidate>
+      <div class="field">
+        <label for="rr-title">Title</label>
+        <input
+          id="rr-title"
+          name="title"
+          type="text"
+          placeholder="One-line summary of what you want"
+          required
+          minlength="3"
+          maxlength="120"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="rr-category">Category</label>
+          <select id="rr-category" name="category" required>
+            <option value="skill">New skill</option>
+            <option value="feature">Feature inside an existing skill</option>
+            <option value="docs">Docs / examples</option>
+            <option value="integration">Integration (Linear, Slack, etc.)</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="rr-email">Email <span class="opt">(optional — we'll only use it to reply)</span></label>
+          <input
+            id="rr-email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+          />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="rr-body">What and why?</label>
+        <textarea
+          id="rr-body"
+          name="description"
+          placeholder="What's the workflow you want? What are you doing today that this would replace? More context = faster triage."
+          required
+          minlength="10"
+          maxlength="2000"
+        ></textarea>
+      </div>
+
+      <div class="submit-footer">
+        <span class="linear-note">
+          <span class="pulse" aria-hidden="true"></span>
+          Connected to Linear · creates a triage-queue ticket
+        </span>
+        <button class="submit-btn" type="submit">Send ›</button>
+      </div>
+    </form>
+
+    <div class="submit-success" id="rr-success" role="status" aria-live="polite" hidden>
+      <strong>Got it. </strong>
+      Your request was filed as <span class="lid" data-success-id>OPCHN-…</span> and
+      will be triaged on the next pass. Leave an email and we'll let you
+      know when it ships.
+    </div>
+
+    <div class="submit-error" id="rr-error" role="alert" aria-live="assertive" hidden>
+      <strong>Couldn't reach the issue tracker.</strong>
+      <span data-error-msg>Try again in a minute, or drop us a line via the feedback button in the header.</span>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Light client. The Worker handles validation + Linear write +
+  // community-submitted labeling. We just POST and reflect the result.
+  (() => {
+    const form = document.getElementById("roadmap-request") as HTMLFormElement | null;
+    const success = document.getElementById("rr-success") as HTMLDivElement | null;
+    const error = document.getElementById("rr-error") as HTMLDivElement | null;
+    if (!form || !success || !error) return;
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      success.hidden = true;
+      error.hidden = true;
+
+      const data = new FormData(form);
+      const body: Record<string, string> = {
+        type: "feature",
+        title: String(data.get("title") || "").trim(),
+        description: String(data.get("description") || "").trim(),
+        category: String(data.get("category") || "other"),
+      };
+      const emailRaw = String(data.get("email") || "").trim();
+      if (emailRaw) body.email = emailRaw;
+
+      // Quick client-side gate to match the schema's min lengths.
+      if (body.title.length < 3 || body.description.length < 10) {
+        error.hidden = false;
+        const msg = error.querySelector<HTMLElement>("[data-error-msg]");
+        if (msg) msg.textContent = "Title needs 3+ chars and description needs 10+ chars.";
+        return;
+      }
+
+      const submitBtn = form.querySelector<HTMLButtonElement>(".submit-btn");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Sending…";
+      }
+
+      try {
+        const res = await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const json = (await res.json().catch(() => ({}))) as {
+          ok?: boolean;
+          id?: string;
+          error?: string;
+          dryRun?: boolean;
+        };
+        if (res.ok && json.ok) {
+          const idEl = success.querySelector<HTMLElement>("[data-success-id]");
+          if (idEl) idEl.textContent = json.id || "OPCHN-…";
+          success.hidden = false;
+          form.reset();
+          success.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else {
+          const msg = error.querySelector<HTMLElement>("[data-error-msg]");
+          if (msg) {
+            msg.textContent =
+              json.error ||
+              "Try again in a minute, or drop us a line via the feedback button in the header.";
+          }
+          error.hidden = false;
+        }
+      } catch {
+        error.hidden = false;
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Send ›";
+        }
+      }
+    });
+  })();
+</script>
+
+<style>
+  .submit-block {
+    max-width: 720px;
+    margin: 1rem auto 4rem;
+    padding: 0 1.5rem;
+  }
+  .submit-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 1.75rem;
+    position: relative;
+  }
+  .submit-head { text-align: left; margin-bottom: 1.25rem; }
+  .submit-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+  .submit-head h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+    margin: 0.4rem 0 0.3rem;
+    color: var(--text);
+    line-height: 1.15;
+  }
+  .submit-head p {
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    margin: 0;
+    max-width: 60ch;
+    line-height: var(--lh-snug);
+  }
+  .submit-head code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--surface);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+  }
+
+  .submit-grid {
+    display: grid;
+    gap: 0.9rem;
+  }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  @media (max-width: 540px) { .field-row { grid-template-columns: 1fr; } }
+  .field label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: var(--ls-wider);
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+  .field label .opt {
+    color: var(--muted);
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    margin-left: 4px;
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    padding: 9px 12px;
+    background: var(--surface);
+    color: var(--text);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-sm);
+    font-family: var(--font-body);
+    font-size: var(--fs-base);
+    outline: 0;
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      box-shadow var(--dur-fast) var(--ease-standard);
+  }
+  .field textarea { resize: vertical; min-height: 110px; line-height: var(--lh-snug); }
+  .field input::placeholder,
+  .field textarea::placeholder { color: var(--subtle); }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-dim);
+  }
+  .field select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--subtle) 50%),
+      linear-gradient(135deg, var(--subtle) 50%, transparent 50%);
+    background-position: calc(100% - 16px) 16px, calc(100% - 11px) 16px;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 32px;
+  }
+
+  .submit-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 0.5px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .linear-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+  }
+  .linear-note .pulse {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--advisor);
+    box-shadow: 0 0 8px var(--advisor);
+  }
+  .submit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.5rem;
+    background: var(--accent);
+    color: var(--obsidian);
+    border: 0;
+    border-radius: var(--r-sm);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      background var(--dur-fast) var(--ease-standard),
+      transform var(--dur-fast) var(--ease-standard),
+      box-shadow var(--dur-fast) var(--ease-standard);
+  }
+  :global([data-theme="light"]) .submit-btn { background: var(--ember); }
+  .submit-btn:hover:not([disabled]) {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--glow-md);
+  }
+  .submit-btn[disabled] { opacity: 0.6; cursor: progress; }
+
+  .submit-success,
+  .submit-error {
+    margin-top: 1rem;
+    padding: 1.1rem 1.25rem;
+    border: 0.5px solid transparent;
+    border-radius: var(--r-md);
+    font-size: var(--fs-sm);
+  }
+  .submit-success {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: var(--success);
+    color: var(--text);
+  }
+  .submit-success strong { color: var(--success); }
+  .submit-success .lid {
+    font-family: var(--font-mono);
+    color: var(--advisor);
+    font-size: 11px;
+  }
+  .submit-error {
+    background: rgba(216, 100, 100, 0.08);
+    border-color: var(--danger);
+    color: var(--text);
+  }
+  .submit-error strong { color: var(--danger); display: block; margin-bottom: 4px; }
+  .submit-success[hidden],
+  .submit-error[hidden] { display: none; }
+</style>

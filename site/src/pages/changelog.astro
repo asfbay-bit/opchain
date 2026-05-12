@@ -1,11 +1,13 @@
 ---
 import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
+import RoadmapTimeline from "../components/RoadmapTimeline.astro";
+import RoadmapForm from "../components/RoadmapForm.astro";
 ---
 
 <Base
   title="Changelog · opchain"
-  description="Release notes for opchain — what shipped, when, and how to migrate."
+  description="Release notes for opchain — what shipped, when, and how to migrate. Plus the live roadmap + community feature requests."
   active="/changelog"
 >
   <main class="page">
@@ -19,6 +21,17 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
       individual Markdown files; their <code>version</code> field is the
       source of truth — this page summarises across the catalog.
     </p>
+
+    <!-- Live roadmap from Linear (build-time pull, label-gated).
+         Sits above the release history so visitors see "what's coming"
+         before "what's shipped". -->
+    <RoadmapTimeline />
+    <RoadmapForm />
+
+    <div class="release-history-head">
+      <Eyebrow>release history</Eyebrow>
+      <h2 class="rhh">What's already shipped</h2>
+    </div>
 
     <section class="release release--current">
       <header class="rel-head">
@@ -395,6 +408,24 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
     margin: 0.5rem 0 0;
   }
   .lede { color: var(--muted); margin: 0 0 1.5rem; max-width: 42rem; }
+
+  /* Separator between the roadmap section above and the release-history
+     list below. Mirrors the page-head treatment so the two sections read
+     as siblings, not nested. */
+  .release-history-head {
+    margin: 3rem 0 1.25rem;
+    padding-top: 2rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .rhh {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    letter-spacing: var(--ls-tight);
+    margin: 0.4rem 0 0;
+    color: var(--text);
+    line-height: 1.1;
+  }
   .lede code,
   .release code {
     font-family: var(--font-mono);

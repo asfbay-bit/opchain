@@ -37,6 +37,12 @@ src/generated/*
 # Codegen — regenerated on every prebuild from src/lib/flags/registry.js
 site/src/lib/flags/registry.ts
 
+# Build-time Linear roadmap pull (scripts/gen-roadmap.mjs). Regenerated
+# on every prebuild; checked-out tree starts empty when LINEAR_API_KEY
+# isn't set. The TypeScript loader (roadmap-types.ts) returns an empty
+# shape when this file is missing so Astro builds stay green either way.
+site/src/data/roadmap.json
+
 # Cloudflare
 .wrangler/
 .dev.vars
