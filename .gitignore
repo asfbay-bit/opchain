@@ -37,6 +37,9 @@ site/src/lib/flags/registry.ts
 .dev.vars
 .dev.vars.*
 
+# Claude Code parallel-agent worktrees — temporary, per-session
+.claude/worktrees/
+
 # Env
 .env
 .env.local
