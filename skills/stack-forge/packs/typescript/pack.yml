@@ -7,4 +7,5 @@ since: 1.4.0
 testRunner: vitest
 buildCmd: npm run build
 lintCmd: eslint .
+frameworks: [remix, sveltekit, solid]
 langRef: language.md
