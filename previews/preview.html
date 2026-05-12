@@ -889,6 +889,389 @@
     .site-footer .tagline { color: var(--ember); font-size: var(--fs-sm); margin: 0.25rem 0 0; }
     .site-footer a { color: var(--muted); font-size: var(--fs-sm); padding: 2px 0; }
     .site-footer a:hover { color: var(--text); }
+
+    /* ════════════════════════════════════════════════════════════
+       PROPOSAL BAND — labels a non-homepage section in this preview
+       ════════════════════════════════════════════════════════════ */
+    .proposal-band {
+      max-width: 1080px;
+      margin: 4rem auto 1.5rem;
+      padding: 1rem 1.5rem;
+      border-top: 0.5px dashed var(--ribbon-edge);
+      border-bottom: 0.5px dashed var(--ribbon-edge);
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    }
+    .proposal-band .tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-wider);
+      color: var(--accent);
+      padding: 3px 7px;
+      border: 0.5px solid var(--accent);
+      border-radius: var(--r-xs);
+      text-transform: uppercase;
+    }
+    .proposal-band .title {
+      font-family: var(--font-display);
+      font-size: var(--fs-md); font-weight: 600;
+      color: var(--text);
+    }
+    .proposal-band .blurb { font-size: var(--fs-sm); color: var(--muted); flex: 1 1 360px; }
+
+    /* ════════════════════════════════════════════════════════════
+       ROADMAP — vertical timeline (shipped → in-flight → planned → backlog)
+       ════════════════════════════════════════════════════════════ */
+    .roadmap { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 1rem; }
+    .roadmap-head { text-align: center; margin-bottom: 2rem; }
+    .roadmap-head h1 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: clamp(2rem, 5vw, 2.75rem);
+      letter-spacing: var(--ls-tight);
+      margin: 0.5rem 0 0.5rem;
+      line-height: var(--lh-tight);
+    }
+    .roadmap-head p {
+      color: var(--muted);
+      max-width: 52ch; margin: 0 auto;
+      font-size: var(--fs-md);
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 2.5rem;
+    }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 11px; top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(180deg,
+        var(--accent) 0%,
+        var(--accent) 8%,
+        var(--info) 30%,
+        var(--info) 55%,
+        var(--subtle) 75%,
+        transparent 100%);
+    }
+    .release-block {
+      position: relative;
+      margin-bottom: 2.5rem;
+    }
+    .release-block::before {
+      content: "";
+      position: absolute;
+      left: -2.5rem;
+      top: 4px;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--release-dot-color, var(--subtle));
+      background: var(--bg);
+      box-shadow: 0 0 0 4px var(--bg), 0 0 0 5px var(--release-dot-color, var(--subtle));
+      z-index: 1;
+    }
+    .release-block::after {
+      content: "";
+      position: absolute;
+      left: -2.5rem;
+      top: 4px;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--release-dot-fill, transparent);
+      transform: scale(0.45);
+      z-index: 2;
+    }
+    .release-block[data-state="shipped"]      { --release-dot-color: var(--accent); --release-dot-fill: var(--accent); }
+    .release-block[data-state="in-progress"]  { --release-dot-color: var(--info); --release-dot-fill: var(--info); }
+    .release-block[data-state="planned"]      { --release-dot-color: var(--info); --release-dot-fill: transparent; }
+    .release-block[data-state="backlog"]      { --release-dot-color: var(--subtle); --release-dot-fill: transparent; }
+
+    .release-head {
+      display: flex; align-items: center; gap: 0.65rem;
+      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .release-version {
+      font-family: var(--font-display);
+      font-size: var(--fs-2xl);
+      font-weight: 600;
+      letter-spacing: var(--ls-tight);
+      color: var(--text);
+      line-height: 1;
+    }
+    .release-state {
+      font-family: var(--font-mono);
+      font-size: 9.5px; font-weight: 700;
+      letter-spacing: var(--ls-widest);
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: var(--r-pill);
+    }
+    .release-state[data-state="shipped"]      { color: var(--accent); border: 0.5px solid var(--accent); background: rgba(224,92,24,0.08); }
+    .release-state[data-state="in-progress"]  { color: var(--info); border: 0.5px solid var(--info); background: var(--info-dim); }
+    .release-state[data-state="planned"]      { color: var(--info); border: 0.5px solid var(--info); background: transparent; }
+    .release-state[data-state="backlog"]      { color: var(--subtle); border: 0.5px solid var(--subtle); background: transparent; }
+    .release-date {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--subtle);
+      letter-spacing: var(--ls-wide);
+    }
+
+    /* Progress dot row (used on the in-progress release) */
+    .progress-row {
+      display: inline-flex; align-items: center; gap: 4px;
+      margin-left: auto;
+    }
+    .progress-row .pd {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: transparent;
+      border: 1px solid var(--info);
+    }
+    .progress-row .pd.done { background: var(--info); }
+    .progress-row .pd-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--info);
+      letter-spacing: var(--ls-wide);
+      margin-left: 6px;
+    }
+
+    .release-blurb {
+      color: var(--muted);
+      font-size: var(--fs-sm);
+      max-width: 60ch;
+      margin: 0 0 1rem;
+      line-height: var(--lh-snug);
+    }
+
+    .item-list { display: grid; gap: 0.55rem; }
+    .item-card {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 0.85rem 1rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 1rem;
+      transition: border-color var(--dur-fast), transform var(--dur-fast);
+    }
+    .item-card:hover { border-color: var(--accent); }
+    .item-meta { min-width: 0; }
+    .item-title-row {
+      display: flex; align-items: center; gap: 0.5rem;
+      margin-bottom: 2px;
+      flex-wrap: wrap;
+    }
+    .item-title {
+      font-family: var(--font-display);
+      font-size: var(--fs-base);
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }
+    .item-tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: var(--ls-wider);
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: var(--r-xs);
+      color: var(--subtle);
+      border: 0.5px solid var(--border);
+    }
+    .item-tag.done { color: var(--success); border-color: var(--success); background: rgba(16,185,129,0.08); }
+    .item-tag.wip { color: var(--info); border-color: var(--info); background: var(--info-dim); }
+    .item-tag.community { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+    .item-blurb {
+      font-size: var(--fs-sm);
+      color: var(--muted);
+      line-height: var(--lh-snug);
+      margin: 0;
+    }
+    .item-linear {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--advisor);
+      text-decoration: none;
+      letter-spacing: var(--ls-wide);
+      margin-top: 4px;
+      display: inline-block;
+    }
+    .item-linear:hover { color: var(--text); }
+
+    /* Vote button (community signal) */
+    .vote-btn {
+      display: inline-flex; flex-direction: column; align-items: center;
+      gap: 2px;
+      min-width: 52px;
+      padding: 8px 10px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      color: var(--text);
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast);
+    }
+    .vote-btn:hover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      transform: translateY(-1px);
+    }
+    .vote-btn.voted {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+    .vote-btn .arrow { font-size: 14px; line-height: 1; }
+    .vote-btn .count { font-size: 13px; font-weight: 700; line-height: 1; }
+    .vote-btn .label {
+      font-size: 8.5px;
+      letter-spacing: var(--ls-wider);
+      text-transform: uppercase;
+      color: var(--subtle);
+      line-height: 1;
+    }
+    .vote-btn.voted .label { color: var(--accent); }
+
+    /* No-vote placeholder for shipped items (so card alignment stays consistent) */
+    .vote-placeholder {
+      min-width: 52px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--subtle);
+      letter-spacing: var(--ls-wider);
+      text-transform: uppercase;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       SUBMISSION FORM — Linear-connected
+       ════════════════════════════════════════════════════════════ */
+    .submit-block {
+      max-width: 720px;
+      margin: 3rem auto 0;
+      padding: 0 1.5rem;
+    }
+    .submit-card {
+      background: var(--card);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1.75rem;
+      position: relative;
+    }
+    .submit-head { text-align: left; margin-bottom: 1.25rem; }
+    .submit-head h2 {
+      font-family: var(--font-display);
+      font-size: var(--fs-xl);
+      font-weight: 600;
+      letter-spacing: var(--ls-tight);
+      margin: 0 0 0.3rem;
+      color: var(--text);
+    }
+    .submit-head p {
+      color: var(--muted);
+      font-size: var(--fs-sm);
+      margin: 0;
+      max-width: 60ch;
+    }
+    .submit-grid {
+      display: grid;
+      gap: 0.9rem;
+    }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    @media (max-width: 540px) { .field-row { grid-template-columns: 1fr; } }
+    .field label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-wider);
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+    .field label .opt { color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 4px; }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--surface);
+      color: var(--text);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-sm);
+      font-family: var(--font-body);
+      font-size: var(--fs-base);
+      outline: 0;
+      transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+    }
+    .field textarea { resize: vertical; min-height: 100px; line-height: var(--lh-snug); }
+    .field input::placeholder, .field textarea::placeholder { color: var(--subtle); }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-dim);
+    }
+    .field select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--subtle) 50%), linear-gradient(135deg, var(--subtle) 50%, transparent 50%); background-position: calc(100% - 16px) 16px, calc(100% - 11px) 16px; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; padding-right: 32px; }
+
+    .submit-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem;
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 0.5px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .linear-note {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--subtle);
+      letter-spacing: var(--ls-wide);
+    }
+    .linear-note .pulse {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--advisor);
+      box-shadow: 0 0 8px var(--advisor);
+    }
+    .submit-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.7rem 1.5rem;
+      background: var(--accent);
+      color: var(--obsidian);
+      border: 0;
+      border-radius: var(--r-sm);
+      font-family: var(--font-mono);
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      letter-spacing: var(--ls-wide);
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background var(--dur-fast), transform var(--dur-fast), box-shadow var(--dur-fast);
+    }
+    .submit-btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--glow-md);
+    }
+
+    /* Success state */
+    .submit-success {
+      display: none;
+      padding: 1.25rem;
+      background: rgba(16,185,129,0.08);
+      border: 0.5px solid var(--success);
+      border-radius: var(--r-md);
+      color: var(--text);
+      margin-top: 1rem;
+    }
+    .submit-success.open { display: block; }
+    .submit-success strong { color: var(--success); }
+    .submit-success .lid {
+      font-family: var(--font-mono);
+      color: var(--advisor);
+      font-size: 11px;
+    }
   </style>
 </head>
 <body>
@@ -1216,6 +1599,364 @@
     </div>
   </section>
 
+  <!-- ════════════════════════════════════════════════════════════
+       ROADMAP — /changelog page enhancement
+       Vertical timeline (shipped → in-flight → planned → backlog).
+       Vote button on each unshipped item. Linear-connected submission
+       form below.
+       ════════════════════════════════════════════════════════════ -->
+  <div class="proposal-band" id="roadmap-section">
+    <span class="tag">/changelog</span>
+    <div>
+      <div class="title">Roadmap timeline + Linear-connected feature request form</div>
+      <div class="blurb">Lives at the top of /changelog, above the existing release history. Items below are mocked for this preview; the live implementation pulls in-flight + planned versions from Linear at build time via the existing `LINEAR_API_KEY`. The submission form POSTs to `/api/feedback` (the endpoint already creates Linear issues today; this just adds a `community-submitted` label and the optional email + category fields).</div>
+    </div>
+  </div>
+
+  <section class="roadmap" aria-label="opchain roadmap">
+    <div class="roadmap-head">
+      <span class="eyebrow">where we're going</span>
+      <h1>roadmap</h1>
+      <p>What's shipped, what's in flight, what's queued. Anyone can request a feature — it lands as a Linear ticket the team triages.</p>
+    </div>
+
+    <div class="timeline">
+
+      <!-- v1.3 — SHIPPED -->
+      <article class="release-block" data-state="shipped">
+        <div class="release-head">
+          <span class="release-version">v1.3</span>
+          <span class="release-state" data-state="shipped">Shipped</span>
+          <span class="release-date">2026-04-15</span>
+        </div>
+        <p class="release-blurb">Runtime PM-MCP integration, the release-ops skill, and four new stack packs (Django, Rails, Go, Rust). 5 issues closed, 0 open.</p>
+        <div class="item-list">
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">release-ops skill</span>
+                <span class="item-tag done">done</span>
+              </div>
+              <p class="item-blurb">Plan, draft, bump, ship versioned releases atomically across every skill.</p>
+              <a class="item-linear" href="#">OPCHN-194 ↗</a>
+            </div>
+            <span class="vote-placeholder">shipped</span>
+          </div>
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">Stack packs: Django, Rails, Go, Rust</span>
+                <span class="item-tag done">done</span>
+              </div>
+              <p class="item-blurb">First-class language profiles for stack-forge with framework-specific advice.</p>
+              <a class="item-linear" href="#">OPCHN-201 ↗</a>
+            </div>
+            <span class="vote-placeholder">shipped</span>
+          </div>
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">Runtime PM-MCP loop</span>
+                <span class="item-tag done">done</span>
+              </div>
+              <p class="item-blurb">Skills can read + write to Linear at runtime; the orchestrator tracks progress.</p>
+              <a class="item-linear" href="#">OPCHN-188 ↗</a>
+            </div>
+            <span class="vote-placeholder">shipped</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.4 — IN PROGRESS -->
+      <article class="release-block" data-state="in-progress">
+        <div class="release-head">
+          <span class="release-version">v1.4</span>
+          <span class="release-state" data-state="in-progress">In progress</span>
+          <span class="release-date">est. shipping early summer</span>
+          <span class="progress-row" aria-label="3 of 7 issues closed">
+            <span class="pd done"></span>
+            <span class="pd done"></span>
+            <span class="pd done"></span>
+            <span class="pd"></span>
+            <span class="pd"></span>
+            <span class="pd"></span>
+            <span class="pd"></span>
+            <span class="pd-label">3 / 7</span>
+          </span>
+        </div>
+        <p class="release-blurb">Mobile-first cycle. Native iOS + Android scope, plus the Flutter and React Native packs. App-architect learns to delegate to mobile-ux-engineer.</p>
+        <div class="item-list">
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">Apple/iOS stack pack</span>
+                <span class="item-tag wip">in flight</span>
+              </div>
+              <p class="item-blurb">SwiftUI + UIKit advice, App Store provisioning, TestFlight handoff.</p>
+              <a class="item-linear" href="#">OPCHN-217 ↗</a>
+            </div>
+            <button class="vote-btn voted" data-count="34">
+              <span class="arrow">▲</span>
+              <span class="count">34</span>
+              <span class="label">voted</span>
+            </button>
+          </div>
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">Android stack pack</span>
+                <span class="item-tag wip">in flight</span>
+              </div>
+              <p class="item-blurb">Jetpack Compose, Material 3, Play Store deploy, Gradle build advisor.</p>
+              <a class="item-linear" href="#">OPCHN-218 ↗</a>
+            </div>
+            <button class="vote-btn" data-count="28">
+              <span class="arrow">▲</span>
+              <span class="count">28</span>
+              <span class="label">vote</span>
+            </button>
+          </div>
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">Flutter pack</span>
+                <span class="item-tag wip">in flight</span>
+              </div>
+              <p class="item-blurb">Cross-platform mobile via Flutter, with Firebase + Riverpod opinions baked in.</p>
+              <a class="item-linear" href="#">OPCHN-221 ↗</a>
+            </div>
+            <button class="vote-btn" data-count="19">
+              <span class="arrow">▲</span>
+              <span class="count">19</span>
+              <span class="label">vote</span>
+            </button>
+          </div>
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">React Native pack</span>
+                <span class="item-tag wip">in flight</span>
+              </div>
+              <p class="item-blurb">Expo + RN core, with TypeScript-first scaffolds and EAS submit flow.</p>
+              <a class="item-linear" href="#">OPCHN-222 ↗</a>
+            </div>
+            <button class="vote-btn" data-count="22">
+              <span class="arrow">▲</span>
+              <span class="count">22</span>
+              <span class="label">vote</span>
+            </button>
+          </div>
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">mobile-ux-engineer skill</span>
+                <span class="item-tag wip">in flight</span>
+              </div>
+              <p class="item-blurb">A tri-agent UX skill that knows native gestures, deep links, push notifications.</p>
+              <a class="item-linear" href="#">OPCHN-230 ↗</a>
+            </div>
+            <button class="vote-btn voted" data-count="41">
+              <span class="arrow">▲</span>
+              <span class="count">41</span>
+              <span class="label">voted</span>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.5 — PLANNED -->
+      <article class="release-block" data-state="planned">
+        <div class="release-head">
+          <span class="release-version">v1.5</span>
+          <span class="release-state" data-state="planned">Planned</span>
+          <span class="release-date">specs in review</span>
+        </div>
+        <p class="release-blurb">Operational depth: scheduled-job ops, internationalisation, and explicit performance budgets baked into the audit gate.</p>
+        <div class="item-list">
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">cron-ops skill</span>
+              </div>
+              <p class="item-blurb">Scheduled jobs lifecycle — design, deploy, monitor, alert on failure / drift.</p>
+              <a class="item-linear" href="#">OPCHN-244 ↗</a>
+            </div>
+            <button class="vote-btn" data-count="17">
+              <span class="arrow">▲</span>
+              <span class="count">17</span>
+              <span class="label">vote</span>
+            </button>
+          </div>
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">i18n harness</span>
+                <span class="item-tag community">community</span>
+              </div>
+              <p class="item-blurb">Translation extraction, locale switcher, RTL audits, copy review loop.</p>
+              <a class="item-linear" href="#">OPCHN-248 ↗</a>
+            </div>
+            <button class="vote-btn" data-count="11">
+              <span class="arrow">▲</span>
+              <span class="count">11</span>
+              <span class="label">vote</span>
+            </button>
+          </div>
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">Performance budgets in audit gate</span>
+              </div>
+              <p class="item-blurb">code-auditor gains bundle-size + LCP/CLS budgets; deploy-ops blocks on regression.</p>
+              <a class="item-linear" href="#">OPCHN-251 ↗</a>
+            </div>
+            <button class="vote-btn" data-count="9">
+              <span class="arrow">▲</span>
+              <span class="count">9</span>
+              <span class="label">vote</span>
+            </button>
+          </div>
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">Cost-ops skill</span>
+                <span class="item-tag community">community</span>
+              </div>
+              <p class="item-blurb">Run-rate forecasts before deploy: CDN, compute, DB, AI tokens. Alert on doubling.</p>
+              <a class="item-linear" href="#">OPCHN-256 ↗</a>
+            </div>
+            <button class="vote-btn" data-count="24">
+              <span class="arrow">▲</span>
+              <span class="count">24</span>
+              <span class="label">vote</span>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- LATER — BACKLOG -->
+      <article class="release-block" data-state="backlog">
+        <div class="release-head">
+          <span class="release-version">Later</span>
+          <span class="release-state" data-state="backlog">Backlog</span>
+          <span class="release-date">unscoped</span>
+        </div>
+        <p class="release-blurb">Top-voted asks that haven't been scoped into a release yet. The team triages quarterly; high votes get promoted to Planned.</p>
+        <div class="item-list">
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">Third-party plugin SDK</span>
+                <span class="item-tag community">community</span>
+              </div>
+              <p class="item-blurb">Author your own skills + publish them to a community registry.</p>
+              <a class="item-linear" href="#">OPCHN-198 ↗</a>
+            </div>
+            <button class="vote-btn" data-count="57">
+              <span class="arrow">▲</span>
+              <span class="count">57</span>
+              <span class="label">vote</span>
+            </button>
+          </div>
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">Self-hosted opchain</span>
+                <span class="item-tag community">community</span>
+              </div>
+              <p class="item-blurb">Run opchain entirely on your own infra. Air-gapped option for regulated shops.</p>
+              <a class="item-linear" href="#">OPCHN-203 ↗</a>
+            </div>
+            <button class="vote-btn" data-count="38">
+              <span class="arrow">▲</span>
+              <span class="count">38</span>
+              <span class="label">vote</span>
+            </button>
+          </div>
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">Skill marketplace</span>
+                <span class="item-tag community">community</span>
+              </div>
+              <p class="item-blurb">Discover and install community-authored skills. Paid skills supported.</p>
+              <a class="item-linear" href="#">OPCHN-209 ↗</a>
+            </div>
+            <button class="vote-btn" data-count="29">
+              <span class="arrow">▲</span>
+              <span class="count">29</span>
+              <span class="label">vote</span>
+            </button>
+          </div>
+          <div class="item-card">
+            <div class="item-meta">
+              <div class="item-title-row">
+                <span class="item-title">Team mode (shared skills)</span>
+                <span class="item-tag community">community</span>
+              </div>
+              <p class="item-blurb">Org-level skill registry, shared checkpoints, per-team flag overrides.</p>
+              <a class="item-linear" href="#">OPCHN-237 ↗</a>
+            </div>
+            <button class="vote-btn" data-count="46">
+              <span class="arrow">▲</span>
+              <span class="count">46</span>
+              <span class="label">vote</span>
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Linear-connected feature-request form -->
+  <section class="submit-block" aria-label="Request a feature">
+    <div class="submit-card">
+      <div class="submit-head">
+        <span class="eyebrow">missing something?</span>
+        <h2>Request a feature</h2>
+        <p>Lands as a Linear ticket the team triages. We label it <code class="inline">community-submitted</code> and email you back when it ships if you leave an address.</p>
+      </div>
+
+      <form class="submit-grid" id="feature-request">
+        <div class="field">
+          <label for="fr-title">Title</label>
+          <input id="fr-title" name="title" placeholder="One-line summary of what you want" required maxlength="120" />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="fr-category">Category</label>
+            <select id="fr-category" name="category">
+              <option value="skill">New skill</option>
+              <option value="feature">Feature inside an existing skill</option>
+              <option value="docs">Docs / examples</option>
+              <option value="integration">Integration (Linear, Slack, etc.)</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fr-email">Email <span class="opt">(optional — we'll only use it to reply)</span></label>
+            <input id="fr-email" type="email" name="email" placeholder="you@example.com" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="fr-body">What and why?</label>
+          <textarea id="fr-body" name="description" placeholder="What's the workflow you want? What are you doing today that this would replace? More context = faster triage." required maxlength="2000"></textarea>
+        </div>
+        <div class="submit-footer">
+          <span class="linear-note">
+            <span class="pulse"></span>
+            connected to Linear · creates OPCHN-N
+          </span>
+          <button class="submit-btn" type="submit">Send to Linear ›</button>
+        </div>
+      </form>
+
+      <div class="submit-success" id="fr-success" role="status" aria-live="polite">
+        <strong>Got it. </strong>Your request was filed as <span class="lid">OPCHN-342</span> and will be triaged on the next pass. If you left an email, you'll hear from us when it ships.
+      </div>
+    </div>
+  </section>
+
   <footer class="site-footer">
     <div class="site-footer-inner">
       <div class="col">
@@ -1245,6 +1986,39 @@
           g.querySelector('.nav-link')?.classList.remove('is-open');
         });
       }
+    });
+
+    // Vote button toggle (preview-only — live impl posts to /api/feedback)
+    document.querySelectorAll('.vote-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const countEl = btn.querySelector('.count');
+        const labelEl = btn.querySelector('.label');
+        const arrowEl = btn.querySelector('.arrow');
+        let n = parseInt(countEl.textContent, 10) || 0;
+        if (btn.classList.toggle('voted')) {
+          n += 1;
+          labelEl.textContent = 'voted';
+        } else {
+          n -= 1;
+          labelEl.textContent = 'vote';
+        }
+        countEl.textContent = n;
+        arrowEl.animate(
+          [{ transform: 'translateY(0)' }, { transform: 'translateY(-4px)' }, { transform: 'translateY(0)' }],
+          { duration: 240, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' }
+        );
+      });
+    });
+
+    // Feature-request form (preview-only — live impl POSTs to /api/feedback
+    // which creates the Linear issue server-side using LINEAR_API_KEY)
+    const form = document.getElementById('feature-request');
+    const success = document.getElementById('fr-success');
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      success.classList.add('open');
+      form.reset();
+      success.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
   </script>
 </body>
