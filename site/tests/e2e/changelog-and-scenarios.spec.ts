@@ -1,18 +1,19 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * v1.3 carry-over from v1.2: end-to-end coverage for the /changelog page
- * and the scenario picker on /demo.
+ * /changelog page + /demo scenario picker — kept in lockstep with the
+ * release entries as opchain version-bumps. Current release is v1.4
+ * (pack registry GA, /coverage page, 5 skill bumps); v1.3 sits one
+ * release back (runtime PM, real platforms, release-ops); v1.2
+ * remains the third entry (PM-MCP integration).
  *
  * Two specs:
- *   1. /changelog — current entry is v1.3, v1.2 demoted to past, all
- *      anchors that the v1.3 entry links to (#runtime-pm-loop /
- *      #release-ops-dogfood / #django-render-shipped /
- *      #mcp-enterprise-f500 / #mcp-enterprise-defense) actually exist as
- *      data-scenario folders on /demo.
+ *   1. /changelog — current entry is v1.4, v1.3 demoted to past;
+ *      the v1.4 entry deep-links to /coverage (the new pack catalog).
  *
- *   2. /demo — the three new v1.3 scenarios + the three v1.2 scenarios
- *      are pickable (folder click reveals the scenario pane).
+ *   2. /demo — the three v1.3 scenarios + the three v1.2 scenarios
+ *      remain pickable on /demo. v1.4 ships no new scenarios — the
+ *      release surface is /coverage, not a workbench artifact.
  */
 
 const v13_SCENARIOS = [
@@ -27,41 +28,30 @@ const v12_SCENARIOS = [
   "pm-pipeline-linear",
 ];
 
-// The /changelog v1.3 entry deep-links to v1.3's own scenarios plus the
-// v1.2 enterprise scenarios (carried forward as ongoing context).
-// pm-pipeline-linear is the v1.2 hero — demoted into its own release
-// section and intentionally not re-linked from v1.3.
-const v13_LINKED = [
-  ...v13_SCENARIOS,
-  "mcp-enterprise-f500",
-  "mcp-enterprise-defense",
-];
-
-// All scenario folders that must be pickable on /demo.
+// All scenario folders that must remain pickable on /demo. v1.4 ships
+// no new scenarios; v1.3 and v1.2 stay accessible.
 const ALL_PICKABLE = [...v13_SCENARIOS, ...v12_SCENARIOS];
 
 test.describe("/changelog", () => {
-  test("v1.3 is the current release; v1.2 is demoted", async ({ page }) => {
+  test("v1.4 is the current release; v1.3 is demoted", async ({ page }) => {
     await page.goto("/changelog");
 
-    // Current release section exists and tags v1.3.
+    // Current release section exists and tags v1.4.
     const current = page.locator("section.release.release--current");
     await expect(current).toBeVisible();
-    await expect(current.locator(".rel-tag").first()).toHaveText("v1.3");
+    await expect(current.locator(".rel-tag").first()).toHaveText("v1.4");
 
-    // The v1.2 entry exists, demoted to past.
+    // The v1.3 entry exists, demoted to past.
     const past = page.locator("section.release:not(.release--current)").first();
     await expect(past).toBeVisible();
-    await expect(past.locator(".rel-tag").first()).toHaveText("v1.2");
+    await expect(past.locator(".rel-tag").first()).toHaveText("v1.3");
   });
 
-  test("every scenario the v1.3 entry links to has a /demo deep link", async ({ page }) => {
+  test("the v1.4 entry deep-links to /coverage (the pack catalog)", async ({ page }) => {
     await page.goto("/changelog");
-    for (const id of v13_LINKED) {
-      const link = page.locator(`section.release--current a[href="/demo#${id}"]`).first();
-      await expect(link, `expected /changelog v1.3 entry to deep-link to /demo#${id}`)
-        .toBeVisible();
-    }
+    const link = page.locator(`section.release--current a[href="/coverage"]`).first();
+    await expect(link, "expected /changelog v1.4 entry to deep-link to /coverage")
+      .toBeVisible();
   });
 
   test("compatibility section is non-empty (changelog-recipe.md rule)", async ({ page }) => {
