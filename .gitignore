@@ -29,6 +29,11 @@ src/generated/*
 # adapter list without a build-first dependency; the build overwrites it.
 !src/generated/api-dev-adapters.json
 
+# Baseline emitted by scripts/gen-packs-catalog.mjs (v1.4 PR 8). Same
+# pattern — tracked so the site's /coverage page can import the catalog
+# without a build-first dependency; the build overwrites it.
+!src/generated/packs-catalog.json
+
 # Codegen — regenerated on every prebuild from src/lib/flags/registry.js
 site/src/lib/flags/registry.ts
 

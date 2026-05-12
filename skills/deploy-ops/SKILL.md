@@ -1,7 +1,7 @@
 ---
 name: deploy-ops
 displayName: Deploy Ops
-version: 1.3.0
+version: 1.4.0
 shortDesc: Audit gate → staging → production → monitor. v1.2 creates deploy tickets and updates linked PM tickets per env.
 phases: [build]
 triAgent: false
