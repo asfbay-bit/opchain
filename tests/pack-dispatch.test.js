@@ -36,17 +36,51 @@ function makeFixture(packs) {
   return work;
 }
 
-describe("pack-dispatch — real packs (PR 2 backfill)", () => {
+// All language packs that ship in the current release. PR 2 (ADEV-329) seeded
+// the first 5; PR 4 (ADEV-334) added elixir/bun/deno alongside the modern web
+// framework packs; PR 5 (ADEV-335) added java/csharp/kotlin/php alongside the
+// enterprise framework packs. None of them declare deploy-target platforms
+// yet — those land in PR 7. Until then deploy-ops falls back to the SKILL.md
+// matrix.
+const REAL_LANGUAGE_PACKS = [
+  "typescript", "python", "ruby", "go", "rust",
+  "elixir", "bun", "deno",
+  "java", "csharp", "kotlin", "php",
+  // PR 6 (ADEV-336) Apple/iOS language.
+  "swift",
+];
+
+describe("pack-dispatch — real packs (PR 2 + PR 4 + PR 5 backfill)", () => {
   // No env override — read the real skills/stack-forge/packs/ tree.
   beforeEach(() => { delete process.env.OPCHAIN_PACKS_DIR; });
 
-  it("getLanguagePack returns the 5 backfilled language packs", () => {
-    for (const id of ["typescript", "python", "ruby", "go", "rust"]) {
+  it("getLanguagePack returns every backfilled language pack", () => {
+    for (const id of REAL_LANGUAGE_PACKS) {
       const pack = getLanguagePack(id);
       expect(pack, `pack ${id}`).not.toBeNull();
       expect(pack.id).toBe(id);
       expect(pack.kind).toBe("language");
       expect(pack.status).toBe("stable");
+    }
+  });
+
+  it("getLanguagePack returns the parsed pack regardless of kind (framework packs included)", () => {
+    // The helper is named for its dominant caller but is a generic
+    // "load pack by id". Framework packs come back with kind=framework
+    // and the language field set — callers that need a language shape
+    // check `pack.kind === "language"` themselves.
+    for (const [id, expectedLanguage] of [
+      ["phoenix", "elixir"], ["remix", "typescript"],
+      ["sveltekit", "typescript"], ["solid", "typescript"],
+      ["spring-java", "java"], ["dotnet-aspnet", "csharp"],
+      ["spring-kotlin", "kotlin"], ["laravel-php", "php"],
+      // PR 6 (ADEV-336) Apple/iOS framework.
+      ["swiftui", "swift"],
+    ]) {
+      const pack = getLanguagePack(id);
+      expect(pack, `pack ${id}`).not.toBeNull();
+      expect(pack.kind).toBe("framework");
+      expect(pack.language).toBe(expectedLanguage);
     }
   });
 
@@ -60,11 +94,31 @@ describe("pack-dispatch — real packs (PR 2 backfill)", () => {
     expect(() => getLanguagePack("1bad")).toThrow(/invalid pack id/);
   });
 
-  it("getDispatchTarget returns {defaultPlatform:null, supportedPlatforms:[]} for the 5 language packs", () => {
-    // PR 2 language packs do not declare platforms — those land with the
+  it("getDispatchTarget returns {defaultPlatform:null, supportedPlatforms:[]} for every language pack", () => {
+    // Language packs do not declare platforms — those land with the
     // deploy-target packs in PR 7. deploy-ops should treat this as "fall
     // back to the SKILL.md hardcoded matrix".
-    for (const id of ["typescript", "python", "ruby", "go", "rust"]) {
+    for (const id of REAL_LANGUAGE_PACKS) {
+      expect(getDispatchTarget(id), `pack ${id}`).toEqual({
+        defaultPlatform: null,
+        supportedPlatforms: [],
+      });
+    }
+  });
+
+  it("getDispatchTarget returns {defaultPlatform:null, supportedPlatforms:[]} for the PR 4 + PR 5 + PR 6 framework packs", () => {
+    // Framework packs ship without declared platforms. PR 7 introduces the
+    // hosting-adapter deploy-target packs (railway/netlify/heroku/aws-amplify)
+    // but intentionally does NOT cross-wire them onto existing packs — that
+    // lands in PR 8+. Until then framework packs stay no-ops for deploy-ops
+    // and the SKILL.md fallback matrix still applies. PR 6's `swiftui`
+    // rides along on the same convention; iOS apps dispatch through the
+    // `ios-swiftui` mobile pack instead.
+    for (const id of [
+      "phoenix", "remix", "sveltekit", "solid",
+      "spring-java", "dotnet-aspnet", "spring-kotlin", "laravel-php",
+      "swiftui",
+    ]) {
       expect(getDispatchTarget(id), `pack ${id}`).toEqual({
         defaultPlatform: null,
         supportedPlatforms: [],
@@ -74,6 +128,90 @@ describe("pack-dispatch — real packs (PR 2 backfill)", () => {
 
   it("getDispatchTarget returns null for a missing pack", () => {
     expect(getDispatchTarget("ghost")).toBeNull();
+  });
+});
+
+describe("pack-dispatch — real deploy-target packs (PR 6 + PR 7)", () => {
+  // No env override — read the real skills/stack-forge/packs/ tree.
+  beforeEach(() => { delete process.env.OPCHAIN_PACKS_DIR; });
+
+  const DEPLOY_TARGET_PACKS = [
+    { id: "railway",     displayName: "Railway" },
+    { id: "netlify",     displayName: "Netlify" },
+    { id: "heroku",      displayName: "Heroku" },
+    { id: "aws-amplify", displayName: "AWS Amplify" },
+    { id: "app-store",   displayName: "App Store" },
+  ];
+
+  it("getLanguagePack returns each deploy-target pack with kind=deploy-target", () => {
+    // The helper loads any pack by id (despite the name). Deploy-target
+    // packs come back with kind=deploy-target; callers that wanted a
+    // language shape should kind-check themselves.
+    for (const { id, displayName } of DEPLOY_TARGET_PACKS) {
+      const pack = getLanguagePack(id);
+      expect(pack, `pack ${id}`).not.toBeNull();
+      expect(pack.id).toBe(id);
+      expect(pack.kind).toBe("deploy-target");
+      expect(pack.status).toBe("stable");
+      expect(pack.since).toBe("1.4.0");
+      expect(pack.displayName).toBe(displayName);
+      expect(pack.deployRef).toBe("deploy.md");
+    }
+  });
+
+  it("getDispatchTarget returns empty platform info — deploy-targets ARE the platforms", () => {
+    // Deploy-target packs do not declare defaultPlatform /
+    // supportedPlatforms — they are the leaves of the dispatch graph.
+    // Cross-wiring (language/framework packs pointing AT these
+    // deploy-targets) is deferred to PR 8+.
+    for (const { id } of DEPLOY_TARGET_PACKS) {
+      expect(getDispatchTarget(id), `pack ${id}`).toEqual({
+        defaultPlatform: null,
+        supportedPlatforms: [],
+      });
+    }
+  });
+
+  it("dispatchMobile(<deploy-target>) returns kind:not-mobile with actualKind=deploy-target", () => {
+    // Locks in the contract: hosting adapters are not mobile platforms;
+    // dispatchMobile must signal that with the actualKind discriminator
+    // so callers fall back to the language/framework dispatch path.
+    expect(dispatchMobile("railway")).toEqual({
+      kind: "not-mobile",
+      actualKind: "deploy-target",
+    });
+  });
+});
+
+describe("pack-dispatch — real mobile pack (PR 6 ios-swiftui)", () => {
+  // No env override — read the real skills/stack-forge/packs/ tree. This is
+  // the first end-to-end exercise of dispatchMobile() against a production
+  // mobile pack; PR 3 only proved the shape on synthetic fixtures.
+  beforeEach(() => { delete process.env.OPCHAIN_PACKS_DIR; });
+
+  it("dispatchMobile(\"ios-swiftui\") returns the App Store release-checklist envelope", () => {
+    const out = dispatchMobile("ios-swiftui");
+    expect(out).not.toBeNull();
+    expect(out).toMatchObject({
+      kind: "mobile",
+      platform: "ios",
+      displayName: "iOS (SwiftUI)",
+      mobileRef: "mobile.md",
+    });
+    // The envelope's user-facing string MUST flag the checklist nature so
+    // stack-forge never tries to `xcrun altool` its way to production.
+    expect(out.releaseChecklist).toContain("App Store");
+    expect(out.releaseChecklist).toContain("checklist-driven, not automated");
+  });
+
+  it("ios-swiftui declares app-store as its default + only supported platform", () => {
+    // getDispatchTarget surfaces the deploy-target hint; PR 7's hosting
+    // adapters will extend this for other mobile packs. The iOS pack pins
+    // app-store as the only release channel.
+    expect(getDispatchTarget("ios-swiftui")).toEqual({
+      defaultPlatform: "app-store",
+      supportedPlatforms: ["app-store"],
+    });
   });
 });
 

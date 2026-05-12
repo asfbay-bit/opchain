@@ -1,1 +1,119 @@
-[]
+[
+  {
+    "id": "bun",
+    "displayName": "Bun",
+    "status": "stable",
+    "testRunner": "bun test",
+    "buildCmd": "bun run build",
+    "lintCmd": "biome check .",
+    "langRef": "language.md"
+  },
+  {
+    "id": "csharp",
+    "displayName": "C#",
+    "status": "stable",
+    "testRunner": "dotnet test",
+    "buildCmd": "dotnet build",
+    "lintCmd": "dotnet format --verify-no-changes",
+    "langRef": "language.md"
+  },
+  {
+    "id": "deno",
+    "displayName": "Deno",
+    "status": "stable",
+    "testRunner": "deno test",
+    "buildCmd": "deno task build",
+    "lintCmd": "deno lint",
+    "langRef": "language.md"
+  },
+  {
+    "id": "elixir",
+    "displayName": "Elixir",
+    "status": "stable",
+    "testRunner": "mix test",
+    "buildCmd": "mix compile",
+    "lintCmd": "mix credo --strict",
+    "langRef": "language.md"
+  },
+  {
+    "id": "go",
+    "displayName": "Go",
+    "status": "stable",
+    "testRunner": "go test",
+    "buildCmd": "go build ./...",
+    "lintCmd": "golangci-lint run",
+    "langRef": "language.md"
+  },
+  {
+    "id": "java",
+    "displayName": "Java",
+    "status": "stable",
+    "testRunner": "mvn test",
+    "buildCmd": "mvn package",
+    "lintCmd": "mvn checkstyle:check",
+    "langRef": "language.md"
+  },
+  {
+    "id": "kotlin",
+    "displayName": "Kotlin",
+    "status": "stable",
+    "testRunner": "gradle test",
+    "buildCmd": "gradle build",
+    "lintCmd": "ktlint",
+    "langRef": "language.md"
+  },
+  {
+    "id": "php",
+    "displayName": "PHP",
+    "status": "stable",
+    "testRunner": "phpunit",
+    "buildCmd": "composer install --no-dev",
+    "lintCmd": "phpcs",
+    "langRef": "language.md"
+  },
+  {
+    "id": "python",
+    "displayName": "Python",
+    "status": "stable",
+    "testRunner": "pytest",
+    "buildCmd": "python -m build",
+    "lintCmd": "ruff check .",
+    "langRef": "language.md"
+  },
+  {
+    "id": "ruby",
+    "displayName": "Ruby",
+    "status": "stable",
+    "testRunner": "rspec",
+    "buildCmd": "bundle exec rake build",
+    "lintCmd": "bundle exec rubocop",
+    "langRef": "language.md"
+  },
+  {
+    "id": "rust",
+    "displayName": "Rust",
+    "status": "stable",
+    "testRunner": "cargo test",
+    "buildCmd": "cargo build",
+    "lintCmd": "cargo clippy -- -D warnings",
+    "langRef": "language.md"
+  },
+  {
+    "id": "swift",
+    "displayName": "Swift",
+    "status": "stable",
+    "testRunner": "swift test",
+    "buildCmd": "swift build",
+    "lintCmd": "swiftlint",
+    "langRef": "language.md"
+  },
+  {
+    "id": "typescript",
+    "displayName": "TypeScript",
+    "status": "stable",
+    "testRunner": "vitest",
+    "buildCmd": "npm run build",
+    "lintCmd": "eslint .",
+    "langRef": "language.md"
+  }
+]
