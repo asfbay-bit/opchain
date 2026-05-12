@@ -153,15 +153,17 @@ describe("gen-api-dev-adapters — real packs", () => {
     });
   });
 
-  it("skips framework, mobile, and deploy-target packs even though they share a directory tree with language packs", () => {
-    // PR 4 (ADEV-334) added phoenix/remix/sveltekit/solid as kind=framework
-    // packs; PR 5 (ADEV-335) added spring-java/dotnet-aspnet/spring-kotlin/
-    // laravel-php. PR 6 (ADEV-336) added swiftui (framework), ios-swiftui
-    // (mobile), and app-store (deploy-target). api-dev codegens scaffolds
-    // per *language* only; frameworks inherit their language adapter, mobile
-    // is checklist-dispatched via dispatchMobile(), and deploy-targets are
+  it("skips framework, mobile, and deploy-target packs in the real packs/ tree", () => {
+    // PR 4 (ADEV-334) added phoenix/remix/sveltekit/solid as kind=framework.
+    // PR 5 (ADEV-335) added spring-java/dotnet-aspnet/spring-kotlin/laravel-php.
+    // PR 6 (ADEV-336) added swiftui (framework), ios-swiftui (mobile), and
+    // app-store (deploy-target). PR 6.5 (ADEV-343) added kotlin-android/
+    // flutter/react-native-expo as mobile packs + play-store as deploy-target.
+    // api-dev codegens scaffolds per *language* only; everything else is
+    // skipped — frameworks inherit their language adapter, mobile is
+    // checklist-dispatched via dispatchMobile(), and deploy-targets are
     // sub-selections. This pin guards the real packs/ tree against drift.
-    const work = mkdtempSync(join(tmpdir(), "opchain-api-dev-adapters-skip-fw-"));
+    const work = mkdtempSync(join(tmpdir(), "opchain-api-dev-adapters-skip-nonlang-"));
     const result = spawnSync("node", [SCRIPT], {
       cwd: ROOT,
       encoding: "utf8",
@@ -171,6 +173,7 @@ describe("gen-api-dev-adapters — real packs", () => {
 
     const adapters = JSON.parse(readFileSync(join(work, "api-dev-adapters.json"), "utf8"));
     const ids = adapters.map((a) => a.id);
+    // Framework packs (PR 4 + PR 5 + PR 6).
     for (const fw of [
       "phoenix", "remix", "sveltekit", "solid",
       "spring-java", "dotnet-aspnet", "spring-kotlin", "laravel-php",
@@ -178,28 +181,12 @@ describe("gen-api-dev-adapters — real packs", () => {
     ]) {
       expect(ids).not.toContain(fw);
     }
-    // kind=mobile (PR 6) — dispatched as a release checklist, not an adapter.
-    expect(ids).not.toContain("ios-swiftui");
-    // kind=deploy-target (PR 6) — sub-selection, never an adapter.
-    expect(ids).not.toContain("app-store");
-  });
-
-  it("skips deploy-target packs (PR 7 hosting adapters)", () => {
-    // PR 7 (ADEV-337) added railway/netlify/heroku/aws-amplify as
-    // kind=deploy-target packs. api-dev never emits scaffolds for hosting
-    // platforms — those are sub-selections under language/framework packs.
-    // Pin the skip-deploy-targets behavior on the real packs/ tree.
-    const work = mkdtempSync(join(tmpdir(), "opchain-api-dev-adapters-skip-dt-"));
-    const result = spawnSync("node", [SCRIPT], {
-      cwd: ROOT,
-      encoding: "utf8",
-      env: { ...process.env, OPCHAIN_OUT_DIR: work },
-    });
-    expect(result.status, `stderr:\n${result.stderr}`).toBe(0);
-
-    const adapters = JSON.parse(readFileSync(join(work, "api-dev-adapters.json"), "utf8"));
-    const ids = adapters.map((a) => a.id);
-    for (const dt of ["railway", "netlify", "heroku", "aws-amplify"]) {
+    // Mobile packs (PR 6 + PR 6.5) — dispatched as release checklists, not adapters.
+    for (const m of ["ios-swiftui", "kotlin-android", "flutter", "react-native-expo"]) {
+      expect(ids).not.toContain(m);
+    }
+    // Deploy-target packs (PR 6 + PR 6.5 + PR 7) — sub-selections, never adapters.
+    for (const dt of ["app-store", "play-store", "railway", "netlify", "heroku", "aws-amplify"]) {
       expect(ids).not.toContain(dt);
     }
   });

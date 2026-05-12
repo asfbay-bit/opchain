@@ -178,9 +178,13 @@ const EXPECTED_FRAMEWORK_PACKS = [
   { id: "swiftui",       displayName: "SwiftUI",              language: "swift" },
 ];
 
-// PR 6 (ADEV-336) mobile packs. kind=mobile emits a coverage flag and
-// dispatches via dispatchMobile(); platform references resolve to
-// deploy-target packs (e.g. app-store).
+// Mobile packs. kind=mobile emits a coverage flag and dispatches via
+// dispatchMobile(); platform references resolve to deploy-target packs.
+// PR 6 (ADEV-336) added ios-swiftui (defaults to app-store).
+// PR 6.5 (ADEV-343) added kotlin-android / flutter / react-native-expo
+// (default to play-store). The cross-platform packs (flutter,
+// react-native-expo) ship with play-store as the SOLE supportedPlatforms
+// entry; a follow-up will add app-store once both PRs settle.
 const EXPECTED_MOBILE_PACKS = [
   {
     id: "ios-swiftui",
@@ -189,19 +193,42 @@ const EXPECTED_MOBILE_PACKS = [
     defaultPlatform: "app-store",
     supportedPlatforms: ["app-store"],
   },
+  {
+    id: "kotlin-android",
+    displayName: "Android (Kotlin)",
+    mobilePlatform: "android",
+    defaultPlatform: "play-store",
+    supportedPlatforms: ["play-store"],
+  },
+  {
+    id: "flutter",
+    displayName: "Flutter",
+    mobilePlatform: "flutter",
+    defaultPlatform: "play-store",
+    supportedPlatforms: ["play-store"],
+  },
+  {
+    id: "react-native-expo",
+    displayName: "React Native (Expo)",
+    mobilePlatform: "react-native",
+    defaultPlatform: "play-store",
+    supportedPlatforms: ["play-store"],
+  },
 ];
 
-// Deploy-target packs (kind=deploy-target) do NOT emit coverage flags
-// (sub-selections under language / framework / mobile packs — see
-// COVERAGE_KINDS in scripts/gen-stack-packs.mjs). PR 7 (ADEV-337) added
-// the hosting adapters (railway/netlify/heroku/aws-amplify); PR 6
-// (ADEV-336) added app-store.
+// Deploy-target packs (kind=deploy-target) do NOT emit coverage flags —
+// sub-selections under language / framework / mobile packs (see
+// COVERAGE_KINDS in scripts/gen-stack-packs.mjs).
+// PR 6 (ADEV-336) added app-store.
+// PR 6.5 (ADEV-343) added play-store.
+// PR 7 (ADEV-337) added railway / netlify / heroku / aws-amplify.
 const EXPECTED_DEPLOY_TARGET_PACKS = [
   { id: "railway",     displayName: "Railway" },
   { id: "netlify",     displayName: "Netlify" },
   { id: "heroku",      displayName: "Heroku" },
   { id: "aws-amplify", displayName: "AWS Amplify" },
   { id: "app-store",   displayName: "App Store" },
+  { id: "play-store",  displayName: "Google Play" },
 ];
 
 const EXPECTED_TOTAL_PACKS =
@@ -294,7 +321,7 @@ describe("stack-forge packs — framework pack equivalence (ADEV-334 + ADEV-335)
   }
 });
 
-describe("stack-forge packs — mobile pack equivalence (ADEV-336)", () => {
+describe("stack-forge packs — mobile pack equivalence (ADEV-336 + ADEV-343)", () => {
   for (const expected of EXPECTED_MOBILE_PACKS) {
     describe(expected.id, () => {
       it("pack.yml declares the expected canonical fields", () => {
@@ -332,7 +359,7 @@ describe("stack-forge packs — mobile pack equivalence (ADEV-336)", () => {
   }
 });
 
-describe("stack-forge packs — deploy-target pack equivalence (ADEV-336 + ADEV-337)", () => {
+describe("stack-forge packs — deploy-target pack equivalence (ADEV-336 + ADEV-337 + ADEV-343)", () => {
   for (const expected of EXPECTED_DEPLOY_TARGET_PACKS) {
     describe(expected.id, () => {
       it("pack.yml declares the expected canonical fields", () => {
