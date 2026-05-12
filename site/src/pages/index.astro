@@ -12,88 +12,11 @@ const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
 const allSkills = await getAllSkills();
 const skillCount = allSkills.length;
 
-type Role =
-  | "workflow"
-  | "tri-agent"
-  | "audit-gate"
-  | "specialist"
-  | "advisor"
-  | "orchestrator"
-  | "success";
-
-interface SkillPill {
-  id: string;
-  role: Role;
-}
-
-interface Phase {
-  step: string;
-  phase: string;
-  name: string;
-  skills: SkillPill[];
-  blurb: string;
-}
-
-const phases: Phase[] = [
-  {
-    step: "01", phase: "discover", name: "Interview",
-    skills: [{ id: "app-architect", role: "workflow" }],
-    blurb: "Interview — scope the idea, users, success criteria, and MVP boundaries.",
-  },
-  {
-    step: "02", phase: "spec", name: "Contract",
-    skills: [
-      { id: "stack-forge",   role: "advisor" },
-      { id: "app-architect", role: "workflow" },
-      { id: "api-dev",       role: "tri-agent" },
-    ],
-    blurb: "Contract — typed spec, stack picks, integration shape, and the first-party API surface as an OpenAPI/GraphQL contract.",
-  },
-  {
-    step: "03", phase: "design", name: "Style book",
-    skills: [
-      { id: "ux-engineer", role: "tri-agent" },
-      { id: "dash-forge",  role: "specialist" },
-    ],
-    blurb: "Style book — design system, screens, components, working prototype.",
-  },
-  {
-    step: "04", phase: "build", name: "Sprint loop",
-    skills: [{ id: "app-architect", role: "workflow" }],
-    blurb: "Sprint loop — Generator/Evaluator build cycle, ship features behind quality gates.",
-  },
-  {
-    step: "05", phase: "audit", name: "Quality gate",
-    skills: [
-      { id: "code-auditor",     role: "audit-gate" },
-      { id: "security-auditor", role: "audit-gate" },
-    ],
-    blurb: "Quality gate — Auditor/Fixer/Verifier loop plus security posture review before ship.",
-  },
-  {
-    step: "06", phase: "ship", name: "Deploy",
-    skills: [
-      { id: "git-ops",    role: "specialist" },
-      { id: "deploy-ops", role: "orchestrator" },
-    ],
-    blurb: "Deploy — branch, PR, audit gate, staging, production, rollback if needed.",
-  },
-  {
-    step: "07", phase: "monitor", name: "Observe",
-    skills: [{ id: "monitoring-ops", role: "specialist" }],
-    blurb: "Observe — uptime, errors, alerts, SLOs, on-call, postmortems.",
-  },
-  {
-    step: "08", phase: "migrate", name: "Engine swap",
-    skills: [{ id: "migration-ops", role: "specialist" }],
-    blurb: "Engine swap — live migrations: database, framework, auth, platform — with rollback.",
-  },
-];
-
-// Featured-scenario rotation: the magazine cover relocated from /demo
-// (chunk 2 of the workbench port). Slot is keyed to wall-clock time so
-// every visitor in the same 2-minute window sees the same headline; the
-// inline script below schedules the next swap on the slot boundary.
+// Featured-scenario rotation: the magazine cover that lives between
+// the stats strip and the resources strip. Slot is keyed to wall-clock
+// time so every visitor in the same 10-second window sees the same
+// headline. Inline script below schedules the next swap on the slot
+// boundary and updates the 12-dot indicator in lock-step.
 const covers = walkthroughs.map((w, i) => ({
   num: String(i + 1).padStart(2, "0"),
   id: w.id,
@@ -101,6 +24,7 @@ const covers = walkthroughs.map((w, i) => ({
   tagline: w.tagline,
 }));
 const initialCover = covers[0];
+const coverCount = covers.length;
 ---
 
 <Base
@@ -112,7 +36,7 @@ const initialCover = covers[0];
     <Eyebrow>skill ecosystem</Eyebrow>
 
     <div class="intro-hero">
-      <Logo size={128} />
+      <Logo size={88} />
       <h1 class="intro-mark">opchain</h1>
     </div>
 
@@ -144,12 +68,20 @@ const initialCover = covers[0];
       </p>
     </div>
 
-    <a class="release-pill" href="/changelog" aria-label="opchain v1.3 release notes">
-      <span class="release-pill-tag">v1.3</span>
-      <span class="release-pill-text">
-        Runtime PM-MCP · Django / Rails / Go / Rust · release-ops
+    <!-- Glowing matching release bar — current (ember) + next (slate).
+         Both halves share one pill silhouette with a soft pulsing
+         ember box-shadow. Links to /changelog for full notes. -->
+    <a class="release-bar-glow" href="/changelog" aria-label="opchain releases">
+      <span class="rb-half rb-current">
+        <span class="rb-tag">v1.3 · shipped</span>
+        <span class="rb-text">release-ops · Django · Rails · Go · Rust</span>
       </span>
-      <span class="release-pill-arrow" aria-hidden="true">›</span>
+      <span class="rb-divider" aria-hidden="true"></span>
+      <span class="rb-half rb-next">
+        <span class="rb-tag rb-tag-next">v1.4 · in progress</span>
+        <span class="rb-text rb-text-next">Mobile · Apple · Android · Flutter</span>
+      </span>
+      <span class="rb-arrow" aria-hidden="true">›</span>
     </a>
 
     <section class="stats" aria-label="opchain at a glance">
@@ -171,14 +103,12 @@ const initialCover = covers[0];
       </a>
     </section>
 
-    <!-- Featured-scenario magazine cover — rotates every 10 s through
-         every walkthrough in the catalog. "Open the workbench"
-         deep-links into /demo so the click lands directly on the IDE
-         workbench. -->
-    <section class="stage" data-cover>
+    <!-- Cinema banner — rotates every 10 s through the scenario
+         catalog. Sits beneath the stats strip. -->
+    <section class="stage" data-cover aria-label="Featured scenario">
       <div class="stage-mid">
         <div class="stage-issue">
-          opchain · scenario <span data-cover-num>{initialCover.num}</span>
+          opchain · scenario <span data-cover-num>{initialCover.num}</span> of {String(coverCount).padStart(2, "0")}
         </div>
         <h2 class="stage-h" data-cover-title>{initialCover.title}</h2>
         <p class="stage-sub" data-cover-tagline>{initialCover.tagline}</p>
@@ -188,24 +118,59 @@ const initialCover = covers[0];
           )}
           <a class="btn btn-ghost" href="/install">install opchain</a>
         </div>
+
+        <div class="dot-row" aria-label={`Scenario 1 of ${coverCount}`} data-cover-dots>
+          {covers.map((c, i) => (
+            <button
+              class={`dot${i === 0 ? " active" : ""}`}
+              type="button"
+              data-i={i}
+              aria-label={`Scenario ${c.num}: ${c.title}`}
+              aria-current={i === 0 ? "true" : "false"}
+            />
+          ))}
+          <span class="dot-counter">
+            <span data-cover-num-counter>{initialCover.num}</span> / {String(coverCount).padStart(2, "0")} — auto-rotating · 10s
+          </span>
+        </div>
       </div>
     </section>
 
     <script is:inline type="application/json" id="cover-data" set:html={JSON.stringify(covers)} />
 
-    <section class="phase-grid" aria-label="Pipeline phases">
-      {phases.map((p) => (
-        <article class="phase-card" tabindex="0" aria-label={`${p.name} — ${p.blurb}`}>
-          <div class="phase-step">{p.step} · {p.phase}</div>
-          <div class="phase-name">{p.name}</div>
-          <div class="phase-pills">
-            {p.skills.map((s) => (
-              <a class="phase-pill" data-role={s.role} href={`/skills/${s.id}`}>{s.id}</a>
-            ))}
-          </div>
-          <div class="phase-blurb">{p.blurb}</div>
-        </article>
-      ))}
+    <!-- Resources strip — 4-up. The new "Skills" tile points to the
+         raw skill source under /docs/<id>/SKILL.md, surfaced from
+         skills/ via the build-time sync. -->
+    <section class="resources-strip" aria-label="Resources">
+      <Eyebrow>go deeper</Eyebrow>
+      <h2 class="resources-heading">resources</h2>
+      <p class="resources-sub">References and trust signals you'd otherwise have to scroll all the way to the footer to find.</p>
+      <div class="res-grid">
+        <a class="res-card" href="/skills">
+          <span class="res-icon" aria-hidden="true">⛬</span>
+          <h3>Skills</h3>
+          <p>Read the source. Every skill is a single Markdown file you can audit, fork, and rewire.</p>
+          <span class="read">read the files ›</span>
+        </a>
+        <a class="res-card" href="/glossary">
+          <span class="res-icon" aria-hidden="true">📖</span>
+          <h3>Glossary</h3>
+          <p>Plain-English definitions for every opchain term — checkpoint, tri-agent, audit gate.</p>
+          <span class="read">read ›</span>
+        </a>
+        <a class="res-card" href="/uses">
+          <span class="res-icon" aria-hidden="true">◆</span>
+          <h3>How it's built</h3>
+          <p>opchain.dev is itself built with opchain. Every commit ran through the gates.</p>
+          <span class="read">read ›</span>
+        </a>
+        <a class="res-card" href="/security">
+          <span class="res-icon" aria-hidden="true">🔒</span>
+          <h3>Security</h3>
+          <p>Threat model, dependency posture, secret handling — what we actually do.</p>
+          <span class="read">read ›</span>
+        </a>
+      </div>
     </section>
 
     <div class="intro-actions">
@@ -229,35 +194,37 @@ const initialCover = covers[0];
 
 <style>
   .intro {
-    max-width: 960px;
+    /* Widened from 960 so body wraps on fewer lines and the cinema
+       banner sits above the fold on a typical laptop viewport. */
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 4rem 1.5rem 6rem;
+    padding: 1.5rem 1.5rem 6rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
 
-  /* Tightened top stack: eyebrow ↔ hero ↔ wordmark ↔ claim. */
   .intro-hero {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;            /* Logo ↔ wordmark — was 1.25rem */
-    margin: 0.4rem 0 0.5rem; /* eyebrow ↔ hero / hero ↔ claim — was 1.25rem 0 1.5rem */
+    gap: 0.4rem;
+    margin: 0.25rem 0 0.4rem;
   }
 
   .intro-mark {
     font-family: var(--font-display);
     font-weight: var(--wordmark-weight);
-    font-size: var(--fs-hero);
+    /* Tighter than the original hero scale so the wordmark + logo
+       stack leaves room for the banner above the fold. */
+    font-size: clamp(2rem, 5.5vw, 3rem);
     letter-spacing: var(--ls-display);
     line-height: 1;
     color: var(--text);
     margin: 0;
   }
 
-  /* "skills that ship." — ember claim line below the wordmark. */
   .intro-claim {
     font-family: var(--font-display);
     font-weight: 700;   /* B-10: 700 = bold, so 20px qualifies as WCAG large text (3:1 threshold) */
@@ -265,7 +232,7 @@ const initialCover = covers[0];
     line-height: 1.3;
     letter-spacing: 0.2px;
     color: var(--ember);
-    margin: 0 0 1rem;
+    margin: 0 0 0.7rem;
   }
 
   .intro-tagline {
@@ -273,209 +240,142 @@ const initialCover = covers[0];
     font-size: var(--fs-sm);
     letter-spacing: var(--ls-widest);
     color: var(--muted);
-    max-width: 42rem;
-    margin: 0 auto 2rem;
+    max-width: 50rem;
+    margin: 0 auto 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.3rem;
   }
 
   .intro-body {
-    max-width: 42rem;
+    /* Wider wrap → fewer lines → shorter vertical stack so the
+       cinema banner lands above the fold. */
+    max-width: 52rem;
     margin: 0 auto;
     color: var(--muted);
     text-align: left;
   }
-  .intro-body p { margin: 0 0 1rem; color: var(--muted); }
+  .intro-body p { margin: 0 0 0.65rem; color: var(--muted); }
   .intro-body p:last-child { margin: 0; }
-
-  .phase-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.6rem;
-    margin: 2.5rem 0;
-    width: 100%;
-    max-width: 760px;
-    text-align: left;
-  }
-
-  /* Card surface — replaces the previous <Card variant="surface"> so we can
-     style hover/focus locally for the blurb reveal. */
-  .phase-card {
-    background: var(--card);
-    border: 0.5px solid var(--border);
-    border-radius: var(--r-md);
-    padding: 0.85rem 0.95rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    cursor: default;
-    transition:
-      border-color var(--dur-fast) var(--ease-standard),
-      box-shadow var(--dur-fast) var(--ease-standard),
-      transform var(--dur-fast) var(--ease-standard);
-  }
-  .phase-card:hover,
-  .phase-card:focus-visible {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent-dim);
-    outline: none;
-  }
-
-  .phase-step {
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    letter-spacing: var(--ls-wider);
-    color: var(--subtle);
-    text-transform: uppercase;
-  }
-  .phase-name {
-    font-family: var(--font-display);
-    font-size: var(--fs-base);
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: 0.02em;
-  }
-
-  /* Skill pills — square edges, role-colored fill. One pill per skill;
-     multi-skill phases get multiple pills side by side. */
-  .phase-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-    margin-top: 0.15rem;
-  }
-  .phase-pill {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 7px;
-    border-radius: 0;            /* square per spec */
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    line-height: 1.5;
-    /* Outline + text in the role color, role color at 15% as fill.
-       Each [data-role] override below sets --pill-color; the box
-       picks up border, text, and fill from that single value. */
-    --pill-color: var(--subtle);
-    color: var(--pill-color);
-    border: 0.5px solid var(--pill-color);
-    background: color-mix(in srgb, var(--pill-color) 15%, transparent);
-    white-space: nowrap;
-    text-decoration: none;
-    transition: filter var(--dur-fast) var(--ease-standard);
-  }
-  .phase-pill:hover { filter: brightness(1.2); text-decoration: underline; }
-  /* Role colors — :root tokens map skill type → pill color.
-     Border + text use the token directly; background is the same
-     token at 15% via color-mix. */
-  .phase-pill[data-role="workflow"]     { --pill-color: var(--workflow); }
-  .phase-pill[data-role="tri-agent"]    { --pill-color: var(--tri-agent); }
-  .phase-pill[data-role="audit-gate"]   { --pill-color: var(--audit-gate); }
-  .phase-pill[data-role="specialist"]   { --pill-color: var(--specialist); }
-  .phase-pill[data-role="advisor"]      { --pill-color: var(--advisor); }
-  .phase-pill[data-role="orchestrator"] { --pill-color: var(--orchestrator); }
-  .phase-pill[data-role="success"]      { --pill-color: var(--success); }
-
-  /* Blurb — hidden at rest, fades in on hover/focus of the card. */
-  .phase-blurb {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    line-height: 1.45;
-    color: var(--muted);
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    transition:
-      max-height var(--dur-base) var(--ease-standard),
-      opacity var(--dur-base) var(--ease-standard),
-      margin-top var(--dur-base) var(--ease-standard);
-  }
-  .phase-card:hover .phase-blurb,
-  .phase-card:focus-visible .phase-blurb,
-  .phase-card:focus-within .phase-blurb {
-    max-height: 6rem;
-    opacity: 1;
-    margin-top: 0.35rem;
-  }
-  /* Touch / no-hover devices — always show the blurb. */
-  @media (hover: none) {
-    .phase-blurb {
-      max-height: none;
-      opacity: 1;
-      margin-top: 0.35rem;
-    }
-  }
 
   .intro-actions {
     display: flex;
     gap: 0.6rem;
     justify-content: center;
     flex-wrap: wrap;
-    margin-top: 1rem;
+    margin-top: 1.5rem;
   }
 
-  /* ── Release pill (current-release marketing affordance). Sits above the
-        magazine cover; links to /changelog. Subtle ember accent so
-        it reads as a release callout, not a primary CTA. ── */
-  .release-pill {
+  /* ── Glowing matching release bar (current + next).
+        Replaces the single-release pill. Two halves share one chip
+        silhouette; the next-release chip uses --info (slate) to read
+        as pending rather than competing with the ember of current. ── */
+  .release-bar-glow {
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0;
     align-self: center;
-    margin: 1.75rem auto 0;
-    padding: 0.4rem 0.9rem 0.4rem 0.5rem;
+    margin: 1rem auto 0.5rem;
+    padding: 4px 10px 4px 4px;
     background: var(--surface);
     border: 0.5px solid var(--border);
     border-radius: 999px;
     color: var(--muted);
-    font-size: var(--fs-sm);
+    font-size: 12px;
     text-decoration: none;
+    box-shadow:
+      0 0 0 1px rgba(224, 92, 24, 0.18),
+      0 0 24px -8px rgba(224, 92, 24, 0.4);
+    animation: release-bar-pulse 3.4s ease-in-out infinite;
     transition:
-      color var(--dur-fast) var(--ease-standard),
-      border-color var(--dur-fast) var(--ease-standard),
-      transform var(--dur-fast) var(--ease-standard);
+      transform var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
   }
-  .release-pill:hover {
+  @keyframes release-bar-pulse {
+    0%, 100% {
+      box-shadow:
+        0 0 0 1px rgba(224, 92, 24, 0.18),
+        0 0 18px -8px rgba(224, 92, 24, 0.35);
+    }
+    50% {
+      box-shadow:
+        0 0 0 1px rgba(224, 92, 24, 0.32),
+        0 0 30px -6px rgba(224, 92, 24, 0.55);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .release-bar-glow { animation: none; }
+  }
+  .release-bar-glow:hover {
     color: var(--text);
     border-color: var(--accent);
     transform: translateY(-1px);
   }
-  .release-pill-tag {
+  .rb-half {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px;
+  }
+  .rb-tag {
     font-family: var(--font-mono);
-    font-size: var(--fs-xs);
+    font-size: 9.5px;
+    font-weight: 600;
     letter-spacing: var(--ls-widest);
     text-transform: uppercase;
-    color: var(--accent);
-    background: rgba(0, 0, 0, 0);
-    border: 0.5px solid var(--accent);
-    padding: 2px 8px;
+    padding: 2px 7px;
     border-radius: 999px;
+    /* Current release: filled ember background + obsidian text.
+       9.5px bold text needs ≥4.5:1; the outlined variant we used in
+       the preview was borderline. Filled-ember-on-obsidian = ~7:1.
+       Visually this also makes "current" feel more present than the
+       outlined "next" chip. */
+    color: var(--obsidian);
+    background: var(--accent);
+    border: 0;
   }
-  .release-pill-text {
-    font-family: var(--font-sans);
+  :global([data-theme="light"]) .rb-tag {
+    /* In light mode --accent dips below AA-Normal on --obsidian. Match
+       Button.astro's primary variant and use --ember. */
+    background: var(--ember);
+  }
+  .rb-tag-next {
+    color: var(--info);
+    border: 0.5px solid var(--info);
+    background: var(--info-dim);
+  }
+  .rb-text {
+    font-family: var(--font-display);
+    font-size: 11.5px;
     letter-spacing: var(--ls-wide);
+    color: var(--text);
   }
-  .release-pill-arrow {
+  .rb-text-next { color: var(--muted); }
+  .rb-divider {
+    display: inline-block;
+    width: 1px;
+    height: 18px;
+    background: var(--ribbon-edge);
+    margin: 0 2px;
+  }
+  .rb-arrow {
     color: var(--subtle);
-    font-size: 16px;
+    font-size: 14px;
     line-height: 1;
-    transition: color var(--dur-fast) var(--ease-standard);
+    padding: 0 4px;
   }
-  .release-pill:hover .release-pill-arrow { color: var(--accent); }
+  /* Light-mode contrast bump on the rb-text so the body text reads
+     against the surface. */
+  :global([data-theme="light"]) .release-bar-glow .rb-text { color: var(--obsidian); }
 
-  /* ── Stat strip — social-proof row under the release pill. Mirrors the
-        release-pill's rounded chip aesthetic but tiles into a 4-up grid
-        so each stat doubles as a deep-link into the corresponding
-        surface (skills, changelog, status, repo). ── */
+  /* ── Stat strip ── */
   .stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 0.5rem;
     width: 100%;
     max-width: 640px;
-    margin: 1.25rem auto 0;
+    margin: 1rem auto 0;
   }
   .stat {
     display: flex;
@@ -514,21 +414,23 @@ const initialCover = covers[0];
     color: var(--subtle);
   }
 
-  /* ── Magazine cover (relocated from /demo, chunk 2). Sits between
-        the intro body and the phase grid, full-bleed within the .intro
-        column. Rotates every 2 minutes via the inline script below. ── */
+  /* ── Cinema banner ── */
   .stage {
     position: relative;
     align-self: stretch;
     max-width: none;
-    margin: 2.5rem -1.5rem 2.5rem;
-    padding: clamp(1.1rem, 2.5vw, 1.8rem) clamp(1rem, 4vw, 2.4rem);
+    margin: 1.5rem -1.5rem 0;
+    padding: 1.25rem clamp(1.5rem, 4vw, 2.4rem) 1.1rem;
     overflow: hidden;
     text-align: left;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     background:
-      radial-gradient(640px 320px at 75% 30%, var(--ember-glow), transparent 70%),
-      radial-gradient(420px 240px at 15% 80%, var(--ember-dim), transparent 70%),
-      var(--bg);
+      radial-gradient(720px 320px at 75% 35%, var(--ember-glow), transparent 70%),
+      radial-gradient(540px 260px at 12% 80%, var(--ember-dim), transparent 70%),
+      linear-gradient(180deg, #14100a 0%, var(--bg) 100%);
     border-top: 0.5px solid var(--border);
     border-bottom: 0.5px solid var(--border);
   }
@@ -544,7 +446,7 @@ const initialCover = covers[0];
   .stage-h {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: clamp(1.15rem, 2.2vw, 1.7rem);
+    font-size: clamp(1.25rem, 2.6vw, 1.85rem);
     line-height: 1.15;
     letter-spacing: var(--ls-tight);
     margin: 0 0 0.4rem;
@@ -573,7 +475,7 @@ const initialCover = covers[0];
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.6rem 1.1rem;
+    padding: 0.55rem 1rem;
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
     letter-spacing: var(--ls-wide);
@@ -594,10 +496,6 @@ const initialCover = covers[0];
     border: 0;
     font-weight: 600;
   }
-  /* Light-theme contrast bump — mirrors Button.astro's primary
-     variant. var(--accent) (#d95010) on --obsidian only hits 4.46:1
-     in light mode, just below AA-Normal; var(--ember) (#e05c18) is
-     the brand-constant ember and clears AA. */
   :global([data-theme="light"]) .stage .btn-primary {
     background: var(--ember);
   }
@@ -615,10 +513,158 @@ const initialCover = covers[0];
     color: var(--accent);
     border-color: var(--accent);
   }
+
+  /* 12-dot rotation indicator (active dot grows + ember-glows).
+     Each button is a 24×24 click target to satisfy WCAG 2.5.8
+     (target-size). The visible dot is rendered via ::before so the
+     clickable area stays compliant without making the dots themselves
+     larger. */
+  .dot-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+  .dot-row .dot {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dot-row .dot::before {
+    content: "";
+    display: block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(232, 223, 208, 0.22);
+    transition:
+      width var(--dur-base) var(--ease-standard),
+      height var(--dur-base) var(--ease-standard),
+      background var(--dur-base) var(--ease-standard),
+      box-shadow var(--dur-base) var(--ease-standard);
+  }
+  .dot-row .dot:hover::before { background: var(--muted); }
+  .dot-row .dot.active::before {
+    width: 14px;
+    height: 14px;
+    background: var(--ember);
+    box-shadow:
+      0 0 0 3px var(--ember-dim),
+      0 0 14px -3px var(--ember);
+  }
+  .dot-row .dot:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  .dot-row .dot-counter {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--subtle);
+    letter-spacing: var(--ls-wider);
+    margin-left: 0.6rem;
+  }
+
+  /* ── Resources strip — 4-up; breaks to 2-up then 1-up. ── */
+  .resources-strip {
+    width: 100%;
+    max-width: 960px;
+    margin: 4rem auto 0;
+    text-align: center;
+  }
+  .resources-heading {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+    color: var(--text);
+  }
+  .resources-sub {
+    color: var(--muted);
+    max-width: 48ch;
+    margin: 0.5rem auto 1.5rem;
+    font-size: var(--fs-sm);
+  }
+  .res-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    text-align: left;
+  }
+  @media (max-width: 960px) {
+    .res-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 540px) {
+    .res-grid { grid-template-columns: 1fr; }
+  }
+  .res-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 1.25rem;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition:
+      border-color var(--dur-fast) var(--ease-standard),
+      transform var(--dur-fast) var(--ease-standard),
+      box-shadow var(--dur-fast) var(--ease-standard);
+  }
+  .res-card:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 1px var(--accent-dim);
+  }
+  .res-card .res-icon {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-radius: 50%;
+    font-family: var(--font-mono);
+    font-size: 16px;
+  }
+  .res-card h3 {
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+  .res-card p {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    margin: 0;
+    line-height: var(--lh-snug);
+  }
+  .res-card .read {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: var(--ls-wide);
+    color: var(--accent);
+    margin-top: auto;
+    text-transform: uppercase;
+  }
 </style>
 
 <script is:inline>
-  /* Magazine cover — 10-second slot rotation (6 covers × 10 s = 60 s cycle). */
+  /* Cinema banner — 10-second slot rotation. Active dot in the
+     indicator row tracks the active scenario in lock-step. */
   (() => {
     const stage = document.querySelector('[data-cover]');
     const dataNode = document.getElementById('cover-data');
@@ -633,24 +679,45 @@ const initialCover = covers[0];
     const numEl = stage.querySelector('[data-cover-num]');
     const titleEl = stage.querySelector('[data-cover-title]');
     const taglineEl = stage.querySelector('[data-cover-tagline]');
+    const dotRow = stage.querySelector('[data-cover-dots]');
+    const dots = dotRow ? Array.from(dotRow.querySelectorAll('.dot')) : [];
+    const counterEl = stage.querySelector('[data-cover-num-counter]');
 
     function slotIndex() {
       return Math.floor(Date.now() / SLOT_MS) % covers.length;
     }
-    function paint(c) {
+    function paint(c, i) {
       if (numEl) numEl.textContent = c.num;
       if (titleEl) titleEl.textContent = c.title;
       if (taglineEl) taglineEl.textContent = c.tagline;
+      if (counterEl) counterEl.textContent = c.num;
+      dots.forEach((d, di) => {
+        const active = di === i;
+        d.classList.toggle('active', active);
+        d.setAttribute('aria-current', active ? 'true' : 'false');
+      });
+      if (dotRow) dotRow.setAttribute('aria-label', `Scenario ${i + 1} of ${covers.length}`);
     }
     function swap(animated) {
-      const c = covers[slotIndex()];
-      if (!animated) { paint(c); return; }
+      const i = slotIndex();
+      const c = covers[i];
+      if (!animated) { paint(c, i); return; }
       stage.setAttribute('data-swapping', '');
       setTimeout(() => {
-        paint(c);
+        paint(c, i);
         stage.removeAttribute('data-swapping');
       }, 200);
     }
+
+    // Allow click-jumping to a specific scenario (debugging + power-user
+    // affordance; the auto-rotation continues from there on the next
+    // slot boundary).
+    dots.forEach((d) => {
+      d.addEventListener('click', () => {
+        const i = parseInt(d.getAttribute('data-i') || '0', 10);
+        paint(covers[i], i);
+      });
+    });
 
     swap(false);
     const msUntilNext = SLOT_MS - (Date.now() % SLOT_MS);
