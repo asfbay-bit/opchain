@@ -1,1 +1,74 @@
-[]
+[
+  {
+    "id": "bun",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "Bun"
+  },
+  {
+    "id": "deno",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "Deno"
+  },
+  {
+    "id": "elixir",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "Elixir"
+  },
+  {
+    "id": "go",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "Go"
+  },
+  {
+    "id": "phoenix",
+    "kind": "framework",
+    "status": "stable",
+    "displayName": "Phoenix"
+  },
+  {
+    "id": "python",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "Python"
+  },
+  {
+    "id": "remix",
+    "kind": "framework",
+    "status": "stable",
+    "displayName": "Remix"
+  },
+  {
+    "id": "ruby",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "Ruby"
+  },
+  {
+    "id": "rust",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "Rust"
+  },
+  {
+    "id": "solid",
+    "kind": "framework",
+    "status": "stable",
+    "displayName": "SolidStart"
+  },
+  {
+    "id": "sveltekit",
+    "kind": "framework",
+    "status": "stable",
+    "displayName": "SvelteKit"
+  },
+  {
+    "id": "typescript",
+    "kind": "language",
+    "status": "stable",
+    "displayName": "TypeScript"
+  }
+]

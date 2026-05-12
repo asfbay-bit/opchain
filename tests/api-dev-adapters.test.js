@@ -3,8 +3,12 @@
  * of the hybrid driver semantics).
  *
  * Two layers:
- *   1. Real packs/ tree → assert the codegen emits the exact 5 language
- *      adapters with the canonical command set (locked in PR 2).
+ *   1. Real packs/ tree → assert the codegen emits the expected language
+ *      adapters with the canonical command set. PR 2 (ADEV-329) locked in
+ *      typescript/python/ruby/go/rust; PR 4 (ADEV-334) added elixir, bun,
+ *      and deno. Framework packs (phoenix/remix/sveltekit/solid) shipped
+ *      alongside the language packs but are intentionally SKIPPED — api-dev
+ *      inherits a framework's adapter from its language pack.
  *   2. Synthetic fixture → assert kind:framework / kind:deploy-target /
  *      kind:mobile packs are SKIPPED (only kind=language goes through).
  */
@@ -61,7 +65,7 @@ function packYml(obj) {
 }
 
 describe("gen-api-dev-adapters — real packs", () => {
-  it("emits 5 language adapters with the canonical command set", () => {
+  it("emits 8 language adapters with the canonical command set", () => {
     // Run against the real packs/ tree but write to a tempdir.
     const work = mkdtempSync(join(tmpdir(), "opchain-api-dev-adapters-real-"));
     const result = spawnSync("node", [SCRIPT], {
@@ -70,12 +74,13 @@ describe("gen-api-dev-adapters — real packs", () => {
       env: { ...process.env, OPCHAIN_OUT_DIR: work },
     });
     expect(result.status, `stderr:\n${result.stderr}`).toBe(0);
-    expect(result.stdout).toMatch(/5 language pack\(s\)/);
+    expect(result.stdout).toMatch(/8 language pack\(s\)/);
 
     const adapters = JSON.parse(readFileSync(join(work, "api-dev-adapters.json"), "utf8"));
-    expect(adapters).toHaveLength(5);
+    expect(adapters).toHaveLength(8);
 
     const byId = Object.fromEntries(adapters.map((a) => [a.id, a]));
+    // PR 2 (ADEV-329) backfill.
     expect(byId.typescript).toEqual({
       id: "typescript", displayName: "TypeScript", status: "stable",
       testRunner: "vitest", buildCmd: "npm run build", lintCmd: "eslint .",
@@ -101,6 +106,43 @@ describe("gen-api-dev-adapters — real packs", () => {
       testRunner: "cargo test", buildCmd: "cargo build", lintCmd: "cargo clippy -- -D warnings",
       langRef: "language.md",
     });
+    // PR 4 (ADEV-334) modern web bulk language packs.
+    expect(byId.elixir).toEqual({
+      id: "elixir", displayName: "Elixir", status: "stable",
+      testRunner: "mix test", buildCmd: "mix compile", lintCmd: "mix credo --strict",
+      langRef: "language.md",
+    });
+    expect(byId.bun).toEqual({
+      id: "bun", displayName: "Bun", status: "stable",
+      testRunner: "bun test", buildCmd: "bun run build", lintCmd: "biome check .",
+      langRef: "language.md",
+    });
+    expect(byId.deno).toEqual({
+      id: "deno", displayName: "Deno", status: "stable",
+      testRunner: "deno test", buildCmd: "deno task build", lintCmd: "deno lint",
+      langRef: "language.md",
+    });
+  });
+
+  it("skips framework packs even though they share a directory tree with language packs", () => {
+    // PR 4 (ADEV-334) added phoenix/remix/sveltekit/solid as kind=framework
+    // packs. api-dev codegens scaffolds per *language*; a framework inherits
+    // the adapter of its underlying language pack. This test pins the
+    // skip-frameworks behavior on the real packs/ tree so future framework
+    // packs cannot accidentally smuggle themselves into the adapter list.
+    const work = mkdtempSync(join(tmpdir(), "opchain-api-dev-adapters-skip-fw-"));
+    const result = spawnSync("node", [SCRIPT], {
+      cwd: ROOT,
+      encoding: "utf8",
+      env: { ...process.env, OPCHAIN_OUT_DIR: work },
+    });
+    expect(result.status, `stderr:\n${result.stderr}`).toBe(0);
+
+    const adapters = JSON.parse(readFileSync(join(work, "api-dev-adapters.json"), "utf8"));
+    const ids = adapters.map((a) => a.id);
+    for (const fw of ["phoenix", "remix", "sveltekit", "solid"]) {
+      expect(ids).not.toContain(fw);
+    }
   });
 });
 
