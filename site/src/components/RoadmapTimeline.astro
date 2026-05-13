@@ -16,6 +16,12 @@ import { loadRoadmap, type RoadmapBucket, type RoadmapItem } from "../data/roadm
 
 const roadmap = loadRoadmap();
 
+// Show the loader's diagnostic note only during `astro dev` — internal
+// build-state shouldn't leak to public visitors. import.meta.env.DEV is
+// true only when running `astro dev`; the production `astro build` sets
+// it to false and dead-code-eliminates the branch below.
+const showBuildNote = import.meta.env.DEV;
+
 const BUCKETS: { key: RoadmapBucket; label: string; blurb: string }[] = [
   { key: "shipped",     label: "Shipped",     blurb: "What's already live in production." },
   { key: "in-progress", label: "In progress", blurb: "Open Linear issues actively being worked." },
@@ -50,10 +56,15 @@ const fmtDate = (iso: string) =>
   {!hasAny && (
     <div class="roadmap-empty">
       <p>
-        No roadmap items published yet. {roadmap.note ? <em>({roadmap.note})</em> : null}
-        Use the form below to send the first one — it lands as a Linear
-        ticket the team will triage on the next pass.
+        No roadmap items published yet. Use the form below to send the
+        first one — it lands as a Linear ticket the team will triage on
+        the next pass.
       </p>
+      {showBuildNote && roadmap.note && (
+        <p class="roadmap-build-note">
+          <strong>Build note (dev only):</strong> {roadmap.note}
+        </p>
+      )}
     </div>
   )}
 
@@ -241,6 +252,25 @@ const fmtDate = (iso: string) =>
     font-size: var(--fs-sm);
   }
   .roadmap-empty em { color: var(--subtle); }
+  /* Dev-only build-note. Dead-code-eliminated by Vite in production
+     builds (the `import.meta.env.DEV` guard above is statically false),
+     but style it sensibly in case it ever leaks. */
+  .roadmap-build-note {
+    margin: 0.75rem 0 0;
+    padding: 0.55rem 0.75rem;
+    background: var(--surface);
+    border: 0.5px dashed var(--border);
+    border-radius: var(--r-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--subtle);
+    line-height: var(--lh-snug);
+  }
+  .roadmap-build-note strong {
+    color: var(--accent);
+    font-family: var(--font-display);
+    margin-right: 6px;
+  }
 
   .timeline {
     position: relative;
