@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>v1.4 packs on mobile /architecture — 3 options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --obsidian:  #1c1710;
+    --ribbon:    #231b13;
+    --ribbon-edge:#3a2f26;
+    --surface:   #251d14;
+    --card:      #241C15;
+    --slag:      #5a5040;
+    --sand:      #c4b89e;
+    --linen:     #e8dfd0;
+    --subtle:    #9d8b78;
+    --ember:     #e05c18;
+    --char:      #b84510;
+
+    --workflow:    #FB923C;
+    --tri-agent:   #F59E0B;
+    --audit-gate:  #FB7185;
+    --specialist:  #14B8A6;
+    --advisor:     #0EA5E9;
+    --orchestrator:#A78BFA;
+
+    --font-display: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { background: #14110b; color: var(--linen); margin: 0; padding: 0; font-family: var(--font-display); }
+  body { padding: 32px 16px 96px; }
+
+  .page-head { max-width: 1300px; margin: 0 auto 28px; padding: 0 8px; }
+  .page-head .eyebrow {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.22em;
+    color: var(--ember); text-transform: uppercase; margin-bottom: 6px;
+  }
+  .page-head h1 { font-size: 24px; margin: 0 0 8px; font-weight: 600; letter-spacing: -0.015em; }
+  .page-head p  { margin: 0; color: var(--subtle); font-size: 13px; max-width: 70ch; line-height: 1.5; }
+  .page-head .meta { margin-top: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--sand); }
+  .page-head .meta b { color: var(--ember); }
+
+  .row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+  @media (max-width: 1000px) {
+    .row { grid-template-columns: 1fr; }
+  }
+
+  .phone-col { display: flex; flex-direction: column; align-items: center; }
+  .phone-col h2 {
+    font-size: 16px; margin: 0 0 6px;
+    font-family: var(--font-display); font-weight: 600;
+    color: var(--linen);
+  }
+  .phone-col .pcap {
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--ember); letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .phone-col p.note {
+    font-size: 12px; line-height: 1.5; color: var(--sand);
+    margin: 12px 0 0; max-width: 380px;
+  }
+
+  .phone {
+    width: 390px; max-width: 100%;
+    background: var(--obsidian);
+    border-radius: 36px;
+    border: 1px solid #2a2218;
+    padding: 16px 12px 30px;
+    box-shadow: 0 6px 32px rgba(0,0,0,0.5), inset 0 0 0 8px #14110b;
+  }
+  .phone .notch {
+    width: 110px; height: 22px; border-radius: 14px;
+    background: #14110b; margin: 0 auto 14px;
+  }
+
+  .ma-header { padding: 6px 8px 10px; }
+  .ma-header-eyebrow {
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em;
+    color: var(--ember); text-transform: uppercase;
+  }
+  .ma-header h3 { margin: 4px 0 4px; font-size: 17px; font-weight: 600; line-height: 1.15; }
+  .ma-sub { font-family: var(--font-mono); font-size: 10px; color: var(--subtle); line-height: 1.4; }
+
+  /* Foundation pill */
+  .ma-foundation {
+    background: var(--ribbon); border: 1px solid var(--ribbon-edge);
+    border-radius: 8px; padding: 8px 10px; margin: 10px 0;
+  }
+  .ma-found-label {
+    font-family: var(--font-mono); font-size: 9px; color: var(--subtle); letter-spacing: 0.12em;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .ma-fp { display: flex; gap: 6px; align-items: center; font-size: 11px; margin: 3px 0; }
+  .ma-fp-tag {
+    font-family: var(--font-mono); font-size: 8.5px; padding: 1px 5px; border-radius: 3px;
+    background: rgba(224,92,24,0.12); border: 0.5px solid rgba(224,92,24,0.5); color: var(--ember);
+  }
+  .ma-fp-name { color: var(--linen); font-family: var(--font-mono); font-size: 10px; font-weight: 600; }
+
+  /* Bands */
+  .ma-band {
+    background: var(--ribbon); border: 1px solid var(--ribbon-edge);
+    border-radius: 8px; padding: 8px 10px; margin: 8px 0;
+  }
+  .ma-band-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .ma-band-num {
+    width: 22px; height: 22px; border-radius: 999px;
+    background: rgba(224,92,24,0.15); border: 0.5px solid rgba(224,92,24,0.6);
+    display: grid; place-items: center;
+    color: var(--ember); font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  }
+  .ma-band-title { font-weight: 600; font-size: 13px; color: var(--linen); }
+  .ma-band-of { margin-left: auto; font-family: var(--font-mono); font-size: 9px; color: var(--subtle); }
+
+  .ma-band svg { width: 100%; height: auto; display: block; }
+
+  .ma-skill-list { display: flex; flex-direction: column; gap: 6px; }
+  .ma-skill {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--card); border: 0.5px solid rgba(196,184,158,0.18);
+    border-radius: 5px; padding: 6px 8px;
+    font-size: 11px;
+  }
+  .ma-skill .role {
+    font-family: var(--font-mono); font-size: 8.5px;
+    padding: 1px 5px; border-radius: 3px;
+    text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
+  }
+  .ma-skill .name { color: var(--linen); font-weight: 600; }
+  .ma-skill .cmd  { color: var(--subtle); font-family: var(--font-mono); font-size: 9.5px; margin-left: auto; }
+  .role-adv  { background: rgba(14,165,233,0.12);  border: 0.5px solid rgba(14,165,233,0.5); color: #0EA5E9; }
+  .role-tri  { background: rgba(245,158,11,0.12);  border: 0.5px solid rgba(245,158,11,0.55); color: #f59e0b; }
+  .role-spec { background: rgba(20,184,166,0.12);  border: 0.5px solid rgba(20,184,166,0.55); color: #14B8A6; }
+  .role-flow { background: rgba(251,146,60,0.12);  border: 0.5px solid rgba(251,146,60,0.55); color: #FB923C; }
+  .role-gate { background: rgba(251,113,133,0.12); border: 0.5px solid rgba(251,113,133,0.55); color: #FB7185; }
+
+  .ma-skill .pack-stamp {
+    margin-top: 2px; padding: 1px 5px; border-radius: 3px;
+    font-family: var(--font-mono); font-size: 8px;
+    background: rgba(224,92,24,0.12); border: 0.5px solid rgba(224,92,24,0.6);
+    color: var(--ember);
+  }
+  .ma-skill-grid {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+
+  .ma-cta {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 4px;
+    background: rgba(224,92,24,0.12); border: 0.5px solid rgba(224,92,24,0.55);
+    color: var(--ember); font-family: var(--font-mono); font-size: 10px;
+    text-decoration: none; margin-top: 6px;
+  }
+  .ma-cta::after { content: "→"; margin-left: 2px; }
+
+  /* ---------- Option A — Subtle: tiny chip under stack-forge ---------- */
+  .opt-a .pack-chip {
+    margin: 6px 0 0;
+    padding: 6px 8px;
+    border-radius: 5px;
+    background: rgba(224,92,24,0.06); border: 1px solid rgba(224,92,24,0.5);
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono); font-size: 10px;
+  }
+  .opt-a .pack-chip b { color: var(--linen); }
+  .opt-a .pack-chip .arrow { color: var(--ember); font-weight: 700; }
+  .opt-a .pack-chip .sub { color: var(--sand); }
+
+  .opt-a .pa-stamp {
+    margin-left: auto;
+    font-family: var(--font-mono); font-size: 8.5px;
+    padding: 1px 5px; border-radius: 3px;
+    background: rgba(224,92,24,0.10); border: 0.5px solid rgba(224,92,24,0.55);
+    color: var(--ember); font-weight: 600;
+  }
+
+  /* ---------- Option B — Feature box: collapsible per-kind rows ---------- */
+  .opt-b .pack-feat {
+    margin: 6px 0;
+    border: 1px solid rgba(224,92,24,0.55);
+    background: rgba(224,92,24,0.05);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .opt-b .pf-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 10px;
+    background: rgba(224,92,24,0.10);
+    border-bottom: 1px solid rgba(224,92,24,0.35);
+  }
+  .opt-b .pf-title { font-family: var(--font-mono); font-size: 11px; color: var(--ember); font-weight: 700; letter-spacing: 0.06em; }
+  .opt-b .pf-total { font-family: var(--font-mono); font-size: 10px; color: var(--linen); font-weight: 700; }
+  .opt-b .pf-rows  { padding: 6px 8px 8px; }
+  .opt-b details.pf-row {
+    border-top: 0.5px solid rgba(196,184,158,0.12);
+    padding: 4px 0;
+  }
+  .opt-b details.pf-row:first-child { border-top: 0; padding-top: 2px; }
+  .opt-b details.pf-row[open] { padding-bottom: 6px; }
+  .opt-b summary.pf-srow {
+    display: flex; align-items: baseline; gap: 8px;
+    list-style: none; cursor: pointer;
+    font-family: var(--font-mono); font-size: 11px;
+    padding: 3px 2px;
+  }
+  .opt-b summary.pf-srow::-webkit-details-marker { display: none; }
+  .opt-b summary.pf-srow::before {
+    content: "▸"; color: var(--subtle); font-size: 9px;
+  }
+  .opt-b details[open] > summary.pf-srow::before { content: "▾"; color: var(--ember); }
+  .opt-b summary.pf-srow .k    { color: var(--ember); font-weight: 700; width: 16px; text-align: right; }
+  .opt-b summary.pf-srow .name { color: var(--linen); }
+  .opt-b summary.pf-srow .name.lang  { color: #0EA5E9; }
+  .opt-b summary.pf-srow .name.fw    { color: #f59e0b; }
+  .opt-b summary.pf-srow .name.mob   { color: #A78BFA; }
+  .opt-b summary.pf-srow .name.dep   { color: #14B8A6; }
+  .opt-b .pf-chips { padding: 4px 4px 4px 28px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .opt-b .pf-chip {
+    font-family: var(--font-mono); font-size: 9px;
+    padding: 1.5px 5px; border-radius: 3px;
+    background: rgba(196,184,158,0.08); border: 0.5px solid rgba(196,184,158,0.25); color: var(--sand);
+  }
+  .opt-b .pf-chip.lang { background: rgba(14,165,233,0.10); border-color: rgba(14,165,233,0.35); color: #0EA5E9; }
+  .opt-b .pf-chip.fw   { background: rgba(245,158,11,0.10); border-color: rgba(245,158,11,0.35); color: #f59e0b; }
+  .opt-b .pf-chip.mob  { background: rgba(167,139,250,0.10);border-color: rgba(167,139,250,0.35); color: #A78BFA; }
+  .opt-b .pf-chip.dep  { background: rgba(20,184,166,0.10); border-color: rgba(20,184,166,0.35); color: #14B8A6; }
+  .opt-b .pf-foot {
+    border-top: 0.5px dashed rgba(196,184,158,0.2);
+    padding: 6px 10px 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--font-mono); font-size: 9px; color: var(--subtle);
+  }
+
+  /* ---------- Option C — Hero band: new collapsible band, defaults open ---------- */
+  .opt-c .ma-pack-band {
+    background: linear-gradient(180deg, rgba(224,92,24,0.10) 0%, rgba(28,23,16,0.5) 100%);
+    border: 1px solid rgba(224,92,24,0.6);
+    border-radius: 8px; padding: 10px;
+    margin: 8px 0;
+    position: relative;
+  }
+  .opt-c .pb-eyebrow {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  }
+  .opt-c .pb-num {
+    width: 22px; height: 22px; border-radius: 999px;
+    background: var(--ember);
+    display: grid; place-items: center;
+    color: #1c1710; font-family: var(--font-mono); font-size: 11px; font-weight: 800;
+    box-shadow: 0 0 14px rgba(224,92,24,0.55);
+  }
+  .opt-c .pb-title  { font-weight: 700; font-size: 13px; color: var(--linen); }
+  .opt-c .pb-badge  {
+    margin-left: auto; padding: 2px 8px; border-radius: 999px;
+    font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+    background: rgba(224,92,24,0.20); border: 0.5px solid rgba(224,92,24,0.7); color: var(--ember);
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .opt-c .pb-badge .dot { width: 5px; height: 5px; border-radius: 999px; background: var(--ember); box-shadow: 0 0 6px var(--ember); }
+  .opt-c .pb-sub { font-family: var(--font-mono); font-size: 9px; color: var(--sand); margin-bottom: 8px; line-height: 1.4; }
+
+  .opt-c .pb-cells { display: flex; flex-direction: column; gap: 6px; }
+  .opt-c .pb-cell {
+    background: rgba(28,23,16,0.6); border: 0.5px solid rgba(196,184,158,0.25);
+    border-radius: 5px; padding: 6px 8px;
+  }
+  .opt-c .pb-chead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .opt-c .pb-ckind { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em; color: var(--sand); }
+  .opt-c .pb-ccount { font-family: var(--font-mono); font-size: 16px; font-weight: 700; color: var(--linen); line-height: 1; }
+  .opt-c .pb-chips { display: flex; flex-wrap: wrap; gap: 3px; }
+  .opt-c .pb-chip {
+    font-family: var(--font-mono); font-size: 9px; padding: 1.5px 5px; border-radius: 3px;
+    background: rgba(196,184,158,0.08); border: 0.5px solid rgba(196,184,158,0.25); color: var(--sand);
+  }
+  .opt-c .pb-cell.lang .pb-ccount { color: #0EA5E9; }
+  .opt-c .pb-cell.lang .pb-chip { background: rgba(14,165,233,0.10); border-color: rgba(14,165,233,0.35); color: #0EA5E9; }
+  .opt-c .pb-cell.fw   .pb-ccount { color: #f59e0b; }
+  .opt-c .pb-cell.fw   .pb-chip { background: rgba(245,158,11,0.10); border-color: rgba(245,158,11,0.35); color: #f59e0b; }
+  .opt-c .pb-cell.mob  .pb-ccount { color: #A78BFA; }
+  .opt-c .pb-cell.mob  .pb-chip { background: rgba(167,139,250,0.10);border-color: rgba(167,139,250,0.35); color: #A78BFA; }
+  .opt-c .pb-cell.dep  .pb-ccount { color: #14B8A6; }
+  .opt-c .pb-cell.dep  .pb-chip { background: rgba(20,184,166,0.10); border-color: rgba(20,184,166,0.35); color: #14B8A6; }
+  .opt-c .pb-foot {
+    margin-top: 8px;
+    border-top: 0.5px dashed rgba(196,184,158,0.2);
+    padding-top: 6px;
+    font-family: var(--font-mono); font-size: 9px; color: var(--subtle);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 6px;
+  }
+  .opt-c .pb-fanout b { color: var(--linen); }
+
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <div class="eyebrow">MOCKUP · architecture / v1.4 packs · mobile (≤767px)</div>
+  <h1>v1.4 packs on the mobile architecture page — three variants</h1>
+  <p>The mobile diagram is a stack of collapsible <code>&lt;details&gt;</code> bands rendered at ~390pt. Each variant matches the desktop option of the same letter — the goal is to confirm that whichever option ships still reads cleanly on a phone, where vertical space is cheap but horizontal real estate isn't.</p>
+  <div class="meta">scope: <b>all 32 packs</b> · attach: <b>stack-forge + 5 adapter skills</b> · <b>13 lang · 9 fw · 4 mobile · 6 deploy</b></div>
+</div>
+
+<div class="row">
+
+  <!-- ═══════════════ MOBILE OPTION A — SUBTLE ═══════════════ -->
+  <div class="phone-col opt-a">
+    <h2>Option A · Subtle</h2>
+    <div class="pcap">inline chip · 32 packs</div>
+    <div class="phone">
+      <div class="notch"></div>
+
+      <div class="ma-header">
+        <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE</div>
+        <h3>opchain skills ecosystem</h3>
+        <p class="ma-sub">Checkpoint-driven pipeline · 18 skills · 5 phases</p>
+      </div>
+
+      <div class="ma-foundation">
+        <div class="ma-found-label">Foundation · cross-cutting</div>
+        <div class="ma-fp"><span class="ma-fp-tag">PROTOCOL</span><span class="ma-fp-name">checkpoint-protocol</span></div>
+        <div class="ma-fp"><span class="ma-fp-tag">ORCH</span><span class="ma-fp-name">orchestrator</span></div>
+      </div>
+
+      <div class="ma-band">
+        <div class="ma-band-head">
+          <div class="ma-band-num">2</div>
+          <div class="ma-band-title">Plan</div>
+          <div class="ma-band-of">Phase 2 of 5</div>
+        </div>
+        <div class="ma-skill-list">
+          <div class="ma-skill">
+            <span class="role role-adv">advisor</span>
+            <span class="name">scale-ops</span>
+            <span class="cmd">/scale</span>
+          </div>
+          <div class="ma-skill">
+            <span class="role role-adv">advisor</span>
+            <span class="name">stack-forge</span>
+            <span class="cmd">/stack</span>
+          </div>
+          <!-- ⬇ NEW: chip docked directly under stack-forge -->
+          <div class="pack-chip">
+            <span class="arrow">↳</span>
+            <b>32 packs · v1.4</b>
+            <span class="sub">13L · 9F · 4M · 6D</span>
+          </div>
+          <div class="ma-skill">
+            <span class="role role-tri">tri-agent</span>
+            <span class="name">app-architect</span>
+            <span class="pa-stamp">pack-aware</span>
+          </div>
+          <div class="ma-skill">
+            <span class="role role-spec">specialist</span>
+            <span class="name">migration-ops</span>
+            <span class="pa-stamp">pack-aware</span>
+          </div>
+        </div>
+        <a class="ma-cta" href="/coverage">View /coverage</a>
+      </div>
+
+      <div class="ma-band">
+        <div class="ma-band-head">
+          <div class="ma-band-num">3</div>
+          <div class="ma-band-title">Build</div>
+          <div class="ma-band-of">Phase 3 of 5</div>
+        </div>
+        <div class="ma-skill-list">
+          <div class="ma-skill"><span class="role role-tri">tri-agent</span><span class="name">api-dev</span><span class="pa-stamp">pack-aware</span></div>
+          <div class="ma-skill"><span class="role role-tri">tri-agent</span><span class="name">ux-engineer</span></div>
+          <div class="ma-skill"><span class="role role-spec">specialist</span><span class="name">dash-forge</span></div>
+          <div class="ma-skill"><span class="role role-spec">specialist</span><span class="name">integrations-engineer</span></div>
+        </div>
+      </div>
+
+      <div class="ma-band">
+        <div class="ma-band-head">
+          <div class="ma-band-num">4</div>
+          <div class="ma-band-title">Ship</div>
+          <div class="ma-band-of">Phase 4 of 5</div>
+        </div>
+        <div class="ma-skill-list">
+          <div class="ma-skill"><span class="role role-gate">audit</span><span class="name">bug-check</span></div>
+          <div class="ma-skill"><span class="role role-flow">workflow</span><span class="name">git-ops</span></div>
+          <div class="ma-skill"><span class="role role-flow">workflow</span><span class="name">release-ops</span></div>
+          <div class="ma-skill"><span class="role role-tri">tri-agent</span><span class="name">code-auditor</span></div>
+          <div class="ma-skill"><span class="role role-gate">audit</span><span class="name">security-auditor</span></div>
+          <div class="ma-skill"><span class="role role-flow">workflow</span><span class="name">deploy-ops</span><span class="pa-stamp">pack-aware</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">Same skill list shape as today; only the Plan band changes. One new inline chip docked under stack-forge, four <code style="font-family:var(--font-mono);color:var(--ember)">pack-aware</code> stamps on adapter skills. <b>Easiest scroll;</b> reader doesn't have to learn a new concept to navigate.</p>
+  </div>
+
+  <!-- ═══════════════ MOBILE OPTION B — FEATURE BOX ═══════════════ -->
+  <div class="phone-col opt-b">
+    <h2>Option B · Feature box</h2>
+    <div class="pcap">collapsible kinds</div>
+    <div class="phone">
+      <div class="notch"></div>
+
+      <div class="ma-header">
+        <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE</div>
+        <h3>opchain skills ecosystem</h3>
+        <p class="ma-sub">Checkpoint-driven pipeline · 18 skills · 5 phases</p>
+      </div>
+
+      <div class="ma-foundation">
+        <div class="ma-found-label">Foundation · cross-cutting</div>
+        <div class="ma-fp"><span class="ma-fp-tag">PROTOCOL</span><span class="ma-fp-name">checkpoint-protocol</span></div>
+        <div class="ma-fp"><span class="ma-fp-tag">ORCH</span><span class="ma-fp-name">orchestrator</span></div>
+      </div>
+
+      <div class="ma-band">
+        <div class="ma-band-head">
+          <div class="ma-band-num">2</div>
+          <div class="ma-band-title">Plan</div>
+          <div class="ma-band-of">Phase 2 of 5</div>
+        </div>
+        <div class="ma-skill-list">
+          <div class="ma-skill"><span class="role role-adv">advisor</span><span class="name">scale-ops</span></div>
+          <div class="ma-skill"><span class="role role-adv">advisor</span><span class="name">stack-forge</span>
+            <span class="pa-stamp" style="background:rgba(224,92,24,0.10);border:0.5px solid rgba(224,92,24,0.55);font-family:var(--font-mono);font-size:8.5px;padding:1px 5px;border-radius:3px;color:#e05c18">pack registry</span>
+          </div>
+
+          <!-- feature-box dropdown lives directly below stack-forge -->
+          <div class="pack-feat">
+            <div class="pf-head">
+              <span class="pf-title">v1.4 · stack-forge packs</span>
+              <span class="pf-total">32 ✦</span>
+            </div>
+            <div class="pf-rows">
+              <details class="pf-row" open>
+                <summary class="pf-srow"><span class="k">13</span><span class="name lang">languages</span></summary>
+                <div class="pf-chips">
+                  <span class="pf-chip lang">typescript</span><span class="pf-chip lang">python</span><span class="pf-chip lang">go</span><span class="pf-chip lang">rust</span><span class="pf-chip lang">java</span><span class="pf-chip lang">kotlin</span><span class="pf-chip lang">ruby</span><span class="pf-chip lang">php</span><span class="pf-chip lang">swift</span><span class="pf-chip lang">csharp</span><span class="pf-chip lang">elixir</span><span class="pf-chip lang">bun</span><span class="pf-chip lang">deno</span>
+                </div>
+              </details>
+              <details class="pf-row">
+                <summary class="pf-srow"><span class="k">9</span><span class="name fw">frameworks</span></summary>
+                <div class="pf-chips">
+                  <span class="pf-chip fw">remix</span><span class="pf-chip fw">sveltekit</span><span class="pf-chip fw">solid</span><span class="pf-chip fw">phoenix</span><span class="pf-chip fw">spring-java</span><span class="pf-chip fw">spring-kotlin</span><span class="pf-chip fw">laravel-php</span><span class="pf-chip fw">dotnet-aspnet</span><span class="pf-chip fw">swiftui</span>
+                </div>
+              </details>
+              <details class="pf-row">
+                <summary class="pf-srow"><span class="k">4</span><span class="name mob">mobile</span></summary>
+                <div class="pf-chips">
+                  <span class="pf-chip mob">ios-swiftui</span><span class="pf-chip mob">kotlin-android</span><span class="pf-chip mob">flutter</span><span class="pf-chip mob">react-native-expo</span>
+                </div>
+              </details>
+              <details class="pf-row">
+                <summary class="pf-srow"><span class="k">6</span><span class="name dep">deploy</span></summary>
+                <div class="pf-chips">
+                  <span class="pf-chip dep">netlify</span><span class="pf-chip dep">railway</span><span class="pf-chip dep">heroku</span><span class="pf-chip dep">aws-amplify</span><span class="pf-chip dep">app-store</span><span class="pf-chip dep">play-store</span>
+                </div>
+              </details>
+            </div>
+            <div class="pf-foot">
+              <span>consumed by 5 skills</span>
+              <a class="ma-cta" href="/coverage" style="margin:0">View /coverage</a>
+            </div>
+          </div>
+
+          <div class="ma-skill"><span class="role role-tri">tri-agent</span><span class="name">app-architect</span><span class="pa-stamp">↑ packs</span></div>
+          <div class="ma-skill"><span class="role role-spec">specialist</span><span class="name">migration-ops</span><span class="pa-stamp">↑ packs</span></div>
+        </div>
+      </div>
+
+      <div class="ma-band">
+        <div class="ma-band-head">
+          <div class="ma-band-num">3</div>
+          <div class="ma-band-title">Build</div>
+          <div class="ma-band-of">Phase 3 of 5</div>
+        </div>
+        <div class="ma-skill-list">
+          <div class="ma-skill"><span class="role role-tri">tri-agent</span><span class="name">api-dev</span><span class="pa-stamp">↑ packs (8 langs)</span></div>
+          <div class="ma-skill"><span class="role role-tri">tri-agent</span><span class="name">ux-engineer</span></div>
+          <div class="ma-skill"><span class="role role-spec">specialist</span><span class="name">dash-forge</span></div>
+        </div>
+      </div>
+
+      <div class="ma-band">
+        <div class="ma-band-head">
+          <div class="ma-band-num">4</div>
+          <div class="ma-band-title">Ship</div>
+          <div class="ma-band-of">Phase 4 of 5</div>
+        </div>
+        <div class="ma-skill-list">
+          <div class="ma-skill"><span class="role role-flow">workflow</span><span class="name">deploy-ops</span><span class="pa-stamp">↑ deploy packs</span></div>
+        </div>
+      </div>
+
+    </div>
+    <p class="note">Feature cluster is a self-contained <code>&lt;details&gt;</code> sub-tree under stack-forge. Languages open by default; frameworks/mobile/deploy collapsed. Each consumer skill carries a tiny <code style="font-family:var(--font-mono);color:var(--ember)">↑ packs</code> stamp. <b>Best middle ground;</b> shows structure without dominating.</p>
+  </div>
+
+  <!-- ═══════════════ MOBILE OPTION C — HERO BAND ═══════════════ -->
+  <div class="phone-col opt-c">
+    <h2>Option C · Hero band</h2>
+    <div class="pcap">net-new pack-fabric band</div>
+    <div class="phone">
+      <div class="notch"></div>
+
+      <div class="ma-header">
+        <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE</div>
+        <h3>opchain skills ecosystem</h3>
+        <p class="ma-sub">Checkpoint-driven pipeline · 18 skills · 5 phases · <span style="color:var(--ember)">+ v1.4 pack fabric</span></p>
+      </div>
+
+      <div class="ma-foundation">
+        <div class="ma-found-label">Foundation · cross-cutting</div>
+        <div class="ma-fp"><span class="ma-fp-tag">PROTOCOL</span><span class="ma-fp-name">checkpoint-protocol</span></div>
+        <div class="ma-fp"><span class="ma-fp-tag">ORCH</span><span class="ma-fp-name">orchestrator</span></div>
+      </div>
+
+      <div class="ma-band">
+        <div class="ma-band-head">
+          <div class="ma-band-num">2</div>
+          <div class="ma-band-title">Plan</div>
+          <div class="ma-band-of">Phase 2 of 5</div>
+        </div>
+        <div class="ma-skill-list">
+          <div class="ma-skill"><span class="role role-adv">advisor</span><span class="name">scale-ops</span></div>
+          <div class="ma-skill"><span class="role role-adv">advisor</span><span class="name">stack-forge</span><span class="cmd">owns ↓</span></div>
+          <div class="ma-skill"><span class="role role-tri">tri-agent</span><span class="name">app-architect</span></div>
+          <div class="ma-skill"><span class="role role-spec">specialist</span><span class="name">migration-ops</span></div>
+        </div>
+      </div>
+
+      <!-- NEW: PACK FABRIC BAND — sits between Plan and Build -->
+      <div class="ma-pack-band">
+        <div class="pb-eyebrow">
+          <div class="pb-num">✦</div>
+          <div class="pb-title">Pack fabric</div>
+          <div class="pb-badge"><span class="dot"></span>v1.4 · 32</div>
+        </div>
+        <p class="pb-sub">stack-forge owns it; 5 skills consume it. Source: <code>skills/stack-forge/packs/&lt;id&gt;/pack.yml</code></p>
+        <div class="pb-cells">
+          <div class="pb-cell lang">
+            <div class="pb-chead"><span class="pb-ckind">LANGUAGES</span><span class="pb-ccount">13</span></div>
+            <div class="pb-chips">
+              <span class="pb-chip">typescript</span><span class="pb-chip">python</span><span class="pb-chip">go</span><span class="pb-chip">rust</span><span class="pb-chip">java</span><span class="pb-chip">kotlin</span><span class="pb-chip">ruby</span><span class="pb-chip">php</span><span class="pb-chip">swift</span><span class="pb-chip">csharp</span><span class="pb-chip">elixir</span><span class="pb-chip">bun</span><span class="pb-chip">deno</span>
+            </div>
+          </div>
+          <div class="pb-cell fw">
+            <div class="pb-chead"><span class="pb-ckind">FRAMEWORKS</span><span class="pb-ccount">9</span></div>
+            <div class="pb-chips">
+              <span class="pb-chip">remix</span><span class="pb-chip">sveltekit</span><span class="pb-chip">solid</span><span class="pb-chip">phoenix</span><span class="pb-chip">spring-java</span><span class="pb-chip">spring-kotlin</span><span class="pb-chip">laravel</span><span class="pb-chip">dotnet</span><span class="pb-chip">swiftui</span>
+            </div>
+          </div>
+          <div class="pb-cell mob">
+            <div class="pb-chead"><span class="pb-ckind">MOBILE</span><span class="pb-ccount">4</span></div>
+            <div class="pb-chips">
+              <span class="pb-chip">ios-swiftui</span><span class="pb-chip">kotlin-android</span><span class="pb-chip">flutter</span><span class="pb-chip">expo</span>
+            </div>
+          </div>
+          <div class="pb-cell dep">
+            <div class="pb-chead"><span class="pb-ckind">DEPLOY</span><span class="pb-ccount">6</span></div>
+            <div class="pb-chips">
+              <span class="pb-chip">netlify</span><span class="pb-chip">railway</span><span class="pb-chip">heroku</span><span class="pb-chip">aws-amplify</span><span class="pb-chip">app-store</span><span class="pb-chip">play-store</span>
+            </div>
+          </div>
+        </div>
+        <div class="pb-foot">
+          <span class="pb-fanout">↑ <b>stack-forge</b> · <b>app-arch</b> · <b>migration-ops</b><br/>↓ <b>api-dev</b> · <b>deploy-ops</b></span>
+          <a class="ma-cta" href="/coverage" style="margin:0">View /coverage</a>
+        </div>
+      </div>
+
+      <div class="ma-band">
+        <div class="ma-band-head">
+          <div class="ma-band-num">3</div>
+          <div class="ma-band-title">Build</div>
+          <div class="ma-band-of">Phase 3 of 5</div>
+        </div>
+        <div class="ma-skill-list">
+          <div class="ma-skill"><span class="role role-tri">tri-agent</span><span class="name">api-dev</span><span class="cmd">↑ uses packs</span></div>
+          <div class="ma-skill"><span class="role role-tri">tri-agent</span><span class="name">ux-engineer</span></div>
+        </div>
+      </div>
+
+      <div class="ma-band">
+        <div class="ma-band-head">
+          <div class="ma-band-num">4</div>
+          <div class="ma-band-title">Ship</div>
+          <div class="ma-band-of">Phase 4 of 5</div>
+        </div>
+        <div class="ma-skill-list">
+          <div class="ma-skill"><span class="role role-flow">workflow</span><span class="name">deploy-ops</span><span class="cmd">↑ uses packs</span></div>
+        </div>
+      </div>
+
+    </div>
+    <p class="note">The new band breaks the 5-phase rhythm but tells the v1.4 story prominently. Pack fabric scrolls between Plan and Build with its own gradient + ember badge. <b>Most "this shipped, look";</b> highest vertical cost on a phone.</p>
+  </div>
+
+</div>
+
+</body>
+</html>
