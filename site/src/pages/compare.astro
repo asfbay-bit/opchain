@@ -417,6 +417,30 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
   const CATALOG = JSON.parse(dataEl.textContent || "{}") as Catalog;
   const { PLATFORMS, FEATURES, FIXED_ORDER, SELECTABLE, MAX_EXTRAS, DEFAULT_EXTRAS } = CATALOG;
 
+  // Astro scopes every <style> rule by appending a `data-astro-cid-XXX`
+  // attribute selector to each compound. Server-rendered elements
+  // already carry the attribute; ones we `createElement()` in client
+  // JS do not, and every scoped rule (`.cmp td.me`, `.cmp td.heat-good`,
+  // `.cell-v`, `.verdict-icon`, …) silently misses them. The visible
+  // symptom was the entire table losing its heatmap / ember-hero
+  // treatment the instant the user toggled a chip — because the toggle
+  // path goes through `renderTable()` which rebuilds every cell.
+  // Capture the cid from any pre-existing cell once and re-stamp it
+  // onto every new element we create.
+  const ASTRO_CID: string | null = (() => {
+    const sample = document.querySelector<HTMLElement>(".cmp td, .cmp th");
+    if (!sample) return null;
+    for (const attr of Array.from(sample.attributes)) {
+      if (attr.name.startsWith("data-astro-cid-")) return attr.name;
+    }
+    return null;
+  })();
+  function stampCid(root: HTMLElement) {
+    if (!ASTRO_CID) return;
+    root.setAttribute(ASTRO_CID, "");
+    root.querySelectorAll<HTMLElement>("*").forEach((el) => el.setAttribute(ASTRO_CID, ""));
+  }
+
   const STORAGE_KEY = "opchain-compare-selection";
 
   function loadExtras(): string[] {
@@ -469,7 +493,9 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
     const thead = document.getElementById("cmp-head");
     if (thead) {
       thead.innerHTML = "";
-      thead.appendChild(document.createElement("th")); // corner
+      const corner = document.createElement("th");
+      stampCid(corner);
+      thead.appendChild(corner);
       cols.forEach((id) => {
         const p = PLATFORMS[id];
         const th = document.createElement("th");
@@ -477,6 +503,7 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
         th.dataset.col = id;
         const review = p.needsReview ? '<span class="review-badge">review</span>' : "";
         th.innerHTML = escapeHtml(p.name) + (review ? " " + review : "");
+        stampCid(th);
         thead.appendChild(th);
       });
     }
@@ -487,9 +514,11 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
       FEATURES.forEach((feat) => {
         const tr = document.createElement("tr");
         tr.dataset.feature = feat.id;
+        stampCid(tr);
         const rowHead = document.createElement("th");
         rowHead.scope = "row";
         rowHead.textContent = feat.label;
+        stampCid(rowHead);
         tr.appendChild(rowHead);
 
         cols.forEach((id) => {
@@ -509,6 +538,7 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
             ? `<span class="cell-note">${escapeHtml(cell.note)}</span>`
             : "";
           td.innerHTML = `<span class="cell-v">${iconHtml}${escapeHtml(cell.v)}</span>${noteHtml}`;
+          stampCid(td);
           tr.appendChild(td);
         });
 
