@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>v1.4 packs in /architecture — 3 desktop options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --obsidian:  #1c1710;
+    --ribbon:    #231b13;
+    --ribbon-edge:#3a2f26;
+    --surface:   #251d14;
+    --card:      #241C15;
+    --slag:      #5a5040;
+    --sand:      #c4b89e;
+    --linen:     #e8dfd0;
+    --subtle:    #9d8b78;
+    --ember:     #e05c18;
+    --char:      #b84510;
+    --ember-dim: rgba(224, 92, 24, 0.10);
+
+    --workflow:    #FB923C;
+    --tri-agent:   #F59E0B;
+    --audit-gate:  #FB7185;
+    --specialist:  #14B8A6;
+    --advisor:     #0EA5E9;
+    --orchestrator:#A78BFA;
+
+    --info:        #94A3B8;
+    --success:     #10B981;
+
+    --font-display: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { background: var(--obsidian); color: var(--linen); margin: 0; padding: 0; font-family: var(--font-display); }
+  body { padding: 32px 24px 96px; }
+
+  .page-head { max-width: 1180px; margin: 0 auto 32px; }
+  .page-head .eyebrow {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.22em;
+    color: var(--ember); text-transform: uppercase; margin-bottom: 6px;
+  }
+  .page-head h1 { font-size: 28px; margin: 0 0 8px; font-weight: 600; letter-spacing: -0.015em; }
+  .page-head p   { margin: 0; color: var(--subtle); font-size: 14px; max-width: 70ch; }
+  .page-head .meta { margin-top: 14px; font-family: var(--font-mono); font-size: 11px; color: var(--sand); }
+  .page-head .meta b { color: var(--ember); }
+
+  .option {
+    max-width: 1180px;
+    margin: 0 auto 56px;
+    background: var(--ribbon);
+    border: 1px solid var(--ribbon-edge);
+    border-radius: 10px;
+    padding: 28px 32px 32px;
+  }
+
+  .option-head { display: flex; align-items: flex-start; gap: 18px; margin-bottom: 20px; }
+  .option-tag {
+    flex-shrink: 0;
+    width: 56px; height: 56px; border-radius: 8px;
+    display: grid; place-items: center;
+    background: var(--ember-dim); border: 1px solid rgba(224,92,24,0.5);
+    color: var(--ember);
+    font-family: var(--font-mono); font-size: 22px; font-weight: 700;
+  }
+  .option-title { font-size: 22px; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .option-rationale { margin: 0; color: var(--sand); font-size: 13px; line-height: 1.55; max-width: 80ch; }
+  .option-axes {
+    display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;
+    font-family: var(--font-mono); font-size: 10px;
+  }
+  .option-axes span {
+    padding: 3px 8px; border-radius: 4px;
+    background: rgba(196,184,158,0.08);
+    border: 0.5px solid rgba(196,184,158,0.25);
+    color: var(--sand);
+  }
+  .option-axes b { color: var(--linen); font-weight: 600; }
+
+  .diagram-frame {
+    background: var(--obsidian);
+    border: 1px solid rgba(196,184,158,0.18);
+    border-radius: 8px;
+    padding: 18px;
+    margin-top: 8px;
+    position: relative;
+  }
+
+  .frame-label {
+    position: absolute; top: -10px; left: 16px;
+    background: var(--obsidian); padding: 0 8px;
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--subtle); letter-spacing: 0.12em; text-transform: uppercase;
+  }
+
+  /* Band-like styling matching arch-v2 */
+  .band {
+    position: relative;
+    background: var(--card);
+    border: 1px solid rgba(196,184,158,0.18);
+    border-radius: 6px;
+    padding: 10px 10px 10px 100px;
+    margin-bottom: 10px;
+    min-height: 160px;
+  }
+  .band-label {
+    position: absolute; left: 10px; top: 10px; bottom: 10px;
+    width: 78px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .band-label-bar { width: 4px; height: 28px; border-radius: 2px; }
+  .band-label-text {
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 0.18em; color: var(--sand);
+    writing-mode: horizontal-tb;
+  }
+  .band-label-of { font-family: var(--font-mono); font-size: 9px; color: var(--subtle); margin-top: auto; }
+
+  .band-content { display: block; width: 100%; }
+  svg.diagram { width: 100%; height: auto; display: block; }
+
+  .band-detail {
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 5px;
+    font-size: 12px; color: var(--sand);
+    line-height: 1.5;
+  }
+  .band-detail b { color: var(--linen); }
+  .band-detail a { color: var(--ember); text-decoration: none; border-bottom: 1px dashed rgba(224,92,24,0.5); }
+  .band-detail a:hover { color: var(--linen); }
+
+  /* In-diagram coverage CTA chip used by all 3 options */
+  .cov-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 8px; border-radius: 4px;
+    background: rgba(224,92,24,0.12);
+    border: 0.5px solid rgba(224,92,24,0.6);
+    color: var(--ember);
+    font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+    text-decoration: none;
+  }
+  .cov-link:hover { background: rgba(224,92,24,0.22); color: var(--linen); }
+  .cov-link::after { content: "→"; }
+
+  /* Footer / nav */
+  .nav { max-width: 1180px; margin: 0 auto 28px; display: flex; gap: 8px; font-family: var(--font-mono); font-size: 11px; }
+  .nav a {
+    color: var(--sand); padding: 6px 12px; border-radius: 4px;
+    background: rgba(196,184,158,0.06); border: 0.5px solid rgba(196,184,158,0.2);
+    text-decoration: none;
+  }
+  .nav a:hover { color: var(--ember); border-color: rgba(224,92,24,0.5); }
+
+  /* ---------------- OPTION C: hero band specific ---------------- */
+  .pack-fabric-band {
+    background: linear-gradient(180deg, rgba(224,92,24,0.06) 0%, rgba(28,23,16,0.4) 100%);
+    border: 1px solid rgba(224,92,24,0.45);
+    border-radius: 6px;
+    padding: 14px 16px 18px 100px;
+    margin: 10px 0;
+    position: relative;
+  }
+  .pack-fabric-band .band-label-bar { background: var(--ember); box-shadow: 0 0 12px rgba(224,92,24,0.6); }
+  .pack-fabric-band .v14-badge {
+    position: absolute; top: 12px; right: 16px;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 12px; border-radius: 999px;
+    background: rgba(224,92,24,0.18); border: 0.5px solid rgba(224,92,24,0.7);
+    color: var(--ember); font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.12em;
+  }
+  .pack-fabric-band .v14-badge .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--ember); box-shadow: 0 0 8px var(--ember); }
+  .pf-title { font-size: 15px; font-weight: 600; color: var(--linen); margin: 0 0 2px; }
+  .pf-sub   { font-size: 12px; color: var(--sand); margin: 0 0 14px; font-family: var(--font-mono); }
+  .pf-grid  { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .pf-cell {
+    background: rgba(28,23,16,0.6); border: 0.5px solid rgba(196,184,158,0.25);
+    border-radius: 6px; padding: 10px;
+  }
+  .pf-cell-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .pf-cell-kind { font-family: var(--font-mono); font-size: 11px; color: var(--sand); letter-spacing: 0.08em; }
+  .pf-cell-count { font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--linen); line-height: 1; }
+  .pf-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pf-chip {
+    font-family: var(--font-mono); font-size: 10px;
+    padding: 2px 6px; border-radius: 3px;
+    background: rgba(196,184,158,0.08); border: 0.5px solid rgba(196,184,158,0.25);
+    color: var(--sand);
+  }
+  .pf-cell.lang  .pf-cell-count { color: #0EA5E9; }
+  .pf-cell.lang  .pf-chip { background: rgba(14,165,233,0.08); border-color: rgba(14,165,233,0.3); color: #0EA5E9; }
+  .pf-cell.fw    .pf-cell-count { color: #f59e0b; }
+  .pf-cell.fw    .pf-chip { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3); color: #f59e0b; }
+  .pf-cell.mob   .pf-cell-count { color: #A78BFA; }
+  .pf-cell.mob   .pf-chip { background: rgba(167,139,250,0.08); border-color: rgba(167,139,250,0.3); color: #A78BFA; }
+  .pf-cell.dep   .pf-cell-count { color: #14B8A6; }
+  .pf-cell.dep   .pf-chip { background: rgba(20,184,166,0.08); border-color: rgba(20,184,166,0.3); color: #14B8A6; }
+
+  .pf-fanout-note {
+    margin-top: 12px;
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--subtle);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .pf-fanout-note .skills b { color: var(--linen); }
+
+  /* ---------------- OPTION B: feature box specific ---------------- */
+  .feat-cluster {
+    border: 1px solid rgba(224,92,24,0.45);
+    background: rgba(224,92,24,0.04);
+    border-radius: 5px;
+    padding: 8px 10px;
+  }
+  .feat-cluster .fc-head {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+  }
+  .feat-cluster .fc-title { font-family: var(--font-mono); font-size: 11px; color: var(--ember); font-weight: 600; letter-spacing: 0.06em; }
+  .feat-cluster .fc-total {
+    font-family: var(--font-mono); font-size: 9px; padding: 2px 6px; border-radius: 3px;
+    background: rgba(224,92,24,0.18); color: var(--ember); border: 0.5px solid rgba(224,92,24,0.5);
+  }
+  .feat-cluster .fc-rows { display: flex; flex-direction: column; gap: 4px; }
+  .feat-cluster .fc-row { display: flex; align-items: baseline; gap: 6px; font-family: var(--font-mono); font-size: 9.5px; }
+  .feat-cluster .fc-rk { width: 18px; color: var(--ember); font-weight: 700; text-align: right; }
+  .feat-cluster .fc-rname { color: var(--sand); width: 64px; }
+  .feat-cluster .fc-rchips { color: var(--subtle); flex: 1; line-height: 1.35; }
+  .feat-cluster .fc-foot { margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .feat-cluster .fc-foot .src { font-family: var(--font-mono); font-size: 9px; color: var(--subtle); }
+
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="#opt-a">Option A · Subtle</a>
+  <a href="#opt-b">Option B · Feature box</a>
+  <a href="#opt-c">Option C · Hero band</a>
+</nav>
+
+<div class="page-head">
+  <div class="eyebrow">MOCKUP · architecture / v1.4 packs · desktop</div>
+  <h1>Three ways to show the 1.4 release language pack pack inside /architecture</h1>
+  <p>Each option places the same data — 32 packs across 4 kinds, fanning out to the 5 pack-aware skills (stack-forge, api-dev, deploy-ops, app-architect, migration-ops) — but varies <i>density</i>, <i>grouping</i>, and <i>visual weight</i>. Picks the chosen one as the production diagram update.</p>
+  <div class="meta">scope: <b>all 32 packs</b> · attach: <b>stack-forge + 5 adapter skills</b> · counts: <b>13 languages</b> · <b>9 frameworks</b> · <b>4 mobile</b> · <b>6 deploy targets</b></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!--   OPTION A — SUBTLE ANNOTATION (counts only · flat · low emphasis) -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<section class="option" id="opt-a">
+  <div class="option-head">
+    <div class="option-tag">A</div>
+    <div>
+      <h2 class="option-title">Subtle — inline pack-count chip on stack-forge</h2>
+      <p class="option-rationale">
+        A single <code style="font-family:var(--font-mono);color:var(--ember)">↳ 32 packs</code> chip lives under the stack-forge skill box; the four pack-aware adapter skills (api-dev, deploy-ops, app-architect, migration-ops) gain a small <code style="font-family:var(--font-mono);color:var(--ember)">pack-aware</code> stamp on their existing inbound edges. No new layout — packs are an annotation, not a node. Cheapest to land; assumes /coverage carries the catalog.
+      </p>
+      <div class="option-axes">
+        <span><b>density:</b> count only</span>
+        <span><b>grouping:</b> flat (32 packs)</span>
+        <span><b>emphasis:</b> subtle / no new band</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="diagram-frame">
+    <span class="frame-label">Plan band (with proposed packs annotation) + cross-band edges to adapter skills</span>
+    <div class="band">
+      <div class="band-label">
+        <div class="band-label-bar" style="background:var(--ember)"></div>
+        <span class="band-label-text">PLAN</span>
+        <span class="band-label-of">Phase 2 of 5</span>
+      </div>
+      <div class="band-content">
+        <svg class="diagram" viewBox="0 0 760 220" role="img" aria-label="Option A — subtle pack-count chip on stack-forge">
+          <!-- defs -->
+          <defs>
+            <marker id="aA-ember" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+              <polygon points="0 0, 6 2, 0 4" fill="#e05c18"/>
+            </marker>
+            <marker id="aA-sand" markerWidth="5" markerHeight="3.5" refX="4.5" refY="1.75" orient="auto">
+              <polygon points="0 0, 5 1.75, 0 3.5" fill="#c4b89e"/>
+            </marker>
+            <marker id="aA-mint" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+              <polygon points="0 0, 6 2, 0 4" fill="#14B8A6"/>
+            </marker>
+            <filter id="aA-glow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="3" result="b"/>
+              <feFlood flood-color="#e05c18" flood-opacity="0.6"/>
+              <feComposite in2="b" operator="in" result="s"/>
+              <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+
+          <!-- scale-ops -->
+          <rect x="20" y="14" width="118" height="48" rx="5" fill="#1c1710" stroke="#0EA5E9" stroke-width="1"/>
+          <rect x="20" y="14" width="118" height="48" rx="5" fill="rgba(14,165,233,0.06)" stroke="#0EA5E9" stroke-width="0.5"/>
+          <text x="79" y="29" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">scale-ops</text>
+          <text x="79" y="40" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Advisor</text>
+          <text x="79" y="54" fill="#0EA5E9" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/scale · perf · capacity</text>
+
+          <!-- stack-forge -->
+          <rect x="20" y="84" width="118" height="48" rx="5" fill="#1c1710" stroke="#0EA5E9" stroke-width="1"/>
+          <rect x="20" y="84" width="118" height="48" rx="5" fill="rgba(14,165,233,0.06)" stroke="#0EA5E9" stroke-width="0.5"/>
+          <text x="79" y="99" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">stack-forge</text>
+          <text x="79" y="110" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Advisor</text>
+          <text x="79" y="124" fill="#0EA5E9" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/stack · /stack-decide</text>
+
+          <!-- ⬇ NEW: pack-count chip directly under stack-forge -->
+          <g filter="url(#aA-glow)">
+            <rect x="20" y="138" width="118" height="20" rx="4" fill="#1c1710" stroke="#e05c18" stroke-width="1"/>
+            <rect x="20" y="138" width="118" height="20" rx="4" fill="rgba(224,92,24,0.10)" stroke="#e05c18" stroke-width="0.3"/>
+          </g>
+          <text x="29" y="151" fill="#e05c18" font-size="9" font-family="JetBrains Mono,monospace" font-weight="700">↳</text>
+          <text x="79" y="151" fill="#e8dfd0" font-size="8.5" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="600">32 packs · v1.4</text>
+          <text x="79" y="170" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">13 lang · 9 fw · 4 mobile · 6 deploy</text>
+
+          <!-- app-architect -->
+          <rect x="240" y="22" width="280" height="106" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1.2"/>
+          <rect x="240" y="22" width="280" height="106" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
+          <text x="380" y="44" fill="#e8dfd0" font-size="9" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">app-architect</text>
+          <text x="380" y="58" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · Orchestrator</text>
+          <text x="380" y="74" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Generator / Evaluator</text>
+          <text x="380" y="92" fill="#f59e0b" font-size="7.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">/app · /discover · /spec</text>
+          <!-- pack-aware stamp on app-architect -->
+          <rect x="246" y="112" width="60" height="11" rx="2" fill="rgba(224,92,24,0.12)" stroke="rgba(224,92,24,0.6)" stroke-width="0.4"/>
+          <text x="276" y="120" fill="#e05c18" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="600">pack-aware</text>
+
+          <!-- migration-ops -->
+          <rect x="610" y="50" width="130" height="50" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1"/>
+          <rect x="610" y="50" width="130" height="50" rx="5" fill="rgba(13,148,136,0.06)" stroke="#0D9488" stroke-width="0.5"/>
+          <text x="675" y="65" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">migration-ops</text>
+          <text x="675" y="76" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist</text>
+          <text x="675" y="90" fill="#0D9488" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/migrate · schema</text>
+          <rect x="616" y="103" width="60" height="11" rx="2" fill="rgba(224,92,24,0.12)" stroke="rgba(224,92,24,0.6)" stroke-width="0.4"/>
+          <text x="646" y="111" fill="#e05c18" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="600">pack-aware</text>
+
+          <!-- ghost out-of-band adapter skills (api-dev, deploy-ops) shown to right of plan band -->
+          <line x1="138" y1="160" x2="138" y2="190" stroke="#e05c18" stroke-width="1" stroke-dasharray="3,2" opacity="0.55"/>
+          <line x1="138" y1="190" x2="690" y2="190" stroke="#e05c18" stroke-width="1" stroke-dasharray="3,2" opacity="0.55"/>
+          <text x="146" y="185" fill="#e05c18" font-size="7" font-family="JetBrains Mono,monospace" opacity="0.75">packs fan out →</text>
+
+          <!-- ghost api-dev box (build band representation) -->
+          <rect x="540" y="172" width="74" height="32" rx="4" fill="#1c1710" stroke="#94A3B8" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.6"/>
+          <text x="577" y="186" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">api-dev</text>
+          <text x="577" y="195" fill="#94A3B8" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle">(build band)</text>
+          <rect x="544" y="197" width="60" height="7" rx="1.5" fill="rgba(224,92,24,0.10)" stroke="rgba(224,92,24,0.45)" stroke-width="0.3"/>
+          <text x="574" y="203" fill="#e05c18" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="600">pack-aware</text>
+
+          <!-- ghost deploy-ops box -->
+          <rect x="640" y="172" width="80" height="32" rx="4" fill="#1c1710" stroke="#94A3B8" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.6"/>
+          <text x="680" y="186" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">deploy-ops</text>
+          <text x="680" y="195" fill="#94A3B8" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle">(ship band)</text>
+          <rect x="646" y="197" width="68" height="7" rx="1.5" fill="rgba(224,92,24,0.10)" stroke="rgba(224,92,24,0.45)" stroke-width="0.3"/>
+          <text x="680" y="203" fill="#e05c18" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="600">pack-aware</text>
+
+          <!-- arrows from packs chip to app-architect & migration-ops with pack-aware label -->
+          <line x1="138" y1="148" x2="240" y2="100" stroke="#e05c18" stroke-width="1.0" stroke-dasharray="3,2" opacity="0.7" marker-end="url(#aA-ember)"/>
+          <line x1="138" y1="148" x2="610" y2="80" stroke="#e05c18" stroke-width="1.0" stroke-dasharray="3,2" opacity="0.7" marker-end="url(#aA-ember)"/>
+        </svg>
+      </div>
+      <div class="band-detail" style="background:rgba(224,92,24,0.05);border:0.5px solid rgba(224,92,24,0.25)">
+        <b>What's new in Plan:</b> A small ember-stroked chip is parented to stack-forge: <code style="font-family:var(--font-mono);color:var(--ember)">↳ 32 packs · v1.4</code> with sub-line <code style="font-family:var(--font-mono);color:var(--sand)">13 lang · 9 fw · 4 mobile · 6 deploy</code>. Two ember dashed arrows fan from the chip to app-architect and migration-ops in-band; a dotted continuation runs to ghost-rendered api-dev / deploy-ops boxes that live in the Build/Ship bands. Each of the 5 adapter skills gets a tiny <code style="font-family:var(--font-mono);color:var(--ember)">pack-aware</code> stamp on its existing card. &nbsp; <a class="cov-link" href="/coverage">View /coverage</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!--   OPTION B — FEATURE BOX (by-kind chips · grouped · medium emphasis) -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<section class="option" id="opt-b">
+  <div class="option-head">
+    <div class="option-tag">B</div>
+    <div>
+      <h2 class="option-title">Feature box — “v1.4 PACKS” cluster docked to stack-forge</h2>
+      <p class="option-rationale">
+        A purpose-built boxed cluster sits to the right of stack-forge inside the Plan band, listing the 4 pack kinds with their count and a few representative chips per row. Five ember threads fan out from the cluster header to each pack-aware skill (one is in-band, three reach into Build/Ship). Reads as <i>"here is the system, here is who consumes it"</i> without dominating the page.
+      </p>
+      <div class="option-axes">
+        <span><b>density:</b> by-kind chips (sampled)</span>
+        <span><b>grouping:</b> by kind (4 rows)</span>
+        <span><b>emphasis:</b> feature box · in-band</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="diagram-frame">
+    <span class="frame-label">Plan band with v1.4 packs cluster + edges to 5 adapter skills</span>
+    <div class="band">
+      <div class="band-label">
+        <div class="band-label-bar" style="background:var(--ember)"></div>
+        <span class="band-label-text">PLAN</span>
+        <span class="band-label-of">Phase 2 of 5</span>
+      </div>
+      <div class="band-content" style="display:grid; grid-template-columns: 1fr 280px; gap: 14px; align-items: start;">
+        <!-- left: SVG of stack-forge + app-architect + migration-ops (compact) -->
+        <svg class="diagram" viewBox="0 0 460 170" role="img" aria-label="Option B — feature-box version of plan band">
+          <defs>
+            <marker id="aB-ember" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+              <polygon points="0 0, 6 2, 0 4" fill="#e05c18"/>
+            </marker>
+            <marker id="aB-sand" markerWidth="5" markerHeight="3.5" refX="4.5" refY="1.75" orient="auto">
+              <polygon points="0 0, 5 1.75, 0 3.5" fill="#c4b89e"/>
+            </marker>
+          </defs>
+
+          <!-- scale-ops -->
+          <rect x="14" y="10" width="100" height="40" rx="5" fill="#1c1710" stroke="#0EA5E9" stroke-width="1"/>
+          <text x="64" y="24" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">scale-ops</text>
+          <text x="64" y="34" fill="#c4b89e" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle">Advisor</text>
+          <text x="64" y="44" fill="#0EA5E9" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle">/scale</text>
+
+          <!-- stack-forge -->
+          <rect x="14" y="70" width="100" height="46" rx="5" fill="#1c1710" stroke="#0EA5E9" stroke-width="1.2"/>
+          <rect x="14" y="70" width="100" height="46" rx="5" fill="rgba(14,165,233,0.06)" stroke="#0EA5E9" stroke-width="0.5"/>
+          <text x="64" y="85" fill="#e8dfd0" font-size="8.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">stack-forge</text>
+          <text x="64" y="97" fill="#c4b89e" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle">Advisor</text>
+          <text x="64" y="109" fill="#0EA5E9" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle">/stack · packs</text>
+          <!-- pack-aware stamp -->
+          <rect x="24" y="118" width="80" height="10" rx="2" fill="rgba(224,92,24,0.15)" stroke="rgba(224,92,24,0.7)" stroke-width="0.4"/>
+          <text x="64" y="125.5" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="700">pack registry</text>
+
+          <!-- app-architect -->
+          <rect x="170" y="22" width="170" height="80" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1.2"/>
+          <rect x="170" y="22" width="170" height="80" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
+          <text x="255" y="38" fill="#e8dfd0" font-size="9" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">app-architect</text>
+          <text x="255" y="50" fill="#c4b89e" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · Orch</text>
+          <text x="255" y="64" fill="#c4b89e" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle">Gen / Eval · ≥7/10</text>
+          <text x="255" y="78" fill="#f59e0b" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle">/app · /spec · /build</text>
+          <rect x="185" y="86" width="140" height="10" rx="2" fill="rgba(224,92,24,0.12)" stroke="rgba(224,92,24,0.6)" stroke-width="0.4"/>
+          <text x="255" y="93.5" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="700">consumes packs</text>
+
+          <!-- migration-ops -->
+          <rect x="358" y="50" width="92" height="46" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1"/>
+          <rect x="358" y="50" width="92" height="46" rx="5" fill="rgba(13,148,136,0.06)" stroke="#0D9488" stroke-width="0.5"/>
+          <text x="404" y="65" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">migration-ops</text>
+          <text x="404" y="76" fill="#c4b89e" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist</text>
+          <text x="404" y="88" fill="#0D9488" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle">/migrate</text>
+          <rect x="367" y="98" width="74" height="10" rx="2" fill="rgba(224,92,24,0.12)" stroke="rgba(224,92,24,0.6)" stroke-width="0.4"/>
+          <text x="404" y="105.5" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="700">consumes packs</text>
+
+          <!-- cross-band ghost: api-dev / deploy-ops -->
+          <rect x="14" y="138" width="170" height="26" rx="3" fill="rgba(28,23,16,0.5)" stroke="#94A3B8" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.6"/>
+          <text x="99" y="151" fill="#c4b89e" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle">↓ Build · api-dev</text>
+          <text x="99" y="160" fill="#e05c18" font-size="6" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="600">pack adapter (8 langs)</text>
+
+          <rect x="200" y="138" width="170" height="26" rx="3" fill="rgba(28,23,16,0.5)" stroke="#94A3B8" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.6"/>
+          <text x="285" y="151" fill="#c4b89e" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle">↓ Ship · deploy-ops</text>
+          <text x="285" y="160" fill="#e05c18" font-size="6" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="600">deploy-target dispatch</text>
+
+          <!-- arrows from stack-forge "pack registry" out to all 4 consumers -->
+          <line x1="114" y1="123" x2="170" y2="93" stroke="#e05c18" stroke-width="1" stroke-dasharray="3,2" opacity="0.7" marker-end="url(#aB-ember)"/>
+          <line x1="114" y1="123" x2="358" y2="80" stroke="#e05c18" stroke-width="1" stroke-dasharray="3,2" opacity="0.7" marker-end="url(#aB-ember)"/>
+          <line x1="99" y1="116" x2="99" y2="138" stroke="#e05c18" stroke-width="1" stroke-dasharray="3,2" opacity="0.7" marker-end="url(#aB-ember)"/>
+          <line x1="180" y1="120" x2="240" y2="138" stroke="#e05c18" stroke-width="1" stroke-dasharray="3,2" opacity="0.7" marker-end="url(#aB-ember)"/>
+        </svg>
+
+        <!-- right: feature-box pack cluster -->
+        <div class="feat-cluster" aria-label="v1.4 packs cluster">
+          <div class="fc-head">
+            <span class="fc-title">v1.4 · stack-forge packs</span>
+            <span class="fc-total">32 total</span>
+          </div>
+          <div class="fc-rows">
+            <div class="fc-row">
+              <span class="fc-rk">13</span>
+              <span class="fc-rname" style="color:#0EA5E9">languages</span>
+              <span class="fc-rchips">typescript · python · go · rust · java · kotlin · ruby · php · swift · csharp · elixir · bun · deno</span>
+            </div>
+            <div class="fc-row">
+              <span class="fc-rk">9</span>
+              <span class="fc-rname" style="color:#f59e0b">frameworks</span>
+              <span class="fc-rchips">remix · sveltekit · solid · phoenix · spring-java · spring-kotlin · laravel · dotnet-aspnet · swiftui</span>
+            </div>
+            <div class="fc-row">
+              <span class="fc-rk">4</span>
+              <span class="fc-rname" style="color:#A78BFA">mobile</span>
+              <span class="fc-rchips">ios-swiftui · kotlin-android · flutter · react-native-expo</span>
+            </div>
+            <div class="fc-row">
+              <span class="fc-rk">6</span>
+              <span class="fc-rname" style="color:#14B8A6">deploy</span>
+              <span class="fc-rchips">netlify · railway · heroku · aws-amplify · app-store · play-store</span>
+            </div>
+          </div>
+          <div class="fc-foot">
+            <span class="src">skills/stack-forge/packs/&lt;id&gt;/pack.yml</span>
+            <a class="cov-link" href="/coverage">View /coverage</a>
+          </div>
+        </div>
+      </div>
+      <div class="band-detail" style="background:rgba(224,92,24,0.05);border:0.5px solid rgba(224,92,24,0.25)">
+        <b>What's new in Plan:</b> A docked feature cluster lives to the right of stack-forge with 4 by-kind rows (counts + 3-6 example chips). Stack-forge gains a <code style="font-family:var(--font-mono);color:var(--ember)">pack registry</code> stamp; app-architect, migration-ops, api-dev, deploy-ops each carry a <code style="font-family:var(--font-mono);color:var(--ember)">consumes packs</code> stamp. Ember dashed edges fan from stack-forge's stamp to each consumer (4 visible; 5th would be deploy-ops ship-band cross-band).
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!--   OPTION C — HERO BAND (full icon-named chips · layered · high emphasis) -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<section class="option" id="opt-c">
+  <div class="option-head">
+    <div class="option-tag">C</div>
+    <div>
+      <h2 class="option-title">Hero — “PACK FABRIC” horizontal band between Plan and Build</h2>
+      <p class="option-rationale">
+        A dedicated full-width band sits between PLAN and BUILD, treated like a foundation strip (analogous to checkpoint-protocol). Every one of the 32 packs is named as a chip; the band is layered as 4 cells in the dispatch order languages → frameworks → mobile → deploy, with a v1.4 hero badge in the corner. Fan-out lines indicate that the band feeds 5 skills above and below it. Most "this shipped, it matters" — heaviest visual cost.
+      </p>
+      <div class="option-axes">
+        <span><b>density:</b> all 32 packs named</span>
+        <span><b>grouping:</b> layered (lang → fw → mob → deploy)</span>
+        <span><b>emphasis:</b> hero · own band · v1.4 badge</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="diagram-frame">
+    <span class="frame-label">Proposed new band between PLAN and BUILD</span>
+
+    <!-- compact "upstream" stub band (just to anchor the visual context) -->
+    <div class="band" style="min-height: 84px; padding: 8px 10px 8px 100px;">
+      <div class="band-label">
+        <div class="band-label-bar" style="background:var(--ember)"></div>
+        <span class="band-label-text">PLAN</span>
+        <span class="band-label-of">Phase 2 of 5</span>
+      </div>
+      <div class="band-content">
+        <svg class="diagram" viewBox="0 0 760 70" role="img" aria-label="Plan band — abbreviated (stack-forge feeds pack fabric)">
+          <rect x="20" y="10" width="118" height="48" rx="5" fill="#1c1710" stroke="#0EA5E9" stroke-width="1.2"/>
+          <rect x="20" y="10" width="118" height="48" rx="5" fill="rgba(14,165,233,0.06)" stroke="#0EA5E9" stroke-width="0.5"/>
+          <text x="79" y="25" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">stack-forge</text>
+          <text x="79" y="36" fill="#c4b89e" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle">Advisor</text>
+          <text x="79" y="48" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="700">owns the pack registry ↓</text>
+
+          <rect x="170" y="10" width="170" height="48" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1"/>
+          <text x="255" y="26" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">app-architect</text>
+          <text x="255" y="38" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · Orchestrator</text>
+          <text x="255" y="50" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="700">↓ uses packs</text>
+
+          <rect x="370" y="10" width="130" height="48" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1"/>
+          <text x="435" y="26" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">migration-ops</text>
+          <text x="435" y="38" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist</text>
+          <text x="435" y="50" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="700">↓ uses packs</text>
+
+          <text x="640" y="34" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.6">scale-ops · advisor</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- THE NEW HERO BAND -->
+    <div class="pack-fabric-band">
+      <div class="band-label">
+        <div class="band-label-bar"></div>
+        <span class="band-label-text" style="color:#e05c18">PACK<br/>FABRIC</span>
+        <span class="band-label-of">v1.4 · cross-cutting</span>
+      </div>
+      <div class="v14-badge"><span class="dot"></span>v1.4 · 32 PACKS · SHIPPED</div>
+      <h3 class="pf-title">stack-forge pack fabric — language · framework · mobile · deploy</h3>
+      <p class="pf-sub">declared in <code>skills/stack-forge/packs/&lt;id&gt;/pack.yml</code> · drives <code>skills.coverage.&lt;id&gt;.enabled</code> · consumed by 5 pack-aware skills</p>
+
+      <div class="pf-grid">
+        <div class="pf-cell lang">
+          <div class="pf-cell-head">
+            <span class="pf-cell-kind">LANGUAGES</span>
+            <span class="pf-cell-count">13</span>
+          </div>
+          <div class="pf-chips">
+            <span class="pf-chip">typescript</span><span class="pf-chip">python</span><span class="pf-chip">go</span><span class="pf-chip">rust</span><span class="pf-chip">java</span><span class="pf-chip">kotlin</span><span class="pf-chip">ruby</span><span class="pf-chip">php</span><span class="pf-chip">swift</span><span class="pf-chip">csharp</span><span class="pf-chip">elixir</span><span class="pf-chip">bun</span><span class="pf-chip">deno</span>
+          </div>
+        </div>
+        <div class="pf-cell fw">
+          <div class="pf-cell-head">
+            <span class="pf-cell-kind">FRAMEWORKS</span>
+            <span class="pf-cell-count">9</span>
+          </div>
+          <div class="pf-chips">
+            <span class="pf-chip">remix</span><span class="pf-chip">sveltekit</span><span class="pf-chip">solid</span><span class="pf-chip">phoenix</span><span class="pf-chip">spring-java</span><span class="pf-chip">spring-kotlin</span><span class="pf-chip">laravel-php</span><span class="pf-chip">dotnet-aspnet</span><span class="pf-chip">swiftui</span>
+          </div>
+        </div>
+        <div class="pf-cell mob">
+          <div class="pf-cell-head">
+            <span class="pf-cell-kind">MOBILE</span>
+            <span class="pf-cell-count">4</span>
+          </div>
+          <div class="pf-chips">
+            <span class="pf-chip">ios-swiftui</span><span class="pf-chip">kotlin-android</span><span class="pf-chip">flutter</span><span class="pf-chip">react-native-expo</span>
+          </div>
+        </div>
+        <div class="pf-cell dep">
+          <div class="pf-cell-head">
+            <span class="pf-cell-kind">DEPLOY</span>
+            <span class="pf-cell-count">6</span>
+          </div>
+          <div class="pf-chips">
+            <span class="pf-chip">netlify</span><span class="pf-chip">railway</span><span class="pf-chip">heroku</span><span class="pf-chip">aws-amplify</span><span class="pf-chip">app-store</span><span class="pf-chip">play-store</span>
+          </div>
+        </div>
+      </div>
+      <div class="pf-fanout-note">
+        <span class="skills">consumed by · <b>stack-forge</b> · <b>app-architect</b> · <b>migration-ops</b> · <b>api-dev</b> · <b>deploy-ops</b></span>
+        <a class="cov-link" href="/coverage">View /coverage</a>
+      </div>
+    </div>
+
+    <!-- compact "downstream" stub band -->
+    <div class="band" style="min-height: 80px; padding: 8px 10px 8px 100px;">
+      <div class="band-label">
+        <div class="band-label-bar" style="background:var(--tri-agent)"></div>
+        <span class="band-label-text">BUILD</span>
+        <span class="band-label-of">Phase 3 of 5</span>
+      </div>
+      <div class="band-content">
+        <svg class="diagram" viewBox="0 0 760 70" role="img" aria-label="Build band — api-dev consumes packs">
+          <rect x="20" y="10" width="170" height="48" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1.2"/>
+          <text x="105" y="26" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">api-dev</text>
+          <text x="105" y="38" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · Designer/Builder</text>
+          <text x="105" y="50" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="700">↑ pack adapter (8 langs)</text>
+
+          <rect x="220" y="10" width="140" height="48" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1"/>
+          <text x="290" y="26" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">ux-engineer</text>
+          <text x="290" y="38" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · UX harness</text>
+
+          <rect x="390" y="10" width="140" height="48" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1"/>
+          <text x="460" y="26" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">dash-forge</text>
+          <text x="460" y="38" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · dash UI</text>
+
+          <rect x="560" y="10" width="180" height="48" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1"/>
+          <text x="650" y="26" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">integrations-engineer</text>
+          <text x="650" y="38" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · 3rd-party</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- ship band stub for deploy-ops to anchor the consumer list -->
+    <div class="band" style="min-height: 80px; padding: 8px 10px 8px 100px;">
+      <div class="band-label">
+        <div class="band-label-bar" style="background:var(--audit-gate)"></div>
+        <span class="band-label-text">SHIP</span>
+        <span class="band-label-of">Phase 4 of 5</span>
+      </div>
+      <div class="band-content">
+        <svg class="diagram" viewBox="0 0 760 70" role="img" aria-label="Ship band — deploy-ops uses pack dispatch">
+          <rect x="20" y="10" width="120" height="48" rx="5" fill="#1c1710" stroke="#FB7185" stroke-width="1"/>
+          <text x="80" y="26" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">bug-check</text>
+          <text x="80" y="38" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate</text>
+
+          <rect x="160" y="10" width="120" height="48" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1"/>
+          <text x="220" y="26" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">git-ops</text>
+          <text x="220" y="38" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Workflow</text>
+
+          <rect x="300" y="10" width="140" height="48" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1"/>
+          <text x="370" y="26" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">release-ops</text>
+          <text x="370" y="38" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Workflow</text>
+
+          <rect x="460" y="10" width="120" height="48" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1"/>
+          <text x="520" y="26" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">code-auditor</text>
+          <text x="520" y="38" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · gate</text>
+
+          <rect x="600" y="10" width="140" height="48" rx="5" fill="#1c1710" stroke="#FB923C" stroke-width="1.2"/>
+          <text x="670" y="26" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">deploy-ops</text>
+          <text x="670" y="38" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Workflow</text>
+          <text x="670" y="50" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="700">↑ deploy-target packs</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="band-detail" style="background:rgba(224,92,24,0.05);border:0.5px solid rgba(224,92,24,0.25); margin-top:4px;">
+      <b>What's new:</b> A net-new <code style="font-family:var(--font-mono);color:var(--ember)">PACK FABRIC</code> band sits between Plan and Build (analogous to the foundation strip for checkpoint-protocol). All 32 packs are named, grouped into 4 cells (lang/fw/mobile/deploy), with the v1.4 release badge. Plan and Build/Ship bands above and below carry brief "↑ uses packs" / "↓ uses packs" affordances. Five named consumers in the footer; full catalog at <a href="/coverage">/coverage</a>.
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
