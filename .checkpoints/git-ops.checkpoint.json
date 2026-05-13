@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-05-12T06:14:00Z",
+  "updated_at": "2026-05-12T13:10:00Z",
   "phase": "pr-cycle",
-  "step": "last-merge-#213",
+  "step": "last-merge-#223",
   "status": "complete",
-  "progress_summary": "Caught up through PR #213 (squash-merged to main as 314df02b). PR #213 ran a long iteration: started as a `previews/`-only proposal (PROPOSAL.md + standalone mockups, P-NN tags), then with user direction collapsed the alternatives into the chosen design and landed it live in site/src/ as three follow-up commits: 2218590 (homepage redesign), 25d96ba (Header + ⌘K palette + initial axe fixes), f147d91 (WCAG target-size + TS narrowing fixes). Branch was rebased onto main once during the cycle (one auto-merge via update_pull_request_branch). CI green on the merged head: build ✅, e2e ✅ (retried past the same demo-modal-toc flake that's persisted from #202), worker ✅, LHCI 1.00/1.00/1.00/1.00 on every route. Earlier in the session: caught up through PR #189 (526a9a2).",
+  "progress_summary": "Caught up through PR #223 (squash-merged to main as 8b8e778). PR #223 was the /changelog roadmap follow-up to #213. Landed in three coherent commits on the same branch: 488cada (build-time Linear pull + types + .gitignore + prebuild wire), 2091b4a (POST/GET /api/votes routes with per-IP/day KV dedup, /api/feedback category + community-submitted label, fs-based roadmap loader fix), e9a1dd9 (RoadmapTimeline + RoadmapForm components + /changelog integration). CI on commit C: build ✅, type-check ✅, e2e ✅, worker tests ✅ (266/266), LHCI 1.00 a11y/best/seo on every route. Commit A introduced a transient site/build failure (dynamic JSON import didn't resolve in CI's site job because the root prebuild never runs there); commit B fixed it by switching to a synchronous fs.readFileSync at SSG time. Earlier in the session: caught up through PR #213 (314df02b) and PR #221 (3d279379 — the checkpoint update PR for the nav overhaul).",
   "progress_table": [
     { "id": "pr-183", "label": "PR #183 — v1.4 install upgrade flow + main-CI repairs", "status": "complete" },
     { "id": "pr-184", "label": "PR #184 — demo-mobile test fix (closed, folded into #183)", "status": "complete" },
@@ -17,7 +17,9 @@
     { "id": "pr-187", "label": "PR #187 — checkpoint: v1.4 plan-approved (stack-forge added)",      "status": "complete" },
     { "id": "pr-188", "label": "PR #188 — checkpoint(git-ops): record #183 merge + #184 close",    "status": "complete" },
     { "id": "pr-189", "label": "PR #189 — checkpoint: orchestrator + bug-check refresh",            "status": "complete" },
-    { "id": "pr-213", "label": "PR #213 — feat(site): redesigned homepage + grouped header + ⌘K palette", "status": "complete" }
+    { "id": "pr-213", "label": "PR #213 — feat(site): redesigned homepage + grouped header + ⌘K palette", "status": "complete" },
+    { "id": "pr-221", "label": "PR #221 — checkpoint(ux,git-ops): record PR #213 merge", "status": "complete" },
+    { "id": "pr-223", "label": "PR #223 — feat(changelog): roadmap timeline + Linear-connected feature-request form", "status": "complete" }
   ],
   "context_primer": {
     "key_decisions": [
@@ -39,12 +41,12 @@
   },
   "blockers": [],
   "next_actions": [
-    "PR #213 is merged. Manual deploy step is the user's: `npm run deploy:staging` → eyeball staging.opchain.dev → `npm run deploy`. Per CLAUDE.md, deploys never run in CI.",
-    "Follow-up branch queued: /changelog roadmap timeline + Linear-connected feature-request form. Will pull Linear items at build time (existing LINEAR_API_KEY) and extend /api/feedback with a `category` field + `community-submitted` label.",
-    "Local main may be divergent from origin/main due to squash merges (now four ahead in this session) — re-checkout from origin/main when starting new work."
+    "PRs #213 + #221 + #223 are all merged. Manual deploy step is the user's: `npm run deploy:staging` → eyeball staging.opchain.dev/changelog → `npm run deploy`. Per CLAUDE.md, deploys never run in CI.",
+    "Operational follow-up in Linear (not git work): add the `roadmap-visible` label and apply it to issues that should surface on /changelog publicly. Optionally add `community-submitted` label + set LINEAR_COMMUNITY_LABEL_ID in the Worker env.",
+    "Local main may be divergent from origin/main due to squash merges (now six ahead in this session) — re-checkout from origin/main when starting new work."
   ],
   "skill_state": {
-    "current_branch": "claude/enhance-site-navigation-TyY5C (merged & deletable)",
+    "current_branch": "claude/checkpoints-roadmap-ship (this PR; merged-then-deletable)",
     "open_prs": [],
     "merged_prs": [
       {
@@ -130,6 +132,27 @@
         "commits_on_branch": 11,
         "rebased_during_cycle": true,
         "ci_final": "build ✅ · type-check ✅ · e2e ✅ (retried past demo-modal-toc flake) · worker ✅ · LHCI 1.00/1.00/1.00/1.00 on /, /skills, /skills/{app-architect,release-ops}, /architecture, /demo, /changelog"
+      },
+      {
+        "number": 221,
+        "title": "checkpoint(ux,git-ops): record PR #213 merge — nav overhaul shipped",
+        "merge_method": "squash",
+        "merge_sha": "3d279379",
+        "merged_at": "2026-05-12T11:38:00Z",
+        "scope": ".checkpoints/ux-engineer.checkpoint.json + .checkpoints/git-ops.checkpoint.json",
+        "ci_final": "build ✅ · type-check ✅ · e2e ✅ (retried past demo-modal-toc flake) · worker ✅ · LHCI 1.00 on every route"
+      },
+      {
+        "number": 223,
+        "title": "feat(changelog): roadmap timeline + Linear-connected feature-request form",
+        "merge_method": "squash",
+        "merge_sha": "8b8e778",
+        "merged_at": "2026-05-12T13:09:00Z",
+        "scope": "scripts/gen-roadmap.mjs + site/src/data/roadmap-types.ts + site/src/components/Roadmap{Timeline,Form}.astro + site/src/pages/changelog.astro + src/index.js + src/lib/schemas.js + package.json + .gitignore",
+        "commits_on_branch": 3,
+        "rebased_during_cycle": false,
+        "ci_intermediate": "Commit 488cada (data layer) failed site/install/type-check/build because CI's site job doesn't run root prebuild, so the dynamic JSON import in roadmap-types.ts had no module to resolve. Fixed in commit 2091b4a by switching to a synchronous fs.readFileSync at SSG time with an empty-fallback.",
+        "ci_final": "build ✅ · type-check ✅ · e2e ✅ · worker ✅ (266/266 tests) · LHCI 1.00 a11y/best/seo on every route; /changelog 0.97 perf with new components"
       }
     ],
     "closed_unmerged_prs": [
