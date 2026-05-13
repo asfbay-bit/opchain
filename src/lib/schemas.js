@@ -67,6 +67,37 @@ export const NotifySchema = z.object({
 });
 
 /**
+ * POST /api/email-pipeline
+ *
+ * Step 5 of the /pipeline-builder wizard. User typed their name + email and
+ * clicked "email it to me"; the handler renders a rich HTML email (wizard
+ * answers + recommended skills + next-steps) and ships it via Resend. The
+ * payload mirrors the in-memory wizard state — `answers` carries the four
+ * user choices, `skills` carries the recommended pipeline.
+ *
+ * Strings are bounded so a malicious caller can't inflate the rendered
+ * HTML body; the renderer also escapes every value before interpolation.
+ */
+const answerString = z.string().trim().min(1).max(40);
+export const NotifyPipelineSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  email,
+  answers: z.object({
+    kind: answerString,
+    team: answerString,
+    deploy: answerString,
+    aiSurface: answerString,
+  }),
+  skills: z.array(
+    z.object({
+      id: z.string().trim().min(1).max(200),
+      name: z.string().trim().min(1).max(200),
+      summary: z.string().trim().min(1).max(200),
+    }),
+  ).min(1).max(12),
+});
+
+/**
  * Parse a JSON body against a schema. Returns either
  * `{ ok: true, data }` or `{ ok: false, error, code, issues }`.
  */
