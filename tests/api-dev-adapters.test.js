@@ -6,9 +6,11 @@
  *   1. Real packs/ tree → assert the codegen emits the expected language
  *      adapters with the canonical command set. PR 2 (ADEV-329) locked in
  *      typescript/python/ruby/go/rust; PR 4 (ADEV-334) added elixir, bun,
- *      and deno. Framework packs (phoenix/remix/sveltekit/solid) shipped
- *      alongside the language packs but are intentionally SKIPPED — api-dev
- *      inherits a framework's adapter from its language pack.
+ *      and deno. PR 5 (ADEV-335) added java, csharp, kotlin, php. Framework
+ *      packs (phoenix/remix/sveltekit/solid + spring-java/dotnet-aspnet/
+ *      spring-kotlin/laravel-php) shipped alongside the language packs but
+ *      are intentionally SKIPPED — api-dev inherits a framework's adapter
+ *      from its language pack.
  *   2. Synthetic fixture → assert kind:framework / kind:deploy-target /
  *      kind:mobile packs are SKIPPED (only kind=language goes through).
  */
@@ -65,7 +67,7 @@ function packYml(obj) {
 }
 
 describe("gen-api-dev-adapters — real packs", () => {
-  it("emits 8 language adapters with the canonical command set", () => {
+  it("emits 13 language adapters with the canonical command set", () => {
     // Run against the real packs/ tree but write to a tempdir.
     const work = mkdtempSync(join(tmpdir(), "opchain-api-dev-adapters-real-"));
     const result = spawnSync("node", [SCRIPT], {
@@ -74,10 +76,10 @@ describe("gen-api-dev-adapters — real packs", () => {
       env: { ...process.env, OPCHAIN_OUT_DIR: work },
     });
     expect(result.status, `stderr:\n${result.stderr}`).toBe(0);
-    expect(result.stdout).toMatch(/8 language pack\(s\)/);
+    expect(result.stdout).toMatch(/13 language pack\(s\)/);
 
     const adapters = JSON.parse(readFileSync(join(work, "api-dev-adapters.json"), "utf8"));
-    expect(adapters).toHaveLength(8);
+    expect(adapters).toHaveLength(13);
 
     const byId = Object.fromEntries(adapters.map((a) => [a.id, a]));
     // PR 2 (ADEV-329) backfill.
@@ -122,15 +124,46 @@ describe("gen-api-dev-adapters — real packs", () => {
       testRunner: "deno test", buildCmd: "deno task build", lintCmd: "deno lint",
       langRef: "language.md",
     });
+    // PR 5 (ADEV-335) enterprise bulk language packs.
+    expect(byId.java).toEqual({
+      id: "java", displayName: "Java", status: "stable",
+      testRunner: "mvn test", buildCmd: "mvn package", lintCmd: "mvn checkstyle:check",
+      langRef: "language.md",
+    });
+    expect(byId.csharp).toEqual({
+      id: "csharp", displayName: "C#", status: "stable",
+      testRunner: "dotnet test", buildCmd: "dotnet build", lintCmd: "dotnet format --verify-no-changes",
+      langRef: "language.md",
+    });
+    expect(byId.kotlin).toEqual({
+      id: "kotlin", displayName: "Kotlin", status: "stable",
+      testRunner: "gradle test", buildCmd: "gradle build", lintCmd: "ktlint",
+      langRef: "language.md",
+    });
+    expect(byId.php).toEqual({
+      id: "php", displayName: "PHP", status: "stable",
+      testRunner: "phpunit", buildCmd: "composer install --no-dev", lintCmd: "phpcs",
+      langRef: "language.md",
+    });
+    // PR 6 (ADEV-336) Apple/iOS language pack.
+    expect(byId.swift).toEqual({
+      id: "swift", displayName: "Swift", status: "stable",
+      testRunner: "swift test", buildCmd: "swift build", lintCmd: "swiftlint",
+      langRef: "language.md",
+    });
   });
 
-  it("skips framework packs even though they share a directory tree with language packs", () => {
-    // PR 4 (ADEV-334) added phoenix/remix/sveltekit/solid as kind=framework
-    // packs. api-dev codegens scaffolds per *language*; a framework inherits
-    // the adapter of its underlying language pack. This test pins the
-    // skip-frameworks behavior on the real packs/ tree so future framework
-    // packs cannot accidentally smuggle themselves into the adapter list.
-    const work = mkdtempSync(join(tmpdir(), "opchain-api-dev-adapters-skip-fw-"));
+  it("skips framework, mobile, and deploy-target packs in the real packs/ tree", () => {
+    // PR 4 (ADEV-334) added phoenix/remix/sveltekit/solid as kind=framework.
+    // PR 5 (ADEV-335) added spring-java/dotnet-aspnet/spring-kotlin/laravel-php.
+    // PR 6 (ADEV-336) added swiftui (framework), ios-swiftui (mobile), and
+    // app-store (deploy-target). PR 6.5 (ADEV-343) added kotlin-android/
+    // flutter/react-native-expo as mobile packs + play-store as deploy-target.
+    // api-dev codegens scaffolds per *language* only; everything else is
+    // skipped — frameworks inherit their language adapter, mobile is
+    // checklist-dispatched via dispatchMobile(), and deploy-targets are
+    // sub-selections. This pin guards the real packs/ tree against drift.
+    const work = mkdtempSync(join(tmpdir(), "opchain-api-dev-adapters-skip-nonlang-"));
     const result = spawnSync("node", [SCRIPT], {
       cwd: ROOT,
       encoding: "utf8",
@@ -140,8 +173,21 @@ describe("gen-api-dev-adapters — real packs", () => {
 
     const adapters = JSON.parse(readFileSync(join(work, "api-dev-adapters.json"), "utf8"));
     const ids = adapters.map((a) => a.id);
-    for (const fw of ["phoenix", "remix", "sveltekit", "solid"]) {
+    // Framework packs (PR 4 + PR 5 + PR 6).
+    for (const fw of [
+      "phoenix", "remix", "sveltekit", "solid",
+      "spring-java", "dotnet-aspnet", "spring-kotlin", "laravel-php",
+      "swiftui",
+    ]) {
       expect(ids).not.toContain(fw);
+    }
+    // Mobile packs (PR 6 + PR 6.5) — dispatched as release checklists, not adapters.
+    for (const m of ["ios-swiftui", "kotlin-android", "flutter", "react-native-expo"]) {
+      expect(ids).not.toContain(m);
+    }
+    // Deploy-target packs (PR 6 + PR 6.5 + PR 7) — sub-selections, never adapters.
+    for (const dt of ["app-store", "play-store", "railway", "netlify", "heroku", "aws-amplify"]) {
+      expect(ids).not.toContain(dt);
     }
   });
 });

@@ -1,7 +1,7 @@
 ---
 name: migration-ops
 displayName: Migration Ops
-version: 1.3.0
+version: 1.4.0
 shortDesc: Change the engine mid-flight — DB, framework, auth, platform. v1.2 mirrors the plan as parent + step children.
 phases: [plan, build]
 triAgent: false

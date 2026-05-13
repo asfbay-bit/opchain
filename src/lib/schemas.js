@@ -24,6 +24,15 @@ export const FeedbackSchema = z.object({
   reproduction: z.string().trim().max(5000).optional(),
   impact: z.string().trim().max(2000).optional(),
   severity: z.enum(["low", "medium", "high", "critical"]).optional(),
+  // ── Roadmap submission form (/changelog) ───────────────────────
+  // Set by the community feature-request form. Presence flips the
+  // worker into "community submission" mode: applies the
+  // `community-submitted` Linear label (when LINEAR_COMMUNITY_LABEL_ID
+  // is configured), prefixes the title with [community/<type>], and
+  // surfaces `Category` in the issue body. Items do NOT show on the
+  // public roadmap until a team-member adds `roadmap-visible` during
+  // triage — keeps spam out of the public timeline.
+  category: z.enum(["skill", "feature", "docs", "integration", "other"]).optional(),
 });
 
 /**
