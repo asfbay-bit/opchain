@@ -130,7 +130,7 @@ const coverCount = covers.length;
             />
           ))}
           <span class="dot-counter">
-            <span data-cover-num-counter>{initialCover.num}</span> / {String(coverCount).padStart(2, "0")} — auto-rotating · 10s
+            <span data-cover-num-counter>{initialCover.num}</span> / {String(coverCount).padStart(2, "0")}
           </span>
         </div>
       </div>
@@ -553,13 +553,44 @@ const coverCount = covers.length;
       box-shadow var(--dur-base) var(--ease-standard);
   }
   .dot-row .dot:hover::before { background: var(--muted); }
+  /* Active dot: empty ring with a clockwise conic fill animated over
+     10 s. The fill represents time-until-next-rotation. */
   .dot-row .dot.active::before {
     width: 14px;
     height: 14px;
-    background: var(--ember);
+    background: transparent;
     box-shadow:
-      0 0 0 3px var(--ember-dim),
+      inset 0 0 0 1.5px var(--ember-dim),
       0 0 14px -3px var(--ember);
+  }
+  .dot-row .dot.active::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--ember) var(--p, 0deg), transparent var(--p, 0deg));
+    pointer-events: none;
+    animation: dot-fill 10s linear infinite;
+    animation-delay: calc(var(--fill-progress, 0) * -1ms);
+  }
+  @property --p {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+  }
+  @keyframes dot-fill {
+    from { --p: 0deg; }
+    to   { --p: 360deg; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dot-row .dot.active::before {
+      background: var(--ember);
+      box-shadow:
+        0 0 0 3px var(--ember-dim),
+        0 0 14px -3px var(--ember);
+    }
+    .dot-row .dot.active::after { display: none; }
   }
   .dot-row .dot:focus-visible {
     outline: 2px solid var(--accent);
@@ -691,10 +722,19 @@ const coverCount = covers.length;
       if (titleEl) titleEl.textContent = c.title;
       if (taglineEl) taglineEl.textContent = c.tagline;
       if (counterEl) counterEl.textContent = c.num;
+      // Sync the conic fill animation to wall-clock slot progress —
+      // toggling .active restarts the animation, so apply a negative
+      // animation-delay equal to time elapsed in the current slot.
+      const progressMs = Date.now() % SLOT_MS;
       dots.forEach((d, di) => {
         const active = di === i;
         d.classList.toggle('active', active);
         d.setAttribute('aria-current', active ? 'true' : 'false');
+        if (active) {
+          d.style.setProperty('--fill-progress', String(progressMs));
+        } else {
+          d.style.removeProperty('--fill-progress');
+        }
       });
       if (dotRow) dotRow.setAttribute('aria-label', `Scenario ${i + 1} of ${covers.length}`);
     }
