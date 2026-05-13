@@ -154,11 +154,17 @@ function writeRoadmap(payload) {
 async function main() {
   const apiKey = process.env.LINEAR_API_KEY;
   if (!apiKey) {
-    const empty = emptyRoadmap(
-      "LINEAR_API_KEY not set at build time — empty roadmap. Set the env var in the build environment to surface live roadmap items.",
-    );
+    // No key = clean empty state, not a "build warning". The console
+    // log below tells the developer; the JSON's `note` stays null so
+    // the UI doesn't surface anything user-visible. Fetch errors
+    // below DO set a note — that's a real diagnostic.
+    const empty = emptyRoadmap(null);
     writeRoadmap(empty);
-    console.log("[gen-roadmap] no LINEAR_API_KEY — wrote empty roadmap to", OUT_PATH);
+    console.log(
+      "[gen-roadmap] no LINEAR_API_KEY — wrote empty roadmap to",
+      OUT_PATH,
+      "(set the env var to surface live roadmap items)",
+    );
     return;
   }
   try {
