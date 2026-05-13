@@ -3,9 +3,16 @@ import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
 import Card from "../components/ui/Card.astro";
 
+type Verdict = "good" | "partial" | "bad" | "info";
+
 interface Cell {
   v: string;
   note?: string | null;
+  /** Heatmap classification. Tints the cell background + prefixes a
+   *  small status icon. opchain cells override the heat tint with the
+   *  ember-hero treatment, so the verdict is still useful for accent
+   *  parity but visually overridden. Omit for "no opinion" cells. */
+  verdict?: Verdict;
 }
 
 interface Platform {
@@ -41,136 +48,136 @@ const PLATFORMS: Record<string, Platform> = {
   opchain: {
     name: "opchain", accent: true, fixed: true,
     cells: {
-      "prompts":    { v: "Markdown files in .claude/skills/", note: "MIT, in your repo, plain text — diffable, reviewable" },
-      "session":    { v: "JSON checkpoints in .checkpoints/", note: "Survive across chats; auto-resume next session" },
-      "pipeline":   { v: "Yes — orchestrator routes between 18 skills", note: "Knows what phase you're in and what's next" },
-      "tri-agent":  { v: "5 skills (app-architect, code-auditor, integrations-engineer, api-dev, ux-engineer)", note: "Planner → Generator → Evaluator built in" },
-      "gates":      { v: "Three (bug-check, code-auditor, security-auditor)", note: "deploy-ops blocks prod if any gate fails" },
-      "cost":       { v: "Free, MIT", note: "Pay only your Claude usage" },
-      "lockin":     { v: "None — every skill is one Markdown file", note: "Fork, edit, fork again" },
-      "runs-on":    { v: "Claude Code · Claude.ai · Claude Desktop" },
-      "extend":     { v: "Write a SKILL.md, drop it in .claude/skills/", note: "reverse-spec backfills one from existing code" },
-      "multi-proj": { v: "/ops command shows every project's last checkpoint", note: "Cross-repo dashboard built in" },
+      "prompts":    { v: "Markdown files in .claude/skills/", note: "MIT, in your repo, plain text — diffable, reviewable", verdict: "good" },
+      "session":    { v: "JSON checkpoints in .checkpoints/", note: "Survive across chats; auto-resume next session", verdict: "good" },
+      "pipeline":   { v: "Yes — orchestrator routes between 18 skills", note: "Knows what phase you're in and what's next", verdict: "good" },
+      "tri-agent":  { v: "5 skills (app-architect, code-auditor, integrations-engineer, api-dev, ux-engineer)", note: "Planner → Generator → Evaluator built in", verdict: "good" },
+      "gates":      { v: "Three (bug-check, code-auditor, security-auditor)", note: "deploy-ops blocks prod if any gate fails", verdict: "good" },
+      "cost":       { v: "Free, MIT", note: "Pay only your Claude usage", verdict: "good" },
+      "lockin":     { v: "None — every skill is one Markdown file", note: "Fork, edit, fork again", verdict: "good" },
+      "runs-on":    { v: "Claude Code · Claude.ai · Claude Desktop", verdict: "good" },
+      "extend":     { v: "Write a SKILL.md, drop it in .claude/skills/", note: "reverse-spec backfills one from existing code", verdict: "good" },
+      "multi-proj": { v: "/ops command shows every project's last checkpoint", note: "Cross-repo dashboard built in", verdict: "good" },
     },
   },
   claude: {
     name: "Claude defaults", fixed: true,
     cells: {
-      "prompts":    { v: "CLAUDE.md (single file)", note: "All-or-nothing" },
-      "session":    { v: "Single CLAUDE.md context", note: "Re-read on every session" },
-      "pipeline":   { v: "No" },
-      "tri-agent":  { v: "No" },
-      "gates":      { v: "No" },
-      "cost":       { v: "Free" },
-      "lockin":     { v: "Claude-coupled", note: "But trivial to migrate" },
-      "runs-on":    { v: "Anywhere Claude runs" },
-      "extend":     { v: "Edit CLAUDE.md" },
-      "multi-proj": { v: "No" },
+      "prompts":    { v: "CLAUDE.md (single file)", note: "All-or-nothing", verdict: "partial" },
+      "session":    { v: "Single CLAUDE.md context", note: "Re-read on every session", verdict: "partial" },
+      "pipeline":   { v: "No", verdict: "bad" },
+      "tri-agent":  { v: "No", verdict: "bad" },
+      "gates":      { v: "No", verdict: "bad" },
+      "cost":       { v: "Free", verdict: "good" },
+      "lockin":     { v: "Claude-coupled", note: "But trivial to migrate", verdict: "partial" },
+      "runs-on":    { v: "Anywhere Claude runs", verdict: "good" },
+      "extend":     { v: "Edit CLAUDE.md", verdict: "good" },
+      "multi-proj": { v: "No", verdict: "bad" },
     },
   },
   cursor: {
     name: "Cursor",
     cells: {
-      "prompts":    { v: ".cursorrules / .mdc rules", note: "Per-project, editor-coupled" },
-      "session":    { v: "Per-chat memory; no formal protocol" },
-      "pipeline":   { v: "No — rules apply globally" },
-      "tri-agent":  { v: "No" },
-      "gates":      { v: "No" },
-      "cost":       { v: "$20–40 / user / mo" },
-      "lockin":     { v: "IDE-coupled", note: "Rules only run inside Cursor" },
-      "runs-on":    { v: "Cursor IDE" },
-      "extend":     { v: "Write a .cursorrules file" },
-      "multi-proj": { v: "No" },
+      "prompts":    { v: ".cursorrules / .mdc rules", note: "Per-project, editor-coupled", verdict: "partial" },
+      "session":    { v: "Per-chat memory; no formal protocol", verdict: "partial" },
+      "pipeline":   { v: "No — rules apply globally", verdict: "bad" },
+      "tri-agent":  { v: "No", verdict: "bad" },
+      "gates":      { v: "No", verdict: "bad" },
+      "cost":       { v: "$20–40 / user / mo", verdict: "info" },
+      "lockin":     { v: "IDE-coupled", note: "Rules only run inside Cursor", verdict: "bad" },
+      "runs-on":    { v: "Cursor IDE", verdict: "partial" },
+      "extend":     { v: "Write a .cursorrules file", verdict: "good" },
+      "multi-proj": { v: "No", verdict: "bad" },
     },
   },
   copilot: {
     name: "GH Copilot",
     cells: {
-      "prompts":    { v: ".github/copilot-instructions.md + hosted instructions", note: "Vendor-managed" },
-      "session":    { v: "Per-IDE-session" },
-      "pipeline":   { v: "No — chat is single-turn-ish" },
-      "tri-agent":  { v: "No" },
-      "gates":      { v: "No" },
-      "cost":       { v: "$10–39 / user / mo" },
-      "lockin":     { v: "GitHub-coupled", note: "Runs against the Copilot service" },
-      "runs-on":    { v: "VS Code · JetBrains · GitHub.com" },
-      "extend":     { v: "Edit copilot-instructions.md" },
-      "multi-proj": { v: "No" },
+      "prompts":    { v: ".github/copilot-instructions.md + hosted instructions", note: "Vendor-managed", verdict: "partial" },
+      "session":    { v: "Per-IDE-session", verdict: "partial" },
+      "pipeline":   { v: "No — chat is single-turn-ish", verdict: "bad" },
+      "tri-agent":  { v: "No", verdict: "bad" },
+      "gates":      { v: "No", verdict: "bad" },
+      "cost":       { v: "$10–39 / user / mo", verdict: "info" },
+      "lockin":     { v: "GitHub-coupled", note: "Runs against the Copilot service", verdict: "bad" },
+      "runs-on":    { v: "VS Code · JetBrains · GitHub.com", verdict: "partial" },
+      "extend":     { v: "Edit copilot-instructions.md", verdict: "good" },
+      "multi-proj": { v: "No", verdict: "bad" },
     },
   },
   devin: {
     name: "Devin",
     cells: {
-      "prompts":    { v: "Hosted, internal", note: "Black box" },
-      "session":    { v: "Hosted task state", note: "Tied to a Devin task, not your repo" },
-      "pipeline":   { v: "Yes, but as one monolithic agent" },
-      "tri-agent":  { v: "Implicit", note: "Not surfaced as a contract" },
-      "gates":      { v: "Internal checks", note: "No external contract" },
-      "cost":       { v: "$500 / mo seat (last published)" },
-      "lockin":     { v: "Service-coupled", note: "All work runs on Devin infra" },
-      "runs-on":    { v: "Devin web UI" },
-      "extend":     { v: "Limited", note: "Custom playbooks in Beta" },
-      "multi-proj": { v: "Per-task dashboard", note: "Devin-hosted" },
+      "prompts":    { v: "Hosted, internal", note: "Black box", verdict: "bad" },
+      "session":    { v: "Hosted task state", note: "Tied to a Devin task, not your repo", verdict: "good" },
+      "pipeline":   { v: "Yes, but as one monolithic agent", verdict: "partial" },
+      "tri-agent":  { v: "Implicit", note: "Not surfaced as a contract", verdict: "partial" },
+      "gates":      { v: "Internal checks", note: "No external contract", verdict: "partial" },
+      "cost":       { v: "$500 / mo seat (last published)", verdict: "info" },
+      "lockin":     { v: "Service-coupled", note: "All work runs on Devin infra", verdict: "bad" },
+      "runs-on":    { v: "Devin web UI", verdict: "bad" },
+      "extend":     { v: "Limited", note: "Custom playbooks in Beta", verdict: "bad" },
+      "multi-proj": { v: "Per-task dashboard", note: "Devin-hosted", verdict: "partial" },
     },
   },
   zed: {
     name: "Zed",
     cells: {
-      "prompts":    { v: ".zed/settings.json + Agent Profiles", note: "Project + per-profile system prompts" },
-      "session":    { v: "Persistent assistant panel per workspace; no cross-session protocol" },
-      "pipeline":   { v: "No — single agent, no pipeline concept" },
-      "tri-agent":  { v: "Agent profiles can chain", note: "Manual setup; not a contract" },
-      "gates":      { v: "No" },
-      "cost":       { v: "Editor free · Zed Pro $20/mo or BYOK", note: "AI usage gated; editor is fully free" },
-      "lockin":     { v: "Editor-coupled", note: "Profiles only run inside Zed" },
-      "runs-on":    { v: "Zed editor (Mac · Linux · Windows beta)" },
-      "extend":     { v: "Add an Agent Profile or edit .zed/settings.json" },
-      "multi-proj": { v: "No" },
+      "prompts":    { v: ".zed/settings.json + Agent Profiles", note: "Project + per-profile system prompts", verdict: "partial" },
+      "session":    { v: "Persistent assistant panel per workspace; no cross-session protocol", verdict: "partial" },
+      "pipeline":   { v: "No — single agent, no pipeline concept", verdict: "bad" },
+      "tri-agent":  { v: "Agent profiles can chain", note: "Manual setup; not a contract", verdict: "partial" },
+      "gates":      { v: "No", verdict: "bad" },
+      "cost":       { v: "Editor free · Zed Pro $20/mo or BYOK", note: "AI usage gated; editor is fully free", verdict: "partial" },
+      "lockin":     { v: "Editor-coupled", note: "Profiles only run inside Zed", verdict: "bad" },
+      "runs-on":    { v: "Zed editor (Mac · Linux · Windows beta)", verdict: "partial" },
+      "extend":     { v: "Add an Agent Profile or edit .zed/settings.json", verdict: "partial" },
+      "multi-proj": { v: "No", verdict: "bad" },
     },
   },
   vscode: {
     name: "VS Code",
     cells: {
-      "prompts":    { v: "Per-extension (Copilot / Continue / Cline)", note: "Whatever your AI extension wants" },
-      "session":    { v: "Per extension; usually per-IDE-session" },
-      "pipeline":   { v: "No — depends entirely on extension" },
-      "tri-agent":  { v: "No" },
-      "gates":      { v: "No" },
-      "cost":       { v: "Editor free · extension pricing varies", note: "Copilot, Continue, Cline each priced separately" },
-      "lockin":     { v: "Extension-coupled", note: "Tied to whichever AI extension you use" },
-      "runs-on":    { v: "VS Code (Mac · Linux · Windows · Web)" },
-      "extend":     { v: "Configure your extension's prompt or rules file" },
-      "multi-proj": { v: "No" },
+      "prompts":    { v: "Per-extension (Copilot / Continue / Cline)", note: "Whatever your AI extension wants", verdict: "partial" },
+      "session":    { v: "Per extension; usually per-IDE-session", verdict: "partial" },
+      "pipeline":   { v: "No — depends entirely on extension", verdict: "bad" },
+      "tri-agent":  { v: "No", verdict: "bad" },
+      "gates":      { v: "No", verdict: "bad" },
+      "cost":       { v: "Editor free · extension pricing varies", note: "Copilot, Continue, Cline each priced separately", verdict: "partial" },
+      "lockin":     { v: "Extension-coupled", note: "Tied to whichever AI extension you use", verdict: "partial" },
+      "runs-on":    { v: "VS Code (Mac · Linux · Windows · Web)", verdict: "good" },
+      "extend":     { v: "Configure your extension's prompt or rules file", verdict: "partial" },
+      "multi-proj": { v: "No", verdict: "bad" },
     },
   },
   codex: {
     name: "OpenAI Codex",
     cells: {
-      "prompts":    { v: "AGENTS.md in repo + ChatGPT custom instructions", note: "Per-repo; vendor model controls behaviour" },
-      "session":    { v: "Per-task cloud session + ChatGPT memory", note: "No formal cross-task protocol" },
-      "pipeline":   { v: "No — single autonomous reasoning loop" },
-      "tri-agent":  { v: "No (single-agent)" },
-      "gates":      { v: "No" },
-      "cost":       { v: "Bundled with ChatGPT Plus/Pro ($20–200/mo)", note: "CLI free with API usage" },
-      "lockin":     { v: "OpenAI-coupled", note: "GPT-5/4 only; no model swap" },
-      "runs-on":    { v: "chatgpt.com/codex · codex CLI · IDE extension" },
-      "extend":     { v: "Edit AGENTS.md or ChatGPT instructions" },
-      "multi-proj": { v: "Per-project; no cross-repo dashboard" },
+      "prompts":    { v: "AGENTS.md in repo + ChatGPT custom instructions", note: "Per-repo; vendor model controls behaviour", verdict: "partial" },
+      "session":    { v: "Per-task cloud session + ChatGPT memory", note: "No formal cross-task protocol", verdict: "partial" },
+      "pipeline":   { v: "No — single autonomous reasoning loop", verdict: "bad" },
+      "tri-agent":  { v: "No (single-agent)", verdict: "bad" },
+      "gates":      { v: "No", verdict: "bad" },
+      "cost":       { v: "Bundled with ChatGPT Plus/Pro ($20–200/mo)", note: "CLI free with API usage", verdict: "info" },
+      "lockin":     { v: "OpenAI-coupled", note: "GPT-5/4 only; no model swap", verdict: "bad" },
+      "runs-on":    { v: "chatgpt.com/codex · codex CLI · IDE extension", verdict: "partial" },
+      "extend":     { v: "Edit AGENTS.md or ChatGPT instructions", verdict: "good" },
+      "multi-proj": { v: "Per-project; no cross-repo dashboard", verdict: "partial" },
     },
   },
   antigravity: {
     name: "Google Antigravity", needsReview: true,
     cells: {
-      "prompts":    { v: "Workspace instructions + Knowledge files", note: "Cross-session memory via Knowledge" },
-      "session":    { v: "Knowledge persists; agent state per workspace" },
-      "pipeline":   { v: "Multi-agent — Editor + Manager dispatch parallel agents", note: "Coordinated, but not a phase pipeline" },
-      "tri-agent":  { v: "Yes — Manager dispatches and verifies via screenshot/recording" },
-      "gates":      { v: "Built-in verification (browser proof / screenshot)" },
-      "cost":       { v: "Free tier · paid tiers announced" },
-      "lockin":     { v: "Google-coupled", note: "Gemini-first; Claude / GPT-OSS optional" },
-      "runs-on":    { v: "Antigravity desktop app (Mac · Linux · Windows)" },
-      "extend":     { v: "Add Knowledge files or workspace settings" },
-      "multi-proj": { v: "Manager view shows every running workspace" },
+      "prompts":    { v: "Workspace instructions + Knowledge files", note: "Cross-session memory via Knowledge", verdict: "partial" },
+      "session":    { v: "Knowledge persists; agent state per workspace", verdict: "partial" },
+      "pipeline":   { v: "Multi-agent — Editor + Manager dispatch parallel agents", note: "Coordinated, but not a phase pipeline", verdict: "partial" },
+      "tri-agent":  { v: "Yes — Manager dispatches and verifies via screenshot/recording", verdict: "good" },
+      "gates":      { v: "Built-in verification (browser proof / screenshot)", verdict: "good" },
+      "cost":       { v: "Free tier · paid tiers announced", verdict: "partial" },
+      "lockin":     { v: "Google-coupled", note: "Gemini-first; Claude / GPT-OSS optional", verdict: "bad" },
+      "runs-on":    { v: "Antigravity desktop app (Mac · Linux · Windows)", verdict: "partial" },
+      "extend":     { v: "Add Knowledge files or workspace settings", verdict: "partial" },
+      "multi-proj": { v: "Manager view shows every running workspace", verdict: "good" },
     },
   },
 };
@@ -270,9 +277,20 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
               {initialSelection.map((id) => {
                 const p = PLATFORMS[id];
                 const cell = p.cells[feat.id] ?? { v: "—" };
+                const heatClass = cell.verdict ? `heat-${cell.verdict}` : null;
                 return (
-                  <td class:list={[{ me: p.accent }]} data-col={id}>
-                    <span class="cell-v">{cell.v}</span>
+                  <td class:list={[{ me: p.accent }, heatClass]} data-col={id}>
+                    <span class="cell-v">
+                      {cell.verdict && (
+                        <span class={`verdict-icon ${cell.verdict}`} aria-hidden="true">
+                          {cell.verdict === "good"    ? "✓" :
+                           cell.verdict === "partial" ? "~" :
+                           cell.verdict === "bad"     ? "×" :
+                           cell.verdict === "info"    ? "$" : ""}
+                        </span>
+                      )}
+                      {cell.v}
+                    </span>
                     {cell.note && <span class="cell-note">{cell.note}</span>}
                   </td>
                 );
@@ -376,8 +394,14 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
    * On invalid stored state (unknown ids, length > MAX_EXTRAS), fall
    * back to DEFAULT_EXTRAS — never break the page.
    * ════════════════════════════════════════════════════════════════ */
-  interface Cell { v: string; note?: string | null }
+  type Verdict = "good" | "partial" | "bad" | "info";
+  interface Cell { v: string; note?: string | null; verdict?: Verdict }
   interface Platform { name: string; accent?: boolean; fixed?: boolean; needsReview?: boolean; cells: Record<string, Cell> }
+  const VERDICT_GLYPH: Record<Verdict, string> = { good: "✓", partial: "~", bad: "×", info: "$" };
+  // Whitelist for runtime safety — verdicts come from server-rendered
+  // JSON we control, but defending against malformed values keeps the
+  // client render bulletproof.
+  const VALID_VERDICTS = new Set<Verdict>(["good", "partial", "bad", "info"]);
   interface Feature { id: string; label: string }
   interface Catalog {
     PLATFORMS: Record<string, Platform>;
@@ -472,12 +496,19 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
           const p = PLATFORMS[id];
           const cell = p.cells[feat.id] ?? { v: "—", note: null };
           const td = document.createElement("td");
-          if (p.accent) td.className = "me";
+          const classes: string[] = [];
+          if (p.accent) classes.push("me");
+          const verdict = cell.verdict && VALID_VERDICTS.has(cell.verdict) ? cell.verdict : undefined;
+          if (verdict) classes.push(`heat-${verdict}`);
+          if (classes.length) td.className = classes.join(" ");
           td.dataset.col = id;
+          const iconHtml = verdict
+            ? `<span class="verdict-icon ${verdict}" aria-hidden="true">${VERDICT_GLYPH[verdict]}</span>`
+            : "";
           const noteHtml = cell.note
             ? `<span class="cell-note">${escapeHtml(cell.note)}</span>`
             : "";
-          td.innerHTML = `<span class="cell-v">${escapeHtml(cell.v)}</span>${noteHtml}`;
+          td.innerHTML = `<span class="cell-v">${iconHtml}${escapeHtml(cell.v)}</span>${noteHtml}`;
           tr.appendChild(td);
         });
 
@@ -652,6 +683,13 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
   }
 
   /* ── Table ─────────────────────────────────────────────────────── */
+  /* Visual treatment is Option B from design-previews/compare-table-options.html:
+     - heat-tinted cells (good / partial / bad / info) for at-a-glance scanning
+     - ember-hero opchain column with gradient header + bold fill that
+       overrides the heat tint so opchain still reads as the protagonist
+     - row hover lights up the entire row with an ember outline + brighter
+       heat fills so the eye can track across one feature at a time
+   */
   .table-wrap {
     overflow-x: auto;
     margin: 0 0 2.5rem;
@@ -672,6 +710,9 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
     border-bottom: 0.5px solid var(--border);
     text-align: left;
     vertical-align: top;
+    transition: background-color var(--dur-fast, 120ms) var(--ease-standard, ease),
+                box-shadow    var(--dur-fast, 120ms) var(--ease-standard, ease),
+                color         var(--dur-fast, 120ms) var(--ease-standard, ease);
   }
   .cmp thead th {
     background: var(--surface);
@@ -683,20 +724,57 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
     border-bottom: 0.5px solid var(--border);
     font-weight: 500;
   }
-  .cmp thead th.me { color: var(--accent); }
+  /* opchain hero column header: ember gradient + bottom accent strip */
+  .cmp thead th.me {
+    color: var(--accent);
+    background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 22%, var(--surface)),
+      var(--surface));
+    font-weight: 600;
+    position: relative;
+  }
+  .cmp thead th.me::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 2px;
+    background: var(--accent);
+  }
   :global([data-theme="light"]) .cmp thead th.me { color: var(--accent-hover); }
+
   .cmp tbody th[scope="row"] {
     font-family: var(--font-display);
     font-weight: 600;
     color: var(--text);
     font-size: var(--fs-sm);
     width: 180px;
+    background: var(--surface);
+    border-right: 0.5px solid var(--border);
   }
   .cmp td { color: var(--muted); }
-  .cmp td.me {
-    background: color-mix(in srgb, var(--accent) 6%, transparent);
-    border-left: 2px solid var(--accent);
+
+  /* Heatmap cell tints — semantic verdicts. opchain (.me) overrides
+     these below so the ember treatment always wins. */
+  .cmp td.heat-good    { background: color-mix(in srgb, #6fb27a 10%, transparent); }
+  .cmp td.heat-partial { background: color-mix(in srgb, #d9a93a 10%, transparent); }
+  .cmp td.heat-bad     { background: color-mix(in srgb, #d36a6a 10%, transparent); }
+  .cmp td.heat-info    { background: color-mix(in srgb, #6ea0d3  8%, transparent); }
+  :global([data-theme="light"]) .cmp td.heat-good    { background: color-mix(in srgb, #2f8237 13%, transparent); }
+  :global([data-theme="light"]) .cmp td.heat-partial { background: color-mix(in srgb, #c08300 13%, transparent); }
+  :global([data-theme="light"]) .cmp td.heat-bad     { background: color-mix(in srgb, #c14242 13%, transparent); }
+  :global([data-theme="light"]) .cmp td.heat-info    { background: color-mix(in srgb, #3a78c0 11%, transparent); }
+
+  /* opchain hero column body cells — ember fill overrides the heat tint */
+  .cmp td.me,
+  .cmp td.me.heat-good,
+  .cmp td.me.heat-partial,
+  .cmp td.me.heat-bad,
+  .cmp td.me.heat-info {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border-left:  1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    border-right: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
   }
+
   .cell-v {
     display: block;
     color: var(--text);
@@ -710,8 +788,59 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
     letter-spacing: var(--ls-wide);
     line-height: 1.35;
   }
-  .cmp td.me .cell-v { color: var(--accent); font-weight: 500; }
+  .cmp td.me .cell-v { color: var(--accent); font-weight: 600; }
   :global([data-theme="light"]) .cmp td.me .cell-v { color: var(--accent-hover); }
+
+  /* Verdict icon — small circular badge prefixing the cell value */
+  .verdict-icon {
+    display: inline-block;
+    width: 14px; height: 14px;
+    margin-right: 0.4rem;
+    vertical-align: -2px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 14px;
+    text-align: center;
+    border-radius: 50%;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .verdict-icon.good    { background: #6fb27a; color: #0b1410; }
+  .verdict-icon.partial { background: #d9a93a; color: #1a1408; }
+  .verdict-icon.bad     { background: #d36a6a; color: #160808; }
+  .verdict-icon.info    { background: #6ea0d3; color: #08121e; }
+  /* In the opchain hero column the ember fill + accent text already
+     read as a "good" answer; suppress the duplicate green dot. */
+  .cmp td.me .verdict-icon { display: none; }
+
+  /* Row hover — outline the whole row with a thin ember frame and
+     bump the heat-fill alphas slightly so the row reads as "selected"
+     when the user is scanning a single feature across columns. */
+  .cmp tbody tr:hover td,
+  .cmp tbody tr:hover th[scope="row"] {
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--accent) 55%, transparent),
+      inset 0 -1px 0 color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  .cmp tbody tr:hover th[scope="row"] { color: var(--accent); }
+  .cmp tbody tr:hover td.heat-good    { background: color-mix(in srgb, #6fb27a 16%, transparent); }
+  .cmp tbody tr:hover td.heat-partial { background: color-mix(in srgb, #d9a93a 16%, transparent); }
+  .cmp tbody tr:hover td.heat-bad     { background: color-mix(in srgb, #d36a6a 16%, transparent); }
+  .cmp tbody tr:hover td.heat-info    { background: color-mix(in srgb, #6ea0d3 13%, transparent); }
+  .cmp tbody tr:hover td.me,
+  .cmp tbody tr:hover td.me.heat-good,
+  .cmp tbody tr:hover td.me.heat-partial,
+  .cmp tbody tr:hover td.me.heat-bad,
+  .cmp tbody tr:hover td.me.heat-info {
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  :global([data-theme="light"]) .cmp tbody tr:hover td.heat-good    { background: color-mix(in srgb, #2f8237 20%, transparent); }
+  :global([data-theme="light"]) .cmp tbody tr:hover td.heat-partial { background: color-mix(in srgb, #c08300 20%, transparent); }
+  :global([data-theme="light"]) .cmp tbody tr:hover td.heat-bad     { background: color-mix(in srgb, #c14242 20%, transparent); }
+  :global([data-theme="light"]) .cmp tbody tr:hover td.heat-info    { background: color-mix(in srgb, #3a78c0 17%, transparent); }
+  @media (prefers-reduced-motion: reduce) {
+    .cmp th, .cmp td { transition: none; }
+  }
 
   /* ── Below-table sections (carried over from prior /compare) ───── */
   .block { margin: 0 0 2.5rem; max-width: 720px; }
