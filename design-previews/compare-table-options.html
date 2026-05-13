@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Compare-table options — opchain</title>
+<style>
+  /* opchain tokens (dark theme, lifted from the site) */
+  :root {
+    --bg:        #0e0e10;
+    --surface:   #16161a;
+    --card:      #1c1c22;
+    --raised:    #232329;
+    --border:    #2a2a32;
+    --border-strong: #3a3a44;
+    --text:      #ece6d8;     /* cream */
+    --muted:     #a8a298;
+    --subtle:    #6f6a62;
+    --accent:    #ff8a3d;     /* ember */
+    --accent-dim:#3a1f0e;
+    --accent-glow:#ff8a3d22;
+    --accent-hover:#ffa365;
+    --good:      #6fb27a;
+    --good-dim:  #1a2a1d;
+    --bad:       #d36a6a;
+    --bad-dim:   #2a1717;
+    --warn:      #d9a93a;
+    --warn-dim:  #2a2113;
+    --info:      #6ea0d3;
+    --info-dim:  #15212d;
+    --r-sm: 6px; --r-md: 10px; --r-xs: 4px;
+    --font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace;
+    --font-display: "InterDisplay", "Inter", system-ui, sans-serif;
+    --font-body:    "Inter", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--text); }
+  body {
+    margin: 0;
+    font-family: var(--font-body);
+    line-height: 1.5;
+    padding: 3rem 1.5rem 6rem;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  .doc-head { margin: 0 0 2.5rem; }
+  .doc-head h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 28px;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.01em;
+  }
+  .doc-head p { color: var(--muted); margin: 0; max-width: 48rem; }
+  .doc-head .badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--subtle);
+    margin-bottom: 0.5rem;
+  }
+
+  .option {
+    margin: 0 0 3.5rem;
+    border-top: 0.5px solid var(--border);
+    padding-top: 2.2rem;
+  }
+  .option-head { margin: 0 0 1.2rem; }
+  .option-head .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 0.4rem;
+  }
+  .option-head h2 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    margin: 0 0 0.4rem;
+    font-weight: 600;
+  }
+  .option-head .summary {
+    color: var(--muted);
+    max-width: 56rem;
+    margin: 0;
+    font-size: 14px;
+  }
+  .pros-cons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin: 0.8rem 0 1.5rem;
+    max-width: 56rem;
+  }
+  .pros-cons .col {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 0.6rem 0.8rem;
+    font-size: 13px;
+  }
+  .pros-cons .col .label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--subtle);
+    margin: 0 0 0.35rem;
+    display: block;
+  }
+  .pros-cons .col ul { margin: 0; padding-left: 1.05rem; color: var(--muted); }
+  .pros-cons .col li { margin-bottom: 0.15rem; }
+
+  /* ─────────────────────── Shared table base ─────────────────────── */
+  .table-wrap {
+    overflow-x: auto;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    background: var(--bg);
+  }
+  table.cmp {
+    width: 100%;
+    min-width: 880px;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  table.cmp th, table.cmp td {
+    padding: 0.7rem 0.85rem;
+    border-bottom: 0.5px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+  table.cmp thead th {
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--subtle);
+    font-weight: 500;
+    border-bottom: 0.5px solid var(--border-strong);
+  }
+  table.cmp tbody th[scope="row"] {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--text);
+    width: 200px;
+    white-space: nowrap;
+  }
+  table.cmp tbody td { color: var(--muted); }
+  table.cmp .cell-v { display: block; color: var(--text); margin-bottom: 0.2rem; font-weight: 500; }
+  table.cmp .cell-note {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--subtle);
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+  }
+  table.cmp tr:last-child td, table.cmp tr:last-child th { border-bottom: 0; }
+
+  /* ════════════════════════════════════════════════════════════════
+   * OPTION A — Verdict pills + opchain accent column
+   * Every cell gets a colored verdict pill (Yes / Partial / No / Paid)
+   * up top, so the eye scans down a column and sees "green-green-green"
+   * at a glance. Descriptive text sits below. opchain column keeps the
+   * existing ember accent treatment.
+   * ════════════════════════════════════════════════════════════════ */
+  .opt-a .cmp thead th.me { color: var(--accent); }
+  .opt-a .cmp td.me {
+    background: color-mix(in srgb, var(--accent) 7%, transparent);
+    border-left: 2px solid var(--accent);
+  }
+  .opt-a .cmp td.me .cell-v { color: var(--accent); }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 7px 2px 6px;
+    border-radius: 999px;
+    border: 0.5px solid;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+  }
+  .pill::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    display: inline-block;
+  }
+  .pill.yes      { color: var(--good); border-color: color-mix(in srgb, var(--good) 60%, transparent); background: var(--good-dim); }
+  .pill.yes::before    { background: var(--good); }
+  .pill.partial  { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 60%, transparent); background: var(--warn-dim); }
+  .pill.partial::before{ background: var(--warn); }
+  .pill.no       { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 60%, transparent); background: var(--bad-dim); }
+  .pill.no::before     { background: var(--bad); }
+  .pill.paid     { color: var(--info); border-color: color-mix(in srgb, var(--info) 60%, transparent); background: var(--info-dim); }
+  .pill.paid::before   { background: var(--info); }
+  .pill.free     { color: var(--good); border-color: color-mix(in srgb, var(--good) 60%, transparent); background: var(--good-dim); }
+  .pill.free::before   { background: var(--good); }
+  .pill.lockin   { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 60%, transparent); background: var(--bad-dim); }
+  .pill.lockin::before { background: var(--bad); }
+  .pill.nolockin { color: var(--good); border-color: color-mix(in srgb, var(--good) 60%, transparent); background: var(--good-dim); }
+  .pill.nolockin::before { background: var(--good); }
+
+  /* ════════════════════════════════════════════════════════════════
+   * OPTION B — Heatmap cells + bold opchain hero column
+   * Every cell gets a soft tinted background based on "verdict"
+   * (good = green wash, partial = amber wash, missing = red wash).
+   * opchain column gets a stronger ember treatment that visually
+   * dominates. The whole table reads like a scannable heatmap.
+   * ════════════════════════════════════════════════════════════════ */
+  .opt-b .cmp thead th { padding-top: 0.9rem; padding-bottom: 0.9rem; }
+  .opt-b .cmp thead th.me {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 22%, var(--surface)), var(--surface));
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+    font-size: 12px;
+    position: relative;
+  }
+  .opt-b .cmp thead th.me::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 2px;
+    background: var(--accent);
+  }
+  .opt-b .cmp td.me {
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border-left: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    border-right: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .opt-b .cmp td.me .cell-v { color: var(--accent); font-weight: 600; }
+  .opt-b .cmp td.heat-good    { background: color-mix(in srgb, var(--good) 9%,  transparent); }
+  .opt-b .cmp td.heat-partial { background: color-mix(in srgb, var(--warn) 9%,  transparent); }
+  .opt-b .cmp td.heat-bad     { background: color-mix(in srgb, var(--bad)  9%,  transparent); }
+  .opt-b .cmp td.heat-info    { background: color-mix(in srgb, var(--info) 7%,  transparent); }
+  /* opchain column overrides heat color */
+  .opt-b .cmp td.me.heat-good,
+  .opt-b .cmp td.me.heat-partial,
+  .opt-b .cmp td.me.heat-bad,
+  .opt-b .cmp td.me.heat-info {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  .opt-b .cmp tbody th[scope="row"] {
+    background: var(--surface);
+    border-right: 0.5px solid var(--border);
+  }
+  /* tiny status icon beside cell value */
+  .verdict-icon {
+    display: inline-block;
+    width: 14px; height: 14px;
+    margin-right: 0.4rem;
+    vertical-align: -2px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 14px;
+    text-align: center;
+    border-radius: 50%;
+  }
+  .verdict-icon.good    { background: var(--good); color: #0b1410; }
+  .verdict-icon.partial { background: var(--warn); color: #1a1408; }
+  .verdict-icon.bad     { background: var(--bad);  color: #160808; }
+  .verdict-icon.info    { background: var(--info); color: #08121e; }
+
+  /* ════════════════════════════════════════════════════════════════
+   * OPTION C — Category-grouped rows + zebra + winner bars
+   * Features cluster into named groups (Architecture · Pipeline ·
+   * Cost & Lock-in · Reach) with a sticky group header row. Light
+   * zebra striping. Each row carries a small "winner" indicator: which
+   * column does best on this dimension (ember dot). Calmer than the
+   * heatmap — adds structure rather than color saturation.
+   * ════════════════════════════════════════════════════════════════ */
+  .opt-c .cmp tbody tr.group-head th {
+    background: var(--raised);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding-top: 0.7rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 0.5px solid var(--border-strong);
+    border-top: 0.5px solid var(--border-strong);
+  }
+  .opt-c .cmp tbody tr.group-head th[scope="row"] {
+    text-align: left;
+  }
+  .opt-c .cmp tbody tr:not(.group-head):nth-of-type(even) {
+    background: color-mix(in srgb, var(--surface) 50%, var(--bg));
+  }
+  .opt-c .cmp tbody tr:not(.group-head):hover {
+    background: var(--surface);
+  }
+  .opt-c .cmp thead th.me { color: var(--accent); }
+  .opt-c .cmp td.me {
+    border-left: 2px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
+  }
+  .opt-c .cmp td.me .cell-v { color: var(--accent); }
+  /* Winner indicator: a small ember dot next to the cell value in the
+     column that "wins" this row. */
+  .winner-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-right: 6px;
+    vertical-align: 2px;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+  .opt-c .winner-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-left: 0.5rem;
+    opacity: 0.85;
+  }
+
+  /* Footer note */
+  .footer-note {
+    color: var(--subtle);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    margin-top: 4rem;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-head">
+    <span class="badge">design preview · /compare</span>
+    <h1>Three directions for the compare-table styling.</h1>
+    <p>
+      Same data, three different ways to add color and structure so the
+      table reads as a comparison instead of a wall of prose. All three
+      keep the existing ember/cream palette — they differ in <em>how
+      hard</em> they lean on color to do the scanning work.
+    </p>
+  </header>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       OPTION A — Verdict pills
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="option opt-a">
+    <header class="option-head">
+      <p class="eyebrow">Option A</p>
+      <h2>Verdict pills above every cell</h2>
+      <p class="summary">
+        Each cell leads with a small colored pill that classifies the
+        answer — <b>Yes</b> (green), <b>Partial</b> (amber), <b>No</b>
+        (red), <b>Free</b> / <b>Paid</b>, <b>None</b> / <b>Locked-in</b>.
+        Descriptive text stays below for the reader who wants details,
+        but the eye can scan a column top-to-bottom in 2 seconds and
+        see how it stacks up.
+      </p>
+    </header>
+
+    <div class="pros-cons">
+      <div class="col">
+        <span class="label">Pros</span>
+        <ul>
+          <li>Instant scannability — colored dots align vertically</li>
+          <li>Easy to extend to new platforms; the pill taxonomy is fixed</li>
+          <li>Keeps descriptive nuance intact</li>
+        </ul>
+      </div>
+      <div class="col">
+        <span class="label">Cons</span>
+        <ul>
+          <li>Adds visual noise — every cell has a chip on top of text</li>
+          <li>Risk of oversimplifying real "it depends" cases</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="cmp">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="me">opchain</th>
+            <th>Claude defaults</th>
+            <th>Cursor</th>
+            <th>Copilot</th>
+            <th>Devin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Pipeline awareness</th>
+            <td class="me">
+              <span class="pill yes">Yes</span>
+              <span class="cell-v">Orchestrator routes 18 skills</span>
+              <span class="cell-note">Knows what phase you're in and what's next</span>
+            </td>
+            <td>
+              <span class="pill no">No</span>
+              <span class="cell-v">—</span>
+              <span class="cell-note">Single CLAUDE.md, no phase concept</span>
+            </td>
+            <td>
+              <span class="pill no">No</span>
+              <span class="cell-v">Rules apply globally</span>
+              <span class="cell-note">No pipeline; just per-project rules</span>
+            </td>
+            <td>
+              <span class="pill no">No</span>
+              <span class="cell-v">Single-turn-ish chat</span>
+              <span class="cell-note">No phase awareness</span>
+            </td>
+            <td>
+              <span class="pill partial">Partial</span>
+              <span class="cell-v">Monolithic agent</span>
+              <span class="cell-note">Yes, but as one closed-box agent</span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Tri-agent quality loops</th>
+            <td class="me">
+              <span class="pill yes">Yes</span>
+              <span class="cell-v">5 skills</span>
+              <span class="cell-note">Planner → Generator → Evaluator</span>
+            </td>
+            <td>
+              <span class="pill no">No</span>
+              <span class="cell-v">—</span>
+              <span class="cell-note"></span>
+            </td>
+            <td>
+              <span class="pill no">No</span>
+              <span class="cell-v">—</span>
+              <span class="cell-note"></span>
+            </td>
+            <td>
+              <span class="pill no">No</span>
+              <span class="cell-v">—</span>
+              <span class="cell-note"></span>
+            </td>
+            <td>
+              <span class="pill partial">Implicit</span>
+              <span class="cell-v">Not surfaced</span>
+              <span class="cell-note">No external contract</span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Audit gates before deploy</th>
+            <td class="me">
+              <span class="pill yes">Yes</span>
+              <span class="cell-v">Three gates</span>
+              <span class="cell-note">bug-check, code-auditor, security-auditor</span>
+            </td>
+            <td><span class="pill no">No</span><span class="cell-v">—</span></td>
+            <td><span class="pill no">No</span><span class="cell-v">—</span></td>
+            <td><span class="pill no">No</span><span class="cell-v">—</span></td>
+            <td>
+              <span class="pill partial">Partial</span>
+              <span class="cell-v">Internal checks</span>
+              <span class="cell-note">No external contract</span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Cost</th>
+            <td class="me">
+              <span class="pill free">Free</span>
+              <span class="cell-v">MIT</span>
+              <span class="cell-note">Pay only your Claude usage</span>
+            </td>
+            <td>
+              <span class="pill free">Free</span>
+              <span class="cell-v">Free</span>
+            </td>
+            <td>
+              <span class="pill paid">Paid</span>
+              <span class="cell-v">$20–40 / user / mo</span>
+            </td>
+            <td>
+              <span class="pill paid">Paid</span>
+              <span class="cell-v">$10–39 / user / mo</span>
+            </td>
+            <td>
+              <span class="pill paid">Paid</span>
+              <span class="cell-v">$500 / mo seat</span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Vendor lock-in</th>
+            <td class="me">
+              <span class="pill nolockin">None</span>
+              <span class="cell-v">Markdown files</span>
+              <span class="cell-note">Fork, edit, fork again</span>
+            </td>
+            <td>
+              <span class="pill partial">Light</span>
+              <span class="cell-v">Claude-coupled</span>
+              <span class="cell-note">But trivial to migrate</span>
+            </td>
+            <td>
+              <span class="pill lockin">Editor</span>
+              <span class="cell-v">IDE-coupled</span>
+              <span class="cell-note">Rules only run inside Cursor</span>
+            </td>
+            <td>
+              <span class="pill lockin">Vendor</span>
+              <span class="cell-v">GitHub-coupled</span>
+              <span class="cell-note">Runs against the Copilot service</span>
+            </td>
+            <td>
+              <span class="pill lockin">Service</span>
+              <span class="cell-v">Devin infra only</span>
+              <span class="cell-note">All work runs hosted</span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Session persistence</th>
+            <td class="me">
+              <span class="pill yes">Yes</span>
+              <span class="cell-v">JSON checkpoints</span>
+              <span class="cell-note">Survive across chats; auto-resume</span>
+            </td>
+            <td>
+              <span class="pill partial">Limited</span>
+              <span class="cell-v">CLAUDE.md only</span>
+              <span class="cell-note">Re-read each session</span>
+            </td>
+            <td>
+              <span class="pill partial">Per-chat</span>
+              <span class="cell-v">No formal protocol</span>
+            </td>
+            <td>
+              <span class="pill partial">Per-session</span>
+              <span class="cell-v">IDE-scoped</span>
+            </td>
+            <td>
+              <span class="pill yes">Yes</span>
+              <span class="cell-v">Hosted task state</span>
+              <span class="cell-note">Tied to a Devin task</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       OPTION B — Heatmap + opchain hero
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="option opt-b">
+    <header class="option-head">
+      <p class="eyebrow">Option B</p>
+      <h2>Soft heatmap cells + ember-hero opchain column</h2>
+      <p class="summary">
+        Every cell gets a faint background wash — green for good, amber
+        for partial, red for missing, blue for "neutral / paid". The
+        opchain column gets a bold ember gradient header and a stronger
+        ember wash that overrides the heatmap, so it visually dominates
+        the table. The page becomes legible from across the room.
+      </p>
+    </header>
+
+    <div class="pros-cons">
+      <div class="col">
+        <span class="label">Pros</span>
+        <ul>
+          <li>Strongest visual signal — pattern emerges immediately</li>
+          <li>opchain column reads as "the protagonist", not just a tinted one</li>
+          <li>No extra chips above text — clean cells</li>
+        </ul>
+      </div>
+      <div class="col">
+        <span class="label">Cons</span>
+        <ul>
+          <li>Most visually loud — risks feeling salesy / loaded</li>
+          <li>Heatmap classification is editorial — every cell is a judgment</li>
+          <li>Light-mode equivalents need re-balancing</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="cmp">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="me">opchain</th>
+            <th>Claude defaults</th>
+            <th>Cursor</th>
+            <th>Copilot</th>
+            <th>Devin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Pipeline awareness</th>
+            <td class="me heat-good">
+              <span class="cell-v"><span class="verdict-icon good">✓</span>Orchestrator routes 18 skills</span>
+              <span class="cell-note">Knows what phase you're in and what's next</span>
+            </td>
+            <td class="heat-bad">
+              <span class="cell-v"><span class="verdict-icon bad">×</span>No</span>
+              <span class="cell-note">Single CLAUDE.md, no phase concept</span>
+            </td>
+            <td class="heat-bad">
+              <span class="cell-v"><span class="verdict-icon bad">×</span>No</span>
+              <span class="cell-note">Rules apply globally</span>
+            </td>
+            <td class="heat-bad">
+              <span class="cell-v"><span class="verdict-icon bad">×</span>No</span>
+              <span class="cell-note">Single-turn-ish chat</span>
+            </td>
+            <td class="heat-partial">
+              <span class="cell-v"><span class="verdict-icon partial">~</span>Yes, monolithic agent</span>
+              <span class="cell-note">One closed-box agent, not a pipeline</span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Tri-agent quality loops</th>
+            <td class="me heat-good">
+              <span class="cell-v"><span class="verdict-icon good">✓</span>5 skills built in</span>
+              <span class="cell-note">Planner → Generator → Evaluator</span>
+            </td>
+            <td class="heat-bad"><span class="cell-v"><span class="verdict-icon bad">×</span>No</span></td>
+            <td class="heat-bad"><span class="cell-v"><span class="verdict-icon bad">×</span>No</span></td>
+            <td class="heat-bad"><span class="cell-v"><span class="verdict-icon bad">×</span>No</span></td>
+            <td class="heat-partial">
+              <span class="cell-v"><span class="verdict-icon partial">~</span>Implicit</span>
+              <span class="cell-note">Not surfaced as a contract</span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Audit gates before deploy</th>
+            <td class="me heat-good">
+              <span class="cell-v"><span class="verdict-icon good">✓</span>Three gates</span>
+              <span class="cell-note">bug-check, code-auditor, security-auditor</span>
+            </td>
+            <td class="heat-bad"><span class="cell-v"><span class="verdict-icon bad">×</span>No</span></td>
+            <td class="heat-bad"><span class="cell-v"><span class="verdict-icon bad">×</span>No</span></td>
+            <td class="heat-bad"><span class="cell-v"><span class="verdict-icon bad">×</span>No</span></td>
+            <td class="heat-partial">
+              <span class="cell-v"><span class="verdict-icon partial">~</span>Internal only</span>
+              <span class="cell-note">No external contract</span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Cost</th>
+            <td class="me heat-good">
+              <span class="cell-v"><span class="verdict-icon good">✓</span>Free, MIT</span>
+              <span class="cell-note">Pay only your Claude usage</span>
+            </td>
+            <td class="heat-good">
+              <span class="cell-v"><span class="verdict-icon good">✓</span>Free</span>
+            </td>
+            <td class="heat-info">
+              <span class="cell-v"><span class="verdict-icon info">$</span>$20–40 / user / mo</span>
+            </td>
+            <td class="heat-info">
+              <span class="cell-v"><span class="verdict-icon info">$</span>$10–39 / user / mo</span>
+            </td>
+            <td class="heat-info">
+              <span class="cell-v"><span class="verdict-icon info">$</span>$500 / mo seat</span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Vendor lock-in</th>
+            <td class="me heat-good">
+              <span class="cell-v"><span class="verdict-icon good">✓</span>None</span>
+              <span class="cell-note">Every skill is one Markdown file</span>
+            </td>
+            <td class="heat-partial">
+              <span class="cell-v"><span class="verdict-icon partial">~</span>Claude-coupled</span>
+              <span class="cell-note">But trivial to migrate</span>
+            </td>
+            <td class="heat-bad">
+              <span class="cell-v"><span class="verdict-icon bad">×</span>IDE-coupled</span>
+              <span class="cell-note">Rules only run inside Cursor</span>
+            </td>
+            <td class="heat-bad">
+              <span class="cell-v"><span class="verdict-icon bad">×</span>GitHub-coupled</span>
+              <span class="cell-note">Runs against Copilot service</span>
+            </td>
+            <td class="heat-bad">
+              <span class="cell-v"><span class="verdict-icon bad">×</span>Service-coupled</span>
+              <span class="cell-note">All work runs hosted</span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Session persistence</th>
+            <td class="me heat-good">
+              <span class="cell-v"><span class="verdict-icon good">✓</span>JSON checkpoints</span>
+              <span class="cell-note">Survive across chats; auto-resume</span>
+            </td>
+            <td class="heat-partial">
+              <span class="cell-v"><span class="verdict-icon partial">~</span>CLAUDE.md only</span>
+              <span class="cell-note">Re-read each session</span>
+            </td>
+            <td class="heat-partial">
+              <span class="cell-v"><span class="verdict-icon partial">~</span>Per-chat</span>
+              <span class="cell-note">No formal protocol</span>
+            </td>
+            <td class="heat-partial">
+              <span class="cell-v"><span class="verdict-icon partial">~</span>Per-session</span>
+              <span class="cell-note">IDE-scoped</span>
+            </td>
+            <td class="heat-good">
+              <span class="cell-v"><span class="verdict-icon good">✓</span>Hosted state</span>
+              <span class="cell-note">Tied to a Devin task</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       OPTION C — Categories + zebra + winner dots
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="option opt-c">
+    <header class="option-head">
+      <p class="eyebrow">Option C</p>
+      <h2>Grouped categories, zebra rows, ember "winner" dots</h2>
+      <p class="summary">
+        Features cluster into named sections (Architecture · Operations
+        · Cost &amp; Lock-in) with sticky ember-colored category
+        headers. Subtle zebra striping helps the eye track across rows.
+        On each row, a small ember dot marks the column that "wins"
+        that dimension — usually opchain, but not always (Devin
+        actually wins session persistence). Adds <em>structure</em>
+        more than color saturation.
+      </p>
+    </header>
+
+    <div class="pros-cons">
+      <div class="col">
+        <span class="label">Pros</span>
+        <ul>
+          <li>Quietest of the three — feels editorial, not loaded</li>
+          <li>Category groups break the 10-row table into 3 scannable chunks</li>
+          <li>Winner dots stay honest (opchain doesn't always win)</li>
+        </ul>
+      </div>
+      <div class="col">
+        <span class="label">Cons</span>
+        <ul>
+          <li>Less instantly readable than B; needs the reader to engage</li>
+          <li>"Winner" framing is editorial too — you're picking one per row</li>
+          <li>Requires regrouping the FEATURES list into named sections</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="cmp">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="me">opchain</th>
+            <th>Claude defaults</th>
+            <th>Cursor</th>
+            <th>Copilot</th>
+            <th>Devin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="group-head"><th colspan="6" scope="colgroup">01 · Architecture</th></tr>
+          <tr>
+            <th scope="row">Where the prompts live</th>
+            <td class="me">
+              <span class="cell-v"><span class="winner-dot"></span>Markdown files in .claude/skills/</span>
+              <span class="cell-note">MIT, in your repo, plain text</span>
+            </td>
+            <td><span class="cell-v">CLAUDE.md (single file)</span><span class="cell-note">All-or-nothing</span></td>
+            <td><span class="cell-v">.cursorrules / .mdc</span><span class="cell-note">Per-project, editor-coupled</span></td>
+            <td><span class="cell-v">.github/copilot-instructions.md</span><span class="cell-note">Vendor-managed</span></td>
+            <td><span class="cell-v">Hosted, internal</span><span class="cell-note">Black box</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Session persistence</th>
+            <td class="me">
+              <span class="cell-v">JSON checkpoints in .checkpoints/</span>
+              <span class="cell-note">Survive across chats</span>
+            </td>
+            <td><span class="cell-v">CLAUDE.md context only</span></td>
+            <td><span class="cell-v">Per-chat memory</span></td>
+            <td><span class="cell-v">Per-IDE-session</span></td>
+            <td>
+              <span class="cell-v"><span class="winner-dot"></span>Hosted task state</span>
+              <span class="cell-note">Tied to a Devin task</span>
+            </td>
+          </tr>
+
+          <tr class="group-head"><th colspan="6" scope="colgroup">02 · Operations</th></tr>
+          <tr>
+            <th scope="row">Pipeline awareness</th>
+            <td class="me">
+              <span class="cell-v"><span class="winner-dot"></span>Yes — 18 skills</span>
+              <span class="cell-note">Knows what phase you're in</span>
+            </td>
+            <td><span class="cell-v">No</span></td>
+            <td><span class="cell-v">No — rules apply globally</span></td>
+            <td><span class="cell-v">No — single-turn-ish</span></td>
+            <td><span class="cell-v">Yes, monolithic agent</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Tri-agent quality loops</th>
+            <td class="me">
+              <span class="cell-v"><span class="winner-dot"></span>5 skills</span>
+              <span class="cell-note">Planner → Generator → Evaluator</span>
+            </td>
+            <td><span class="cell-v">No</span></td>
+            <td><span class="cell-v">No</span></td>
+            <td><span class="cell-v">No</span></td>
+            <td><span class="cell-v">Implicit, not surfaced</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Audit gates before deploy</th>
+            <td class="me">
+              <span class="cell-v"><span class="winner-dot"></span>Three gates</span>
+              <span class="cell-note">deploy-ops blocks prod if any fail</span>
+            </td>
+            <td><span class="cell-v">No</span></td>
+            <td><span class="cell-v">No</span></td>
+            <td><span class="cell-v">No</span></td>
+            <td><span class="cell-v">Internal checks only</span></td>
+          </tr>
+
+          <tr class="group-head"><th colspan="6" scope="colgroup">03 · Cost &amp; Lock-in</th></tr>
+          <tr>
+            <th scope="row">Cost</th>
+            <td class="me">
+              <span class="cell-v"><span class="winner-dot"></span>Free, MIT</span>
+              <span class="cell-note">Pay only your Claude usage</span>
+            </td>
+            <td><span class="cell-v">Free</span><span class="winner-label">tied</span></td>
+            <td><span class="cell-v">$20–40 / user / mo</span></td>
+            <td><span class="cell-v">$10–39 / user / mo</span></td>
+            <td><span class="cell-v">$500 / mo seat</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Vendor lock-in</th>
+            <td class="me">
+              <span class="cell-v"><span class="winner-dot"></span>None</span>
+              <span class="cell-note">Fork, edit, fork again</span>
+            </td>
+            <td><span class="cell-v">Claude-coupled</span><span class="cell-note">Trivial to migrate</span></td>
+            <td><span class="cell-v">IDE-coupled</span></td>
+            <td><span class="cell-v">GitHub-coupled</span></td>
+            <td><span class="cell-v">Service-coupled</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="footer-note">
+    open file:// in browser · all 3 tables share the same data ·
+    accent = #ff8a3d · text = #ece6d8
+  </p>
+
+</div>
+</body>
+</html>
