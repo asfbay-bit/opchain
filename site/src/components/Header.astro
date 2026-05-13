@@ -2,6 +2,7 @@
 import Logo from "./Logo.astro";
 import ThemeToggle from "./ThemeToggle.astro";
 import SearchPalette from "./SearchPalette.astro";
+import Icon from "./Icon.astro";
 import { defaultFor } from "../lib/flags/build-defaults";
 
 interface Props {
@@ -41,7 +42,6 @@ const groups: NavGroup[] = [
   {
     id: "pipeline",
     label: "Pipeline",
-    badge: "tool",
     items: [
       { href: "/pipeline-builder", label: "Pipeline Builder", blurb: "Answer 4 questions, get a curated stack." },
       ...(demoEnabled ? [{ href: "/demo", label: "Demo", blurb: "Walkthroughs of opchain end-to-end." }] : []),
@@ -65,6 +65,12 @@ function isActiveGroup(g: NavGroup): boolean {
   if (active === "/") return false;
   return g.items.some((it) => active.startsWith(it.href));
 }
+
+const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
+  product: "puzzle",
+  pipeline: "zap",
+  resources: "book-open",
+};
 ---
 
 <header class="site-header">
@@ -85,8 +91,10 @@ function isActiveGroup(g: NavGroup): boolean {
             aria-controls={`dropdown-${g.id}`}
           >
             {g.label}
+            <span class="nav-badge tool" aria-hidden="true">
+              <Icon name={GROUP_ICONS[g.id]} size={11} />
+            </span>
             {g.badge === "new" && <span class="nav-badge new">NEW</span>}
-            {g.badge === "tool" && <span class="nav-badge tool">⚡</span>}
             <span class="nav-caret" aria-hidden="true"></span>
           </button>
           <div class="dropdown" id={`dropdown-${g.id}`} role="menu" aria-label={g.label}>
@@ -416,13 +424,18 @@ function isActiveGroup(g: NavGroup): boolean {
     padding: 2px 5px;
     border-radius: var(--r-xs);
     line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
   .nav-badge.new  { background: var(--accent); color: var(--obsidian); }
   .nav-badge.tool {
     background: rgba(20, 184, 166, 0.16);
     color: var(--specialist);
     border: 0.5px solid var(--specialist);
+    padding: 2px 4px;
   }
+  .nav-badge.tool :global(svg) { display: block; }
 
   .nav-install {
     margin-left: 0.4rem;
