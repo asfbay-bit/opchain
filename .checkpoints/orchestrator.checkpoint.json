@@ -2,14 +2,14 @@
   "protocol_version": "1.0",
   "skill": "orchestrator",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "project_dir": "/home/user/opchain",
   "created_at": "2026-05-01T16:50:00Z",
-  "updated_at": "2026-05-12T02:35:00Z",
+  "updated_at": "2026-05-14T17:35:00Z",
 
-  "phase": "routing",
-  "step": "handoff-stack-forge-pr-4",
-  "status": "in_progress",
-  "progress_summary": "v1.4 PRs 1-3 all shipped (serial leg complete): #192 → 4cb0b09 (ADEV-328 pack registry architecture), #203 → 22c45cd (ADEV-329 backfill 5 language packs), #207 → 29218da (ADEV-330 pack-aware dispatch + api-dev adapters + kind:mobile branch). Production still on 526a9a2 (v1.4 release ships in PR 8). PRs 4-7 now parallelize. THIS SESSION started v1.4 PR 4 (ADEV-334 modern web bulk) on branch claude/implement-v1.4-features-frpwm: 3 new language packs (elixir, bun, deno) + 4 new framework packs (phoenix on elixir; remix/sveltekit/solid on typescript). User-approved kind taxonomy for bun/deno: language packs (distinct toolchains — bun test / deno test diverge from vitest). typescript pack.yml updated with frameworks: [remix, sveltekit, solid] to satisfy the bidirectional invariant; elixir pack ships with frameworks: [phoenix]. gen-stack-packs: 5/5 → 12 pack(s), 12 coverage flag(s). gen-api-dev-adapters: 5 → 8 language pack(s). Flag registry grew from 97 → 104. Tests extended: stack-packs-real (language + new framework-pack equivalence + bidirectional invariant), api-dev-adapters (8 language adapters + explicit skip-frameworks assertion), pack-dispatch (all 8 languages + framework parsing). Vitest 198/198 green, prebuild + astro build clean. Ready to commit + push + open PR. No blockers.",
+  "phase": "post-release",
+  "step": "v1.4-shipped-v1.5-planning",
+  "status": "complete",
+  "progress_summary": "v1.4 complete. All 8 PRs in the ADEV-328 → ADEV-337 chain merged (per Linear status=Done): PR 1 #192 (ADEV-328 pack registry architecture), PR 2 #203 (ADEV-329 backfill 5 packs), PR 3 #207 (ADEV-330 dispatcher + api-dev pack-read + kind:mobile), PR 4 (ADEV-334 modern web bulk — elixir/bun/deno + phoenix/remix/sveltekit/solid), PR 5 (ADEV-335 enterprise bulk — java/csharp/kotlin/php + spring/dotnet-aspnet/laravel), PR 6 #218 (ADEV-336 Apple/iOS — swift + swiftui + ios + app-store adapter), PR 6.5 #216 (ADEV-343 mobile bulk — kotlin-android + flutter + react-native-expo + play-store), PR 7 (ADEV-337 hosting adapters — railway/netlify/heroku/aws-amplify), PR 8 (ADEV-331 site surfaces + v1.4 release). Production is on main (latest a1b36e5 after PRs #213/#221/#223/#225/#231 shipped the navigation overhaul + /changelog roadmap timeline + Linear-connected feature-request form on top of v1.4). v1.5 (\"Build the AI app\", ADEV-344) is now in the planning phase with 5 sprint children (ADEV-345 foundation, ADEV-346 claude-api+rag-forge, ADEV-347/348 agent-forge+prompt-ops — duplicates of each other, one should be cancelled, ADEV-349 site+GTM). All 5 sprints already labelled `roadmap-visible`; this session also labelled 3 shipped v1.4 issues (ADEV-336/343/330) so the public /changelog roadmap surfaces both shipped wins and upcoming sprints once a build with LINEAR_API_KEY exported runs. No active orchestration work pending — the platform stack-forge / app-architect / ux-engineer is self-coordinating cleanly via the checkpoint protocol.",
 
   "progress_table": [
     { "id": "intake-1.4",     "label": "Intake: 1.4 scope expansion (5 langs → 11+ langs + iOS)",     "status": "complete" },
@@ -28,8 +28,15 @@
     { "id": "v1.4-pr1",       "label": "v1.4 PR 1 — schema, generator, auto-flag wiring (ADEV-328 / #192 / 4cb0b09)", "status": "complete" },
     { "id": "v1.4-pr2",       "label": "v1.4 PR 2 — backfill 5 existing stacks as language packs (ADEV-329 / #203 / 22c45cd)", "status": "complete" },
     { "id": "v1.4-pr3",       "label": "v1.4 PR 3 — deploy-ops dispatcher + api-dev pack-read + kind:mobile branch (ADEV-330 / #207 / 29218da)", "status": "complete" },
-    { "id": "v1.4-pr4",       "label": "v1.4 PR 4 — Modern web bulk: elixir/bun/deno languages + phoenix/remix/sveltekit/solid frameworks (ADEV-334)", "status": "in_progress" },
-    { "id": "a11y-fixes",     "label": "Land a11y fixes via PRs #196 (ADEV-339-342, squash 08377ea) + #197 (ADEV-343-347 root-cause follow-ups, squash ba8d0cc)", "status": "complete" }
+    { "id": "v1.4-pr4",       "label": "v1.4 PR 4 — Modern web bulk: elixir/bun/deno languages + phoenix/remix/sveltekit/solid frameworks (ADEV-334)", "status": "complete" },
+    { "id": "v1.4-pr5",       "label": "v1.4 PR 5 — Enterprise bulk: java/csharp/kotlin/php + spring/dotnet-aspnet/laravel (ADEV-335)", "status": "complete" },
+    { "id": "v1.4-pr6",       "label": "v1.4 PR 6 — Apple/iOS: swift + swiftui + ios-swiftui + app-store adapter (ADEV-336 / #218)", "status": "complete" },
+    { "id": "v1.4-pr6-5",     "label": "v1.4 PR 6.5 — Mobile bulk: kotlin-android + flutter + react-native-expo + play-store (ADEV-343 / #216)", "status": "complete" },
+    { "id": "v1.4-pr7",       "label": "v1.4 PR 7 — Hosting adapters: railway/netlify/heroku/aws-amplify (ADEV-337)", "status": "complete" },
+    { "id": "v1.4-pr8",       "label": "v1.4 PR 8 — Site surfaces + v1.4.0 release (ADEV-331)", "status": "complete" },
+    { "id": "nav-overhaul",   "label": "Post-v1.4 navigation overhaul: PR #213 homepage + grouped header + ⌘K palette; PR #223 /changelog roadmap timeline + Linear-connected form", "status": "complete" },
+    { "id": "a11y-fixes",     "label": "Land a11y fixes via PRs #196 (ADEV-339-342, squash 08377ea) + #197 (ADEV-343-347 root-cause follow-ups, squash ba8d0cc)", "status": "complete" },
+    { "id": "linear-roadmap-labels", "label": "Linear hygiene: applied `roadmap-visible` to ADEV-336/343/330 (shipped v1.4 PRs) for /changelog roadmap UI population", "status": "complete" }
   ],
 
   "context_primer": {
@@ -61,9 +68,9 @@
   "blockers": [],
 
   "next_actions": [
-    "Commit + push PR 4 from claude/implement-v1.4-features-frpwm and open the PR linked to ADEV-334. Diff: 7 new pack directories (3 language + 4 framework), updated typescript pack.yml, extended pack-dispatch / api-dev-adapter / stack-packs-real tests. Vitest 198/198 green; prebuild + astro build clean.",
-    "After PR 4 merges, parallelize PRs 5/6/6.5/7. PR 5 (ADEV-335) enterprise bulk needs NEW language packs first (java/csharp/kotlin/php) before the framework packs (spring-java/dotnet-aspnet/spring-kotlin/laravel-php). PR 6 (ADEV-336) Apple/iOS first dogfoods the dispatchMobile() envelope shipped in PR 3 (swift language + swiftui framework + ios-swiftui mobile pack + app-store adapter). PR 6.5 (ADEV-343) brings kotlin-android, flutter, react-native-expo, play-store. PR 7 (ADEV-337) hosting adapters: railway/netlify/heroku/aws-amplify deploy-target packs — no coverage flag emitted for kind=deploy-target.",
-    "PR 8 (ADEV-331) is the v1.4 release: /coverage page, v1.4 pill on homepage, version bump on the 5 changed skills (stack-forge, api-dev, deploy-ops, app-architect, migration-ops), CHANGELOG entry, prod deploy via wrangler from laptop."
+    "Deploy unblock — user reported /changelog roadmap empty-state shows the dev-only build hint on staging. Cause: `npm run deploy:staging` ran without LINEAR_API_KEY exported, so gen-roadmap.mjs wrote an empty file. Fix is operational: `export LINEAR_API_KEY=lin_api_…` then `npm run deploy:staging`. PR #231 ALSO gates the build-note to dev-only, so even an empty pull renders cleanly in prod once deployed.",
+    "Resolve the v1.5 Sprint 3 duplicate in Linear: ADEV-347 and ADEV-348 are both titled `v1.5 Sprint 3 — agent-forge + prompt-ops bodies`. Both are currently labelled `roadmap-visible` so they'll both show on the public roadmap. Pick one canonical, cancel the other.",
+    "When v1.5 Sprint 1 (ADEV-345) starts, orchestrator picks back up — first cross-skill question will be how the four new AI-native skills register with the existing pipeline DAG and which gets the `auto-invoked-by` slot in app-architect's design phase."
   ],
 
   "skill_state": {
