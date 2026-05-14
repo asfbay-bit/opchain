@@ -1,0 +1,147 @@
+name: Deploy lag
+
+# Daily check: is opchain.dev running an older build than main HEAD?
+#
+# Deploys are intentionally manual (CLAUDE.md › Deployment) — there's no CI
+# trigger that ships code. The risk is silent drift: PRs merge, nobody runs
+# `npm run deploy`, and prod gets stale without anyone noticing. The Canary
+# workflow only checks liveness ("is /api/health 200 + ok:true"); it does
+# not compare versions, so a 6-day-old build looks just as healthy as a
+# fresh one.
+#
+# This workflow:
+#   1. Reads the `version` field from https://opchain.dev/api/health.
+#   2. Compares it to origin/main HEAD (short SHA).
+#   3. If equal → close any open "Deploy lag" tracking issue.
+#   4. If behind → open or update a single tracking issue with the gap size
+#      and the list of merged-but-undeployed PRs.
+#
+# No deploy permissions, no Cloudflare token. Pure outbound HTTP + GitHub
+# issue write. Background: investigation in `claude/investigate-deployment-gap-eHr3z`
+# found prod at 751ee57 (2026-05-08) while main was on a1b36e5 (2026-05-13)
+# with 40 commits / 36 PRs sitting in the gap.
+
+on:
+  schedule:
+    # 14:00 UTC daily — mid-morning Pacific, after typical morning merges
+    # have settled. Off-hour to dodge the GitHub Actions queue spike at :00.
+    - cron: "3 14 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: deploy-lag
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Compare prod version to main HEAD
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Need full history so `git rev-list <live>..HEAD` and `git log` work
+          # even when the live SHA is many commits behind.
+          fetch-depth: 0
+          ref: main
+
+      - name: Read live version from /api/health
+        id: live
+        run: |
+          set -uo pipefail
+          # Retry up to 3 times — transient 5xx or edge hiccups shouldn't
+          # produce false alarms. Keep the request small; we only need
+          # the JSON body.
+          live=""
+          for attempt in 1 2 3; do
+            body="$(curl -sS -m 10 -H 'accept: application/json' https://opchain.dev/api/health 2>/dev/null || true)"
+            live="$(printf '%s' "$body" | jq -r '.version // empty' 2>/dev/null || true)"
+            if [ -n "$live" ]; then
+              break
+            fi
+            echo "attempt ${attempt}: empty version, body was: ${body}"
+            sleep 5
+          done
+          if [ -z "$live" ]; then
+            echo "::warning::could not read live version after 3 attempts — skipping (no false alarm)"
+            echo "live=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "live version: ${live}"
+          echo "live=${live}" >> "$GITHUB_OUTPUT"
+
+      - name: Compare and report
+        if: steps.live.outputs.live != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LIVE: ${{ steps.live.outputs.live }}
+          ISSUE_TITLE: "Deploy lag: production is behind main"
+        run: |
+          set -uo pipefail
+          head="$(git rev-parse --short HEAD)"
+          echo "main HEAD: ${head}"
+          echo "live:      ${LIVE}"
+
+          # Find any existing open tracking issue by exact title. We avoid
+          # labels so this workflow is self-contained — no label needs to
+          # exist in the repo first.
+          existing="$(gh issue list \
+            --state open \
+            --search "in:title \"${ISSUE_TITLE}\"" \
+            --json number,title \
+            --jq "[.[] | select(.title == \"${ISSUE_TITLE}\")][0].number" 2>/dev/null || true)"
+
+          if [ "${LIVE}" = "${head}" ]; then
+            echo "ok: production is up to date (${LIVE})"
+            if [ -n "${existing}" ]; then
+              gh issue close "${existing}" \
+                --comment "Resolved — production is now at \`${LIVE}\`, matching main HEAD. Closed automatically by .github/workflows/deploy-lag.yml."
+            fi
+            exit 0
+          fi
+
+          # Production is behind. Build the body.
+          if git cat-file -e "${LIVE}^{commit}" 2>/dev/null; then
+            count="$(git rev-list --count "${LIVE}..HEAD" 2>/dev/null || echo "?")"
+            recent="$(git log --pretty=format:'- %h %s' "${LIVE}..HEAD" 2>/dev/null | head -25)"
+            if [ -z "${recent}" ]; then
+              recent="_(no merges between \`${LIVE}\` and \`${head}\` — may be a divergent history)_"
+            fi
+          else
+            count="?"
+            recent="_(live SHA \`${LIVE}\` is not in this repo's history — staging or prod was likely deployed off a branch that never merged)_"
+          fi
+
+          # Build the issue body in a file so we don't fight YAML's block-scalar
+          # indentation rules with a bash heredoc.
+          {
+            printf 'Production worker (`opchain-dev` at https://opchain.dev) is on `%s`.\n' "${LIVE}"
+            printf 'Main HEAD is on `%s`.\n' "${head}"
+            printf 'Gap: **%s commit(s)**.\n\n' "${count}"
+            printf '### Merged but not deployed\n\n%s\n\n' "${recent}"
+            printf '### To catch up\n\n'
+            printf '```bash\n'
+            printf 'git checkout main && git pull\n'
+            printf 'npm install\n'
+            printf 'npm test\n'
+            printf 'npm run build\n'
+            printf 'npm run deploy:staging   # eyeball staging.opchain.dev\n'
+            printf 'npm run deploy           # ship to opchain.dev\n'
+            printf 'curl -sS https://opchain.dev/api/health  # confirm version matches main HEAD\n'
+            printf '```\n\n'
+            printf -- '---\n\n'
+            printf '_Auto-opened by `.github/workflows/deploy-lag.yml`. Close this issue after deploying — the next daily run will reopen it if drift returns._\n'
+          } > body.md
+
+          if [ -n "${existing}" ]; then
+            echo "updating existing issue #${existing}"
+            gh issue edit "${existing}" --body-file body.md
+            gh issue comment "${existing}" --body "Still behind: prod=\`${LIVE}\`, main=\`${head}\`, gap=${count} commit(s)."
+          else
+            echo "opening new tracking issue"
+            gh issue create --title "${ISSUE_TITLE}" --body-file body.md
+          fi
