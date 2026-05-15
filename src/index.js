@@ -177,13 +177,18 @@ async function fetchAsset(env, request, origin) {
 // ── Roadmap vote handlers ───────────────────────────────────────────────────
 // One vote per IP per day per Linear issue. Vote counts are stored in the
 // NOTIFY KV namespace under keys:
-//   vote-count:<OPCHN-NNN>                          → integer
-//   vote-lock:<OPCHN-NNN>:<YYYY-MM-DD>:<ip-hash>    → "1" (TTL 25h)
+//   vote-count:<TEAM-NNN>                          → integer
+//   vote-lock:<TEAM-NNN>:<YYYY-MM-DD>:<ip-hash>    → "1" (TTL 25h)
 // We hash the IP (first 16 hex chars of SHA-256) so the lock keys carry
 // no PII at rest. KV is eventually consistent — that's fine for a vote
 // counter; the worst case is a few seconds of stale display.
-
-const VOTE_ID_RE = /^OPCHN-\d{1,6}$/;
+//
+// The regex accepts any Linear team prefix (2-8 uppercase letters), not just
+// the original `OPCHN-` — the workspace renamed its team to "Aidopsdev"
+// (`ADEV-`) at some point and the old hardcoded pattern silently rejected
+// every real identifier. The strict character class (uppercase letters +
+// digits only) keeps the value safe to interpolate into KV keys.
+const VOTE_ID_RE = /^[A-Z]{2,8}-\d{1,6}$/;
 const VOTE_BATCH_MAX = 50;
 const VOTE_TTL_SECONDS = 25 * 60 * 60; // 25h, so lock spans the next-day boundary
 
