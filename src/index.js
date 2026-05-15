@@ -2,16 +2,18 @@
  * opchain-dev — Cloudflare Worker for opchain.dev
  *
  * Routes:
- *   GET  /api/health    → health check
- *   POST /api/feedback  → Linear issue creation
- *   POST /api/notify    → install/download soft-gate capture (KV-backed)
- *   GET  /*             → static assets (public/)
+ *   GET  /api/health           → health check
+ *   POST /api/feedback         → Linear issue creation
+ *   POST /api/notify           → install/download soft-gate capture (KV-backed)
+ *   POST /api/email-pipeline   → /pipeline-builder Step 5 email send (Resend)
+ *   GET  /*                    → static assets (public/)
  *
  * The `/api/try/*` chat surface and the email-gated session flow were
  * removed in `claude/remove-try-it`. Old links (/tryit) now 301 to /demo.
  */
 
-import { FeedbackSchema, NotifySchema, parseBody } from "./lib/schemas.js";
+import { FeedbackSchema, NotifySchema, NotifyPipelineSchema, parseBody } from "./lib/schemas.js";
+import { buildPipelineEmailHtml, buildPipelineEmailText } from "./lib/email-templates/pipeline.js";
 import { capture, hashDistinctId } from "./lib/analytics.js";
 import { bindLogger, newRequestId, EVENTS } from "./lib/request-id.js";
 import { evalFlag, evalFlags } from "./lib/flags/eval.js";
@@ -541,6 +543,162 @@ async function sha256Hex(input) {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// ── Email Pipeline (Resend) ─────────────────────────────────────────────────
+//
+// Step 5 of /pipeline-builder offers "email it to me". The page posts the
+// user's name + email plus the four wizard answers and the recommended skill
+// set; we render a rich HTML email and ship it via Resend's HTTP API. The
+// send blocks the response so we can surface upstream failures inline; KV
+// persistence and PostHog capture run after the response via ctx.waitUntil.
+//
+// Resend send is gated on:
+//   - site.ops.api-email-pipeline.kill (router-level)
+//   - per-IP rate limit (3 sends / 60s, same threshold as /api/notify)
+//   - presence of RESEND_API_KEY (503 not_configured otherwise)
+//
+// On success: lead persisted under `lead:<sha256(email)>` (same key shape as
+// /api/notify, so the same address from both surfaces upserts a single row),
+// plus a `pipeline_emailed` event in PostHog. On Resend non-2xx: KV write is
+// skipped and the response carries `{ code: "email_send_failed" }`.
+
+const EMAIL_PIPELINE_RATELIMIT_MAX = 3;
+const EMAIL_PIPELINE_RATELIMIT_TTL_S = 60;
+const RESEND_ENDPOINT = "https://api.resend.com/emails";
+const RESEND_TIMEOUT_MS = 10_000;
+const DEFAULT_EMAIL_FROM = "opchain.dev <pipeline@opchain.dev>";
+
+async function handleEmailPipeline(request, env, ctx, origin, requestId) {
+  const log = bindLogger(requestId);
+
+  const parsed = await parseBody(request, NotifyPipelineSchema);
+  if (!parsed.ok) {
+    return new Response(
+      JSON.stringify({ error: parsed.error, code: parsed.code, issues: parsed.issues }),
+      { status: 400, headers: corsHeaders(origin, requestId) },
+    );
+  }
+  const { name, email, answers, skills } = parsed.data;
+
+  if (!env.RESEND_API_KEY) {
+    log.event(EVENTS.PIPELINE_EMAIL_NOT_CONFIGURED, {});
+    return new Response(
+      JSON.stringify({ error: "Email service not configured.", code: "not_configured" }),
+      { status: 503, headers: corsHeaders(origin, requestId) },
+    );
+  }
+
+  const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
+
+  // Rate-limit per IP. KV is best-effort — if NOTIFY isn't bound we let
+  // the submission through, just like /api/notify does.
+  if (env.NOTIFY) {
+    const rlKey = `ratelimit:email-pipeline:${ip}`;
+    const current = Number(await env.NOTIFY.get(rlKey)) || 0;
+    if (current >= EMAIL_PIPELINE_RATELIMIT_MAX) {
+      log.event(EVENTS.PIPELINE_EMAIL_RATELIMITED, { ip });
+      return new Response(
+        JSON.stringify({ error: "Too many sends, slow down.", code: "rate_limited" }),
+        { status: 429, headers: corsHeaders(origin, requestId) },
+      );
+    }
+    await env.NOTIFY.put(rlKey, String(current + 1), {
+      expirationTtl: EMAIL_PIPELINE_RATELIMIT_TTL_S,
+    });
+  }
+
+  const html = buildPipelineEmailHtml({ name, answers, skills });
+  const text = buildPipelineEmailText({ name, answers, skills });
+  const from = env.EMAIL_FROM || DEFAULT_EMAIL_FROM;
+
+  let resendData;
+  try {
+    const resendRes = await fetch(RESEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from,
+        to: [email],
+        subject: "Your opchain pipeline",
+        html,
+        text,
+      }),
+      signal: AbortSignal.timeout(RESEND_TIMEOUT_MS),
+    });
+    if (!resendRes.ok) {
+      // Drain the body so the socket can be recycled, then log + return.
+      const body = await resendRes.text().catch(() => "");
+      log.eventError(EVENTS.PIPELINE_EMAIL_FAILED, {
+        upstream: "resend",
+        status: resendRes.status,
+        body: body.slice(0, 200),
+      });
+      return new Response(
+        JSON.stringify({ error: "Email could not be sent.", code: "email_send_failed" }),
+        { status: 502, headers: corsHeaders(origin, requestId) },
+      );
+    }
+    resendData = await resendRes.json().catch(() => ({}));
+  } catch (e) {
+    log.eventError(EVENTS.PIPELINE_EMAIL_FAILED, {
+      upstream: "resend",
+      reason: "fetch_error",
+      message: e?.message,
+    });
+    return new Response(
+      JSON.stringify({ error: "Email service unreachable.", code: "email_send_failed" }),
+      { status: 502, headers: corsHeaders(origin, requestId) },
+    );
+  }
+
+  const sentAt = new Date().toISOString();
+  log.event(EVENTS.PIPELINE_EMAIL_SENT, {
+    resend_id: resendData?.id ?? null,
+    skills: skills.length,
+  });
+
+  // Lead persistence — same key shape as /api/notify so the lead list
+  // stays unified. Best-effort, runs after the response.
+  if (env.NOTIFY) {
+    const emailHash = await sha256Hex(email.toLowerCase());
+    const summary = `${answers.kind} · team ${answers.team} · ${answers.deploy} · ${answers.aiSurface}`;
+    const record = {
+      name,
+      email,
+      emailHash,
+      building: `[pipeline-builder] ${summary}`,
+      source: "pipeline-builder-email",
+      sentAt,
+      requestId,
+    };
+    ctx?.waitUntil?.(env.NOTIFY.put(`lead:${emailHash}`, JSON.stringify(record)));
+  }
+
+  // Fire-and-forget PostHog capture.
+  try {
+    const distinctId = await hashDistinctId(email);
+    ctx?.waitUntil?.(capture(env, {
+      distinctId,
+      event: "pipeline_emailed",
+      properties: {
+        kind: answers.kind,
+        team: answers.team,
+        deploy: answers.deploy,
+        ai_surface: answers.aiSurface,
+        skills_count: skills.length,
+        request_id: requestId,
+      },
+    }));
+  } catch { /* analytics never breaks a send */ }
+
+  return new Response(
+    JSON.stringify({ ok: true, id: resendData?.id ?? null }),
+    { status: 200, headers: corsHeaders(origin, requestId) },
+  );
+}
+
 // ── Flags API ───────────────────────────────────────────────────────────────
 //
 // /api/flags/public returns the subset of flags safe to ship to the browser
@@ -642,6 +800,18 @@ async function route(request, env, ctx, url, origin, requestId) {
         );
       }
       return handleNotify(request, env, ctx, origin, requestId);
+    }
+
+    if (url.pathname === "/api/email-pipeline" && request.method === "POST") {
+      // Ops kill switch — when on, return 503 without touching Resend or
+      // KV. Use during a Resend outage, abuse incident, or runaway cost.
+      if (await evalFlag("site.ops.api-email-pipeline.kill", { env, ctx })) {
+        return new Response(
+          JSON.stringify({ error: "Pipeline email is temporarily unavailable.", code: "kill_switch" }),
+          { status: 503, headers: corsHeaders(origin, requestId) },
+        );
+      }
+      return handleEmailPipeline(request, env, ctx, origin, requestId);
     }
 
     // /api/try/* is gone. Reject with a clean 410 so any cached client

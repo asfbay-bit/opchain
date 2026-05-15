@@ -2,6 +2,15 @@
 import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
 import Icon from "../components/Icon.astro";
+import { defaultFor } from "../lib/flags/build-defaults";
+
+// Build-time read of the email-pipeline feature flag. Renders the email
+// block when the registry default is true; the runtime <meta> snapshot
+// (see Base.astro) layers PostHog overrides on top of this for SPA-style
+// flips post-consent.
+const emailPipelineEnabled = Boolean(
+  defaultFor("site.feature.email-pipeline.enabled"),
+);
 ---
 
 <Base
@@ -195,26 +204,42 @@ import Icon from "../components/Icon.astro";
           </button>
         </div>
 
-        <div class="result-section email-block">
-          <div class="result-head">Email me this</div>
-          <p class="email-sub">
-            Drop your email and we'll send the full pipeline + a follow-up
-            when a relevant new skill ships. Skippable.
-          </p>
-          <form class="email-form" id="email-form" autocomplete="on">
-            <input
-              type="email"
-              name="email"
-              id="email-input"
-              placeholder="you@example.com"
-              autocomplete="email"
-              inputmode="email"
-              required
-            />
-            <button type="submit" class="email-submit" id="email-submit">email it to me</button>
-          </form>
-          <div class="email-status" id="email-status" hidden></div>
-        </div>
+        {emailPipelineEnabled && (
+          <div class="result-section email-block" id="email-block">
+            <div class="result-head">Email me this</div>
+            <p class="email-sub">
+              Drop your name and email and we'll send the full pipeline —
+              your answers, the recommended skills, and a numbered
+              next-steps checklist. Skippable.
+            </p>
+            <form class="email-form" id="email-form" autocomplete="on">
+              <input
+                type="text"
+                name="name"
+                id="name-input"
+                placeholder="Your name"
+                autocomplete="name"
+                maxlength="80"
+                required
+              />
+              <input
+                type="email"
+                name="email"
+                id="email-input"
+                placeholder="you@example.com"
+                autocomplete="email"
+                inputmode="email"
+                required
+              />
+              <button type="submit" class="email-submit" id="email-submit">email it to me</button>
+            </form>
+            <div class="email-status" id="email-status" hidden></div>
+            <div class="email-success" id="email-success" hidden>
+              <span class="email-success-text" id="email-success-text"></span>
+              <button type="button" class="email-reset" id="email-reset">send to another address</button>
+            </div>
+          </div>
+        )}
 
         <div class="result-section">
           <div class="result-head">Next steps</div>
@@ -503,7 +528,8 @@ import Icon from "../components/Icon.astro";
     gap: 0.5rem;
     flex-wrap: wrap;
   }
-  .email-form input[type="email"] {
+  .email-form input[type="email"],
+  .email-form input[type="text"] {
     flex: 1 1 220px;
     appearance: none;
     background: var(--card);
@@ -514,7 +540,8 @@ import Icon from "../components/Icon.astro";
     font-size: var(--fs-base);
     padding: 0.55rem 0.85rem;
   }
-  .email-form input[type="email"]:focus {
+  .email-form input[type="email"]:focus,
+  .email-form input[type="text"]:focus {
     outline: none;
     border-color: var(--accent);
     box-shadow: 0 0 0 2px var(--accent-dim);
@@ -540,6 +567,35 @@ import Icon from "../components/Icon.astro";
     margin-top: 0.5rem;
     color: var(--muted);
   }
+  .email-success {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.8rem 1rem;
+    border: 0.5px solid var(--accent);
+    background: var(--accent-dim);
+    border-radius: var(--r-xs);
+    color: var(--text);
+    font-size: var(--fs-sm);
+  }
+  .email-success-text {
+    flex: 1 1 220px;
+  }
+  .email-reset {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--accent);
+    font: inherit;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+  }
+  .email-reset:hover { color: var(--text); }
 
   .cta-row {
     display: flex;
@@ -829,48 +885,133 @@ ${DEPLOY_NOTE[a.deploy]}
   wireCopy("copy-install", "install-cmd");
   wireCopy("copy-claude", "claude-md");
 
-  // Email capture for the recommendation
+  // ── Email capture (POST /api/email-pipeline) ──────────────────
+  // Collects name + email, bundles the wizard answers + recommended
+  // skills (via `recommend()` + SKILL_BLURB above), and posts to the
+  // worker, which renders rich HTML and ships via Resend. On success
+  // we swap the form out for a success state with a "send to another
+  // address" reset; on failure we keep the form mounted with the
+  // user's input intact and show the error inline.
+  const KIND_LABEL: Record<Kind, string> = {
+    "web-app": "web app",
+    "api": "API / backend",
+    "marketing-site": "marketing site",
+    "data": "data product",
+    "cli": "CLI / library",
+    "legacy": "legacy migration",
+  };
+  const TEAM_LABEL: Record<Team, string> = {
+    "solo": "solo",
+    "small": "team of 2–5",
+    "medium": "team of 6–20",
+    "large": "org of 21+",
+  };
+  const DEPLOY_LABEL: Record<Deploy, string> = {
+    "cloudflare": "Cloudflare",
+    "vercel": "Vercel",
+    "aws": "AWS",
+    "fly": "Fly.io",
+    "render": "Render / Railway",
+    "self-hosted": "self-hosted",
+  };
+  const SURFACE_LABEL: Record<Surface, string> = {
+    "claude-code": "Claude Code",
+    "claude-ai": "Claude.ai / Desktop",
+    "both": "Claude Code + Claude.ai",
+  };
+  function emailPayload(a: Answers, skills: string[]) {
+    return {
+      answers: {
+        kind: KIND_LABEL[a.kind],
+        team: TEAM_LABEL[a.team],
+        deploy: DEPLOY_LABEL[a.deploy],
+        aiSurface: SURFACE_LABEL[a.surface],
+      },
+      skills: skills.map((id) => ({
+        id,
+        name: id,
+        summary: SKILL_BLURB[id] || "",
+      })),
+    };
+  }
+
   const emailForm = document.getElementById("email-form") as HTMLFormElement | null;
-  const emailStatus = document.getElementById("email-status")!;
+  const emailStatus = document.getElementById("email-status");
   const emailSubmit = document.getElementById("email-submit") as HTMLButtonElement | null;
+  const emailSuccess = document.getElementById("email-success");
+  const emailSuccessText = document.getElementById("email-success-text");
+  const emailReset = document.getElementById("email-reset");
+
+  function showStatus(msg: string, kind: "muted" | "warn" | "ok") {
+    if (!emailStatus) return;
+    emailStatus.hidden = false;
+    emailStatus.textContent = msg;
+    const color = kind === "ok"
+      ? "var(--success, #0D9488)"
+      : kind === "warn"
+      ? "var(--in-progress, #f59e0b)"
+      : "var(--muted)";
+    emailStatus.setAttribute("style", `color: ${color}`);
+  }
+
+  function clearStatus() {
+    if (!emailStatus) return;
+    emailStatus.hidden = true;
+    emailStatus.textContent = "";
+  }
 
   emailForm?.addEventListener("submit", async (ev) => {
     ev.preventDefault();
     if (!emailSubmit) return;
     const fd = new FormData(emailForm);
+    const name = String(fd.get("name") || "").trim();
     const email = String(fd.get("email") || "").trim();
+    if (!name || !email) {
+      showStatus("Both name and email are required.", "warn");
+      return;
+    }
     const a = readAnswers();
-    const payload = {
-      email,
-      source: "other" as const,
-      // Bundle the wizard answers into the optional `building` field so
-      // they get persisted alongside the email without changing the
-      // /api/notify schema.
-      building: `[pipeline-builder] ${a.kind} · team ${a.team} · ${a.deploy} · ${a.surface}`,
-    };
+    const skills = recommend(a);
+    const payload = { name, email, ...emailPayload(a, skills) };
     emailSubmit.disabled = true;
-    emailStatus.hidden = false;
-    emailStatus.textContent = "Sending…";
-    emailStatus.setAttribute("style", "color: var(--muted)");
+    showStatus("Sending…", "muted");
     try {
-      const res = await fetch("/api/notify", {
+      const res = await fetch("/api/email-pipeline", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        emailStatus.textContent = body.error || `Couldn't save (HTTP ${res.status}).`;
-        emailStatus.setAttribute("style", "color: var(--in-progress, #f59e0b)");
+        const body = await res.json().catch(() => ({}) as { error?: string });
+        showStatus(body.error || `Couldn't send (HTTP ${res.status}).`, "warn");
         return;
       }
-      emailStatus.textContent = "Got it — we'll send this and ping you on relevant updates.";
-      emailStatus.setAttribute("style", "color: var(--success, #0D9488)");
+      // Swap the form out for the success state. The form node stays in
+      // the DOM with its inputs preserved so "send to another address"
+      // can restore it instantly without losing the wizard context.
+      clearStatus();
+      emailForm.hidden = true;
+      if (emailSuccess && emailSuccessText) {
+        emailSuccessText.textContent = `Sent to ${email} — check your inbox.`;
+        emailSuccess.hidden = false;
+      }
     } catch {
-      emailStatus.textContent = "Network error — try again in a moment.";
-      emailStatus.setAttribute("style", "color: var(--in-progress, #f59e0b)");
+      showStatus("Network error — try again in a moment.", "warn");
     } finally {
       emailSubmit.disabled = false;
+    }
+  });
+
+  emailReset?.addEventListener("click", () => {
+    if (!emailForm || !emailSuccess) return;
+    emailSuccess.hidden = true;
+    emailForm.hidden = false;
+    // Clear only the email; keep name so a returning visitor can re-fire
+    // quickly with the same identity.
+    const emailInput = document.getElementById("email-input") as HTMLInputElement | null;
+    if (emailInput) {
+      emailInput.value = "";
+      emailInput.focus();
     }
   });
 </script>

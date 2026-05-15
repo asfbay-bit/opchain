@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-05-12T13:10:00Z",
+  "updated_at": "2026-05-13T20:30:00Z",
   "phase": "pr-cycle",
-  "step": "last-merge-#223",
-  "status": "complete",
-  "progress_summary": "Caught up through PR #223 (squash-merged to main as 8b8e778). PR #223 was the /changelog roadmap follow-up to #213. Landed in three coherent commits on the same branch: 488cada (build-time Linear pull + types + .gitignore + prebuild wire), 2091b4a (POST/GET /api/votes routes with per-IP/day KV dedup, /api/feedback category + community-submitted label, fs-based roadmap loader fix), e9a1dd9 (RoadmapTimeline + RoadmapForm components + /changelog integration). CI on commit C: build ✅, type-check ✅, e2e ✅, worker tests ✅ (266/266), LHCI 1.00 a11y/best/seo on every route. Commit A introduced a transient site/build failure (dynamic JSON import didn't resolve in CI's site job because the root prebuild never runs there); commit B fixed it by switching to a synchronous fs.readFileSync at SSG time. Earlier in the session: caught up through PR #213 (314df02b) and PR #221 (3d279379 — the checkpoint update PR for the nav overhaul).",
+  "step": "pr-233-open-awaiting-ci",
+  "status": "in_progress",
+  "progress_summary": "PR #233 (feat(email-pipeline): send pipeline-builder Step 5 result via Resend) opened ready-for-review on branch claude/cloudflare-email-pipeline-cm8n0; commit 2e49477; three CI checks (Worker, Site, LHCI) in_progress at push time; zero review comments. LHCI bot reported median scores: 6 routes at 0.99+ perf / 1.00 a11y/best/seo, /architecture still at 0.89 perf (pre-existing SVG render cost, not touched). PRs #213/#221/#223 remain merged; manual prod deploy of those still owned by user. Earlier in repo history: PR #223 (squash-merged to main as 8b8e778) shipped /changelog roadmap timeline + Linear-connected feature-request form; PR #213 (314df02b) shipped nav overhaul; PR #221 (3d279379) was the checkpoint update for that work.",
   "progress_table": [
     { "id": "pr-183", "label": "PR #183 — v1.4 install upgrade flow + main-CI repairs", "status": "complete" },
     { "id": "pr-184", "label": "PR #184 — demo-mobile test fix (closed, folded into #183)", "status": "complete" },
@@ -19,7 +19,8 @@
     { "id": "pr-189", "label": "PR #189 — checkpoint: orchestrator + bug-check refresh",            "status": "complete" },
     { "id": "pr-213", "label": "PR #213 — feat(site): redesigned homepage + grouped header + ⌘K palette", "status": "complete" },
     { "id": "pr-221", "label": "PR #221 — checkpoint(ux,git-ops): record PR #213 merge", "status": "complete" },
-    { "id": "pr-223", "label": "PR #223 — feat(changelog): roadmap timeline + Linear-connected feature-request form", "status": "complete" }
+    { "id": "pr-223", "label": "PR #223 — feat(changelog): roadmap timeline + Linear-connected feature-request form", "status": "complete" },
+    { "id": "pr-233", "label": "PR #233 — feat(email-pipeline): Resend-powered /api/email-pipeline + name field on Step 5", "status": "in_progress" }
   ],
   "context_primer": {
     "key_decisions": [
@@ -41,13 +42,28 @@
   },
   "blockers": [],
   "next_actions": [
-    "PRs #213 + #221 + #223 are all merged. Manual deploy step is the user's: `npm run deploy:staging` → eyeball staging.opchain.dev/changelog → `npm run deploy`. Per CLAUDE.md, deploys never run in CI.",
-    "Operational follow-up in Linear (not git work): add the `roadmap-visible` label and apply it to issues that should surface on /changelog publicly. Optionally add `community-submitted` label + set LINEAR_COMMUNITY_LABEL_ID in the Worker env.",
-    "Local main may be divergent from origin/main due to squash merges (now six ahead in this session) — re-checkout from origin/main when starting new work."
+    "Watch PR #233 CI (Worker / Site / LHCI). If any check fails, investigate from the github-webhook-activity event; small fixes commit directly to the branch, anything ambiguous asks the user first.",
+    "After PR #233 CI is green: merge (the user typically merges directly; this session opened it ready-for-review). Manual deploy follows per CLAUDE.md — RESEND_API_KEY secret must be set on both staging + production envs before flipping the flag on.",
+    "PRs #213 + #221 + #223 still need a user-run manual deploy: `npm run deploy:staging` → eyeball → `npm run deploy`. Per CLAUDE.md, deploys never run in CI.",
+    "Operational follow-up in Linear (not git work): add the `roadmap-visible` label; optionally `community-submitted` label + LINEAR_COMMUNITY_LABEL_ID."
   ],
   "skill_state": {
-    "current_branch": "claude/checkpoints-roadmap-ship (this PR; merged-then-deletable)",
-    "open_prs": [],
+    "current_branch": "claude/cloudflare-email-pipeline-cm8n0 (PR #233 open, awaiting CI)",
+    "open_prs": [
+      {
+        "number": 233,
+        "title": "Add Resend-powered /api/email-pipeline + name field on Step 5",
+        "branch": "claude/cloudflare-email-pipeline-cm8n0",
+        "head_sha": "2e49477",
+        "opened_at": "2026-05-13T20:25:00Z",
+        "scope": "src/lib/schemas.js + src/lib/email-templates/pipeline.js (new) + src/index.js + src/lib/flags/registry.js + src/lib/request-id.js + wrangler.jsonc + .env.example + site/src/pages/pipeline-builder.astro + tests/email-pipeline.test.js (new)",
+        "diff_stat": "9 files changed, 1037 insertions, 48 deletions",
+        "commits_on_branch": 1,
+        "ci_initial": "Worker/Site/LHCI all in_progress at push; LHCI median scores reported, no regression",
+        "review_comments": 0,
+        "linked_ticket": null
+      }
+    ],
     "merged_prs": [
       {
         "number": 140,
