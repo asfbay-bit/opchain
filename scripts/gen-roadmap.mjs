@@ -7,12 +7,23 @@
  * Writes the result to `site/src/data/roadmap.json` (gitignored — regenerated
  * on every build).
  *
- * Graceful degrade:
+ * Graceful degrade (default — for contributors / CI without a Linear token):
  *   - LINEAR_API_KEY missing → writes an empty roadmap and exits 0
  *   - Linear API errors / rate limits → writes an empty roadmap and exits 0
  *   - 0 issues with the label → writes an empty roadmap and exits 0
  * The empty form keeps the Astro build green even on contributors' machines
  * who don't have a Linear token.
+ *
+ * Strict mode (`OPCHAIN_REQUIRE_LINEAR=1` — set by scripts/deploy.mjs):
+ *   - LINEAR_API_KEY missing → exits 1 with a remediation message
+ *   - Linear API errors / rate limits → exits 1 (was: silent empty)
+ *   - 0 issues with the label → exits 1 (was: silent empty)
+ * Strict mode catches the exact failure mode that shipped an empty
+ * /changelog roadmap to production in May 2026: a stale LINEAR_API_KEY
+ * that passed presence-check but failed at the Linear API, leaving the
+ * Astro build green with empty data. Override (e.g. to ship an empty
+ * roadmap on purpose) by running `npm run prebuild && wrangler deploy`
+ * directly without the deploy.mjs wrapper.
  *
  * Bucketing rule (label-free, state-driven):
  *   - state.type === "completed"           → shipped
@@ -152,13 +163,14 @@ function writeRoadmap(payload) {
 }
 
 async function main() {
+  const strict = process.env.OPCHAIN_REQUIRE_LINEAR === "1";
   const apiKey = process.env.LINEAR_API_KEY;
   if (!apiKey) {
     // Deploy mode: refuse to ship an empty roadmap. scripts/deploy.mjs
     // sets OPCHAIN_REQUIRE_LINEAR=1 before invoking prebuild; any path
     // that bypasses the wrapper (e.g. someone running `npm run prebuild
     // && wrangler deploy` by hand) still gets caught here.
-    if (process.env.OPCHAIN_REQUIRE_LINEAR === "1") {
+    if (strict) {
       console.error(
         "[gen-roadmap] aborting — OPCHAIN_REQUIRE_LINEAR=1 and LINEAR_API_KEY is missing.\n" +
           "  Set LINEAR_API_KEY in .dev.vars (preferred) or export it in this shell,\n" +
@@ -180,24 +192,55 @@ async function main() {
     );
     return;
   }
+  let issues;
   try {
-    const issues = await fetchAllIssues(apiKey);
-    const items = issues.map(shape);
-    const payload = {
-      generated_at: new Date().toISOString(),
-      note: null,
-      items: groupByBucket(items),
-      milestones: collectMilestones(items),
-    };
-    writeRoadmap(payload);
-    console.log(
-      `[gen-roadmap] wrote ${items.length} items (shipped=${payload.items.shipped.length}, in-progress=${payload.items["in-progress"].length}, planned=${payload.items.planned.length}, backlog=${payload.items.backlog.length}) → ${OUT_PATH}`,
-    );
+    issues = await fetchAllIssues(apiKey);
   } catch (e) {
+    if (strict) {
+      console.error(
+        `[gen-roadmap] aborting — Linear fetch failed under OPCHAIN_REQUIRE_LINEAR=1:\n` +
+          `    ${e.message}\n\n` +
+          `  Common causes:\n` +
+          `    • LINEAR_API_KEY is set but invalid/expired — mint a fresh key at\n` +
+          `      https://linear.app/settings/api and update .dev.vars.\n` +
+          `    • The key has no read access to the team owning the\n` +
+          `      \`roadmap-visible\`-labelled issues.\n` +
+          `    • Linear is rate-limiting the key — wait a minute and retry.\n` +
+          `    • Network connectivity issue — verify api.linear.app is reachable.\n`,
+      );
+      process.exit(1);
+    }
     const empty = emptyRoadmap(`Linear fetch failed: ${e.message}`);
     writeRoadmap(empty);
     console.warn("[gen-roadmap] Linear fetch failed —", e.message, "— wrote empty roadmap (build continues)");
+    return;
   }
+  const items = issues.map(shape);
+  if (items.length === 0 && strict) {
+    console.error(
+      `[gen-roadmap] aborting — 0 Linear issues match \`roadmap-visible\` under OPCHAIN_REQUIRE_LINEAR=1.\n` +
+        `\n` +
+        `  Verify in Linear:\n` +
+        `    • The label name is exactly \`roadmap-visible\` (case-sensitive,\n` +
+        `      lowercase, hyphenated). The GraphQL filter is an exact match.\n` +
+        `    • At least one issue has this label applied.\n` +
+        `    • The API key has read access to the team owning those issues.\n` +
+        `\n` +
+        `  If shipping an empty roadmap is intentional, bypass the wrapper:\n` +
+        `    npm run prebuild && npx wrangler deploy\n`,
+    );
+    process.exit(1);
+  }
+  const payload = {
+    generated_at: new Date().toISOString(),
+    note: null,
+    items: groupByBucket(items),
+    milestones: collectMilestones(items),
+  };
+  writeRoadmap(payload);
+  console.log(
+    `[gen-roadmap] wrote ${items.length} items (shipped=${payload.items.shipped.length}, in-progress=${payload.items["in-progress"].length}, planned=${payload.items.planned.length}, backlog=${payload.items.backlog.length}) → ${OUT_PATH}`,
+  );
 }
 
 main();

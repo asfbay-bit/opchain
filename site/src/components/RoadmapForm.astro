@@ -86,7 +86,7 @@
 
     <div class="submit-success" id="rr-success" role="status" aria-live="polite" hidden>
       <strong>Got it. </strong>
-      Your request was filed as <span class="lid" data-success-id>OPCHN-…</span> and
+      Your request was filed as <span class="lid" data-success-id>…</span> and
       will be triaged on the next pass. Leave an email and we'll let you
       know when it ships.
     </div>
@@ -150,7 +150,7 @@
         };
         if (res.ok && json.ok) {
           const idEl = success.querySelector<HTMLElement>("[data-success-id]");
-          if (idEl) idEl.textContent = json.id || "OPCHN-…";
+          if (idEl) idEl.textContent = json.id || "…";
           success.hidden = false;
           form.reset();
           success.scrollIntoView({ behavior: "smooth", block: "center" });
