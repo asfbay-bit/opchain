@@ -154,10 +154,23 @@ function writeRoadmap(payload) {
 async function main() {
   const apiKey = process.env.LINEAR_API_KEY;
   if (!apiKey) {
-    // No key = clean empty state, not a "build warning". The console
-    // log below tells the developer; the JSON's `note` stays null so
-    // the UI doesn't surface anything user-visible. Fetch errors
-    // below DO set a note — that's a real diagnostic.
+    // Deploy mode: refuse to ship an empty roadmap. scripts/deploy.mjs
+    // sets OPCHAIN_REQUIRE_LINEAR=1 before invoking prebuild; any path
+    // that bypasses the wrapper (e.g. someone running `npm run prebuild
+    // && wrangler deploy` by hand) still gets caught here.
+    if (process.env.OPCHAIN_REQUIRE_LINEAR === "1") {
+      console.error(
+        "[gen-roadmap] aborting — OPCHAIN_REQUIRE_LINEAR=1 and LINEAR_API_KEY is missing.\n" +
+          "  Set LINEAR_API_KEY in .dev.vars (preferred) or export it in this shell,\n" +
+          "  then re-run. Use scripts/deploy.mjs (npm run deploy / deploy:staging) to get\n" +
+          "  the full preflight.",
+      );
+      process.exit(1);
+    }
+    // No key + not in deploy mode = clean empty state for local dev /
+    // contributors / CI. The JSON's `note` stays null so the UI doesn't
+    // surface anything user-visible. Fetch errors below DO set a note —
+    // that's a real diagnostic.
     const empty = emptyRoadmap(null);
     writeRoadmap(empty);
     console.log(

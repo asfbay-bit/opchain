@@ -35,8 +35,10 @@ feature branch ─► PR ─► CI green (tests only) ─► merge to main
                                                 opchain.dev
 ```
 
-- `npm run deploy:staging` → `wrangler deploy --env staging`
-- `npm run deploy` → `wrangler deploy` (production)
+- `npm run deploy:staging` → `node scripts/deploy.mjs --staging` → `wrangler deploy --env staging`
+- `npm run deploy` → `node scripts/deploy.mjs` → `wrangler deploy` (production)
+- The wrapper loads `.dev.vars` and refuses to deploy without `LINEAR_API_KEY` set. This blocks the class of bug where `scripts/gen-roadmap.mjs` silently ships an empty `/changelog` roadmap because the build couldn't reach Linear.
+- It also sets `OPCHAIN_REQUIRE_LINEAR=1` so `gen-roadmap.mjs` fails loud even if someone bypasses the wrapper (e.g. running `npm run prebuild && wrangler deploy` by hand).
 - After each deploy, sanity-check by hand: `curl -sS https://staging.opchain.dev/api/health` and confirm `version` matches your local commit SHA.
 
 ### CI
