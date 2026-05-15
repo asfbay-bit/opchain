@@ -212,7 +212,7 @@ const emailPipelineEnabled = Boolean(
               your answers, the recommended skills, and a numbered
               next-steps checklist. Skippable.
             </p>
-            <form class="email-form" id="email-form" autocomplete="on">
+            <div class="email-form" id="email-form">
               <input
                 type="text"
                 name="name"
@@ -231,8 +231,8 @@ const emailPipelineEnabled = Boolean(
                 inputmode="email"
                 required
               />
-              <button type="submit" class="email-submit" id="email-submit">email it to me</button>
-            </form>
+              <button type="button" class="email-submit" id="email-submit">email it to me</button>
+            </div>
             <div class="email-status" id="email-status" hidden></div>
             <div class="email-success" id="email-success" hidden>
               <span class="email-success-text" id="email-success-text"></span>
@@ -935,12 +935,14 @@ ${DEPLOY_NOTE[a.deploy]}
     };
   }
 
-  const emailForm = document.getElementById("email-form") as HTMLFormElement | null;
+  const emailForm = document.getElementById("email-form");
   const emailStatus = document.getElementById("email-status");
   const emailSubmit = document.getElementById("email-submit") as HTMLButtonElement | null;
   const emailSuccess = document.getElementById("email-success");
   const emailSuccessText = document.getElementById("email-success-text");
   const emailReset = document.getElementById("email-reset");
+  const nameInput = document.getElementById("name-input") as HTMLInputElement | null;
+  const emailInput = document.getElementById("email-input") as HTMLInputElement | null;
 
   function showStatus(msg: string, kind: "muted" | "warn" | "ok") {
     if (!emailStatus) return;
@@ -960,12 +962,11 @@ ${DEPLOY_NOTE[a.deploy]}
     emailStatus.textContent = "";
   }
 
-  emailForm?.addEventListener("submit", async (ev) => {
-    ev.preventDefault();
-    if (!emailSubmit) return;
-    const fd = new FormData(emailForm);
-    const name = String(fd.get("name") || "").trim();
-    const email = String(fd.get("email") || "").trim();
+  async function submitEmailPipeline() {
+    if (!emailSubmit || !emailForm) return;
+    if (emailSubmit.disabled) return;
+    const name = (nameInput?.value ?? "").trim();
+    const email = (emailInput?.value ?? "").trim();
     if (!name || !email) {
       showStatus("Both name and email are required.", "warn");
       return;
@@ -986,9 +987,6 @@ ${DEPLOY_NOTE[a.deploy]}
         showStatus(body.error || `Couldn't send (HTTP ${res.status}).`, "warn");
         return;
       }
-      // Swap the form out for the success state. The form node stays in
-      // the DOM with its inputs preserved so "send to another address"
-      // can restore it instantly without losing the wizard context.
       clearStatus();
       emailForm.hidden = true;
       if (emailSuccess && emailSuccessText) {
@@ -1000,7 +998,19 @@ ${DEPLOY_NOTE[a.deploy]}
     } finally {
       emailSubmit.disabled = false;
     }
-  });
+  }
+
+  emailSubmit?.addEventListener("click", submitEmailPipeline);
+
+  // Keep Enter-to-submit working now that the block isn't a real <form>.
+  for (const input of [nameInput, emailInput]) {
+    input?.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        void submitEmailPipeline();
+      }
+    });
+  }
 
   emailReset?.addEventListener("click", () => {
     if (!emailForm || !emailSuccess) return;
