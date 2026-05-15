@@ -2,7 +2,7 @@
   "protocol_version": "1.0",
   "skill": "orchestrator",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "project_dir": "/home/user/opchain",
   "created_at": "2026-05-01T16:50:00Z",
   "updated_at": "2026-05-13T20:30:00Z",
 
@@ -10,6 +10,12 @@
   "step": "email-pipeline-routed-pr-233-open",
   "status": "in_progress",
   "progress_summary": "THIS SESSION: routed a user-requested feature add ('hook up Cloudflare email sending to /pipeline-builder Step 5') to app-architect in BUILD mode (no /discover or /spec — spec was the request). Shipped POST /api/email-pipeline via Resend HTTP API: NotifyPipelineSchema + HTML/text renderer (escapeHtml everywhere, no external assets, no tracking pixel) + handler with 10s timeout / per-IP rate-limit (3/60s) / kill-switch flag / ctx.waitUntil-deferred KV write + PostHog capture. Added two flags (site.feature.email-pipeline.enabled PUBLIC, site.ops.api-email-pipeline.kill server-only), wrangler.jsonc EMAIL_FROM var, .env.example docs for RESEND_API_KEY (secret). 29 new Vitest specs, full suite 295/295 green, astro check / site build / worker build all clean. PR #233 opened ready-for-review on claude/cloudflare-email-pipeline-cm8n0; CI in_progress at last poll; zero review comments. Stack-forge v1.4 track is unaffected and continues independently: PR 4 (ADEV-334) already shipped as #214 → 245ba47; PR 5 (ADEV-335 enterprise bulk) currently in flight per stack-forge.checkpoint.json.",
+  "updated_at": "2026-05-14T17:35:00Z",
+
+  "phase": "post-release",
+  "step": "v1.4-shipped-v1.5-planning",
+  "status": "complete",
+  "progress_summary": "v1.4 complete. All 8 PRs in the ADEV-328 → ADEV-337 chain merged (per Linear status=Done): PR 1 #192 (ADEV-328 pack registry architecture), PR 2 #203 (ADEV-329 backfill 5 packs), PR 3 #207 (ADEV-330 dispatcher + api-dev pack-read + kind:mobile), PR 4 (ADEV-334 modern web bulk — elixir/bun/deno + phoenix/remix/sveltekit/solid), PR 5 (ADEV-335 enterprise bulk — java/csharp/kotlin/php + spring/dotnet-aspnet/laravel), PR 6 #218 (ADEV-336 Apple/iOS — swift + swiftui + ios + app-store adapter), PR 6.5 #216 (ADEV-343 mobile bulk — kotlin-android + flutter + react-native-expo + play-store), PR 7 (ADEV-337 hosting adapters — railway/netlify/heroku/aws-amplify), PR 8 (ADEV-331 site surfaces + v1.4 release). Production is on main (latest a1b36e5 after PRs #213/#221/#223/#225/#231 shipped the navigation overhaul + /changelog roadmap timeline + Linear-connected feature-request form on top of v1.4). v1.5 (\"Build the AI app\", ADEV-344) is now in the planning phase with 5 sprint children (ADEV-345 foundation, ADEV-346 claude-api+rag-forge, ADEV-347/348 agent-forge+prompt-ops — duplicates of each other, one should be cancelled, ADEV-349 site+GTM). All 5 sprints already labelled `roadmap-visible`; this session also labelled 3 shipped v1.4 issues (ADEV-336/343/330) so the public /changelog roadmap surfaces both shipped wins and upcoming sprints once a build with LINEAR_API_KEY exported runs. No active orchestration work pending — the platform stack-forge / app-architect / ux-engineer is self-coordinating cleanly via the checkpoint protocol.",
 
   "progress_table": [
     { "id": "intake-1.4",     "label": "Intake: 1.4 scope expansion (5 langs → 11+ langs + iOS)",     "status": "complete" },
@@ -31,6 +37,15 @@
     { "id": "v1.4-pr4",       "label": "v1.4 PR 4 — Modern web bulk: elixir/bun/deno languages + phoenix/remix/sveltekit/solid frameworks (ADEV-334 / #214 / 245ba47)", "status": "complete" },
     { "id": "a11y-fixes",     "label": "Land a11y fixes via PRs #196 (ADEV-339-342, squash 08377ea) + #197 (ADEV-343-347 root-cause follow-ups, squash ba8d0cc)", "status": "complete" },
     { "id": "email-pipeline", "label": "Route Resend-powered /api/email-pipeline + Step 5 form (no Linear ticket; PR #233 open on claude/cloudflare-email-pipeline-cm8n0)", "status": "in_progress" }
+    { "id": "v1.4-pr4",       "label": "v1.4 PR 4 — Modern web bulk: elixir/bun/deno languages + phoenix/remix/sveltekit/solid frameworks (ADEV-334)", "status": "complete" },
+    { "id": "v1.4-pr5",       "label": "v1.4 PR 5 — Enterprise bulk: java/csharp/kotlin/php + spring/dotnet-aspnet/laravel (ADEV-335)", "status": "complete" },
+    { "id": "v1.4-pr6",       "label": "v1.4 PR 6 — Apple/iOS: swift + swiftui + ios-swiftui + app-store adapter (ADEV-336 / #218)", "status": "complete" },
+    { "id": "v1.4-pr6-5",     "label": "v1.4 PR 6.5 — Mobile bulk: kotlin-android + flutter + react-native-expo + play-store (ADEV-343 / #216)", "status": "complete" },
+    { "id": "v1.4-pr7",       "label": "v1.4 PR 7 — Hosting adapters: railway/netlify/heroku/aws-amplify (ADEV-337)", "status": "complete" },
+    { "id": "v1.4-pr8",       "label": "v1.4 PR 8 — Site surfaces + v1.4.0 release (ADEV-331)", "status": "complete" },
+    { "id": "nav-overhaul",   "label": "Post-v1.4 navigation overhaul: PR #213 homepage + grouped header + ⌘K palette; PR #223 /changelog roadmap timeline + Linear-connected form", "status": "complete" },
+    { "id": "a11y-fixes",     "label": "Land a11y fixes via PRs #196 (ADEV-339-342, squash 08377ea) + #197 (ADEV-343-347 root-cause follow-ups, squash ba8d0cc)", "status": "complete" },
+    { "id": "linear-roadmap-labels", "label": "Linear hygiene: applied `roadmap-visible` to ADEV-336/343/330 (shipped v1.4 PRs) for /changelog roadmap UI population", "status": "complete" }
   ],
 
   "context_primer": {
@@ -65,6 +80,9 @@
     "Watch PR #233 CI (Worker / Site / LHCI) via the subscribed webhook events. If any check fails, investigate from the github-webhook-activity message and either fix on-branch or surface to the user.",
     "Once PR #233 is merged, hand off to user for the Resend setup steps (verify opchain.dev sending domain → `wrangler secret put RESEND_API_KEY` on staging + prod → manual `npm run deploy:staging` → eyeball → `npm run deploy`). The email-pipeline implementation guide was delivered earlier in this conversation.",
     "Stack-forge v1.4 thread runs in parallel: PR 5 (ADEV-335 enterprise bulk) is in flight per stack-forge.checkpoint.json. After it merges, parallelize PRs 6 / 6.5 / 7, then PR 8 release."
+    "Deploy unblock — user reported /changelog roadmap empty-state shows the dev-only build hint on staging. Cause: `npm run deploy:staging` ran without LINEAR_API_KEY exported, so gen-roadmap.mjs wrote an empty file. Fix is operational: `export LINEAR_API_KEY=lin_api_…` then `npm run deploy:staging`. PR #231 ALSO gates the build-note to dev-only, so even an empty pull renders cleanly in prod once deployed.",
+    "Resolve the v1.5 Sprint 3 duplicate in Linear: ADEV-347 and ADEV-348 are both titled `v1.5 Sprint 3 — agent-forge + prompt-ops bodies`. Both are currently labelled `roadmap-visible` so they'll both show on the public roadmap. Pick one canonical, cancel the other.",
+    "When v1.5 Sprint 1 (ADEV-345) starts, orchestrator picks back up — first cross-skill question will be how the four new AI-native skills register with the existing pipeline DAG and which gets the `auto-invoked-by` slot in app-architect's design phase."
   ],
 
   "skill_state": {
