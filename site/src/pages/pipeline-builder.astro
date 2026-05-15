@@ -1018,7 +1018,6 @@ ${DEPLOY_NOTE[a.deploy]}
     emailForm.hidden = false;
     // Clear only the email; keep name so a returning visitor can re-fire
     // quickly with the same identity.
-    const emailInput = document.getElementById("email-input") as HTMLInputElement | null;
     if (emailInput) {
       emailInput.value = "";
       emailInput.focus();
