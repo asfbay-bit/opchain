@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "npm run prebuild && wrangler dev",
     "build": "node build.mjs",
-    "deploy": "PUBLIC_POSTHOG_KEY=phc_m4mpaJBA3EsEFRiGeVQWESFX8pz6CtS6B8y85Va6rmJV PUBLIC_POSTHOG_HOST=https://t.opchain.dev npm run prebuild && wrangler deploy",
-    "deploy:staging": "PUBLIC_POSTHOG_KEY=phc_m4mpaJBA3EsEFRiGeVQWESFX8pz6CtS6B8y85Va6rmJV PUBLIC_POSTHOG_HOST=https://t.staging.opchain.dev npm run prebuild && wrangler deploy --env staging",
+    "deploy": "node scripts/deploy.mjs",
+    "deploy:staging": "node scripts/deploy.mjs --staging",
     "deploy:skip-build": "wrangler deploy --config wrangler.jsonc --no-build",
     "smoke": "bash scripts/smoke.sh",
     "smoke:prod": "DEPLOY_URL=https://opchain.dev bash scripts/smoke.sh",
