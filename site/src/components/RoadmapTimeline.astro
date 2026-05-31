@@ -1,10 +1,9 @@
 ---
 /**
  * Roadmap timeline — vertical stack (shipped → in-progress → planned →
- * backlog) rendered on /changelog. Item data is pulled from Linear at
- * build time by scripts/gen-roadmap.mjs and read here via the fs-backed
- * loader so a missing roadmap.json just yields an empty roadmap (and
- * the component renders nothing) instead of breaking the build.
+ * backlog) rendered on /changelog. Item data is a curated, hand-maintained
+ * roadmap in `../data/roadmap-static.ts` (see that file's header for why we
+ * bypass the build-time Linear pull). An empty roadmap just renders nothing.
  *
  * Vote counts are hydrated client-side from GET /api/votes?ids=…
  * after first paint. Clicking a vote button POSTs /api/votes/<id>;
@@ -12,20 +11,15 @@
  * the server's "already voted" verdict for instant UI feedback on
  * subsequent visits.
  */
-import { loadRoadmap, type RoadmapBucket, type RoadmapItem } from "../data/roadmap-types";
+import type { RoadmapBucket, RoadmapItem } from "../data/roadmap-types";
+import { staticRoadmap } from "../data/roadmap-static";
 
-const roadmap = loadRoadmap();
-
-// Show the loader's diagnostic note only during `astro dev` — internal
-// build-state shouldn't leak to public visitors. import.meta.env.DEV is
-// true only when running `astro dev`; the production `astro build` sets
-// it to false and dead-code-eliminates the branch below.
-const showBuildNote = import.meta.env.DEV;
+const roadmap = staticRoadmap;
 
 const BUCKETS: { key: RoadmapBucket; label: string; blurb: string }[] = [
   { key: "shipped",     label: "Shipped",     blurb: "What's already live in production." },
-  { key: "in-progress", label: "In progress", blurb: "Open Linear issues actively being worked." },
-  { key: "planned",     label: "Planned",     blurb: "Scoped into a future milestone — design or spec in flight." },
+  { key: "in-progress", label: "In progress", blurb: "The next release — built and being readied to ship." },
+  { key: "planned",     label: "Planned",     blurb: "Scoped into future milestones — design or spec in flight." },
   { key: "backlog",     label: "Backlog",     blurb: "Top-voted asks not yet scoped. Triaged quarterly; high votes get promoted." },
 ];
 
@@ -42,14 +36,14 @@ const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 ---
 
-<section class="roadmap" aria-label="opchain roadmap">
+<section class="roadmap" id="roadmap-vote" aria-label="opchain roadmap">
   <header class="roadmap-head">
     <span class="roadmap-eyebrow">where we're going</span>
     <h2>Roadmap</h2>
     <p>
-      Shipped, in flight, and what's queued. Items come from Linear in real
-      time — anyone can request a feature with the form below; the team
-      triages and promotes asks onto the public roadmap from there.
+      Shipped, in flight, and what's queued. Vote on what you want next —
+      anyone can request a feature with the form below; the team triages
+      and promotes asks onto the public roadmap from there.
     </p>
   </header>
 
@@ -57,14 +51,9 @@ const fmtDate = (iso: string) =>
     <div class="roadmap-empty">
       <p>
         No roadmap items published yet. Use the form below to send the
-        first one — it lands as a Linear ticket the team will triage on
-        the next pass.
+        first one — it lands as a ticket the team will triage on the
+        next pass.
       </p>
-      {showBuildNote && roadmap.note && (
-        <p class="roadmap-build-note">
-          <strong>Build note (dev only):</strong> {roadmap.note}
-        </p>
-      )}
     </div>
   )}
 
@@ -84,7 +73,21 @@ const fmtDate = (iso: string) =>
             <p class="release-blurb">{blurb}</p>
 
             <div class="item-list">
-              {items.map((it) => (
+              {items.map((it) => {
+                // External (Linear) links open in a new tab and show the
+                // issue id; internal anchors jump to the detail section on
+                // this page and get a descriptive label instead of a fake id.
+                const external = !!it.url && /^https?:/.test(it.url);
+                const linkLabel = !it.url
+                  ? ""
+                  : external
+                    ? `${it.id} ↗`
+                    : key === "shipped"
+                      ? "See what shipped ↓"
+                      : it.milestone
+                        ? `Read the ${it.milestone} plan ↓`
+                        : "Details ↓";
+                return (
                 <div class="item-card" data-issue-id={it.id}>
                   <div class="item-meta">
                     <div class="item-title-row">
@@ -95,7 +98,14 @@ const fmtDate = (iso: string) =>
                       )}
                     </div>
                     {it.blurb && <p class="item-blurb">{it.blurb}</p>}
-                    <a class="item-linear" href={it.url} target="_blank" rel="noopener">{it.id} ↗</a>
+                    {it.url && (
+                      <a
+                        class="item-linear"
+                        href={it.url}
+                        target={external ? "_blank" : undefined}
+                        rel={external ? "noopener" : undefined}
+                      >{linkLabel}</a>
+                    )}
                   </div>
                   {key === "shipped" ? (
                     <span class="vote-placeholder">shipped</span>
@@ -112,7 +122,8 @@ const fmtDate = (iso: string) =>
                     </button>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </article>
         );

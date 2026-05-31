@@ -40,11 +40,11 @@
   "devDependencies": {
     "esbuild": "^0.28.0",
     "gray-matter": "^4.0.3",
-    "js-yaml": "^3.14.2",
-    "vitest": "^4.1.5",
-    "wrangler": "^4.85.0"
+    "js-yaml": "^4.1.1",
+    "vitest": "^4.1.6",
+    "wrangler": "^4.95.0"
   },
   "dependencies": {
-    "zod": "^4.3.6"
+    "zod": "^4.4.3"
   }
 }

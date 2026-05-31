@@ -22,14 +22,6 @@
   // zone's DNS record on first deploy. CI deploys are not configured for
   // this reason — see CLAUDE.md › Deployment.
   "routes": [{ "pattern": "opchain.dev", "custom_domain": true }],
-  // EMAIL_FROM is the From header used by POST /api/email-pipeline. The
-  // verified Resend domain is opchain.dev — change this without redeploy
-  // by overriding the env var in the Cloudflare dashboard. The Resend API
-  // key itself (RESEND_API_KEY) is a secret; set it with
-  // `wrangler secret put RESEND_API_KEY` rather than declaring it here.
-  "vars": {
-    "EMAIL_FROM": "opchain.dev <pipeline@opchain.dev>"
-  },
   "assets": {
     "directory": "./public/",
     "binding": "ASSETS",
