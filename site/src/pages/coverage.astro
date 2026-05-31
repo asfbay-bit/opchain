@@ -222,6 +222,30 @@ const counts = {
       </p>
     </section>
   </main>
+
+  <script>
+    // Option C scrollspy — highlight the stat box for the section in view.
+    const links = Array.from(document.querySelectorAll(".cov-stats .cov-stat"));
+    const sections = Array.from(document.querySelectorAll(".cov-section"));
+    if (links.length && sections.length && "IntersectionObserver" in window) {
+      const setActive = (id: string) => {
+        for (const l of links) {
+          l.classList.toggle("is-active", l.getAttribute("href") === "#" + id);
+        }
+      };
+      const io = new IntersectionObserver(
+        (entries) => {
+          const visible = entries
+            .filter((e) => e.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+          const heading = visible[0]?.target.querySelector("h2");
+          if (heading && heading.id) setActive(heading.id);
+        },
+        { rootMargin: "-150px 0px -55% 0px", threshold: 0 },
+      );
+      for (const s of sections) io.observe(s);
+    }
+  </script>
 </Base>
 
 <style>
@@ -252,13 +276,21 @@ const counts = {
   }
   .coverage-page .lede a { color: var(--accent); }
 
-  /* Stat boxes — the homepage `.stat` treatment, used here as jump links
-     that smooth-scroll to the matching section. */
+  /* Option C — stat boxes (the homepage `.stat` treatment) stick just
+     below the sticky site header and act as a section nav; the box for
+     the section in view is highlighted by the scrollspy script at the
+     bottom of this file. Clicking smooth-scrolls to the section. */
   .cov-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 0.5rem;
+    position: sticky;
+    top: 56px; /* clears the 56px sticky site header */
+    z-index: 5;
+    background: var(--bg);
+    padding: 0.75rem 0;
     margin: 0 0 2rem;
+    border-bottom: 0.5px solid var(--border);
   }
   .cov-stat {
     display: flex;
@@ -282,6 +314,12 @@ const counts = {
     transform: translateY(-1px);
   }
   .cov-stat:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cov-stat.is-active {
+    border-color: var(--accent);
+    color: var(--text);
+    background: var(--accent-dim);
+  }
+  :global([data-theme="light"]) .cov-stat.is-active { border-color: var(--accent-hover); }
   .cov-num {
     font-family: var(--font-display);
     font-size: var(--fs-lg);
@@ -302,8 +340,9 @@ const counts = {
   }
 
   /* Click-to-scroll: smooth jump + offset so the heading clears the
-     sticky site header. Honors reduced-motion. */
-  .cov-section h2 { scroll-margin-top: 90px; }
+     sticky site header (56px) plus the sticky stat-nav (~84px). Honors
+     reduced-motion. */
+  .cov-section h2 { scroll-margin-top: 150px; }
   :global(html) { scroll-behavior: smooth; }
   @media (prefers-reduced-motion: reduce) {
     :global(html) { scroll-behavior: auto; }
