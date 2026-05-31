@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-05-13T20:30:00Z",
-  "phase": "pr-cycle",
-  "step": "pr-233-open-awaiting-ci",
+  "updated_at": "2026-05-31T14:39:00Z",
+  "phase": "post-merge-wave",
+  "step": "wave-merged-deploy-pending",
   "status": "in_progress",
-  "progress_summary": "PR #233 (feat(email-pipeline): send pipeline-builder Step 5 result via Resend) opened ready-for-review on branch claude/cloudflare-email-pipeline-cm8n0; commit 2e49477; three CI checks (Worker, Site, LHCI) in_progress at push time; zero review comments. LHCI bot reported median scores: 6 routes at 0.99+ perf / 1.00 a11y/best/seo, /architecture still at 0.89 perf (pre-existing SVG render cost, not touched). PRs #213/#221/#223 remain merged; manual prod deploy of those still owned by user. Earlier in repo history: PR #223 (squash-merged to main as 8b8e778) shipped /changelog roadmap timeline + Linear-connected feature-request form; PR #213 (314df02b) shipped nav overhaul; PR #221 (3d279379) was the checkpoint update for that work.",
+  "progress_summary": "2026-05-31 PR-review wave: cleared 11 open PRs in one session. Feature: #239 (email-pipeline Step 5 nested-form fix, follow-up to #233) and #243 (link orphaned /coverage into nav, ⌘K palette, stack-forge skill page). Security: #227 (DOMPurify 3.4.5 XSS-bypass fix in the markdown group) and #209 (js-yaml v3→v4 with prototype-pollution patch — verified all callsites use only `yaml.load`, safe across the major). Dependency hygiene: #241 vitest 4.1.6, #211 tailwind 4.3, #210 astro group, #175 zod 4.4.3, #176 @axe-core/playwright 4.11.3, #242 @playwright/test 1.60, #173 wrangler 4.95 (Dependabot recreated to latest after lockfile conflict). All squash-merged with full CI green (Worker, Site, LHCI). #208 (chore(generated): restore stale coverage-flags + api-dev-adapters baselines) closed as obsolete — main now carries 26 coverage-flags and 13 api-dev-adapters via the v1.4 chain, vs. #208's 5/5 from the pre-v1.4 era. Held for user review: #232 (feat(compare): switch to Option C — groups + zebra + winner dots + mobile sticky labels), branch up-to-date with main, CI green, awaiting user signoff before merge. Production is now ~12 PRs behind staging.opchain.dev; deploy gap surfaced as the next blocker (deploy-ops hand-off). Required pre-flight: `wrangler secret put RESEND_API_KEY` on both staging and prod envs before the email-pipeline flag flips on.",
   "progress_table": [
     { "id": "pr-183", "label": "PR #183 — v1.4 install upgrade flow + main-CI repairs", "status": "complete" },
     { "id": "pr-184", "label": "PR #184 — demo-mobile test fix (closed, folded into #183)", "status": "complete" },
@@ -20,7 +20,8 @@
     { "id": "pr-213", "label": "PR #213 — feat(site): redesigned homepage + grouped header + ⌘K palette", "status": "complete" },
     { "id": "pr-221", "label": "PR #221 — checkpoint(ux,git-ops): record PR #213 merge", "status": "complete" },
     { "id": "pr-223", "label": "PR #223 — feat(changelog): roadmap timeline + Linear-connected feature-request form", "status": "complete" },
-    { "id": "pr-233", "label": "PR #233 — feat(email-pipeline): Resend-powered /api/email-pipeline + name field on Step 5", "status": "in_progress" }
+    { "id": "pr-233", "label": "PR #233 — feat(email-pipeline): Resend-powered /api/email-pipeline + name field on Step 5", "status": "complete" },
+    { "id": "wave-2026-05-31", "label": "2026-05-31 PR-review wave — 11 merged (#239, #243, #241, #227, #211, #210, #175, #209, #176, #242, #173), 1 closed obsolete (#208), 1 held for review (#232)", "status": "complete" }
   ],
   "context_primer": {
     "key_decisions": [
@@ -42,26 +43,24 @@
   },
   "blockers": [],
   "next_actions": [
-    "Watch PR #233 CI (Worker / Site / LHCI). If any check fails, investigate from the github-webhook-activity event; small fixes commit directly to the branch, anything ambiguous asks the user first.",
-    "After PR #233 CI is green: merge (the user typically merges directly; this session opened it ready-for-review). Manual deploy follows per CLAUDE.md — RESEND_API_KEY secret must be set on both staging + production envs before flipping the flag on.",
-    "PRs #213 + #221 + #223 still need a user-run manual deploy: `npm run deploy:staging` → eyeball → `npm run deploy`. Per CLAUDE.md, deploys never run in CI.",
-    "Operational follow-up in Linear (not git work): add the `roadmap-visible` label; optionally `community-submitted` label + LINEAR_COMMUNITY_LABEL_ID."
+    "Hand off to deploy-ops: production is ~12 PRs behind main (today's wave + earlier #225/#231/#233 etc). Run `export LINEAR_API_KEY=lin_api_…; npm run deploy:staging` → curl /api/health → `npm run deploy`. Two security patches in the wave (DOMPurify XSS, js-yaml prototype pollution) make this time-sensitive.",
+    "Pre-flight before email-pipeline flag flips on: `wrangler secret put RESEND_API_KEY` on staging + production. Verify the opchain.dev sending domain in Resend dashboard first.",
+    "Held for user review: PR #232 (feat(compare): switch to Option C) — branch is up-to-date with main, all 4 checks green, ready when user approves. Either squash-merge or close.",
+    "Linear hygiene (non-git): ADEV-347/348 duplicate `v1.5 Sprint 3 — agent-forge + prompt-ops bodies` tickets — pick canonical, cancel the other. Both currently labelled `roadmap-visible` so both surface on the public roadmap.",
+    "Schedule code-auditor pre-deploy sweep before v1.5 Sprint 2/3 land (agent-forge + claude-api + rag-forge introduce prompt-injection / tool-use surfaces that warrant new audit rules)."
   ],
   "skill_state": {
-    "current_branch": "claude/cloudflare-email-pipeline-cm8n0 (PR #233 open, awaiting CI)",
+    "current_branch": "main (no active feature branch)",
     "open_prs": [
       {
-        "number": 233,
-        "title": "Add Resend-powered /api/email-pipeline + name field on Step 5",
-        "branch": "claude/cloudflare-email-pipeline-cm8n0",
-        "head_sha": "2e49477",
-        "opened_at": "2026-05-13T20:25:00Z",
-        "scope": "src/lib/schemas.js + src/lib/email-templates/pipeline.js (new) + src/index.js + src/lib/flags/registry.js + src/lib/request-id.js + wrangler.jsonc + .env.example + site/src/pages/pipeline-builder.astro + tests/email-pipeline.test.js (new)",
-        "diff_stat": "9 files changed, 1037 insertions, 48 deletions",
-        "commits_on_branch": 1,
-        "ci_initial": "Worker/Site/LHCI all in_progress at push; LHCI median scores reported, no regression",
-        "review_comments": 0,
-        "linked_ticket": null
+        "number": 232,
+        "title": "feat(compare): switch to Option C — groups + zebra + winner dots + mobile sticky labels",
+        "branch": "aidan/compare-option-c",
+        "head_sha": "(updated 2026-05-31 via update_pull_request_branch)",
+        "status": "HELD for user review — branch up-to-date with main, CI green, awaiting user signoff",
+        "scope": "site/src/pages/compare.astro (one file, +358/-239)",
+        "ci_final": "Worker ✅ · Site build ✅ · Playwright e2e ✅ · LHCI 1.00 across the board",
+        "review_comments": 3
       }
     ],
     "merged_prs": [
@@ -169,6 +168,99 @@
         "rebased_during_cycle": false,
         "ci_intermediate": "Commit 488cada (data layer) failed site/install/type-check/build because CI's site job doesn't run root prebuild, so the dynamic JSON import in roadmap-types.ts had no module to resolve. Fixed in commit 2091b4a by switching to a synchronous fs.readFileSync at SSG time with an empty-fallback.",
         "ci_final": "build ✅ · type-check ✅ · e2e ✅ · worker ✅ (266/266 tests) · LHCI 1.00 a11y/best/seo on every route; /changelog 0.97 perf with new components"
+      },
+      {
+        "number": 239,
+        "title": "fix(email-pipeline): unbreak Step 5 submit (nested form dropped by parser)",
+        "merge_method": "squash",
+        "merge_sha": "7863868",
+        "merged_at": "2026-05-31T02:20:00Z",
+        "scope": "site/src/pages/pipeline-builder.astro (1 file, +24/-15) — replace nested <form> with <div>, switch submit button to type=button + click handler",
+        "ci_final": "Worker ✅ · Site ✅ · Playwright e2e ✅ · LHCI clean"
+      },
+      {
+        "number": 243,
+        "title": "feat(site): link the orphaned /coverage page into nav",
+        "merge_method": "squash",
+        "merge_sha": "21aaeb0",
+        "merged_at": "2026-05-31T02:20:00Z",
+        "scope": "Header.astro + SearchPalette.astro + stack-forge skill detail page (3 files, +12)",
+        "ci_final": "all green"
+      },
+      {
+        "number": 241,
+        "title": "deps: bump vitest from 4.1.5 to 4.1.6 in the worker-test group",
+        "merge_method": "squash",
+        "merge_sha": "4409e44",
+        "merged_at": "2026-05-31T02:20:00Z",
+        "ci_final": "all green"
+      },
+      {
+        "number": 227,
+        "title": "deps(site): bump the markdown group (DOMPurify 3.4.5 SECURITY)",
+        "merge_method": "squash",
+        "merge_sha": "7044115",
+        "merged_at": "2026-05-31T02:20:00Z",
+        "security_note": "DOMPurify 3.4.5 fixes a bypass caused by the new HTML element `selectedcontent` added in 3.4.4 — XSS-class issue",
+        "ci_final": "all green"
+      },
+      {
+        "number": 211,
+        "title": "deps(site): bump the tailwind group (tailwindcss 4.3.0 + @tailwindcss/vite 4.3.0)",
+        "merge_method": "squash",
+        "merge_sha": "4d13e17",
+        "merged_at": "2026-05-31T02:21:00Z",
+        "ci_final": "all green"
+      },
+      {
+        "number": 210,
+        "title": "deps(site): bump the astro group",
+        "merge_method": "squash",
+        "merge_sha": "3b1a023",
+        "merged_at": "2026-05-31T02:21:00Z",
+        "ci_final": "all green"
+      },
+      {
+        "number": 175,
+        "title": "deps: bump zod from 4.3.6 to 4.4.3",
+        "merge_method": "squash",
+        "merge_sha": "0b00ff0",
+        "merged_at": "2026-05-31T02:28:00Z",
+        "ci_final": "all green"
+      },
+      {
+        "number": 209,
+        "title": "deps: bump js-yaml from 3.14.2 to 4.1.1 (SECURITY: prototype pollution)",
+        "merge_method": "squash",
+        "merge_sha": "6ee6648",
+        "merged_at": "2026-05-31T02:30:00Z",
+        "security_note": "Major bump v3→v4. Verified safe: all 5 callsites (pack-dispatch.js, gen-packs-catalog.mjs, gen-stack-packs.mjs, gen-api-dev-adapters.mjs, tests/stack-packs-real.test.js) use only `yaml.load(string)` which is behavior-compatible across the major (becomes safe-by-default, equiv to v3 safeLoad). No use of removed `safe*` APIs, DEFAULT_SAFE_SCHEMA, !!binary, or !!js/function.",
+        "ci_final": "all green"
+      },
+      {
+        "number": 176,
+        "title": "deps(site): bump @axe-core/playwright from 4.11.2 to 4.11.3",
+        "merge_method": "squash",
+        "merge_sha": "7a21c34",
+        "merged_at": "2026-05-31T02:38:00Z",
+        "ci_final": "all green (after one branch update for behind-state)"
+      },
+      {
+        "number": 242,
+        "title": "deps(site): bump @playwright/test from 1.59.1 to 1.60.0",
+        "merge_method": "squash",
+        "merge_sha": "fb8de80",
+        "merged_at": "2026-05-31T02:43:00Z",
+        "ci_final": "all green (after @dependabot rebase + two branch updates for site/package-lock.json conflicts with #227/#211/#210/#176)"
+      },
+      {
+        "number": 173,
+        "title": "deps: bump wrangler from 4.85.0 to 4.95.0 in the worker-runtime group",
+        "merge_method": "squash",
+        "merge_sha": "c217edf",
+        "merged_at": "2026-05-31T02:46:00Z",
+        "note": "Dependabot recreated to 4.95.0 (latest) after the original 4.90.0 PR's lockfile couldn't be rebased through #241 + #175 + #209. Recreate ran clean. Heads up: wrangler 4.89.0 changed local `wrangler dev` to TZ=UTC to match production — code that relied on host timezone during dev will see a behavior change.",
+        "ci_final": "all green"
       }
     ],
     "closed_unmerged_prs": [
@@ -176,6 +268,12 @@
         "number": 184,
         "title": "fix(test): bump demo-mobile scenario count from 6 to 9",
         "reason": "folded into PR #183 via cherry-pick; closed without merging"
+      },
+      {
+        "number": 208,
+        "title": "chore(generated): restore stale coverage-flags and api-dev-adapters baselines",
+        "closed_at": "2026-05-31T02:33:00Z",
+        "reason": "Obsolete — superseded by the v1.4 bulk pack PRs. main now carries 26 coverage-flags + 13 api-dev-adapters (vs. this PR's 5/5 from the pre-v1.4 era). Rebasing would produce a no-op or stale-downgrade diff."
       }
     ],
     "remote": "origin",

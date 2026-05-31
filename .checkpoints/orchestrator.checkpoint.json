@@ -4,12 +4,12 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-01T16:50:00Z",
-  "updated_at": "2026-05-15T01:05:00Z",
+  "updated_at": "2026-05-31T14:39:00Z",
 
   "phase": "post-release",
-  "step": "v1.4-shipped-v1.5-planning-plus-email-pipeline-pr-233",
+  "step": "v1.4-shipped-plus-2026-05-31-pr-wave-merged-deploy-pending",
   "status": "in_progress",
-  "progress_summary": "v1.4 complete. All 8 PRs in the ADEV-328 → ADEV-337 chain merged (per Linear status=Done): PR 1 #192 (ADEV-328 pack registry architecture), PR 2 #203 (ADEV-329 backfill 5 packs), PR 3 #207 (ADEV-330 dispatcher + api-dev pack-read + kind:mobile), PR 4 (ADEV-334 modern web bulk — elixir/bun/deno + phoenix/remix/sveltekit/solid), PR 5 (ADEV-335 enterprise bulk — java/csharp/kotlin/php + spring/dotnet-aspnet/laravel), PR 6 #218 (ADEV-336 Apple/iOS — swift + swiftui + ios + app-store adapter), PR 6.5 #216 (ADEV-343 mobile bulk — kotlin-android + flutter + react-native-expo + play-store), PR 7 (ADEV-337 hosting adapters — railway/netlify/heroku/aws-amplify), PR 8 (ADEV-331 site surfaces + v1.4 release). Production is on main (latest a1b36e5 after PRs #213/#221/#223/#225/#231 shipped the navigation overhaul + /changelog roadmap timeline + Linear-connected feature-request form on top of v1.4). v1.5 (\"Build the AI app\", ADEV-344) is in the planning phase with 5 sprint children (ADEV-345 foundation, ADEV-346 claude-api+rag-forge, ADEV-347/348 agent-forge+prompt-ops — duplicates of each other, one should be cancelled, ADEV-349 site+GTM). All 5 sprints already labelled `roadmap-visible`; an earlier session also labelled 3 shipped v1.4 issues (ADEV-336/343/330) so the public /changelog roadmap surfaces both shipped wins and upcoming sprints once a build with LINEAR_API_KEY exported runs. Side thread now active: PR #233 (Resend-powered POST /api/email-pipeline + name input on /pipeline-builder Step 5) routed to app-architect in BUILD mode (no /discover or /spec — spec was the user's brief), opened ready-for-review on claude/cloudflare-email-pipeline-cm8n0. This commit repairs the orchestrator.checkpoint.json that GitHub's auto-merge of main into the PR branch (commit 1a3293a) left with duplicate keys + missing array commas — the cause of the Worker-CI checkpoint:validate failure.",
+  "progress_summary": "v1.4 complete. All 8 PRs in the ADEV-328 → ADEV-337 chain merged (per Linear status=Done): PR 1 #192 (ADEV-328 pack registry architecture), PR 2 #203 (ADEV-329 backfill 5 packs), PR 3 #207 (ADEV-330 dispatcher + api-dev pack-read + kind:mobile), PR 4 (ADEV-334 modern web bulk — elixir/bun/deno + phoenix/remix/sveltekit/solid), PR 5 (ADEV-335 enterprise bulk — java/csharp/kotlin/php + spring/dotnet-aspnet/laravel), PR 6 #218 (ADEV-336 Apple/iOS — swift + swiftui + ios + app-store adapter), PR 6.5 #216 (ADEV-343 mobile bulk — kotlin-android + flutter + react-native-expo + play-store), PR 7 (ADEV-337 hosting adapters — railway/netlify/heroku/aws-amplify), PR 8 (ADEV-331 site surfaces + v1.4 release). Post-v1.4: PRs #213/#221/#223/#225/#231 shipped the navigation overhaul + /changelog roadmap timeline + Linear-connected feature-request form. PR #233 (email-pipeline) and follow-up #239 (Step-5 nested-form fix) shipped. 2026-05-31 PR-review wave cleared 11 PRs in one session: 2 feature (#239 email-pipeline fix, #243 link /coverage into nav), 2 security (#227 DOMPurify XSS-bypass, #209 js-yaml prototype-pollution), 7 dep hygiene (#241 vitest, #211 tailwind, #210 astro, #175 zod, #176 axe-core, #242 playwright, #173 wrangler 4.95 via Dependabot recreate). #208 closed as obsolete (superseded by v1.4 bulk pack PRs — main now has 26 coverage-flags + 13 api-dev-adapters vs. #208's 5/5). PR #232 (compare Option C feature redesign) held for user review — green and ready. Production is now ~12 PRs behind main; the deploy gap surfaced as the next blocker — hand-off to deploy-ops queued, with two security patches making it time-sensitive. v1.5 (\"Build the AI app\", ADEV-344) still in planning phase with 5 sprint children (ADEV-345 foundation, ADEV-346 claude-api+rag-forge, ADEV-347/348 agent-forge+prompt-ops — duplicates, one to be cancelled, ADEV-349 site+GTM).",
 
   "progress_table": [
     { "id": "intake-1.4",     "label": "Intake: 1.4 scope expansion (5 langs → 11+ langs + iOS)",     "status": "complete" },
@@ -37,7 +37,8 @@
     { "id": "nav-overhaul",   "label": "Post-v1.4 navigation overhaul: PR #213 homepage + grouped header + ⌘K palette; PR #223 /changelog roadmap timeline + Linear-connected form", "status": "complete" },
     { "id": "a11y-fixes",     "label": "Land a11y fixes via PRs #196 (ADEV-339-342, squash 08377ea) + #197 (ADEV-343-347 root-cause follow-ups, squash ba8d0cc)", "status": "complete" },
     { "id": "linear-roadmap-labels", "label": "Linear hygiene: applied `roadmap-visible` to ADEV-336/343/330 (shipped v1.4 PRs) for /changelog roadmap UI population", "status": "complete" },
-    { "id": "email-pipeline", "label": "Route Resend-powered /api/email-pipeline + Step 5 form (no Linear ticket; PR #233 open on claude/cloudflare-email-pipeline-cm8n0)", "status": "in_progress" }
+    { "id": "email-pipeline", "label": "Route Resend-powered /api/email-pipeline + Step 5 form (PR #233 merged, follow-up fix #239 also merged 2026-05-31)", "status": "complete" },
+    { "id": "wave-2026-05-31", "label": "2026-05-31 PR-review wave — merge/route 13 open PRs: 11 merged (2 feature, 2 security, 7 dep hygiene), 1 closed obsolete (#208), 1 held for user review (#232)", "status": "complete" }
   ],
 
   "context_primer": {
@@ -69,10 +70,11 @@
   "blockers": [],
 
   "next_actions": [
-    "Watch PR #233 CI (Worker / Site / LHCI) via the subscribed webhook events. This commit repairs the orchestrator.checkpoint.json that GitHub's auto-merge corrupted; the next CI run should pass checkpoint:validate. If anything else fails, investigate from the github-webhook-activity message and either fix on-branch or surface to the user.",
-    "Once PR #233 is green + merged: hand off to user for Resend setup steps (verify opchain.dev sending domain → `wrangler secret put RESEND_API_KEY` on staging + prod → manual `npm run deploy:staging` → eyeball → `npm run deploy`). Implementation guide delivered earlier in this conversation.",
-    "Deploy unblock — user reported /changelog roadmap empty-state shows the dev-only build hint on staging. Cause: `npm run deploy:staging` ran without LINEAR_API_KEY exported, so gen-roadmap.mjs wrote an empty file. Fix is operational: `export LINEAR_API_KEY=lin_api_…` then `npm run deploy:staging`. PR #231 ALSO gates the build-note to dev-only, so even an empty pull renders cleanly in prod once deployed.",
+    "Route to deploy-ops: production is ~12 PRs behind main after the 2026-05-31 wave. Run `export LINEAR_API_KEY=lin_api_…; npm run deploy:staging` → `curl https://staging.opchain.dev/api/health` → eyeball staging → `npm run deploy`. Two security patches in the wave (DOMPurify XSS bypass, js-yaml prototype pollution) make this time-sensitive.",
+    "Pre-flight before email-pipeline flag flips on: verify opchain.dev sending domain in Resend dashboard → `wrangler secret put RESEND_API_KEY` on both staging and prod envs.",
+    "User decision on PR #232 (feat(compare): switch to Option C — groups + zebra + winner dots + mobile sticky labels). Branch is up-to-date with main, CI green, but flagged earlier as wanting user eyes before merge. Either approve squash-merge or close.",
     "Resolve the v1.5 Sprint 3 duplicate in Linear: ADEV-347 and ADEV-348 are both titled `v1.5 Sprint 3 — agent-forge + prompt-ops bodies`. Both are currently labelled `roadmap-visible` so they'll both show on the public roadmap. Pick one canonical, cancel the other.",
+    "Schedule code-auditor pre-deploy sweep before v1.5 Sprint 2-3 land — agent-forge + claude-api + rag-forge introduce prompt-injection / tool-use surfaces that code-auditor needs new rules for. Also a hygiene pass on the v1.4 dispatcher refactor (ADEV-330) is worth doing — entire v1.4 cycle shipped without a sweep.",
     "When v1.5 Sprint 1 (ADEV-345) starts, orchestrator picks back up — first cross-skill question will be how the four new AI-native skills register with the existing pipeline DAG and which gets the `auto-invoked-by` slot in app-architect's design phase."
   ],
 
@@ -134,6 +136,21 @@
       "trigger": "GitHub's auto-merge of origin/main into the PR branch (commit 1a3293a, authored by asfbay-bit) overlapped with the prior reconcile in commit 2c1f381. The auto-merge took both versions of three conflict regions (header, progress_table, next_actions) without adding the inter-section commas that JSON requires; checkpoint:validate failed on the resulting file at line 40 col 5, breaking the Worker CI step.",
       "fix": "Hand-rewrote orchestrator.checkpoint.json to consolidate the two branches' content into a single valid document: kept theirs' v1.4-shipped / v1.5-planning narrative, appended the email-pipeline thread, deduplicated progress_table rows, and put the PR #233 watch action at the top of next_actions.",
       "validators_run": ["npm run checkpoint:validate (7/7 valid)", "npm test (295/295)"]
+    },
+    "pr_wave_2026_05_31": {
+      "trigger": "User invoked /orchestrator asking which PRs needed review and which were ready to merge. Surfaced 13 open PRs (4 feature, 9 Dependabot) — actioned all in one session.",
+      "merged_count": 11,
+      "merged_prs": ["#239", "#243", "#241", "#227", "#211", "#210", "#175", "#209", "#176", "#242", "#173"],
+      "closed_obsolete": ["#208"],
+      "held_for_user_review": ["#232"],
+      "notable_actions": [
+        "Resolved 3 site/package-lock.json conflict cascades by re-updating branches in dependency order after each merge.",
+        "Triggered `@dependabot rebase` on #173 and #176 after first-pass conflicts; #173 also required `@dependabot recreate` (which bumped wrangler 4.90→4.95 latest).",
+        "Verified #209 (js-yaml major v3→v4) safe to merge by grepping all 5 callsites — all use only `yaml.load(string)` which is behavior-compatible across the major.",
+        "Closed #208 rather than rebasing because the underlying stale-baseline bug it fixed no longer exists on main (v1.4 PRs landed correct baselines)."
+      ],
+      "deploy_state_after_wave": "production ~12 PRs behind staging; deploy-ops hand-off queued as next_actions[0]",
+      "validators_run": ["all 11 PRs passed Worker + Site + Playwright + LHCI before merge"]
     }
   }
 }
