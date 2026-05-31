@@ -7,9 +7,15 @@ import { expect, test } from "@playwright/test";
  * release back (runtime PM, real platforms, release-ops); v1.2
  * remains the third entry (PM-MCP integration).
  *
+ * The page also carries an "Upcoming releases" section above the release
+ * history: v1.5 (next — built, awaiting deploy) then v1.6 / v1.7 (planned).
+ * Those use `section.release.release--next` and deep-link from the roadmap
+ * timeline cards (#v1-5 / #v1-6 / #v1-7).
+ *
  * Two specs:
- *   1. /changelog — current entry is v1.4, v1.3 demoted to past;
- *      the v1.4 entry deep-links to /coverage (the new pack catalog).
+ *   1. /changelog — current shipped entry is v1.4, v1.3 demoted to past;
+ *      the v1.4 entry deep-links to /coverage; the upcoming section lists
+ *      v1.5 → v1.6 → v1.7.
  *
  *   2. /demo — the three v1.3 scenarios + the three v1.2 scenarios
  *      remain pickable on /demo. v1.4 ships no new scenarios — the
@@ -41,8 +47,12 @@ test.describe("/changelog", () => {
     await expect(current).toBeVisible();
     await expect(current.locator(".rel-tag").first()).toHaveText("v1.4");
 
-    // The v1.3 entry exists, demoted to past.
-    const past = page.locator("section.release:not(.release--current)").first();
+    // The v1.3 entry exists, demoted to past. Exclude the upcoming
+    // sections (.release--next) — they share the .release base class but
+    // are forward-looking (v1.5 next, v1.6/v1.7 planned), not past releases.
+    const past = page
+      .locator("section.release:not(.release--current):not(.release--next)")
+      .first();
     await expect(past).toBeVisible();
     await expect(past.locator(".rel-tag").first()).toHaveText("v1.3");
   });
@@ -63,6 +73,39 @@ test.describe("/changelog", () => {
     // The paragraph immediately after the h3 must have content.
     const next = compat.locator("xpath=following-sibling::p[1]");
     await expect(next).not.toBeEmpty();
+  });
+
+  test("upcoming section lists v1.5 (next), then v1.6 / v1.7 (planned)", async ({ page }) => {
+    await page.goto("/changelog");
+
+    // The three upcoming releases render as .release--next in order.
+    const upcoming = page.locator("section.release.release--next");
+    await expect(upcoming).toHaveCount(3);
+    await expect(upcoming.nth(0).locator(".rel-tag").first()).toHaveText("v1.5");
+    await expect(upcoming.nth(1).locator(".rel-tag").first()).toHaveText("v1.6");
+    await expect(upcoming.nth(2).locator(".rel-tag").first()).toHaveText("v1.7");
+
+    // Each anchors an id the roadmap timeline cards deep-link to.
+    await expect(page.locator("section#v1-5.release--next")).toBeVisible();
+    await expect(page.locator("section#v1-6.release--next")).toBeVisible();
+    await expect(page.locator("section#v1-7.release--next")).toBeVisible();
+  });
+
+  test("roadmap timeline items are votable and deep-link to the plan", async ({ page }) => {
+    await page.goto("/changelog");
+
+    // v1.5/v1.6/v1.7 items are all votable (no shipped placeholder) and
+    // their cards deep-link into the matching upcoming detail block.
+    const voteButtons = page.locator("[data-vote-target]");
+    await expect(voteButtons.first()).toBeVisible();
+    expect(await voteButtons.count()).toBeGreaterThanOrEqual(6);
+
+    await expect(
+      page.locator('.item-linear[href="/changelog#v1-5"]').first(),
+    ).toBeVisible();
+    await expect(
+      page.locator('.item-linear[href="/changelog#v1-6"]').first(),
+    ).toBeVisible();
   });
 });
 

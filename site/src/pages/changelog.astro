@@ -26,6 +26,263 @@ import RoadmapForm from "../components/RoadmapForm.astro";
          Sits above the release history so visitors see "what's coming"
          before "what's shipped". -->
     <RoadmapTimeline />
+
+    <!-- Expanded detail for the upcoming releases (v1.5 next, then v1.6 /
+         v1.7 planned). The roadmap cards above deep-link here (#v1-5 /
+         #v1-6 / #v1-7) so a one-line card opens into the full theme
+         writeup. Content tracks roadmap/07-v15-v16-v17. -->
+    <div class="upcoming-head">
+      <Eyebrow>what's coming</Eyebrow>
+      <h2 class="rhh">Upcoming releases</h2>
+    </div>
+
+    <section class="release release--next" id="v1-5">
+      <header class="rel-head">
+        <span class="rel-tag rel-tag--next">v1.5</span>
+        <h2>Build the AI app</h2>
+        <span class="rel-date">next · built, awaiting release</span>
+      </header>
+
+      <p class="rel-summary">
+        v1.5 is opchain's next release &mdash; built and in the release
+        pipeline, not yet live. It closes the biggest categorical gap in
+        the catalog: nothing today owns <em>AI-feature</em> design. v1.5
+        adds <strong>four new AI-native skills</strong> &mdash;
+        <code>claude-api</code>, <code>rag-forge</code>,
+        <code>agent-forge</code>, <code>prompt-ops</code> &mdash; wired
+        through the existing pipeline, and lockstep-bumps the catalog from
+        18 to <strong>22 skills</strong> at <code>1.5.0</code>. Markdown
+        methodology turns out to be exactly the right shape for the things
+        AI apps need most: source-controlled, diffable, version-pinned
+        prompts and eval sets.
+      </p>
+
+      <h3>What's coming</h3>
+      <ul>
+        <li>
+          <strong><code>claude-api</code> &mdash; <code>/claude-api</code>.</strong>
+          Model selection (Opus / Sonnet / Haiku routing), prompt caching
+          as a default, batch vs. streaming, tool use, and
+          <code>/claude-api migrate</code> playbooks for model-version
+          bumps (4.6 → 4.7, retired-model replacement). Cache-audit checks
+          hit rate; cost guardrails cap tokens per phase.
+        </li>
+        <li>
+          <strong><code>rag-forge</code> &mdash; <code>/rag</code>.</strong>
+          Tri-agent (Designer / Builder / Evaluator). Vector-DB decision
+          tree, embedding-model choice, chunking strategy, hybrid search,
+          and retrieval eval (<code>/rag eval</code>, <code>/rag bench</code>)
+          with golden sets and recall@k / NDCG.
+        </li>
+        <li>
+          <strong><code>agent-forge</code> &mdash; <code>/agent</code>.</strong>
+          Tri-agent (Planner / Builder / Evaluator). Claude Agent SDK
+          scaffold, subagent topology, tool-budget design, harness-loop
+          shapes (chat / autonomous / human-in-the-loop), and an eval
+          harness over golden trajectories.
+        </li>
+        <li>
+          <strong><code>prompt-ops</code> &mdash; <code>/prompt</code>.</strong>
+          Prompts as first-class artifacts: file-shaped versioning, eval
+          datasets, and regression detection. <code>/prompt regress</code>
+          runs the golden set on PR-changed prompts and blocks on a drop.
+        </li>
+      </ul>
+
+      <h3>Cross-skill ripples</h3>
+      <ul>
+        <li>
+          <strong><code>app-architect</code></strong> gains an "AI app?"
+          branch in <code>/discover</code> that routes to the four new
+          skills.
+        </li>
+        <li>
+          <strong><code>stack-forge</code></strong> adds vector-DB packs
+          (pgvector, Turbopuffer, Pinecone, Supabase Vectors) to the v1.4
+          pack registry &mdash; pure additive.
+        </li>
+        <li>
+          <strong><code>code-auditor</code></strong> learns
+          prompt-injection and tool-use safety rules.
+        </li>
+      </ul>
+
+      <h3>Site &amp; GTM</h3>
+      <p>
+        New <a href="/ai-recipes">/ai-recipes</a> walkthroughs, a
+        "Build AI apps" row on <a href="/compare">/compare</a>, an AI-app
+        variant of <a href="/pipeline-builder">/pipeline-builder</a>, the
+        <a href="/blog">/blog</a> dev-log scaffold with launch posts, a
+        <a href="/for-agencies">/for-agencies</a> page, and the
+        newsletter flag wired (Buttondown). The <a href="/demo">/demo</a>
+        Worker is rewritten on <code>claude-api</code> patterns, and
+        opchain's own eval set ships under <code>prompt-ops</code> as the
+        dogfooding proof.
+      </p>
+
+      <h3>Compatibility</h3>
+      <p>
+        Back-compatible with v1.4. No migration steps required. All 22
+        skills version-bump to <code>1.5.0</code> in lockstep (catalog tag
+        <code>skills-v1.5.0</code>); the four new skills ship gated behind
+        their <code>skills.registry.&lt;id&gt;.enabled</code> flags, so
+        existing installs are unchanged until you opt in.
+        <code>opchain-skills.zip</code> bundles everything as before.
+      </p>
+
+      <p class="planned-note">
+        Built &mdash; shipping next, not yet live.
+        <a href="#roadmap-vote">Vote on it above</a> to signal priority.
+      </p>
+    </section>
+
+    <section class="release release--next" id="v1-6">
+      <header class="rel-head">
+        <span class="rel-tag rel-tag--next">v1.6</span>
+        <h2>The instrumented pipeline</h2>
+        <span class="rel-date">planned · after v1.5 ships</span>
+      </header>
+
+      <p class="rel-summary">
+        v1.5 introduces four AI-native skills; the predictable next question is
+        <em>what did they cost, and is my pipeline actually getting
+        better?</em> v1.6 answers both. It adds cost attribution and opt-in
+        telemetry, turns every skill's pass/fail into a graded eval score,
+        and ships the first <code>checkpoint-protocol</code> bump since
+        v1.2.
+      </p>
+
+      <h3>New skills</h3>
+      <ul>
+        <li>
+          <strong><code>cost-ops</code> &mdash; <code>/cost</code>.</strong>
+          Attributes Anthropic spend to each skill phase, adds budget gates
+          to checkpoints, and recommends model-tier routing &mdash; Haiku
+          for cheap repetitive phases, Opus for spec and audit. Finally
+          answers "what did this feature cost to ship?"
+        </li>
+        <li>
+          <strong><code>telemetry-ops</code> &mdash; <code>/telemetry</code>.</strong>
+          Opt-in, local-first usage metering written to
+          <code>.checkpoints/usage.sqlite</code>. Aggregates anonymized
+          "which skills people actually use" stats &mdash; the data behind
+          the new public <code>/dashboard</code>. Nothing leaves your
+          machine unless you opt in.
+        </li>
+      </ul>
+
+      <h3>Cross-skill ripples</h3>
+      <ul>
+        <li>
+          <strong><code>bug-check</code> + <code>code-auditor</code></strong>
+          stop emitting bare pass/fail and start scoring against a stable
+          rubric.
+        </li>
+        <li>
+          <strong><code>monitoring-ops</code></strong> gains an "AI-app"
+          template covering token rate, eval drift, and hallucination
+          flags.
+        </li>
+        <li>
+          <strong><code>prompt-ops</code></strong> (from v1.5) begins
+          populating <code>cost_per_eval</code> and
+          <code>eval_score_trend</code>.
+        </li>
+        <li>
+          <strong><code>orchestrator</code></strong>'s <code>/ops next</code>
+          factors cost and remaining budget into what it recommends you do
+          next.
+        </li>
+      </ul>
+
+      <h3>Protocol bump</h3>
+      <p>
+        <code>checkpoint-protocol v1.3</code> &mdash; the first bump since
+        the v1.2 PM-MCP fields &mdash; adds <code>cost</code>,
+        <code>eval_scores</code>, and <code>telemetry_handle</code>.
+        <code>migration-ops</code> rolls it across every skill the same way
+        the governance frontmatter rolled out in v1.4.
+      </p>
+
+      <h3>Site &amp; dogfood</h3>
+      <p>
+        A public <code>/dashboard</code> of anonymized aggregate usage, a
+        <code>/showcase</code> finally backed by real cost-per-shipped-feature
+        numbers from opchain's own pipeline, and a replays section with cost
+        overlays on real runs. All 24 skills lockstep-bump to
+        <code>1.6.0</code>.
+      </p>
+
+      <p class="planned-note">
+        Planned &mdash; scope may shift before release.
+        <a href="#roadmap-vote">Vote on the items above</a> to weigh in.
+      </p>
+    </section>
+
+    <section class="release release--next" id="v1-7">
+      <header class="rel-head">
+        <span class="rel-tag rel-tag--next">v1.7</span>
+        <h2>Pick one distribution play</h2>
+        <span class="rel-date">planned · lean: marketplace + templates</span>
+      </header>
+
+      <p class="rel-summary">
+        By the time v1.6 ships, opchain has 24 skills, instrumented
+        pipelines, and AI-native coverage. The biggest remaining gap isn't
+        features &mdash; it's <strong>distribution</strong>. v1.7
+        deliberately promotes one growth play into a flagship theme instead
+        of accreting more skills. The current lean is
+        <strong>marketplace + templates</strong>.
+      </p>
+
+      <h3>The lean plan</h3>
+      <ul>
+        <li>
+          <strong><code>marketplace</code>.</strong> A site surface for
+          community-contributed skills and packs. Every contribution adds
+          breadth at zero core-team cost &mdash; and opchain itself becomes
+          the first entry in its own marketplace.
+        </li>
+        <li>
+          <strong><code>template-ops</code> &mdash; <code>/template</code>.</strong>
+          Opinionated project starters that pre-wire an entire pipeline
+          &mdash; stack, skills, and checkpoints &mdash; so a new project is
+          ready to run from the first commit.
+        </li>
+      </ul>
+      <p>
+        Why this lean: it compounds, and it's the natural follow-on once
+        v1.6's telemetry exists to grade community contributions on real
+        usage.
+      </p>
+
+      <h3>Alternatives on the table</h3>
+      <ul>
+        <li>
+          <strong>Agency play.</strong> <code>monorepo-ops</code> for real
+          multi-project checkpoint scoping, a <code>/for-agencies</code>
+          expansion, and a client-handoff demo scenario.
+        </li>
+        <li>
+          <strong>Pipeline depth.</strong> <code>discovery-ops</code>
+          (JTBD / opportunity trees, upstream of <code>app-architect</code>)
+          plus <code>qa-ops</code> splitting test-pyramid design out of
+          <code>bug-check</code>.
+        </li>
+      </ul>
+
+      <h3>GTM</h3>
+      <p>
+        A marketplace launch post, a <code>/case-studies</code> page with
+        named (or pseudonymous) builds, and a <code>/community</code> hub.
+      </p>
+
+      <p class="planned-note">
+        Lean, not locked &mdash; the final v1.7 theme is chosen after the
+        v1.5 / v1.6 retro.
+      </p>
+    </section>
+
     <RoadmapForm />
 
     <div class="release-history-head">
@@ -33,7 +290,7 @@ import RoadmapForm from "../components/RoadmapForm.astro";
       <h2 class="rhh">What's already shipped</h2>
     </div>
 
-    <section class="release release--current">
+    <section class="release release--current" id="v1-4">
       <header class="rel-head">
         <span class="rel-tag">v1.4</span>
         <h2>Coverage as a plugin registry</h2>
@@ -437,12 +694,36 @@ import RoadmapForm from "../components/RoadmapForm.astro";
     color: var(--text);
   }
 
+  /* "What's coming" header — mirrors .release-history-head so the
+     upcoming-releases block reads as a sibling section, not nested. */
+  .upcoming-head {
+    margin: 3rem 0 1.25rem;
+    padding-top: 2rem;
+    border-top: 0.5px solid var(--border);
+  }
+
   .release {
     margin-top: 2.25rem;
     padding-top: 1.5rem;
     border-top: 0.5px solid var(--border);
   }
   .release--current { border-top: 1.5px solid var(--accent); }
+  /* Upcoming releases: slate (--info) top rule to read as "future, not
+     shipped" against the ember of the current release. */
+  .release--next { border-top: 1.5px solid var(--info); }
+  .rel-tag--next {
+    color: var(--info);
+    border-color: var(--info);
+  }
+  .planned-note {
+    margin-top: 1.25rem;
+    padding-top: 0.85rem;
+    border-top: 0.5px dashed var(--border);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+  }
   .rel-head {
     display: flex;
     align-items: baseline;
