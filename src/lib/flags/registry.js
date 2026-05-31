@@ -109,15 +109,6 @@ const DEFINITIONS = [
     description: "Allow downloading the combined opchain-skills.zip and per-skill zips.",
   },
   {
-    name: "site.feature.email-pipeline.enabled",
-    type: "boolean",
-    default: true,
-    category: "release",
-    owner: "site",
-    description:
-      "Render the 'email me this' form on /pipeline-builder Step 5. Off → form hidden but the rest of Step 5 (skills list, install snippet, CLAUDE.md) still renders.",
-  },
-  {
     name: "site.feature.replays-section",
     type: "boolean",
     default: true,
@@ -164,15 +155,6 @@ const DEFINITIONS = [
     category: "ops",
     owner: "platform",
     description: "Reject /api/notify with 503. Use to pause lead capture during incidents.",
-  },
-  {
-    name: "site.ops.api-email-pipeline.kill",
-    type: "boolean",
-    default: false,
-    category: "ops",
-    owner: "platform",
-    description:
-      "Reject /api/email-pipeline with 503. Use to pause outbound email sends during incidents (Resend outage, abuse, runaway cost).",
   },
   {
     name: "site.ops.api-health.detailed",

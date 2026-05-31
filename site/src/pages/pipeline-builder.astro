@@ -2,15 +2,6 @@
 import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
 import Icon from "../components/Icon.astro";
-import { defaultFor } from "../lib/flags/build-defaults";
-
-// Build-time read of the email-pipeline feature flag. Renders the email
-// block when the registry default is true; the runtime <meta> snapshot
-// (see Base.astro) layers PostHog overrides on top of this for SPA-style
-// flips post-consent.
-const emailPipelineEnabled = Boolean(
-  defaultFor("site.feature.email-pipeline.enabled"),
-);
 ---
 
 <Base
@@ -204,42 +195,18 @@ const emailPipelineEnabled = Boolean(
           </button>
         </div>
 
-        {emailPipelineEnabled && (
-          <div class="result-section email-block" id="email-block">
-            <div class="result-head">Email me this</div>
-            <p class="email-sub">
-              Drop your name and email and we'll send the full pipeline —
-              your answers, the recommended skills, and a numbered
-              next-steps checklist. Skippable.
-            </p>
-            <div class="email-form" id="email-form">
-              <input
-                type="text"
-                name="name"
-                id="name-input"
-                placeholder="Your name"
-                autocomplete="name"
-                maxlength="80"
-                required
-              />
-              <input
-                type="email"
-                name="email"
-                id="email-input"
-                placeholder="you@example.com"
-                autocomplete="email"
-                inputmode="email"
-                required
-              />
-              <button type="button" class="email-submit" id="email-submit">email it to me</button>
-            </div>
-            <div class="email-status" id="email-status" hidden></div>
-            <div class="email-success" id="email-success" hidden>
-              <span class="email-success-text" id="email-success-text"></span>
-              <button type="button" class="email-reset" id="email-reset">send to another address</button>
-            </div>
-          </div>
-        )}
+        <div class="result-section download-block" id="download-block">
+          <div class="result-head">Download your pipeline</div>
+          <p class="download-sub">
+            One Markdown file — your answers, the recommended skills,
+            the install snippet, the CLAUDE.md starter, and a
+            next-steps checklist. Drop it straight into your repo.
+          </p>
+          <button type="button" class="download-btn" id="download-pipeline">
+            <Icon name="download" size={12} /> download opchain-pipeline.md
+          </button>
+          <div class="download-status" id="download-status" hidden></div>
+        </div>
 
         <div class="result-section">
           <div class="result-head">Next steps</div>
@@ -516,37 +483,14 @@ const emailPipelineEnabled = Boolean(
   }
   .copy:hover { color: var(--accent); border-color: var(--accent); }
 
-  .email-block { border-top: 0.5px dashed var(--border); padding-top: 1rem; }
-  .email-sub {
+  .download-block { border-top: 0.5px dashed var(--border); padding-top: 1rem; }
+  .download-sub {
     color: var(--muted);
     font-size: var(--fs-sm);
     margin: 0 0 0.6rem;
     line-height: var(--lh-base);
   }
-  .email-form {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-  .email-form input[type="email"],
-  .email-form input[type="text"] {
-    flex: 1 1 220px;
-    appearance: none;
-    background: var(--card);
-    border: 0.5px solid var(--border);
-    border-radius: var(--r-xs);
-    color: var(--text);
-    font: inherit;
-    font-size: var(--fs-base);
-    padding: 0.55rem 0.85rem;
-  }
-  .email-form input[type="email"]:focus,
-  .email-form input[type="text"]:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent-dim);
-  }
-  .email-submit {
+  .download-btn {
     appearance: none;
     background: var(--accent);
     color: #1c1710;
@@ -558,44 +502,18 @@ const emailPipelineEnabled = Boolean(
     padding: 0.55rem 1rem;
     border-radius: var(--r-xs);
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
   }
-  .email-submit:hover { filter: brightness(1.05); }
-  .email-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-  .email-status {
+  .download-btn:hover { filter: brightness(1.05); }
+  .download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .download-status {
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     margin-top: 0.5rem;
     color: var(--muted);
   }
-  .email-success {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.8rem 1rem;
-    border: 0.5px solid var(--accent);
-    background: var(--accent-dim);
-    border-radius: var(--r-xs);
-    color: var(--text);
-    font-size: var(--fs-sm);
-  }
-  .email-success-text {
-    flex: 1 1 220px;
-  }
-  .email-reset {
-    appearance: none;
-    background: transparent;
-    border: 0;
-    color: var(--accent);
-    font: inherit;
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    letter-spacing: var(--ls-wide);
-    text-decoration: underline;
-    cursor: pointer;
-    padding: 0;
-  }
-  .email-reset:hover { color: var(--text); }
 
   .cta-row {
     display: flex;
@@ -885,13 +803,11 @@ ${DEPLOY_NOTE[a.deploy]}
   wireCopy("copy-install", "install-cmd");
   wireCopy("copy-claude", "claude-md");
 
-  // ── Email capture (POST /api/email-pipeline) ──────────────────
-  // Collects name + email, bundles the wizard answers + recommended
-  // skills (via `recommend()` + SKILL_BLURB above), and posts to the
-  // worker, which renders rich HTML and ships via Resend. On success
-  // we swap the form out for a success state with a "send to another
-  // address" reset; on failure we keep the form mounted with the
-  // user's input intact and show the error inline.
+  // ── Download pipeline (client-side Markdown) ──────────────────
+  // Bundles wizard answers, recommended skills, install snippet, and the
+  // CLAUDE.md starter into a single Markdown file and triggers a download
+  // via Blob + URL.createObjectURL. No backend round-trip — the page
+  // already has everything it needs.
   const KIND_LABEL: Record<Kind, string> = {
     "web-app": "web app",
     "api": "API / backend",
@@ -919,108 +835,86 @@ ${DEPLOY_NOTE[a.deploy]}
     "claude-ai": "Claude.ai / Desktop",
     "both": "Claude Code + Claude.ai",
   };
-  function emailPayload(a: Answers, skills: string[]) {
-    return {
-      answers: {
-        kind: KIND_LABEL[a.kind],
-        team: TEAM_LABEL[a.team],
-        deploy: DEPLOY_LABEL[a.deploy],
-        aiSurface: SURFACE_LABEL[a.surface],
-      },
-      skills: skills.map((id) => ({
-        id,
-        name: id,
-        summary: SKILL_BLURB[id] || "",
-      })),
-    };
+
+  function buildPipelineMarkdown(a: Answers, skills: string[]): string {
+    const install = installSnippet(a, skills);
+    const claudeMd = claudeMdStarter(a, skills);
+    const skillLines = skills
+      .map((s) => `- **${s}** — ${SKILL_BLURB[s] || ""} — https://opchain.dev/skills/${s}`)
+      .join("\n");
+    return [
+      "# Your opchain pipeline",
+      "",
+      `Generated from https://opchain.dev/pipeline-builder on ${new Date().toISOString().slice(0, 10)}.`,
+      "",
+      "## Your answers",
+      "",
+      `- **Project kind:** ${KIND_LABEL[a.kind]}`,
+      `- **Team size:** ${TEAM_LABEL[a.team]}`,
+      `- **Deploy target:** ${DEPLOY_LABEL[a.deploy]}`,
+      `- **Claude surface:** ${SURFACE_LABEL[a.surface]}`,
+      "",
+      "## Recommended skills",
+      "",
+      skillLines,
+      "",
+      "## Install",
+      "",
+      "```bash",
+      install,
+      "```",
+      "",
+      "## CLAUDE.md starter",
+      "",
+      "Drop this at the root of your repo so every Claude session boots with the right context.",
+      "",
+      "```markdown",
+      claudeMd,
+      "```",
+      "",
+      "## Next steps",
+      "",
+      "1. **Install the recommended skills** — run the install snippet above (or upload each SKILL.md via Claude.ai → Settings → Customize → Skills).",
+      "2. **Add the CLAUDE.md scaffold** — copy the starter above into your repo root.",
+      "3. **Run /orchestrator in your first session** — type `/orchestrator` (or `/ops`) in Claude Code to confirm checkpoints are wired and the skills resolved correctly.",
+      "4. **Ship with deploy-ops** — when you're ready, deploy via `/deploy staging` then `/deploy prod`; the audit gate runs before either.",
+      "",
+      "— opchain.dev",
+      "",
+    ].join("\n");
   }
 
-  const emailForm = document.getElementById("email-form");
-  const emailStatus = document.getElementById("email-status");
-  const emailSubmit = document.getElementById("email-submit") as HTMLButtonElement | null;
-  const emailSuccess = document.getElementById("email-success");
-  const emailSuccessText = document.getElementById("email-success-text");
-  const emailReset = document.getElementById("email-reset");
-  const nameInput = document.getElementById("name-input") as HTMLInputElement | null;
-  const emailInput = document.getElementById("email-input") as HTMLInputElement | null;
+  const downloadBtn = document.getElementById("download-pipeline") as HTMLButtonElement | null;
+  const downloadStatus = document.getElementById("download-status");
 
-  function showStatus(msg: string, kind: "muted" | "warn" | "ok") {
-    if (!emailStatus) return;
-    emailStatus.hidden = false;
-    emailStatus.textContent = msg;
+  function showDownloadStatus(msg: string, kind: "ok" | "warn") {
+    if (!downloadStatus) return;
+    downloadStatus.hidden = false;
+    downloadStatus.textContent = msg;
     const color = kind === "ok"
       ? "var(--success, #0D9488)"
-      : kind === "warn"
-      ? "var(--in-progress, #f59e0b)"
-      : "var(--muted)";
-    emailStatus.setAttribute("style", `color: ${color}`);
+      : "var(--in-progress, #f59e0b)";
+    downloadStatus.setAttribute("style", `color: ${color}`);
   }
 
-  function clearStatus() {
-    if (!emailStatus) return;
-    emailStatus.hidden = true;
-    emailStatus.textContent = "";
-  }
-
-  async function submitEmailPipeline() {
-    if (!emailSubmit || !emailForm) return;
-    if (emailSubmit.disabled) return;
-    const name = (nameInput?.value ?? "").trim();
-    const email = (emailInput?.value ?? "").trim();
-    if (!name || !email) {
-      showStatus("Both name and email are required.", "warn");
-      return;
-    }
-    const a = readAnswers();
-    const skills = recommend(a);
-    const payload = { name, email, ...emailPayload(a, skills) };
-    emailSubmit.disabled = true;
-    showStatus("Sending…", "muted");
+  downloadBtn?.addEventListener("click", () => {
     try {
-      const res = await fetch("/api/email-pipeline", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}) as { error?: string });
-        showStatus(body.error || `Couldn't send (HTTP ${res.status}).`, "warn");
-        return;
-      }
-      clearStatus();
-      emailForm.hidden = true;
-      if (emailSuccess && emailSuccessText) {
-        emailSuccessText.textContent = `Sent to ${email} — check your inbox.`;
-        emailSuccess.hidden = false;
-      }
+      const a = readAnswers();
+      const skills = recommend(a);
+      const md = buildPipelineMarkdown(a, skills);
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "opchain-pipeline.md";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      // Defer revoke so Safari doesn't cancel the download mid-flight.
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showDownloadStatus("Downloaded opchain-pipeline.md ✓", "ok");
     } catch {
-      showStatus("Network error — try again in a moment.", "warn");
-    } finally {
-      emailSubmit.disabled = false;
-    }
-  }
-
-  emailSubmit?.addEventListener("click", submitEmailPipeline);
-
-  // Keep Enter-to-submit working now that the block isn't a real <form>.
-  for (const input of [nameInput, emailInput]) {
-    input?.addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter") {
-        ev.preventDefault();
-        void submitEmailPipeline();
-      }
-    });
-  }
-
-  emailReset?.addEventListener("click", () => {
-    if (!emailForm || !emailSuccess) return;
-    emailSuccess.hidden = true;
-    emailForm.hidden = false;
-    // Clear only the email; keep name so a returning visitor can re-fire
-    // quickly with the same identity.
-    if (emailInput) {
-      emailInput.value = "";
-      emailInput.focus();
+      showDownloadStatus("Couldn't generate the download — try again.", "warn");
     }
   });
 </script>
