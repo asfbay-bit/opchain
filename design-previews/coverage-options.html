@@ -1,0 +1,1114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>/coverage — 4 normalize options</title>
+<style>
+:root{
+  --obsidian:#1c1710;--ember:#e05c18;--ember-dim:rgba(224,92,24,.10);--ember-glow:rgba(224,92,24,.22);
+  --bg:var(--obsidian);--surface:#251d14;--card:#241C15;--border:#5a5040;--text:#e8dfd0;--muted:#c4b89e;--subtle:#9d8b78;
+  --accent:#e05c18;--accent-hover:#b84510;--accent-dim:rgba(224,92,24,.10);
+  --warning:#84CC16;--warning-dim:rgba(132,204,22,.12);
+  --font-display:"Outfit",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --fs-xs:11px;--fs-sm:13px;--fs-base:15px;--fs-lg:21px;--fs-2xl:37px;
+  --lh-snug:1.35;--lh-base:1.55;--ls-tight:-0.015em;--ls-wide:.05em;--ls-widest:.15em;
+  --r-xs:3px;--r-md:6px;--r-lg:8px;--dur:120ms;--ease:cubic-bezier(.4,0,.2,1);
+}
+[data-theme="light"]{
+  --bg:#f8ebda;--surface:#f4e5cf;--card:#fff;--border:#ccb390;--text:#1c1710;--muted:#5a4a30;--subtle:#6e5c40;
+  --accent:#d95010;--accent-hover:#ab3e08;--accent-dim:rgba(217,80,16,.12);--warning:#4d7c0f;--warning-dim:rgba(77,124,15,.10);
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-display);padding-top:54px;}
+a{color:inherit;}
+.toolbar{position:fixed;inset:0 0 auto 0;height:54px;z-index:50;display:flex;align-items:center;gap:.5rem;
+  padding:0 1rem;background:var(--surface);border-bottom:.5px solid var(--border);overflow-x:auto;}
+.toolbar .brand{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:var(--ls-widest);text-transform:uppercase;color:var(--accent);margin-right:.5rem;white-space:nowrap;}
+.tab{appearance:none;border:.5px solid var(--border);background:var(--card);color:var(--muted);
+  font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:var(--ls-wide);padding:.4rem .7rem;border-radius:999px;cursor:pointer;white-space:nowrap;}
+.tab:hover{color:var(--text);border-color:var(--accent);}
+.tab.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.theme{margin-left:auto;appearance:none;border:.5px solid var(--border);background:var(--card);color:var(--muted);
+  font-family:var(--font-mono);font-size:var(--fs-xs);padding:.4rem .7rem;border-radius:999px;cursor:pointer;white-space:nowrap;}
+.opt{display:none;}
+.opt.active{display:block;}
+.opt-note{font-family:var(--font-mono);font-size:var(--fs-xs);line-height:1.5;color:var(--muted);
+  background:var(--surface);border-bottom:.5px solid var(--border);padding:.6rem 1.5rem;}
+.opt-note b{color:var(--accent);}
+
+/* eyebrow + headings */
+.eyebrow{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:var(--ls-widest);text-transform:uppercase;color:var(--accent);}
+.page-head{margin-bottom:1.25rem;}
+.page-head h1{font-family:var(--font-display);font-size:var(--fs-2xl);font-weight:600;color:var(--text);letter-spacing:var(--ls-tight);margin:.5rem 0 0;}
+.lede{color:var(--muted);max-width:70ch;margin:0 0 1.5rem;line-height:var(--lh-base);}
+.lede a{color:var(--accent);}
+code{font-family:var(--font-mono);}
+
+/* ── stat boxes — homepage .stat treatment ── */
+.cov-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.5rem;margin:0 0 2rem;}
+.stat{display:flex;flex-direction:column;align-items:center;gap:.15rem;padding:.8rem .9rem;background:var(--surface);
+  border:.5px solid var(--border);border-radius:var(--r-md);color:var(--muted);text-decoration:none;
+  transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur) var(--ease);}
+.stat:hover{color:var(--text);border-color:var(--accent);transform:translateY(-1px);}
+.stat-num{font-family:var(--font-display);font-size:var(--fs-lg);font-weight:600;color:var(--text);letter-spacing:var(--ls-tight);line-height:1;}
+.stat-label{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:var(--ls-widest);text-transform:uppercase;color:var(--subtle);}
+
+/* ── sections + cards ── */
+.cov-section{margin:2rem 0;scroll-margin-top:70px;}
+.cov-section h2{font-family:var(--font-display);font-weight:600;font-size:var(--fs-lg);color:var(--text);margin:0 0 .25rem;}
+.cov-sub{color:var(--muted);max-width:70ch;margin:0 0 1rem;line-height:var(--lh-base);font-size:var(--fs-sm);}
+.cov-grid{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem;}
+.cov-card{border:.5px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--r-md);padding:.9rem;
+  background:var(--surface);display:flex;flex-direction:column;gap:.5rem;}
+.cov-card--language{border-left-color:var(--accent);}
+.cov-card--framework{border-left-color:color-mix(in srgb,var(--accent) 70%,var(--surface));}
+.cov-card--mobile{border-left-color:color-mix(in srgb,var(--accent) 45%,var(--surface));}
+.cov-card--deploy{border-left-color:color-mix(in srgb,var(--accent) 25%,var(--surface));}
+.cov-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:.75rem;}
+.cov-name{color:var(--text);text-decoration:none;font-weight:600;}
+.cov-name:hover{text-decoration:underline;}
+.cov-status{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:var(--ls-wide);padding:2px 8px;border-radius:999px;
+  text-transform:lowercase;color:var(--muted);background:var(--surface);border:.5px solid var(--border);}
+.cov-status.status-stable{color:var(--accent);border-color:var(--accent);background:var(--accent-dim);}
+.cov-status.status-beta,.cov-status.status-experimental{color:var(--warning);border-color:var(--warning);background:var(--warning-dim);}
+.cov-status.status-deprecated{color:var(--subtle);text-decoration:line-through;}
+.cov-id{font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--subtle);}
+.cov-meta{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:.25rem .75rem;font-size:var(--fs-sm);}
+.cov-meta>div{display:contents;}
+.cov-meta dt{color:var(--subtle);font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:var(--ls-wide);}
+.cov-meta dd{margin:0;color:var(--muted);}
+.cov-meta dd code{font-size:.85em;color:var(--text);}
+.cov-frameworks{margin:.25rem 0 0;font-size:var(--fs-sm);color:var(--muted);}
+.cov-frameworks a{color:var(--accent);text-decoration:none;}
+
+/* ── per-option layout ── */
+.opt-a .page{max-width:1040px;margin:0 auto;padding:2.5rem 1.5rem 5rem;}
+
+.opt-b .page{max-width:1240px;margin:0 auto;padding:2.5rem 2rem 5rem;}
+.opt-b .cov-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));}
+
+.opt-c .page{max-width:1040px;margin:0 auto;padding:2.5rem 1.5rem 5rem;}
+.opt-c .cov-stats{position:sticky;top:54px;z-index:5;background:var(--bg);margin:0 0 1.5rem;padding:.75rem 0;border-bottom:.5px solid var(--border);}
+.opt-c .cov-section{scroll-margin-top:150px;}
+.opt-c .stat.is-active{border-color:var(--accent);color:var(--text);background:var(--accent-dim);}
+
+.opt-d .page{max-width:none;margin:0;padding:0;}
+.opt-d .page-head,.opt-d .lede,.opt-d .cov-stats{max-width:1040px;margin-left:auto;margin-right:auto;padding-left:1.5rem;padding-right:1.5rem;}
+.opt-d .page-head{padding-top:2.5rem;}
+.opt-d .cov-stats{margin-bottom:1.5rem;}
+.opt-d .cov-section{margin:0;padding:2.25rem 1.5rem;scroll-margin-top:54px;}
+.opt-d .cov-section:nth-of-type(even){background:var(--surface);}
+.opt-d .cov-section>*{max-width:1040px;margin-left:auto;margin-right:auto;}
+
+@media (max-width:560px){
+  .cov-stats{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <span class="brand">coverage · options</span>
+  <button class="tab active" data-tab="a">A · Container</button><button class="tab" data-tab="b">B · Wide + dense</button><button class="tab" data-tab="c">C · Sticky stat-nav</button><button class="tab" data-tab="d">D · Banded sections</button>
+  <button class="theme">◐ theme</button>
+</div>
+<div class="opt opt-a active" data-opt="a">
+     <div class="opt-note"><b>Option A</b> — Centered 1040px container (matches /compare). Stat boxes 5-up; cards ~3-up. The conservative, lowest-risk normalize.</div>
+     <div class="page">
+    <div class="page-head"><div class="eyebrow">coverage</div><h1>What opchain knows.</h1></div>
+    <p class="lede">Every <a href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs"><code>stack-forge</code> pack</a> opchain ships, grouped by what role it plays in the dispatch graph. <strong>Languages</strong> have a canonical test-runner / build / lint command. <strong>Frameworks</strong> attach to a language pack. <strong>Mobile</strong> packs dispatch through a release checklist. <strong>Deploy-targets</strong> are the leaves of the dispatch graph.</p>
+    <nav class="cov-stats" aria-label="Coverage at a glance">
+    <a class="stat" href="#a-languages"><span class="stat-num">32</span><span class="stat-label">total packs</span></a>
+    <a class="stat" href="#a-languages"><span class="stat-num">13</span><span class="stat-label">languages</span></a>
+    <a class="stat" href="#a-frameworks"><span class="stat-num">9</span><span class="stat-label">frameworks</span></a>
+    <a class="stat" href="#a-mobile"><span class="stat-num">4</span><span class="stat-label">mobile</span></a>
+    <a class="stat" href="#a-deploy"><span class="stat-num">6</span><span class="stat-label">deploy targets</span></a>
+  </nav>
+    <section class="cov-section" id="a-languages"><h2>Languages</h2><p class="cov-sub">Top-level toolchains. Each ships with a canonical test / build / lint command set.</p><ul class="cov-grid"><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/bun" rel="noopener">Bun</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">bun</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>bun test</code></dd></div><div><dt>build</dt><dd><code>bun run build</code></dd></div><div><dt>lint</dt><dd><code>biome check .</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/csharp" rel="noopener">C#</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">csharp</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>dotnet test</code></dd></div><div><dt>build</dt><dd><code>dotnet build</code></dd></div><div><dt>lint</dt><dd><code>dotnet format --verify-no-changes</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">dotnet-aspnet</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/deno" rel="noopener">Deno</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">deno</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>deno test</code></dd></div><div><dt>build</dt><dd><code>deno task build</code></dd></div><div><dt>lint</dt><dd><code>deno lint</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/elixir" rel="noopener">Elixir</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">elixir</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>mix test</code></dd></div><div><dt>build</dt><dd><code>mix compile</code></dd></div><div><dt>lint</dt><dd><code>mix credo --strict</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">phoenix</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/go" rel="noopener">Go</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">go</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>go test</code></dd></div><div><dt>build</dt><dd><code>go build ./...</code></dd></div><div><dt>lint</dt><dd><code>golangci-lint run</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/java" rel="noopener">Java</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">java</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>mvn test</code></dd></div><div><dt>build</dt><dd><code>mvn package</code></dd></div><div><dt>lint</dt><dd><code>mvn checkstyle:check</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">spring-java</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/kotlin" rel="noopener">Kotlin</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">kotlin</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>gradle test</code></dd></div><div><dt>build</dt><dd><code>gradle build</code></dd></div><div><dt>lint</dt><dd><code>ktlint</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">spring-kotlin</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/php" rel="noopener">PHP</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">php</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>phpunit</code></dd></div><div><dt>build</dt><dd><code>composer install --no-dev</code></dd></div><div><dt>lint</dt><dd><code>phpcs</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">laravel-php</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/python" rel="noopener">Python</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">python</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>pytest</code></dd></div><div><dt>build</dt><dd><code>python -m build</code></dd></div><div><dt>lint</dt><dd><code>ruff check .</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/ruby" rel="noopener">Ruby</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">ruby</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>rspec</code></dd></div><div><dt>build</dt><dd><code>bundle exec rake build</code></dd></div><div><dt>lint</dt><dd><code>bundle exec rubocop</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/rust" rel="noopener">Rust</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">rust</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>cargo test</code></dd></div><div><dt>build</dt><dd><code>cargo build</code></dd></div><div><dt>lint</dt><dd><code>cargo clippy -- -D warnings</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/swift" rel="noopener">Swift</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">swift</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>swift test</code></dd></div><div><dt>build</dt><dd><code>swift build</code></dd></div><div><dt>lint</dt><dd><code>swiftlint</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">swiftui</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/typescript" rel="noopener">TypeScript</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">typescript</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>vitest</code></dd></div><div><dt>build</dt><dd><code>npm run build</code></dd></div><div><dt>lint</dt><dd><code>eslint .</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">remix</a>, <a href="#">sveltekit</a>, <a href="#">solid</a></p>
+  </li></ul></section>
+    <section class="cov-section" id="a-frameworks"><h2>Frameworks</h2><p class="cov-sub">Application frameworks layered on a language pack.</p><ul class="cov-grid"><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/dotnet-aspnet" rel="noopener">ASP.NET Core</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">dotnet-aspnet</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>csharp</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/laravel-php" rel="noopener">Laravel</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">laravel-php</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>php</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/phoenix" rel="noopener">Phoenix</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">phoenix</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>elixir</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/remix" rel="noopener">Remix</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">remix</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>typescript</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/solid" rel="noopener">SolidStart</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">solid</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>typescript</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/spring-java" rel="noopener">Spring Boot (Java)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">spring-java</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>java</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/spring-kotlin" rel="noopener">Spring Boot (Kotlin)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">spring-kotlin</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>kotlin</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/sveltekit" rel="noopener">SvelteKit</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">sveltekit</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>typescript</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/swiftui" rel="noopener">SwiftUI</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">swiftui</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>swift</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li></ul></section>
+    <section class="cov-section" id="a-mobile"><h2>Mobile</h2><p class="cov-sub">Mobile platforms dispatched through a release checklist.</p><ul class="cov-grid"><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/kotlin-android" rel="noopener">Android (Kotlin)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">kotlin-android</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>android</code></dd></div><div><dt>default deploy</dt><dd><code>play-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/flutter" rel="noopener">Flutter</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">flutter</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>flutter</code></dd></div><div><dt>default deploy</dt><dd><code>play-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/ios-swiftui" rel="noopener">iOS (SwiftUI)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">ios-swiftui</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>ios</code></dd></div><div><dt>default deploy</dt><dd><code>app-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/react-native-expo" rel="noopener">React Native (Expo)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">react-native-expo</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>react-native</code></dd></div><div><dt>default deploy</dt><dd><code>play-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li></ul></section>
+    <section class="cov-section" id="a-deploy"><h2>Deploy targets</h2><p class="cov-sub">Hosting providers that packs can target. No coverage flag is emitted.</p><ul class="cov-grid"><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/app-store" rel="noopener">App Store</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">app-store</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/aws-amplify" rel="noopener">AWS Amplify</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">aws-amplify</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/play-store" rel="noopener">Google Play</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">play-store</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/heroku" rel="noopener">Heroku</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">heroku</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/netlify" rel="noopener">Netlify</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">netlify</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/railway" rel="noopener">Railway</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">railway</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li></ul></section>
+  </div>
+   </div><div class="opt opt-b" data-opt="b">
+     <div class="opt-note"><b>Option B</b> — Wider 1240px container with bigger side gutters and a denser 4-up card grid. Shows more packs per screen while keeping clear margins.</div>
+     <div class="page">
+    <div class="page-head"><div class="eyebrow">coverage</div><h1>What opchain knows.</h1></div>
+    <p class="lede">Every <a href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs"><code>stack-forge</code> pack</a> opchain ships, grouped by what role it plays in the dispatch graph. <strong>Languages</strong> have a canonical test-runner / build / lint command. <strong>Frameworks</strong> attach to a language pack. <strong>Mobile</strong> packs dispatch through a release checklist. <strong>Deploy-targets</strong> are the leaves of the dispatch graph.</p>
+    <nav class="cov-stats" aria-label="Coverage at a glance">
+    <a class="stat" href="#b-languages"><span class="stat-num">32</span><span class="stat-label">total packs</span></a>
+    <a class="stat" href="#b-languages"><span class="stat-num">13</span><span class="stat-label">languages</span></a>
+    <a class="stat" href="#b-frameworks"><span class="stat-num">9</span><span class="stat-label">frameworks</span></a>
+    <a class="stat" href="#b-mobile"><span class="stat-num">4</span><span class="stat-label">mobile</span></a>
+    <a class="stat" href="#b-deploy"><span class="stat-num">6</span><span class="stat-label">deploy targets</span></a>
+  </nav>
+    <section class="cov-section" id="b-languages"><h2>Languages</h2><p class="cov-sub">Top-level toolchains. Each ships with a canonical test / build / lint command set.</p><ul class="cov-grid"><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/bun" rel="noopener">Bun</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">bun</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>bun test</code></dd></div><div><dt>build</dt><dd><code>bun run build</code></dd></div><div><dt>lint</dt><dd><code>biome check .</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/csharp" rel="noopener">C#</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">csharp</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>dotnet test</code></dd></div><div><dt>build</dt><dd><code>dotnet build</code></dd></div><div><dt>lint</dt><dd><code>dotnet format --verify-no-changes</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">dotnet-aspnet</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/deno" rel="noopener">Deno</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">deno</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>deno test</code></dd></div><div><dt>build</dt><dd><code>deno task build</code></dd></div><div><dt>lint</dt><dd><code>deno lint</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/elixir" rel="noopener">Elixir</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">elixir</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>mix test</code></dd></div><div><dt>build</dt><dd><code>mix compile</code></dd></div><div><dt>lint</dt><dd><code>mix credo --strict</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">phoenix</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/go" rel="noopener">Go</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">go</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>go test</code></dd></div><div><dt>build</dt><dd><code>go build ./...</code></dd></div><div><dt>lint</dt><dd><code>golangci-lint run</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/java" rel="noopener">Java</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">java</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>mvn test</code></dd></div><div><dt>build</dt><dd><code>mvn package</code></dd></div><div><dt>lint</dt><dd><code>mvn checkstyle:check</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">spring-java</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/kotlin" rel="noopener">Kotlin</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">kotlin</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>gradle test</code></dd></div><div><dt>build</dt><dd><code>gradle build</code></dd></div><div><dt>lint</dt><dd><code>ktlint</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">spring-kotlin</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/php" rel="noopener">PHP</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">php</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>phpunit</code></dd></div><div><dt>build</dt><dd><code>composer install --no-dev</code></dd></div><div><dt>lint</dt><dd><code>phpcs</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">laravel-php</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/python" rel="noopener">Python</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">python</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>pytest</code></dd></div><div><dt>build</dt><dd><code>python -m build</code></dd></div><div><dt>lint</dt><dd><code>ruff check .</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/ruby" rel="noopener">Ruby</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">ruby</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>rspec</code></dd></div><div><dt>build</dt><dd><code>bundle exec rake build</code></dd></div><div><dt>lint</dt><dd><code>bundle exec rubocop</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/rust" rel="noopener">Rust</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">rust</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>cargo test</code></dd></div><div><dt>build</dt><dd><code>cargo build</code></dd></div><div><dt>lint</dt><dd><code>cargo clippy -- -D warnings</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/swift" rel="noopener">Swift</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">swift</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>swift test</code></dd></div><div><dt>build</dt><dd><code>swift build</code></dd></div><div><dt>lint</dt><dd><code>swiftlint</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">swiftui</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/typescript" rel="noopener">TypeScript</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">typescript</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>vitest</code></dd></div><div><dt>build</dt><dd><code>npm run build</code></dd></div><div><dt>lint</dt><dd><code>eslint .</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">remix</a>, <a href="#">sveltekit</a>, <a href="#">solid</a></p>
+  </li></ul></section>
+    <section class="cov-section" id="b-frameworks"><h2>Frameworks</h2><p class="cov-sub">Application frameworks layered on a language pack.</p><ul class="cov-grid"><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/dotnet-aspnet" rel="noopener">ASP.NET Core</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">dotnet-aspnet</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>csharp</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/laravel-php" rel="noopener">Laravel</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">laravel-php</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>php</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/phoenix" rel="noopener">Phoenix</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">phoenix</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>elixir</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/remix" rel="noopener">Remix</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">remix</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>typescript</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/solid" rel="noopener">SolidStart</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">solid</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>typescript</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/spring-java" rel="noopener">Spring Boot (Java)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">spring-java</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>java</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/spring-kotlin" rel="noopener">Spring Boot (Kotlin)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">spring-kotlin</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>kotlin</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/sveltekit" rel="noopener">SvelteKit</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">sveltekit</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>typescript</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/swiftui" rel="noopener">SwiftUI</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">swiftui</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>swift</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li></ul></section>
+    <section class="cov-section" id="b-mobile"><h2>Mobile</h2><p class="cov-sub">Mobile platforms dispatched through a release checklist.</p><ul class="cov-grid"><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/kotlin-android" rel="noopener">Android (Kotlin)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">kotlin-android</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>android</code></dd></div><div><dt>default deploy</dt><dd><code>play-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/flutter" rel="noopener">Flutter</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">flutter</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>flutter</code></dd></div><div><dt>default deploy</dt><dd><code>play-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/ios-swiftui" rel="noopener">iOS (SwiftUI)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">ios-swiftui</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>ios</code></dd></div><div><dt>default deploy</dt><dd><code>app-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/react-native-expo" rel="noopener">React Native (Expo)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">react-native-expo</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>react-native</code></dd></div><div><dt>default deploy</dt><dd><code>play-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li></ul></section>
+    <section class="cov-section" id="b-deploy"><h2>Deploy targets</h2><p class="cov-sub">Hosting providers that packs can target. No coverage flag is emitted.</p><ul class="cov-grid"><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/app-store" rel="noopener">App Store</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">app-store</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/aws-amplify" rel="noopener">AWS Amplify</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">aws-amplify</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/play-store" rel="noopener">Google Play</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">play-store</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/heroku" rel="noopener">Heroku</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">heroku</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/netlify" rel="noopener">Netlify</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">netlify</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/railway" rel="noopener">Railway</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">railway</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li></ul></section>
+  </div>
+   </div><div class="opt opt-c" data-opt="c">
+     <div class="opt-note"><b>Option C</b> — 1040px container; the stat boxes stick to the top as you scroll and highlight the section you're in (scrollspy). Most app-like.</div>
+     <div class="page">
+    <div class="page-head"><div class="eyebrow">coverage</div><h1>What opchain knows.</h1></div>
+    <p class="lede">Every <a href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs"><code>stack-forge</code> pack</a> opchain ships, grouped by what role it plays in the dispatch graph. <strong>Languages</strong> have a canonical test-runner / build / lint command. <strong>Frameworks</strong> attach to a language pack. <strong>Mobile</strong> packs dispatch through a release checklist. <strong>Deploy-targets</strong> are the leaves of the dispatch graph.</p>
+    <nav class="cov-stats" aria-label="Coverage at a glance">
+    <a class="stat" href="#c-languages"><span class="stat-num">32</span><span class="stat-label">total packs</span></a>
+    <a class="stat" href="#c-languages"><span class="stat-num">13</span><span class="stat-label">languages</span></a>
+    <a class="stat" href="#c-frameworks"><span class="stat-num">9</span><span class="stat-label">frameworks</span></a>
+    <a class="stat" href="#c-mobile"><span class="stat-num">4</span><span class="stat-label">mobile</span></a>
+    <a class="stat" href="#c-deploy"><span class="stat-num">6</span><span class="stat-label">deploy targets</span></a>
+  </nav>
+    <section class="cov-section" id="c-languages"><h2>Languages</h2><p class="cov-sub">Top-level toolchains. Each ships with a canonical test / build / lint command set.</p><ul class="cov-grid"><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/bun" rel="noopener">Bun</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">bun</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>bun test</code></dd></div><div><dt>build</dt><dd><code>bun run build</code></dd></div><div><dt>lint</dt><dd><code>biome check .</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/csharp" rel="noopener">C#</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">csharp</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>dotnet test</code></dd></div><div><dt>build</dt><dd><code>dotnet build</code></dd></div><div><dt>lint</dt><dd><code>dotnet format --verify-no-changes</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">dotnet-aspnet</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/deno" rel="noopener">Deno</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">deno</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>deno test</code></dd></div><div><dt>build</dt><dd><code>deno task build</code></dd></div><div><dt>lint</dt><dd><code>deno lint</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/elixir" rel="noopener">Elixir</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">elixir</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>mix test</code></dd></div><div><dt>build</dt><dd><code>mix compile</code></dd></div><div><dt>lint</dt><dd><code>mix credo --strict</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">phoenix</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/go" rel="noopener">Go</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">go</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>go test</code></dd></div><div><dt>build</dt><dd><code>go build ./...</code></dd></div><div><dt>lint</dt><dd><code>golangci-lint run</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/java" rel="noopener">Java</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">java</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>mvn test</code></dd></div><div><dt>build</dt><dd><code>mvn package</code></dd></div><div><dt>lint</dt><dd><code>mvn checkstyle:check</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">spring-java</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/kotlin" rel="noopener">Kotlin</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">kotlin</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>gradle test</code></dd></div><div><dt>build</dt><dd><code>gradle build</code></dd></div><div><dt>lint</dt><dd><code>ktlint</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">spring-kotlin</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/php" rel="noopener">PHP</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">php</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>phpunit</code></dd></div><div><dt>build</dt><dd><code>composer install --no-dev</code></dd></div><div><dt>lint</dt><dd><code>phpcs</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">laravel-php</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/python" rel="noopener">Python</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">python</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>pytest</code></dd></div><div><dt>build</dt><dd><code>python -m build</code></dd></div><div><dt>lint</dt><dd><code>ruff check .</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/ruby" rel="noopener">Ruby</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">ruby</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>rspec</code></dd></div><div><dt>build</dt><dd><code>bundle exec rake build</code></dd></div><div><dt>lint</dt><dd><code>bundle exec rubocop</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/rust" rel="noopener">Rust</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">rust</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>cargo test</code></dd></div><div><dt>build</dt><dd><code>cargo build</code></dd></div><div><dt>lint</dt><dd><code>cargo clippy -- -D warnings</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/swift" rel="noopener">Swift</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">swift</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>swift test</code></dd></div><div><dt>build</dt><dd><code>swift build</code></dd></div><div><dt>lint</dt><dd><code>swiftlint</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">swiftui</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/typescript" rel="noopener">TypeScript</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">typescript</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>vitest</code></dd></div><div><dt>build</dt><dd><code>npm run build</code></dd></div><div><dt>lint</dt><dd><code>eslint .</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">remix</a>, <a href="#">sveltekit</a>, <a href="#">solid</a></p>
+  </li></ul></section>
+    <section class="cov-section" id="c-frameworks"><h2>Frameworks</h2><p class="cov-sub">Application frameworks layered on a language pack.</p><ul class="cov-grid"><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/dotnet-aspnet" rel="noopener">ASP.NET Core</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">dotnet-aspnet</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>csharp</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/laravel-php" rel="noopener">Laravel</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">laravel-php</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>php</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/phoenix" rel="noopener">Phoenix</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">phoenix</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>elixir</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/remix" rel="noopener">Remix</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">remix</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>typescript</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/solid" rel="noopener">SolidStart</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">solid</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>typescript</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/spring-java" rel="noopener">Spring Boot (Java)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">spring-java</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>java</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/spring-kotlin" rel="noopener">Spring Boot (Kotlin)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">spring-kotlin</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>kotlin</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/sveltekit" rel="noopener">SvelteKit</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">sveltekit</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>typescript</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/swiftui" rel="noopener">SwiftUI</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">swiftui</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>swift</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li></ul></section>
+    <section class="cov-section" id="c-mobile"><h2>Mobile</h2><p class="cov-sub">Mobile platforms dispatched through a release checklist.</p><ul class="cov-grid"><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/kotlin-android" rel="noopener">Android (Kotlin)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">kotlin-android</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>android</code></dd></div><div><dt>default deploy</dt><dd><code>play-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/flutter" rel="noopener">Flutter</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">flutter</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>flutter</code></dd></div><div><dt>default deploy</dt><dd><code>play-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/ios-swiftui" rel="noopener">iOS (SwiftUI)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">ios-swiftui</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>ios</code></dd></div><div><dt>default deploy</dt><dd><code>app-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/react-native-expo" rel="noopener">React Native (Expo)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">react-native-expo</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>react-native</code></dd></div><div><dt>default deploy</dt><dd><code>play-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li></ul></section>
+    <section class="cov-section" id="c-deploy"><h2>Deploy targets</h2><p class="cov-sub">Hosting providers that packs can target. No coverage flag is emitted.</p><ul class="cov-grid"><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/app-store" rel="noopener">App Store</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">app-store</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/aws-amplify" rel="noopener">AWS Amplify</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">aws-amplify</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/play-store" rel="noopener">Google Play</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">play-store</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/heroku" rel="noopener">Heroku</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">heroku</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/netlify" rel="noopener">Netlify</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">netlify</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/railway" rel="noopener">Railway</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">railway</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li></ul></section>
+  </div>
+   </div><div class="opt opt-d" data-opt="d">
+     <div class="opt-note"><b>Option D</b> — Full-bleed alternating section bands with the tiles constrained to a centered 1040px column — margins on the tiles, dividers span edge-to-edge.</div>
+     <div class="page">
+    <div class="page-head"><div class="eyebrow">coverage</div><h1>What opchain knows.</h1></div>
+    <p class="lede">Every <a href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs"><code>stack-forge</code> pack</a> opchain ships, grouped by what role it plays in the dispatch graph. <strong>Languages</strong> have a canonical test-runner / build / lint command. <strong>Frameworks</strong> attach to a language pack. <strong>Mobile</strong> packs dispatch through a release checklist. <strong>Deploy-targets</strong> are the leaves of the dispatch graph.</p>
+    <nav class="cov-stats" aria-label="Coverage at a glance">
+    <a class="stat" href="#d-languages"><span class="stat-num">32</span><span class="stat-label">total packs</span></a>
+    <a class="stat" href="#d-languages"><span class="stat-num">13</span><span class="stat-label">languages</span></a>
+    <a class="stat" href="#d-frameworks"><span class="stat-num">9</span><span class="stat-label">frameworks</span></a>
+    <a class="stat" href="#d-mobile"><span class="stat-num">4</span><span class="stat-label">mobile</span></a>
+    <a class="stat" href="#d-deploy"><span class="stat-num">6</span><span class="stat-label">deploy targets</span></a>
+  </nav>
+    <section class="cov-section" id="d-languages"><h2>Languages</h2><p class="cov-sub">Top-level toolchains. Each ships with a canonical test / build / lint command set.</p><ul class="cov-grid"><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/bun" rel="noopener">Bun</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">bun</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>bun test</code></dd></div><div><dt>build</dt><dd><code>bun run build</code></dd></div><div><dt>lint</dt><dd><code>biome check .</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/csharp" rel="noopener">C#</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">csharp</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>dotnet test</code></dd></div><div><dt>build</dt><dd><code>dotnet build</code></dd></div><div><dt>lint</dt><dd><code>dotnet format --verify-no-changes</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">dotnet-aspnet</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/deno" rel="noopener">Deno</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">deno</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>deno test</code></dd></div><div><dt>build</dt><dd><code>deno task build</code></dd></div><div><dt>lint</dt><dd><code>deno lint</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/elixir" rel="noopener">Elixir</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">elixir</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>mix test</code></dd></div><div><dt>build</dt><dd><code>mix compile</code></dd></div><div><dt>lint</dt><dd><code>mix credo --strict</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">phoenix</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/go" rel="noopener">Go</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">go</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>go test</code></dd></div><div><dt>build</dt><dd><code>go build ./...</code></dd></div><div><dt>lint</dt><dd><code>golangci-lint run</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/java" rel="noopener">Java</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">java</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>mvn test</code></dd></div><div><dt>build</dt><dd><code>mvn package</code></dd></div><div><dt>lint</dt><dd><code>mvn checkstyle:check</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">spring-java</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/kotlin" rel="noopener">Kotlin</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">kotlin</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>gradle test</code></dd></div><div><dt>build</dt><dd><code>gradle build</code></dd></div><div><dt>lint</dt><dd><code>ktlint</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">spring-kotlin</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/php" rel="noopener">PHP</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">php</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>phpunit</code></dd></div><div><dt>build</dt><dd><code>composer install --no-dev</code></dd></div><div><dt>lint</dt><dd><code>phpcs</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">laravel-php</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/python" rel="noopener">Python</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">python</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>pytest</code></dd></div><div><dt>build</dt><dd><code>python -m build</code></dd></div><div><dt>lint</dt><dd><code>ruff check .</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/ruby" rel="noopener">Ruby</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">ruby</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>rspec</code></dd></div><div><dt>build</dt><dd><code>bundle exec rake build</code></dd></div><div><dt>lint</dt><dd><code>bundle exec rubocop</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/rust" rel="noopener">Rust</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">rust</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>cargo test</code></dd></div><div><dt>build</dt><dd><code>cargo build</code></dd></div><div><dt>lint</dt><dd><code>cargo clippy -- -D warnings</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/swift" rel="noopener">Swift</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">swift</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>swift test</code></dd></div><div><dt>build</dt><dd><code>swift build</code></dd></div><div><dt>lint</dt><dd><code>swiftlint</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">swiftui</a></p>
+  </li><li class="cov-card cov-card--language status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/typescript" rel="noopener">TypeScript</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">typescript</code>
+    <dl class="cov-meta"><div><dt>test</dt><dd><code>vitest</code></dd></div><div><dt>build</dt><dd><code>npm run build</code></dd></div><div><dt>lint</dt><dd><code>eslint .</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl><p class="cov-frameworks">Frameworks: <a href="#">remix</a>, <a href="#">sveltekit</a>, <a href="#">solid</a></p>
+  </li></ul></section>
+    <section class="cov-section" id="d-frameworks"><h2>Frameworks</h2><p class="cov-sub">Application frameworks layered on a language pack.</p><ul class="cov-grid"><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/dotnet-aspnet" rel="noopener">ASP.NET Core</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">dotnet-aspnet</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>csharp</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/laravel-php" rel="noopener">Laravel</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">laravel-php</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>php</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/phoenix" rel="noopener">Phoenix</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">phoenix</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>elixir</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/remix" rel="noopener">Remix</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">remix</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>typescript</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/solid" rel="noopener">SolidStart</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">solid</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>typescript</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/spring-java" rel="noopener">Spring Boot (Java)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">spring-java</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>java</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/spring-kotlin" rel="noopener">Spring Boot (Kotlin)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">spring-kotlin</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>kotlin</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/sveltekit" rel="noopener">SvelteKit</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">sveltekit</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>typescript</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--framework status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/swiftui" rel="noopener">SwiftUI</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">swiftui</code>
+    <dl class="cov-meta"><div><dt>language</dt><dd><code>swift</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li></ul></section>
+    <section class="cov-section" id="d-mobile"><h2>Mobile</h2><p class="cov-sub">Mobile platforms dispatched through a release checklist.</p><ul class="cov-grid"><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/kotlin-android" rel="noopener">Android (Kotlin)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">kotlin-android</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>android</code></dd></div><div><dt>default deploy</dt><dd><code>play-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/flutter" rel="noopener">Flutter</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">flutter</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>flutter</code></dd></div><div><dt>default deploy</dt><dd><code>play-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/ios-swiftui" rel="noopener">iOS (SwiftUI)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">ios-swiftui</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>ios</code></dd></div><div><dt>default deploy</dt><dd><code>app-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--mobile status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/react-native-expo" rel="noopener">React Native (Expo)</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">react-native-expo</code>
+    <dl class="cov-meta"><div><dt>platform</dt><dd><code>react-native</code></dd></div><div><dt>default deploy</dt><dd><code>play-store</code></dd></div><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li></ul></section>
+    <section class="cov-section" id="d-deploy"><h2>Deploy targets</h2><p class="cov-sub">Hosting providers that packs can target. No coverage flag is emitted.</p><ul class="cov-grid"><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/app-store" rel="noopener">App Store</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">app-store</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/aws-amplify" rel="noopener">AWS Amplify</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">aws-amplify</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/play-store" rel="noopener">Google Play</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">play-store</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/heroku" rel="noopener">Heroku</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">heroku</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/netlify" rel="noopener">Netlify</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">netlify</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li><li class="cov-card cov-card--deploy status-stable">
+    <div class="cov-card-head">
+      <a class="cov-name" href="https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs/railway" rel="noopener">Railway</a>
+      <span class="cov-status status-stable">stable</span>
+    </div>
+    <code class="cov-id">railway</code>
+    <dl class="cov-meta"><div><dt>since</dt><dd>v1.4.0</dd></div></dl>
+  </li></ul></section>
+  </div>
+   </div>
+<script>
+const tabs=[...document.querySelectorAll('.tab')];
+const opts=[...document.querySelectorAll('.opt')];
+tabs.forEach(t=>t.addEventListener('click',()=>{
+  const k=t.dataset.tab;
+  tabs.forEach(x=>x.classList.toggle('active',x===t));
+  opts.forEach(o=>o.classList.toggle('active',o.dataset.opt===k));
+  window.scrollTo({top:0});
+}));
+document.querySelector('.theme').addEventListener('click',()=>{
+  const el=document.documentElement;
+  el.dataset.theme = el.dataset.theme==='light' ? '' : 'light';
+});
+// scrollspy (visible only in Option C, harmless elsewhere)
+opts.forEach(panel=>{
+  const links=[...panel.querySelectorAll('.cov-stats .stat')];
+  const sections=[...panel.querySelectorAll('.cov-section')];
+  if(!('IntersectionObserver' in window)) return;
+  const io=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const id=e.target.id;
+        links.forEach(l=>l.classList.toggle('is-active', l.getAttribute('href').slice(1)===id));
+      }
+    });
+  },{rootMargin:'-45% 0px -50% 0px',threshold:0});
+  sections.forEach(s=>io.observe(s));
+});
+</script>
+</body>
+</html>
