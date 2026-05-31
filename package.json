@@ -42,7 +42,7 @@
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.1",
     "vitest": "^4.1.6",
-    "wrangler": "^4.85.0"
+    "wrangler": "^4.95.0"
   },
   "dependencies": {
     "zod": "^4.4.3"
