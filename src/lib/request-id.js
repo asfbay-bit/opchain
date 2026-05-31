@@ -52,4 +52,8 @@ export const EVENTS = {
   NOTIFY_CAPTURED:    "notify_captured",
   NOTIFY_RATELIMITED: "notify_ratelimited",
   NOTIFY_NO_KV:       "notify_no_kv",
+  PIPELINE_EMAIL_SENT:        "pipeline_email_sent",
+  PIPELINE_EMAIL_FAILED:      "pipeline_email_failed",
+  PIPELINE_EMAIL_RATELIMITED: "pipeline_email_ratelimited",
+  PIPELINE_EMAIL_NOT_CONFIGURED: "pipeline_email_not_configured",
 };

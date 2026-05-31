@@ -1,15 +1,15 @@
 {
   "protocol_version": "1.0",
   "skill": "app-architect",
-  "project": "opchain.dev v1.3",
-  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "project": "opchain.dev",
+  "project_dir": "/home/user/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-05-08T19:20:00Z",
+  "updated_at": "2026-05-14T17:35:00Z",
 
-  "phase": "launched",
-  "step": "shipped",
+  "phase": "post-release",
+  "step": "v1.4-shipped-v1.5-planning",
   "status": "complete",
-  "progress_summary": "v1.3 shipped. Manual deploy ran ahead of the planned 2026-05-11 target: opchain.dev and staging.opchain.dev both serve commit 526a9a2; homepage release pill displays v1.3. All 4 sprints, the 18th skill (release-ops), platform expansion (Django/Rails/Go/Rust), and the 3 new /demo scenarios are live. Hand-off to stack-forge for v1.4 (coverage-as-a-plugin-registry, ADEV-327 parent / ADEV-328 PR 1 first).",
+  "progress_summary": "v1.3 shipped 2026-05-08 (526a9a2). v1.4 fully shipped since then via stack-forge's ADEV-328 → ADEV-337 chain — PRs 1-8 all merged: pack registry architecture (PR 1, ADEV-328), 5-pack backfill (PR 2, ADEV-329), deploy-ops dispatcher + api-dev pack-read flow (PR 3, ADEV-330), modern web bulk (PR 4, ADEV-334), enterprise bulk (PR 5, ADEV-335), Apple/iOS (PR 6, ADEV-336), mobile bulk Android/Flutter/RN (PR 6.5, ADEV-343), hosting adapters (PR 7, ADEV-337), site surfaces + version cut (PR 8, ADEV-331). v1.4.0 is live. app-architect held the orchestration role through v1.3 and handed off cleanly; the v1.4 cycle was stack-forge-led with no app-architect intervention required. v1.5 (\"Build the AI app\") is now in the planning phase — ADEV-344 parent + 5 sprint children (ADEV-345/346/347/348/349) — adds 4 AI-native skills (claude-api, rag-forge, agent-forge, prompt-ops). Per the roadmap docs at roadmap/07 + roadmap/08. app-architect picks up active orchestration for v1.5 only if Sprint 2+ runs into cross-skill coordination questions that stack-forge can't resolve alone.",
 
   "progress_table": [
     { "id": "scope",        "label": "Scope + sprint plan approval",                                       "status": "complete" },
@@ -42,9 +42,8 @@
   "blockers": [],
 
   "next_actions": [
-    "Flip Linear ADEV-306 (and any still-open child tickets) from In Progress → Done — release is live.",
-    "Hand off to stack-forge: kick off v1.4 PR 1 (ADEV-328) — pack registry schema + generator + auto-flag wiring + parity validator.",
-    "Reconcile other stale checkpoints (git-ops still says last-merge #151; orchestrator dated 2026-05-02)."
+    "No app-architect work pending. v1.5 planning lives in roadmap/07-v15-v16-v17-roadmap.md + roadmap/08-v15-sprint-plan.md and is currently owned by stack-forge (claude-api/rag-forge/agent-forge/prompt-ops skill scaffolds) and ux-engineer (site surfaces in Sprint 4).",
+    "Pick up if Sprint 2+ encounters cross-skill coordination ambiguity — e.g. how rag-forge's vector-DB pack choice should interact with deploy-ops dispatch, or whether agent-forge's loop semantics need a new checkpoint protocol field."
   ],
 
   "skill_state": {

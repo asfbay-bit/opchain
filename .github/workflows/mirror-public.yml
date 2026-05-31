@@ -1,0 +1,77 @@
+name: Mirror skills to public repo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/**'
+      - 'mirror/**'
+      - 'LICENSE'
+      - '.github/workflows/mirror-public.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mirror-public
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    name: Force-push snapshot to asfbay-bit/opchain-skills
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Validate mirror inputs
+        run: |
+          set -euo pipefail
+          missing=()
+          for f in skills LICENSE mirror/README.md mirror/CONTRIBUTING.md mirror/.github/ISSUE_TEMPLATE; do
+            if [[ ! -e "$f" ]]; then
+              missing+=("$f")
+            fi
+          done
+          if (( ${#missing[@]} > 0 )); then
+            echo "::error::missing files for mirror: ${missing[*]}"
+            exit 1
+          fi
+          echo "all mirror inputs present"
+
+      - name: Assemble staging tree
+        run: |
+          set -euo pipefail
+          STAGE="$(mktemp -d)"
+          echo "STAGE=$STAGE" >> "$GITHUB_ENV"
+          mkdir -p "$STAGE/.github"
+          cp -R skills "$STAGE/skills"
+          cp LICENSE "$STAGE/LICENSE"
+          cp mirror/README.md "$STAGE/README.md"
+          cp mirror/CONTRIBUTING.md "$STAGE/CONTRIBUTING.md"
+          cp -R mirror/.github/ISSUE_TEMPLATE "$STAGE/.github/ISSUE_TEMPLATE"
+          echo "Staged tree:"
+          find "$STAGE" -maxdepth 3 -type f | sort | sed "s|$STAGE/|  |"
+
+      - name: Force-push to asfbay-bit/opchain-skills
+        env:
+          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${MIRROR_TOKEN:-}" ]]; then
+            echo "::error::MIRROR_TOKEN secret is not set; cannot push mirror"
+            exit 1
+          fi
+          cd "$STAGE"
+          git init -q -b main
+          git config user.name "opchain-mirror-bot"
+          git config user.email "mirror-bot@opchain.dev"
+          git add -A
+          git commit -q -m "Mirror from asfbay-bit/opchain@${SOURCE_SHA:0:7}"
+          git remote add origin "https://x-access-token:${MIRROR_TOKEN}@github.com/asfbay-bit/opchain-skills.git"
+          git push --force origin main
+          echo "mirror push complete"

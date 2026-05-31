@@ -1,6 +1,28 @@
 ---
 import Base from "../layouts/Base.astro";
 import MobileArchitecture from "../components/MobileArchitecture.astro";
+
+import packsCatalog from "../../../src/generated/packs-catalog.json";
+
+type PackData = {
+  id: string;
+  displayName: string;
+  kind: "language" | "framework" | "deploy-target" | "mobile";
+  status: string;
+};
+
+const allPacks = packsCatalog as PackData[];
+const packLanguages    = allPacks.filter((p) => p.kind === "language").map((p) => p.id);
+const packFrameworks   = allPacks.filter((p) => p.kind === "framework").map((p) => p.id);
+const packMobile       = allPacks.filter((p) => p.kind === "mobile").map((p) => p.id);
+const packDeployTargets = allPacks.filter((p) => p.kind === "deploy-target").map((p) => p.id);
+const packCounts = {
+  total: allPacks.length,
+  language: packLanguages.length,
+  framework: packFrameworks.length,
+  mobile: packMobile.length,
+  deploy: packDeployTargets.length,
+};
 ---
 
 <Base
@@ -80,7 +102,7 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
       <div class="header">
         <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2</div>
         <h1>opchain skills ecosystem</h1>
-        <p class="subtitle">Checkpoint-driven pipeline · 18 skills · 5 phases · 5 tri-agent · 3 audit gates · spine ordinals</p>
+        <p class="subtitle">Checkpoint-driven pipeline · 18 skills · 5 phases · 5 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.4 pack fabric ({packCounts.total})</span></p>
       </div>
 
       <div class="diagram-container">
@@ -424,6 +446,73 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
           </div>
 
           <div class="band-arrow" id="ba-1" data-from="plan" data-to="build"
+               ></div>
+
+          <!-- ══ PACK FABRIC (cross-cutting, v1.4) ══
+               Not a phase; sits between Plan and Build as a foundation-style
+               strip. stack-forge owns the registry; 5 skills consume it. -->
+          <div class="band pack-fabric" id="band-packs" data-phase="packs">
+            <div class="band-label">
+              <div class="band-label-bar" style="background:var(--ember)"></div>
+              <span class="band-label-text" style="color:var(--ember)">PACK FABRIC</span>
+            </div>
+            <div class="band-content">
+              <div class="pack-fabric-band">
+                <div class="pf-head">
+                  <div>
+                    <div class="pf-eyebrow">v1.4 · cross-cutting · stack-forge owns</div>
+                    <div class="pf-title">Pack fabric — language · framework · mobile · deploy</div>
+                    <p class="pf-sub">Declared in <code>skills/stack-forge/packs/&lt;id&gt;/pack.yml</code> · drives <code>skills.coverage.&lt;id&gt;.enabled</code> · consumed by <b>stack-forge</b> · <b>app-architect</b> · <b>migration-ops</b> · <b>api-dev</b> · <b>deploy-ops</b></p>
+                  </div>
+                  <a class="pf-badge" href="/coverage" aria-label="View all packs on /coverage">
+                    <span class="pf-badge-dot"></span>
+                    <span>v1.4 · {packCounts.total} packs</span>
+                    <span class="pf-badge-arrow">→</span>
+                  </a>
+                </div>
+                <div class="pf-grid">
+                  <div class="pf-cell pf-lang">
+                    <div class="pf-cell-head">
+                      <span class="pf-cell-kind">LANGUAGES</span>
+                      <span class="pf-cell-count">{packCounts.language}</span>
+                    </div>
+                    <div class="pf-chips">
+                      {packLanguages.map((id) => <span class="pf-chip">{id}</span>)}
+                    </div>
+                  </div>
+                  <div class="pf-cell pf-fw">
+                    <div class="pf-cell-head">
+                      <span class="pf-cell-kind">FRAMEWORKS</span>
+                      <span class="pf-cell-count">{packCounts.framework}</span>
+                    </div>
+                    <div class="pf-chips">
+                      {packFrameworks.map((id) => <span class="pf-chip">{id}</span>)}
+                    </div>
+                  </div>
+                  <div class="pf-cell pf-mob">
+                    <div class="pf-cell-head">
+                      <span class="pf-cell-kind">MOBILE</span>
+                      <span class="pf-cell-count">{packCounts.mobile}</span>
+                    </div>
+                    <div class="pf-chips">
+                      {packMobile.map((id) => <span class="pf-chip">{id}</span>)}
+                    </div>
+                  </div>
+                  <div class="pf-cell pf-dep">
+                    <div class="pf-cell-head">
+                      <span class="pf-cell-kind">DEPLOY</span>
+                      <span class="pf-cell-count">{packCounts.deploy}</span>
+                    </div>
+                    <div class="pf-chips">
+                      {packDeployTargets.map((id) => <span class="pf-chip">{id}</span>)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="band-arrow" id="ba-1b" data-from="packs" data-to="build"
                ></div>
 
           <!-- ══ BAND 3: BUILD ══ -->
@@ -1693,6 +1782,137 @@ import MobileArchitecture from "../components/MobileArchitecture.astro";
     transition: opacity 1.5s ease, filter 1.5s ease;
   }
   .arch-v2 .band-arrow.dimmed { opacity: .04; filter: grayscale(1) brightness(.2); }
+
+  /* ══ Pack fabric — cross-cutting band between Plan and Build (v1.4) ══ */
+  .arch-v2 .subtitle-packs { color: var(--ember); }
+  .arch-v2 .band.pack-fabric { margin: 4px 0; }
+  .arch-v2 .pack-fabric-band {
+    position: relative;
+    background: linear-gradient(180deg, rgba(224,92,24,.08) 0%, rgba(28,23,16,.4) 100%);
+    border: 1px solid rgba(224,92,24,.5);
+    border-radius: 6px;
+    padding: 14px 16px;
+    box-shadow: 0 0 22px rgba(224,92,24,.08);
+  }
+  .arch-v2 .pack-fabric-band .pf-head {
+    display: flex; gap: 14px; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .arch-v2 .pack-fabric-band .pf-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(.5rem, .85cqi, .68rem);
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ember); margin-bottom: 4px;
+  }
+  .arch-v2 .pack-fabric-band .pf-title {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: clamp(.85rem, 1.4cqi, 1.08rem);
+    font-weight: 600; color: var(--linen);
+    margin: 0 0 4px;
+  }
+  .arch-v2 .pack-fabric-band .pf-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(.55rem, .95cqi, .76rem);
+    color: var(--sand); line-height: 1.5;
+    margin: 0; max-width: 80ch;
+  }
+  .arch-v2 .pack-fabric-band .pf-sub code {
+    font-family: inherit;
+    color: var(--linen);
+    background: rgba(196,184,158,.08);
+    padding: 0 4px; border-radius: 3px;
+  }
+  .arch-v2 .pack-fabric-band .pf-sub b { color: var(--linen); font-weight: 600; }
+  .arch-v2 .pack-fabric-band .pf-badge {
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 10px 5px 12px; border-radius: 999px;
+    background: rgba(224,92,24,.18);
+    border: .5px solid rgba(224,92,24,.7);
+    color: var(--ember);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(.58rem, .95cqi, .76rem);
+    font-weight: 700; letter-spacing: .08em;
+    text-decoration: none;
+    transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  .arch-v2 .pack-fabric-band .pf-badge:hover,
+  .arch-v2 .pack-fabric-band .pf-badge:focus-visible {
+    background: rgba(224,92,24,.30);
+    border-color: rgba(224,92,24,.9);
+    box-shadow: 0 0 16px rgba(224,92,24,.35);
+    outline: none;
+  }
+  .arch-v2 .pack-fabric-band .pf-badge:focus-visible {
+    outline: 1.5px solid var(--ember); outline-offset: 2px;
+  }
+  .arch-v2 .pack-fabric-band .pf-badge-dot {
+    width: 6px; height: 6px; border-radius: 999px;
+    background: var(--ember);
+    box-shadow: 0 0 8px var(--ember);
+  }
+  .arch-v2 .pack-fabric-band .pf-badge-arrow { font-weight: 600; }
+
+  .arch-v2 .pack-fabric-band .pf-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .arch-v2 .pack-fabric-band .pf-cell {
+    background: rgba(28,23,16,.55);
+    border: .5px solid rgba(196,184,158,.22);
+    border-radius: 5px;
+    padding: 8px 10px;
+  }
+  .arch-v2 .pack-fabric-band .pf-cell-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .arch-v2 .pack-fabric-band .pf-cell-kind {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(.5rem, .85cqi, .68rem);
+    letter-spacing: .1em; color: var(--sand);
+  }
+  .arch-v2 .pack-fabric-band .pf-cell-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(1.05rem, 1.85cqi, 1.4rem);
+    font-weight: 700; line-height: 1; color: var(--linen);
+  }
+  .arch-v2 .pack-fabric-band .pf-chips {
+    display: flex; flex-wrap: wrap; gap: 4px;
+  }
+  .arch-v2 .pack-fabric-band .pf-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(.5rem, .85cqi, .68rem);
+    padding: 1.5px 5px; border-radius: 3px;
+    background: rgba(196,184,158,.08);
+    border: .5px solid rgba(196,184,158,.25);
+    color: var(--sand);
+    white-space: nowrap;
+  }
+  .arch-v2 .pack-fabric-band .pf-cell.pf-lang .pf-cell-count { color: #0EA5E9; }
+  .arch-v2 .pack-fabric-band .pf-cell.pf-lang .pf-chip {
+    background: rgba(14,165,233,.10); border-color: rgba(14,165,233,.35); color: #0EA5E9;
+  }
+  .arch-v2 .pack-fabric-band .pf-cell.pf-fw .pf-cell-count { color: #f59e0b; }
+  .arch-v2 .pack-fabric-band .pf-cell.pf-fw .pf-chip {
+    background: rgba(245,158,11,.10); border-color: rgba(245,158,11,.35); color: #f59e0b;
+  }
+  .arch-v2 .pack-fabric-band .pf-cell.pf-mob .pf-cell-count { color: #A78BFA; }
+  .arch-v2 .pack-fabric-band .pf-cell.pf-mob .pf-chip {
+    background: rgba(167,139,250,.10); border-color: rgba(167,139,250,.35); color: #A78BFA;
+  }
+  .arch-v2 .pack-fabric-band .pf-cell.pf-dep .pf-cell-count { color: #14B8A6; }
+  .arch-v2 .pack-fabric-band .pf-cell.pf-dep .pf-chip {
+    background: rgba(20,184,166,.10); border-color: rgba(20,184,166,.35); color: #14B8A6;
+  }
+  /* On narrower viewports, stack the cells 2x2 then 1x4. */
+  @media (max-width: 920px) {
+    .arch-v2 .pack-fabric-band .pf-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .arch-v2 .pack-fabric-band .pf-grid { grid-template-columns: 1fr; }
+  }
 
   .arch-v2 .lines-canvas {
     position: absolute; inset: 0;

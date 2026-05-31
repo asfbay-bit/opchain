@@ -19,7 +19,7 @@ const ROADMAP_PATH = path.join(__dirname, "roadmap.json");
 export type RoadmapBucket = "shipped" | "in-progress" | "planned" | "backlog";
 
 export interface RoadmapItem {
-  /** Linear identifier, e.g. "OPCHN-217". */
+  /** Linear identifier, e.g. "ADEV-330". */
   id: string;
   title: string;
   /** First line of the Linear issue description, truncated to 240 chars. */
