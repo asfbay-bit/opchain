@@ -24,8 +24,9 @@ export interface RoadmapItem {
   title: string;
   /** First line of the Linear issue description, truncated to 240 chars. */
   blurb: string;
-  /** Linear permalink — opens the canonical issue. */
-  url: string;
+  /** Linear permalink — opens the canonical issue. Null for curated
+   *  (non-Linear) items that have no external link. */
+  url: string | null;
   bucket: RoadmapBucket;
   /** Linear projectMilestone.name (e.g. "v1.5") — null when unscoped. */
   milestone: string | null;
