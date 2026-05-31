@@ -1,7 +1,7 @@
 ---
 name: stack-forge
 displayName: Stack Forge
-version: 1.3.0
+version: 1.4.0
 shortDesc: Stack decisions, Cloudflare patterns, typed pipeline. v1.2 records the chosen stack on the linked PM ticket as an ADR.
 phases: [plan, build]
 triAgent: false
@@ -318,6 +318,70 @@ The matrix is intentionally short. New stacks earn a row only when:
    recommends ONE deploy target per stack rather than listing every option.
 
 Adding a stack without all three is a stack-forge bug; the matrix becomes noise instead of guidance.
+
+---
+
+## `kind: mobile` dispatch (v1.4+)
+
+Mobile packs (iOS / Android / Flutter / React Native — landing in PRs 6 + 6.5
+of the v1.4 sequence) do not have a "deploy command" the way web packs do.
+App Store / Play Store reviews are the gate; TestFlight / Internal-testing
+tracks gate beta cohorts. stack-forge's dispatcher recognises `kind: mobile`
+and routes through a **release-checklist** envelope instead of trying to
+execute commands.
+
+The runtime entry point is `dispatchMobile(packId)` in
+`src/lib/pack-dispatch.js`:
+
+```js
+import { dispatchMobile } from "../../src/lib/pack-dispatch.js";
+
+const out = dispatchMobile("ios-swiftui");
+// → {
+//     kind: "mobile",
+//     platform: "ios",
+//     displayName: "iOS (SwiftUI)",
+//     mobileRef: "mobile.md",
+//     releaseChecklist: "iOS (SwiftUI) (ios) — checklist-driven, not automated…"
+//   }
+```
+
+The returned envelope is rendered verbatim at the head of any stack-forge
+output for a mobile pack so the downstream agent (or user) cannot
+accidentally interpret it as a deploy command.
+
+### Resolution rules
+
+| Result | What it means | Caller action |
+|---|---|---|
+| `null` | Pack does not exist. | Surface "unknown pack" error. |
+| `{ kind: "not-mobile", actualKind }` | Pack exists but isn't mobile. | Fall back to the regular dispatcher. |
+| `{ kind: "mobile", platform, … }` | Mobile pack. | Render `releaseChecklist` + the `mobileRef` doc; do **not** invoke deploy-ops. |
+
+### What goes in the release checklist
+
+The actual checklist content lives in each mobile pack's `mobileRef` doc (e.g.
+`skills/stack-forge/packs/ios-swiftui/mobile.md`, landing in PR 6). The
+template the agent renders has a fixed prelude:
+
+```
+{displayName} ({platform}) — checklist-driven, not automated.
+stack-forge will render the release checklist from {mobileRef} rather than
+executing commands. App Store / Play Store review windows are the gate.
+```
+
+…followed by the body of `mobileRef`. Mobile dispatch deliberately does NOT
+invoke `deploy-ops`; release-ops handles the App-Store / Play-Store /
+TestFlight / Internal-Testing workflow.
+
+### Why this lands in PR 3, ahead of the first real mobile pack
+
+PR 6 (ADEV-336) ships the first mobile pack (iOS + SwiftUI). Pre-loading the
+dispatch logic + tests in PR 3 keeps PR 6's diff focused on the pack content
+itself rather than the dispatcher plumbing. The `tests/pack-dispatch.test.js`
+suite exercises `dispatchMobile` against synthetic ios/android/flutter/
+react-native fixtures so the dispatcher is locked in before any real mobile
+pack lands.
 
 ---
 

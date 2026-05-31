@@ -1,11 +1,13 @@
 ---
 import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
+import RoadmapTimeline from "../components/RoadmapTimeline.astro";
+import RoadmapForm from "../components/RoadmapForm.astro";
 ---
 
 <Base
   title="Changelog · opchain"
-  description="Release notes for opchain — what shipped, when, and how to migrate."
+  description="Release notes for opchain — what shipped, when, and how to migrate. Plus the live roadmap + community feature requests."
   active="/changelog"
 >
   <main class="page">
@@ -20,9 +22,131 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
       source of truth — this page summarises across the catalog.
     </p>
 
+    <!-- Live roadmap from Linear (build-time pull, label-gated).
+         Sits above the release history so visitors see "what's coming"
+         before "what's shipped". -->
+    <RoadmapTimeline />
+    <RoadmapForm />
+
+    <div class="release-history-head">
+      <Eyebrow>release history</Eyebrow>
+      <h2 class="rhh">What's already shipped</h2>
+    </div>
+
     <section class="release release--current">
       <header class="rel-head">
-        <span class="rel-tag">v1.3</span>
+        <span class="rel-tag">v1.4</span>
+        <h2>Coverage as a plugin registry</h2>
+        <span class="rel-date">2026-05-12</span>
+      </header>
+
+      <p class="rel-summary">
+        opchain v1.4 turns <code>stack-forge</code>'s coverage from
+        hardcoded prose into a versioned <strong>pack registry</strong> &mdash;
+        one <code>pack.yml</code> per language, framework, mobile
+        platform, or deploy target, validated on every build. Total
+        coverage grows from 6 stacks in v1.3 to <strong>32 packs</strong>
+        in v1.4: 13 languages, 9 frameworks, 4 mobile platforms, and 6
+        deploy targets. Pack additions ship as one PR each &mdash; no
+        more touching SKILL.md prose.
+      </p>
+
+      <h3>What's new</h3>
+      <ul>
+        <li>
+          <strong>Pack registry architecture.</strong>
+          <a href="/coverage">/coverage</a> is the user-visible catalog.
+          <code>skills/stack-forge/packs/&lt;id&gt;/pack.yml</code> is the
+          source of truth; <code>scripts/gen-stack-packs.mjs</code> validates
+          every pack on every build (bidirectional <code>language</code> ↔
+          <code>frameworks</code> invariants, ref-doc budgets, etc.) and
+          emits a coverage-flag per language / framework / mobile pack
+          (deploy-targets are sub-selections, no flag).
+        </li>
+        <li>
+          <strong>Hybrid dispatch.</strong> <code>deploy-ops</code> reads
+          packs at runtime via <code>src/lib/pack-dispatch.js</code> for
+          deploy-path lookup. <code>api-dev</code> reads packs at
+          build time via <code>scripts/gen-api-dev-adapters.mjs</code> to
+          codegen typed per-language scaffold metadata. Two halves of one
+          model: small-and-current vs. richer-and-typed.
+        </li>
+        <li>
+          <strong>kind:mobile dispatch.</strong> Mobile packs render the
+          ref doc as a <em>release checklist</em> via
+          <code>dispatchMobile()</code> instead of executing commands.
+          App Store + Play Store reviews are checklist-driven, not
+          automated; the dispatcher pins that contract so no agent
+          accidentally tries to <code>xcrun altool</code> its way to
+          production.
+        </li>
+        <li>
+          <strong>Modern web bulk (PR 4).</strong> elixir / bun / deno
+          language packs; phoenix / remix / sveltekit / solid framework
+          packs. Bun and Deno are modelled as language packs because the
+          toolchain diverges from Node's (
+          <code>bun test</code>, <code>deno task build</code>).
+        </li>
+        <li>
+          <strong>Enterprise bulk (PR 5).</strong> java / csharp / kotlin
+          / php language packs; spring-java / dotnet-aspnet / spring-kotlin
+          / laravel-php framework packs. <code>mvn checkstyle:check</code>,
+          <code>dotnet format --verify-no-changes</code>, <code>ktlint</code>,
+          <code>phpcs</code> wired as canonical lint commands.
+        </li>
+        <li>
+          <strong>Apple/iOS (PR 6).</strong> swift language pack + swiftui
+          framework pack + ios-swiftui mobile pack + app-store deploy
+          adapter. First production user of <code>dispatchMobile()</code>;
+          the <code>ios-swiftui/mobile.md</code> reads as a usable
+          App Store release checklist.
+        </li>
+        <li>
+          <strong>Mobile bulk (PR 6.5).</strong> kotlin-android / flutter /
+          react-native-expo mobile packs + play-store deploy adapter.
+          Flutter and React Native ship pinned to <code>play-store</code>
+          as the sole deploy target; a follow-up will append
+          <code>app-store</code> once the cross-platform supportedPlatforms
+          ADR settles.
+        </li>
+        <li>
+          <strong>Hosting adapters (PR 7).</strong> railway / netlify /
+          heroku / aws-amplify deploy-target packs. Sub-selections under
+          existing language and framework packs; <code>getDispatchTarget()</code>
+          picks the right provider section of <code>deploy-ops</code>'s
+          SKILL.md.
+        </li>
+      </ul>
+
+      <h3>The pipeline that shipped it</h3>
+      <p>
+        v1.4 went through opchain itself. <code>app-architect</code>
+        planned the eight-PR sequence. PRs 1-3 landed serially (architecture,
+        backfill, dispatcher); PRs 4-7 ran in <em>parallel</em> from
+        sibling worktrees on the same <code>origin/main</code> base,
+        opened concurrently, and merged sequentially with rebases.
+        <code>release-ops</code> drafted this changelog entry from the
+        merged PR summaries and bumped the 5 changed skills' SKILL.md
+        versions atomically.
+      </p>
+
+      <h3>Compatibility</h3>
+      <p>
+        Back-compatible with v1.3. No migration steps required. Five
+        skills version-bump <code>1.3.0</code> → <code>1.4.0</code> in
+        lockstep: <code>stack-forge</code>, <code>api-dev</code>,
+        <code>deploy-ops</code>, <code>app-architect</code>,
+        <code>migration-ops</code>. The other thirteen skills stay on
+        <code>1.3.0</code>. <code>opchain-skills.zip</code> ships
+        bundle-everything as before; the <code>skills.coverage.*</code>
+        flags filter what <code>stack-forge</code> offers, not what gets
+        downloaded.
+      </p>
+    </section>
+
+    <section class="release">
+      <header class="rel-head">
+        <span class="rel-tag rel-tag--past">v1.3</span>
         <h2>Runtime PM, real platforms, automated releases</h2>
         <span class="rel-date">2026-05-11</span>
       </header>
@@ -284,6 +408,24 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
     margin: 0.5rem 0 0;
   }
   .lede { color: var(--muted); margin: 0 0 1.5rem; max-width: 42rem; }
+
+  /* Separator between the roadmap section above and the release-history
+     list below. Mirrors the page-head treatment so the two sections read
+     as siblings, not nested. */
+  .release-history-head {
+    margin: 3rem 0 1.25rem;
+    padding-top: 2rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .rhh {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    letter-spacing: var(--ls-tight);
+    margin: 0.4rem 0 0;
+    color: var(--text);
+    line-height: 1.1;
+  }
   .lede code,
   .release code {
     font-family: var(--font-mono);

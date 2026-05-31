@@ -122,6 +122,28 @@ a:hover { color: var(--accent-hover); }
 
 ::selection { background: var(--accent); color: var(--obsidian); }
 
+/* Shiki dual-theme switch. Astro emits the light theme's color +
+   background-color inline on each <pre>/<span> and exposes the dark
+   theme via --shiki-dark / --shiki-dark-bg / --shiki-dark-font-weight
+   / --shiki-dark-text-decoration CSS variables. The page default is
+   dark (no [data-theme] attribute set), so without this switch the
+   code blocks render as light panels on the dark page — and the
+   github-light theme uses #E36209 (orange) for markdown list markers,
+   which is ~3.54:1 on white (fails WCAG AA on /skills/app-architect).
+   The selector matches "not light" so the default-dark page and the
+   explicit data-theme="dark" both flip to dark code. */
+:root:not([data-theme="light"]) .astro-code,
+:root:not([data-theme="light"]) .astro-code span {
+  background-color: var(--shiki-dark-bg) !important;
+  color: var(--shiki-dark) !important;
+}
+:root:not([data-theme="light"]) .astro-code span[style*="--shiki-dark-font-weight"] {
+  font-weight: var(--shiki-dark-font-weight) !important;
+}
+:root:not([data-theme="light"]) .astro-code span[style*="--shiki-dark-text-decoration"] {
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px; height: 1px; padding: 0; margin: -1px;

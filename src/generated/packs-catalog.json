@@ -1,0 +1,317 @@
+[
+  {
+    "id": "kotlin-android",
+    "displayName": "Android (Kotlin)",
+    "kind": "mobile",
+    "mobilePlatform": "android",
+    "status": "stable",
+    "since": "1.4.0",
+    "defaultPlatform": "play-store",
+    "supportedPlatforms": [
+      "play-store"
+    ]
+  },
+  {
+    "id": "app-store",
+    "displayName": "App Store",
+    "kind": "deploy-target",
+    "status": "stable",
+    "since": "1.4.0"
+  },
+  {
+    "id": "dotnet-aspnet",
+    "displayName": "ASP.NET Core",
+    "kind": "framework",
+    "status": "stable",
+    "since": "1.4.0",
+    "language": "csharp"
+  },
+  {
+    "id": "aws-amplify",
+    "displayName": "AWS Amplify",
+    "kind": "deploy-target",
+    "status": "stable",
+    "since": "1.4.0"
+  },
+  {
+    "id": "bun",
+    "displayName": "Bun",
+    "kind": "language",
+    "status": "stable",
+    "since": "1.4.0",
+    "testRunner": "bun test",
+    "buildCmd": "bun run build",
+    "lintCmd": "biome check ."
+  },
+  {
+    "id": "csharp",
+    "displayName": "C#",
+    "kind": "language",
+    "status": "stable",
+    "since": "1.4.0",
+    "testRunner": "dotnet test",
+    "buildCmd": "dotnet build",
+    "lintCmd": "dotnet format --verify-no-changes",
+    "frameworks": [
+      "dotnet-aspnet"
+    ]
+  },
+  {
+    "id": "deno",
+    "displayName": "Deno",
+    "kind": "language",
+    "status": "stable",
+    "since": "1.4.0",
+    "testRunner": "deno test",
+    "buildCmd": "deno task build",
+    "lintCmd": "deno lint"
+  },
+  {
+    "id": "elixir",
+    "displayName": "Elixir",
+    "kind": "language",
+    "status": "stable",
+    "since": "1.4.0",
+    "testRunner": "mix test",
+    "buildCmd": "mix compile",
+    "lintCmd": "mix credo --strict",
+    "frameworks": [
+      "phoenix"
+    ]
+  },
+  {
+    "id": "flutter",
+    "displayName": "Flutter",
+    "kind": "mobile",
+    "mobilePlatform": "flutter",
+    "status": "stable",
+    "since": "1.4.0",
+    "defaultPlatform": "play-store",
+    "supportedPlatforms": [
+      "play-store"
+    ]
+  },
+  {
+    "id": "go",
+    "displayName": "Go",
+    "kind": "language",
+    "status": "stable",
+    "since": "1.4.0",
+    "testRunner": "go test",
+    "buildCmd": "go build ./...",
+    "lintCmd": "golangci-lint run"
+  },
+  {
+    "id": "play-store",
+    "displayName": "Google Play",
+    "kind": "deploy-target",
+    "status": "stable",
+    "since": "1.4.0"
+  },
+  {
+    "id": "heroku",
+    "displayName": "Heroku",
+    "kind": "deploy-target",
+    "status": "stable",
+    "since": "1.4.0"
+  },
+  {
+    "id": "ios-swiftui",
+    "displayName": "iOS (SwiftUI)",
+    "kind": "mobile",
+    "status": "stable",
+    "since": "1.4.0",
+    "mobilePlatform": "ios",
+    "defaultPlatform": "app-store",
+    "supportedPlatforms": [
+      "app-store"
+    ]
+  },
+  {
+    "id": "java",
+    "displayName": "Java",
+    "kind": "language",
+    "status": "stable",
+    "since": "1.4.0",
+    "testRunner": "mvn test",
+    "buildCmd": "mvn package",
+    "lintCmd": "mvn checkstyle:check",
+    "frameworks": [
+      "spring-java"
+    ]
+  },
+  {
+    "id": "kotlin",
+    "displayName": "Kotlin",
+    "kind": "language",
+    "status": "stable",
+    "since": "1.4.0",
+    "testRunner": "gradle test",
+    "buildCmd": "gradle build",
+    "lintCmd": "ktlint",
+    "frameworks": [
+      "spring-kotlin"
+    ]
+  },
+  {
+    "id": "laravel-php",
+    "displayName": "Laravel",
+    "kind": "framework",
+    "status": "stable",
+    "since": "1.4.0",
+    "language": "php"
+  },
+  {
+    "id": "netlify",
+    "displayName": "Netlify",
+    "kind": "deploy-target",
+    "status": "stable",
+    "since": "1.4.0"
+  },
+  {
+    "id": "phoenix",
+    "displayName": "Phoenix",
+    "kind": "framework",
+    "status": "stable",
+    "since": "1.4.0",
+    "language": "elixir"
+  },
+  {
+    "id": "php",
+    "displayName": "PHP",
+    "kind": "language",
+    "status": "stable",
+    "since": "1.4.0",
+    "testRunner": "phpunit",
+    "buildCmd": "composer install --no-dev",
+    "lintCmd": "phpcs",
+    "frameworks": [
+      "laravel-php"
+    ]
+  },
+  {
+    "id": "python",
+    "displayName": "Python",
+    "kind": "language",
+    "status": "stable",
+    "since": "1.4.0",
+    "testRunner": "pytest",
+    "buildCmd": "python -m build",
+    "lintCmd": "ruff check ."
+  },
+  {
+    "id": "railway",
+    "displayName": "Railway",
+    "kind": "deploy-target",
+    "status": "stable",
+    "since": "1.4.0"
+  },
+  {
+    "id": "react-native-expo",
+    "displayName": "React Native (Expo)",
+    "kind": "mobile",
+    "mobilePlatform": "react-native",
+    "status": "stable",
+    "since": "1.4.0",
+    "defaultPlatform": "play-store",
+    "supportedPlatforms": [
+      "play-store"
+    ]
+  },
+  {
+    "id": "remix",
+    "displayName": "Remix",
+    "kind": "framework",
+    "status": "stable",
+    "since": "1.4.0",
+    "language": "typescript"
+  },
+  {
+    "id": "ruby",
+    "displayName": "Ruby",
+    "kind": "language",
+    "status": "stable",
+    "since": "1.4.0",
+    "testRunner": "rspec",
+    "buildCmd": "bundle exec rake build",
+    "lintCmd": "bundle exec rubocop"
+  },
+  {
+    "id": "rust",
+    "displayName": "Rust",
+    "kind": "language",
+    "status": "stable",
+    "since": "1.4.0",
+    "testRunner": "cargo test",
+    "buildCmd": "cargo build",
+    "lintCmd": "cargo clippy -- -D warnings"
+  },
+  {
+    "id": "solid",
+    "displayName": "SolidStart",
+    "kind": "framework",
+    "status": "stable",
+    "since": "1.4.0",
+    "language": "typescript"
+  },
+  {
+    "id": "spring-java",
+    "displayName": "Spring Boot (Java)",
+    "kind": "framework",
+    "status": "stable",
+    "since": "1.4.0",
+    "language": "java"
+  },
+  {
+    "id": "spring-kotlin",
+    "displayName": "Spring Boot (Kotlin)",
+    "kind": "framework",
+    "status": "stable",
+    "since": "1.4.0",
+    "language": "kotlin"
+  },
+  {
+    "id": "sveltekit",
+    "displayName": "SvelteKit",
+    "kind": "framework",
+    "status": "stable",
+    "since": "1.4.0",
+    "language": "typescript"
+  },
+  {
+    "id": "swift",
+    "displayName": "Swift",
+    "kind": "language",
+    "status": "stable",
+    "since": "1.4.0",
+    "testRunner": "swift test",
+    "buildCmd": "swift build",
+    "lintCmd": "swiftlint",
+    "frameworks": [
+      "swiftui"
+    ]
+  },
+  {
+    "id": "swiftui",
+    "displayName": "SwiftUI",
+    "kind": "framework",
+    "status": "stable",
+    "since": "1.4.0",
+    "language": "swift"
+  },
+  {
+    "id": "typescript",
+    "displayName": "TypeScript",
+    "kind": "language",
+    "status": "stable",
+    "since": "1.4.0",
+    "testRunner": "vitest",
+    "buildCmd": "npm run build",
+    "lintCmd": "eslint .",
+    "frameworks": [
+      "remix",
+      "sveltekit",
+      "solid"
+    ]
+  }
+]

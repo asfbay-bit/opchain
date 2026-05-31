@@ -212,3 +212,19 @@
     --dur-slower: 0ms;
   }
 }
+
+/* ── Desktop type bump (+1px across the scale) ──
+   Mobile/tablet keep the tighter scale; from 1024px up everything in
+   the --fs-* ladder steps up by one point. Hero clamp stays untouched. */
+@media (min-width: 1024px) {
+  :root {
+    --fs-xs:   11px;
+    --fs-sm:   13px;
+    --fs-base: 15px;
+    --fs-md:   17px;
+    --fs-lg:   21px;
+    --fs-xl:   29px;
+    --fs-2xl:  37px;
+    --fs-3xl:  49px;
+  }
+}

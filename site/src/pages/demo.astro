@@ -278,6 +278,34 @@ const artifacts = walkthroughs.flatMap((w) =>
   @media (prefers-reduced-motion: reduce) {
     .modal-body { scroll-behavior: auto; }
   }
+  /* ── TOC-click heading flash.
+        Adds an ember halo to a heading when the user clicks its TOC
+        link. Bright-then-fade over 4s using existing token colors so it
+        matches every other ember accent on the site. Under
+        prefers-reduced-motion the keyframes are suppressed and the JS
+        falls back to a static tint that clears at the same 4s mark
+        (see flashHeading() below). ── */
+  @keyframes oc-heading-ember-flash {
+    0%   { background-color: var(--ember-glow); box-shadow: 0 0 0 6px var(--ember-dim); }
+    100% { background-color: transparent;        box-shadow: 0 0 0 6px transparent; }
+  }
+  .modal-body :global(.is-flash-heading) {
+    animation: oc-heading-ember-flash 4s ease-out forwards;
+    border-radius: 4px;
+    /* Inset the heading slightly so the halo box-shadow doesn't clip
+       the column edge; counter-margin keeps the layout box unchanged. */
+    padding-inline: 6px;
+    margin-inline: -6px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .modal-body :global(.is-flash-heading) {
+      animation: none;
+      background-color: var(--ember-dim);
+      border-radius: 4px;
+      padding-inline: 6px;
+      margin-inline: -6px;
+    }
+  }
   /* Prose resets inside the modal body */
   .modal-body :global(h1),
   .modal-body :global(h2),
@@ -414,6 +442,41 @@ const artifacts = walkthroughs.flatMap((w) =>
       modal.classList.remove('has-toc');
     }
 
+    /**
+     * Apply an ember flash highlight to a heading so a TOC-driven scroll
+     * lands with a 4-second visual confirmation. Force-reflow before
+     * adding the class so re-clicking the same link restarts the
+     * animation. Cleanup is belt-and-suspenders: an `animationend`
+     * listener fires under normal conditions, and a setTimeout safety
+     * net guarantees the class is cleared even in environments where
+     * the animation is optimised out (headless browsers in CI, some
+     * accessibility modes). Whichever fires first wins; the second
+     * call is idempotent.
+     */
+    const FLASH_CLASS = 'is-flash-heading';
+    const FLASH_DURATION_MS = 4000;
+    /* Safety-net runs slightly after the animation so animationend gets
+       a chance under normal conditions before the timeout intervenes. */
+    const FLASH_CLEANUP_BUDGET_MS = FLASH_DURATION_MS + 150;
+
+    function flashHeading(target) {
+      if (!target) return;
+      target.classList.remove(FLASH_CLASS);
+      // Force a reflow so removing+re-adding the class restarts the
+      // animation. Reading offsetWidth is the standard trick.
+      void target.offsetWidth;
+      target.classList.add(FLASH_CLASS);
+
+      let cleared = false;
+      const clear = () => {
+        if (cleared) return;
+        cleared = true;
+        target.classList.remove(FLASH_CLASS);
+      };
+      target.addEventListener('animationend', clear, { once: true });
+      window.setTimeout(clear, FLASH_CLEANUP_BUDGET_MS);
+    }
+
     function buildToc() {
       if (!tocEl || !tocNav || !bodyEl) return;
       const headings = /** @type {HTMLElement[]} */ (
@@ -442,11 +505,22 @@ const artifacts = walkthroughs.flatMap((w) =>
           ev.preventDefault();
           const target = document.getElementById(id);
           if (!target) return;
-          /* Scroll within the modal body, not the page. */
-          const top = target.offsetTop - 12;
-          bodyEl.scrollTo({ top, behavior: 'smooth' });
+          /* Scroll within the modal body, not the page.
+             Use getBoundingClientRect rather than offsetTop, because the
+             heading's offsetParent walks up to the <dialog> (no positioned
+             ancestor between target and dialog), which includes the modal
+             header height + body padding-top — the previous formula
+             therefore overshot. Rect math is viewport-relative and
+             topology-agnostic. */
+          const targetRect = target.getBoundingClientRect();
+          const bodyRect = bodyEl.getBoundingClientRect();
+          const desiredGap = 16;
+          const delta = targetRect.top - bodyRect.top - desiredGap;
+          bodyEl.scrollTo({ top: bodyEl.scrollTop + delta, behavior: 'smooth' });
           /* Update hash visually without jumping the page. */
           history.replaceState(null, '', `#${id}`);
+          /* Ember flash to confirm the navigation. */
+          flashHeading(target);
           /* On mobile, collapse the TOC after navigation. */
           const det = tocEl.querySelector('details.modal-toc-mobile');
           if (det && window.matchMedia('(max-width: 900px)').matches) {

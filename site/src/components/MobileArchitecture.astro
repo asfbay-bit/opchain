@@ -17,6 +17,27 @@
  * Mounted at /architecture beneath the desktop diagram and shown via a
  * CSS-breakpoint swap at 767px (see architecture.astro `<style is:global>`).
  */
+
+import packsCatalog from "../../../src/generated/packs-catalog.json";
+
+type PackData = {
+  id: string;
+  displayName: string;
+  kind: "language" | "framework" | "deploy-target" | "mobile";
+};
+
+const allPacks = packsCatalog as PackData[];
+const packLanguages    = allPacks.filter((p) => p.kind === "language").map((p) => p.id);
+const packFrameworks   = allPacks.filter((p) => p.kind === "framework").map((p) => p.id);
+const packMobile       = allPacks.filter((p) => p.kind === "mobile").map((p) => p.id);
+const packDeployTargets = allPacks.filter((p) => p.kind === "deploy-target").map((p) => p.id);
+const packCounts = {
+  total: allPacks.length,
+  language: packLanguages.length,
+  framework: packFrameworks.length,
+  mobile: packMobile.length,
+  deploy: packDeployTargets.length,
+};
 ---
 
 <section class="mobile-architecture" aria-label="opchain architecture (mobile)">
@@ -193,6 +214,65 @@
         <div class="ma-band-caption">
           <p><code>app-architect</code> anchors the spine, auto-invoking <code>stack-forge</code> for platform decisions, taking advisory input from <code>scale-ops</code> on capacity, and routing <code>migration-ops</code> when a live system needs a schema, framework, or platform change. The plan checkpoint is the master record downstream skills consume.</p>
           <div class="ma-bc-cp"><span class="ma-bc-cp-badge">CP</span><span>phase · stack_decision · capacity · migration_plan</span></div>
+        </div>
+      </details>
+
+      <!-- PACK FABRIC (cross-cutting, v1.4) — sits between Plan and Build. -->
+      <details class="ma-band ma-pack-fabric" open aria-label="Pack fabric: stack-forge packs (v1.4)">
+        <summary class="ma-band-header ma-pack-fabric-header">
+          <span class="ma-band-num">✦</span>
+          <span class="ma-band-title">Pack fabric</span>
+          <span class="ma-pack-fabric-badge"><span class="ma-pf-dot"></span>v1.4 · {packCounts.total}</span>
+        </summary>
+        <div class="ma-pack-fabric-body">
+          <p class="ma-pack-fabric-sub">
+            <code>stack-forge</code> owns the registry; 5 skills consume it.
+            Source: <code>skills/stack-forge/packs/&lt;id&gt;/pack.yml</code>
+          </p>
+          <div class="ma-pack-fabric-cells">
+            <div class="ma-pf-cell ma-pf-lang">
+              <div class="ma-pf-cell-head">
+                <span class="ma-pf-cell-kind">LANGUAGES</span>
+                <span class="ma-pf-cell-count">{packCounts.language}</span>
+              </div>
+              <div class="ma-pf-chips">
+                {packLanguages.map((id) => <span class="ma-pf-chip">{id}</span>)}
+              </div>
+            </div>
+            <div class="ma-pf-cell ma-pf-fw">
+              <div class="ma-pf-cell-head">
+                <span class="ma-pf-cell-kind">FRAMEWORKS</span>
+                <span class="ma-pf-cell-count">{packCounts.framework}</span>
+              </div>
+              <div class="ma-pf-chips">
+                {packFrameworks.map((id) => <span class="ma-pf-chip">{id}</span>)}
+              </div>
+            </div>
+            <div class="ma-pf-cell ma-pf-mob">
+              <div class="ma-pf-cell-head">
+                <span class="ma-pf-cell-kind">MOBILE</span>
+                <span class="ma-pf-cell-count">{packCounts.mobile}</span>
+              </div>
+              <div class="ma-pf-chips">
+                {packMobile.map((id) => <span class="ma-pf-chip">{id}</span>)}
+              </div>
+            </div>
+            <div class="ma-pf-cell ma-pf-dep">
+              <div class="ma-pf-cell-head">
+                <span class="ma-pf-cell-kind">DEPLOY</span>
+                <span class="ma-pf-cell-count">{packCounts.deploy}</span>
+              </div>
+              <div class="ma-pf-chips">
+                {packDeployTargets.map((id) => <span class="ma-pf-chip">{id}</span>)}
+              </div>
+            </div>
+          </div>
+          <div class="ma-pack-fabric-foot">
+            <span class="ma-pf-fanout">
+              consumed by <b>stack-forge</b> · <b>app-architect</b> · <b>migration-ops</b> · <b>api-dev</b> · <b>deploy-ops</b>
+            </span>
+            <a class="ma-pf-cta" href="/coverage">View /coverage →</a>
+          </div>
         </div>
       </details>
 
@@ -887,6 +967,130 @@
     background: var(--ma-ember-dim);
     border: 1px solid rgba(224,92,24,.55);
     color: var(--ma-ember);
+  }
+
+  /* Pack fabric — cross-cutting band (v1.4) between Plan and Build. */
+  .ma-band.ma-pack-fabric {
+    border-color: rgba(224,92,24,.55);
+    background: linear-gradient(180deg, rgba(224,92,24,.10) 0%, var(--ma-bg-card) 100%);
+  }
+  summary.ma-pack-fabric-header {
+    border-left-color: var(--ma-ember);
+    background: rgba(224,92,24,.12);
+  }
+  .ma-pack-fabric-header .ma-band-num {
+    color: var(--ma-ember);
+    font-size: 18px; line-height: 1;
+  }
+  .ma-pack-fabric-badge {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 999px;
+    background: rgba(224,92,24,.22);
+    border: 1px solid rgba(224,92,24,.7);
+    color: var(--ma-ember);
+    font-family: var(--font-mono, "JetBrains Mono"), monospace;
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  }
+  .ma-pack-fabric-badge .ma-pf-dot {
+    width: 6px; height: 6px; border-radius: 999px;
+    background: var(--ma-ember);
+    box-shadow: 0 0 6px var(--ma-ember);
+  }
+
+  .ma-pack-fabric-body {
+    padding: 12px 12px 14px;
+    background: transparent;
+  }
+  .ma-pack-fabric-sub {
+    font-size: 13px; color: var(--ma-text-secondary);
+    line-height: 1.5; margin: 0 0 10px;
+  }
+  .ma-pack-fabric-sub code {
+    font-family: var(--font-mono, "JetBrains Mono"), monospace;
+    font-size: 12px; color: var(--ma-text-primary);
+    background: var(--ma-ember-dim);
+    border: 1px solid rgba(224,92,24,.25);
+    padding: 0 4px; border-radius: 3px;
+  }
+
+  .ma-pack-fabric-cells {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .ma-pf-cell {
+    background: var(--ma-bg-card);
+    border: 1px solid var(--ma-border-divider);
+    border-radius: 6px;
+    padding: 8px 10px;
+  }
+  .ma-pf-cell-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 5px;
+  }
+  .ma-pf-cell-kind {
+    font-family: var(--font-mono, "JetBrains Mono"), monospace;
+    font-size: 10.5px; letter-spacing: .1em;
+    color: var(--ma-text-secondary);
+  }
+  .ma-pf-cell-count {
+    font-family: var(--font-mono, "JetBrains Mono"), monospace;
+    font-size: 17px; font-weight: 700; line-height: 1;
+    color: var(--ma-text-primary);
+  }
+  .ma-pf-chips {
+    display: flex; flex-wrap: wrap; gap: 4px;
+  }
+  .ma-pf-chip {
+    font-family: var(--font-mono, "JetBrains Mono"), monospace;
+    font-size: 11px;
+    padding: 2px 6px; border-radius: 3px;
+    background: rgba(196,184,158,.08);
+    border: 1px solid var(--ma-border-divider);
+    color: var(--ma-text-secondary);
+    white-space: nowrap;
+  }
+  .ma-pf-cell.ma-pf-lang .ma-pf-cell-count { color: var(--ma-advisor); }
+  .ma-pf-cell.ma-pf-lang .ma-pf-chip {
+    background: rgba(56,189,248,.10); border-color: rgba(56,189,248,.35); color: var(--ma-advisor);
+  }
+  .ma-pf-cell.ma-pf-fw .ma-pf-cell-count { color: var(--ma-triagent); }
+  .ma-pf-cell.ma-pf-fw .ma-pf-chip {
+    background: rgba(251,191,36,.10); border-color: rgba(251,191,36,.35); color: var(--ma-triagent);
+  }
+  .ma-pf-cell.ma-pf-mob .ma-pf-cell-count { color: var(--ma-orch); }
+  .ma-pf-cell.ma-pf-mob .ma-pf-chip {
+    background: rgba(224,92,24,.10); border-color: rgba(224,92,24,.35); color: var(--ma-ember);
+  }
+  .ma-pf-cell.ma-pf-dep .ma-pf-cell-count { color: var(--ma-specialist); }
+  .ma-pf-cell.ma-pf-dep .ma-pf-chip {
+    background: rgba(20,184,166,.10); border-color: rgba(20,184,166,.35); color: var(--ma-specialist);
+  }
+  .ma-pack-fabric-foot {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--ma-border-divider);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .ma-pf-fanout {
+    font-family: var(--font-mono, "JetBrains Mono"), monospace;
+    font-size: 11px;
+    color: var(--ma-text-secondary); line-height: 1.5;
+  }
+  .ma-pf-fanout b { color: var(--ma-text-primary); font-weight: 600; }
+  .ma-pf-cta {
+    display: inline-flex; align-self: flex-start;
+    padding: 4px 10px; border-radius: 4px;
+    background: var(--ma-ember-dim);
+    border: 1px solid rgba(224,92,24,.55);
+    color: var(--ma-ember);
+    font-family: var(--font-mono, "JetBrains Mono"), monospace;
+    font-size: 11px; font-weight: 600;
+    text-decoration: none;
+  }
+  .ma-pf-cta:hover, .ma-pf-cta:focus-visible {
+    background: rgba(224,92,24,.20);
+    color: var(--ma-text-primary);
+    outline: none;
   }
 
   /* Appendix sections */

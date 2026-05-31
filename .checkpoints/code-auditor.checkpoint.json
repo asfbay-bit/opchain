@@ -4,13 +4,13 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T01:35:00Z",
-  "updated_at": "2026-05-03T00:35:53Z",
+  "updated_at": "2026-05-14T17:35:00Z",
 
   "phase": "audit",
-  "step": "lhci-2-through-5-fixed",
+  "step": "v1.3-sweep-complete-v1.4-not-yet-audited",
   "status": "complete",
 
-  "progress_summary": "One-pass auditor sweep over the files touched by PRs #143, #146, #148, #151 (mobile workbench, mobile architecture diagram, welcome popup, full-bleed UI, top-right feedback pill, skill TOC restyle + click-to-flash, PostHog reverse-proxy). 16 findings reported, overall grade B+. The two CRITICAL severities flagged by the subagent (F-001 XSS via innerHTML on demo.astro, F-002 CSRF on /api/feedback) appear to be false positives on inspection — the innerHTML source is server-rendered Astro markup, and the feedback endpoint is same-origin with custom JSON content type. Real, actionable findings: F-005 (no prefers-reduced-motion guard on WelcomePopup), F-006 (close-button contrast in light mode), F-011 (Desktop/Mobile workbench duplication), and LHCI-1 (dark-mode pressed-pill contrast on /skills, Pill.astro). LHCI-1 was fixed and shipped in PR #155 (squash-merged as 75b6f82) — promoted the Pill.astro line-50 light-mode `color: var(--text)` override to apply in both themes, post-merge LHCI a11y on /skills jumped 0.96 → 1.00.",
+  "progress_summary": "Last full audit was the one-pass sweep over PRs #143-#155 (mobile workbench, mobile architecture diagram, welcome popup, full-bleed UI, top-right feedback pill, skill TOC restyle + click-to-flash, PostHog reverse-proxy) — 16 findings, grade B+. LHCI-1 through LHCI-5 all fixed and shipped. F-005, F-006 fixed; F-001/F-002 verified false-positive on inspection; F-011 (Desktop/Mobile workbench duplication) deferred to a refactor sprint. No new audit has been requested since 2026-05-03; the entire v1.4 cycle (PRs 1-8 ADEV-328 → ADEV-337) shipped without a code-auditor sweep — incremental risk is low because each PR's diff was small (pack YAMLs + dispatcher refactor + light schema changes), but a v1.5 pre-deploy sweep is worth scheduling before agent-forge / claude-api / rag-forge bodies land (Sprint 2-3).",
 
   "progress_table": [
     { "id": "scope",         "label": "Scoped to session PRs (~8k lines)",                 "status": "complete" },
@@ -39,9 +39,9 @@
   "blockers": [],
 
   "next_actions": [
-    "F-011 (Desktop/Mobile workbench transcript duplication) is real tech debt — schedule for a refactor sprint, not a bug-fix branch.",
-    "Four HIGH findings remain after triage (F-005/F-006 fixed, F-001/F-002 false-positive, LHCI-1/2/3/4/5 fixed). Worth a sweep when the next session has time — none are blockers.",
-    "After the next LHCI run on /architecture and /skills/app-architect, verify the contrast scores cleared (LHCI-2 through LHCI-5). If app-architect's perf 0.90 on /architecture is still flagged, that's a separate investigation tied to the SVG diagram render cost — punted from this PR per user direction."
+    "Schedule a v1.5 pre-deploy audit sweep before Sprint 2-3 land — agent-forge and rag-forge introduce prompt-injection / tool-use surfaces that code-auditor needs new rules for. See ADEV-347/ADEV-348.",
+    "F-011 (Desktop/Mobile workbench transcript duplication) is still tech debt — schedule for a refactor sprint, not a bug-fix branch.",
+    "v1.4 (PRs 1-8) shipped without a sweep. Risk is bounded (small diffs, mostly pack YAMLs), but a single fast sweep of the dispatcher refactor (ADEV-330) is worth doing as a hygiene pass."
   ],
 
   "skill_state": {

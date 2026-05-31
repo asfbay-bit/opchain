@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-05-08T19:25:00Z",
+  "updated_at": "2026-05-13T20:30:00Z",
   "phase": "pr-cycle",
-  "step": "last-merge-#189",
-  "status": "complete",
-  "progress_summary": "Caught up through PR #189. After #183 (install upgrade flow, b9a3b29) the cycle continued: #185 (versioning roadmap), #186 (demo sidebar — drop hardcoded scenarios count), #187 (v1.4 plan-approved checkpoint adding stack-forge.checkpoint.json), #188 (git-ops self-update through #183/#184), #189 (orchestrator + bug-check checkpoints — v1.4 plan merged + a11y track standup, 526a9a2). Production now runs at 526a9a2 — opchain.dev and staging.opchain.dev are in sync.",
+  "step": "pr-233-open-awaiting-ci",
+  "status": "in_progress",
+  "progress_summary": "PR #233 (feat(email-pipeline): send pipeline-builder Step 5 result via Resend) opened ready-for-review on branch claude/cloudflare-email-pipeline-cm8n0; commit 2e49477; three CI checks (Worker, Site, LHCI) in_progress at push time; zero review comments. LHCI bot reported median scores: 6 routes at 0.99+ perf / 1.00 a11y/best/seo, /architecture still at 0.89 perf (pre-existing SVG render cost, not touched). PRs #213/#221/#223 remain merged; manual prod deploy of those still owned by user. Earlier in repo history: PR #223 (squash-merged to main as 8b8e778) shipped /changelog roadmap timeline + Linear-connected feature-request form; PR #213 (314df02b) shipped nav overhaul; PR #221 (3d279379) was the checkpoint update for that work.",
   "progress_table": [
     { "id": "pr-183", "label": "PR #183 — v1.4 install upgrade flow + main-CI repairs", "status": "complete" },
     { "id": "pr-184", "label": "PR #184 — demo-mobile test fix (closed, folded into #183)", "status": "complete" },
@@ -16,7 +16,11 @@
     { "id": "pr-186", "label": "PR #186 — fix(demo): drop hardcoded \"scenarios · 6\" sidebar count", "status": "complete" },
     { "id": "pr-187", "label": "PR #187 — checkpoint: v1.4 plan-approved (stack-forge added)",      "status": "complete" },
     { "id": "pr-188", "label": "PR #188 — checkpoint(git-ops): record #183 merge + #184 close",    "status": "complete" },
-    { "id": "pr-189", "label": "PR #189 — checkpoint: orchestrator + bug-check refresh",            "status": "complete" }
+    { "id": "pr-189", "label": "PR #189 — checkpoint: orchestrator + bug-check refresh",            "status": "complete" },
+    { "id": "pr-213", "label": "PR #213 — feat(site): redesigned homepage + grouped header + ⌘K palette", "status": "complete" },
+    { "id": "pr-221", "label": "PR #221 — checkpoint(ux,git-ops): record PR #213 merge", "status": "complete" },
+    { "id": "pr-223", "label": "PR #223 — feat(changelog): roadmap timeline + Linear-connected feature-request form", "status": "complete" },
+    { "id": "pr-233", "label": "PR #233 — feat(email-pipeline): Resend-powered /api/email-pipeline + name field on Step 5", "status": "in_progress" }
   ],
   "context_primer": {
     "key_decisions": [
@@ -38,12 +42,28 @@
   },
   "blockers": [],
   "next_actions": [
-    "No git work pending. v1.3 deploy is live (526a9a2 in prod + staging). Next branch will be ADEV-328 (v1.4 PR 1 — pack registry schema).",
-    "Local main may be divergent from origin/main due to squash merges — re-checkout from origin/main when starting new work."
+    "Watch PR #233 CI (Worker / Site / LHCI). If any check fails, investigate from the github-webhook-activity event; small fixes commit directly to the branch, anything ambiguous asks the user first.",
+    "After PR #233 CI is green: merge (the user typically merges directly; this session opened it ready-for-review). Manual deploy follows per CLAUDE.md — RESEND_API_KEY secret must be set on both staging + production envs before flipping the flag on.",
+    "PRs #213 + #221 + #223 still need a user-run manual deploy: `npm run deploy:staging` → eyeball → `npm run deploy`. Per CLAUDE.md, deploys never run in CI.",
+    "Operational follow-up in Linear (not git work): add the `roadmap-visible` label; optionally `community-submitted` label + LINEAR_COMMUNITY_LABEL_ID."
   ],
   "skill_state": {
-    "current_branch": "claude/add-upgrade-instructions-yvBC8 (merged & deletable)",
-    "open_prs": [],
+    "current_branch": "claude/cloudflare-email-pipeline-cm8n0 (PR #233 open, awaiting CI)",
+    "open_prs": [
+      {
+        "number": 233,
+        "title": "Add Resend-powered /api/email-pipeline + name field on Step 5",
+        "branch": "claude/cloudflare-email-pipeline-cm8n0",
+        "head_sha": "2e49477",
+        "opened_at": "2026-05-13T20:25:00Z",
+        "scope": "src/lib/schemas.js + src/lib/email-templates/pipeline.js (new) + src/index.js + src/lib/flags/registry.js + src/lib/request-id.js + wrangler.jsonc + .env.example + site/src/pages/pipeline-builder.astro + tests/email-pipeline.test.js (new)",
+        "diff_stat": "9 files changed, 1037 insertions, 48 deletions",
+        "commits_on_branch": 1,
+        "ci_initial": "Worker/Site/LHCI all in_progress at push; LHCI median scores reported, no regression",
+        "review_comments": 0,
+        "linked_ticket": null
+      }
+    ],
     "merged_prs": [
       {
         "number": 140,
@@ -117,6 +137,38 @@
         "merge_method": "squash",
         "merge_sha": "526a9a2",
         "merged_at": "2026-05-08T07:41:45Z"
+      },
+      {
+        "number": 213,
+        "title": "feat(site): redesigned homepage + grouped header + ⌘K palette",
+        "merge_method": "squash",
+        "merge_sha": "314df02b",
+        "merged_at": "2026-05-12T06:12:00Z",
+        "scope": "site/src/components/{Header,SearchPalette}.astro + site/src/pages/index.astro + previews/{PROPOSAL.md,preview.html}",
+        "commits_on_branch": 11,
+        "rebased_during_cycle": true,
+        "ci_final": "build ✅ · type-check ✅ · e2e ✅ (retried past demo-modal-toc flake) · worker ✅ · LHCI 1.00/1.00/1.00/1.00 on /, /skills, /skills/{app-architect,release-ops}, /architecture, /demo, /changelog"
+      },
+      {
+        "number": 221,
+        "title": "checkpoint(ux,git-ops): record PR #213 merge — nav overhaul shipped",
+        "merge_method": "squash",
+        "merge_sha": "3d279379",
+        "merged_at": "2026-05-12T11:38:00Z",
+        "scope": ".checkpoints/ux-engineer.checkpoint.json + .checkpoints/git-ops.checkpoint.json",
+        "ci_final": "build ✅ · type-check ✅ · e2e ✅ (retried past demo-modal-toc flake) · worker ✅ · LHCI 1.00 on every route"
+      },
+      {
+        "number": 223,
+        "title": "feat(changelog): roadmap timeline + Linear-connected feature-request form",
+        "merge_method": "squash",
+        "merge_sha": "8b8e778",
+        "merged_at": "2026-05-12T13:09:00Z",
+        "scope": "scripts/gen-roadmap.mjs + site/src/data/roadmap-types.ts + site/src/components/Roadmap{Timeline,Form}.astro + site/src/pages/changelog.astro + src/index.js + src/lib/schemas.js + package.json + .gitignore",
+        "commits_on_branch": 3,
+        "rebased_during_cycle": false,
+        "ci_intermediate": "Commit 488cada (data layer) failed site/install/type-check/build because CI's site job doesn't run root prebuild, so the dynamic JSON import in roadmap-types.ts had no module to resolve. Fixed in commit 2091b4a by switching to a synchronous fs.readFileSync at SSG time with an empty-fallback.",
+        "ci_final": "build ✅ · type-check ✅ · e2e ✅ · worker ✅ (266/266 tests) · LHCI 1.00 a11y/best/seo on every route; /changelog 0.97 perf with new components"
       }
     ],
     "closed_unmerged_prs": [

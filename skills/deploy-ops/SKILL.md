@@ -1,7 +1,7 @@
 ---
 name: deploy-ops
 displayName: Deploy Ops
-version: 1.3.0
+version: 1.4.0
 shortDesc: Audit gate → staging → production → monitor. v1.2 creates deploy tickets and updates linked PM tickets per env.
 phases: [build]
 triAgent: false
@@ -616,6 +616,68 @@ not first-class in v1.3:
 A future minor release can promote any of these by adding a scaffold recipe
 in `app-architect/references/scaffold-guide.md` AND a provider section here
 AND at least one in-action `/demo` scenario.
+
+---
+
+## Pack-aware dispatch (v1.4+)
+
+v1.4 introduces the stack-forge pack registry (`skills/stack-forge/packs/<id>/pack.yml`).
+deploy-ops consumes it at **runtime** via `src/lib/pack-dispatch.js` to pick
+the right provider section above without re-implementing the matrix.
+
+The contract is intentionally minimal — pack lookups are cheap and the
+Platform Matrix above is the source of truth for *how* to deploy. The pack
+metadata answers *which* matrix row applies.
+
+### Entry point: `getDispatchTarget(packId)`
+
+```js
+import { getDispatchTarget } from "../../src/lib/pack-dispatch.js";
+
+const target = getDispatchTarget("python");
+// → { defaultPlatform: "render", supportedPlatforms: ["render", "fly-io"] }
+//   (once PR 7 lands the deploy-target packs)
+// → { defaultPlatform: null,    supportedPlatforms: [] }
+//   while deploy-target packs are still pending (v1.4 PR 3 → PR 7 window)
+// → null when the pack does not exist
+```
+
+Resolution order:
+
+1. **Pack hit + populated platforms** — dispatch to the `defaultPlatform`'s
+   provider section. The user can override with `/deploy ... --platform <id>`
+   as long as the override is in `supportedPlatforms`.
+2. **Pack hit + empty platforms** — fall back to the Platform Matrix above
+   keyed by language (Python → Render, Ruby → Heroku, Go → Fly.io, Rust →
+   Shuttle, TypeScript → Cloudflare Workers). This is the v1.4 PR 3-through-6
+   state for the 5 backfilled language packs.
+3. **Pack miss** — caller error. deploy-ops surfaces `unknown pack: <id>`
+   and exits. No fuzzy matching.
+
+### Worked example — `/deploy staging` on a Python project
+
+```
+1. /deploy staging
+2. Read pack hint from project's stack-forge.checkpoint.json:
+     activePack: "python"
+3. getDispatchTarget("python") → { defaultPlatform: null, supportedPlatforms: [] }
+4. Fall back to language → Platform Matrix:
+     python → Render
+5. Read the "Render (Django, Node static, Rails alt)" section above.
+6. Run `git push render main`, then `curl /health`, then update PM tickets.
+```
+
+After PR 7 lands `render`, `fly-io`, `heroku`, `shuttle` as deploy-target
+packs with bidirectional graph entries, step 4 above gets short-circuited:
+the pack's `defaultPlatform` is the answer, no fallback needed.
+
+### Why runtime read (and not codegen)?
+
+The dispatcher is a single-field lookup per deploy invocation — codegen
+would buy a few μs and lose the property that `pack.yml` is the single
+source of truth at the moment deploy-ops actually runs. (api-dev codegens
+because it needs to template per-language scaffolds *into generated source
+code* — different shape, different trade-off.)
 
 ---
 

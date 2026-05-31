@@ -102,6 +102,11 @@ fi
 # .sh writers, which do shallow merges with no schema validation and
 # can produce checkpoints that CI's validator then rejects.
 LIST=$(printf -- "  - %s\n" "${MISSING[@]}")
+# Heredoc body intentionally avoids apostrophes — macOS ships bash 3.2,
+# which has a parser bug where unbalanced single-quotes inside a `$()`
+# command substitution's heredoc body trigger a spurious EOF error
+# (e.g. `--progress_summary='<one paragraph>'` would break parsing even
+# though the quotes are balanced in the literal body).
 REASON=$(cat <<EOF
 Checkpoint hygiene: the following opchain skills were invoked this session but have no checkpoint at .checkpoints/<skill>.checkpoint.json:
 
@@ -112,9 +117,9 @@ Write each checkpoint with the canonical CLI before ending the session:
     --status=complete \\
     --phase=<phase> \\
     --step=<step> \\
-    --progress_summary='<one paragraph>'
+    --progress_summary="<one paragraph>"
 
-This validates the schema, stamps updated_at, and is the same tool CI runs in npm run checkpoint:validate. The .checkpoints/ directory is tracked in git so the next session can resume from the prior session's next_actions[0].
+This validates the schema, stamps updated_at, and is the same tool CI runs in npm run checkpoint:validate. The .checkpoints/ directory is tracked in git so the next session can resume from the prior session next_actions[0].
 EOF
 )
 

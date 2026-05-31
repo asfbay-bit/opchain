@@ -24,13 +24,32 @@ src/generated/*
 # build overwrites it on every run.
 !src/generated/coverage-flags.json
 
+# Baseline emitted by scripts/gen-api-dev-adapters.mjs (v1.4 PR 3). Same
+# pattern as coverage-flags.json — tracked so api-dev can import the typed
+# adapter list without a build-first dependency; the build overwrites it.
+!src/generated/api-dev-adapters.json
+
+# Baseline emitted by scripts/gen-packs-catalog.mjs (v1.4 PR 8). Same
+# pattern — tracked so the site's /coverage page can import the catalog
+# without a build-first dependency; the build overwrites it.
+!src/generated/packs-catalog.json
+
 # Codegen — regenerated on every prebuild from src/lib/flags/registry.js
 site/src/lib/flags/registry.ts
+
+# Build-time Linear roadmap pull (scripts/gen-roadmap.mjs). Regenerated
+# on every prebuild; checked-out tree starts empty when LINEAR_API_KEY
+# isn't set. The TypeScript loader (roadmap-types.ts) returns an empty
+# shape when this file is missing so Astro builds stay green either way.
+site/src/data/roadmap.json
 
 # Cloudflare
 .wrangler/
 .dev.vars
 .dev.vars.*
+
+# Claude Code parallel-agent worktrees — temporary, per-session
+.claude/worktrees/
 
 # Env
 .env
@@ -42,6 +61,15 @@ site/src/lib/flags/registry.ts
 # Tracked in git as living "session state docs" so they survive across
 # sessions and machines (incl. Claude Code on the web). Schema + tooling
 # in .checkpoints/README.md and scripts/checkpoint.mjs.
+#
+# Exception: bug-check is local-only. By its own SKILL.md contract it
+# "always runs fresh — no continue/restart prompt," so there's no
+# session-resume value in tracking it. Its run telemetry (updated_at,
+# step, last_run.*, run_history, streak) rewrites on every pre-commit
+# gate run, which generates 2-3 false merge conflicts per PR. The
+# pre-commit hook reads the file locally and handles the missing-file
+# case (it just prompts you to run /bugcheck first).
+.checkpoints/bug-check.checkpoint.json
 
 # Playwright (Sprint 7a)
 site/test-results/

@@ -1,18 +1,14 @@
 ---
 /**
- * Floating feedback widget. Opens a dialog that POSTs to /api/feedback.
- * Mounted once in Base.astro so it's available on every page.
+ * Feedback dialog. Mounted once in Base.astro; opened by any
+ * [data-feedback-launcher] in the document (header button, inline
+ * "send feedback" links, etc.). POSTs to /api/feedback.
  */
 import Button from "./ui/Button.astro";
 import Input from "./ui/Input.astro";
 import Textarea from "./ui/Textarea.astro";
 import Alert from "./ui/Alert.astro";
-import Icon from "./Icon.astro";
 ---
-
-<button type="button" class="feedback-launcher" id="feedback-launcher" data-feedback-launcher aria-label="Send feedback">
-  <Icon name="message-square" size={14} /> feedback
-</button>
 
 <dialog class="feedback-dialog" id="feedback-dialog" aria-labelledby="feedback-title">
   <form method="dialog" class="feedback-form" id="feedback-form" autocomplete="off">
@@ -137,43 +133,6 @@ import Icon from "./Icon.astro";
 </script>
 
 <style>
-  /* Desktop floating pill — top-right of the viewport. Sits above the
-     sticky site header (z-index 100 vs the header's lower stacking) so
-     it's reachable on every page; on the workbench /demo page that puts
-     it adjacent to the IDE topbar without crowding it. */
-  .feedback-launcher {
-    position: fixed;
-    right: 1rem;
-    top: 1rem;
-    z-index: 100;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    background: var(--surface);
-    color: var(--muted);
-    border: 0.5px solid var(--border);
-    border-radius: var(--r-pill);
-    padding: 0.5rem 0.9rem;
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    letter-spacing: var(--ls-wide);
-    text-transform: uppercase;
-    cursor: pointer;
-    box-shadow: var(--glow-md);
-    transition: color var(--dur-fast) var(--ease-standard),
-                border-color var(--dur-fast) var(--ease-standard);
-  }
-  .feedback-launcher:hover {
-    color: var(--text);
-    border-color: var(--accent);
-  }
-  /* On mobile the launcher moves into the site header (Header.astro
-     ships a [data-feedback-launcher] button there); hide the floating
-     pill so it doesn't cover the MobileWorkbench bottom tab bar. */
-  @media (max-width: 767px) {
-    .feedback-launcher { display: none; }
-  }
-
   .feedback-dialog {
     /* Lock to viewport center regardless of scroll position or surrounding
        layout. `<dialog>::showModal` centers by default in spec, but some

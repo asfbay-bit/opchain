@@ -10,12 +10,29 @@ const email = z.string().trim().min(3).max(254).email();
 
 /** POST /api/feedback */
 export const FeedbackSchema = z.object({
-  type: z.enum(["bug", "feature", "improvement", "general"]),
+  type: z.enum(["bug", "feature", "improvement", "general", "security"]),
   title: z.string().trim().min(3).max(200),
   description: z.string().trim().max(5000).optional().default(""),
   priority: z.coerce.number().int().min(0).max(4).optional().default(0),
   skill: z.string().trim().max(60).optional(),
   email: email.optional(),
+  // ── Security-disclosure-only fields ────────────────────────────
+  // Surfaced by the /security page form. Optional on the schema so
+  // the existing feedback widget keeps working unchanged; the worker
+  // composes them into the Linear issue body when type === "security".
+  component: z.string().trim().max(200).optional(),
+  reproduction: z.string().trim().max(5000).optional(),
+  impact: z.string().trim().max(2000).optional(),
+  severity: z.enum(["low", "medium", "high", "critical"]).optional(),
+  // ── Roadmap submission form (/changelog) ───────────────────────
+  // Set by the community feature-request form. Presence flips the
+  // worker into "community submission" mode: applies the
+  // `community-submitted` Linear label (when LINEAR_COMMUNITY_LABEL_ID
+  // is configured), prefixes the title with [community/<type>], and
+  // surfaces `Category` in the issue body. Items do NOT show on the
+  // public roadmap until a team-member adds `roadmap-visible` during
+  // triage — keeps spam out of the public timeline.
+  category: z.enum(["skill", "feature", "docs", "integration", "other"]).optional(),
 });
 
 /**
@@ -47,6 +64,37 @@ export const NotifySchema = z.object({
     "homepage",
     "other",
   ]).optional().default("other"),
+});
+
+/**
+ * POST /api/email-pipeline
+ *
+ * Step 5 of the /pipeline-builder wizard. User typed their name + email and
+ * clicked "email it to me"; the handler renders a rich HTML email (wizard
+ * answers + recommended skills + next-steps) and ships it via Resend. The
+ * payload mirrors the in-memory wizard state — `answers` carries the four
+ * user choices, `skills` carries the recommended pipeline.
+ *
+ * Strings are bounded so a malicious caller can't inflate the rendered
+ * HTML body; the renderer also escapes every value before interpolation.
+ */
+const answerString = z.string().trim().min(1).max(40);
+export const NotifyPipelineSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  email,
+  answers: z.object({
+    kind: answerString,
+    team: answerString,
+    deploy: answerString,
+    aiSurface: answerString,
+  }),
+  skills: z.array(
+    z.object({
+      id: z.string().trim().min(1).max(200),
+      name: z.string().trim().min(1).max(200),
+      summary: z.string().trim().min(1).max(200),
+    }),
+  ).min(1).max(12),
 });
 
 /**

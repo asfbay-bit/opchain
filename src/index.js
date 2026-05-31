@@ -2,16 +2,18 @@
  * opchain-dev — Cloudflare Worker for opchain.dev
  *
  * Routes:
- *   GET  /api/health    → health check
- *   POST /api/feedback  → Linear issue creation
- *   POST /api/notify    → install/download soft-gate capture (KV-backed)
- *   GET  /*             → static assets (public/)
+ *   GET  /api/health           → health check
+ *   POST /api/feedback         → Linear issue creation
+ *   POST /api/notify           → install/download soft-gate capture (KV-backed)
+ *   POST /api/email-pipeline   → /pipeline-builder Step 5 email send (Resend)
+ *   GET  /*                    → static assets (public/)
  *
  * The `/api/try/*` chat surface and the email-gated session flow were
  * removed in `claude/remove-try-it`. Old links (/tryit) now 301 to /demo.
  */
 
-import { FeedbackSchema, NotifySchema, parseBody } from "./lib/schemas.js";
+import { FeedbackSchema, NotifySchema, NotifyPipelineSchema, parseBody } from "./lib/schemas.js";
+import { buildPipelineEmailHtml, buildPipelineEmailText } from "./lib/email-templates/pipeline.js";
 import { capture, hashDistinctId } from "./lib/analytics.js";
 import { bindLogger, newRequestId, EVENTS } from "./lib/request-id.js";
 import { evalFlag, evalFlags } from "./lib/flags/eval.js";
@@ -33,9 +35,25 @@ export const LABEL_MAP = {
   feature: "a9f89cba-878b-4c2e-a9e4-871866a03592",
   improvement: "e9956661-28ed-4ca2-8d54-8e5457bbb773",
   general: "ec0403ab-31b9-4aa6-a097-e54e4bbff69c",
+  // Security disclosures: ops should create a dedicated "security"
+  // label in Linear and override this via env.LINEAR_SECURITY_LABEL_ID.
+  // Until then, fall back to the bug label so the issue still gets
+  // categorised — the [SECURITY] title prefix and forced P1 priority
+  // (see handleFeedback below) keep it visible regardless.
+  security: "68403073-fd71-44aa-95bc-aea91ed7e4de",
 };
 
 export const PRIORITY_MAP = { 0: 0, 1: 4, 2: 3, 3: 2, 4: 1 };
+
+// Linear's priority scale: 1=urgent, 2=high, 3=medium, 4=low, 0=none.
+// Security severity → Linear priority. Unconditional — the form's
+// "severity" field never lets a reporter downgrade past Linear high.
+const SECURITY_PRIORITY = {
+  critical: 1, // Urgent
+  high:     1, // Urgent (treat high-severity disclosures as urgent for triage)
+  medium:   2, // High
+  low:      3, // Medium
+};
 
 const ALLOWED_ORIGINS = [
   "https://opchain.dev",
@@ -158,6 +176,112 @@ async function fetchAsset(env, request, origin) {
   return res;
 }
 
+// ── Roadmap vote handlers ───────────────────────────────────────────────────
+// One vote per IP per day per Linear issue. Vote counts are stored in the
+// NOTIFY KV namespace under keys:
+//   vote-count:<TEAM-NNN>                          → integer
+//   vote-lock:<TEAM-NNN>:<YYYY-MM-DD>:<ip-hash>    → "1" (TTL 25h)
+// We hash the IP (first 16 hex chars of SHA-256) so the lock keys carry
+// no PII at rest. KV is eventually consistent — that's fine for a vote
+// counter; the worst case is a few seconds of stale display.
+//
+// The regex accepts any Linear team prefix (2-8 uppercase letters), not just
+// the original `OPCHN-` — the workspace renamed its team to "Aidopsdev"
+// (`ADEV-`) at some point and the old hardcoded pattern silently rejected
+// every real identifier. The strict character class (uppercase letters +
+// digits only) keeps the value safe to interpolate into KV keys.
+const VOTE_ID_RE = /^[A-Z]{2,8}-\d{1,6}$/;
+const VOTE_BATCH_MAX = 50;
+const VOTE_TTL_SECONDS = 25 * 60 * 60; // 25h, so lock spans the next-day boundary
+
+async function ipHashHex(ip) {
+  const bytes = new TextEncoder().encode(String(ip || "0.0.0.0"));
+  const hash = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 16);
+}
+
+async function handleVotePost(request, env, ctx, origin, requestId, rawId) {
+  const log = bindLogger(requestId);
+  const id = String(rawId || "").toUpperCase();
+  if (!VOTE_ID_RE.test(id)) {
+    return new Response(
+      JSON.stringify({ error: "Invalid issue id.", code: "invalid_id" }),
+      { status: 400, headers: corsHeaders(origin, requestId) },
+    );
+  }
+  if (!env.NOTIFY) {
+    log.event(EVENTS.NOTIFY_NO_KV, { source: "vote" });
+    return new Response(
+      JSON.stringify({ error: "Vote storage unavailable.", code: "kv_not_configured" }),
+      { status: 503, headers: corsHeaders(origin, requestId) },
+    );
+  }
+  const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
+  const today = new Date().toISOString().slice(0, 10);
+  const ipHash = await ipHashHex(ip);
+  const lockKey = `vote-lock:${id}:${today}:${ipHash}`;
+  const countKey = `vote-count:${id}`;
+
+  const [existingLock, currentRaw] = await Promise.all([
+    env.NOTIFY.get(lockKey),
+    env.NOTIFY.get(countKey),
+  ]);
+  const current = Math.max(0, parseInt(currentRaw || "0", 10) || 0);
+
+  if (existingLock) {
+    return new Response(
+      JSON.stringify({ ok: true, count: current, alreadyVoted: true }),
+      { status: 200, headers: corsHeaders(origin, requestId) },
+    );
+  }
+
+  const next = current + 1;
+  await Promise.all([
+    env.NOTIFY.put(lockKey, "1", { expirationTtl: VOTE_TTL_SECONDS }),
+    env.NOTIFY.put(countKey, String(next)),
+  ]);
+  log.event(EVENTS.FEEDBACK_SUBMITTED, { type: "roadmap-vote", issue: id, count: next });
+  return new Response(
+    JSON.stringify({ ok: true, count: next, alreadyVoted: false }),
+    { status: 200, headers: corsHeaders(origin, requestId) },
+  );
+}
+
+async function handleVoteGet(request, env, origin, requestId) {
+  const url = new URL(request.url);
+  if (!env.NOTIFY) {
+    return new Response(
+      JSON.stringify({ counts: {} }),
+      { status: 200, headers: corsHeaders(origin, requestId) },
+    );
+  }
+  const ids = (url.searchParams.get("ids") || "")
+    .split(",")
+    .map((s) => s.trim().toUpperCase())
+    .filter((s) => VOTE_ID_RE.test(s))
+    .slice(0, VOTE_BATCH_MAX);
+  const counts = {};
+  await Promise.all(
+    ids.map(async (id) => {
+      const v = await env.NOTIFY.get(`vote-count:${id}`);
+      counts[id] = Math.max(0, parseInt(v || "0", 10) || 0);
+    }),
+  );
+  return new Response(
+    JSON.stringify({ counts }),
+    {
+      status: 200,
+      headers: {
+        ...corsHeaders(origin, requestId),
+        "Cache-Control": "no-store",
+      },
+    },
+  );
+}
+
 // ── Feedback Handler ────────────────────────────────────────────────────────
 
 async function handleFeedback(request, env, ctx, origin, requestId) {
@@ -169,7 +293,15 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
       { status: 400, headers: corsHeaders(origin, requestId) },
     );
   }
-  const { type, title, description, priority, skill, email } = parsed.data;
+  const {
+    type, title, description, priority, skill, email,
+    // Security-only fields — only read when type === "security".
+    component, reproduction, impact, severity,
+    // Roadmap community-submission field. Presence → community mode.
+    category,
+  } = parsed.data;
+  const isSecurity = type === "security";
+  const isCommunity = !!category && !isSecurity;
 
   // Staging (and any env with the api-feedback kill flag on) accepts the
   // submission, logs it, and returns a synthetic 201 without calling
@@ -201,8 +333,25 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
 
   const teamId = env.LINEAR_TEAM_ID || DEFAULT_TEAM_ID;
   const projectId = env.LINEAR_PROJECT_ID || DEFAULT_PROJECT_ID;
-  const labelIds = LABEL_MAP[type] ? [LABEL_MAP[type]] : [];
-  const linearPriority = PRIORITY_MAP[priority] ?? 0;
+  // Label resolution. Security disclosures prefer a dedicated label
+  // (configurable via env.LINEAR_SECURITY_LABEL_ID); regular feedback
+  // uses the static LABEL_MAP entry. Community roadmap submissions
+  // additionally get LINEAR_COMMUNITY_LABEL_ID (optional env var) so
+  // triagers can see the new ask without flipping it onto the public
+  // roadmap. Empty → no label, never blocks.
+  let labelIds = LABEL_MAP[type] ? [LABEL_MAP[type]] : [];
+  if (isSecurity && env.LINEAR_SECURITY_LABEL_ID) {
+    labelIds = [env.LINEAR_SECURITY_LABEL_ID];
+  }
+  if (isCommunity && env.LINEAR_COMMUNITY_LABEL_ID) {
+    labelIds = [...labelIds, env.LINEAR_COMMUNITY_LABEL_ID];
+  }
+  // Priority resolution. Security disclosures bypass the
+  // user-submitted priority and ride the SECURITY_PRIORITY table —
+  // reporters shouldn't be able to mark their own bug as "low."
+  const linearPriority = isSecurity
+    ? (SECURITY_PRIORITY[severity || "medium"])
+    : (PRIORITY_MAP[priority] ?? 0);
   // SKILL_NAMES used to map ids → display names from skill-prompts.js;
   // that file went away with the Try-It removal. The raw slug (e.g.
   // `code-auditor`) still carries enough signal to triage feedback in
@@ -210,16 +359,41 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
   const skillName = skill || null;
 
   const descParts = [];
-  if (description) descParts.push(description);
+  if (isSecurity) {
+    // Structured Markdown body for security disclosures — gives the
+    // triager a consistent layout regardless of how thorough the
+    // reporter was. Missing sections render as "_Not provided._" so
+    // gaps are obvious at a glance.
+    descParts.push(`## Severity\n\n${severity ? severity.toUpperCase() : "_Not specified — defaulting to medium triage._"}`);
+    descParts.push(`## Affected component\n\n${component || "_Not provided._"}`);
+    descParts.push(`## Reproduction\n\n${reproduction || "_Not provided._"}`);
+    descParts.push(`## Impact\n\n${impact || "_Not provided._"}`);
+    if (description) descParts.push(`## Additional notes\n\n${description}`);
+  } else if (description) {
+    descParts.push(description);
+  }
   if (skillName) descParts.push(`**Skill:** ${skillName}`);
+  if (isCommunity) descParts.push(`**Category:** ${category}`);
   if (email) descParts.push(`**Contact:** ${email}`);
   descParts.push(`**Request ID:** ${requestId}`);
-  descParts.push("_Submitted via opchain.dev_");
+  descParts.push(
+    isSecurity
+      ? "_Submitted via opchain.dev /security disclosure form_"
+      : isCommunity
+      ? "_Submitted via opchain.dev /changelog roadmap form — community-submitted; needs `roadmap-visible` label to appear publicly._"
+      : "_Submitted via opchain.dev_",
+  );
+
+  const titlePrefix = isSecurity
+    ? "[SECURITY]"
+    : isCommunity
+    ? `[community/${type}]`
+    : `[${type}]`;
 
   const variables = {
     input: {
       teamId, projectId,
-      title: `[${type}] ${title}`,
+      title: `${titlePrefix} ${title}`,
       description: descParts.join("\n\n"),
       priority: linearPriority,
       labelIds,
@@ -374,6 +548,162 @@ async function sha256Hex(input) {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// ── Email Pipeline (Resend) ─────────────────────────────────────────────────
+//
+// Step 5 of /pipeline-builder offers "email it to me". The page posts the
+// user's name + email plus the four wizard answers and the recommended skill
+// set; we render a rich HTML email and ship it via Resend's HTTP API. The
+// send blocks the response so we can surface upstream failures inline; KV
+// persistence and PostHog capture run after the response via ctx.waitUntil.
+//
+// Resend send is gated on:
+//   - site.ops.api-email-pipeline.kill (router-level)
+//   - per-IP rate limit (3 sends / 60s, same threshold as /api/notify)
+//   - presence of RESEND_API_KEY (503 not_configured otherwise)
+//
+// On success: lead persisted under `lead:<sha256(email)>` (same key shape as
+// /api/notify, so the same address from both surfaces upserts a single row),
+// plus a `pipeline_emailed` event in PostHog. On Resend non-2xx: KV write is
+// skipped and the response carries `{ code: "email_send_failed" }`.
+
+const EMAIL_PIPELINE_RATELIMIT_MAX = 3;
+const EMAIL_PIPELINE_RATELIMIT_TTL_S = 60;
+const RESEND_ENDPOINT = "https://api.resend.com/emails";
+const RESEND_TIMEOUT_MS = 10_000;
+const DEFAULT_EMAIL_FROM = "opchain.dev <pipeline@opchain.dev>";
+
+async function handleEmailPipeline(request, env, ctx, origin, requestId) {
+  const log = bindLogger(requestId);
+
+  const parsed = await parseBody(request, NotifyPipelineSchema);
+  if (!parsed.ok) {
+    return new Response(
+      JSON.stringify({ error: parsed.error, code: parsed.code, issues: parsed.issues }),
+      { status: 400, headers: corsHeaders(origin, requestId) },
+    );
+  }
+  const { name, email, answers, skills } = parsed.data;
+
+  if (!env.RESEND_API_KEY) {
+    log.event(EVENTS.PIPELINE_EMAIL_NOT_CONFIGURED, {});
+    return new Response(
+      JSON.stringify({ error: "Email service not configured.", code: "not_configured" }),
+      { status: 503, headers: corsHeaders(origin, requestId) },
+    );
+  }
+
+  const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
+
+  // Rate-limit per IP. KV is best-effort — if NOTIFY isn't bound we let
+  // the submission through, just like /api/notify does.
+  if (env.NOTIFY) {
+    const rlKey = `ratelimit:email-pipeline:${ip}`;
+    const current = Number(await env.NOTIFY.get(rlKey)) || 0;
+    if (current >= EMAIL_PIPELINE_RATELIMIT_MAX) {
+      log.event(EVENTS.PIPELINE_EMAIL_RATELIMITED, { ip });
+      return new Response(
+        JSON.stringify({ error: "Too many sends, slow down.", code: "rate_limited" }),
+        { status: 429, headers: corsHeaders(origin, requestId) },
+      );
+    }
+    await env.NOTIFY.put(rlKey, String(current + 1), {
+      expirationTtl: EMAIL_PIPELINE_RATELIMIT_TTL_S,
+    });
+  }
+
+  const html = buildPipelineEmailHtml({ name, answers, skills });
+  const text = buildPipelineEmailText({ name, answers, skills });
+  const from = env.EMAIL_FROM || DEFAULT_EMAIL_FROM;
+
+  let resendData;
+  try {
+    const resendRes = await fetch(RESEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from,
+        to: [email],
+        subject: "Your opchain pipeline",
+        html,
+        text,
+      }),
+      signal: AbortSignal.timeout(RESEND_TIMEOUT_MS),
+    });
+    if (!resendRes.ok) {
+      // Drain the body so the socket can be recycled, then log + return.
+      const body = await resendRes.text().catch(() => "");
+      log.eventError(EVENTS.PIPELINE_EMAIL_FAILED, {
+        upstream: "resend",
+        status: resendRes.status,
+        body: body.slice(0, 200),
+      });
+      return new Response(
+        JSON.stringify({ error: "Email could not be sent.", code: "email_send_failed" }),
+        { status: 502, headers: corsHeaders(origin, requestId) },
+      );
+    }
+    resendData = await resendRes.json().catch(() => ({}));
+  } catch (e) {
+    log.eventError(EVENTS.PIPELINE_EMAIL_FAILED, {
+      upstream: "resend",
+      reason: "fetch_error",
+      message: e?.message,
+    });
+    return new Response(
+      JSON.stringify({ error: "Email service unreachable.", code: "email_send_failed" }),
+      { status: 502, headers: corsHeaders(origin, requestId) },
+    );
+  }
+
+  const sentAt = new Date().toISOString();
+  log.event(EVENTS.PIPELINE_EMAIL_SENT, {
+    resend_id: resendData?.id ?? null,
+    skills: skills.length,
+  });
+
+  // Lead persistence — same key shape as /api/notify so the lead list
+  // stays unified. Best-effort, runs after the response.
+  if (env.NOTIFY) {
+    const emailHash = await sha256Hex(email.toLowerCase());
+    const summary = `${answers.kind} · team ${answers.team} · ${answers.deploy} · ${answers.aiSurface}`;
+    const record = {
+      name,
+      email,
+      emailHash,
+      building: `[pipeline-builder] ${summary}`,
+      source: "pipeline-builder-email",
+      sentAt,
+      requestId,
+    };
+    ctx?.waitUntil?.(env.NOTIFY.put(`lead:${emailHash}`, JSON.stringify(record)));
+  }
+
+  // Fire-and-forget PostHog capture.
+  try {
+    const distinctId = await hashDistinctId(email);
+    ctx?.waitUntil?.(capture(env, {
+      distinctId,
+      event: "pipeline_emailed",
+      properties: {
+        kind: answers.kind,
+        team: answers.team,
+        deploy: answers.deploy,
+        ai_surface: answers.aiSurface,
+        skills_count: skills.length,
+        request_id: requestId,
+      },
+    }));
+  } catch { /* analytics never breaks a send */ }
+
+  return new Response(
+    JSON.stringify({ ok: true, id: resendData?.id ?? null }),
+    { status: 200, headers: corsHeaders(origin, requestId) },
+  );
+}
+
 // ── Flags API ───────────────────────────────────────────────────────────────
 //
 // /api/flags/public returns the subset of flags safe to ship to the browser
@@ -448,6 +778,22 @@ async function route(request, env, ctx, url, origin, requestId) {
       return handleFeedback(request, env, ctx, origin, requestId);
     }
 
+    // POST /api/votes/:id — per-IP/day server-side dedup, returns new count.
+    // GET  /api/votes?ids=A,B,C — batched count read for the roadmap UI.
+    const voteMatch = url.pathname.match(/^\/api\/votes\/([^/]+)$/);
+    if (voteMatch && request.method === "POST") {
+      if (await evalFlag("site.ops.api-feedback.kill", { env, ctx })) {
+        return new Response(
+          JSON.stringify({ error: "Voting is paused.", code: "paused" }),
+          { status: 503, headers: corsHeaders(origin, requestId) },
+        );
+      }
+      return handleVotePost(request, env, ctx, origin, requestId, voteMatch[1]);
+    }
+    if (url.pathname === "/api/votes" && request.method === "GET") {
+      return handleVoteGet(request, env, origin, requestId);
+    }
+
     if (url.pathname === "/api/notify" && request.method === "POST") {
       // Ops kill switch — when on, return 503 without touching KV. Used to
       // pause lead capture during incidents. Default off, so existing
@@ -459,6 +805,18 @@ async function route(request, env, ctx, url, origin, requestId) {
         );
       }
       return handleNotify(request, env, ctx, origin, requestId);
+    }
+
+    if (url.pathname === "/api/email-pipeline" && request.method === "POST") {
+      // Ops kill switch — when on, return 503 without touching Resend or
+      // KV. Use during a Resend outage, abuse incident, or runaway cost.
+      if (await evalFlag("site.ops.api-email-pipeline.kill", { env, ctx })) {
+        return new Response(
+          JSON.stringify({ error: "Pipeline email is temporarily unavailable.", code: "kill_switch" }),
+          { status: 503, headers: corsHeaders(origin, requestId) },
+        );
+      }
+      return handleEmailPipeline(request, env, ctx, origin, requestId);
     }
 
     // /api/try/* is gone. Reject with a clean 410 so any cached client

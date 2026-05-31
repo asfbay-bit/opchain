@@ -1,0 +1,374 @@
+/**
+ * Tests for src/lib/pack-dispatch.js (v1.4 PR 3 — runtime half of
+ * the hybrid driver semantics).
+ *
+ *   getLanguagePack(id)   — load + parse pack.yml; null if missing.
+ *   getDispatchTarget(id) — extract defaultPlatform + supportedPlatforms.
+ *   dispatchMobile(id)    — render checklist envelope for kind=mobile.
+ *
+ * Real packs/ + synthetic fixtures (env-var swap).
+ */
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import { getLanguagePack, getDispatchTarget, dispatchMobile } from "../src/lib/pack-dispatch.js";
+
+function packYml(obj) {
+  return Object.entries(obj)
+    .map(([k, v]) => {
+      if (Array.isArray(v)) return `${k}: [${v.join(", ")}]`;
+      return `${k}: ${v}`;
+    })
+    .join("\n") + "\n";
+}
+
+function makeFixture(packs) {
+  const work = mkdtempSync(join(tmpdir(), "opchain-pack-dispatch-"));
+  for (const [id, files] of Object.entries(packs)) {
+    const dir = join(work, id);
+    mkdirSync(dir, { recursive: true });
+    for (const [name, body] of Object.entries(files)) {
+      writeFileSync(join(dir, name), body, "utf8");
+    }
+  }
+  return work;
+}
+
+// All language packs that ship in the current release. PR 2 (ADEV-329) seeded
+// the first 5; PR 4 (ADEV-334) added elixir/bun/deno alongside the modern web
+// framework packs; PR 5 (ADEV-335) added java/csharp/kotlin/php alongside the
+// enterprise framework packs. None of them declare deploy-target platforms
+// yet — those land in PR 7. Until then deploy-ops falls back to the SKILL.md
+// matrix.
+const REAL_LANGUAGE_PACKS = [
+  "typescript", "python", "ruby", "go", "rust",
+  "elixir", "bun", "deno",
+  "java", "csharp", "kotlin", "php",
+  // PR 6 (ADEV-336) Apple/iOS language.
+  "swift",
+];
+
+describe("pack-dispatch — real packs (PR 2 + PR 4 + PR 5 backfill)", () => {
+  // No env override — read the real skills/stack-forge/packs/ tree.
+  beforeEach(() => { delete process.env.OPCHAIN_PACKS_DIR; });
+
+  it("getLanguagePack returns every backfilled language pack", () => {
+    for (const id of REAL_LANGUAGE_PACKS) {
+      const pack = getLanguagePack(id);
+      expect(pack, `pack ${id}`).not.toBeNull();
+      expect(pack.id).toBe(id);
+      expect(pack.kind).toBe("language");
+      expect(pack.status).toBe("stable");
+    }
+  });
+
+  it("getLanguagePack returns the parsed pack regardless of kind (framework packs included)", () => {
+    // The helper is named for its dominant caller but is a generic
+    // "load pack by id". Framework packs come back with kind=framework
+    // and the language field set — callers that need a language shape
+    // check `pack.kind === "language"` themselves.
+    for (const [id, expectedLanguage] of [
+      ["phoenix", "elixir"], ["remix", "typescript"],
+      ["sveltekit", "typescript"], ["solid", "typescript"],
+      ["spring-java", "java"], ["dotnet-aspnet", "csharp"],
+      ["spring-kotlin", "kotlin"], ["laravel-php", "php"],
+      // PR 6 (ADEV-336) Apple/iOS framework.
+      ["swiftui", "swift"],
+    ]) {
+      const pack = getLanguagePack(id);
+      expect(pack, `pack ${id}`).not.toBeNull();
+      expect(pack.kind).toBe("framework");
+      expect(pack.language).toBe(expectedLanguage);
+    }
+  });
+
+  it("getLanguagePack returns null for a missing pack", () => {
+    expect(getLanguagePack("does-not-exist")).toBeNull();
+  });
+
+  it("getLanguagePack throws on invalid id pattern", () => {
+    expect(() => getLanguagePack("BAD-ID")).toThrow(/invalid pack id/);
+    expect(() => getLanguagePack("")).toThrow(/invalid pack id/);
+    expect(() => getLanguagePack("1bad")).toThrow(/invalid pack id/);
+  });
+
+  it("getDispatchTarget returns {defaultPlatform:null, supportedPlatforms:[]} for every language pack", () => {
+    // Language packs do not declare platforms — those land with the
+    // deploy-target packs in PR 7. deploy-ops should treat this as "fall
+    // back to the SKILL.md hardcoded matrix".
+    for (const id of REAL_LANGUAGE_PACKS) {
+      expect(getDispatchTarget(id), `pack ${id}`).toEqual({
+        defaultPlatform: null,
+        supportedPlatforms: [],
+      });
+    }
+  });
+
+  it("getDispatchTarget returns {defaultPlatform:null, supportedPlatforms:[]} for the PR 4 + PR 5 + PR 6 framework packs", () => {
+    // Framework packs ship without declared platforms. PR 7 introduces the
+    // hosting-adapter deploy-target packs (railway/netlify/heroku/aws-amplify)
+    // but intentionally does NOT cross-wire them onto existing packs — that
+    // lands in PR 8+. Until then framework packs stay no-ops for deploy-ops
+    // and the SKILL.md fallback matrix still applies. PR 6's `swiftui`
+    // rides along on the same convention; iOS apps dispatch through the
+    // `ios-swiftui` mobile pack instead.
+    for (const id of [
+      "phoenix", "remix", "sveltekit", "solid",
+      "spring-java", "dotnet-aspnet", "spring-kotlin", "laravel-php",
+      "swiftui",
+    ]) {
+      expect(getDispatchTarget(id), `pack ${id}`).toEqual({
+        defaultPlatform: null,
+        supportedPlatforms: [],
+      });
+    }
+  });
+
+  it("getDispatchTarget returns null for a missing pack", () => {
+    expect(getDispatchTarget("ghost")).toBeNull();
+  });
+});
+
+describe("pack-dispatch — real deploy-target packs (PR 6 + PR 7)", () => {
+  // No env override — read the real skills/stack-forge/packs/ tree.
+  beforeEach(() => { delete process.env.OPCHAIN_PACKS_DIR; });
+
+  const DEPLOY_TARGET_PACKS = [
+    { id: "railway",     displayName: "Railway" },
+    { id: "netlify",     displayName: "Netlify" },
+    { id: "heroku",      displayName: "Heroku" },
+    { id: "aws-amplify", displayName: "AWS Amplify" },
+    { id: "app-store",   displayName: "App Store" },
+  ];
+
+  it("getLanguagePack returns each deploy-target pack with kind=deploy-target", () => {
+    // The helper loads any pack by id (despite the name). Deploy-target
+    // packs come back with kind=deploy-target; callers that wanted a
+    // language shape should kind-check themselves.
+    for (const { id, displayName } of DEPLOY_TARGET_PACKS) {
+      const pack = getLanguagePack(id);
+      expect(pack, `pack ${id}`).not.toBeNull();
+      expect(pack.id).toBe(id);
+      expect(pack.kind).toBe("deploy-target");
+      expect(pack.status).toBe("stable");
+      expect(pack.since).toBe("1.4.0");
+      expect(pack.displayName).toBe(displayName);
+      expect(pack.deployRef).toBe("deploy.md");
+    }
+  });
+
+  it("getDispatchTarget returns empty platform info — deploy-targets ARE the platforms", () => {
+    // Deploy-target packs do not declare defaultPlatform /
+    // supportedPlatforms — they are the leaves of the dispatch graph.
+    // Cross-wiring (language/framework packs pointing AT these
+    // deploy-targets) is deferred to PR 8+.
+    for (const { id } of DEPLOY_TARGET_PACKS) {
+      expect(getDispatchTarget(id), `pack ${id}`).toEqual({
+        defaultPlatform: null,
+        supportedPlatforms: [],
+      });
+    }
+  });
+
+  it("dispatchMobile(<deploy-target>) returns kind:not-mobile with actualKind=deploy-target", () => {
+    // Locks in the contract: hosting adapters are not mobile platforms;
+    // dispatchMobile must signal that with the actualKind discriminator
+    // so callers fall back to the language/framework dispatch path.
+    expect(dispatchMobile("railway")).toEqual({
+      kind: "not-mobile",
+      actualKind: "deploy-target",
+    });
+  });
+});
+
+describe("pack-dispatch — real mobile pack (PR 6 ios-swiftui)", () => {
+  // No env override — read the real skills/stack-forge/packs/ tree. This is
+  // the first end-to-end exercise of dispatchMobile() against a production
+  // mobile pack; PR 3 only proved the shape on synthetic fixtures.
+  beforeEach(() => { delete process.env.OPCHAIN_PACKS_DIR; });
+
+  it("dispatchMobile(\"ios-swiftui\") returns the App Store release-checklist envelope", () => {
+    const out = dispatchMobile("ios-swiftui");
+    expect(out).not.toBeNull();
+    expect(out).toMatchObject({
+      kind: "mobile",
+      platform: "ios",
+      displayName: "iOS (SwiftUI)",
+      mobileRef: "mobile.md",
+    });
+    // The envelope's user-facing string MUST flag the checklist nature so
+    // stack-forge never tries to `xcrun altool` its way to production.
+    expect(out.releaseChecklist).toContain("App Store");
+    expect(out.releaseChecklist).toContain("checklist-driven, not automated");
+  });
+
+  it("ios-swiftui declares app-store as its default + only supported platform", () => {
+    // getDispatchTarget surfaces the deploy-target hint; PR 7's hosting
+    // adapters will extend this for other mobile packs. The iOS pack pins
+    // app-store as the only release channel.
+    expect(getDispatchTarget("ios-swiftui")).toEqual({
+      defaultPlatform: "app-store",
+      supportedPlatforms: ["app-store"],
+    });
+  });
+});
+
+describe("pack-dispatch — synthetic fixtures", () => {
+  let savedEnv;
+  beforeEach(() => { savedEnv = process.env.OPCHAIN_PACKS_DIR; });
+  afterEach(() => {
+    if (savedEnv === undefined) delete process.env.OPCHAIN_PACKS_DIR;
+    else process.env.OPCHAIN_PACKS_DIR = savedEnv;
+  });
+
+  it("getDispatchTarget surfaces declared defaultPlatform + supportedPlatforms", () => {
+    process.env.OPCHAIN_PACKS_DIR = makeFixture({
+      "fly-io": {
+        "pack.yml": packYml({
+          id: "fly-io", kind: "deploy-target", status: "stable", since: "1.4.0",
+        }),
+      },
+      render: {
+        "pack.yml": packYml({
+          id: "render", kind: "deploy-target", status: "stable", since: "1.4.0",
+        }),
+      },
+      django: {
+        "pack.yml": packYml({
+          id: "django", kind: "framework", status: "stable", since: "1.4.0",
+          language: "python",
+          defaultPlatform: "render",
+          supportedPlatforms: ["render", "fly-io"],
+        }),
+      },
+    });
+    expect(getDispatchTarget("django")).toEqual({
+      defaultPlatform: "render",
+      supportedPlatforms: ["render", "fly-io"],
+    });
+  });
+});
+
+describe("dispatchMobile", () => {
+  let savedEnv;
+  beforeEach(() => { savedEnv = process.env.OPCHAIN_PACKS_DIR; });
+  afterEach(() => {
+    if (savedEnv === undefined) delete process.env.OPCHAIN_PACKS_DIR;
+    else process.env.OPCHAIN_PACKS_DIR = savedEnv;
+  });
+
+  it("returns a checklist envelope for kind=mobile packs", () => {
+    process.env.OPCHAIN_PACKS_DIR = makeFixture({
+      "ios-swiftui": {
+        "pack.yml": packYml({
+          id: "ios-swiftui",
+          displayName: "iOS (SwiftUI)",
+          kind: "mobile", mobilePlatform: "ios",
+          status: "stable", since: "1.4.0",
+          mobileRef: "mobile.md",
+        }),
+        "mobile.md": "# iOS SwiftUI release checklist\n",
+      },
+    });
+    const out = dispatchMobile("ios-swiftui");
+    expect(out).toMatchObject({
+      kind: "mobile",
+      platform: "ios",
+      displayName: "iOS (SwiftUI)",
+      mobileRef: "mobile.md",
+    });
+    expect(out.releaseChecklist).toContain("checklist-driven, not automated");
+    expect(out.releaseChecklist).toContain("App Store");
+  });
+
+  it("returns kind:not-mobile for a non-mobile pack (caller should fall back)", () => {
+    process.env.OPCHAIN_PACKS_DIR = makeFixture({
+      python: {
+        "pack.yml": packYml({
+          id: "python", kind: "language", status: "stable",
+          since: "1.4.0", testRunner: "pytest",
+        }),
+      },
+    });
+    expect(dispatchMobile("python")).toEqual({ kind: "not-mobile", actualKind: "language" });
+  });
+
+  it("returns null for a missing pack", () => {
+    process.env.OPCHAIN_PACKS_DIR = makeFixture({});
+    expect(dispatchMobile("ghost")).toBeNull();
+  });
+
+  it("works for android / flutter / react-native platforms (PR 6.5 preview)", () => {
+    for (const platform of ["android", "flutter", "react-native"]) {
+      const dir = makeFixture({
+        [`m-${platform}`]: {
+          "pack.yml": packYml({
+            id: `m-${platform}`, kind: "mobile",
+            mobilePlatform: platform,
+            status: "experimental", since: "1.4.0",
+          }),
+        },
+      });
+      process.env.OPCHAIN_PACKS_DIR = dir;
+      const out = dispatchMobile(`m-${platform}`);
+      expect(out).toMatchObject({ kind: "mobile", platform });
+    }
+  });
+});
+
+// PR 6.5 (ADEV-343) lands the first real mobile packs in the registry.
+// Where the synthetic test above exercised the dispatcher with a
+// parametric loop over the three non-iOS platforms, this block locks in
+// the concrete (pack-id → envelope) shape using the actual on-disk
+// pack.yml + mobile.md content. PR 6's iOS pack is intentionally NOT
+// referenced here (parallel-PR isolation; merge-time rebase reconciles).
+const REAL_MOBILE_PACKS = [
+  { id: "kotlin-android",    displayName: "Android (Kotlin)",    platform: "android" },
+  { id: "flutter",           displayName: "Flutter",              platform: "flutter" },
+  { id: "react-native-expo", displayName: "React Native (Expo)",  platform: "react-native" },
+];
+
+describe("pack-dispatch — real mobile packs (PR 6.5 Android/Flutter/RN)", () => {
+  // No env override — read the real skills/stack-forge/packs/ tree.
+  beforeEach(() => { delete process.env.OPCHAIN_PACKS_DIR; });
+
+  for (const expected of REAL_MOBILE_PACKS) {
+    describe(expected.id, () => {
+      it("getLanguagePack returns kind=mobile with the expected mobilePlatform", () => {
+        const pack = getLanguagePack(expected.id);
+        expect(pack, `pack ${expected.id}`).not.toBeNull();
+        expect(pack.kind).toBe("mobile");
+        expect(pack.mobilePlatform).toBe(expected.platform);
+        expect(pack.status).toBe("stable");
+      });
+
+      it("getDispatchTarget surfaces play-store as the default + sole supported platform", () => {
+        // The cross-platform packs (flutter, react-native-expo) will gain
+        // app-store in a follow-up PR; for now play-store is the only
+        // supportedPlatforms entry the registry can advertise.
+        expect(getDispatchTarget(expected.id)).toEqual({
+          defaultPlatform: "play-store",
+          supportedPlatforms: ["play-store"],
+        });
+      });
+
+      it("dispatchMobile returns the checklist envelope with the expected platform", () => {
+        const out = dispatchMobile(expected.id);
+        expect(out).toMatchObject({
+          kind: "mobile",
+          platform: expected.platform,
+          displayName: expected.displayName,
+          mobileRef: "mobile.md",
+        });
+        // The release-checklist string is the user-facing envelope —
+        // stack-forge's SKILL.md renders it verbatim so the agent does
+        // not accidentally try to run a deploy command.
+        expect(out.releaseChecklist).toContain("checklist-driven, not automated");
+        expect(out.releaseChecklist).toContain(expected.platform);
+        expect(out.releaseChecklist).toContain("mobile.md");
+      });
+    });
+  }
+});
