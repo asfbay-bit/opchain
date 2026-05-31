@@ -10,6 +10,7 @@ import CaptureModal from "../../components/CaptureModal.astro";
 import { getAllSkills, getSkill, getSkillRole, getSkillUpdatedAt, type Role } from "../../lib/skills";
 import { defaultFor } from "../../lib/flags/build-defaults";
 import { isCapabilityEnabled, isCommandEnabled } from "../../lib/flags/build-defaults";
+import packsCatalog from "../../../../src/generated/packs-catalog.json";
 
 export async function getStaticPaths() {
   const skills = await getAllSkills();
@@ -56,6 +57,9 @@ const updatedLabel = updatedIso
       day: "numeric",
     })
   : null;
+
+const isStackForge = skill.data.name === "stack-forge";
+const packCount = isStackForge ? (packsCatalog as unknown[]).length : 0;
 
 const triAgentEnabled = isCapabilityEnabled("tri-agent");
 const checkpointProtocolEnabled = isCapabilityEnabled("checkpoint-protocol");
@@ -176,6 +180,12 @@ const consumers = isFoundational
           </div>
         )}
         <div class="related-row">
+          {isStackForge && (
+            <a class="related-link" href="/coverage">
+              <Icon name="puzzle" size={12} />
+              browse {packCount} packs on /coverage
+            </a>
+          )}
           {demoEnabled && (
             <a class="related-link" href={`/demo?skill=${skill.data.name}#workbench`}>
               <Icon name="sparkles" size={12} />
