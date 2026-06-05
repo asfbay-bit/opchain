@@ -1,0 +1,42 @@
+{
+  "protocol_version": "1.0",
+  "skill": "oc-bug-check",
+  "project": "opchain.dev",
+  "project_dir": "/home/user/opchain",
+  "created_at": "2026-06-05T22:01:00Z",
+  "updated_at": "2026-06-05T22:01:00Z",
+  "phase": "gate",
+  "step": "mcp-server-foundation",
+  "status": "complete",
+  "progress_summary": "Pre-commit gate for the opchain MCP server (v1.6 Codex port, first increment). Changed surface: src/lib/mcp/{server,routing}.js, scripts/gen-mcp-catalog.mjs + src/generated/mcp-catalog.json, the POST /mcp Worker route + site.ops.api-mcp.kill flag, mcp/local-server.mjs + mcp/README.md, and tests/mcp-{server,route}.test.js. Verdict PASS — vitest 345/345 (incl. 32 new MCP tests), worker esbuild bundle clean with the new JSON import, anti-pattern + secret scans clean, npm audit 0 vulnerabilities. Type-check + lint are N/A for the plain-JS Worker (no root tsconfig/eslint — the site uses astro check separately).",
+  "blockers": [],
+  "next_actions": [
+    "Continue the v1.6 port: install-page Codex/MCP flow + platform-neutral site copy.",
+    "Hold the lockstep version bump + changelog entry until v1.5 ships (this lands as v1.6)."
+  ],
+  "skill_state": {
+    "last_run": {
+      "at": "2026-06-05T22:01:00Z",
+      "verdict": "PASS",
+      "scope": "changed",
+      "checks": {
+        "type_safety": "N/A",
+        "lint": "N/A",
+        "tests": "PASS",
+        "anti_patterns": "PASS",
+        "secrets": "PASS",
+        "build": "PASS",
+        "dependencies": "PASS"
+      },
+      "tests": "345 passed (25 files)",
+      "warnings": 0,
+      "errors": 0
+    },
+    "run_history": [
+      { "at": "2026-06-05T22:01:00Z", "verdict": "PASS", "warnings": 0 }
+    ],
+    "bypasses": [],
+    "carried_debt": 0,
+    "streak": { "passes": 1, "since": "2026-06-05T22:01:00Z" }
+  }
+}
