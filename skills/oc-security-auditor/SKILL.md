@@ -1,20 +1,20 @@
 ---
 name: oc-security-auditor
-displayName: Security Auditor
+displayName: OC · Security Auditor
 version: 1.3.0
 shortDesc: Threat modeling, OWASP hardening, attack-surface review. v1.2 files CRITICAL findings as PM incident tickets.
 phases: [build]
 triAgent: false
 tryable: false
 commands:
-  - /security
-  - /secaudit
-  - /sec
-  - /threat-model
-  - /owasp
-  - /hardening
-  - /attack-surface
-  - /posture
+  - /oc-security
+  - /oc-secaudit
+  - /oc-sec
+  - /oc-threat-model
+  - /oc-owasp
+  - /oc-hardening
+  - /oc-attack-surface
+  - /oc-posture
 description: >
   Practice-level security posture assessment: threat modeling (STRIDE), OWASP Top 10
   compliance mapping, runtime/infra hardening (CSP, TLS, DNS, WAF, Cloudflare config),

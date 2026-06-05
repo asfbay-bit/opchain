@@ -1,14 +1,14 @@
 ---
 name: oc-code-auditor
-displayName: Code Auditor
+displayName: OC · Code Auditor
 version: 1.3.0
 shortDesc: Auditor → Fixer → Verifier quality loop. v1.2 posts findings to the linked PM ticket; HIGH+ filed as sub-tickets.
 phases: [build]
 triAgent: true
 tryable: true
 commands:
-  - /audit
-  - /audit full
+  - /oc-audit
+  - /oc-audit full
 description: >
   Code quality auditor with Auditor/Fixer/Verifier loop. Use for /audit, "audit this",
   "find bugs", "security audit", "code review", "pre-deploy check", "what's wrong with

@@ -1,14 +1,14 @@
 ---
 name: oc-scale-ops
-displayName: Scale Ops
+displayName: OC · Scale Ops
 version: 1.3.0
 shortDesc: Load, caching, capacity planning. v1.2 posts load-test reports to the PM ticket; HIGH risks as sub-tickets.
 phases: [plan]
 triAgent: false
 tryable: true
 commands:
-  - /scale
-  - /scale audit
+  - /oc-scale
+  - /oc-scale audit
 description: >
   Scaling readiness: load test, perf budgets, caching, capacity planning. Use for
   /scale, "load test", "can this handle more users", "performance", "caching strategy",

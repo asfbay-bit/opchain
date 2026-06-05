@@ -1,31 +1,31 @@
 ---
 name: oc-monitoring-ops
-displayName: Monitoring Ops
+displayName: OC · Monitoring Ops
 version: 1.3.0
 shortDesc: Post-deploy observability — uptime, errors, alerts, incidents. v1.2 opens PM incident tickets when alerts fire.
 phases: [build]
 triAgent: false
 tryable: true
 commands:
-  - /monitor
-  - /monitor setup
-  - /monitor stack
-  - /monitor instrument
-  - /monitor health
-  - /monitor errors
-  - /monitor uptime
-  - /monitor metrics
-  - /monitor alerts
-  - /monitor oncall
-  - /monitor slo
-  - /monitor incident
-  - /monitor runbook
-  - /monitor postmortem
-  - /monitor dashboard
-  - /monitor report
-  - /monitor audit
-  - /monitor compare
-  - /monitor status
+  - /oc-monitor
+  - /oc-monitor setup
+  - /oc-monitor stack
+  - /oc-monitor instrument
+  - /oc-monitor health
+  - /oc-monitor errors
+  - /oc-monitor uptime
+  - /oc-monitor metrics
+  - /oc-monitor alerts
+  - /oc-monitor oncall
+  - /oc-monitor slo
+  - /oc-monitor incident
+  - /oc-monitor runbook
+  - /oc-monitor postmortem
+  - /oc-monitor dashboard
+  - /oc-monitor report
+  - /oc-monitor audit
+  - /oc-monitor compare
+  - /oc-monitor status
 description: >
   Post-deployment observability: uptime monitoring, error tracking, structured logging,
   alerting pipelines, and incident response runbooks. Sits after deploy-ops in the

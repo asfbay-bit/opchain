@@ -1,6 +1,6 @@
 ---
 name: oc-checkpoint-protocol
-displayName: Checkpoint Protocol
+displayName: OC · Checkpoint Protocol
 version: 1.3.0
 shortDesc: Session persistence across skills. v1.2 adds a `pm_refs` schema field so checkpoints carry linked PM ticket ids.
 phases: [foundation]

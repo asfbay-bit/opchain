@@ -1,22 +1,22 @@
 ---
 name: oc-api-dev
-displayName: API Developer
+displayName: OC · API Developer
 version: 1.4.0
 shortDesc: First-party API design, OpenAPI, versioning, SDKs. v1.2 files breaking-change + deprecation tickets; drift on PR.
 phases: [plan, build]
 triAgent: true
 tryable: true
 commands:
-  - /api
-  - /api design
-  - /api spec
-  - /api scaffold
-  - /api lint
-  - /api test
-  - /api version
-  - /api deprecate
-  - /api sdk
-  - /api docs
+  - /oc-api
+  - /oc-api design
+  - /oc-api spec
+  - /oc-api scaffold
+  - /oc-api lint
+  - /oc-api test
+  - /oc-api version
+  - /oc-api deprecate
+  - /oc-api sdk
+  - /oc-api docs
 description: >
   First-party API design and build harness with Designer/Builder/Conformance loop.
   Owns OpenAPI/GraphQL authoring, schema↔code parity, versioning + sunset strategy,

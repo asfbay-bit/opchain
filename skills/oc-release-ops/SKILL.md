@@ -1,18 +1,18 @@
 ---
 name: oc-release-ops
-displayName: Release Ops
+displayName: OC · Release Ops
 version: 1.3.0
 shortDesc: Plan, draft, bump, announce, ship a release. Closes the loop from sprint outputs to /changelog to git-ops to deploy-ops.
 phases: [build]
 triAgent: false
 tryable: true
 commands:
-  - /release
-  - /release plan
-  - /release draft
-  - /release bump
-  - /release announce
-  - /release ship
+  - /oc-release
+  - /oc-release plan
+  - /oc-release draft
+  - /oc-release bump
+  - /oc-release announce
+  - /oc-release ship
 description: >
   Release-cadence operator. Plan, draft, bump, announce, and ship versioned
   releases of opchain (or any opchain-managed project). Reads sprint

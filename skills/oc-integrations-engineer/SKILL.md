@@ -1,14 +1,14 @@
 ---
 name: oc-integrations-engineer
-displayName: Integrations Engineer
+displayName: OC · Integrations Engineer
 version: 1.3.0
 shortDesc: Third-party APIs, OAuth, webhooks. v1.2 adds PM-tool MCP integration patterns (Linear / Jira / GitHub Issues).
 phases: [build]
 triAgent: true
 tryable: true
 commands:
-  - /integrate
-  - /integrate plan
+  - /oc-integrate
+  - /oc-integrate plan
 description: >
   Third-party API integrations with Planner/Builder/Tester loop. Use for /integrate,
   "connect to Salesforce", "webhook", "OAuth", "API integration", "connect to Slack",

@@ -1,20 +1,20 @@
 ---
 name: oc-app-architect
-displayName: App Architect
+displayName: OC · App Architect
 version: 1.4.0
 shortDesc: Idea → spec → design → build → launch in one skill. v1.2 reads PM tickets and writes sprints back via PM-MCP.
 phases: [plan, build]
 triAgent: true
 tryable: true
 commands:
-  - /app
-  - /discover
-  - /spec
-  - /design
-  - /roadmap
-  - /scaffold
-  - /build
-  - /launch
+  - /oc-app
+  - /oc-discover
+  - /oc-spec
+  - /oc-design
+  - /oc-roadmap
+  - /oc-scaffold
+  - /oc-build
+  - /oc-launch
 description: >
   Unified app development: idea → spec → design → build with Generator/Evaluator
   QA loop → launch. Use for /app, /discover, /spec, /design, /build, /launch,

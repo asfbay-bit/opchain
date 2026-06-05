@@ -1,23 +1,23 @@
 ---
 name: oc-dash-forge
-displayName: Dash Forge
+displayName: OC · Dash Forge
 version: 1.3.0
 shortDesc: Dashboards, BI, dense data — design spec + React prototype. v1.2 attaches the handoff bundle to the linked PM ticket.
 phases: [plan]
 triAgent: false
 tryable: true
 commands:
-  - /data-forge
-  - /dash-forge
-  - /df-intake
-  - /df-archetype
-  - /df-layout
-  - /df-tokens
-  - /df-prototype
-  - /df-spec-only
-  - /df-full
-  - /df-audit
-  - /df-variants
+  - /oc-data-forge
+  - /oc-dash-forge
+  - /oc-df-intake
+  - /oc-df-archetype
+  - /oc-df-layout
+  - /oc-df-tokens
+  - /oc-df-prototype
+  - /oc-df-spec-only
+  - /oc-df-full
+  - /oc-df-audit
+  - /oc-df-variants
 description: >
   Specialized dashboard and dense-information UI designer. Produces design specs AND
   working React prototypes with mock data for three archetypes: executive (KPI-driven,

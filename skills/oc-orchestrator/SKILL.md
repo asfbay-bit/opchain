@@ -1,23 +1,23 @@
 ---
 name: oc-orchestrator
-displayName: Orchestrator
+displayName: OC · Orchestrator
 version: 1.3.0
 shortDesc: Pipeline coordinator — registry, status, routing. v1.2 reads `pm_refs` across skills; routes by ticket id.
 phases: [foundation]
 triAgent: false
 tryable: true
 commands:
-  - /ops
-  - /ops status
-  - /ops next
-  - /ops route
-  - /ops projects
-  - /ops register
-  - /ops scan
-  - /ops switch
-  - /ops pipeline
-  - /ops blockers
-  - /ops recent
+  - /oc-ops
+  - /oc-ops status
+  - /oc-ops next
+  - /oc-ops route
+  - /oc-ops projects
+  - /oc-ops register
+  - /oc-ops scan
+  - /oc-ops switch
+  - /oc-ops pipeline
+  - /oc-ops blockers
+  - /oc-ops recent
 description: >
   Pipeline coordinator for the opchain dev ecosystem. Multi-project registry, cross-skill
   status, smart routing, and "what should I do next?" recommendations. Use for /ops,

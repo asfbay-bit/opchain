@@ -1,15 +1,15 @@
 ---
 name: oc-deploy-ops
-displayName: Deploy Ops
+displayName: OC · Deploy Ops
 version: 1.4.0
 shortDesc: Audit gate → staging → production → monitor. v1.2 creates deploy tickets and updates linked PM tickets per env.
 phases: [build]
 triAgent: false
 tryable: true
 commands:
-  - /deploy
-  - /deploy staging
-  - /deploy audit
+  - /oc-deploy
+  - /oc-deploy staging
+  - /oc-deploy audit
 description: >
   Deployment pipeline: audit gate → staging → production → monitoring. Use for
   /deploy, "deploy this", "ship it", "push to production", "staging", "rollback",

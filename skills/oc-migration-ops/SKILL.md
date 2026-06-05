@@ -1,26 +1,26 @@
 ---
 name: oc-migration-ops
-displayName: Migration Ops
+displayName: OC · Migration Ops
 version: 1.4.0
 shortDesc: Change the engine mid-flight — DB, framework, auth, platform. v1.2 mirrors the plan as parent + step children.
 phases: [plan, build]
 triAgent: false
 tryable: true
 commands:
-  - /migrate
-  - /migrate assess
-  - /migrate plan
-  - /migrate impact
-  - /migrate execute
-  - /migrate step
-  - /migrate verify
-  - /migrate rollback
-  - /migrate status
-  - /migrate diff
-  - /migrate history
-  - /migrate dry-run
-  - /migrate ecosystem
-  - /migrate abandon
+  - /oc-migrate
+  - /oc-migrate assess
+  - /oc-migrate plan
+  - /oc-migrate impact
+  - /oc-migrate execute
+  - /oc-migrate step
+  - /oc-migrate verify
+  - /oc-migrate rollback
+  - /oc-migrate status
+  - /oc-migrate diff
+  - /oc-migrate history
+  - /oc-migrate dry-run
+  - /oc-migrate ecosystem
+  - /oc-migrate abandon
 description: >
   Migration and refactor operator for live systems. Handles database migrations (D1 →
   Postgres, schema overhauls), framework upgrades (Hono v3→v4, React 18→19), auth

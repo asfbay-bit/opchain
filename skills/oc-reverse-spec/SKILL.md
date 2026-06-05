@@ -1,18 +1,18 @@
 ---
 name: oc-reverse-spec
-displayName: Reverse Spec
+displayName: OC · Reverse Spec
 version: 1.3.0
 shortDesc: Turn existing code into pipeline-ready specs. v1.2 mirrors discovered scope to the PM tool as parent + children.
 phases: [plan]
 triAgent: false
 tryable: true
 commands:
-  - /reverse-spec
-  - /rev-scan
-  - /rev-full
-  - /rev-design
-  - /rev-stack
-  - /rev-sprint
+  - /oc-reverse-spec
+  - /oc-rev-scan
+  - /oc-rev-full
+  - /oc-rev-design
+  - /oc-rev-stack
+  - /oc-rev-sprint
 description: >
   Reverse-engineer existing code into spec docs. Use for /rev-spec, /reverse-spec,
   "document this codebase", "generate specs from code", "backfill specs", or when

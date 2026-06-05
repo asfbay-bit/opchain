@@ -1,15 +1,15 @@
 ---
 name: oc-stack-forge
-displayName: Stack Forge
+displayName: OC · Stack Forge
 version: 1.4.0
 shortDesc: Stack decisions, Cloudflare patterns, typed pipeline. v1.2 records the chosen stack on the linked PM ticket as an ADR.
 phases: [plan, build]
 triAgent: false
 tryable: true
 commands:
-  - /stack
-  - /stack-decide
-  - /feature
+  - /oc-stack
+  - /oc-stack-decide
+  - /oc-feature
 description: >
   Stack advisor for any platform: Cloudflare, Vercel, AWS, Supabase, Rails, Django.
   Use for /stack, /stack-decide, /feature, "what stack", "tech stack", "what should I

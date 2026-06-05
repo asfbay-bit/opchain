@@ -1,19 +1,19 @@
 ---
 name: oc-bug-check
-displayName: Bug Check
+displayName: OC · Bug Check
 version: 1.3.0
 shortDesc: Pre-commit QA gate — fast checks on every commit. v1.2 attaches the failure report to the linked PM ticket on block.
 phases: [build]
 triAgent: false
 tryable: true
 commands:
-  - /bugcheck
-  - /bugcheck run
-  - /bugcheck fix
-  - /bugcheck config
-  - /bugcheck report
-  - /bugcheck history
-  - /bugcheck bypass
+  - /oc-bugcheck
+  - /oc-bugcheck run
+  - /oc-bugcheck fix
+  - /oc-bugcheck config
+  - /oc-bugcheck report
+  - /oc-bugcheck history
+  - /oc-bugcheck bypass
 description: >
   Pre-commit QA gate that runs on every commit. Fast, opinionated checks: type
   safety, lint, tests, anti-pattern scan, secret detection, build verification,
