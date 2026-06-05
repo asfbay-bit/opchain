@@ -227,7 +227,7 @@ The threat model is "closed" for this iteration when:
 - All 8 findings have evidence in §8 captured.
 - Allowlist + broker + redactor + audit pipeline are live in pre-prod, with synthetic drills passing.
 - Privacy Officer signs the Wave 0 readiness attestation.
-- Re-run of \`/secaudit\` against the live system reports the 3 CRITICAL findings as GREEN (the rest as PASS or accepted residual).
+- Re-run of \`/oc-secaudit\` against the live system reports the 3 CRITICAL findings as GREEN (the rest as PASS or accepted residual).
 
 Checkpoint: \`.checkpoints/oc-security-auditor.checkpoint.json\`.`,
     },

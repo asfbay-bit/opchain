@@ -287,7 +287,7 @@ Checkpoint: \`.checkpoints/oc-monitoring-ops.checkpoint.json\`.`,
       label: "oc-orchestrator status (all projects)",
       kind: "status.md",
       body:
-`# \`/ops status\` — mid-migration snapshot
+`# \`/oc-ops status\` — mid-migration snapshot
 
 \`\`\`
 OPCHAIN STATUS — All Projects
@@ -305,7 +305,7 @@ OPCHAIN STATUS — All Projects
 ▶ gtrackr
   ✅ oc-app-architect     complete     Sprint 4/4 passed evaluator
   ⏳ oc-deploy-ops        not started  Blocked on staging QA
-  → Next: /deploy staging once QA signs off
+  → Next: /oc-deploy staging once QA signs off
 
 ▶ heads-down
   ✅ all skills        complete     v1 shipped last week
@@ -316,9 +316,9 @@ OPCHAIN STATUS — All Projects
   3 projects | 1 active pipeline | 0 blockers
 \`\`\`
 
-## 1. What \`/ops status\` is for
+## 1. What \`/oc-ops status\` is for
 
-Mid-migration, the user has checkpoints from four different skills active on the same project, plus other projects in different states. \`/ops\` reads all of them from \`.checkpoints/\` without the user having to invoke each skill in turn.
+Mid-migration, the user has checkpoints from four different skills active on the same project, plus other projects in different states. \`/oc-ops\` reads all of them from \`.checkpoints/\` without the user having to invoke each skill in turn.
 
 This artifact is a snapshot of oc-orchestrator output during a Wednesday afternoon, mid-cutover.
 
@@ -361,11 +361,11 @@ The oc-orchestrator does not prescribe priorities across projects (that's a huma
 
 ## 5. Filters + drill-down
 
-- \`/ops status --project taskflow\` — single project, more detail.
-- \`/ops status --since 24h\` — only show skills updated in the last 24 h.
-- \`/ops status --blockers\` — only show projects with blockers.
-- \`/ops history\` — timeline view of the last 30 days of skill activity.
-- \`/ops next\` — directly recommend the next action without showing the full status.
+- \`/oc-ops status --project taskflow\` — single project, more detail.
+- \`/oc-ops status --since 24h\` — only show skills updated in the last 24 h.
+- \`/oc-ops status --blockers\` — only show projects with blockers.
+- \`/oc-ops history\` — timeline view of the last 30 days of skill activity.
+- \`/oc-ops next\` — directly recommend the next action without showing the full status.
 
 ## 6. Why the oc-orchestrator never writes
 
@@ -402,7 +402,7 @@ How do we not break this?`
     {
       type: "exchange", role: "claude", skill: "oc-migration-ops",
       content:
-`Invoking **oc-migration-ops** in \`/migrate assess\` mode.
+`Invoking **oc-migration-ops** in \`/oc-migrate assess\` mode.
 
 Before writing a plan, I need four facts:
 
@@ -504,7 +504,7 @@ Zero discrepancies across ~350K shadow reads. Latency drift is well under the 15
 
     {
       type: "exchange", role: "user",
-      content: "/ops status"
+      content: "/oc-ops status"
     },
     {
       type: "exchange", role: "claude", skill: "oc-orchestrator",
@@ -525,7 +525,7 @@ Zero discrepancies across ~350K shadow reads. Latency drift is well under the 15
   ⏳ oc-deploy-ops        not started  blocked on QA
 \`\`\`
 
-**/ops next →** advance taskflow to Phase 5 (write cutover). The 48-hour dual-read shadow window closes at 15:00 — oc-migration-ops is holding for that before flipping writes.
+**/oc-ops next →** advance taskflow to Phase 5 (write cutover). The 48-hour dual-read shadow window closes at 15:00 — oc-migration-ops is holding for that before flipping writes.
 
 \`gtrackr\` has a longer-running blocker (QA) but no gate action from opchain until they sign off.`,
       artifacts: ["ops-status"],

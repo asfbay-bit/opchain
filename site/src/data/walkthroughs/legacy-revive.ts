@@ -156,7 +156,7 @@ Shipper ──▶ Load ──▶ Bid ◀── Carrier
 | BrokerSettingsController | settings/* | wraps Setting singleton. |
 | ApiTokensController | resources | for Carrier API access. |
 | WebhooksController | resources | outbound webhook configuration. |
-| AuditLogController | GET /audit | search via Ransack. |
+| AuditLogController | GET /oc-audit | search via Ransack. |
 | NotificationsController | index, mark_read | |
 | FuelSurchargesController | index, current | |
 | ReportsController | various | mostly Ransack-backed CSV exports. |
@@ -583,7 +583,7 @@ Checkpoint: \`.checkpoints/oc-app-architect.checkpoint.json\` Phase 2 branch.`,
       body:
 `# Audit Report — Carrier Scorecard
 
-**Scope** 612 lines, 14 files, 2 migrations · **Runner** \`/audit full\` + money-flow supplementary pass · **Gate** required before PR merge · **Auditor version** 1.2.0 · **Run at** 2026-04-18T10:42:13Z
+**Scope** 612 lines, 14 files, 2 migrations · **Runner** \`/oc-audit full\` + money-flow supplementary pass · **Gate** required before PR merge · **Auditor version** 1.2.0 · **Run at** 2026-04-18T10:42:13Z
 
 ## 1. Files inspected
 
@@ -718,7 +718,7 @@ Writing \`.checkpoints/oc-code-auditor.checkpoint.json\` with the explicit Settl
 ## 11. Auditor sign-off
 
 - **Auditor:** oc-code-auditor v1.2.0
-- **Mode:** \`/audit full\` + money-flow supplementary pass (Settlement clean-diff verification)
+- **Mode:** \`/oc-audit full\` + money-flow supplementary pass (Settlement clean-diff verification)
 - **Run-time:** 4 m 12 s end-to-end (RuboCop + Brakeman + RSpec + EXPLAIN benchmarks + grep gates).
 - **Gate verdict:** PASS — oc-git-ops may open PR.
 - **Re-audit recommended:** before any future change touches the materialized view definition or adds a join from the picker to the Settlement table.`,
@@ -780,7 +780,7 @@ Six months from now, if settlements break, the first question will be "what chan
 
 ## 3. What the verifier actually does
 
-The clean-diff verifier is a deterministic script (\`bin/audit/settlement-clean-diff.rb\`) that runs as part of \`/audit full\` on any diff:
+The clean-diff verifier is a deterministic script (\`bin/audit/settlement-clean-diff.rb\`) that runs as part of \`/oc-audit full\` on any diff:
 
 1. **\`git diff --name-only HEAD\`** intersected with the in-scope file list — must be empty.
 2. **Static grep** across the entire diff for the pattern list above. Each match is a hard fail.
@@ -794,7 +794,7 @@ A failure on any of these short-circuits the gate; the PR cannot be opened.
 
 ## 4. Where the stamp lives
 
-The stamp is one entry in \`.checkpoints/oc-code-auditor.checkpoint.json\` under \`skill_state.supplementary_pass_stamps\`. The full checkpoint also stores the \`/audit full\` results, so a successor team can reconstruct the audit history without re-running.
+The stamp is one entry in \`.checkpoints/oc-code-auditor.checkpoint.json\` under \`skill_state.supplementary_pass_stamps\`. The full checkpoint also stores the \`/oc-audit full\` results, so a successor team can reconstruct the audit history without re-running.
 
 \`\`\`
 .checkpoints/
@@ -834,7 +834,7 @@ This is documented as a TODO; not blocking for v1.
 | Field | Value |
 |---|---|
 | Stamp produced by | oc-code-auditor v1.2.0 |
-| Run mode | \`/audit full\` + money-flow supplementary pass |
+| Run mode | \`/oc-audit full\` + money-flow supplementary pass |
 | Commit verified | \`a4f91e2\` |
 | Run duration | 4 m 12 s |
 | Gate verdict | PASS |
@@ -907,7 +907,7 @@ Writing \`.checkpoints/oc-reverse-spec.checkpoint.json\` — 142-page reconstruc
     {
       type: "exchange", role: "claude", skill: "oc-app-architect",
       content:
-`Invoked by oc-reverse-spec with the 142-page baseline. Since the app already exists, I skip \`/discover\` and go straight to \`/spec\` for the new feature, treating the baseline as Phase-1 output.
+`Invoked by oc-reverse-spec with the 142-page baseline. Since the app already exists, I skip \`/oc-discover\` and go straight to \`/oc-spec\` for the new feature, treating the baseline as Phase-1 output.
 
 **Feature — Carrier scorecard:**
 
@@ -971,7 +971,7 @@ Invoking **oc-code-auditor** for the gate before PR.`
     {
       type: "exchange", role: "claude", skill: "oc-code-auditor",
       content:
-`Running \`/audit full\` on the diff — 612 lines across 14 files.
+`Running \`/oc-audit full\` on the diff — 612 lines across 14 files.
 
 \`\`\`
  security       ✓ no new user input surfaces; no SQL-interpolation paths

@@ -91,7 +91,7 @@ const PLATFORMS: Record<string, Platform> = {
       "lockin":     { v: "None — every skill is one Markdown file", note: "Fork, edit, fork again" },
       "runs-on":    { v: "Claude Code · Claude.ai · Claude Desktop" },
       "extend":     { v: "Write a SKILL.md, drop it in .claude/skills/", note: "oc-reverse-spec backfills one from existing code" },
-      "multi-proj": { v: "/ops command shows every project's last checkpoint", note: "Cross-repo dashboard built in" },
+      "multi-proj": { v: "/oc-ops command shows every project's last checkpoint", note: "Cross-repo dashboard built in" },
     },
   },
   claude: {
@@ -407,7 +407,7 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
     <section class="cta">
       <p>
         Want to test the claims above? <a href="/install">Install opchain</a>,
-        run <code>/discover</code>, and watch the orchestrator route
+        run <code>/oc-discover</code>, and watch the orchestrator route
         through five skills before lunch.
       </p>
     </section>

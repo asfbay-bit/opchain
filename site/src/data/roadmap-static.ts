@@ -36,7 +36,7 @@ export const staticRoadmap: Roadmap = {
         id: "OPC-150",
         title: "v1.5 — Build the AI app",
         blurb:
-          "Four new AI-native skills (claude-api, rag-forge, agent-forge, prompt-ops), vector-DB packs, and an AI-app branch in /discover. Built and lockstep-bumped to 1.5.0 (22 skills) — shipping next, not yet live.",
+          "Four new AI-native skills (claude-api, rag-forge, agent-forge, prompt-ops), vector-DB packs, and an AI-app branch in /oc-discover. Built and lockstep-bumped to 1.5.0 (22 skills) — shipping next, not yet live.",
         url: "/changelog#v1-5",
         bucket: "in-progress",
         milestone: "v1.5",

@@ -17,7 +17,7 @@ export const pmPipelineLinear: Walkthrough = {
   summary:
     "v1.2 hero scenario: oc-app-architect reads PLAT-4471 from Linear, drafts a sprint, oc-git-ops links the PR back to the ticket, oc-deploy-ops auto-creates a deploy ticket, oc-monitoring-ops opens an incident ticket the next morning when an alert fires.",
   description:
-    "OnRamp is a Series B SaaS startup with ~30 engineers; their PM tool is Linear. A backend engineer named Sam picks up PLAT-4471 (\"Add CSV export to /api/customers\") and rides the v1.2 PM-MCP pipeline from ticket → ship → first incident. The v1.2 release wires the opchain skills into the PM-tool MCPs Anthropic ships with Claude Code: oc-app-architect /discover and /roadmap consume tickets and write sprints back; oc-git-ops shapes branch + commit + PR from the ticket; oc-deploy-ops creates deploy tickets per environment; oc-monitoring-ops opens incident tickets when alerts fire. Linear is the named tool here; the same flow runs against Jira (Atlassian MCP) or GitHub Issues with a one-line config change. The artifact set is a complete Linear timeline that traces a single piece of work from \"someone filed a ticket\" to \"prod is healthy after a tiny incident.\"",
+    "OnRamp is a Series B SaaS startup with ~30 engineers; their PM tool is Linear. A backend engineer named Sam picks up PLAT-4471 (\"Add CSV export to /api/customers\") and rides the v1.2 PM-MCP pipeline from ticket → ship → first incident. The v1.2 release wires the opchain skills into the PM-tool MCPs Anthropic ships with Claude Code: oc-app-architect /oc-discover and /oc-roadmap consume tickets and write sprints back; oc-git-ops shapes branch + commit + PR from the ticket; oc-deploy-ops creates deploy tickets per environment; oc-monitoring-ops opens incident tickets when alerts fire. Linear is the named tool here; the same flow runs against Jira (Atlassian MCP) or GitHub Issues with a one-line config change. The artifact set is a complete Linear timeline that traces a single piece of work from \"someone filed a ticket\" to \"prod is healthy after a tiny incident.\"",
   inputs: [
     "Series B SaaS · ~30 engineers · existing repo · Linear as system-of-record",
     "Linear ticket PLAT-4471 · \"Add CSV export to /api/customers\" · estimate: 2",
@@ -67,7 +67,7 @@ remediation_owners:
   infra:    vee@onramp.dev
 
 # v1.2 behaviour toggles
-create_child_tickets: true        # oc-app-architect /roadmap creates one child per sprint
+create_child_tickets: true        # oc-app-architect /oc-roadmap creates one child per sprint
 cycle_aware: true                 # match tickets to current Linear cycle for sprint capacity check
 comment_dedupe_window: 7d         # how far back the marker lookup considers a comment "recent"
 pr_template: ".github/pull_request_template.md"
@@ -136,7 +136,7 @@ worktree_naming: "feat/{ticket-id}-{slug}"   # e.g. feat/PLAT-4471-add-csv-expor
 
 **URL:** https://linear.app/onramp/issue/PLAT-4471
 **Project:** Platform · **Cycle:** 2026-W19 · **Type:** Feature · **State:** Todo · **Priority:** Medium (P3) · **Estimate:** 2 · **Reporter:** ana@onramp.dev · **Assignee:** sam@onramp.dev · **Labels:** customer-success, exports, opchain, agent-driven
-**Watchers:** ana@onramp.dev, lily@onramp.dev (CS Lead) · **Sub-issues:** 0 · **Linked PRs:** 0 (will fill on /git-sync)
+**Watchers:** ana@onramp.dev, lily@onramp.dev (CS Lead) · **Sub-issues:** 0 · **Linked PRs:** 0 (will fill on /oc-git-sync)
 **Created:** 2026-05-01T16:42:11Z · **Updated:** 2026-05-04T09:08:04Z · **Due:** 2026-05-08 (CS team requested before EoW)
 
 ## Description
@@ -197,7 +197,7 @@ customer-list (PLAT-4472 owns the button itself).
 
 - [ ] All acceptance criteria checked.
 - [ ] Unit tests + integration test against \`big-tenant\` seeded fixture.
-- [ ] oc-code-auditor /audit pre-deploy returns Grade A or better.
+- [ ] oc-code-auditor /oc-audit pre-deploy returns Grade A or better.
 - [ ] oc-bug-check pre-commit PASS.
 - [ ] Manual smoke against staging with a real CS user (lily@) confirming
       the file opens cleanly in Sheets AND in Excel-on-Windows.
@@ -432,7 +432,7 @@ If you're short on time:
 
 ## Audit gate
 
-- [x] **oc-code-auditor /audit pre-deploy:** Grade A. 0 blocking findings;
+- [x] **oc-code-auditor /oc-audit pre-deploy:** Grade A. 0 blocking findings;
       1 advisory ("csv.ts could be ~30 LOC shorter using a generator;
       not blocking"). Full output in PLAT-4471 comments.
 - [x] **oc-bug-check pre-commit:** PASS (1.4s). Type, lint, build,
@@ -512,7 +512,7 @@ No runtime dependency changes.
 ## Audit gate output (verbatim)
 
 \`\`\`
-[oc-code-auditor /audit pre-deploy]
+[oc-code-auditor /oc-audit pre-deploy]
   Files reviewed:    3 (src/api/customers.csv.ts, src/lib/csv.ts, src/services/customers.ts)
   Findings:          0 blocking, 1 advisory
   Advisory #1:       csv.ts could be ~30 LOC shorter using a generator (advisory only)
@@ -523,7 +523,7 @@ No runtime dependency changes.
   Grade:             A
   Wall-clock:        12.4s
 
-[oc-security-auditor /sec verify]
+[oc-security-auditor /oc-sec verify]
   Threat-model scope: api endpoints
   STRIDE findings:    0 new
   Rate-limit:         inherited from /api/customers (60/min anon, 600/min auth)
@@ -576,7 +576,7 @@ All 5 smoke checks PASS. Staging deploy verified.
 
 | Dashboard / Alert | URL | Why |
 |---|---|---|
-| \`api/customers\` p99 latency | https://app.datadoghq.com/dashboard/onramp-api | New endpoint shares the same service pool; watch for noisy-neighbor effects |
+| \`api/customers\` p99 latency | https://oc-app.datadoghq.com/dashboard/onramp-api | New endpoint shares the same service pool; watch for noisy-neighbor effects |
 | \`customers_csv_p95_latency_high\` alert | (new this deploy) | Threshold 1.5s p95 for 5min; SEV-3 routing to PLAT-BACKEND |
 | Worker heap p95 | https://dash.cloudflare.com/.../worker-analytics | Heap budget 128MB; the streaming endpoint stays around 38MB but watch for drift |
 | Sentry — \`csv\` tag | https://sentry.io/onramp/issues/?query=is:unresolved+tag:csv | Any uncaught exception in the CSV path |
@@ -592,7 +592,7 @@ npx wrangler deployments list | head -5
 # 2. Revert (typical revert window <60s globally)
 npx wrangler rollback <prior-deployment-id>
 # 3. Confirm
-curl -fsS https://api.onramp.dev/api/health | jq '.version'   # should equal a8a254c
+curl -fsS https://oc-api.onramp.dev/api/health | jq '.version'   # should equal a8a254c
 \`\`\`
 
 The change is additive (new endpoint; no shared code paths modified
@@ -602,8 +602,8 @@ safe; no data migration to reverse.
 ## Timeline (UTC)
 
 \`\`\`
-14:02:11  oc-deploy-ops invoked /deploy staging               state: in_progress
-14:02:11  audit gate verified (cached from /git-sync)
+14:02:11  oc-deploy-ops invoked /oc-deploy staging               state: in_progress
+14:02:11  audit gate verified (cached from /oc-git-sync)
 14:02:13  wrangler deploy --env staging                    start
 14:02:48  wrangler deploy --env staging                    success (37s)
 14:02:48  staging smoke tests began
@@ -623,7 +623,7 @@ safe; no data migration to reverse.
 ## Comments
 
 **opchain-deploy-ops** · 14:02:13Z
-> Auto-created from \`/deploy staging\`. Audit gate clean (Grade A).
+> Auto-created from \`/oc-deploy staging\`. Audit gate clean (Grade A).
 > 1 deploy-relevant commit; 1 linked ticket. Staging deploy beginning.
 
 **opchain-deploy-ops** · 14:03:02Z
@@ -720,7 +720,7 @@ this surface. The alert fires on the new endpoint specifically.
     }
   },
   "links": [
-    { "name": "Dashboard", "href": "https://app.datadoghq.com/.../onramp-api" },
+    { "name": "Dashboard", "href": "https://oc-app.datadoghq.com/.../onramp-api" },
     { "name": "Runbook", "href": "https://runbooks.onramp.dev/api-latency-investigation" }
   ]
 }
@@ -801,11 +801,11 @@ matching the audit-log pattern.
 09:21:46  sam adds wrangler tail probe; observes per-row 50ms cost
 09:24:08  sam identifies the cursor.read() default bug
 09:25:00  sam drafts the one-line fix
-09:25:30  sam runs /git-sync; PR #2211 opens
-09:27:40  /audit pre-deploy Grade A; oc-bug-check PASS
-09:28:50  /deploy staging — 33s
+09:25:30  sam runs /oc-git-sync; PR #2211 opens
+09:27:40  /oc-audit pre-deploy Grade A; oc-bug-check PASS
+09:28:50  /oc-deploy staging — 33s
 09:29:30  staging smoke (with acme-inc fixture) — p95 78ms ✓
-09:30:00  /deploy prod (approved) — 41s
+09:30:00  /oc-deploy prod (approved) — 41s
 09:30:14  prod traffic resumes normal latency; alert auto-resolves
 09:30:14  oc-monitoring-ops auto-resolved comment posted
 09:30:30  oc-monitoring-ops transitions PLAT-4503 → Resolved (PM pending)
@@ -897,7 +897,7 @@ traffic affected. Documented for postmortem reference.
 - **What worked well:** end-to-end time from alert to prod fix was
   ~16 minutes. The opchain pipeline (PR → audit → staging → prod
   with the same gates as any other deploy) didn't slow this down;
-  it actually sped it up because the cached audit gate from /git-sync
+  it actually sped it up because the cached audit gate from /oc-git-sync
   meant we didn't re-run the suite.
 
 ## Linked
@@ -943,17 +943,17 @@ day 0 (2026-05-04)
   13:22  sam          PLAT-4471 added to cycle 2026-W19                    checkpoint: —
   13:33  sam          PLAT-4471 #comment "Picking this up..."              checkpoint: —
 
-  -- engineer prompt: "/discover --ticket PLAT-4471"
+  -- engineer prompt: "/oc-discover --ticket PLAT-4471"
   13:35  oc-app-architect   MCP linear.get_issue("PLAT-4471")                 checkpoint: oc-app-architect/discover.ticket
-  13:35  oc-app-architect   /discover ran (8 questions, 5 pre-filled)         checkpoint: oc-app-architect/discover
-  13:38  oc-app-architect   /spec produced (1 file: existing project)         checkpoint: oc-app-architect/spec
-  13:39  oc-app-architect   /roadmap produced (1 sprint, 1 deliverable)       checkpoint: oc-app-architect/roadmap
+  13:35  oc-app-architect   /oc-discover ran (8 questions, 5 pre-filled)         checkpoint: oc-app-architect/discover
+  13:38  oc-app-architect   /oc-spec produced (1 file: existing project)         checkpoint: oc-app-architect/spec
+  13:39  oc-app-architect   /oc-roadmap produced (1 sprint, 1 deliverable)       checkpoint: oc-app-architect/roadmap
 
   -- engineer confirms streaming approach
   13:42  oc-app-architect   read src/services/customers.ts (getCustomersForTenant signature)  checkpoint: —
   13:43  oc-app-architect   MCP linear.add_comment("PLAT-4471", "Sprint 1...")  checkpoint: oc-app-architect/sprint-comment-posted
   13:43  oc-app-architect   MCP linear.create_issue (sub-issue, parent=PLAT-4471) → PLAT-4471/sprint-1  checkpoint: oc-app-architect/sprint-1-child
-  13:44  oc-app-architect   /build started                                    checkpoint: oc-app-architect/build.in-progress
+  13:44  oc-app-architect   /oc-build started                                    checkpoint: oc-app-architect/build.in-progress
   13:46  oc-app-architect   Generator wrote handler + helper + tests          checkpoint: oc-app-architect/build.generator-r1
   13:47  oc-app-architect   Evaluator round 1: PASS (9, 9, 8, n/a)            checkpoint: oc-app-architect/build.evaluator-r1
 
@@ -961,7 +961,7 @@ day 0 (2026-05-04)
   13:50  oc-app-architect   ran heap benchmark against big-tenant fixture     checkpoint: oc-app-architect/benchmark.big-tenant
   13:51  oc-app-architect   reported 38MB heap p95 (vs 622MB on JSON path)    checkpoint: —
 
-  -- engineer prompt: "/git-sync"
+  -- engineer prompt: "/oc-git-sync"
   13:55  oc-git-ops      MCP linear.get_issue("PLAT-4471")  (refresh)          checkpoint: oc-git-ops/sync.read
   13:55  oc-git-ops      branch: feat/PLAT-4471-add-csv-export-customers      checkpoint: oc-git-ops/branch-created
   13:56  oc-git-ops      commit: feat(api): add CSV export… Refs: PLAT-4471   checkpoint: oc-git-ops/commit-signed
@@ -970,11 +970,11 @@ day 0 (2026-05-04)
   13:57  oc-git-ops      MCP linear.save_issue("PLAT-4471", state="In Review") checkpoint: oc-git-ops/state-transitioned
 
   13:58  oc-bug-check    PASS (1.4s)                                          checkpoint: oc-bug-check/precommit.pass
-  13:58  oc-code-auditor /audit pre-deploy                                    checkpoint: oc-code-auditor/pre-deploy.in-progress
+  13:58  oc-code-auditor /oc-audit pre-deploy                                    checkpoint: oc-code-auditor/pre-deploy.in-progress
   14:00  oc-code-auditor MCP linear.add_comment("PLAT-4471", "Auditor: Grade A; 0 blocking, 1 advisory")  checkpoint: oc-code-auditor/pre-deploy.posted
 
   -- 14:02:11Z
-  14:02  oc-deploy-ops   /deploy staging                                      checkpoint: oc-deploy-ops/deploy.start
+  14:02  oc-deploy-ops   /oc-deploy staging                                      checkpoint: oc-deploy-ops/deploy.start
   14:02  oc-deploy-ops   MCP linear.create_issue ("Deploy 2026-05-04 ...") → PLAT-4485  checkpoint: oc-deploy-ops/deploy-ticket.PLAT-4485
   14:02  oc-deploy-ops   staging deploy started                               checkpoint: oc-deploy-ops/staging.in-flight
   14:02  oc-deploy-ops   staging deploy succeeded (37s)                       checkpoint: oc-deploy-ops/staging.complete
@@ -987,7 +987,7 @@ day 0 (2026-05-04)
   14:09  ana          replied: "Karen confirms BOM works"                   checkpoint: —
 
   -- 14:09:30Z
-  14:09  sam          /deploy prod (approved)                              checkpoint: oc-deploy-ops/prod.approval-received
+  14:09  sam          /oc-deploy prod (approved)                              checkpoint: oc-deploy-ops/prod.approval-received
   14:09  oc-deploy-ops   prod deploy started                                  checkpoint: oc-deploy-ops/prod.in-flight
   14:10  oc-deploy-ops   prod deploy succeeded (42s)                          checkpoint: oc-deploy-ops/prod.complete
   14:10  oc-deploy-ops   smoke tests passed (5/5)                             checkpoint: oc-deploy-ops/prod.smoke-pass
@@ -1012,11 +1012,11 @@ day +1 (2026-05-05, next morning)
   09:15  sam            ack via PagerDuty (auto-mirrored to PLAT-4503)     checkpoint: oc-monitoring-ops/incident.acked
   09:18  sam            isolated regression to streaming path              checkpoint: —
   09:24  sam            identified cursor.read() default bug               checkpoint: —
-  09:25  sam            /git-sync (one-line fix)                           checkpoint: oc-git-ops/sync.PLAT-4503-fix
-  09:27  oc-code-auditor   /audit pre-deploy: Grade A                         checkpoint: oc-code-auditor/PLAT-4503-fix.pass
+  09:25  sam            /oc-git-sync (one-line fix)                           checkpoint: oc-git-ops/sync.PLAT-4503-fix
+  09:27  oc-code-auditor   /oc-audit pre-deploy: Grade A                         checkpoint: oc-code-auditor/PLAT-4503-fix.pass
   09:28  oc-bug-check      PASS                                               checkpoint: oc-bug-check/PLAT-4503-fix.pass
-  09:28  oc-deploy-ops     /deploy staging (33s, smoke pass)                  checkpoint: oc-deploy-ops/PLAT-4503-fix.staging
-  09:30  oc-deploy-ops     /deploy prod (41s, smoke pass)                     checkpoint: oc-deploy-ops/PLAT-4503-fix.prod
+  09:28  oc-deploy-ops     /oc-deploy staging (33s, smoke pass)                  checkpoint: oc-deploy-ops/PLAT-4503-fix.staging
+  09:30  oc-deploy-ops     /oc-deploy prod (41s, smoke pass)                     checkpoint: oc-deploy-ops/PLAT-4503-fix.prod
 
   -- 09:30:14 alert auto-resolves
   09:30  oc-monitoring-ops MCP linear.add_comment("PLAT-4503", "Alert auto-resolved (16 min).") checkpoint: oc-monitoring-ops/incident.auto-resolved.posted
@@ -1080,7 +1080,7 @@ A team member two weeks out who wants to reconstruct what happened:
 
 | Skill | v1.1 behaviour | v1.2 behaviour |
 |---|---|---|
-| oc-app-architect | /discover asked everything from scratch | /discover --ticket pre-fills from PM context; /roadmap creates child tickets per sprint |
+| oc-app-architect | /oc-discover asked everything from scratch | /oc-discover --ticket pre-fills from PM context; /oc-roadmap creates child tickets per sprint |
 | oc-git-ops | branch + commit + PR from prompt only | shaped from the linked ticket; transitions ticket on PR open / merge |
 | oc-code-auditor | findings recorded in checkpoint | also commented on the linked PM ticket |
 | oc-deploy-ops | per-environment deploy | also creates a deploy ticket linked to every commit's tickets; transitions per env |
@@ -1097,11 +1097,11 @@ Checkpoint: \`.checkpoints/oc-integrations-engineer.checkpoint.json\` (v1.2 prot
   skills: ["oc-app-architect", "oc-git-ops", "oc-deploy-ops", "oc-monitoring-ops", "oc-code-auditor", "oc-integrations-engineer"],
   runtime: "≈ 12 exchanges",
   steps: [
-    { type: "beat", label: "01 · Read the ticket", caption: "oc-app-architect /discover pre-fills from Linear", skills: ["oc-app-architect"] },
+    { type: "beat", label: "01 · Read the ticket", caption: "oc-app-architect /oc-discover pre-fills from Linear", skills: ["oc-app-architect"] },
 
     {
       type: "exchange", role: "user",
-      content: `/discover --ticket PLAT-4471`
+      content: `/oc-discover --ticket PLAT-4471`
     },
     {
       type: "exchange", role: "claude", skill: "oc-app-architect",
@@ -1202,19 +1202,19 @@ mcp.linear.create_issue(
 ) → PLAT-4471/sprint-1
 \`\`\`
 
-Sprint plan approved? \`/build\` will start the Generator → Evaluator loop. Or \`/contract\` to negotiate the sprint-1 contract first.`,
+Sprint plan approved? \`/oc-build\` will start the Generator → Evaluator loop. Or \`/contract\` to negotiate the sprint-1 contract first.`,
     },
 
-    { type: "beat", label: "02 · Build → benchmark → audit", caption: "Generator/Evaluator loop, then verify heap before /git-sync", skills: ["oc-app-architect", "oc-code-auditor"] },
+    { type: "beat", label: "02 · Build → benchmark → audit", caption: "Generator/Evaluator loop, then verify heap before /oc-git-sync", skills: ["oc-app-architect", "oc-code-auditor"] },
 
     {
       type: "exchange", role: "user",
-      content: `/build, then verify the heap claim before /git-sync.`
+      content: `/oc-build, then verify the heap claim before /oc-git-sync.`
     },
     {
       type: "exchange", role: "claude", skill: "oc-app-architect",
       content:
-`\`/build\` — Generator → Evaluator loop:
+`\`/oc-build\` — Generator → Evaluator loop:
 
 \`\`\`
 Generator (round 1)
@@ -1255,7 +1255,7 @@ Sprint passed in one round, heap regression confirmed. Handing off to oc-git-ops
     {
       type: "exchange", role: "claude", skill: "oc-git-ops",
       content:
-`v1.2 PM-aware: the prompt \`/git-sync\` follows a recently-touched ticket, so I'll re-read it.
+`v1.2 PM-aware: the prompt \`/oc-git-sync\` follows a recently-touched ticket, so I'll re-read it.
 
 \`\`\`
 mcp.linear.get_issue("PLAT-4471") → 200
@@ -1292,13 +1292,13 @@ mcp.linear.add_comment("PLAT-4471",
 mcp.linear.save_issue("PLAT-4471", state="In Review")
 \`\`\`
 
-Auto-invoking **oc-bug-check** before any merge action; running **oc-code-auditor /audit pre-deploy** in parallel since the deploy gate will demand it.`,
+Auto-invoking **oc-bug-check** before any merge action; running **oc-code-auditor /oc-audit pre-deploy** in parallel since the deploy gate will demand it.`,
       artifacts: ["linked-pr"],
     },
     {
       type: "exchange", role: "claude", skill: "oc-code-auditor",
       content:
-`oc-code-auditor /audit pre-deploy on PR #2208.
+`oc-code-auditor /oc-audit pre-deploy on PR #2208.
 
 \`\`\`
 Files reviewed:        3 new (customers.csv.ts, csv.ts, customers.csv.spec.ts)
@@ -1334,12 +1334,12 @@ Bug-check returned PASS (1.4s). The PR is mergeable; oc-deploy-ops can take over
     {
       type: "exchange", role: "claude", skill: "oc-deploy-ops",
       content:
-`v1.2: \`/deploy staging\` walks the commit range, collects ticket refs, and creates the deploy ticket before doing anything else.
+`v1.2: \`/oc-deploy staging\` walks the commit range, collects ticket refs, and creates the deploy ticket before doing anything else.
 
 \`\`\`
 range:           a8a254c..7ea6bf2  (2 commits)
 linked tickets:  PLAT-4471
-audit gate:      PASS (cached from /git-sync, age 4m)
+audit gate:      PASS (cached from /oc-git-sync, age 4m)
 oc-bug-check:       PASS
 
 Pre-create check:
@@ -1368,7 +1368,7 @@ Prod gate is open when you're ready. Smoke results in the deploy-ticket artifact
     },
     {
       type: "exchange", role: "user",
-      content: `Pinged ana, Karen verified BOM works on her Windows box. Approve. /deploy prod.`
+      content: `Pinged ana, Karen verified BOM works on her Windows box. Approve. /oc-deploy prod.`
     },
     {
       type: "exchange", role: "claude", skill: "oc-deploy-ops",

@@ -288,7 +288,7 @@ Lighthouse CI runs on every PR (mobile preset). Failing budget blocks merge.
 - Magic link tokens: 32-byte random, single-use, 15-minute TTL.
 - Session cookie: \`__Host-\` prefix, \`HttpOnly\`, \`Secure\`, \`SameSite=Strict\`.
 - CSRF: same-site cookie + same-origin check on every mutation; no separate token.
-- CSP: \`default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://api.*; img-src 'self' data:;\` enforced from day one (no report-only — we ship strict and fix any breakage in PR).
+- CSP: \`default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://oc-api.*; img-src 'self' data:;\` enforced from day one (no report-only — we ship strict and fix any breakage in PR).
 - HSTS: \`max-age=63072000; includeSubDomains; preload\`.
 - All third parties: zero in v1. No analytics SDK (we use Cloudflare Web Analytics, cookieless). No live-chat widget. No font CDN.
 - PII inventory: email, display name, team membership. **Not** stored: IP (only in CF logs, retained 14 days), location, device fingerprint.
@@ -1016,7 +1016,7 @@ Writing \`.checkpoints/oc-stack-forge.checkpoint.json\`. Control returns to oc-a
       type: "exchange", role: "claude", skill: "oc-app-architect",
       artifacts: ["master-spec", "stack-decision"],
       content:
-`Spec drafted against the oc-stack-forge output — 11 screens, 4 data models, 3 API surfaces. Full doc is 18 pages; here's the TL;DR of what you'd see on \`/export-spec\`:
+`Spec drafted against the oc-stack-forge output — 11 screens, 4 data models, 3 API surfaces. Full doc is 18 pages; here's the TL;DR of what you'd see on \`/oc-export-spec\`:
 
 - **Screens:** team board · new session · session-in-progress · session ended · join-via-link · settings · billing stub · 3 admin views
 - **Models:** \`User\`, \`Team\`, \`Session\`, \`Membership\`
@@ -1087,7 +1087,7 @@ Scaffold generated: 47 files, passing \`pnpm dev\`, schema migrated, \`/auth/mag
 **Generator pass 2** — tightened validation, added KV-backed rate limit, fuzz test on team-slug.
 **Evaluator pass 2** — 94/100. Ship it.
 
-Writing checkpoint. Next sprint? Say \`/build\` to continue, \`/status\` for the scoreboard, or \`/approve\` to auto-run all remaining sprints back-to-back.`
+Writing checkpoint. Next sprint? Say \`/oc-build\` to continue, \`/status\` for the scoreboard, or \`/approve\` to auto-run all remaining sprints back-to-back.`
     },
     {
       type: "exchange", role: "user",
@@ -1143,12 +1143,12 @@ Handing off to **oc-deploy-ops** for the preview + staging pipeline.`
  security headers                 CSP, HSTS, nosniff, Frame-Options all present
 \`\`\`
 
-Staging is live. Production deploy is one \`/launch\` away — but give it 24h soak first. Writing \`.checkpoints/oc-deploy-ops.checkpoint.json\` with the staging URL + a rollback runbook.`,
+Staging is live. Production deploy is one \`/oc-launch\` away — but give it 24h soak first. Writing \`.checkpoints/oc-deploy-ops.checkpoint.json\` with the staging URL + a rollback runbook.`,
       artifacts: ["rollback-runbook"],
     },
     {
       type: "exchange", role: "user",
-      content: "Soaked fine overnight. /launch"
+      content: "Soaked fine overnight. /oc-launch"
     },
     {
       type: "exchange", role: "claude", skill: "oc-deploy-ops",

@@ -17,7 +17,7 @@ export const djangoRenderShipped: Walkthrough = {
   summary:
     "Solo founder builds a B2B invoicing app on Django + Postgres + Render with GitHub Issues for tracking. Same opchain pipeline as the Cloudflare-flavored scenarios — oc-stack-forge picks the stack, oc-app-architect scaffolds, oc-git-ops shapes commits from GH issues, oc-deploy-ops ships via render.yaml Blueprint. Two weeks ideation → paying customer.",
   description:
-    "Quill is a B2B invoicing tool aimed at small US accounting firms (3-15 person partnerships) that hate QuickBooks but can't yet afford a dedicated finance ops team. Priya is the solo founder; she has 8 years of Python at a fintech, no Cloudflare experience, and wants the smallest possible ops surface. The opchain pipeline picks Django + Postgres + Render automatically (oc-stack-forge decision tree: solo founder, no ops appetite, server-rendered UI, admin panel needed → Django/Render is the canonical match), scaffolds the project per the v1.3 \"Platform-Specific Recipes\" in oc-app-architect's scaffold-guide, uses GitHub Issues as the PM provider (one-line config swap from Linear; same protocol §3 markers), and ships via render.yaml Blueprint (one-click Postgres + web service provisioning). The artifact set is what Priya actually ends up with after two weeks: the spec docs from /spec, the render.yaml Blueprint from /scaffold, the .opchain/pm.yaml configured for GitHub Issues, the first sprint contract, the first PR linked back to inv-org/quill#1.",
+    "Quill is a B2B invoicing tool aimed at small US accounting firms (3-15 person partnerships) that hate QuickBooks but can't yet afford a dedicated finance ops team. Priya is the solo founder; she has 8 years of Python at a fintech, no Cloudflare experience, and wants the smallest possible ops surface. The opchain pipeline picks Django + Postgres + Render automatically (oc-stack-forge decision tree: solo founder, no ops appetite, server-rendered UI, admin panel needed → Django/Render is the canonical match), scaffolds the project per the v1.3 \"Platform-Specific Recipes\" in oc-app-architect's scaffold-guide, uses GitHub Issues as the PM provider (one-line config swap from Linear; same protocol §3 markers), and ships via render.yaml Blueprint (one-click Postgres + web service provisioning). The artifact set is what Priya actually ends up with after two weeks: the spec docs from /oc-spec, the render.yaml Blueprint from /oc-scaffold, the .opchain/pm.yaml configured for GitHub Issues, the first sprint contract, the first PR linked back to inv-org/quill#1.",
   inputs: [
     "Solo founder · 8 years Python · fintech background · no Cloudflare experience",
     "Idea: B2B invoicing tool for small accounting firms (3-15 person partnerships)",
@@ -28,12 +28,12 @@ export const djangoRenderShipped: Walkthrough = {
   outputs: [
     {
       id: "discovery",
-      label: "/discover output — discovery summary + spec sketch",
+      label: "/oc-discover output — discovery summary + spec sketch",
       kind: "spec/00-project-overview.md",
       body:
 `# 00-project-overview.md — Quill
 
-**Produced by** oc-app-architect /discover (Phase 1) · **Source ticket:** [inv-org/quill#1](https://github.com/inv-org/quill/issues/1) · **Run-time:** 14 minutes · **Discovery questions asked:** 9 (4 pre-filled from issue body)
+**Produced by** oc-app-architect /oc-discover (Phase 1) · **Source ticket:** [inv-org/quill#1](https://github.com/inv-org/quill/issues/1) · **Run-time:** 14 minutes · **Discovery questions asked:** 9 (4 pre-filled from issue body)
 
 ## 1. TL;DR
 
@@ -240,7 +240,7 @@ We are not building:
 
 **Q9 — Email delivery?** "Transactional. Resend is fine; Postmark is fine. Whatever is cheapest with good deliverability."
 
-## 11. Open questions for /spec
+## 11. Open questions for /oc-spec
 
 These resolve in the spec phase:
 
@@ -271,7 +271,7 @@ Checkpoint: \`.checkpoints/oc-app-architect.checkpoint.json\` (Phase 1).
     },
     {
       id: "stack",
-      label: "/spec oc-stack-forge output — Django/Postgres/Render decision",
+      label: "/oc-spec oc-stack-forge output — Django/Postgres/Render decision",
       kind: "spec/01-tech-stack.md",
       body:
 `# 01-tech-stack.md — Quill
@@ -452,7 +452,7 @@ Checkpoint: \`.checkpoints/oc-stack-forge.checkpoint.json\`.
       kind: "render.yaml",
       body:
 `# render.yaml — Quill Blueprint
-# Produced by oc-app-architect /scaffold per scaffold-guide.md § Django/Render.
+# Produced by oc-app-architect /oc-scaffold per scaffold-guide.md § Django/Render.
 # Render reads this on first push and provisions everything below.
 # Subsequent deploys are pure git push.
 
@@ -670,12 +670,12 @@ worktree_naming: "feat/quill-{issue-number}-{slug}"
     },
     {
       id: "scaffold",
-      label: "/scaffold output — Django project layout + selected file contents",
+      label: "/oc-scaffold output — Django project layout + selected file contents",
       kind: "tree",
       body:
-`# Files written by /scaffold (per scaffold-guide.md § Django/Render)
+`# Files written by /oc-scaffold (per scaffold-guide.md § Django/Render)
 
-**Produced by** oc-app-architect /scaffold (Phase 3) · **Method:** scaffold-guide.md § Django recipe · **Files written:** 41 (18 source + 12 test + 11 config) · **Run-time:** 11 minutes
+**Produced by** oc-app-architect /oc-scaffold (Phase 3) · **Method:** scaffold-guide.md § Django recipe · **Files written:** 41 (18 source + 12 test + 11 config) · **Run-time:** 11 minutes
 
 ## 1. Layout
 
@@ -1328,7 +1328,7 @@ Refs: #5 · Sprint 1: time-entry foundations · Audit gate: PASS
       label: "First deploy via Render Blueprint",
       kind: "deploy.log",
       body:
-`# /deploy staging — first push to Render
+`# /oc-deploy staging — first push to Render
 
 **Produced by** oc-deploy-ops · **Provider:** Render (auto-detected from \`render.yaml\`) · **Range:** \`<empty>..bb1f0e2\` (first deploy) · **Audit gate:** PASS
 
@@ -1337,7 +1337,7 @@ Refs: #5 · Sprint 1: time-entry foundations · Audit gate: PASS
 \`\`\`
 [oc-deploy-ops] Provider detected: Render (render.yaml present at repo root)
 [oc-deploy-ops] Audit gate:
-  ✓ oc-code-auditor /audit pre-deploy  Grade A
+  ✓ oc-code-auditor /oc-audit pre-deploy  Grade A
   ✓ bandit                          PASS
   ✓ pytest                          147 / 147 PASS
   ✓ oc-bug-check                       PASS
@@ -1444,7 +1444,7 @@ All 4 smoke checks PASS.
     <!-- opchain:oc-deploy-ops:linked-shipped:#14:#<n> -->
 \`\`\`
 
-## 5. /deploy prod (Day 14, after Sarah signs the contract)
+## 5. /oc-deploy prod (Day 14, after Sarah signs the contract)
 
 \`\`\`
 [oc-deploy-ops] git push render main (with prod service active)
@@ -1504,14 +1504,14 @@ Checkpoint: \`.checkpoints/oc-deploy-ops.checkpoint.json\` (Quill — first depl
     {
       type: "beat",
       label: "Day 1 — Priya files inv-org/quill#1",
-      caption: "She types the idea into a GH issue and runs `/discover --ticket inv-org/quill#1`. opchain pulls the issue body via mcp__mcp-server-github__issue_read.",
+      caption: "She types the idea into a GH issue and runs `/oc-discover --ticket inv-org/quill#1`. opchain pulls the issue body via mcp__mcp-server-github__issue_read.",
       skills: ["oc-app-architect"],
     },
     {
       type: "exchange",
       role: "user",
       content:
-        "/discover --ticket inv-org/quill#1\n\nThe ticket has the rough idea: invoicing tool for small accounting firms. Solo founder, want to go fast.",
+        "/oc-discover --ticket inv-org/quill#1\n\nThe ticket has the rough idea: invoicing tool for small accounting firms. Solo founder, want to go fast.",
     },
     {
       type: "exchange",
@@ -1551,7 +1551,7 @@ The discovery output gets richer than typical because the ticket gave directiona
 
 Also writing a competitor matrix (§6), pricing rationale (§7) with the QBO + opportunity-cost math, and a risk register (§12) with 6 explicit risks. The risk that matters most is R3 — per-firm install ops time. We'll instrument that from day 1 (Priya's hours per firm per month, manually tracked).
 
-\`/spec\` next — auto-invoking oc-stack-forge to pick the stack. I'll show you the scorecard before committing.`,
+\`/oc-spec\` next — auto-invoking oc-stack-forge to pick the stack. I'll show you the scorecard before committing.`,
       artifacts: ["discovery"],
     },
     {
@@ -1621,7 +1621,7 @@ re-evaluation trigger.`,
     },
     {
       type: "beat",
-      label: "Day 1 — /scaffold writes the project",
+      label: "Day 1 — /oc-scaffold writes the project",
       caption: "Per scaffold-guide.md § Django. Settings split, render.yaml Blueprint, pytest, Django admin all wired. 41 files written; 18 tests pass; runserver boots.",
       skills: ["oc-app-architect"],
     },
@@ -1630,7 +1630,7 @@ re-evaluation trigger.`,
       role: "claude",
       skill: "oc-app-architect",
       content:
-`\`/scaffold\` writes 41 files from \`scaffold-guide.md § Django\`:
+`\`/oc-scaffold\` writes 41 files from \`scaffold-guide.md § Django\`:
 
 - **Settings split** into \`core/settings/{base,dev,prod}.py\` (DJANGO_SETTINGS_MODULE selects)
 - **\`render.yaml\` Blueprint** provisioning Postgres + web service + a staging variant, with worker / redis / cron stubs commented out for Sprint 4+
@@ -1716,7 +1716,7 @@ this again.`,
     {
       type: "exchange",
       role: "user",
-      content: "/git-sync inv-org/quill#5",
+      content: "/oc-git-sync inv-org/quill#5",
     },
     {
       type: "exchange",
@@ -1752,7 +1752,7 @@ PR #1 opened with 14 new tests, audit gate green, performance benchmarks documen
     {
       type: "exchange",
       role: "user",
-      content: "/deploy staging",
+      content: "/oc-deploy staging",
     },
     {
       type: "exchange",
@@ -1819,7 +1819,7 @@ instrument from day 1.`,
       type: "exchange",
       role: "user",
       content:
-        "Sarah signed. /deploy prod. What changed about the pipeline because we used Django + Render + GitHub Issues instead of CF Workers + Linear?",
+        "Sarah signed. /oc-deploy prod. What changed about the pipeline because we used Django + Render + GitHub Issues instead of CF Workers + Linear?",
     },
     {
       type: "exchange",

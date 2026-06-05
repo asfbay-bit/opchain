@@ -306,7 +306,7 @@ const consumers = isFoundational
           if (el.closest("pre")) return;
           const text = (el.textContent || "").trim();
 
-          // a) Slash commands: /audit, /deploy, /uxe …
+          // a) Slash commands: /oc-audit, /oc-deploy, /oc-uxe …
           if (/^\/[a-z][\w-]*(\s|$)/i.test(text)) {
             el.setAttribute("data-cmd", "true");
             return;
@@ -1100,7 +1100,7 @@ const consumers = isFoundational
     color: var(--text);
   }
   /* UX pass — inline code is post-classified by client script:
-       · [data-cmd]   → ember pill for slash commands (/audit, /deploy, …)
+       · [data-cmd]   → ember pill for slash commands (/oc-audit, /oc-deploy, …)
        · [data-role=…] → role-coloured pill for skill-name mentions
      Same outline + 15% colour-mix language used everywhere else on the
      site. Works in both themes via the design tokens. */

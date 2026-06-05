@@ -19,7 +19,7 @@ export const runtimePmLoop: Walkthrough = {
   summary:
     "v1.3 hero scenario: a real Linear ticket (PLAT-5102) rides the full pipeline. Every MCP call carries an idempotency marker; retries short-circuit; a transient 503 mid-deploy lands a deferred action that flushes cleanly. Six skills, one thread, audit-ready.",
   description:
-    "OnRamp's customer-list endpoint started timing out at 09:11. PagerDuty paged Maya at 09:13; she filed PLAT-5102 at 09:14 with the alert payload pasted in. By 11:02 the fix is live in prod, the incident ticket is resolved, and the postmortem is published — every step recorded as comments on the Linear thread by the appropriate skill, with idempotency markers so the agent can crash-restart any time without polluting the ticket history. v1.3 swapped v1.2's `mcp.<provider>.<verb>` placeholders for concrete tool names like `mcp__claude_ai_Linear__save_comment` and added a deferred-action queue: when Linear returned a 503 during /deploy prod, the comment was queued in `oc-deploy-ops.checkpoint.json` and flushed two minutes later when Linear came back. The artifact set is the complete Linear timeline (parent ticket + deploy ticket + incident ticket + remediation sub-tickets) plus the four checkpoint files showing how state crossed the skill boundaries.",
+    "OnRamp's customer-list endpoint started timing out at 09:11. PagerDuty paged Maya at 09:13; she filed PLAT-5102 at 09:14 with the alert payload pasted in. By 11:02 the fix is live in prod, the incident ticket is resolved, and the postmortem is published — every step recorded as comments on the Linear thread by the appropriate skill, with idempotency markers so the agent can crash-restart any time without polluting the ticket history. v1.3 swapped v1.2's `mcp.<provider>.<verb>` placeholders for concrete tool names like `mcp__claude_ai_Linear__save_comment` and added a deferred-action queue: when Linear returned a 503 during /oc-deploy prod, the comment was queued in `oc-deploy-ops.checkpoint.json` and flushed two minutes later when Linear came back. The artifact set is the complete Linear timeline (parent ticket + deploy ticket + incident ticket + remediation sub-tickets) plus the four checkpoint files showing how state crossed the skill boundaries.",
   inputs: [
     "Series B SaaS · OnRamp Inc · ~30 engineers · Linear (team PLAT) as system-of-record",
     "On-call engineer Maya files PLAT-5102 from a PagerDuty alert at 09:14",
@@ -144,7 +144,7 @@ spike is **c4f8a21 at 08:42Z (release v6.18.4 backend) — touches
 unrelated paths, but it warrants a glance.**
 
 **Runbook:** https://runbooks.onramp.dev/api-latency-investigation
-**Dashboard:** https://app.datadoghq.com/dashboard/onramp-api-customers
+**Dashboard:** https://oc-app.datadoghq.com/dashboard/onramp-api-customers
 
 ## Alert payload (verbatim from PagerDuty)
 
@@ -176,7 +176,7 @@ unrelated paths, but it warrants a glance.**
     }
   },
   "links": [
-    { "name": "Dashboard", "href": "https://app.datadoghq.com/dashboard/onramp-api-customers" },
+    { "name": "Dashboard", "href": "https://oc-app.datadoghq.com/dashboard/onramp-api-customers" },
     { "name": "Runbook", "href": "https://runbooks.onramp.dev/api-latency-investigation" }
   ]
 }
@@ -224,7 +224,7 @@ query plan did.** Almost certainly an index issue.
 \`\`\`
 $ curl -sS -w '\\n%{time_total}\\n' \\
     -H 'Authorization: Bearer ...' \\
-    'https://api.onramp.dev/api/customers?cursor=eyJjcmVhdGVkX2F0Ijoi...&limit=200'
+    'https://oc-api.onramp.dev/api/customers?cursor=eyJjcmVhdGVkX2F0Ijoi...&limit=200'
 [... 200 rows JSON ...]
 3.18
 
@@ -361,7 +361,7 @@ Checkpoint reference: \`.checkpoints/oc-monitoring-ops.checkpoint.json\` →
 
 ## Description
 
-Auto-created when \`/deploy staging\` started after the audit gate passed.
+Auto-created when \`/oc-deploy staging\` started after the audit gate passed.
 oc-deploy-ops walked the commit range (1 commit) and extracted the
 \`Refs: PLAT-5102\` trailer from \`ea71b9c\`.
 
@@ -411,7 +411,7 @@ npm diff c4f8a21..ea71b9c -- package-lock.json
 ## Audit gate output (verbatim)
 
 \`\`\`
-[oc-code-auditor /audit pre-deploy]
+[oc-code-auditor /oc-audit pre-deploy]
   Files reviewed:    2 (migrations/20260508_restore_paginate_index.sql,
                         tests/regression/test_customer_list_plan.py)
   Findings:          1 advisory ("consider adding the index to a docstring
@@ -424,7 +424,7 @@ npm diff c4f8a21..ea71b9c -- package-lock.json
   Wall-clock:        9.2s
   Note:              advisory only; not blocking
 
-[oc-security-auditor /sec verify]
+[oc-security-auditor /oc-sec verify]
   Threat-model scope: migrations
   STRIDE findings:    0 new
   CREATE INDEX CONCURRENTLY: safe (no schema mutation; no row-level lock)
@@ -465,8 +465,8 @@ All 4 smoke checks PASS.
 
 | Dashboard / Alert | URL | Why |
 |---|---|---|
-| \`api/customers\` p99 latency | https://app.datadoghq.com/dashboard/onramp-api-customers | The regression dashboard; this is what should drop to baseline |
-| Postgres index-build status | https://app.datadoghq.com/.../postgres-locks | \`CREATE INDEX CONCURRENTLY\` build progress; expected to clear in 90s |
+| \`api/customers\` p99 latency | https://oc-app.datadoghq.com/dashboard/onramp-api-customers | The regression dashboard; this is what should drop to baseline |
+| Postgres index-build status | https://oc-app.datadoghq.com/.../postgres-locks | \`CREATE INDEX CONCURRENTLY\` build progress; expected to clear in 90s |
 | \`api-latency-customers-p99\` alert | (existing) | Should auto-resolve once latency clears the threshold |
 | Worker memory | https://dash.cloudflare.com/.../worker-analytics | Sanity check (none expected) |
 | Sentry — \`PLAT-5102\` tag | https://sentry.io/onramp/issues/?query=tag:PLAT-5102 | Any related exceptions |
@@ -524,7 +524,7 @@ Plan looks right; index built clean on staging in 41s. Going ahead.
 <!-- opchain:oc-deploy-ops:prod-shipped:PLAT-5103 -->
 
 PROD SHIP · ea71b9c · v6.18.5
-URL: https://api.onramp.dev
+URL: https://oc-api.onramp.dev
 Version stamp confirmed via /api/health: ea71b9c
 Index built in 67s; query plan flipped to Index Scan immediately;
 p99 latency dropped from 3.4s to ~110ms within 15s.
@@ -560,7 +560,7 @@ acme-inc slice down from 4.9s to 130ms.
 2026-05-08 10:14:02  oc-deploy-ops     state transitioned: → Staging verified
 2026-05-08 10:38:08  oc-deploy-ops     prod deploy invoked
 2026-05-08 10:38:14  oc-deploy-ops     prod-shipped comment DEFERRED (Linear 503)
-2026-05-08 10:42:03  oc-deploy-ops     /deploy --retry-pm flushed 1 action
+2026-05-08 10:42:03  oc-deploy-ops     /oc-deploy --retry-pm flushed 1 action
 2026-05-08 10:42:08  oc-deploy-ops     linked-shipped comment posted on PLAT-5102
 2026-05-08 10:42:11  oc-deploy-ops     state transitioned: → Shipped
 \`\`\`
@@ -843,7 +843,7 @@ Checkpoint: \`.checkpoints/oc-monitoring-ops.checkpoint.json\` → \`incidents.P
 The v1.3 deferred-action queue (\`pm_deferred_actions[]\`) is the
 load-bearing primitive. Below is the actual queue evolution captured
 during this run, with timestamps. Each entry has a \`retriable\` flag
-that controls whether \`/deploy --retry-pm\` will replay it.
+that controls whether \`/oc-deploy --retry-pm\` will replay it.
 
 ## 1. 10:38:14Z — oc-deploy-ops queues a deferred action
 
@@ -858,7 +858,7 @@ that controls whether \`/deploy --retry-pm\` will replay it.
     {
       "id": "deferred-2026-05-08T10:38:14Z-7c2f",
       "skill": "oc-deploy-ops",
-      "verb": "/deploy",
+      "verb": "/oc-deploy",
       "operation": "add_comment",
       "provider": "linear",
       "tool_name": "mcp__claude_ai_Linear__save_comment",
@@ -873,7 +873,7 @@ that controls whether \`/deploy --retry-pm\` will replay it.
       "attempts": 3,
       "last_error": "Linear API returned 503 (3/3 attempts exhausted within 15s budget)",
       "retriable": true,
-      "user_visible_message": "Linear is currently unreachable; the prod-shipped comment was deferred. The deploy itself is fine — ea71b9c is live. Run /deploy --retry-pm to flush, or wait for the next pipeline pass."
+      "user_visible_message": "Linear is currently unreachable; the prod-shipped comment was deferred. The deploy itself is fine — ea71b9c is live. Run /oc-deploy --retry-pm to flush, or wait for the next pipeline pass."
     }
   ]
 }
@@ -884,7 +884,7 @@ ea71b9c; \`/api/health\` returned the new SHA; smoke tests passed.
 Only the Linear comment was deferred. The user sees a one-line
 surface message (the \`user_visible_message\` field).
 
-## 2. 10:42:03Z — \`/deploy --retry-pm\` flushes
+## 2. 10:42:03Z — \`/oc-deploy --retry-pm\` flushes
 
 \`\`\`json
 {
@@ -919,12 +919,12 @@ without re-posting.
 opchain checkpoint show oc-deploy-ops --field pm_deferred_actions
 
 # Attempt to flush (will short-circuit on already-posted markers):
-/deploy --retry-pm
+/oc-deploy --retry-pm
 
 # Flush a specific deferred action by id (if you need to debug one):
-/deploy --retry-pm --id deferred-2026-05-08T10:38:14Z-7c2f
+/oc-deploy --retry-pm --id deferred-2026-05-08T10:38:14Z-7c2f
 
-# What happens if the queue auto-flushes via the next /deploy invocation?
+# What happens if the queue auto-flushes via the next /oc-deploy invocation?
 # Same marker check; same idempotent outcome. The queue is bounded
 # (max 32 entries per skill) to prevent unbounded growth.
 \`\`\`
@@ -941,7 +941,7 @@ rejection looks like (synthetic example; not from this run):
     {
       "id": "error-2026-05-08T10:55:12Z-3a8e",
       "skill": "oc-deploy-ops",
-      "verb": "/deploy",
+      "verb": "/oc-deploy",
       "operation": "save_issue",
       "provider": "linear",
       "tool_name": "mcp__claude_ai_Linear__save_issue",
@@ -975,7 +975,7 @@ rejection looks like (synthetic example; not from this run):
 | oc-monitoring-ops | oc-deploy-ops.checkpoint.json | Find recent deploys for the incident-ticket "Recent deploys" field + likely-culprit parent link |
 | oc-deploy-ops | oc-code-auditor.checkpoint.json | Read audit grade for the audit-gate decision (cached per-SHA) |
 | oc-git-ops | oc-bug-check.checkpoint.json | Read pre-commit gate result |
-| oc-release-ops | (every skill).checkpoint.json | Aggregate "what shipped since last release" for /release plan |
+| oc-release-ops | (every skill).checkpoint.json | Aggregate "what shipped since last release" for /oc-release plan |
 
 All cross-reads use the public checkpoint schema in
 \`oc-checkpoint-protocol\`'s SKILL.md — no skill imports another skill's
@@ -1029,7 +1029,7 @@ the protocol §1 \`tool_overrides\` paths in place.
     "result": "ok",
     "marker": null,
     "skill": "oc-git-ops",
-    "verb": "/git-sync",
+    "verb": "/oc-git-sync",
     "correlation_id": "session-bf21:1",
     "broker_pod": "linear-broker-7c9f-x4n2",
     "policy_version_at_call": "v1.4"
@@ -1044,7 +1044,7 @@ the protocol §1 \`tool_overrides\` paths in place.
     "match_count": 0,
     "marker": "<!-- opchain:oc-git-ops:pr-opened:#412 -->",
     "skill": "oc-git-ops",
-    "verb": "/git-sync",
+    "verb": "/oc-git-sync",
     "correlation_id": "session-bf21:2",
     "broker_pod": "linear-broker-7c9f-x4n2",
     "policy_version_at_call": "v1.4"
@@ -1059,7 +1059,7 @@ the protocol §1 \`tool_overrides\` paths in place.
     "retriable": true,
     "marker": "<!-- opchain:oc-deploy-ops:prod-shipped:PLAT-5103 -->",
     "skill": "oc-deploy-ops",
-    "verb": "/deploy",
+    "verb": "/oc-deploy",
     "deferred": true,
     "attempts": 3,
     "correlation_id": "session-bf21:14",
@@ -1077,7 +1077,7 @@ the protocol §1 \`tool_overrides\` paths in place.
     "comment_id": "comment-c8b1a3f4-...",
     "marker": "<!-- opchain:oc-deploy-ops:prod-shipped:PLAT-5103 -->",
     "skill": "oc-deploy-ops",
-    "verb": "/deploy --retry-pm",
+    "verb": "/oc-deploy --retry-pm",
     "flushed_from": "deferred-2026-05-08T10:38:14Z-7c2f",
     "correlation_id": "session-bf21:14",
     "broker_pod": "linear-broker-7c9f-x4n2",
@@ -1194,7 +1194,7 @@ Checkpoint: \`.checkpoints/oc-monitoring-ops.checkpoint.json\` → \`audit_pipel
       type: "exchange",
       role: "user",
       content:
-        "PagerDuty paged me on api-latency-customers-p99. I filed PLAT-5102 with the alert payload. Take it and `/git-sync PLAT-5102`.",
+        "PagerDuty paged me on api-latency-customers-p99. I filed PLAT-5102 with the alert payload. Take it and `/oc-git-sync PLAT-5102`.",
     },
     {
       type: "exchange",
@@ -1281,7 +1281,7 @@ Branch + commit + PR + comment + state transition. Five tool calls, zero retries
       role: "claude",
       skill: "oc-code-auditor",
       content:
-`oc-code-auditor /audit pre-deploy on PR #2243.
+`oc-code-auditor /oc-audit pre-deploy on PR #2243.
 
 \`\`\`
 Files reviewed:        2 (migrations/20260508_restore_paginate_index.sql,
@@ -1320,14 +1320,14 @@ Bug-check returned PASS (1.1s). PR is mergeable; oc-deploy-ops can take over.`
     {
       type: "exchange",
       role: "user",
-      content: "/deploy staging",
+      content: "/oc-deploy staging",
     },
     {
       type: "exchange",
       role: "claude",
       skill: "oc-deploy-ops",
       content:
-`**Audit gate** (oc-code-auditor + oc-security-auditor + oc-bug-check) → all PASS, cached per-SHA from /git-sync.
+`**Audit gate** (oc-code-auditor + oc-security-auditor + oc-bug-check) → all PASS, cached per-SHA from /oc-git-sync.
 
 **Pre-create check for the deploy ticket:**
 \`mcp__claude_ai_Linear__list_issues(team="PLAT", query="opchain:oc-deploy-ops:deploy-created:prod:ea71b9c")\` → no match → safe to create.
@@ -1359,7 +1359,7 @@ Ready to ship to prod.`,
     {
       type: "exchange",
       role: "user",
-      content: "/deploy prod",
+      content: "/oc-deploy prod",
     },
     {
       type: "exchange",
@@ -1385,7 +1385,7 @@ Per protocol §4, deferring instead of failing. Writing to \`oc-deploy-ops.check
 "pm_deferred_actions": [{
   "id": "deferred-2026-05-08T10:38:14Z-7c2f",
   "skill": "oc-deploy-ops",
-  "verb": "/deploy",
+  "verb": "/oc-deploy",
   "operation": "add_comment",
   "marker": "<!-- opchain:oc-deploy-ops:prod-shipped:PLAT-5103 -->",
   "retriable": true,
@@ -1396,7 +1396,7 @@ Per protocol §4, deferring instead of failing. Writing to \`oc-deploy-ops.check
 
 **The deploy itself is fine.** ea71b9c is live; PLAT-5102 is fixed; latency restored. The only thing missing is the audit comment on Linear, which I'll flush later.
 
-Surfacing: \`/deploy --retry-pm\` to flush 1 deferred action.`,
+Surfacing: \`/oc-deploy --retry-pm\` to flush 1 deferred action.`,
       artifacts: ["release-stamp"],
     },
     {
@@ -1409,7 +1409,7 @@ Surfacing: \`/deploy --retry-pm\` to flush 1 deferred action.`,
       role: "claude",
       skill: "oc-deploy-ops",
       content:
-`\`/deploy --retry-pm\`:
+`\`/oc-deploy --retry-pm\`:
 
 Reading \`oc-deploy-ops.checkpoint.json\` → 1 entry, \`retriable: true\`.
 
@@ -1442,7 +1442,7 @@ PLAT-5103 is now \`Shipped\`. Each linked ticket (PLAT-5102) gets its own \`link
 
 1. **Per-skill cap.** Each skill's \`pm_deferred_actions[]\` is capped at **32 entries.** Overflow doesn't silently drop — it triggers a \`retriable: false\` user-facing error so you know the queue is filling. The cap prevents an unattended session from accumulating thousands of deferred writes if an upstream is out for days.
 
-2. **Per-marker deduplication.** Two deferred actions with the same marker collapse to one entry on insertion. So if you ran \`/deploy\` six times during a Linear outage and each tried to post the same \`prod-shipped\` comment on the same ticket, you'd still have one queue entry, not six. (Different deploys produce different markers because they include the deploy id.)
+2. **Per-marker deduplication.** Two deferred actions with the same marker collapse to one entry on insertion. So if you ran \`/oc-deploy\` six times during a Linear outage and each tried to post the same \`prod-shipped\` comment on the same ticket, you'd still have one queue entry, not six. (Different deploys produce different markers because they include the deploy id.)
 
 3. **TTL on deferred entries.** Entries older than **7 days** are pruned with a surfaced warning ("3 deferred comments older than 7d were dropped — they're audit-log only, not retryable"). The pipeline assumes that if you haven't flushed in a week, the comment is no longer load-bearing.
 
@@ -1498,7 +1498,7 @@ Auto-resolves at 10:31:29Z (queue drained; upstream partner-x recovered). Postmo
 
 This is what makes the loop **safe to retry**, not just retriable.
 
-**3. Deferred-action queue with explicit \`retriable\` flag.** The 503 mid-deploy didn't crash the deploy. The intended write was queued in \`oc-deploy-ops.checkpoint.json\` with \`retriable: true\` — \`/deploy --retry-pm\` flushes it later. 4xx-non-429 errors get \`retriable: false\` so a scope-violation broker rejection surfaces to the user instead of retrying forever. The queue is bounded at 32 entries per skill with 7d TTL.
+**3. Deferred-action queue with explicit \`retriable\` flag.** The 503 mid-deploy didn't crash the deploy. The intended write was queued in \`oc-deploy-ops.checkpoint.json\` with \`retriable: true\` — \`/oc-deploy --retry-pm\` flushes it later. 4xx-non-429 errors get \`retriable: false\` so a scope-violation broker rejection surfaces to the user instead of retrying forever. The queue is bounded at 32 entries per skill with 7d TTL.
 
 The audit pipeline trace (artifact below) shows what a brokered environment would log for this run — same ops, same markers, plus broker-side correlation ids tying agent calls to the audit record.`,
       artifacts: ["audit-pipeline"],

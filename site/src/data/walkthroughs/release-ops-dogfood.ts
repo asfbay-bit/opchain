@@ -5,7 +5,7 @@ import type { Walkthrough } from "./types";
  * oc-release-ops, the new 18th skill. Meta-scenario: the skill that
  * automates "scope → /changelog → bump → ship" is exercised on its
  * own release. The artifacts are the actual outputs from a real
- * pre-Monday rehearsal: the proposed semver from /release plan, the
+ * pre-Monday rehearsal: the proposed semver from /oc-release plan, the
  * generated changelog draft, the version-bump diff across 18
  * SKILL.md files, the release ticket created via PM-MCP, and the
  * staging + prod deploy hand-off to oc-git-ops + oc-deploy-ops.
@@ -15,9 +15,9 @@ export const releaseOpsDogfood: Walkthrough = {
   title: "oc-release-ops ships its own release (opchain v1.3 dogfood)",
   tagline: "v1.3 supporting · meta dogfood",
   summary:
-    "Sprint 4 just finished the QA pass. The user runs /release plan; oc-release-ops proposes v1.3.0 minor bump from sprint-checkpoint signal, drafts the /changelog entry, atomically bumps 18 SKILL.md versions, opens a release ticket via PM-MCP, then hands off to oc-git-ops + oc-deploy-ops. Nothing about v1.3 is special-cased — oc-release-ops works the same for any opchain-managed project.",
+    "Sprint 4 just finished the QA pass. The user runs /oc-release plan; oc-release-ops proposes v1.3.0 minor bump from sprint-checkpoint signal, drafts the /changelog entry, atomically bumps 18 SKILL.md versions, opens a release ticket via PM-MCP, then hands off to oc-git-ops + oc-deploy-ops. Nothing about v1.3 is special-cased — oc-release-ops works the same for any opchain-managed project.",
   description:
-    "oc-release-ops is the 18th skill, added in v1.3 to own the release-cadence pattern opchain has been using by hand since v1.0. This scenario exercises it on opchain itself: post-Sprint-4 evaluator pass, the user types /release plan and walks through the 5-phase pipeline (plan → draft → bump → announce → ship). The interesting bits: (a) /release plan reads every skill's checkpoint to detect what's shipped and proposes the right semver from the decision tree in references/semver-decisions.md; (b) /release bump rewrites every skills/<id>/SKILL.md frontmatter version: in lockstep, plus the styleguide badge and homepage release-pill; (c) /release announce creates a release ticket in Linear (ADEV-306, the same parent ticket that's been tracking the v1.3 sprints) with a stable idempotency marker so re-runs are no-ops; (d) /release ship invokes oc-git-ops for the bump commit and oc-deploy-ops for staging → prod. The artifact set is the actual release artefacts: the plan output, the changelog HTML diff, the version-bump diff, the announcement copy.",
+    "oc-release-ops is the 18th skill, added in v1.3 to own the release-cadence pattern opchain has been using by hand since v1.0. This scenario exercises it on opchain itself: post-Sprint-4 evaluator pass, the user types /oc-release plan and walks through the 5-phase pipeline (plan → draft → bump → announce → ship). The interesting bits: (a) /oc-release plan reads every skill's checkpoint to detect what's shipped and proposes the right semver from the decision tree in references/semver-decisions.md; (b) /oc-release bump rewrites every skills/<id>/SKILL.md frontmatter version: in lockstep, plus the styleguide badge and homepage release-pill; (c) /oc-release announce creates a release ticket in Linear (ADEV-306, the same parent ticket that's been tracking the v1.3 sprints) with a stable idempotency marker so re-runs are no-ops; (d) /oc-release ship invokes oc-git-ops for the bump commit and oc-deploy-ops for staging → prod. The artifact set is the actual release artefacts: the plan output, the changelog HTML diff, the version-bump diff, the announcement copy.",
   inputs: [
     "Post-Sprint-4 state · 18 skills at v1.2.0 · all checkpoints showing sprint complete",
     "oc-release-ops installed (per Sprint 2 of v1.3)",
@@ -27,10 +27,10 @@ export const releaseOpsDogfood: Walkthrough = {
   outputs: [
     {
       id: "release-plan",
-      label: "/release plan output — proposed v1.3.0 minor bump",
+      label: "/oc-release plan output — proposed v1.3.0 minor bump",
       kind: "release-plan.md",
       body:
-`# /release plan output — opchain v1.3 proposal
+`# /oc-release plan output — opchain v1.3 proposal
 
 **Generated:** 2026-05-11T08:12:01Z by oc-release-ops v1.3.0
 
@@ -74,7 +74,7 @@ The three load-bearing changes:
 - Platform menu expanded beyond Cloudflare Workers (Django, Rails, Go, Rust)
 - oc-release-ops automates the cadence opchain itself has used since v1.0
 
-## Headline ranking (drives /release draft order)
+## Headline ranking (drives /oc-release draft order)
 
 1. The PM-MCP loop is real (highest user-visible impact)
 2. oc-release-ops is the 18th skill (catalog growth + dogfood)
@@ -101,7 +101,7 @@ All 18, in lockstep. Catalog-wide-lockstep rule (semver-decisions.md
 | R1 | Downstream consumers vendoring v1.2 prose hit the validator failing on legacy \`mcp.<provider>.<verb>\` placeholders | MED | MED | Documented in /changelog migration note; validator emits clear error pointing at the search-replace command |
 | R2 | oc-release-ops itself has a subtle bug (it's brand-new); a mistake here is a release-on-release-ops bug | LOW | HIGH | Sprint 4 evaluator passed at 95+; manual dogfood rehearsal completed on a tag-and-revert branch before this proposed real run |
 | R3 | The 18-skill atomic version bump misses a file | LOW | MED | gen-catalog validates the bump end-to-end; CI fails if any SKILL.md is still on v1.2.0 after the bump commit |
-| R4 | Linear ADEV-306 (the parent ticket) isn't found by the pre-create check due to marker drift | LOW | LOW | Pre-create check confirmed via dry-run during \`/release plan\`; idempotent re-runs are safe |
+| R4 | Linear ADEV-306 (the parent ticket) isn't found by the pre-create check due to marker drift | LOW | LOW | Pre-create check confirmed via dry-run during \`/oc-release plan\`; idempotent re-runs are safe |
 | R5 | Cloudflare deploy from staging → prod takes longer than expected and the window slips | LOW | LOW | Manual operator workflow per CLAUDE.md; no automation involved; release can be paused at any point |
 
 ## Rollback plan
@@ -150,10 +150,10 @@ Checkpoint: \`.checkpoints/oc-release-ops.checkpoint.json\` (Phase 1 — plan).
     },
     {
       id: "changelog-draft",
-      label: "/release draft — generated /changelog entry",
+      label: "/oc-release draft — generated /changelog entry",
       kind: "changelog.astro.diff",
       body:
-`# /release draft — diff against site/src/pages/changelog.astro
+`# /oc-release draft — diff against site/src/pages/changelog.astro
 
 \`\`\`diff
 @@ -22,7 +22,80 @@
@@ -190,7 +190,7 @@ Checkpoint: \`.checkpoints/oc-release-ops.checkpoint.json\` (Phase 1 — plan).
 +        </li>
 +        <li>
 +          <strong><code>oc-release-ops</code> is the 18th skill.</strong>
-+          Verbs: <code>/release plan|draft|bump|announce|ship</code>.
++          Verbs: <code>/oc-release plan|draft|bump|announce|ship</code>.
 +          Reads every skill's checkpoint to propose the next semver,
 +          drafts the changelog entry from sprint outputs, atomically bumps
 +          all skill versions, opens a release ticket via PM-MCP, hands off
@@ -261,7 +261,7 @@ Same content rendered as the reader will see it, minus the Astro chrome:
 > **What's new**
 >
 > - **The PM-MCP loop is real.** v1.2 taught the skills to *describe* PM-tool calls; v1.3 actually invokes them. Concrete tool-name registry, retry / backoff, idempotency markers, and a deferred-action queue mean the four PM-aware skills (\`oc-app-architect\`, \`oc-git-ops\`, \`oc-deploy-ops\`, \`oc-monitoring-ops\`) can crash-restart mid-flow without polluting Linear / Jira / GitHub Issues.
-> - **\`oc-release-ops\` is the 18th skill.** Verbs: \`/release plan|draft|bump|announce|ship\`. Reads every skill's checkpoint to propose the next semver, drafts the changelog entry from sprint outputs, atomically bumps all skill versions, opens a release ticket via PM-MCP, hands off to \`oc-git-ops\` for the merge and \`oc-deploy-ops\` for staging + prod.
+> - **\`oc-release-ops\` is the 18th skill.** Verbs: \`/oc-release plan|draft|bump|announce|ship\`. Reads every skill's checkpoint to propose the next semver, drafts the changelog entry from sprint outputs, atomically bumps all skill versions, opens a release ticket via PM-MCP, hands off to \`oc-git-ops\` for the merge and \`oc-deploy-ops\` for staging + prod.
 > - **Platform menu grew.** Django + Postgres + Render, Rails + Postgres + Heroku, Go + Fly.io, and Rust + Axum + Shuttle.rs are first-class in \`oc-stack-forge\`'s decision tree, \`oc-app-architect\`'s scaffold recipes, and \`oc-deploy-ops\`'s provider sections.
 > - **Build-time PM-MCP validator.** \`scripts/validate-pm-mcp.mjs\` runs in \`npm run prebuild\` and CI; blocks the build on placeholder drift, missing protocol citations, or unknown tool names.
 >
@@ -289,10 +289,10 @@ Checkpoint: \`.checkpoints/oc-release-ops.checkpoint.json\` (Phase 2 — draft).
     },
     {
       id: "version-bump-diff",
-      label: "/release bump — atomic version diff across 18 SKILL.md + site",
+      label: "/oc-release bump — atomic version diff across 18 SKILL.md + site",
       kind: "diff",
       body:
-`# /release bump — files written
+`# /oc-release bump — files written
 
 Atomic single-batch write. Either all-or-nothing.
 
@@ -343,7 +343,7 @@ Atomic write — all 18 files committed in one diff. \`last_modified\` is the fi
 
 The 18 SKILL.md files are bumped in **one git commit**, not 18. If the commit fails (lint failure, validator failure, anything), git's atomic-write semantics mean none of the files change — we're never in a half-bumped state.
 
-If the commit succeeds but the bump introduces a regression (e.g. one skill's v1.3.0 frontmatter is malformed), the next \`/release verify\` step catches it before the release proceeds. The bump can be reverted with a single \`git revert <bump-sha>\`.
+If the commit succeeds but the bump introduces a regression (e.g. one skill's v1.3.0 frontmatter is malformed), the next \`/oc-release verify\` step catches it before the release proceeds. The bump can be reverted with a single \`git revert <bump-sha>\`.
 
 ## What was NOT bumped
 
@@ -373,10 +373,10 @@ site/src/pages/index.astro:2
       body:
 `# ADEV-306 — opchain v1.3 — Runtime PM, real platforms, automated releases
 
-**Project:** opchain-dev · **Type:** Release · **State:** In Progress → Shipped (after /release ship completes)
+**Project:** opchain-dev · **Type:** Release · **State:** In Progress → Shipped (after /oc-release ship completes)
 
 This was the parent tracking ticket the human created on 2026-05-07
-when scoping the release. \`/release announce\` ran the protocol §3
+when scoping the release. \`/oc-release announce\` ran the protocol §3
 pre-create check:
 
 \`mcp__claude_ai_Linear__list_issues(team="ADEV", query="opchain:oc-release-ops:release-ticket:v1.3.0")\`
@@ -390,7 +390,7 @@ the human running oc-app-architect dogfooded the protocol on the v1.3
 work — see scenario 10 / runtime-pm-loop for the same shape on
 PLAT-5102. Sprints 1-4 were tracked as child tickets ADEV-307..310.)
 
-## Comments added by /release announce
+## Comments added by /oc-release announce
 
 ### bump-committed
 
@@ -456,12 +456,12 @@ All four are in \`Done\` state as of this release-ticket transition to \`Shipped
 \`\`\`
 2026-05-07 09:00  founder  ADEV-306 created (Release, In Progress)
 2026-05-07 09:01  founder  description marker added: <!-- opchain:oc-release-ops:release-ticket:v1.3.0 -->
-2026-05-07 09:14  oc-app-architect  /discover --ticket ADEV-306 → 4-sprint plan
+2026-05-07 09:14  oc-app-architect  /oc-discover --ticket ADEV-306 → 4-sprint plan
 2026-05-07 09:42  oc-app-architect  child tickets created: ADEV-307..310
 2026-05-08-09    (Sprints 1-4 execute; checkpoints update)
-2026-05-11 08:12  oc-release-ops  /release plan run; proposed v1.3.0
-2026-05-11 08:14  oc-release-ops  /release bump committed
-2026-05-11 11:18  oc-release-ops  /release announce — bump-committed comment posted
+2026-05-11 08:12  oc-release-ops  /oc-release plan run; proposed v1.3.0
+2026-05-11 08:14  oc-release-ops  /oc-release bump committed
+2026-05-11 11:18  oc-release-ops  /oc-release announce — bump-committed comment posted
 2026-05-11 11:24  oc-deploy-ops    staging shipped comment posted
 2026-05-11 11:31  oc-deploy-ops    prod shipped comment posted
 2026-05-11 11:31  oc-release-ops   ADEV-306 transitioned → Shipped
@@ -471,7 +471,7 @@ All four are in \`Done\` state as of this release-ticket transition to \`Shipped
 
 - **The pre-create check works** — \`list_issues\` with the marker query
   matched the human-created parent. oc-release-ops did not duplicate it.
-- **/release announce is idempotent** — re-running it would match the
+- **/oc-release announce is idempotent** — re-running it would match the
   existing comments by marker and skip them.
 - **Cross-skill state respected** — oc-release-ops checks
   \`oc-deploy-ops.checkpoint.json\` to decide whether oc-deploy-ops should
@@ -482,7 +482,7 @@ Checkpoint: \`.checkpoints/oc-release-ops.checkpoint.json\` (Phase 4 — announc
     },
     {
       id: "announcement",
-      label: "/release announce — internal announcement copy",
+      label: "/oc-release announce — internal announcement copy",
       kind: "announcement.md",
       body:
 `# Internal announcement — opchain v1.3.0 shipped
@@ -505,11 +505,11 @@ v1.2 taught the opchain skills to talk *about* PM tools; v1.3 makes them actuall
 
 In v1.2, the four PM-aware skills (\`oc-app-architect\`, \`oc-git-ops\`, \`oc-deploy-ops\`, \`oc-monitoring-ops\`) had prose that *described* PM-tool calls. A Claude session reading the prose would guess at tool names (\`mcp.<provider>.<verb>\`). In v1.3, that prose is replaced by a concrete tool-name registry in \`oc-integrations-engineer/references/pm-mcp-protocol.md §1\` plus a runtime mechanism: every comment carries a stable idempotency marker (\`<!-- opchain:<skill>:<event>:<id> -->\`), every write goes through a marker pre-check, retries short-circuit, and failures land in a deferred-action queue that's safe to flush later.
 
-The result: the runtime-pm-loop demo scenario at \`/demo#runtime-pm-loop\` walks a real Linear ticket end-to-end — file the bug → \`/git-sync\` → audit → \`/deploy staging\` → \`/deploy prod\` (with a transient Linear 503 mid-deploy, queued + flushed cleanly) → incident → postmortem. Six skills, one Linear thread, audit-ready.
+The result: the runtime-pm-loop demo scenario at \`/demo#runtime-pm-loop\` walks a real Linear ticket end-to-end — file the bug → \`/oc-git-sync\` → audit → \`/oc-deploy staging\` → \`/oc-deploy prod\` (with a transient Linear 503 mid-deploy, queued + flushed cleanly) → incident → postmortem. Six skills, one Linear thread, audit-ready.
 
 ### 2. \`oc-release-ops\` is the 18th skill
 
-Verbs: \`/release plan|draft|bump|announce|ship\`. \`plan\` reads every skill's checkpoint to propose the next semver from a decision tree; \`draft\` generates the \`/changelog\` entry; \`bump\` atomically rewrites all 18 SKILL.md frontmatter versions plus the styleguide badge plus the homepage release-pill; \`announce\` opens the release ticket and emits the announcement copy; \`ship\` hands off to oc-git-ops + oc-deploy-ops with the audit gate cached. We dogfooded it on this very release — the \`/demo#release-ops-dogfood\` scenario is the actual transcript.
+Verbs: \`/oc-release plan|draft|bump|announce|ship\`. \`plan\` reads every skill's checkpoint to propose the next semver from a decision tree; \`draft\` generates the \`/changelog\` entry; \`bump\` atomically rewrites all 18 SKILL.md frontmatter versions plus the styleguide badge plus the homepage release-pill; \`announce\` opens the release ticket and emits the announcement copy; \`ship\` hands off to oc-git-ops + oc-deploy-ops with the audit gate cached. We dogfooded it on this very release — the \`/demo#release-ops-dogfood\` scenario is the actual transcript.
 
 ### 3. Platform menu grew beyond Cloudflare
 
@@ -590,13 +590,13 @@ Checkpoint: \`.checkpoints/oc-release-ops.checkpoint.json\` (Phase 4 — announc
     },
     {
       id: "ship-handoff",
-      label: "/release ship — handoff log to oc-git-ops + oc-deploy-ops",
+      label: "/oc-release ship — handoff log to oc-git-ops + oc-deploy-ops",
       kind: "handoff.md",
       body:
-`# /release ship — handoff log
+`# /oc-release ship — handoff log
 
 \`\`\`
-[oc-release-ops] /release verify
+[oc-release-ops] /oc-release verify
   ✓ npm run gen-catalog (18 skills validate)
   ✓ npm run validate-pm-mcp (5 skills, 0 warnings)
   ✓ npm run gen-flags (92 flags)
@@ -608,11 +608,11 @@ Checkpoint: \`.checkpoints/oc-release-ops.checkpoint.json\` (Phase 4 — announc
 
 [oc-release-ops] handing off to oc-git-ops for the release PR
 
-[oc-git-ops] /git-sync v1.3.0
+[oc-git-ops] /oc-git-sync v1.3.0
   → reading oc-release-ops.checkpoint.json for release context
   → branch: release/v1.3.0
   → commit: chore(release): v1.3.0 — Runtime PM, real platforms, automated releases
-  → oc-bug-check (cached from /release verify) PASS
+  → oc-bug-check (cached from /oc-release verify) PASS
   → PR opened: https://github.com/asfbay-bit/opchain/pull/178
   → Linear ADEV-306 updated:
       <!-- opchain:oc-git-ops:pr-opened:#178 -->
@@ -620,15 +620,15 @@ Checkpoint: \`.checkpoints/oc-release-ops.checkpoint.json\` (Phase 4 — announc
 
 [user] merging PR #178 (release branches go straight to main per repo policy)
 
-[oc-git-ops] /git-sync --closed
+[oc-git-ops] /oc-git-sync --closed
   → ADEV-306 commented:
       <!-- opchain:oc-git-ops:pr-merged:#178 -->
       Merged: 8f3c7d2 (chore(release): v1.3.0 ...)
   → handing off to oc-deploy-ops
 
-[oc-deploy-ops] /deploy staging
+[oc-deploy-ops] /oc-deploy staging
   → reading oc-release-ops.checkpoint.json — release in flight, suppressing own deploy-ticket creation
-  → audit gate (already passed in /release verify) — skip
+  → audit gate (already passed in /oc-release verify) — skip
   → wrangler deploy --env staging — 11.8s
   → smoke tests PASS (https://staging.opchain.dev)
   → /api/health returns SHA 8f3c7d2 ✓
@@ -636,13 +636,13 @@ Checkpoint: \`.checkpoints/oc-release-ops.checkpoint.json\` (Phase 4 — announc
 
 [user] eyeballing https://staging.opchain.dev — looks right, /changelog has v1.3 entry
 
-[oc-deploy-ops] /deploy
+[oc-deploy-ops] /oc-deploy
   → wrangler deploy — 9.2s
   → smoke tests PASS (https://opchain.dev)
   → /api/health returns SHA 8f3c7d2 ✓
   → oc-release-ops.checkpoint.json updated: shipped at 11:31Z
 
-[oc-release-ops] /release ship — closing
+[oc-release-ops] /oc-release ship — closing
   → ADEV-306 commented (with marker):
       <!-- opchain:oc-release-ops:shipped:v1.3.0 -->
       Production shipped: https://opchain.dev
@@ -656,7 +656,7 @@ Total elapsed: 18 minutes
 ## What's audit-able from this trace
 
 Every line that wrote to a Linear ticket carries a marker. A re-run
-of \`/release ship\` would match all markers and short-circuit, so the
+of \`/oc-release ship\` would match all markers and short-circuit, so the
 release process is **safe to retry on partial failure** — exactly
 what protocol §3 + §4 promise.
 
@@ -705,14 +705,14 @@ All 6 PASS. Post-ship hand-off complete.
 
 ## Retry semantics
 
-If \`/release ship\` is re-run by mistake or after partial failure:
+If \`/oc-release ship\` is re-run by mistake or after partial failure:
 
 - **All Linear writes** match their existing markers → no-op.
 - **The release tag** already exists → git push refuses; oc-release-ops surfaces "tag exists; assuming already shipped" and proceeds to post-ship verification only.
 - **The deploy** is idempotent at the Cloudflare layer (wrangler deploy of the same SHA is a no-op).
-- **Net effect:** re-running \`/release ship\` is safe; nothing duplicates; the worst case is wasted seconds running the post-ship verification a second time.
+- **Net effect:** re-running \`/oc-release ship\` is safe; nothing duplicates; the worst case is wasted seconds running the post-ship verification a second time.
 
-If a comment-post fails mid-flush (Linear 503), the deferred-action queue catches it; \`/release ship --retry-pm\` flushes once Linear recovers.
+If a comment-post fails mid-flush (Linear 503), the deferred-action queue catches it; \`/oc-release ship --retry-pm\` flushes once Linear recovers.
 
 Checkpoint: \`.checkpoints/oc-release-ops.checkpoint.json\` (Phase 5 — shipped).
 `,
@@ -729,7 +729,7 @@ Checkpoint: \`.checkpoints/oc-release-ops.checkpoint.json\` (Phase 5 — shipped
     {
       type: "exchange",
       role: "user",
-      content: "/release plan",
+      content: "/oc-release plan",
     },
     {
       type: "exchange",
@@ -765,7 +765,7 @@ Approve / override?`,
     {
       type: "exchange",
       role: "user",
-      content: "Approve as-is. /release draft.",
+      content: "Approve as-is. /oc-release draft.",
     },
     {
       type: "exchange",
@@ -778,7 +778,7 @@ The diff against \`site/src/pages/changelog.astro\` is in the artifact below —
 
 The previous v1.2 entry's tag class flipped from \`rel-tag\` to \`rel-tag rel-tag--past\` so the chrome demotes it; the existing CSS handles both classes.
 
-Each "What's new" bullet is ≤ 280 chars (changelog reading rhythm rule from changelog-recipe.md). Each scenario callout is ≤ 600 chars. Compatibility section is non-empty. \`/release verify\` will re-check these before shipping.
+Each "What's new" bullet is ≤ 280 chars (changelog reading rhythm rule from changelog-recipe.md). Each scenario callout is ≤ 600 chars. Compatibility section is non-empty. \`/oc-release verify\` will re-check these before shipping.
 
 Approve?`,
       artifacts: ["changelog-draft"],
@@ -786,7 +786,7 @@ Approve?`,
     {
       type: "exchange",
       role: "user",
-      content: "Approve. /release bump.",
+      content: "Approve. /oc-release bump.",
     },
     {
       type: "exchange",
@@ -807,7 +807,7 @@ Per \`oc-release-ops/references/version-locations.md\`, NOT bumped: \`package.js
     {
       type: "exchange",
       role: "user",
-      content: "/release announce.",
+      content: "/oc-release announce.",
     },
     {
       type: "exchange",
@@ -824,20 +824,20 @@ Reusing — not creating a duplicate. Adding the bump-committed comment with mar
 
 Generated announcement copy at \`releases/v1.3.0/announcement-internal.md\` (artifact below) and \`releases/v1.3.0/announcement-external.md\` (similar shape, blog/social tone).
 
-Ready for \`/release ship\`.`,
+Ready for \`/oc-release ship\`.`,
       artifacts: ["release-ticket", "announcement"],
     },
     {
       type: "exchange",
       role: "user",
-      content: "/release ship.",
+      content: "/oc-release ship.",
     },
     {
       type: "exchange",
       role: "claude",
       skill: "oc-release-ops",
       content:
-`\`/release verify\` runs the full pre-ship gate:
+`\`/oc-release verify\` runs the full pre-ship gate:
 
 \`\`\`
 ✓ gen-catalog (18 skills)

@@ -43,7 +43,7 @@ const terms: Term[] = [
     id: "orchestrator",
     term: "Orchestrator",
     short: "Routing skill that decides which skill should run next based on what you said, what phase you're in, and what the open checkpoints look like.",
-    long: "Exposes /ops — \"where did I leave off?\" Answers across every project on the machine. Reads all 18 checkpoints; writes its own pipeline state.",
+    long: "Exposes /oc-ops — \"where did I leave off?\" Answers across every project on the machine. Reads all 18 checkpoints; writes its own pipeline state.",
     related: [{ label: "Architecture", href: "/architecture" }],
   },
   {
@@ -70,7 +70,7 @@ const terms: Term[] = [
   {
     id: "slash-command",
     term: "Slash command",
-    short: "Short verb users type in Claude (like /discover, /audit, /deploy) that invokes a specific skill.",
+    short: "Short verb users type in Claude (like /oc-discover, /oc-audit, /oc-deploy) that invokes a specific skill.",
     long: "Each skill declares its commands in frontmatter. The flags registry can disable a verb globally with skills.command.<verb>.enabled. Subcommands inherit the parent verb's gate.",
     related: [{ label: "Skill Library", href: "/skills" }],
   },
@@ -98,7 +98,7 @@ const terms: Term[] = [
     id: "checkpoint-rollup",
     term: "Checkpoint rollup",
     short: "Cross-skill snapshot the orchestrator builds by reading every .checkpoints/*.checkpoint.json on the machine.",
-    long: "Generated on demand by /ops or npm run checkpoint:status. Useful when you're returning to a project after a week and want a one-page answer to \"what was I doing?\"",
+    long: "Generated on demand by /oc-ops or npm run checkpoint:status. Useful when you're returning to a project after a week and want a one-page answer to \"what was I doing?\"",
   },
   {
     id: "scenario",

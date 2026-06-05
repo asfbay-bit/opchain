@@ -64,8 +64,8 @@ The handler creates a \`checkout.sessions\` with:
 | \`metadata.source\` | \`"heads-down-app"\` |
 | \`metadata.owner_type\` | \`"User"\` or \`"Team"\` |
 | \`metadata.owner_id\` | the User or Team id |
-| \`success_url\` | \`https://app.headsdown.app/billing/success?session_id={CHECKOUT_SESSION_ID}\` |
-| \`cancel_url\` | \`https://app.headsdown.app/billing\` |
+| \`success_url\` | \`https://oc-app.headsdown.app/billing/success?session_id={CHECKOUT_SESSION_ID}\` |
+| \`cancel_url\` | \`https://oc-app.headsdown.app/billing\` |
 | \`subscription_data.metadata\` | mirrored from session metadata |
 | \`client_reference_id\` | \`{owner_type}:{owner_id}\` |
 | \`expires_at\` | now + 30 minutes |
@@ -468,7 +468,7 @@ CI runs ESLint with this rule; any new direct \`import "stripe"\` outside the bo
       body:
 `# Audit Report — Stripe Subscriptions
 
-**Scope** \`lib/billing/**\` + routes + middleware + tests · **Runner** \`/audit full\` + money-flow supplementary pass · **Gate** required before PR merge · **Auditor version** 1.2.0
+**Scope** \`lib/billing/**\` + routes + middleware + tests · **Runner** \`/oc-audit full\` + money-flow supplementary pass · **Gate** required before PR merge · **Auditor version** 1.2.0
 
 ## 1. Files inspected
 
@@ -581,7 +581,7 @@ After fixes applied:
 ## 11. Auditor sign-off
 
 - **Auditor:** oc-code-auditor v1.2.0
-- **Mode:** \`/audit full\` + money-flow supplementary pass
+- **Mode:** \`/oc-audit full\` + money-flow supplementary pass
 - **Run-time:** 6 m 18 s end-to-end (lint + typecheck + tests + grep gates + EXPLAIN benchmarks).
 - **Gate verdict:** PASS — oc-git-ops may merge.
 - **Re-audit recommended:** before any future change to the webhook ingestion pipeline or to the IP allow-list.
@@ -627,9 +627,9 @@ Checkpoint: \`.checkpoints/oc-code-auditor.checkpoint.json\`.`,
 ### 2.2 09:45 — Final smoke
 
 \`\`\`bash
-curl -fsS https://app.headsdown.app/api/health | jq '.version'
+curl -fsS https://oc-app.headsdown.app/api/health | jq '.version'
 # expect HEAD SHA on main
-curl -fsS https://app.headsdown.app/api/version
+curl -fsS https://oc-app.headsdown.app/api/version
 # expect HEAD SHA
 \`\`\`
 
@@ -869,7 +869,7 @@ Contract tests: 22 passing. Every handler has an idempotency test (replay the sa
     {
       type: "exchange", role: "claude", skill: "oc-code-auditor",
       content:
-`Invoked by oc-integrations-engineer on a Stripe integration — running \`/audit full\` with the **money-flow supplementary pass** (extra scrutiny on auth, webhook signatures, idempotency).
+`Invoked by oc-integrations-engineer on a Stripe integration — running \`/oc-audit full\` with the **money-flow supplementary pass** (extra scrutiny on auth, webhook signatures, idempotency).
 
 \`\`\`
  security

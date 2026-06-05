@@ -93,7 +93,7 @@ import RoadmapForm from "../components/RoadmapForm.astro";
       <ul>
         <li>
           <strong><code>oc-app-architect</code></strong> gains an "AI app?"
-          branch in <code>/discover</code> that routes to the four new
+          branch in <code>/oc-discover</code> that routes to the four new
           skills.
         </li>
         <li>
@@ -189,7 +189,7 @@ import RoadmapForm from "../components/RoadmapForm.astro";
           <code>eval_score_trend</code>.
         </li>
         <li>
-          <strong><code>oc-orchestrator</code></strong>'s <code>/ops next</code>
+          <strong><code>oc-orchestrator</code></strong>'s <code>/oc-ops next</code>
           factors cost and remaining budget into what it recommends you do
           next.
         </li>
@@ -428,7 +428,7 @@ import RoadmapForm from "../components/RoadmapForm.astro";
         </li>
         <li>
           <strong><code>oc-release-ops</code> is the 18th skill.</strong> Verbs:
-          <code>/release plan|draft|bump|announce|ship</code>. Reads every
+          <code>/oc-release plan|draft|bump|announce|ship</code>. Reads every
           skill's checkpoint to propose the next semver, drafts the changelog
           entry from sprint outputs, atomically bumps all skill versions,
           opens a release ticket via PM-MCP, hands off to <code>oc-git-ops</code>
@@ -521,14 +521,14 @@ import RoadmapForm from "../components/RoadmapForm.astro";
       <h3>What's new</h3>
       <ul>
         <li>
-          <strong>oc-app-architect /discover</strong> accepts a ticket
+          <strong>oc-app-architect /oc-discover</strong> accepts a ticket
           reference and pre-fills the interview from the ticket body +
-          comments. <code>/roadmap</code> writes the sprint plan back as
+          comments. <code>/oc-roadmap</code> writes the sprint plan back as
           a structured comment and (optionally) creates a child ticket
           per sprint.
         </li>
         <li>
-          <strong>oc-git-ops /git-sync TICKET-1234</strong> reads the
+          <strong>oc-git-ops /oc-git-sync TICKET-1234</strong> reads the
           ticket, shapes the branch / commit / PR from it, and
           transitions ticket state on PR open and merge. The PR body
           is generated from ticket description, diff summary, and
@@ -622,8 +622,8 @@ import RoadmapForm from "../components/RoadmapForm.astro";
       <p class="rel-summary">
         Tri-agent harness across <code>oc-app-architect</code>,
         <code>oc-code-auditor</code>, <code>oc-integrations-engineer</code>;
-        full-pipeline flow from <code>/discover</code> to
-        <code>/deploy</code>; oc-checkpoint-protocol v1.0 across every
+        full-pipeline flow from <code>/oc-discover</code> to
+        <code>/oc-deploy</code>; oc-checkpoint-protocol v1.0 across every
         skill; static Astro site; first set of six in-action
         scenarios.
       </p>

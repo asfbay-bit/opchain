@@ -626,7 +626,7 @@ Writing consolidated checkpoint. Hand back to you — or say \`/implement\` and 
 - **Data:** reuse existing \`/api/metrics\` — no backend changes.
 - **Acceptance:** Evaluator ≥ 90, Lighthouse mobile ≥ 85, feature-flag behind \`FLAG_NEW_DASHBOARD\` so you can A/B against the old one.
 
-oc-app-architect checkpoint written. Ready for you to \`/build\` when you are.`,
+oc-app-architect checkpoint written. Ready for you to \`/oc-build\` when you are.`,
       artifacts: ["dashboard-sprint"],
     },
   ],
