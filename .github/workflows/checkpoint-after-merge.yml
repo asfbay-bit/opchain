@@ -24,6 +24,11 @@ name: Checkpoint after merge
 # updates them at sensible inflection points via
 # `node scripts/checkpoint.mjs update <skill>`. Only oc-git-ops has a
 # deterministic post-merge update worth automating.
+#
+# Lightweight "stamp": `node scripts/checkpoint.mjs update <skill>` with no
+# --field args just re-stamps updated_at and re-validates — the simplest way to
+# mark a checkpoint as still-current at a phase boundary. To extend automation to
+# another skill, copy this job and swap the `update git-ops …` line.
 
 on:
   pull_request:

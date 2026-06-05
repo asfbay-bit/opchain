@@ -30,6 +30,10 @@ jobs:
         run: npm ci
       - name: Validate checkpoints (.checkpoints/<skill>.checkpoint.json)
         run: npm run checkpoint:validate
+      - name: Bundled skill references in sync with sources (fast-fail)
+        # Also enforced transitively by pretest/prebuild; this is an explicit,
+        # early signal so a source edit without a re-sync fails loudly.
+        run: npm run sync-bundles:check
       - name: Verify .claude/skills/ has no drift from skills/
         run: |
           # Each .claude/skills/<name> must be a symlink to ../../skills/<name>.

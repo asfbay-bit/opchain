@@ -34,6 +34,8 @@
     "site:build": "cd site && npm run build",
     "checkpoint": "node scripts/checkpoint.mjs",
     "checkpoint:status": "node scripts/checkpoint.mjs status",
+    "checkpoint:next": "node scripts/checkpoint.mjs next",
+    "checkpoint:doctor": "node scripts/checkpoint.mjs doctor",
     "checkpoint:validate": "node scripts/checkpoint.mjs validate",
     "prepare": "node scripts/install-git-drivers.mjs"
   },

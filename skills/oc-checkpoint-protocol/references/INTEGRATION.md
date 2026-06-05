@@ -16,10 +16,17 @@ Add this to every skill's command reference section:
   /checkpoint list    List all skill checkpoints in project
 ```
 
-**Implementation:** When any of these commands are received, run:
+**Implementation:** When any of these commands are received, run the canonical CLI
+(pure Node, zero deps) against the current project's `.checkpoints/` directory:
+
 ```bash
-bash /path/to/checkpoint.sh <command> <project-dir> <skill-name>
+node scripts/checkpoint.mjs <command>     # status | next | doctor | validate | update | done | init
 ```
+
+There is **no `checkpoint.sh`** — the tool is `scripts/checkpoint.mjs`. Map the
+`/checkpoint` sub-commands: `/checkpoint` → `status`, `/checkpoint next` → `next`,
+`/checkpoint doctor` → `doctor`, `/checkpoint list` → `status`, `/checkpoint reset`
+→ archive the file and re-`init`.
 
 ---
 
@@ -31,15 +38,18 @@ when the skill is invoked):
 ```
 RESUME CHECK
 ━━━━━━━━━━━━
-1. Determine project directory from context (user message, memory, or ask)
-2. Run: bash checkpoint.sh exists <project-dir> <skill-name>
-3. If exists:
-   a. Read checkpoint
+1. Determine project directory from context (user message or cwd).
+2. Check existence:  test -f .checkpoints/<skill-name>.checkpoint.json
+3. If it exists:
+   a. Read it (or run: node scripts/checkpoint.mjs status --brief)
    b. Display brief status (skill, phase, step, summary, last updated)
-   c. Ask: "Continue from here, restart, or show full checkpoint?"
-   d. On continue: load context_primer, start from next_actions[0]
-   e. On restart: run checkpoint.sh reset, proceed fresh
-4. If not exists: proceed with normal skill flow
+   c. If status is in_progress and NOT stale (<7d): continue automatically —
+      "Resuming from next_actions[0]: …". Don't ask.
+   d. If status is blocked/failed OR the checkpoint is stale (>7d): ask
+      "Continue from here, restart, or show full checkpoint?"
+   e. On continue: load context_primer, start from next_actions[0]
+   f. On restart: archive the file (mv to .bak) and proceed fresh
+4. If it does not exist: proceed with normal skill flow (or `init` to scaffold).
 ```
 
 ---
@@ -116,7 +126,12 @@ RESUME CHECK
 
 ---
 
-## tri-dev
+## oc-app-architect Phase 6 build loop (formerly `tri-dev`)
+
+> **tri-dev is retired.** Its Generator→Evaluator build harness now lives inside
+> **oc-app-architect Phase 6**. The checkpoint guidance below still applies — read
+> "the skill" as oc-app-architect, and `/td-status` / `/td-build` as oc-app-architect's
+> `/status` / `/oc-build`.
 
 ### Where to Write Checkpoints
 
@@ -162,8 +177,8 @@ RESUME CHECK
 ### SKILL.md Changes Required
 
 1. Add `/checkpoint` to the command reference under CONTROLS
-2. `/td-status` reads checkpoint first (instead of just scanning files)
-3. `/td-build` checks for checkpoint on entry — if mid-sprint, resume from last eval
+2. `/status` reads checkpoint first (instead of just scanning files)
+3. `/oc-build` checks for checkpoint on entry — if mid-sprint, resume from last eval
 4. After each evaluator round, write checkpoint with scores
 5. After spec approval gate, write checkpoint
 
@@ -210,23 +225,6 @@ RESUME CHECK
 
 ---
 
-## life-architect
-
-### Where to Write Checkpoints
-
-| Event | What to Save |
-|---|---|
-| Domain identified (career/financial/logistics) | Active domain, key constraints |
-| Analysis complete per domain | Findings, options presented |
-| Decision made | Decision + rationale |
-| Action plan generated | Plan reference, timeline |
-
-This skill benefits heavily from checkpoints because life planning conversations
-are inherently multi-session. A relocation plan discussed over 5 sessions currently
-loses all thread between them.
-
----
-
 ## Validation Checklist
 
 Before marking a skill as "oc-checkpoint-protocol compliant," verify:
@@ -239,5 +237,6 @@ Before marking a skill as "oc-checkpoint-protocol compliant," verify:
 - [ ] `context_primer` is dense enough to skip re-reading the full project
 - [ ] `next_actions` is specific enough to start working immediately
 - [ ] `progress_table` covers all phases the skill defines
-- [ ] Checkpoint file is under 4KB
-- [ ] Cross-skill reads work (e.g., oc-deploy-ops can read tri-dev's checkpoint)
+- [ ] `progress_summary` is scannable (a few sentences; validator warns >~1200 chars)
+- [ ] No runaway `skill_state` telemetry (validator warns >~32KB; rotate to `.checkpoints/history/`)
+- [ ] Cross-skill reads work (e.g., oc-deploy-ops can read oc-app-architect's checkpoint)

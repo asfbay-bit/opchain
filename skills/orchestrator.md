@@ -1,6 +1,13 @@
 # Orchestrator Protocol
 
-Shared reference for all aidops dev skills. Read this on first invocation of any skill
+> **Disambiguation:** this file (`orchestrator.md`) is the **shared protocol doc**
+> bundled into every skill's `references/` — it has no commands. It is **not** the
+> `oc-orchestrator` *skill* (`/oc-ops`, the multi-project registry + router), which lives
+> at `skills/oc-orchestrator/SKILL.md`. If you're looking for `/oc-ops status` / `/oc-ops
+> next`, that's the skill. This file is the ecosystem spec every skill reads on
+> startup.
+
+Shared reference for all opchain dev skills. Read this on first invocation of any skill
 in the ecosystem. It defines how skills discover each other, chain automatically, welcome
 novice users, and coordinate through checkpoints.
 

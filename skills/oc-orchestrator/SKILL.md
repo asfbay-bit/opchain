@@ -75,11 +75,22 @@ ORCHESTRATOR COMMANDS
   META
   /oc-ops health          Self-check: are all skill files accessible?
   /oc-ops skills          List all installed opchain skills with versions
-  /checkpoint          Show oc-orchestrator state (memory registry + session cache)
+  /checkpoint          Show oc-orchestrator state (registry + session, from the tracked checkpoint)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Type any command, or just describe what you need.
 ```
+
+> **What's wired vs. what's a pattern.** The oc-orchestrator is a *reasoning* skill —
+> most "commands" are behaviors Claude performs by reading checkpoints and routing,
+> not shell entry points. The pieces backed by **real tooling** are the checkpoint
+> reads/writes: `node scripts/checkpoint.mjs status | next | doctor | validate |
+> update | done | init`. `/oc-ops status`, `/oc-ops next`, and `/oc-ops blockers` lean on
+> those directly. `/oc-ops register`, `/oc-ops switch`, `/oc-ops scan`, `/oc-ops route`,
+> `/oc-ops health`, `/oc-ops skills`, and the v1.2 PM verbs (`/oc-ops resume`, `/oc-ops ticket`,
+> `/oc-ops pm-status`) are **agent behaviors** — described here as patterns, executed by
+> Claude, with state persisted to the tracked checkpoint. None are dead ends, but
+> don't expect a binary named `ops`.
 
 ---
 
@@ -103,10 +114,16 @@ If the project doesn't have `npm run checkpoint:status` wired up
 ls .checkpoints/*.checkpoint.json 2>/dev/null && cat .checkpoints/*.checkpoint.json
 ```
 
-If `.checkpoints/` doesn't exist at all, this is a cold start —
-delegate to `oc-checkpoint-protocol` to scaffold the schema, README,
-`scripts/checkpoint.mjs`, and the post-merge auto-stamp workflow
-before doing anything else.
+If `.checkpoints/` doesn't exist at all, this is a cold start. The
+`oc-checkpoint-protocol` is not directly invocable — instead run its scaffolder:
+
+```bash
+node scripts/checkpoint.mjs init
+```
+
+That creates `.checkpoints/` + a starter README. Follow the oc-checkpoint-protocol
+SKILL.md § "Scaffold Phase" to add the `package.json` scripts, the `.gitattributes`
+merge driver, and the optional post-merge auto-stamp workflow before routing work.
 
 **Do not** start routing or dispatching work until you've read the
 checkpoint state. The whole point of the protocol is that the next
@@ -168,23 +185,30 @@ The registry tracks all projects the user is actively working on.
 
 ### Persistence Model
 
-**Critical constraint:** Claude's filesystem resets between conversations. A global
-checkpoint file would be wiped every session. The oc-orchestrator uses a two-layer
-persistence strategy:
+**Critical constraint:** the worker filesystem is **ephemeral** — it resets between
+conversations and, on Claude Code for the web, between sessions on a fresh clone.
+Anything that must survive has to be **committed to git**. That is exactly why the
+checkpoint protocol tracks `.checkpoints/` in git, and the oc-orchestrator persists the
+**same way every other skill does**: a single tracked file at
 
-1. **Primary: `memory_user_edits`** — The project registry (names, paths, priority,
-   monorepo structure) is stored as a memory edit. This survives across conversations.
-   Format: one compact JSON line per `memory_user_edits add` call.
+```
+.checkpoints/oc-orchestrator.checkpoint.json
+```
 
-2. **Session cache: `~/.opchain/oc-orchestrator.session.json`** — Ephemeral per-session
-   file for routing history, last scan results, and active project state. Rebuilt
-   from memory + checkpoint scanning at session start.
+The project **registry** (names, paths, priority, monorepo apps) lives in that
+file's `skill_state.registry`. Routing history and the active project live in
+`skill_state` too. There is **no** `memory_user_edits` and **no** `~/.opchain/`
+session file — those were specified in an earlier draft and never worked on an
+ephemeral runner (memory edits aren't available in this runtime, and a home-dir
+file doesn't survive the clone). If you see references to them elsewhere, they're
+stale; the tracked checkpoint is the single source of truth.
 
-On session start, the oc-orchestrator reads its memory edit for the registry, then scans
-each registered path's `.checkpoints/` directory for live skill state. The session
-cache is a performance optimization, not a persistence layer.
+On session start the oc-orchestrator reads its own checkpoint for the registry, then
+runs `node scripts/checkpoint.mjs status` to scan every other skill's checkpoint in
+the active project for live state. (Re-scanning is cheap — there's no separate cache
+layer to keep warm or invalidate.)
 
-### Registry Schema (stored in memory)
+### Registry Schema (stored in `skill_state.registry` of the tracked checkpoint)
 
 ```jsonc
 {
@@ -248,10 +272,15 @@ This follows the existing checkpoint protocol convention (each skill writes
 grouping. Skills writing app-specific checkpoints set `project_dir` to
 `{monorepo}/.checkpoints/{app}/` instead of `{monorepo}/.checkpoints/`.
 
-**Migration note:** This requires a minor amendment to the checkpoint protocol
-(v1.1) to support subdirectory scoping. Until then, the oc-orchestrator can also
-fall back to scanning the `project` field inside each checkpoint to group by
-app when all checkpoints are flat in `.checkpoints/`.
+**Tooling-support note (important):** the canonical CLI (`scripts/checkpoint.mjs`)
+scans only the **top level** of `.checkpoints/` — it does not recurse into app
+subdirectories, and `checkpoint:validate` won't see subdir files either. So the
+subdirectory layout above is **not** the supported default today. Until recursion
+lands in the CLI, use the **flat** layout and group by the `project` field inside
+each checkpoint: write app-specific checkpoints as
+`.checkpoints/<app>-<skill>.checkpoint.json` (e.g. `gtrackr-app-architect.checkpoint.json`)
+with `project: "gtrackr"`, and let the oc-orchestrator group by that field. This keeps
+every checkpoint visible to `status`/`validate`/`doctor` with no tooling change.
 
 Status output groups by app within a monorepo:
 
@@ -301,8 +330,12 @@ I can scan for existing opchain checkpoints, or you can register a project manua
   /oc-ops scan             — Scan common paths for checkpoint files
 ```
 
-`/oc-ops scan` checks: `/home/claude/*/`, looking for `.checkpoints/` directories or
-`package.json` / `wrangler.toml` files. Presents discovered projects for confirmation.
+`/oc-ops scan` searches **roots derived at runtime** — never a hardcoded path. In
+order: the current working directory and its immediate children, then any parent
+that contains a `.git`, then the registry's existing project paths. It looks for
+`.checkpoints/` directories or `package.json` / `wrangler.*` manifests and presents
+discovered projects for confirmation. (The old `/home/claude/*` literal was wrong on
+every runtime except one; don't reintroduce it.)
 
 ---
 
@@ -314,10 +347,15 @@ a unified status view.
 ### Scan Process
 
 ```bash
-# For each registered project:
+# Preferred: let the canonical CLI read + summarize the active project.
+( cd {project.path} && node scripts/checkpoint.mjs status )
+
+# Raw fallback (flat layout — the supported default):
 ls {project.path}/.checkpoints/*.checkpoint.json 2>/dev/null
-# For monorepos, also scan subdirectories:
-ls {project.path}/.checkpoints/*/checkpoint.json 2>/dev/null
+# If you adopt the (unsupported-by-CLI) subdir layout, the glob is
+# */*.checkpoint.json — NOT */checkpoint.json, which never matches the
+# <app>/<skill>.checkpoint.json naming:
+ls {project.path}/.checkpoints/*/*.checkpoint.json 2>/dev/null
 ```
 
 For each checkpoint found:
@@ -388,6 +426,14 @@ project). Priority rules, in order:
 5. Pipeline-next for completed skills      (chain to the next skill)
 6. NOT_STARTED skills in pipeline order    (start the next logical skill)
 ```
+
+> **One implementation.** This exact hierarchy is encoded in
+> `scripts/checkpoint.mjs` (`rankCheckpoint` / the `next` command). For a single
+> project, `node scripts/checkpoint.mjs next` *is* `/oc-ops next` minus the
+> cross-project layer — so the two never diverge. The oc-orchestrator adds the
+> cross-project weighting (below) on top of the same ranking. Before recommending,
+> run `node scripts/checkpoint.mjs doctor` so you don't surface a `next_action`
+> that's already been shipped (the stale-action failure mode).
 
 ### Pipeline Order (tie-breaker)
 
@@ -555,34 +601,33 @@ BLOCKERS — All Projects
 
 ## Skill Health Check (`/oc-ops health`)
 
-Verifies the ecosystem is intact:
+Verifies the ecosystem is intact. **Read every value at runtime** — do not print
+remembered version numbers (they go stale, and a health check that lies is worse
+than none):
 
 ```bash
-# For each known opchain skill:
-# 1. Check SKILL.md exists in available skills
-# 2. Check orchestrator.md reference exists
-# 3. Check checkpoint.sh script exists
-# 4. Verify YAML frontmatter is parseable
-# 5. Report version numbers
+# For each skill directory under skills/:
+# 1. SKILL.md exists and its YAML frontmatter parses.
+# 2. version comes from that frontmatter (NOT a hardcoded table).
+# 3. references/orchestrator.md + references/checkpoint-protocol.md are present
+#    and in sync:  node scripts/sync-bundles:check
+# 4. The shared checkpoint writer exists ONCE at the repo root:
+#    test -f scripts/checkpoint.mjs   (there is NO per-skill checkpoint.sh)
+# 5. Checkpoints validate:  npm run checkpoint:validate
 ```
+
+Sample shape (versions shown as `vX.Y.Z` because they're read live, not memorized):
 
 ```
 ECOSYSTEM HEALTH
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  ✅ oc-app-architect     v1.1.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ oc-stack-forge       v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ oc-reverse-spec      v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ oc-ux-engineer       v1.1.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ oc-dash-forge        v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ oc-code-auditor      v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ integrations-eng  v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ oc-git-ops           v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ oc-deploy-ops        v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ oc-scale-ops         v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ checkpoint-proto  v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ oc-orchestrator      v1.0.0   SKILL.md ✓  (self)
+  ✅ oc-app-architect     vX.Y.Z   SKILL.md ✓  references ✓ (in sync)
+  ✅ oc-code-auditor      vX.Y.Z   SKILL.md ✓  references ✓ (in sync)
+  ✅ oc-orchestrator      vX.Y.Z   SKILL.md ✓  (self)
+  …one row per skill under skills/…
 
-  11 skills + 1 protocol | all healthy
+  shared writer: scripts/checkpoint.mjs ✓   checkpoints: npm run checkpoint:validate ✓
+  N skills + 1 protocol | all healthy
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -611,49 +656,50 @@ routing_history in the session cache tracks dispatches within the current conver
 
 ## Checkpoint Integration
 
-### Two-Layer Persistence
+### One tracked checkpoint (like every other skill)
 
-| Layer | Location | Survives session reset? | Contents |
-|---|---|---|---|
-| Memory | `memory_user_edits` | Yes | Project registry (names, paths, priority, apps) |
-| Session | `~/.opchain/oc-orchestrator.session.json` | No | Active project, routing history, last scan cache |
+The oc-orchestrator stores its own state in `.checkpoints/oc-orchestrator.checkpoint.json`,
+**tracked in git** so it survives the ephemeral worker. The cross-project registry
+and the per-session routing history both live in that file's `skill_state`. It still
+*reads* other skills' checkpoints at their standard `{project}/.checkpoints/`
+locations — but for its **own** state there is no memory layer and no `~/.opchain/`
+file.
 
-The oc-orchestrator does NOT use the standard `{project}/.checkpoints/` convention for
-its own state because it's cross-project. It reads other skills' checkpoints at those
-standard locations but stores its own registry in memory and its session state in an
-ephemeral file.
+| What | Where | Survives reset? |
+|---|---|---|
+| Project registry (names, paths, priority, apps, default) | `skill_state.registry` in the tracked checkpoint | **Yes** (git) |
+| Active project + routing history + last scan summary | `skill_state` in the same file | **Yes** (git) |
 
-### Session File Schema
+### `skill_state` shape
 
 ```jsonc
 {
-  "session_started": "2026-04-21T15:00:00Z",
-  "active_project": "aidops-core",
+  "registry": {
+    "projects": [ /* see Registry Schema above */ ],
+    "default_project": "aidops-core"
+  },
+  "active_project": "aidops-core",       // starts as default each session; /oc-ops switch changes it
   "last_scan": "2026-04-21T15:30:00Z",
-  "scan_cache": {
-    "aidops-core": {
-      "skills_found": ["oc-reverse-spec", "oc-app-architect", "oc-code-auditor"],
-      "blocker_count": 1,
-      "status_summary": "Sprint 2/4, 1 blocker"
-    }
+  "scan_summary": {
+    "aidops-core": { "skills_found": ["oc-reverse-spec", "oc-app-architect", "oc-code-auditor"], "blocker_count": 1, "status_summary": "Sprint 2/4, 1 blocker" }
   },
   "routing_history": [
-    {
-      "at": "2026-04-21T15:30:00Z",
-      "intent": "audit the code",
-      "routed_to": "oc-code-auditor",
-      "project": "aidops-core"
-    }
+    { "at": "2026-04-21T15:30:00Z", "intent": "audit the code", "routed_to": "oc-code-auditor", "project": "aidops-core" }
   ]
 }
 ```
 
+`scan_summary` is a convenience snapshot from the last scan — it's re-derived by
+re-running `node scripts/checkpoint.mjs status`, never trusted as a cache.
+
 ### Session Start Sequence
 
-1. Read `memory_user_edits` for project registry
-2. If registry exists: create `~/.opchain/`, scan all project paths for checkpoints
-3. If registry is empty: cold start flow (see Project Registry § Cold Start)
-4. Write session file with scan results
+1. Read `.checkpoints/oc-orchestrator.checkpoint.json` → `skill_state.registry`.
+2. If the registry has projects: scan each path (`node scripts/checkpoint.mjs status`),
+   refresh `scan_summary`, and write the checkpoint.
+3. If the registry is empty: cold start flow (see Project Registry § Cold Start).
+   On a project with no `.checkpoints/` at all, run `node scripts/checkpoint.mjs init`
+   first.
 
 ### Error Handling
 
@@ -661,7 +707,7 @@ ephemeral file.
 |---|---|---|
 | Registered path doesn't exist | `stat {path}` fails | Flag project as unreachable, skip in status, suggest `/oc-ops unregister` |
 | Checkpoint file is malformed JSON | JSON parse error | Skip that skill, flag in status: "⚠️ {skill} checkpoint corrupt" |
-| Memory edit is stale (references deleted project) | Path scan fails | Remove from registry, update memory edit |
+| Registry entry is stale (references deleted project) | Path scan fails | Remove from `skill_state.registry`, write the checkpoint |
 | No checkpoints at registered path | Empty `.checkpoints/` dir | Show project as registered but no pipeline activity |
 
 ### Cross-Skill Reads
@@ -676,31 +722,31 @@ ephemeral file.
 
 ### When to Write
 
-| Event | Write to memory? | Write to session? |
-|---|---|---|
-| Project registered/unregistered | Yes | Yes |
-| Active project changed | No | Yes |
-| `/oc-ops next` computed | No | Yes (routing_history) |
-| `/oc-ops status` scanned | No | Yes (scan_cache) |
-| Routing dispatched | No | Yes (routing_history) |
+All writes go to the one tracked checkpoint (`update oc-orchestrator --skill_state…`):
+
+| Event | What changes in `skill_state` |
+|---|---|
+| Project registered/unregistered | `registry.projects`, `registry.default_project` |
+| Active project changed | `active_project` |
+| `/oc-ops status` scanned | `last_scan`, `scan_summary` |
+| Routing dispatched | append to `routing_history` |
 
 ### `/checkpoint` Behavior
 
-Unlike other skills, the oc-orchestrator doesn't have a single checkpoint file. When
-`/checkpoint` is invoked, it shows both persistence layers:
+Like every other skill, the oc-orchestrator has one tracked checkpoint. `/checkpoint`
+summarizes its `skill_state`:
 
 ```
-ORCHESTRATOR STATE
+ORCHESTRATOR STATE  (.checkpoints/oc-orchestrator.checkpoint.json — tracked in git)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Memory (persistent):
-  Registry: 3 projects (aidops-core [primary], penthreshold, GET RIPPED)
+Registry:
+  3 projects (aidops-core [primary], penthreshold, GET RIPPED)
   Default: aidops-core
 
-Session (ephemeral):
+Session:
   Active: aidops-core
   Last scan: 2 min ago
   Routing history: 3 dispatches this session
-  Session file: ~/.opchain/oc-orchestrator.session.json
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -760,9 +806,21 @@ monorepo, the oc-orchestrator should:
 
 ---
 
-## Relationship to orchestrator.md
+## Relationship to `orchestrator.md`
 
-The existing `orchestrator.md` file bundled in every skill remains as-is. It defines:
+> **Two different things share the word "oc-orchestrator" — don't conflate them:**
+> - **`oc-orchestrator` (this skill)** — `/oc-ops`: multi-project registry, cross-project
+>   status, priority engine, routing. Has commands and a checkpoint.
+> - **`orchestrator.md` (the shared protocol doc)** — bundled into *every* skill's
+>   `references/`, read on first invocation. Defines the welcome protocol, pipeline
+>   map, chaining, and novice mode. No commands; it's a spec every skill follows.
+>
+> (The filename is kept as-is deliberately: ~18 skills are instructed to "read
+> `references/orchestrator.md`" on startup, so renaming it is a high-blast-radius
+> change for low value. The disambiguation header at the top of that file makes the
+> distinction clear in place.)
+
+The shared `orchestrator.md` file bundled in every skill remains as-is. It defines:
 - Welcome protocol (each skill's own entry behavior)
 - Pipeline map (reference for all skills)
 - Active chaining protocol (how skills invoke each other)

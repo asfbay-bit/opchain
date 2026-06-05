@@ -1,36 +1,57 @@
 #!/usr/bin/env node
 /**
- * Checkpoint CLI — read, validate, and update opchain skill checkpoints.
+ * Checkpoint CLI — read, validate, update, and reconcile opchain skill checkpoints.
  *
  * Files live at <repo>/.checkpoints/<skill>.checkpoint.json and are
  * tracked in git as living "session state docs". See
  * .checkpoints/README.md for the schema.
  *
  * Subcommands:
- *   status                            Print a markdown summary of every checkpoint.
- *   validate                          Exit 0 if all checkpoints satisfy the schema, 1 otherwise.
- *   update <skill> [--field=value...] Read existing checkpoint (or scaffold), apply updates,
- *                                     stamp updated_at, validate, write.
+ *   status [--brief] [--since=ISO]    Print a markdown session-resume summary.
+ *   next                              Print the single highest-priority next action.
+ *   doctor [--online]                 Cross-check checkpoints against ground truth
+ *                                     (git, filesystem, optionally /api/health) and
+ *                                     report drift. Exit 1 only on hard inconsistencies.
+ *   validate [--strict]               Exit 0 if all checkpoints satisfy the schema.
+ *                                     --strict promotes warnings to errors.
+ *   update <skill> [--field=value...] Read existing checkpoint (or scaffold), apply
+ *                                     updates, stamp updated_at, validate, write.
+ *   done <skill>                      Pop next_actions[0] into recently_done + restamp.
+ *   init                              Scaffold .checkpoints/ on a fresh project.
  *
  * Design notes:
- *   - Pure Node, zero deps. Validator is hand-rolled against the schema
- *     in this file (mirrors .checkpoints/README.md). Adding ajv would
- *     pull in a sub-tree we don't need for ~200 lines of validation.
- *   - `status` is the canonical session-resume command. CLAUDE.md tells
- *     the next session to run it on boot.
- *   - `update` is the convenience that lets the assistant edit fields
- *     without hand-writing JSON; it's optional — any checkpoint can also
- *     be edited directly. Validator runs after every update.
+ *   - Pure Node, zero deps. The validator is hand-rolled against the schema
+ *     in this file (mirrors .checkpoints/README.md). Adding ajv would pull in
+ *     a sub-tree we don't need.
+ *   - `status` is the canonical session-resume command. CLAUDE.md tells the
+ *     next session to run it on boot. `next` is the "what do I do right now?"
+ *     companion — it encodes the priority hierarchy that used to live only in
+ *     orchestrator prose, so it works without the orchestrator's registry.
+ *   - `doctor` exists because checkpoints drift from reality (shipped-but-says-
+ *     pending, stale next_actions, wrong project_dir). It catches that drift
+ *     deterministically instead of waiting for a human to notice.
+ *   - `update` preserves its exact CLI contract — checkpoint-after-merge.yml and
+ *     several skills shell out to `update <skill> --field=value`.
+ *
+ * Schema version vs skill release version:
+ *   `protocol_version` is the ON-DISK schema version. It is "1.0" and changes
+ *   only when the file shape breaks compatibly. It is NOT the checkpoint-protocol
+ *   *skill* release version (that lives in skills/checkpoint-protocol/SKILL.md
+ *   frontmatter and moves independently as the docs/tooling evolve).
  */
 
-import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from "node:fs";
 import { dirname, join, basename } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { execSync } from "node:child_process";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const DIR  = join(ROOT, ".checkpoints");
 
-/** Required + optional field shape. Mirrors .checkpoints/README.md. */
+/** On-disk schema version. See header note: distinct from the skill release version. */
+const SCHEMA_VERSION = "1.0";
+
+/** Required scalar fields (hard errors if missing). */
 const REQUIRED = [
   "protocol_version",
   "skill",
@@ -44,7 +65,25 @@ const REQUIRED = [
   "progress_summary",
 ];
 const STATUS_ENUM = ["in_progress", "blocked", "complete", "failed"];
+// Row statuses are a SUPERSET of the top-level status enum: a row can be
+// "not_started" (nothing has happened yet) which is meaningless for a whole
+// checkpoint. Kept separate deliberately; documented in .checkpoints/README.md.
+const ROW_STATUS = ["complete", "in_progress", "not_started", "blocked", "failed"];
+const NEEDS_ENUM = ["user_decision", "code_fix", "external_dep"];
+const PM_ROLE_ENUM = ["source", "child", "deploy", "incident", "linked"];
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
+
+/** Soft size guidance. The resumable core should stay small; runaway growth in
+ *  skill_state (append-only telemetry) is the usual culprit and the thing that
+ *  causes merge conflicts. We only WARN, and only well above current real files. */
+const SIZE_WARN_BYTES = 32 * 1024;
+/** progress_summary is read on every resume; keep it scannable. Soft warn only. */
+const SUMMARY_WARN_CHARS = 1200;
+/** A checkpoint older than this with status in_progress is probably stale. */
+const STALE_DAYS = 7;
+
+// Repo-relative prefixes that look like real generated artifacts worth existence-checking.
+const ARTIFACT_PREFIXES = ["src/", "scripts/", "skills/", "site/", "spec/", "design/", "sprints/", ".checkpoints/", ".github/", ".opchain/"];
 
 function listCheckpoints() {
   if (!existsSync(DIR)) return [];
@@ -56,13 +95,32 @@ function listCheckpoints() {
 
 function readCheckpoint(path) {
   const raw = readFileSync(path, "utf8");
-  try { return { path, data: JSON.parse(raw) }; }
+  try { return { path, data: JSON.parse(raw), bytes: Buffer.byteLength(raw) }; }
   catch (err) { throw new Error(`${path}: invalid JSON — ${err.message}`); }
 }
 
-/** Returns array of error strings; empty array = valid. */
-function validate(path, data) {
+function daysSince(iso) {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return null;
+  return (Date.now() - t) / 86_400_000;
+}
+
+/** A next_action may be a plain string or { text, done_when }. Normalize to text. */
+function actionText(a) {
+  if (a == null) return "";
+  if (typeof a === "string") return a;
+  if (typeof a === "object" && typeof a.text === "string") return a.text;
+  return String(a);
+}
+
+/**
+ * Validate one checkpoint.
+ * Returns { errors: string[], warnings: string[] }.
+ * errors fail CI (exit 1); warnings are advisory (exit 0) unless --strict.
+ */
+function validate(path, data, bytes = 0) {
   const errors = [];
+  const warnings = [];
   const file = basename(path);
 
   for (const k of REQUIRED) {
@@ -70,8 +128,12 @@ function validate(path, data) {
       errors.push(`missing required field "${k}"`);
     }
   }
-  if (data.protocol_version && data.protocol_version !== "1.0") {
-    errors.push(`protocol_version must be "1.0" (got ${JSON.stringify(data.protocol_version)})`);
+  if (data.protocol_version && data.protocol_version !== SCHEMA_VERSION) {
+    errors.push(
+      `protocol_version must be the on-disk schema version "${SCHEMA_VERSION}" ` +
+      `(got ${JSON.stringify(data.protocol_version)}). This is the wire-format ` +
+      `version, not the checkpoint-protocol skill release version.`
+    );
   }
   if (data.status && !STATUS_ENUM.includes(data.status)) {
     errors.push(`status must be one of ${STATUS_ENUM.join("|")} (got "${data.status}")`);
@@ -79,15 +141,25 @@ function validate(path, data) {
   if (data.created_at && !ISO.test(data.created_at)) errors.push(`created_at must be ISO-8601 UTC`);
   if (data.updated_at && !ISO.test(data.updated_at)) errors.push(`updated_at must be ISO-8601 UTC`);
 
+  // K2: timestamp sanity.
+  const c = data.created_at && ISO.test(data.created_at) ? Date.parse(data.created_at) : null;
+  const u = data.updated_at && ISO.test(data.updated_at) ? Date.parse(data.updated_at) : null;
+  if (c != null && u != null && u < c) {
+    errors.push(`updated_at (${data.updated_at}) is before created_at (${data.created_at})`);
+  }
+  if (u != null && u > Date.now() + 86_400_000) {
+    warnings.push(`updated_at (${data.updated_at}) is in the future — clock skew or a typo?`);
+  }
+
   // Filename-skill consistency: foo.checkpoint.json must own skill="foo".
   if (data.skill) {
     const expected = `${data.skill}.checkpoint.json`;
     if (file !== expected) errors.push(`filename ${file} does not match skill="${data.skill}" (expected ${expected})`);
   }
 
-  // Status enum on each progress_table row, if present.
+  // progress_table rows.
+  const rowIds = new Set();
   if (Array.isArray(data.progress_table)) {
-    const ROW_STATUS = ["complete", "in_progress", "not_started", "blocked", "failed"];
     data.progress_table.forEach((row, i) => {
       if (!row || typeof row !== "object") {
         errors.push(`progress_table[${i}] must be an object`);
@@ -96,90 +168,394 @@ function validate(path, data) {
       for (const k of ["id", "label", "status"]) {
         if (!row[k]) errors.push(`progress_table[${i}].${k} required`);
       }
+      if (row.id) rowIds.add(row.id);
       if (row.status && !ROW_STATUS.includes(row.status)) {
         errors.push(`progress_table[${i}].status must be one of ${ROW_STATUS.join("|")}`);
       }
     });
+  } else if (data.status === "in_progress") {
+    warnings.push(`no progress_table — recommended for in_progress checkpoints so resume can show position`);
   }
 
-  // Optional: blockers shape.
-  if (Array.isArray(data.blockers)) {
-    data.blockers.forEach((b, i) => {
-      if (!b.id || !b.description) errors.push(`blockers[${i}] needs at least id + description`);
+  // A6: next_actions is the linchpin of resume. An in_progress checkpoint with
+  // no queued action is useless to the next session — that's a hard error.
+  const na = data.next_actions;
+  const naLen = Array.isArray(na) ? na.length : 0;
+  if (data.status === "in_progress" && naLen === 0) {
+    errors.push(`next_actions must be a non-empty array when status is "in_progress" (the next session reads next_actions[0] first)`);
+  }
+  if (na !== undefined && !Array.isArray(na)) {
+    errors.push(`next_actions must be an array`);
+  } else if (Array.isArray(na)) {
+    na.forEach((a, i) => {
+      if (typeof a === "string") return;
+      if (a && typeof a === "object" && typeof a.text === "string") {
+        if (a.done_when !== undefined && typeof a.done_when !== "string") {
+          errors.push(`next_actions[${i}].done_when must be a string (a shell command to self-verify completion)`);
+        }
+        return;
+      }
+      errors.push(`next_actions[${i}] must be a string or { text, done_when? }`);
     });
   }
 
-  return errors;
+  // context_primer is strongly recommended (it's what lets resume skip a full re-read).
+  if (data.context_primer === undefined && data.status === "in_progress") {
+    warnings.push(`no context_primer — resume will have to re-read the project; add key_decisions + generated_files`);
+  }
+
+  // blockers shape + K1 needs enum + K3 referential check.
+  if (Array.isArray(data.blockers)) {
+    data.blockers.forEach((b, i) => {
+      if (!b || typeof b !== "object") { errors.push(`blockers[${i}] must be an object`); return; }
+      if (!b.id || !b.description) errors.push(`blockers[${i}] needs at least id + description`);
+      if (b.needs !== undefined && !NEEDS_ENUM.includes(b.needs)) {
+        errors.push(`blockers[${i}].needs must be one of ${NEEDS_ENUM.join("|")} (got "${b.needs}") — the priority engine routes on this`);
+      }
+      if (b.blocking && rowIds.size > 0 && !rowIds.has(b.blocking)) {
+        warnings.push(`blockers[${i}].blocking="${b.blocking}" does not match any progress_table.id — dangling reference?`);
+      }
+    });
+  }
+
+  // A4: pm_refs is an optional schema extension. Validate its shape when present.
+  if (data.pm_refs !== undefined) {
+    if (!Array.isArray(data.pm_refs)) {
+      errors.push(`pm_refs must be an array`);
+    } else {
+      data.pm_refs.forEach((r, i) => {
+        if (!r || typeof r !== "object") { errors.push(`pm_refs[${i}] must be an object`); return; }
+        if (!r.provider) errors.push(`pm_refs[${i}].provider required`);
+        if (!r.id) errors.push(`pm_refs[${i}].id required`);
+        if (r.role !== undefined && !PM_ROLE_ENUM.includes(r.role)) {
+          errors.push(`pm_refs[${i}].role must be one of ${PM_ROLE_ENUM.join("|")} (got "${r.role}")`);
+        }
+      });
+    }
+  }
+
+  // D2: soft size guidance.
+  if (bytes > SIZE_WARN_BYTES) {
+    warnings.push(`checkpoint is ${(bytes / 1024).toFixed(1)}KB (> ${SIZE_WARN_BYTES / 1024}KB) — rotate old skill_state telemetry into .checkpoints/history/`);
+  }
+  if (typeof data.progress_summary === "string" && data.progress_summary.length > SUMMARY_WARN_CHARS) {
+    warnings.push(`progress_summary is ${data.progress_summary.length} chars (> ${SUMMARY_WARN_CHARS}) — keep it scannable; push detail into progress_table`);
+  }
+
+  return { errors, warnings };
 }
 
-function cmdValidate() {
+// ───────────────────────────── priority engine (L1) ─────────────────────────
+//
+// One implementation of the hierarchy that orchestrator.md describes in prose.
+// `next` uses it locally (no registry needed); /ops can reuse the same ranking.
+//
+//   1. BLOCKED needing user_decision   (you're the bottleneck)
+//   2. FAILED                          (something broke)
+//   3. IN_PROGRESS at a gate           (approval needed to continue)
+//   4. IN_PROGRESS mid-work            (resume where you left off)
+//   5. COMPLETE with queued next steps (chain onward)
+//   6. NOT-STARTED / everything else
+//
+// Lower rank number = higher priority. Ties break on most-recent updated_at.
+
+function looksLikeGate(data) {
+  const hay = `${data.phase || ""} ${data.step || ""}`.toLowerCase();
+  if (/\bgate\b|approval|approve|sign-?off|awaiting/.test(hay)) return true;
+  if (Array.isArray(data.progress_table)) {
+    return data.progress_table.some(
+      (r) => r.status === "in_progress" && /gate|approval|approve/i.test(r.id + " " + r.label)
+    );
+  }
+  return false;
+}
+
+function rankCheckpoint(data) {
+  const blockers = Array.isArray(data.blockers) ? data.blockers : [];
+  if (blockers.some((b) => b.needs === "user_decision")) return 1;
+  if (data.status === "failed") return 2;
+  if (data.status === "blocked") return 2; // broken/stuck — surface alongside failed
+  if (data.status === "in_progress") return looksLikeGate(data) ? 3 : 4;
+  const naLen = Array.isArray(data.next_actions) ? data.next_actions.length : 0;
+  if (data.status === "complete" && naLen > 0) return 5;
+  return 6;
+}
+
+function pickNext(checkpoints) {
+  const ranked = checkpoints
+    .map(({ data }) => ({ data, rank: rankCheckpoint(data), t: Date.parse(data.updated_at || 0) || 0 }))
+    .sort((a, b) => (a.rank - b.rank) || (b.t - a.t));
+  return ranked[0];
+}
+
+function recommendedAction(data) {
+  const blockers = Array.isArray(data.blockers) ? data.blockers : [];
+  const decision = blockers.find((b) => b.needs === "user_decision");
+  if (decision) {
+    return {
+      why: `Blocked on your decision: ${decision.description}`,
+      action: decision.proposed_resolution || "Resolve the blocker, then resume.",
+    };
+  }
+  const firstBlocker = blockers[0];
+  if (data.status === "failed" || data.status === "blocked") {
+    return {
+      why: firstBlocker ? `${data.status}: ${firstBlocker.description}` : `${data.status} — needs recovery`,
+      action: firstBlocker?.proposed_resolution || actionText((data.next_actions || [])[0]) || "Diagnose and recover.",
+    };
+  }
+  const na = (data.next_actions || [])[0];
+  return {
+    why: data.progress_summary ? data.progress_summary.split(/(?<=\.)\s/)[0] : `${data.skill} is ${data.status}`,
+    action: actionText(na) || "No queued next action — review the checkpoint.",
+  };
+}
+
+// ───────────────────────────── commands ─────────────────────────────────────
+
+function cmdValidate(strict = false) {
   const paths = listCheckpoints();
   if (paths.length === 0) {
     console.log("(no checkpoints found in .checkpoints/)");
     return 0;
   }
   let bad = 0;
+  let warned = 0;
   for (const p of paths) {
     let cp;
     try { cp = readCheckpoint(p); }
     catch (e) { console.error(`✗ ${basename(p)}\n    ${e.message}`); bad++; continue; }
-    const errs = validate(p, cp.data);
-    if (errs.length === 0) console.log(`✓ ${basename(p)}`);
-    else { console.error(`✗ ${basename(p)}`); errs.forEach((e) => console.error(`    ${e}`)); bad++; }
+    const { errors, warnings } = validate(p, cp.data, cp.bytes);
+    const hardErrors = strict ? [...errors, ...warnings] : errors;
+    if (hardErrors.length === 0) {
+      console.log(`✓ ${basename(p)}`);
+      if (!strict && warnings.length) { warnings.forEach((w) => console.log(`    ⚠ ${w}`)); warned += warnings.length; }
+    } else {
+      console.error(`✗ ${basename(p)}`);
+      hardErrors.forEach((e) => console.error(`    ${e}`));
+      bad++;
+    }
   }
   if (bad > 0) {
-    console.error(`\n${bad} checkpoint(s) failed validation.`);
+    console.error(`\n${bad} checkpoint(s) failed validation${strict ? " (--strict)" : ""}.`);
     return 1;
   }
-  console.log(`\nAll ${paths.length} checkpoint(s) valid.`);
+  console.log(`\nAll ${paths.length} checkpoint(s) valid${warned ? ` (${warned} warning(s))` : ""}.`);
   return 0;
 }
 
-function cmdStatus() {
+function readAll() {
+  const out = [];
+  for (const p of listCheckpoints()) {
+    try { out.push(readCheckpoint(p)); } catch { /* surfaced by validate */ }
+  }
+  return out;
+}
+
+function cmdStatus(opts = {}) {
   const paths = listCheckpoints();
   if (paths.length === 0) {
     console.log("(no checkpoints found in .checkpoints/)");
     return 0;
   }
+  const all = readAll();
+  const sinceT = opts.since ? Date.parse(opts.since) : null;
+
+  // H5: lead with the bottleneck banner — decisions waiting on the user.
+  const decisions = [];
+  for (const { data } of all) {
+    for (const b of (Array.isArray(data.blockers) ? data.blockers : [])) {
+      if (b.needs === "user_decision") decisions.push({ skill: data.skill, b });
+    }
+  }
+  if (decisions.length) {
+    console.log(`⛔ ${decisions.length} decision(s) waiting on you:`);
+    decisions.forEach(({ skill, b }) => console.log(`   • [${skill}] ${b.description}`));
+    console.log("");
+  }
+
+  // H2: brief mode — just the single thing to do next + open blockers.
+  if (opts.brief) {
+    const top = pickNext(all);
+    if (top) {
+      const rec = recommendedAction(top.data);
+      console.log(`▶ ${top.data.skill}  (${top.data.status}, ${top.data.phase}/${top.data.step})`);
+      console.log(`  Next: ${rec.action}`);
+    }
+    const blockers = all.flatMap(({ data }) =>
+      (Array.isArray(data.blockers) ? data.blockers : []).map((b) => `  🚫 [${data.skill}] ${b.id}: ${b.description}`)
+    );
+    if (blockers.length) { console.log("\nOpen blockers:"); blockers.forEach((b) => console.log(b)); }
+    return 0;
+  }
+
   console.log("# Session state\n");
-  console.log("| Skill | Phase | Step | Status | Updated |");
-  console.log("|---|---|---|---|---|");
-  for (const p of paths) {
-    let cp;
-    try { cp = readCheckpoint(p); }
-    catch { console.log(`| ${basename(p)} | _invalid JSON_ | — | — | — |`); continue; }
-    const d = cp.data;
+  console.log("| Skill | Phase | Step | Status | Updated | Age |");
+  console.log("|---|---|---|---|---|---|");
+  for (const { data: d } of all) {
     const updated = d.updated_at ? d.updated_at.replace("T", " ").replace("Z", " UTC") : "—";
-    console.log(`| ${d.skill || "?"} | ${d.phase || "?"} | ${d.step || "?"} | ${d.status || "?"} | ${updated} |`);
+    const age = d.updated_at ? daysSince(d.updated_at) : null;
+    // H4: stale flag.
+    let ageCell = age == null ? "—" : `${age < 1 ? "<1" : Math.floor(age)}d`;
+    if (age != null && age > STALE_DAYS && d.status === "in_progress") ageCell = `⚠ ${Math.floor(age)}d stale`;
+    console.log(`| ${d.skill || "?"} | ${d.phase || "?"} | ${d.step || "?"} | ${d.status || "?"} | ${updated} | ${ageCell} |`);
   }
   console.log();
-  for (const p of paths) {
-    let cp;
-    try { cp = readCheckpoint(p); } catch { continue; }
-    const d = cp.data;
-    console.log(`## ${d.skill || basename(p)}`);
+  for (const { data: d } of all) {
+    if (sinceT != null) {
+      const u = Date.parse(d.updated_at || 0);
+      if (!(u >= sinceT)) continue; // L4: --since filters to recently-touched skills
+    }
+    console.log(`## ${d.skill || "?"}`);
     console.log(d.progress_summary || "_no summary_");
     if (Array.isArray(d.next_actions) && d.next_actions.length > 0) {
       console.log("\n**Next actions:**");
-      d.next_actions.forEach((a, i) => console.log(`${i + 1}. ${a}`));
+      d.next_actions.forEach((a, i) => console.log(`${i + 1}. ${actionText(a)}`));
     }
     if (Array.isArray(d.blockers) && d.blockers.length > 0) {
       console.log("\n**Blockers:**");
-      d.blockers.forEach((b) => console.log(`- ${b.id}: ${b.description}`));
+      d.blockers.forEach((b) => console.log(`- ${b.id}: ${b.description}${b.needs ? ` _(needs: ${b.needs})_` : ""}`));
     }
     console.log();
   }
+  if (sinceT != null) console.log(`_(detail filtered to skills updated since ${opts.since})_`);
   return 0;
 }
 
+function cmdNext() {
+  const all = readAll();
+  if (all.length === 0) { console.log("(no checkpoints found in .checkpoints/)"); return 0; }
+  const top = pickNext(all);
+  const d = top.data;
+  const rec = recommendedAction(d);
+  console.log("NEXT ACTION");
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log(`Skill:  ${d.skill}  (${d.status} — ${d.phase}/${d.step})`);
+  console.log(`Why:    ${rec.why}`);
+  console.log(`Action: ${rec.action}`);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("Ask again for the next item, or run `checkpoint status` for the full queue.");
+  return 0;
+}
+
+function gitMergedTokens() {
+  // Best-effort: tokens (PR #NNN, TICKET-NN) that git history shows as already landed.
+  try {
+    const log = execSync("git log --oneline -n 200", { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    const tokens = new Set();
+    for (const m of log.matchAll(/#(\d+)/g)) tokens.add(`#${m[1]}`);
+    for (const m of log.matchAll(/\b([A-Z]{2,}-\d+)\b/g)) tokens.add(m[1]);
+    return tokens;
+  } catch { return new Set(); }
+}
+
+async function cmdDoctor(opts = {}) {
+  const all = readAll();
+  if (all.length === 0) { console.log("(no checkpoints found in .checkpoints/)"); return 0; }
+  const findings = []; // { level: 'error'|'warn', skill, msg }
+  const add = (level, skill, msg) => findings.push({ level, skill, msg });
+
+  // Build a map of "completed" tokens across all checkpoints (PRs/tickets that a
+  // progress_table row or merged list marks done) for the cross-checkpoint check.
+  const completedTokens = new Set();
+  for (const { data } of all) {
+    const harvest = (s) => {
+      if (typeof s !== "string") return;
+      for (const m of s.matchAll(/#(\d+)/g)) completedTokens.add(`#${m[1]}`);
+      for (const m of s.matchAll(/\b([A-Z]{2,}-\d+)\b/g)) completedTokens.add(m[1]);
+    };
+    for (const row of (Array.isArray(data.progress_table) ? data.progress_table : [])) {
+      if (row.status === "complete") harvest(`${row.id} ${row.label}`);
+    }
+    const st = data.skill_state || {};
+    for (const key of Object.keys(st)) {
+      if (/merged|shipped|completed|done/i.test(key)) harvest(JSON.stringify(st[key]));
+    }
+  }
+  const gitTokens = gitMergedTokens();
+
+  for (const { data, bytes } of all) {
+    const skill = data.skill || "?";
+
+    // Hard schema errors are doctor errors too.
+    const { errors } = validate(join(DIR, `${skill}.checkpoint.json`), data, bytes);
+    errors.forEach((e) => add("error", skill, e));
+
+    // Drift 1: project_dir points somewhere that isn't this checkout.
+    if (data.project_dir && data.project_dir !== ROOT && !existsSync(data.project_dir)) {
+      add("warn", skill, `project_dir "${data.project_dir}" doesn't exist here (authored on another machine? expected ${ROOT})`);
+    }
+
+    // Drift 2: stale in_progress.
+    const age = data.updated_at ? daysSince(data.updated_at) : null;
+    if (age != null && age > STALE_DAYS && data.status === "in_progress") {
+      add("warn", skill, `in_progress but last updated ${Math.floor(age)}d ago — stale? resume or reset`);
+    }
+
+    // Drift 3: referenced generated_files that look like repo paths but are missing.
+    const files = data.context_primer?.generated_files || [];
+    let missing = 0;
+    for (const entry of files) {
+      const p = String(entry).split(" (")[0].trim(); // strip "(this file, updated)" notes
+      if (/[{}*]/.test(p)) continue; // skip brace/glob shorthand — not a literal path
+      if (!ARTIFACT_PREFIXES.some((pre) => p.startsWith(pre))) continue;
+      if (!existsSync(join(ROOT, p))) { missing++; if (missing <= 3) add("warn", skill, `generated_files references missing path: ${p}`); }
+    }
+    if (missing > 3) add("warn", skill, `…and ${missing - 3} more missing generated_files paths`);
+
+    // Drift 4 (F2): a next_action telling future-self to do work that's already
+    // landed (its PR/ticket token shows complete elsewhere or in git history).
+    for (const a of (Array.isArray(data.next_actions) ? data.next_actions : [])) {
+      const txt = actionText(a);
+      const toks = new Set();
+      for (const m of txt.matchAll(/#(\d+)/g)) toks.add(`#${m[1]}`);
+      for (const m of txt.matchAll(/\b([A-Z]{2,}-\d+)\b/g)) toks.add(m[1]);
+      for (const tok of toks) {
+        if (completedTokens.has(tok) || gitTokens.has(tok)) {
+          add("warn", skill, `next_action references ${tok}, which already appears as completed/merged — may be stale: "${txt.slice(0, 70)}…"`);
+          break;
+        }
+      }
+    }
+  }
+
+  // Drift 5 (F1/F3, optional): deployed version vs local HEAD via /api/health.
+  if (opts.online) {
+    try {
+      const head = execSync("git rev-parse --short HEAD", { cwd: ROOT, encoding: "utf8" }).trim();
+      const res = await fetch("https://opchain.dev/api/health", { signal: AbortSignal.timeout(8000) });
+      const live = (await res.json()).version;
+      if (live && head && !head.startsWith(String(live)) && !String(live).startsWith(head)) {
+        add("warn", "deploy", `live /api/health version=${live} != local HEAD ${head} — production may be behind main`);
+      } else {
+        console.log(`(online) live version ${live} matches local HEAD ${head}`);
+      }
+    } catch (e) {
+      add("warn", "deploy", `--online check skipped: ${e.message}`);
+    }
+  }
+
+  console.log("CHECKPOINT DOCTOR");
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  const errs = findings.filter((f) => f.level === "error");
+  const warns = findings.filter((f) => f.level === "warn");
+  if (findings.length === 0) {
+    console.log("✓ no drift detected across", all.length, "checkpoint(s).");
+    return 0;
+  }
+  for (const f of errs) console.log(`✗ [${f.skill}] ${f.msg}`);
+  for (const f of warns) console.log(`⚠ [${f.skill}] ${f.msg}`);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log(`${errs.length} error(s), ${warns.length} warning(s).`);
+  if (!opts.online) console.log("Tip: `checkpoint doctor --online` also checks the deployed /api/health version.");
+  return errs.length > 0 ? 1 : 0;
+}
+
 /**
- * Apply --key=value updates to an object. Supports dotted paths for
- * nested fields: --context_primer.key_decisions+="a new decision".
- *
- * Operators:
- *   --key=value     Replace string/scalar value.
- *   --key+=value    Append to an array (creates if missing).
- *   --key:json=...  Parse the value as JSON (objects, arrays, etc.).
+ * Apply --key=value updates. Supports dotted paths and three operators:
+ *   --key=value     replace scalar
+ *   --key+=value    append to array
+ *   --key:json=...  parse value as JSON
  */
 function applyUpdates(obj, args) {
   for (const arg of args) {
@@ -214,6 +590,35 @@ function applyUpdates(obj, args) {
   }
 }
 
+function scaffoldCheckpoint(skill) {
+  const now = new Date().toISOString();
+  return {
+    protocol_version: SCHEMA_VERSION,
+    skill,
+    project: "opchain.dev",
+    project_dir: ROOT,
+    created_at: now,
+    updated_at: now,
+    phase: "init",
+    step: "scaffolded",
+    status: "in_progress",
+    progress_summary: `Checkpoint scaffolded for ${skill}.`,
+    next_actions: ["Define the first real next action for this skill."],
+  };
+}
+
+function writeValidated(path, data) {
+  data.updated_at = new Date().toISOString();
+  const { errors } = validate(path, data, Buffer.byteLength(JSON.stringify(data)));
+  if (errors.length > 0) {
+    console.error(`✗ ${basename(path)} — would fail validation:`);
+    errors.forEach((e) => console.error(`    ${e}`));
+    return false;
+  }
+  writeFileSync(path, JSON.stringify(data, null, 2) + "\n");
+  return true;
+}
+
 function cmdUpdate(skill, rest) {
   if (!skill) {
     console.error("usage: checkpoint update <skill> [--field=value ...]");
@@ -221,52 +626,80 @@ function cmdUpdate(skill, rest) {
   }
   if (!existsSync(DIR)) mkdirSync(DIR, { recursive: true });
   const path = join(DIR, `${skill}.checkpoint.json`);
-
-  let data;
-  if (existsSync(path)) {
-    data = readCheckpoint(path).data;
-  } else {
-    // Scaffold a minimal checkpoint so update can create from nothing.
-    const now = new Date().toISOString();
-    data = {
-      protocol_version: "1.0",
-      skill,
-      project: "opchain.dev",
-      project_dir: ROOT,
-      created_at: now,
-      updated_at: now,
-      phase: "init",
-      step: "scaffolded",
-      status: "in_progress",
-      progress_summary: `Checkpoint scaffolded for ${skill}.`,
-    };
-  }
-
+  const data = existsSync(path) ? readCheckpoint(path).data : scaffoldCheckpoint(skill);
   applyUpdates(data, rest);
-  data.updated_at = new Date().toISOString();
-
-  const errs = validate(path, data);
-  if (errs.length > 0) {
-    console.error(`✗ ${basename(path)} — would fail validation:`);
-    errs.forEach((e) => console.error(`    ${e}`));
-    return 1;
-  }
-  writeFileSync(path, JSON.stringify(data, null, 2) + "\n");
+  if (!writeValidated(path, data)) return 1;
   console.log(`✓ wrote ${basename(path)}`);
   return 0;
 }
 
-const [, , cmd, ...rest] = process.argv;
-let code = 0;
-switch (cmd) {
-  case "validate": code = cmdValidate(); break;
-  case "status":   code = cmdStatus(); break;
-  case "update":   code = cmdUpdate(rest[0], rest.slice(1)); break;
-  default:
-    console.error("usage: checkpoint <validate|status|update>");
-    console.error("  validate                            — validate every .checkpoint.json");
-    console.error("  status                              — print a session-resume summary");
-    console.error("  update <skill> [--field=value ...]  — apply field updates and stamp updated_at");
-    code = 1;
+// L2: mark the top next action done — pop it into recently_done and restamp.
+function cmdDone(skill) {
+  if (!skill) { console.error("usage: checkpoint done <skill>"); return 1; }
+  const path = join(DIR, `${skill}.checkpoint.json`);
+  if (!existsSync(path)) { console.error(`no checkpoint for "${skill}" at ${path}`); return 1; }
+  const data = readCheckpoint(path).data;
+  if (!Array.isArray(data.next_actions) || data.next_actions.length === 0) {
+    console.error(`${skill} has no next_actions to complete.`);
+    return 1;
+  }
+  const done = data.next_actions.shift();
+  if (!Array.isArray(data.recently_done)) data.recently_done = [];
+  data.recently_done.unshift({ at: new Date().toISOString(), action: actionText(done) });
+  data.recently_done = data.recently_done.slice(0, 10); // keep the log bounded
+  if (!writeValidated(path, data)) return 1;
+  console.log(`✓ ${skill}: completed "${actionText(done)}"`);
+  const upNext = actionText(data.next_actions[0]);
+  console.log(upNext ? `  Up next: ${upNext}` : "  Queue empty — set a new next action or mark the phase complete.");
+  return 0;
 }
-process.exit(code);
+
+// I2: scaffold .checkpoints/ on a fresh project.
+function cmdInit() {
+  if (!existsSync(DIR)) { mkdirSync(DIR, { recursive: true }); console.log(`✓ created ${DIR}`); }
+  else console.log(`• ${DIR} already exists`);
+  const readme = join(DIR, "README.md");
+  if (!existsSync(readme)) {
+    writeFileSync(readme, `# Checkpoints\n\nSession-state docs, one JSON file per skill. Tracked in git so a new\nsession (including ephemeral web runners) can resume by reading them.\n\n- \`node scripts/checkpoint.mjs status\`   — where did I leave off?\n- \`node scripts/checkpoint.mjs next\`     — what should I do right now?\n- \`node scripts/checkpoint.mjs doctor\`   — is any checkpoint drifting from reality?\n- \`node scripts/checkpoint.mjs validate\` — schema gate (CI runs this)\n\nSchema: protocol_version "${SCHEMA_VERSION}" (on-disk wire format). See the\ncheckpoint-protocol skill for the full field reference.\n`);
+    console.log(`✓ wrote ${readme}`);
+  } else console.log(`• ${readme} already exists`);
+  console.log("\nNext: `node scripts/checkpoint.mjs update <skill> --phase=… --step=… --progress_summary=\"…\"`");
+  return 0;
+}
+
+// Exported for tests. The CLI dispatch below only runs when invoked directly,
+// so importing this module (e.g. from vitest) is side-effect-free.
+export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, SCHEMA_VERSION };
+
+// ───────────────────────────── arg parsing ──────────────────────────────────
+
+const [, , cmd, ...rest] = process.argv;
+const flags = new Set(rest.filter((a) => a.startsWith("--") && !a.includes("=")));
+const sinceArg = rest.find((a) => a.startsWith("--since="));
+
+function run() {
+  switch (cmd) {
+    case "validate": return cmdValidate(flags.has("--strict"));
+    case "status":   return cmdStatus({ brief: flags.has("--brief"), since: sinceArg ? sinceArg.split("=")[1] : null });
+    case "next":     return cmdNext();
+    case "doctor":   return cmdDoctor({ online: flags.has("--online") });
+    case "update":   return cmdUpdate(rest[0], rest.slice(1));
+    case "done":     return cmdDone(rest[0]);
+    case "init":     return cmdInit();
+    default:
+      console.error("usage: checkpoint <status|next|doctor|validate|update|done|init>");
+      console.error("  status [--brief] [--since=ISO]      — session-resume summary");
+      console.error("  next                                — the single highest-priority action");
+      console.error("  doctor [--online]                   — flag checkpoints that drifted from reality");
+      console.error("  validate [--strict]                 — schema gate (CI); --strict fails on warnings");
+      console.error("  update <skill> [--field=value ...]  — apply field updates, stamp updated_at");
+      console.error("  done <skill>                        — complete next_actions[0] → recently_done");
+      console.error("  init                                — scaffold .checkpoints/ on a fresh project");
+      return 1;
+  }
+}
+
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) {
+  Promise.resolve(run()).then((code) => process.exit(code));
+}
