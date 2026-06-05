@@ -1,6 +1,6 @@
 {
   "protocol_version": "1.0",
-  "skill": "code-auditor",
+  "skill": "oc-code-auditor",
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T01:35:00Z",

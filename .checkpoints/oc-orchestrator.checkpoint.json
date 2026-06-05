@@ -1,6 +1,6 @@
 {
   "protocol_version": "1.0",
-  "skill": "orchestrator",
+  "skill": "oc-orchestrator",
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-01T16:50:00Z",

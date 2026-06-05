@@ -1,6 +1,6 @@
 {
   "protocol_version": "1.0",
-  "skill": "stack-forge",
+  "skill": "oc-stack-forge",
   "project": "opchain.dev v1.4",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-08T05:40:00Z",
@@ -107,7 +107,7 @@
       "platforms": ["cloudflare-workers", "fly", "render", "vercel", "deno-deploy", "railway", "netlify", "heroku", "aws-amplify", "app-store", "play-store"],
       "frameworks_added": ["phoenix", "remix", "sveltekit", "solid-start", "bun-elysia", "deno-fresh", "spring-java", "dotnet-aspnet", "spring-kotlin", "laravel", "swiftui", "jetpack-compose", "flutter", "react-native"]
     },
-    "skills_to_bump": ["stack-forge", "api-dev", "deploy-ops", "app-architect", "migration-ops"],
+    "skills_to_bump": ["oc-stack-forge", "oc-api-dev", "oc-deploy-ops", "oc-app-architect", "oc-migration-ops"],
     "skills_unchanged": ["bug-check", "checkpoint-protocol", "code-auditor", "dash-forge", "git-ops", "integrations-engineer", "monitoring-ops", "orchestrator", "release-ops", "reverse-spec", "scale-ops", "security-auditor", "ux-engineer"],
     "deferred_to_v15": [],
     "deferred_to_v16_plus": ["python-ml", "r", "julia", "tauri", "electron"],
