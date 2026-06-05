@@ -42,7 +42,7 @@
   "devDependencies": {
     "esbuild": "^0.28.0",
     "gray-matter": "^4.0.3",
-    "js-yaml": "^4.1.1",
+    "js-yaml": "^4.2.0",
     "vitest": "^4.1.6",
     "wrangler": "^4.95.0"
   },
