@@ -19,24 +19,24 @@ body:
     attributes:
       label: Which skill (if applicable)?
       options:
-        - api-dev
-        - app-architect
-        - bug-check
-        - checkpoint-protocol
-        - code-auditor
-        - dash-forge
-        - deploy-ops
-        - git-ops
-        - integrations-engineer
-        - migration-ops
-        - monitoring-ops
-        - orchestrator
-        - release-ops
-        - reverse-spec
-        - scale-ops
-        - security-auditor
-        - stack-forge
-        - ux-engineer
+        - oc-api-dev
+        - oc-app-architect
+        - oc-bug-check
+        - oc-checkpoint-protocol
+        - oc-code-auditor
+        - oc-dash-forge
+        - oc-deploy-ops
+        - oc-git-ops
+        - oc-integrations-engineer
+        - oc-migration-ops
+        - oc-monitoring-ops
+        - oc-orchestrator
+        - oc-release-ops
+        - oc-reverse-spec
+        - oc-scale-ops
+        - oc-security-auditor
+        - oc-stack-forge
+        - oc-ux-engineer
         - N/A
     validations:
       required: false

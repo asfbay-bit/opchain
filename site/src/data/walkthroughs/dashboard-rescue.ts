@@ -1,8 +1,8 @@
 import type { Walkthrough } from "./types";
 
 /**
- * Scenario 2 — ux-engineer detects a data-heavy surface and hands off to
- * dash-forge. Demonstrates the specialist routing pattern: ux-engineer
+ * Scenario 2 — oc-ux-engineer detects a data-heavy surface and hands off to
+ * oc-dash-forge. Demonstrates the specialist routing pattern: oc-ux-engineer
  * stays in control of the overall style book but calls in the Tufte-density
  * specialist for the dense screen.
  */
@@ -13,12 +13,12 @@ export const dashboardRescue: Walkthrough = {
   summary:
     "A 14-chart dashboard nobody uses becomes a 3-layer OKR view nobody can ignore.",
   description:
-    "The analytics screen was a 'kitchen sink' — 14 charts, 4 tabs, zero hierarchy. Team leads said they didn't know where to look. ux-engineer reads the screenshot, identifies this as a **density problem** not a visual-design problem, and hands off to dash-forge — the Tufte-density specialist — for the rebuild. The rest of the style book stays intact; only the problem screen changes. ux-engineer grades the output against the existing design system and queues a single-sprint implementation on app-architect behind a feature flag.",
+    "The analytics screen was a 'kitchen sink' — 14 charts, 4 tabs, zero hierarchy. Team leads said they didn't know where to look. oc-ux-engineer reads the screenshot, identifies this as a **density problem** not a visual-design problem, and hands off to oc-dash-forge — the Tufte-density specialist — for the rebuild. The rest of the style book stays intact; only the problem screen changes. oc-ux-engineer grades the output against the existing design system and queues a single-sprint implementation on oc-app-architect behind a feature flag.",
   inputs: [
     "Existing production SaaS (Next.js + Postgres)",
     "Screenshot + Figma of the current 14-chart screen",
     "Primary user: founder/team-lead on a weekly cadence, 30% mobile",
-    "Primary question (discovered via ux-engineer): \"Are we on track for this quarter's OKRs?\"",
+    "Primary question (discovered via oc-ux-engineer): \"Are we on track for this quarter's OKRs?\"",
   ],
   outputs: [
     {
@@ -28,7 +28,7 @@ export const dashboardRescue: Walkthrough = {
       body:
 `# Old dashboard — audit
 
-Produced by **ux-engineer** before invoking dash-forge. Sourced from the screenshot + Figma at \`figma.com/file/abc/saas-analytics\`. Run-time: 12 minutes.
+Produced by **oc-ux-engineer** before invoking oc-dash-forge. Sourced from the screenshot + Figma at \`figma.com/file/abc/saas-analytics\`. Run-time: 12 minutes.
 
 ## 1. The one-line summary
 
@@ -65,7 +65,7 @@ The current screen tries to answer 14 questions at once and ends up answering no
 
 ## 3. Principles that will drive the rebuild
 
-These are the principles I'll hand to dash-forge as the brief.
+These are the principles I'll hand to oc-dash-forge as the brief.
 
 | # | Principle | Operational test |
 |---|---|---|
@@ -102,7 +102,7 @@ Not everything is broken. The audit found three things to preserve:
 
 ## 7. Handoff
 
-Handing off to **dash-forge** with the "Are we on track for this quarter's OKRs?" brief and the principle table above. dash-forge will produce the IA + wireframes; ux-engineer will grade the output against the existing style book.`,
+Handing off to **oc-dash-forge** with the "Are we on track for this quarter's OKRs?" brief and the principle table above. oc-dash-forge will produce the IA + wireframes; oc-ux-engineer will grade the output against the existing style book.`,
     },
     {
       id: "dashboard-layers",
@@ -111,7 +111,7 @@ Handing off to **dash-forge** with the "Are we on track for this quarter's OKRs?
       body:
 `# Dashboard — 3-layer IA
 
-Produced by **dash-forge** after accepting the brief from ux-engineer. The principle stack: Tufte + Few + Cleveland; the pattern: progressive disclosure across three layers.
+Produced by **oc-dash-forge** after accepting the brief from oc-ux-engineer. The principle stack: Tufte + Few + Cleveland; the pattern: progressive disclosure across three layers.
 
 ## 1. Why three layers
 
@@ -279,7 +279,7 @@ Desktop (≥ 1024w):
 
 Aggregated weekly into the existing \`metrics_*\` rollup tables; lets us see which OKRs people actually drill into.
 
-Checkpoint: \`.checkpoints/dash-forge.checkpoint.json\`.`,
+Checkpoint: \`.checkpoints/oc-dash-forge.checkpoint.json\`.`,
     },
     {
       id: "dashboard-grade",
@@ -288,7 +288,7 @@ Checkpoint: \`.checkpoints/dash-forge.checkpoint.json\`.`,
       body:
 `# Evaluator Grade — Old vs. New
 
-Scored against the existing style book by the **ux-engineer** Evaluator agent. Rubric is 12 axes, weighted equally; each scored 0–10, total normalised to 100.
+Scored against the existing style book by the **oc-ux-engineer** Evaluator agent. Rubric is 12 axes, weighted equally; each scored 0–10, total normalised to 100.
 
 ## 1. Rubric
 
@@ -326,7 +326,7 @@ Scored against the existing style book by the **ux-engineer** Evaluator agent. R
 
 **Total:** 46.3 / 120 → **61 / 100** (rounded after weight normalisation).
 
-## 3. New dashboard (dash-forge)
+## 3. New dashboard (oc-dash-forge)
 
 | Axis | Score | Notes |
 |---|---:|---|
@@ -381,7 +381,7 @@ The principles that did the heavy lifting:
 - **Three hues, one semantic each.** Eliminates the cognitive cost of "what does red mean here?"
 - **Small multiples.** Replaces 8 full-width charts with one 8-cell grid that supports actual comparison.
 
-Checkpoint: \`.checkpoints/ux-engineer.checkpoint.json\`.`,
+Checkpoint: \`.checkpoints/oc-ux-engineer.checkpoint.json\`.`,
     },
     {
       id: "dashboard-sprint",
@@ -390,7 +390,7 @@ Checkpoint: \`.checkpoints/ux-engineer.checkpoint.json\`.`,
       body:
 `# Sprint Brief — New Dashboard
 
-Queued on **app-architect** as a one-sprint ship. No migrations. Reuses existing \`/api/metrics\`. Estimated runtime: 35 min Generator + 10 min Evaluator.
+Queued on **oc-app-architect** as a one-sprint ship. No migrations. Reuses existing \`/api/metrics\`. Estimated runtime: 35 min Generator + 10 min Evaluator.
 
 ## 1. Scope
 
@@ -439,7 +439,7 @@ Total rollout: ~2 weeks. Kill switch is the same flag — flip off → legacy da
 
 ## 4. Acceptance criteria
 
-- [ ] Evaluator score ≥ 90 on the merged build (target 96 — matches dash-forge handoff).
+- [ ] Evaluator score ≥ 90 on the merged build (target 96 — matches oc-dash-forge handoff).
 - [ ] Lighthouse mobile performance ≥ 85 (current dashboard: 62).
 - [ ] WCAG AA pass rate = 100% (axe-core: 0 violations).
 - [ ] Old dashboard remains accessible at \`/dashboard/legacy\` during rollout.
@@ -453,7 +453,7 @@ Total rollout: ~2 weeks. Kill switch is the same flag — flip off → legacy da
 
 Single pass expected (≤ 1 re-eval). Expected runtime 35 min end-to-end.
 
-The Evaluator runs the same 12-axis rubric used by ux-engineer (separate artifact). A score < 90 triggers a re-pass; the most likely culprit is small-multiple baseline misalignment (already-known issue, fixable via \`measureText\`).
+The Evaluator runs the same 12-axis rubric used by oc-ux-engineer (separate artifact). A score < 90 triggers a re-pass; the most likely culprit is small-multiple baseline misalignment (already-known issue, fixable via \`measureText\`).
 
 ## 6. Telemetry to add
 
@@ -493,13 +493,13 @@ None. This sprint can ship in isolation.
 - [ ] Document the new components in the Storybook (existing).
 - [ ] Update \`docs/runbooks/dashboard.md\` with the new components.
 
-Checkpoint: \`.checkpoints/app-architect.checkpoint.json\` — new sprint queued.`,
+Checkpoint: \`.checkpoints/oc-app-architect.checkpoint.json\` — new sprint queued.`,
     },
   ],
-  skills: ["ux-engineer", "dash-forge"],
+  skills: ["oc-ux-engineer", "oc-dash-forge"],
   runtime: "≈ 12 exchanges",
   steps: [
-    { type: "beat", label: "01 · Triage", caption: "ux-engineer reads the screen", skills: ["ux-engineer"] },
+    { type: "beat", label: "01 · Triage", caption: "oc-ux-engineer reads the screen", skills: ["oc-ux-engineer"] },
 
     {
       type: "exchange", role: "user",
@@ -512,9 +512,9 @@ Checkpoint: \`.checkpoints/app-architect.checkpoint.json\` — new sprint queued
 Can we make this actually usable?`
     },
     {
-      type: "exchange", role: "claude", skill: "ux-engineer",
+      type: "exchange", role: "claude", skill: "oc-ux-engineer",
       content:
-`Pulled the screenshot and the Figma. Recognizing this as a **data-density problem**, not a visual-design problem — so ux-engineer drives the overall system but I'll invoke **dash-forge** for the actual screen redesign in a moment.
+`Pulled the screenshot and the Figma. Recognizing this as a **data-density problem**, not a visual-design problem — so oc-ux-engineer drives the overall system but I'll invoke **oc-dash-forge** for the actual screen redesign in a moment.
 
 **First pass — what I see:**
 
@@ -536,20 +536,20 @@ Before redesigning, two questions:
 Primary user: founders + team leads, weekly check-in, mobile 30% of the time.`
     },
     {
-      type: "exchange", role: "claude", skill: "ux-engineer",
+      type: "exchange", role: "claude", skill: "oc-ux-engineer",
       artifacts: ["dashboard-principles"],
       content:
-`Clear brief. This is tri-agent territory — I'll invoke **dash-forge** (the density specialist) with the OKR-focused framing, then I'll grade the output against the style book.
+`Clear brief. This is tri-agent territory — I'll invoke **oc-dash-forge** (the density specialist) with the OKR-focused framing, then I'll grade the output against the style book.
 
-Writing \`.checkpoints/ux-engineer.checkpoint.json\` with the brief + handing off.`
+Writing \`.checkpoints/oc-ux-engineer.checkpoint.json\` with the brief + handing off.`
     },
 
-    { type: "beat", label: "02 · dash-forge", caption: "density specialist takes over", skills: ["dash-forge"] },
+    { type: "beat", label: "02 · oc-dash-forge", caption: "density specialist takes over", skills: ["oc-dash-forge"] },
 
     {
-      type: "exchange", role: "claude", skill: "dash-forge",
+      type: "exchange", role: "claude", skill: "oc-dash-forge",
       content:
-`Invoked by ux-engineer. Brief: **"Is my team on track to hit this quarter's OKRs?"** for founders/leads on a weekly cadence, 30% mobile.
+`Invoked by oc-ux-engineer. Brief: **"Is my team on track to hit this quarter's OKRs?"** for founders/leads on a weekly cadence, 30% mobile.
 
 **Principles I'll apply** (Tufte, Few, Cleveland — the canon):
 
@@ -565,7 +565,7 @@ Writing \`.checkpoints/ux-engineer.checkpoint.json\` with the brief + handing of
 - **Layer 2 (context):** 2×4 small multiples of the leading indicators, sparkline + last-value + 7d-change. Not charts — data strips.
 - **Layer 3 (deep-dive):** Click any OKR → drawer with 3 charts, max. No tabs.
 
-Delivering wireframes + the component spec. Writing \`.checkpoints/dash-forge.checkpoint.json\`.`,
+Delivering wireframes + the component spec. Writing \`.checkpoints/oc-dash-forge.checkpoint.json\`.`,
       artifacts: ["dashboard-layers"],
     },
     {
@@ -577,7 +577,7 @@ Delivering wireframes + the component spec. Writing \`.checkpoints/dash-forge.ch
 2. We also need a "what changed this week" section — not a chart, a list.`
     },
     {
-      type: "exchange", role: "claude", skill: "dash-forge",
+      type: "exchange", role: "claude", skill: "oc-dash-forge",
       content:
 `Both land cleanly in the system.
 
@@ -595,12 +595,12 @@ Three bullets. No chart. Reads like a newsletter. Updating the wireframes, re-ru
 **Evaluator:** 94/100 (deduction: small-multiples baseline alignment off by 2px at 390w; trivial fix).`
     },
 
-    { type: "beat", label: "03 · Handback", caption: "ux-engineer integrates + grades", skills: ["ux-engineer"] },
+    { type: "beat", label: "03 · Handback", caption: "oc-ux-engineer integrates + grades", skills: ["oc-ux-engineer"] },
 
     {
-      type: "exchange", role: "claude", skill: "ux-engineer",
+      type: "exchange", role: "claude", skill: "oc-ux-engineer",
       content:
-`Resuming from the ux-engineer checkpoint. Reading dash-forge's output.
+`Resuming from the oc-ux-engineer checkpoint. Reading oc-dash-forge's output.
 
 **Integration pass:**
 - Style-book tokens absorbed (no new color; only the semantic mapping of existing neutrals).
@@ -609,7 +609,7 @@ Three bullets. No chart. Reads like a newsletter. Updating the wireframes, re-ru
 
 **Style-book grade on the new screen: 96/100** — vs. 61/100 for the old kitchen-sink version. Net data-ink ratio doubled; the "single question" test passes (an exec who glances once a week sees their OKR status in under 2 seconds).
 
-Writing consolidated checkpoint. Hand back to you — or say \`/implement\` and I'll spin up an app-architect sprint to build the new screen in your existing Next.js app.`,
+Writing consolidated checkpoint. Hand back to you — or say \`/implement\` and I'll spin up an oc-app-architect sprint to build the new screen in your existing Next.js app.`,
       artifacts: ["dashboard-grade"],
     },
     {
@@ -617,16 +617,16 @@ Writing consolidated checkpoint. Hand back to you — or say \`/implement\` and 
       content: "/implement"
     },
     {
-      type: "exchange", role: "claude", skill: "ux-engineer",
+      type: "exchange", role: "claude", skill: "oc-ux-engineer",
       content:
-`Handing off to app-architect with the new design as a single-sprint brief:
+`Handing off to oc-app-architect with the new design as a single-sprint brief:
 
 - **Scope:** replace \`/dashboard\` (one route, no migrations).
 - **New components:** 3 (OkrRow, SmallMultiple, WeekSummary).
 - **Data:** reuse existing \`/api/metrics\` — no backend changes.
 - **Acceptance:** Evaluator ≥ 90, Lighthouse mobile ≥ 85, feature-flag behind \`FLAG_NEW_DASHBOARD\` so you can A/B against the old one.
 
-app-architect checkpoint written. Ready for you to \`/build\` when you are.`,
+oc-app-architect checkpoint written. Ready for you to \`/oc-build\` when you are.`,
       artifacts: ["dashboard-sprint"],
     },
   ],

@@ -30,7 +30,7 @@ import yaml from "js-yaml";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 // Env overrides let tests point at fixture trees. Build-time runs leave them
 // unset and use the real repo paths.
-const PACKS_DIR = process.env.OPCHAIN_PACKS_DIR ?? join(ROOT, "skills", "stack-forge", "packs");
+const PACKS_DIR = process.env.OPCHAIN_PACKS_DIR ?? join(ROOT, "skills", "oc-stack-forge", "packs");
 const OUT_DIR = process.env.OPCHAIN_OUT_DIR ?? join(ROOT, "src", "generated");
 const OUT_FILE = join(OUT_DIR, "api-dev-adapters.json");
 

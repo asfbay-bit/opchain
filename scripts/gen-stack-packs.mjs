@@ -28,7 +28,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 // Env overrides exist so tests can point the script at a fixture tree without
 // shimming the whole repo. Build-time runs leave them unset and use the real
 // project paths.
-const PACKS_DIR = process.env.OPCHAIN_PACKS_DIR ?? join(ROOT, "skills", "stack-forge", "packs");
+const PACKS_DIR = process.env.OPCHAIN_PACKS_DIR ?? join(ROOT, "skills", "oc-stack-forge", "packs");
 const OUT_DIR = process.env.OPCHAIN_OUT_DIR ?? join(ROOT, "src", "generated");
 const OUT_FILE = join(OUT_DIR, "coverage-flags.json");
 

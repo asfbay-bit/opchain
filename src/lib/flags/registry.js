@@ -16,7 +16,7 @@
  *   skills.registry.<id>.enabled Show / hide an individual skill in the catalog
  *   skills.capability.<name>     Cross-cutting capability (tri-agent, checkpoint)
  *   skills.command.<cmd>.enabled Individual slash command on/off
- *   skills.coverage.<id>.enabled Show / hide a stack-forge pack (language, framework, mobile)
+ *   skills.coverage.<id>.enabled Show / hide a oc-stack-forge pack (language, framework, mobile)
  *   skills.experiment.<id>.<f>   Experimental skill features
  *
  *   platform.observability.<sink>
@@ -177,24 +177,24 @@ const DEFINITIONS = [
 
   // ── skills.registry.<id>.enabled — one per skill ─────────────────────────
   ...skillRegistryFlags([
-    "api-dev",
-    "app-architect",
-    "bug-check",
-    "checkpoint-protocol",
-    "code-auditor",
-    "dash-forge",
-    "deploy-ops",
-    "git-ops",
-    "integrations-engineer",
-    "migration-ops",
-    "monitoring-ops",
-    "orchestrator",
-    "release-ops",
-    "reverse-spec",
-    "scale-ops",
-    "security-auditor",
-    "stack-forge",
-    "ux-engineer",
+    "oc-api-dev",
+    "oc-app-architect",
+    "oc-bug-check",
+    "oc-checkpoint-protocol",
+    "oc-code-auditor",
+    "oc-dash-forge",
+    "oc-deploy-ops",
+    "oc-git-ops",
+    "oc-integrations-engineer",
+    "oc-migration-ops",
+    "oc-monitoring-ops",
+    "oc-orchestrator",
+    "oc-release-ops",
+    "oc-reverse-spec",
+    "oc-scale-ops",
+    "oc-security-auditor",
+    "oc-stack-forge",
+    "oc-ux-engineer",
   ]),
 
   // ── skills.capability ────────────────────────────────────────────────────
@@ -223,20 +223,20 @@ const DEFINITIONS = [
   // gate at the verb, not the variant. New verbs declared in SKILL.md must
   // register a flag here; gen-skills-catalog.mjs enforces that on build.
   ...skillCommandFlags([
-    "/api", "/app", "/attack-surface", "/audit", "/build", "/bugcheck",
-    "/commit", "/dash-forge", "/data-forge", "/deploy", "/design",
-    "/df-archetype", "/df-audit", "/df-full", "/df-intake", "/df-layout",
-    "/df-prototype", "/df-spec-only", "/df-tokens", "/df-variants",
-    "/discover", "/feature", "/git", "/git-sync", "/hardening", "/integrate",
-    "/launch", "/migrate", "/monitor", "/ops", "/owasp", "/posture", "/pr",
-    "/push", "/release", "/rev-design", "/rev-full", "/rev-scan", "/rev-sprint",
-    "/rev-stack", "/reverse-spec", "/roadmap", "/scaffold", "/scale", "/sec",
-    "/secaudit", "/security", "/spec", "/stack", "/stack-decide",
-    "/threat-model", "/uxe",
+    "/oc-api", "/oc-app", "/oc-attack-surface", "/oc-audit", "/oc-build", "/oc-bugcheck",
+    "/oc-commit", "/oc-dash-forge", "/oc-data-forge", "/oc-deploy", "/oc-design",
+    "/oc-df-archetype", "/oc-df-audit", "/oc-df-full", "/oc-df-intake", "/oc-df-layout",
+    "/oc-df-prototype", "/oc-df-spec-only", "/oc-df-tokens", "/oc-df-variants",
+    "/oc-discover", "/oc-feature", "/oc-git", "/oc-git-sync", "/oc-hardening", "/oc-integrate",
+    "/oc-launch", "/oc-migrate", "/oc-monitor", "/oc-ops", "/oc-owasp", "/oc-posture", "/oc-pr",
+    "/oc-push", "/oc-release", "/oc-rev-design", "/oc-rev-full", "/oc-rev-scan", "/oc-rev-sprint",
+    "/oc-rev-stack", "/oc-reverse-spec", "/oc-roadmap", "/oc-scaffold", "/oc-scale", "/oc-sec",
+    "/oc-secaudit", "/oc-security", "/oc-spec", "/oc-stack", "/oc-stack-decide",
+    "/oc-threat-model", "/oc-uxe",
   ]),
 
-  // ── skills.coverage.<id>.enabled — one per stack-forge pack ──────────────
-  // Generated from skills/stack-forge/packs/<id>/pack.yml by
+  // ── skills.coverage.<id>.enabled — one per oc-stack-forge pack ──────────────
+  // Generated from skills/oc-stack-forge/packs/<id>/pack.yml by
   // scripts/gen-stack-packs.mjs (prebuild step 1). Only language, framework,
   // and mobile packs produce flags; deploy-target packs are sub-selections.
   // Flag default mirrors pack status: stable → true, anything else → false.
@@ -244,20 +244,20 @@ const DEFINITIONS = [
 
   // ── skills.experiment ────────────────────────────────────────────────────
   {
-    name: "skills.experiment.app-architect.parallel-evaluators",
+    name: "skills.experiment.oc-app-architect.parallel-evaluators",
     type: "boolean",
     default: false,
     category: "experiment",
     owner: "skills",
-    description: "Run app-architect design evaluators in parallel rather than sequentially.",
+    description: "Run oc-app-architect design evaluators in parallel rather than sequentially.",
   },
   {
-    name: "skills.experiment.code-auditor.deep-scan",
+    name: "skills.experiment.oc-code-auditor.deep-scan",
     type: "boolean",
     default: false,
     category: "experiment",
     owner: "skills",
-    description: "Enable an extended ruleset in code-auditor.",
+    description: "Enable an extended ruleset in oc-code-auditor.",
   },
 
   // ── platform.observability ───────────────────────────────────────────────
@@ -338,8 +338,8 @@ function skillCoverageFlags(packs) {
     type: /** @type {FlagType} */ ("boolean"),
     default: p.status === "stable",
     category: /** @type {FlagCategory} */ ("release"),
-    owner: "stack-forge",
-    description: `Show ${p.displayName ?? p.id} (${p.kind}) as a stack-forge coverage option. Off → hidden from recommendations and scaffolds.`,
+    owner: "oc-stack-forge",
+    description: `Show ${p.displayName ?? p.id} (${p.kind}) as a oc-stack-forge coverage option. Off → hidden from recommendations and scaffolds.`,
   }));
 }
 

@@ -3,11 +3,11 @@
 // translates results into stdout / exit code.
 
 export const PM_AWARE_SKILLS = [
-  "integrations-engineer",
-  "app-architect",
-  "git-ops",
-  "deploy-ops",
-  "monitoring-ops",
+  "oc-integrations-engineer",
+  "oc-app-architect",
+  "oc-git-ops",
+  "oc-deploy-ops",
+  "oc-monitoring-ops",
 ];
 
 export const ALLOWED_PROVIDERS = new Set(["linear", "jira", "github-issues"]);

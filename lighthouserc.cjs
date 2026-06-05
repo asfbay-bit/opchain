@@ -7,7 +7,7 @@
 // B-08 (raised /demo a11y back from 0.91 once aria-allowed-role and
 // aria-allowed-attr were fixed in the scenario picker).
 //
-// /architecture and /skills/app-architect are awaiting calibration —
+// /architecture and /skills/oc-app-architect are awaiting calibration —
 // measured at `warn` for the first few runs, then promoted to `error`
 // once a stable median is known (same calibration cycle as B-01).
 // app-architect is the representative skill detail page; the [id]
@@ -22,8 +22,8 @@ module.exports = {
       url: [
         "http://127.0.0.1:4321/",
         "http://127.0.0.1:4321/skills",
-        "http://127.0.0.1:4321/skills/app-architect",
-        "http://127.0.0.1:4321/skills/release-ops",
+        "http://127.0.0.1:4321/skills/oc-app-architect",
+        "http://127.0.0.1:4321/skills/oc-release-ops",
         "http://127.0.0.1:4321/architecture",
         "http://127.0.0.1:4321/demo",
         "http://127.0.0.1:4321/changelog",
@@ -52,7 +52,7 @@ module.exports = {
           },
         },
         {
-          matchingUrlPattern: "/skills/app-architect$",
+          matchingUrlPattern: "/skills/oc-app-architect$",
           assertions: {
             "categories:performance":    ["warn", { minScore: 0.95 }],
             "categories:accessibility":  ["warn", { minScore: 0.95 }],
@@ -81,7 +81,7 @@ module.exports = {
         {
           // v1.3 carry-over from v1.2: /changelog joined LHCI; warn-level
           // until a stable median is known (matches the calibration
-          // pattern used for /architecture and /skills/app-architect).
+          // pattern used for /architecture and /skills/oc-app-architect).
           matchingUrlPattern: "/changelog$",
           assertions: {
             "categories:performance":    ["warn", { minScore: 0.95 }],
@@ -94,7 +94,7 @@ module.exports = {
           // v1.3 — release-ops is the 18th skill; same template as the
           // other /skills/[id] pages, so one warn-level entry is enough
           // to catch template regressions while we calibrate.
-          matchingUrlPattern: "/skills/release-ops$",
+          matchingUrlPattern: "/skills/oc-release-ops$",
           assertions: {
             "categories:performance":    ["warn", { minScore: 0.95 }],
             "categories:accessibility":  ["warn", { minScore: 0.95 }],

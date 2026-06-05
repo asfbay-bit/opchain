@@ -67,10 +67,10 @@ const stack: StackSection[] = [
       { label: "Development", value: "Claude Code (with the opchain skills installed)" },
       { label: "Editor", value: "VS Code · Vim where it counts" },
       { label: "Source control", value: "git · GitHub · branch-per-feature workflow" },
-      { label: "PRs", value: "git-ops skill creates branch / commit / PR from intent" },
-      { label: "Audits", value: "code-auditor and bug-check run before every commit" },
-      { label: "Releases", value: "release-ops skill plans → drafts → bumps → announces" },
-      { label: "Monitoring", value: "monitoring-ops skill watches the Worker once shipped" },
+      { label: "PRs", value: "oc-git-ops skill creates branch / commit / PR from intent" },
+      { label: "Audits", value: "oc-code-auditor and oc-bug-check run before every commit" },
+      { label: "Releases", value: "oc-release-ops skill plans → drafts → bumps → announces" },
+      { label: "Monitoring", value: "oc-monitoring-ops skill watches the Worker once shipped" },
     ],
   },
   {
@@ -106,11 +106,11 @@ const meta = [
 
     <p class="lede">
       Meta-page. opchain is built using opchain — most pull requests on
-      this site were planned by <a href="/skills/app-architect"><code>app-architect</code></a>,
-      audited by <a href="/skills/code-auditor"><code>code-auditor</code></a>,
-      shipped by <a href="/skills/git-ops"><code>git-ops</code></a> +
-      <a href="/skills/deploy-ops"><code>deploy-ops</code></a>, and watched by
-      <a href="/skills/monitoring-ops"><code>monitoring-ops</code></a>.
+      this site were planned by <a href="/skills/oc-app-architect"><code>oc-app-architect</code></a>,
+      audited by <a href="/skills/oc-code-auditor"><code>oc-code-auditor</code></a>,
+      shipped by <a href="/skills/oc-git-ops"><code>oc-git-ops</code></a> +
+      <a href="/skills/oc-deploy-ops"><code>oc-deploy-ops</code></a>, and watched by
+      <a href="/skills/oc-monitoring-ops"><code>oc-monitoring-ops</code></a>.
       Here's the rest of the stack.
     </p>
 
@@ -148,14 +148,14 @@ const meta = [
       <h2>The recursion</h2>
       <p class="blurb">
         Yes, this site was built with the very skills it markets.
-        <a href="/skills/app-architect"><code>app-architect</code></a> ran
-        the spec, <a href="/skills/stack-forge"><code>stack-forge</code></a>
-        picked Astro 5 over Next.js, <a href="/skills/ux-engineer"><code>ux-engineer</code></a>
-        owned the design system, and <a href="/skills/code-auditor"><code>code-auditor</code></a>
+        <a href="/skills/oc-app-architect"><code>oc-app-architect</code></a> ran
+        the spec, <a href="/skills/oc-stack-forge"><code>oc-stack-forge</code></a>
+        picked Astro 5 over Next.js, <a href="/skills/oc-ux-engineer"><code>oc-ux-engineer</code></a>
+        owned the design system, and <a href="/skills/oc-code-auditor"><code>oc-code-auditor</code></a>
         catches type-safety regressions before merge. Every release is
-        cut by <a href="/skills/release-ops"><code>release-ops</code></a>
+        cut by <a href="/skills/oc-release-ops"><code>oc-release-ops</code></a>
         and shipped from a laptop via
-        <a href="/skills/deploy-ops"><code>deploy-ops</code></a>.
+        <a href="/skills/oc-deploy-ops"><code>oc-deploy-ops</code></a>.
       </p>
       <p class="blurb">
         That dogfooding is why the changelog moves fast — there's no

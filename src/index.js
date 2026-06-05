@@ -590,6 +590,16 @@ async function flagOverridesSummary(env, ctx) {
   return { count: Object.keys(overrides).length, overrides };
 }
 
+// Skill ids gained an `oc-` prefix (skills/oc-*). Map the old /skills/<id>
+// page URLs and /skills/<id>.zip bundle URLs to the prefixed path with a 301
+// so inbound + bookmarked links survive the rename.
+const RENAMED_SKILL_IDS = new Set([
+  "api-dev", "app-architect", "bug-check", "checkpoint-protocol", "code-auditor",
+  "dash-forge", "deploy-ops", "git-ops", "integrations-engineer", "migration-ops",
+  "monitoring-ops", "orchestrator", "release-ops", "reverse-spec", "scale-ops",
+  "security-auditor", "stack-forge", "ux-engineer",
+]);
+
 // ── Main Router ─────────────────────────────────────────────────────────────
 
 async function route(request, env, ctx, url, origin, requestId) {
@@ -695,6 +705,18 @@ async function route(request, env, ctx, url, origin, requestId) {
       const target = demoRedirects[url.pathname];
       if (target) {
         return new Response(null, { status: 301, headers: { Location: buildRedirect(target) } });
+      }
+    }
+
+    // Old (pre-oc-) skill URLs 301 to the prefixed path. Matches both the
+    // page (`/skills/<id>` and `/skills/<id>/`) and the per-skill bundle
+    // (`/skills/<id>.zip`). Already-prefixed `/skills/oc-*` never matches the
+    // id set, so there's no redirect loop.
+    if (request.method === "GET") {
+      const skillPath = url.pathname.match(/^\/skills\/([a-z0-9][a-z0-9-]*?)(\.zip)?\/?$/);
+      if (skillPath && RENAMED_SKILL_IDS.has(skillPath[1])) {
+        const dest = `/skills/oc-${skillPath[1]}${skillPath[2] || ""}`;
+        return new Response(null, { status: 301, headers: { Location: buildRedirect(dest) } });
       }
     }
 

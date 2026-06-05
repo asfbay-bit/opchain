@@ -19,7 +19,7 @@ sessions and skills, so work resumes where you left off.
 curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
 unzip opchain-skills.zip -d .claude/skills/
 claude
-> /discover
+> /oc-discover
 ```
 
 ### Claude.ai / Claude Desktop
@@ -59,24 +59,24 @@ curl -sS https://opchain.dev/api/health | jq .version
 
 | skill | what it does |
 |---|---|
-| `app-architect` | Discover → spec → build, with Generator/Evaluator QA loop |
-| `stack-forge` | Stack advisor across Cloudflare, Vercel, AWS, Supabase, etc. |
-| `ux-engineer` | Design Planner → Generator → Evaluator harness |
-| `dash-forge` | Dashboards and dense-data UIs (spec + React prototype) |
-| `integrations-engineer` | Third-party API integrations (Slack, Stripe, OAuth) |
-| `api-dev` | First-party API design (OpenAPI, GraphQL, SDKs) |
-| `code-auditor` | Auditor → Fixer → Verifier; 5-layer pre-deploy sweep |
-| `security-auditor` | Threat modeling, OWASP hardening, attack-surface review |
-| `bug-check` | Pre-commit QA gate: types, lint, tests, anti-patterns, secrets |
-| `git-ops` | Branches, commits, PRs, sync |
-| `deploy-ops` | Audit gate → staging → production with rollback |
-| `monitoring-ops` | Post-deploy observability — uptime, errors, alerts |
-| `scale-ops` | Load tests, perf budgets, caching, capacity planning |
-| `migration-ops` | DB / framework / auth / platform migrations |
-| `reverse-spec` | Reverse-engineer existing code into spec docs |
-| `release-ops` | Version bumps, changelogs, release announcements |
-| `orchestrator` | Cross-skill status and routing (`/ops`) |
-| `checkpoint-protocol` | Shared session-persistence schema (bundled in every skill) |
+| `oc-app-architect` | Discover → spec → build, with Generator/Evaluator QA loop |
+| `oc-stack-forge` | Stack advisor across Cloudflare, Vercel, AWS, Supabase, etc. |
+| `oc-ux-engineer` | Design Planner → Generator → Evaluator harness |
+| `oc-dash-forge` | Dashboards and dense-data UIs (spec + React prototype) |
+| `oc-integrations-engineer` | Third-party API integrations (Slack, Stripe, OAuth) |
+| `oc-api-dev` | First-party API design (OpenAPI, GraphQL, SDKs) |
+| `oc-code-auditor` | Auditor → Fixer → Verifier; 5-layer pre-deploy sweep |
+| `oc-security-auditor` | Threat modeling, OWASP hardening, attack-surface review |
+| `oc-bug-check` | Pre-commit QA gate: types, lint, tests, anti-patterns, secrets |
+| `oc-git-ops` | Branches, commits, PRs, sync |
+| `oc-deploy-ops` | Audit gate → staging → production with rollback |
+| `oc-monitoring-ops` | Post-deploy observability — uptime, errors, alerts |
+| `oc-scale-ops` | Load tests, perf budgets, caching, capacity planning |
+| `oc-migration-ops` | DB / framework / auth / platform migrations |
+| `oc-reverse-spec` | Reverse-engineer existing code into spec docs |
+| `oc-release-ops` | Version bumps, changelogs, release announcements |
+| `oc-orchestrator` | Cross-skill status and routing (`/oc-ops`) |
+| `oc-checkpoint-protocol` | Shared session-persistence schema (bundled in every skill) |
 
 Full descriptions, triggers, and examples: https://opchain.dev/skills
 
@@ -88,13 +88,13 @@ Every skill writes a JSON checkpoint to `.checkpoints/` in your project.
 Skills read each other's checkpoints to make informed decisions — context
 flows forward without manual handoffs.
 
-- `deploy-ops` reads `code-auditor` — CRITICAL findings block deploy
-- The build evaluator reads `ux-engineer` — grades frontend against the
+- `oc-deploy-ops` reads `oc-code-auditor` — CRITICAL findings block deploy
+- The build evaluator reads `oc-ux-engineer` — grades frontend against the
   approved design spec
-- `git-ops` reads `app-architect` — names branches by sprint
+- `oc-git-ops` reads `oc-app-architect` — names branches by sprint
 
 Schema lives in
-[`skills/checkpoint-protocol/SKILL.md`](./skills/checkpoint-protocol/SKILL.md).
+[`skills/oc-checkpoint-protocol/SKILL.md`](./skills/oc-checkpoint-protocol/SKILL.md).
 
 ---
 
