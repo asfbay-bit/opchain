@@ -1,8 +1,8 @@
 import type { Walkthrough } from "./types";
 
 /**
- * Scenario 4 — integrations-engineer runs its 5-phase integration protocol
- * and code-auditor gates the PR. Demonstrates the side-chain pattern
+ * Scenario 4 — oc-integrations-engineer runs its 5-phase integration protocol
+ * and oc-code-auditor gates the PR. Demonstrates the side-chain pattern
  * (integration skill + audit gate) that isn't on the main spine.
  */
 export const stripeShip: Walkthrough = {
@@ -12,7 +12,7 @@ export const stripeShip: Walkthrough = {
   summary:
     "Two tiers, per-seat billing, webhook signatures, audit gate — five days, one session.",
   description:
-    "A live Next.js app needs Stripe subscriptions by Friday: two tiers (Pro $19, Team $49), per-seat billing on Team. The founder has never wired Stripe before and doesn't want to break production. integrations-engineer runs its 5-phase protocol — recon, contract, scaffolding, live wiring, proof — building a mock-first boundary layer before a single real key touches the codebase. code-auditor gates the PR with a money-flow supplementary pass; a feature flag rolls the integration to 5% on launch day and 100% once webhooks hold steady.",
+    "A live Next.js app needs Stripe subscriptions by Friday: two tiers (Pro $19, Team $49), per-seat billing on Team. The founder has never wired Stripe before and doesn't want to break production. oc-integrations-engineer runs its 5-phase protocol — recon, contract, scaffolding, live wiring, proof — building a mock-first boundary layer before a single real key touches the codebase. oc-code-auditor gates the PR with a money-flow supplementary pass; a feature flag rolls the integration to 5% on launch day and 100% once webhooks hold steady.",
   inputs: [
     "Live Next.js app · Prisma on Postgres",
     "Two pricing tiers (Pro $19/mo, Team $49/mo)",
@@ -27,7 +27,7 @@ export const stripeShip: Walkthrough = {
       body:
 `# Stripe Integration Contract
 
-**Produced by** integrations-engineer Phase 2 (Contract) · **Reviewed by** code-auditor · **API version target** \`2024-11-20.acacia\` · **SDK** \`stripe@17.x\`
+**Produced by** oc-integrations-engineer Phase 2 (Contract) · **Reviewed by** oc-code-auditor · **API version target** \`2024-11-20.acacia\` · **SDK** \`stripe@17.x\`
 
 ## 1. Purpose
 
@@ -179,7 +179,7 @@ KV-backed via Cloudflare Workers KV; flip propagates in ≤ 10s edge-wide.
 - \`STRIPE_SECRET\`, \`STRIPE_WEBHOOK_SECRET\` only in env; never logged, never in client bundle.
 - Customer Portal redirects use signed short-lived tokens; success URLs tokenised to prevent fixation.
 
-Checkpoint: \`.checkpoints/integrations-engineer.checkpoint.json\` (Phase 2).`,
+Checkpoint: \`.checkpoints/oc-integrations-engineer.checkpoint.json\` (Phase 2).`,
     },
     {
       id: "boundary-layer",
@@ -438,7 +438,7 @@ Boundary discipline buys three things:
 
 1. **Tests don't need the network.** Fixture-driven; deterministic.
 2. **Future provider swap.** If we ever migrate to a different processor (Paddle, LemonSqueezy), only \`lib/billing/\` changes; the rest of the app reads \`BillingStatus\` rows.
-3. **Audit surface is one directory.** code-auditor's money-flow pass scans only \`lib/billing/**\`; nothing in \`app/**\` or \`components/**\` should import \`stripe\` (lint rule enforces).
+3. **Audit surface is one directory.** oc-code-auditor's money-flow pass scans only \`lib/billing/**\`; nothing in \`app/**\` or \`components/**\` should import \`stripe\` (lint rule enforces).
 
 ## 9. Lint rule
 
@@ -463,7 +463,7 @@ CI runs ESLint with this rule; any new direct \`import "stripe"\` outside the bo
     },
     {
       id: "audit-report",
-      label: "code-auditor report (money-flow pass)",
+      label: "oc-code-auditor report (money-flow pass)",
       kind: "audit.md",
       body:
 `# Audit Report — Stripe Subscriptions
@@ -580,13 +580,13 @@ After fixes applied:
 
 ## 11. Auditor sign-off
 
-- **Auditor:** code-auditor v1.2.0
+- **Auditor:** oc-code-auditor v1.2.0
 - **Mode:** \`/audit full\` + money-flow supplementary pass
 - **Run-time:** 6 m 18 s end-to-end (lint + typecheck + tests + grep gates + EXPLAIN benchmarks).
-- **Gate verdict:** PASS — git-ops may merge.
+- **Gate verdict:** PASS — oc-git-ops may merge.
 - **Re-audit recommended:** before any future change to the webhook ingestion pipeline or to the IP allow-list.
 
-Checkpoint: \`.checkpoints/code-auditor.checkpoint.json\`.`,
+Checkpoint: \`.checkpoints/oc-code-auditor.checkpoint.json\`.`,
     },
     {
       id: "launch-plan",
@@ -595,7 +595,7 @@ Checkpoint: \`.checkpoints/code-auditor.checkpoint.json\`.`,
       body:
 `# Launch Plan — Stripe Go-Live
 
-**Target window** Friday · **Owner** integrations-engineer checkpoint · **Rollback** ≤ 60 s via feature flag · **Last drill** Thursday afternoon
+**Target window** Friday · **Owner** oc-integrations-engineer checkpoint · **Rollback** ≤ 60 s via feature flag · **Last drill** Thursday afternoon
 
 ## 1. Pre-flight (Thursday evening)
 
@@ -759,13 +759,13 @@ If the issue is in the webhook handler (rather than the flag-gated UI), addition
 - Refund-via-portal (currently dashboard-only).
 - Tier-swap in-app (currently requires cancel + re-checkout).
 
-Checkpoint: \`.checkpoints/integrations-engineer.checkpoint.json\` closes with the go-live timestamp + the post-launch metrics snapshot.`,
+Checkpoint: \`.checkpoints/oc-integrations-engineer.checkpoint.json\` closes with the go-live timestamp + the post-launch metrics snapshot.`,
     },
   ],
-  skills: ["integrations-engineer", "code-auditor"],
+  skills: ["oc-integrations-engineer", "oc-code-auditor"],
   runtime: "≈ 13 exchanges",
   steps: [
-    { type: "beat", label: "01 · Brief", caption: "integrations-engineer sizes the job", skills: ["integrations-engineer"] },
+    { type: "beat", label: "01 · Brief", caption: "oc-integrations-engineer sizes the job", skills: ["oc-integrations-engineer"] },
 
     {
       type: "exchange", role: "user",
@@ -775,9 +775,9 @@ Checkpoint: \`.checkpoints/integrations-engineer.checkpoint.json\` closes with t
 Don't break the app.`
     },
     {
-      type: "exchange", role: "claude", skill: "integrations-engineer",
+      type: "exchange", role: "claude", skill: "oc-integrations-engineer",
       content:
-`Invoking **integrations-engineer** with its 5-phase protocol:
+`Invoking **oc-integrations-engineer** with its 5-phase protocol:
 
 1. **Recon** — read the target service's docs + SDK health; score risk surfaces.
 2. **Contract** — write the Integration Contract spec (what enters, what leaves, which failures are recoverable).
@@ -804,7 +804,7 @@ model Team   { id String @id @default(cuid()) slug String @unique members User[]
 Seat count = count of User records where teamId = Team.id.`
     },
     {
-      type: "exchange", role: "claude", skill: "integrations-engineer",
+      type: "exchange", role: "claude", skill: "oc-integrations-engineer",
       content:
 `Got it. Writing the **Integration Contract** (Phase 2):
 
@@ -822,7 +822,7 @@ Seat count = count of User records where teamId = Team.id.`
 
 **Feature flag:** \`FLAG_STRIPE_LIVE\` — when off, everything runs against mocks in test mode.
 
-Writing \`.checkpoints/integrations-engineer.checkpoint.json\` with the contract. \`/approve\` to proceed to Phase 3 scaffolding.`,
+Writing \`.checkpoints/oc-integrations-engineer.checkpoint.json\` with the contract. \`/approve\` to proceed to Phase 3 scaffolding.`,
       artifacts: ["integration-contract"],
     },
     {
@@ -830,10 +830,10 @@ Writing \`.checkpoints/integrations-engineer.checkpoint.json\` with the contract
       content: "/approve"
     },
 
-    { type: "beat", label: "02 · Scaffold + wire", caption: "boundary layer first, live keys last", skills: ["integrations-engineer"] },
+    { type: "beat", label: "02 · Scaffold + wire", caption: "boundary layer first, live keys last", skills: ["oc-integrations-engineer"] },
 
     {
-      type: "exchange", role: "claude", skill: "integrations-engineer",
+      type: "exchange", role: "claude", skill: "oc-integrations-engineer",
       content:
 `**Phase 3 — Scaffolding.** Implementing the boundary layer with typed mocks so tests can run without network.
 
@@ -860,16 +860,16 @@ Contract tests: 22 passing. Every handler has an idempotency test (replay the sa
 - \`/api/billing/webhook\` (raw body, signature-verified).
 - \`/billing\` page with tier cards + portal link post-subscribe.
 
-\`FLAG_STRIPE_LIVE\` defaulting to **off** in \`.env\`; **on** in staging. Handing to **code-auditor** for the gate.`,
+\`FLAG_STRIPE_LIVE\` defaulting to **off** in \`.env\`; **on** in staging. Handing to **oc-code-auditor** for the gate.`,
       artifacts: ["boundary-layer"],
     },
 
-    { type: "beat", label: "03 · Audit gate", caption: "code-auditor before merge", skills: ["code-auditor"] },
+    { type: "beat", label: "03 · Audit gate", caption: "oc-code-auditor before merge", skills: ["oc-code-auditor"] },
 
     {
-      type: "exchange", role: "claude", skill: "code-auditor",
+      type: "exchange", role: "claude", skill: "oc-code-auditor",
       content:
-`Invoked by integrations-engineer on a Stripe integration — running \`/audit full\` with the **money-flow supplementary pass** (extra scrutiny on auth, webhook signatures, idempotency).
+`Invoked by oc-integrations-engineer on a Stripe integration — running \`/audit full\` with the **money-flow supplementary pass** (extra scrutiny on auth, webhook signatures, idempotency).
 
 \`\`\`
  security
@@ -901,14 +901,14 @@ Two action items before merge:
 1. Raise webhook rate limit to 300/min (or switch to Stripe IP allow-list — preferred).
 2. Add a test for the "user closes tab mid-checkout, returns next day" path — asserts we don't double-charge.
 
-Writing \`.checkpoints/code-auditor.checkpoint.json\`. **Gate: CONDITIONAL PASS** until those two are addressed.`
+Writing \`.checkpoints/oc-code-auditor.checkpoint.json\`. **Gate: CONDITIONAL PASS** until those two are addressed.`
     },
     {
       type: "exchange", role: "user",
       content: "Fix both and re-audit."
     },
     {
-      type: "exchange", role: "claude", skill: "integrations-engineer",
+      type: "exchange", role: "claude", skill: "oc-integrations-engineer",
       content:
 `Patching:
 
@@ -918,7 +918,7 @@ Writing \`.checkpoints/code-auditor.checkpoint.json\`. **Gate: CONDITIONAL PASS*
 Re-requesting audit.`
     },
     {
-      type: "exchange", role: "claude", skill: "code-auditor",
+      type: "exchange", role: "claude", skill: "oc-code-auditor",
       content:
 `Re-running. Both items resolved, no regressions.
 
@@ -931,10 +931,10 @@ Ship it.`,
       artifacts: ["audit-report"],
     },
 
-    { type: "beat", label: "04 · Go-live", caption: "feature flag flipped", skills: ["integrations-engineer"] },
+    { type: "beat", label: "04 · Go-live", caption: "feature flag flipped", skills: ["oc-integrations-engineer"] },
 
     {
-      type: "exchange", role: "claude", skill: "integrations-engineer",
+      type: "exchange", role: "claude", skill: "oc-integrations-engineer",
       content:
 `PR merged into main. CI ran the full suite; green.
 
@@ -944,7 +944,7 @@ Ship it.`,
 3. Monitoring: Stripe's webhook dashboard + your error tracker's \`lib/billing/*\` scope.
 4. Rollback: flip the flag off. Existing subscriptions keep running — they're server-side in Stripe.
 
-integrations-engineer checkpoint closed. You're shipped.`,
+oc-integrations-engineer checkpoint closed. You're shipped.`,
       artifacts: ["launch-plan"],
     },
   ],
