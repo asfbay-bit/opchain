@@ -177,24 +177,24 @@ const DEFINITIONS = [
 
   // ── skills.registry.<id>.enabled — one per skill ─────────────────────────
   ...skillRegistryFlags([
-    "api-dev",
-    "app-architect",
-    "bug-check",
-    "checkpoint-protocol",
-    "code-auditor",
-    "dash-forge",
-    "deploy-ops",
-    "git-ops",
-    "integrations-engineer",
-    "migration-ops",
-    "monitoring-ops",
-    "orchestrator",
-    "release-ops",
-    "reverse-spec",
-    "scale-ops",
-    "security-auditor",
-    "stack-forge",
-    "ux-engineer",
+    "oc-api-dev",
+    "oc-app-architect",
+    "oc-bug-check",
+    "oc-checkpoint-protocol",
+    "oc-code-auditor",
+    "oc-dash-forge",
+    "oc-deploy-ops",
+    "oc-git-ops",
+    "oc-integrations-engineer",
+    "oc-migration-ops",
+    "oc-monitoring-ops",
+    "oc-orchestrator",
+    "oc-release-ops",
+    "oc-reverse-spec",
+    "oc-scale-ops",
+    "oc-security-auditor",
+    "oc-stack-forge",
+    "oc-ux-engineer",
   ]),
 
   // ── skills.capability ────────────────────────────────────────────────────
@@ -244,7 +244,7 @@ const DEFINITIONS = [
 
   // ── skills.experiment ────────────────────────────────────────────────────
   {
-    name: "skills.experiment.app-architect.parallel-evaluators",
+    name: "skills.experiment.oc-app-architect.parallel-evaluators",
     type: "boolean",
     default: false,
     category: "experiment",
@@ -252,7 +252,7 @@ const DEFINITIONS = [
     description: "Run app-architect design evaluators in parallel rather than sequentially.",
   },
   {
-    name: "skills.experiment.code-auditor.deep-scan",
+    name: "skills.experiment.oc-code-auditor.deep-scan",
     type: "boolean",
     default: false,
     category: "experiment",
