@@ -1,0 +1,1197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Option A — History | Planned (interactions) · opchain</title>
+<style>
+/* ── design tokens ──────────────────────────────────────────────── */
+:root {
+  --bg:          #0e0e10;
+  --surface:     #16161a;
+  --card:        #1c1c22;
+  --raised:      #232329;
+  --border:      #2a2a32;
+  --border-mid:  #3a3a44;
+  --text:        #ece6d8;
+  --muted:       #a8a298;
+  --subtle:      #6f6a62;
+  --accent:      #ff8a3d;
+  --accent-dim:  #3a1f0e;
+  --accent-hover:#ffa365;
+  --info:        #6ea0d3;
+  --info-dim:    #15212d;
+  --good:        #6fb27a;
+  --good-dim:    #1a2a1d;
+  --font-mono:   ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace;
+  --font-disp:   "InterDisplay", "Inter", system-ui, sans-serif;
+  --font-body:   "Inter", system-ui, sans-serif;
+  --r-xs: 4px; --r-sm: 6px; --r-md: 10px; --r-pill: 999px;
+  --ease-std:    cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out:    cubic-bezier(0, 0, 0.2, 1);
+  --ease-in:     cubic-bezier(0.4, 0, 1, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 0;
+}
+code {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  padding: 1px 5px;
+  border-radius: var(--r-xs);
+}
+
+/* ── page header ────────────────────────────────────────────────── */
+.page-head {
+  padding: 2rem 2rem 1.5rem;
+  border-bottom: 0.5px solid var(--border);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.page-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 0.5px solid var(--accent);
+  padding: 2px 8px;
+  border-radius: var(--r-xs);
+}
+.page-head h1 {
+  font-family: var(--font-disp);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin: 0.5rem 0 0.3rem;
+}
+.page-head p {
+  color: var(--muted);
+  font-size: 13px;
+  max-width: 70ch;
+}
+
+/* ── mechanism legend ───────────────────────────────────────────── */
+.mechanism-legend {
+  display: flex;
+  gap: 2rem;
+  padding: 1.25rem 2rem;
+  background: var(--surface);
+  border-bottom: 0.5px solid var(--border);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.ml-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+.ml-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.ml-icon--takeover { background: var(--accent-dim); border: 0.5px solid var(--accent); }
+.ml-icon--accordion { background: var(--info-dim); border: 0.5px solid var(--info); }
+.ml-text { }
+.ml-name {
+  font-family: var(--font-disp);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ml-desc {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* ── main split container ───────────────────────────────────────── */
+.split-outer {
+  max-width: 1280px;
+  margin: 1.5rem auto 3rem;
+  padding: 0 2rem;
+}
+
+.split-container {
+  display: flex;
+  height: 700px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── columns ────────────────────────────────────────────────────── */
+.col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.col-history {
+  flex: 0 0 50%;
+  transition: flex-basis 0.42s var(--ease-std);
+  border-right: 0.5px solid var(--border);
+  position: relative;
+}
+
+.col-planned {
+  flex: 0 0 50%;
+  transition: flex-basis 0.42s var(--ease-std),
+              opacity 0.28s var(--ease-in),
+              transform 0.42s var(--ease-std);
+}
+
+/* takeover state */
+.split-container.takeover .col-history {
+  flex-basis: 100%;
+}
+.split-container.takeover .col-planned {
+  flex-basis: 0%;
+  opacity: 0;
+  transform: translateX(32px);
+  pointer-events: none;
+}
+
+/* ── column header ──────────────────────────────────────────────── */
+.col-head {
+  padding: 0.85rem 1.25rem;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-shrink: 0;
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.col-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+.col-title {
+  font-family: var(--font-disp);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.col-meta {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--subtle);
+}
+.col-mechanism-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  border: 0.5px solid;
+}
+.col-mechanism-badge--takeover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+.col-mechanism-badge--accordion {
+  color: var(--info);
+  border-color: var(--info);
+  background: var(--info-dim);
+}
+
+/* ── shared scrollable body ─────────────────────────────────────── */
+.col-body {
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.col-body::-webkit-scrollbar { width: 4px; }
+.col-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ════════════════════════════════════════════════════════════════
+   LEFT COLUMN — Release history
+   Mechanism: Column Takeover
+   Click a card → planned column slides away, history fills full width
+   showing expanded release detail in the card.
+   ════════════════════════════════════════════════════════════════ */
+
+.rel-card {
+  border-bottom: 0.5px solid var(--border);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.rel-card:last-child { border-bottom: none; }
+.rel-card:hover { background: color-mix(in srgb, var(--card) 60%, transparent); }
+.rel-card.is-open { background: var(--card); cursor: default; }
+
+/* compact view — always visible when not open */
+.rc-compact {
+  padding: 1rem 1.25rem;
+  transition: padding 0.3s var(--ease-std);
+}
+.rel-card.is-open .rc-compact {
+  padding-bottom: 0;
+}
+
+.rc-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* version tag variants */
+.ver-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--r-xs);
+  flex-shrink: 0;
+}
+.ver-badge--current { color: var(--accent); border: 0.5px solid var(--accent); }
+.ver-badge--past    { color: var(--subtle); border: 0.5px solid var(--border); }
+
+.rc-title {
+  font-family: var(--font-disp);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+}
+.rc-date {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--subtle);
+  letter-spacing: 0.04em;
+}
+.rc-summary {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+/* "expand" hint — visible when not open */
+.rc-open-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+.rel-card:hover .rc-open-hint { opacity: 1; }
+.rel-card.is-open .rc-open-hint { display: none; }
+
+.rc-open-hint .arrow-icon {
+  display: inline-block;
+  transition: transform 0.2s;
+}
+.rel-card:hover .rc-open-hint .arrow-icon { transform: translateX(2px); }
+
+/* detail panel — hidden by default, revealed on open */
+.rc-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.45s var(--ease-out), opacity 0.3s var(--ease-out);
+  opacity: 0;
+}
+.rel-card.is-open .rc-detail {
+  max-height: 900px;
+  opacity: 1;
+}
+
+.rc-detail-inner {
+  padding: 1rem 1.25rem 1.5rem;
+  border-top: 0.5px solid var(--border);
+  margin-top: 0.75rem;
+}
+
+/* close button inside detail */
+.rc-close-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 5px 10px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  transition: border-color 0.15s, color 0.15s;
+}
+.rc-close-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.rc-detail-inner h3 {
+  font-family: var(--font-disp);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+}
+.rc-detail-inner .detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+}
+.rc-detail-inner .detail-date {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--subtle);
+}
+.detail-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  padding: 1px 6px;
+  border-radius: var(--r-pill);
+}
+.rc-detail-inner p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 0.65rem;
+}
+.rc-detail-inner h4 {
+  font-family: var(--font-disp);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  margin: 1rem 0 0.4rem;
+}
+.rc-detail-inner ul {
+  padding-left: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+.rc-detail-inner li {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 0.35rem;
+}
+.rc-detail-inner li strong { color: var(--text); font-weight: 600; }
+
+.compat-note {
+  margin-top: 1rem;
+  padding: 0.75rem 0.9rem;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-left: 2px solid var(--good);
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  color: var(--muted);
+}
+.compat-note strong { color: var(--good); }
+
+/* "open" indicator line on left edge of card */
+.rel-card.is-open::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  border-radius: 0 1px 1px 0;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   RIGHT COLUMN — What's planned
+   Mechanism: In-place Accordion
+   Click a card → it expands inline, showing full detail.
+   Other cards collapse. Chevron rotates.
+   ════════════════════════════════════════════════════════════════ */
+
+.plan-section {
+  border-bottom: 0.5px solid var(--border);
+}
+.plan-section:last-child { border-bottom: none; }
+
+.plan-section-head {
+  padding: 0.65rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg);
+  border-bottom: 0.5px solid color-mix(in srgb, var(--border) 60%, transparent);
+  position: sticky;
+  top: 49px; /* clears the col-head */
+  z-index: 4;
+}
+.ps-state {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+}
+.ps-state--progress {
+  background: var(--info-dim);
+  color: var(--info);
+  border: 0.5px solid var(--info);
+}
+.ps-state--planned {
+  background: transparent;
+  color: var(--info);
+  border: 0.5px solid var(--info);
+}
+.ps-label {
+  font-family: var(--font-disp);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ps-date {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--subtle);
+}
+
+/* plan item */
+.plan-item {
+  border-bottom: 0.5px solid var(--border);
+  transition: background 0.15s;
+}
+.plan-item:last-child { border-bottom: none; }
+
+.pi-summary {
+  padding: 0.85rem 1.25rem;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: start;
+  user-select: none;
+}
+.pi-summary:hover { background: color-mix(in srgb, var(--card) 50%, transparent); }
+.plan-item.is-open .pi-summary {
+  background: var(--card);
+}
+
+.pi-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 3px;
+  flex-wrap: wrap;
+}
+.pi-ms-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--info);
+  border: 0.5px solid var(--info);
+  padding: 1px 5px;
+  border-radius: var(--r-xs);
+  flex-shrink: 0;
+}
+.pi-title {
+  font-family: var(--font-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.pi-blurb {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* chevron + vote stack */
+.pi-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.pi-chevron {
+  font-size: 12px;
+  color: var(--subtle);
+  transition: transform 0.25s var(--ease-std), color 0.15s;
+  display: flex;
+  align-items: center;
+}
+.plan-item.is-open .pi-chevron {
+  transform: rotate(180deg);
+  color: var(--info);
+}
+
+.vote-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 44px;
+  padding: 5px 7px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  font-size: 11px;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+.vote-btn:hover { border-color: var(--accent); background: var(--accent-dim); transform: translateY(-1px); }
+.vote-btn .v-arrow { font-size: 11px; line-height: 1; }
+.vote-btn .v-count { font-size: 11px; font-weight: 700; line-height: 1; }
+.vote-btn .v-label { font-size: 7.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--subtle); line-height: 1; }
+
+/* plan detail (accordion body) */
+.pi-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.42s var(--ease-out);
+}
+.plan-item.is-open .pi-detail {
+  max-height: 1200px;
+}
+
+.pi-detail-inner {
+  padding: 0.85rem 1.25rem 1.1rem;
+  border-top: 0.5px solid var(--border);
+  background: var(--card);
+}
+.pi-detail-inner h4 {
+  font-family: var(--font-disp);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0.75rem 0 0.35rem;
+}
+.pi-detail-inner h4:first-child { margin-top: 0; }
+.pi-detail-inner ul {
+  padding-left: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+.pi-detail-inner li {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 0.3rem;
+}
+.pi-detail-inner li strong { color: var(--text); font-weight: 600; }
+.pi-detail-inner p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+.pi-detail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--info);
+  margin-top: 0.5rem;
+}
+.pi-detail-link:hover { color: var(--text); text-decoration: underline; }
+.pi-planned-note {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface);
+  border: 0.5px dashed var(--border);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--subtle);
+  letter-spacing: 0.04em;
+}
+
+/* ── open-item accent on left edge of planned item ──────────────── */
+.plan-item.is-open {
+  position: relative;
+}
+.plan-item.is-open::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--info);
+  border-radius: 0 1px 1px 0;
+}
+
+/* ── keyboard hint ───────────────────────────────────────────────── */
+.kbd-hint {
+  text-align: center;
+  padding: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--subtle);
+  letter-spacing: 0.06em;
+  border-top: 0.5px solid var(--border);
+  background: var(--surface);
+}
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <span class="page-tag">Option A — Expanded</span>
+  <h1>History | Planned — two expand mechanisms</h1>
+  <p>Left column uses <strong>column takeover</strong>: clicking a release slides the planned column away and fills both columns with the detail. Right column uses <strong>inline accordion</strong>: clicking a roadmap item expands it in-place, pushing items below.</p>
+</div>
+
+<div class="mechanism-legend">
+  <div class="ml-item">
+    <div class="ml-icon ml-icon--takeover">↔</div>
+    <div class="ml-text">
+      <div class="ml-name">Column Takeover (left)</div>
+      <div class="ml-desc">Click any release → planned column slides away, full release detail fills both columns. Escape or "← back" collapses.</div>
+    </div>
+  </div>
+  <div class="ml-item">
+    <div class="ml-icon ml-icon--accordion">↕</div>
+    <div class="ml-text">
+      <div class="ml-name">Inline Accordion (right)</div>
+      <div class="ml-desc">Click any roadmap item → detail expands in-place below it, chevron rotates. Previous item auto-collapses.</div>
+    </div>
+  </div>
+</div>
+
+<div class="split-outer">
+  <div class="split-container" id="split-a">
+
+    <!-- ════ LEFT: Release History (Takeover mechanism) ════ -->
+    <div class="col col-history">
+      <div class="col-head">
+        <div>
+          <div class="col-eyebrow">release history</div>
+          <div class="col-title">What shipped</div>
+        </div>
+        <span class="col-mechanism-badge col-mechanism-badge--takeover">↔ takeover</span>
+      </div>
+      <div class="col-body" id="history-body">
+
+        <!-- v1.4.2 -->
+        <div class="rel-card" data-card="v142" onclick="openHistoryCard(this)">
+          <div class="rc-compact">
+            <div class="rc-head">
+              <span class="ver-badge ver-badge--current">v1.4.2</span>
+              <span class="rc-title">Complete bundles, honest checkpoints</span>
+              <span class="rc-date">Jun 05, 2026</span>
+            </div>
+            <p class="rc-summary">Emergency patch: full skill trees in the bundle, <code>oc-</code> canonical aliases, unified checkpoint schema, automated drift detection.</p>
+            <div class="rc-open-hint">Read full release notes <span class="arrow-icon">→</span></div>
+          </div>
+          <div class="rc-detail">
+            <div class="rc-detail-inner">
+              <button class="rc-close-btn" onclick="closeHistoryCard(event)">← back to list</button>
+              <h3>v1.4.2 — Complete bundles, honest checkpoints</h3>
+              <div class="detail-meta">
+                <span class="rc-date" style="font-family:var(--font-mono);font-size:10px;color:var(--subtle);">Jun 05, 2026</span>
+                <span class="detail-tag">emergency patch</span>
+                <span class="detail-tag">18 skills</span>
+                <span class="detail-tag">back-compatible</span>
+              </div>
+              <p>An out-of-band emergency patch: one user-facing breakage and a long-overdue correctness pass, shipped ahead of v1.5. The breakage — the "download all" skill bundle was shipping only each skill's <code>SKILL.md</code>, silently dropping the <code>references/</code>, <code>scripts/</code>, and <code>examples/</code> that make a skill actually run.</p>
+              <h4>What's new</h4>
+              <ul>
+                <li><strong>"Download all" ships complete skills again.</strong> <code>opchain-skills.zip</code> now bundles full skill trees, matching the per-skill downloads on <a href="/skills">/skills</a>.</li>
+                <li><strong><code>oc-</code> canonical skill names.</strong> Every skill gains an <code>oc-&lt;name&gt;</code> alias — <code>oc-app-architect</code>, <code>oc-git-ops</code>, <code>oc-deploy-ops</code> — so opchain skills are unambiguous next to same-named local skills.</li>
+                <li><strong>The orchestrator stops misreporting itself.</strong> Persistence docs rewritten to match the git-tracked <code>.checkpoints/orchestrator.checkpoint.json</code> it actually uses.</li>
+                <li><strong>One checkpoint schema, actually enforced.</strong> Validator, spec, and README now agree on a single wire schema. <code>next_actions</code> required while in-progress.</li>
+                <li><strong>Drift detection &amp; merge reliability.</strong> <code>checkpoint:doctor</code> added, cross-checks against <code>git log</code> and live <code>/api/health</code>.</li>
+              </ul>
+              <h4>New tooling</h4>
+              <ul>
+                <li><code>checkpoint:doctor</code> — cross-checks checkpoints against <code>git log</code> + live <code>/api/health</code></li>
+                <li><code>checkpoint:next</code> — registry-free "what should I do next" for the local project</li>
+                <li><code>checkpoint:status --brief</code> / <code>--since=&lt;date&gt;</code> — terse resume view + momentum digest</li>
+                <li><code>checkpoint:init</code> — deterministic cold-start scaffold</li>
+              </ul>
+              <div class="compat-note"><strong>Back-compatible.</strong> No migration required. The <code>oc-&lt;name&gt;</code> names are additive aliases. Checkpoint wire schema stays pinned at <code>protocol_version 1.0</code>.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- v1.4 -->
+        <div class="rel-card" data-card="v14" onclick="openHistoryCard(this)">
+          <div class="rc-compact">
+            <div class="rc-head">
+              <span class="ver-badge ver-badge--past">v1.4</span>
+              <span class="rc-title">Coverage as a plugin registry</span>
+              <span class="rc-date">May 12, 2026</span>
+            </div>
+            <p class="rc-summary"><code>stack-forge</code> coverage becomes a versioned pack registry — 32 packs across 13 languages, 9 frameworks, 4 mobile platforms, 6 deploy targets.</p>
+            <div class="rc-open-hint">Read full release notes <span class="arrow-icon">→</span></div>
+          </div>
+          <div class="rc-detail">
+            <div class="rc-detail-inner">
+              <button class="rc-close-btn" onclick="closeHistoryCard(event)">← back to list</button>
+              <h3>v1.4 — Coverage as a plugin registry</h3>
+              <div class="detail-meta">
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--subtle);">May 12, 2026</span>
+                <span class="detail-tag">pack registry</span>
+                <span class="detail-tag">32 packs</span>
+                <span class="detail-tag">5 skills bumped</span>
+              </div>
+              <p>opchain v1.4 turns <code>stack-forge</code>'s coverage from hardcoded prose into a versioned pack registry — one <code>pack.yml</code> per language, framework, mobile platform, or deploy target, validated on every build. Total coverage grows from 6 stacks in v1.3 to 32 packs in v1.4.</p>
+              <h4>What's new</h4>
+              <ul>
+                <li><strong>Pack registry architecture.</strong> <code>/coverage</code> is the user-visible catalog. <code>scripts/gen-stack-packs.mjs</code> validates every pack on every build.</li>
+                <li><strong>Hybrid dispatch.</strong> <code>deploy-ops</code> reads packs at runtime; <code>api-dev</code> reads packs at build time for typed scaffold metadata.</li>
+                <li><strong>kind:mobile dispatch.</strong> Mobile packs render the ref doc as a release checklist via <code>dispatchMobile()</code>.</li>
+                <li><strong>Modern web bulk.</strong> elixir / bun / deno language packs; phoenix / remix / sveltekit / solid framework packs.</li>
+                <li><strong>Enterprise bulk.</strong> java / csharp / kotlin / php; spring, dotnet, laravel framework packs.</li>
+                <li><strong>Apple/iOS.</strong> swift + swiftui + ios-swiftui mobile pack + app-store deploy adapter.</li>
+              </ul>
+              <div class="compat-note"><strong>Back-compatible with v1.3.</strong> Five skills version-bump in lockstep: <code>stack-forge</code>, <code>api-dev</code>, <code>deploy-ops</code>, <code>app-architect</code>, <code>migration-ops</code>.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- v1.3 -->
+        <div class="rel-card" data-card="v13" onclick="openHistoryCard(this)">
+          <div class="rc-compact">
+            <div class="rc-head">
+              <span class="ver-badge ver-badge--past">v1.3</span>
+              <span class="rc-title">Runtime PM, real platforms, automated releases</span>
+              <span class="rc-date">May 11, 2026</span>
+            </div>
+            <p class="rc-summary">PM-MCP loop becomes executable end-to-end. <code>release-ops</code> ships as the 18th skill. Platform menu expands to Django, Rails, Go, Rust.</p>
+            <div class="rc-open-hint">Read full release notes <span class="arrow-icon">→</span></div>
+          </div>
+          <div class="rc-detail">
+            <div class="rc-detail-inner">
+              <button class="rc-close-btn" onclick="closeHistoryCard(event)">← back to list</button>
+              <h3>v1.3 — Runtime PM, real platforms, automated releases</h3>
+              <div class="detail-meta">
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--subtle);">May 11, 2026</span>
+                <span class="detail-tag">release-ops</span>
+                <span class="detail-tag">18th skill</span>
+                <span class="detail-tag">PM-MCP</span>
+              </div>
+              <p>opchain v1.3 makes the v1.2 PM-MCP prose executable end-to-end, expands the platform menu beyond JS / Cloudflare, and ships <code>release-ops</code> — the 18th skill — to automate the "scope → /changelog → bump → ship" cadence opchain uses for itself.</p>
+              <h4>What's new</h4>
+              <ul>
+                <li><strong>The PM-MCP loop is real.</strong> A concrete tool-name registry, retry / backoff, idempotency markers, and a deferred-action queue.</li>
+                <li><strong><code>release-ops</code> is the 18th skill.</strong> Verbs: <code>/release plan|draft|bump|announce|ship</code>.</li>
+                <li><strong>Platform menu grew.</strong> Django + Postgres + Render, Rails + Postgres + Heroku, Go + Fly.io, Rust + Axum + Shuttle.rs.</li>
+                <li><strong>Build-time PM-MCP validator.</strong> Blocks the build on placeholder drift or unknown tool names.</li>
+              </ul>
+              <div class="compat-note"><strong>Back-compatible with v1.2.</strong> All 18 skills lockstep at <code>1.3.0</code>.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- v1.2 -->
+        <div class="rel-card" data-card="v12" onclick="openHistoryCard(this)">
+          <div class="rc-compact">
+            <div class="rc-head">
+              <span class="ver-badge ver-badge--past">v1.2</span>
+              <span class="rc-title">PM-tool MCP integration</span>
+              <span class="rc-date">May 05, 2026</span>
+            </div>
+            <p class="rc-summary">Linear, Jira, and GitHub Issues become first-class context for <code>app-architect</code>, <code>git-ops</code>, <code>deploy-ops</code>, and <code>monitoring-ops</code>.</p>
+            <div class="rc-open-hint">Read full release notes <span class="arrow-icon">→</span></div>
+          </div>
+          <div class="rc-detail">
+            <div class="rc-detail-inner">
+              <button class="rc-close-btn" onclick="closeHistoryCard(event)">← back to list</button>
+              <h3>v1.2 — PM-tool MCP integration</h3>
+              <div class="detail-meta">
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--subtle);">May 05, 2026</span>
+                <span class="detail-tag">PM-MCP</span>
+                <span class="detail-tag">Linear</span>
+                <span class="detail-tag">Jira</span>
+              </div>
+              <p>opchain v1.2 wires the skills into the PM-tool MCPs Anthropic ships with Claude Code. The ticket is the thread of execution, not a side artefact.</p>
+              <h4>What's new</h4>
+              <ul>
+                <li><strong>app-architect /discover</strong> accepts a ticket reference and pre-fills the interview from the ticket body.</li>
+                <li><strong>git-ops /git-sync TICKET-1234</strong> shapes the branch / commit / PR from the ticket and transitions ticket state on PR open and merge.</li>
+                <li><strong>deploy-ops</strong> auto-creates a deploy ticket per environment, parent-linked to every commit's tickets.</li>
+                <li><strong>monitoring-ops</strong> opens an incident ticket when alerts fire, parent-linked to the most recent deploy ticket.</li>
+              </ul>
+              <div class="compat-note"><strong>Back-compatible with v1.1.</strong> PM loop is enrichment, never a hard dependency.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- v1.1 + v1.0 (compact, no detail) -->
+        <div class="rel-card" data-card="v11" onclick="openHistoryCard(this)">
+          <div class="rc-compact">
+            <div class="rc-head">
+              <span class="ver-badge ver-badge--past">v1.1</span>
+              <span class="rc-title">Stable release</span>
+              <span class="rc-date">Apr 2026</span>
+            </div>
+            <p class="rc-summary">Tri-agent harness across <code>app-architect</code>, <code>code-auditor</code>, <code>integrations-engineer</code>. Full-pipeline flow. checkpoint-protocol v1.0.</p>
+            <div class="rc-open-hint">Read full release notes <span class="arrow-icon">→</span></div>
+          </div>
+          <div class="rc-detail">
+            <div class="rc-detail-inner">
+              <button class="rc-close-btn" onclick="closeHistoryCard(event)">← back to list</button>
+              <h3>v1.1 — Stable release</h3>
+              <div class="detail-meta">
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--subtle);">Apr 2026</span>
+                <span class="detail-tag">tri-agent</span>
+                <span class="detail-tag">checkpoint-protocol v1.0</span>
+              </div>
+              <p>Tri-agent harness across <code>app-architect</code>, <code>code-auditor</code>, <code>integrations-engineer</code>. Full-pipeline flow from <code>/discover</code> to <code>/deploy</code>. Six in-action scenarios. First static Astro site.</p>
+              <div class="compat-note"><strong>First stable release</strong> with checkpoint-protocol v1.0 across every skill.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rel-card" data-card="v10" onclick="openHistoryCard(this)">
+          <div class="rc-compact">
+            <div class="rc-head">
+              <span class="ver-badge ver-badge--past">v1.0</span>
+              <span class="rc-title">Initial release</span>
+              <span class="rc-date">Feb 2026</span>
+            </div>
+            <p class="rc-summary">First public cut of the opchain skill catalog as a set of Markdown files installable into Claude Code. No site, no scenarios; just the skills.</p>
+            <div class="rc-open-hint">Read release notes <span class="arrow-icon">→</span></div>
+          </div>
+          <div class="rc-detail">
+            <div class="rc-detail-inner">
+              <button class="rc-close-btn" onclick="closeHistoryCard(event)">← back to list</button>
+              <h3>v1.0 — Initial release</h3>
+              <div class="detail-meta">
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--subtle);">Feb 2026</span>
+                <span class="detail-tag">initial</span>
+              </div>
+              <p>First public cut of the opchain skill catalog as a set of Markdown files installable into Claude Code. No site, no scenarios — just the skills. The foundation everything since has built on.</p>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /col-body -->
+      <div class="kbd-hint">Click a release → it expands to fill both columns · Escape or "← back" collapses</div>
+    </div><!-- /col-history -->
+
+
+    <!-- ════ RIGHT: What's Planned (Accordion mechanism) ════ -->
+    <div class="col col-planned">
+      <div class="col-head">
+        <div>
+          <div class="col-eyebrow">what's coming</div>
+          <div class="col-title">Planned releases</div>
+        </div>
+        <span class="col-mechanism-badge col-mechanism-badge--accordion">↕ accordion</span>
+      </div>
+      <div class="col-body">
+
+        <!-- v1.5 in-progress -->
+        <div class="plan-section">
+          <div class="plan-section-head">
+            <span class="ps-state ps-state--progress">in progress</span>
+            <span class="ps-label">v1.5 — Build the AI app</span>
+            <span class="ps-date">built · awaiting release</span>
+          </div>
+
+          <div class="plan-item" onclick="togglePlanItem(this)">
+            <div class="pi-summary">
+              <div>
+                <div class="pi-head">
+                  <span class="pi-ms-tag">v1.5</span>
+                  <span class="pi-title">Four new AI-native skills</span>
+                </div>
+                <p class="pi-blurb">claude-api, rag-forge, agent-forge, prompt-ops — catalog grows from 18 → 22 skills.</p>
+              </div>
+              <div class="pi-actions">
+                <span class="pi-chevron">▼</span>
+                <button class="vote-btn" onclick="event.stopPropagation()">
+                  <span class="v-arrow">▲</span>
+                  <span class="v-count">—</span>
+                  <span class="v-label">vote</span>
+                </button>
+              </div>
+            </div>
+            <div class="pi-detail">
+              <div class="pi-detail-inner">
+                <h4>New skills</h4>
+                <ul>
+                  <li><strong><code>claude-api</code> — <code>/claude-api</code>.</strong> Model selection, prompt caching as default, batch vs. streaming, tool use, and <code>/claude-api migrate</code> playbooks for model-version bumps.</li>
+                  <li><strong><code>rag-forge</code> — <code>/rag</code>.</strong> Tri-agent. Vector-DB decision tree, embedding-model choice, chunking strategy, hybrid search, retrieval eval.</li>
+                  <li><strong><code>agent-forge</code> — <code>/agent</code>.</strong> Tri-agent. Claude Agent SDK scaffold, subagent topology, tool-budget design, harness-loop shapes.</li>
+                  <li><strong><code>prompt-ops</code> — <code>/prompt</code>.</strong> Prompts as first-class artifacts: file-shaped versioning, eval datasets, regression detection.</li>
+                </ul>
+                <h4>Cross-skill ripples</h4>
+                <ul>
+                  <li><code>app-architect</code> gains an "AI app?" branch in <code>/discover</code></li>
+                  <li><code>stack-forge</code> adds vector-DB packs (pgvector, Turbopuffer, Pinecone, Supabase)</li>
+                  <li><code>code-auditor</code> learns prompt-injection and tool-use safety rules</li>
+                </ul>
+                <div class="pi-planned-note">Built — shipping next, not yet live. Vote to signal priority.</div>
+                <a href="#" class="pi-detail-link">Read the full v1.5 plan ↓</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- v1.6 planned -->
+        <div class="plan-section">
+          <div class="plan-section-head">
+            <span class="ps-state ps-state--planned">planned</span>
+            <span class="ps-label">v1.6 — Instrumented pipeline</span>
+            <span class="ps-date">est. Jul 2026</span>
+          </div>
+
+          <div class="plan-item" onclick="togglePlanItem(this)">
+            <div class="pi-summary">
+              <div>
+                <div class="pi-head">
+                  <span class="pi-ms-tag">v1.6</span>
+                  <span class="pi-title">cost-ops — per-phase LLM cost attribution</span>
+                </div>
+                <p class="pi-blurb">Attributes Anthropic spend to each skill phase. Budget gates. Model-tier routing recommendations.</p>
+              </div>
+              <div class="pi-actions">
+                <span class="pi-chevron">▼</span>
+                <button class="vote-btn" onclick="event.stopPropagation()">
+                  <span class="v-arrow">▲</span>
+                  <span class="v-count">—</span>
+                  <span class="v-label">vote</span>
+                </button>
+              </div>
+            </div>
+            <div class="pi-detail">
+              <div class="pi-detail-inner">
+                <p>New <code>/cost</code> skill: attributes Anthropic spend to each skill phase, adds budget gates to checkpoints, and recommends model-tier routing — Haiku for cheap repetitive phases, Opus for spec and audit. Finally answers "what did this feature cost to ship?"</p>
+                <div class="pi-planned-note">Planned — scope may shift before release.</div>
+                <a href="#" class="pi-detail-link">Read the full v1.6 plan ↓</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="plan-item" onclick="togglePlanItem(this)">
+            <div class="pi-summary">
+              <div>
+                <div class="pi-head">
+                  <span class="pi-ms-tag">v1.6</span>
+                  <span class="pi-title">telemetry-ops — opt-in usage metering</span>
+                </div>
+                <p class="pi-blurb">Local-first metering to <code>.checkpoints/usage.sqlite</code>. Powers a public <code>/dashboard</code>.</p>
+              </div>
+              <div class="pi-actions">
+                <span class="pi-chevron">▼</span>
+                <button class="vote-btn" onclick="event.stopPropagation()">
+                  <span class="v-arrow">▲</span>
+                  <span class="v-count">—</span>
+                  <span class="v-label">vote</span>
+                </button>
+              </div>
+            </div>
+            <div class="pi-detail">
+              <div class="pi-detail-inner">
+                <p>Opt-in, local-first usage metering written to <code>.checkpoints/usage.sqlite</code>. Aggregates anonymized "which skills people actually use" stats — the data behind the new public <code>/dashboard</code>. Nothing leaves your machine unless you opt in.</p>
+                <div class="pi-planned-note">Planned — opt-in by design.</div>
+                <a href="#" class="pi-detail-link">Read the full v1.6 plan ↓</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="plan-item" onclick="togglePlanItem(this)">
+            <div class="pi-summary">
+              <div>
+                <div class="pi-head">
+                  <span class="pi-ms-tag">v1.6</span>
+                  <span class="pi-title">checkpoint-protocol v1.3 — cost + eval fields</span>
+                </div>
+                <p class="pi-blurb">First protocol bump since v1.2. Adds <code>cost</code>, <code>eval_scores</code>, <code>telemetry_handle</code>.</p>
+              </div>
+              <div class="pi-actions">
+                <span class="pi-chevron">▼</span>
+                <button class="vote-btn" onclick="event.stopPropagation()">
+                  <span class="v-arrow">▲</span>
+                  <span class="v-count">—</span>
+                  <span class="v-label">vote</span>
+                </button>
+              </div>
+            </div>
+            <div class="pi-detail">
+              <div class="pi-detail-inner">
+                <p>First protocol bump since the v1.2 PM-MCP fields. Adds <code>cost</code>, <code>eval_scores</code>, and <code>telemetry_handle</code>. <code>bug-check</code> and <code>code-auditor</code> stop emitting bare pass/fail and start scoring against a stable rubric. <code>migration-ops</code> rolls it across every skill.</p>
+                <div class="pi-planned-note">Planned — schema in draft.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- v1.7 planned -->
+        <div class="plan-section">
+          <div class="plan-section-head">
+            <span class="ps-state ps-state--planned">planned</span>
+            <span class="ps-label">v1.7 — Distribution play</span>
+            <span class="ps-date">est. Sep 2026</span>
+          </div>
+
+          <div class="plan-item" onclick="togglePlanItem(this)">
+            <div class="pi-summary">
+              <div>
+                <div class="pi-head">
+                  <span class="pi-ms-tag">v1.7</span>
+                  <span class="pi-title">marketplace — community-contributed skills</span>
+                </div>
+                <p class="pi-blurb">Site surface for community skills. Every contribution adds breadth at zero core-team cost.</p>
+              </div>
+              <div class="pi-actions">
+                <span class="pi-chevron">▼</span>
+                <button class="vote-btn" onclick="event.stopPropagation()">
+                  <span class="v-arrow">▲</span>
+                  <span class="v-count">—</span>
+                  <span class="v-label">vote</span>
+                </button>
+              </div>
+            </div>
+            <div class="pi-detail">
+              <div class="pi-detail-inner">
+                <p>A marketplace site surface for community-contributed skills and packs. Every contribution adds breadth at zero core-team cost — and opchain itself becomes the first entry in its own marketplace. Compounds: the natural follow-on once v1.6's telemetry exists to grade community contributions on real usage.</p>
+                <div class="pi-planned-note">Lean, not locked — final v1.7 theme chosen after v1.5 / v1.6 retro.</div>
+                <a href="#" class="pi-detail-link">Read the full v1.7 plan ↓</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="plan-item" onclick="togglePlanItem(this)">
+            <div class="pi-summary">
+              <div>
+                <div class="pi-head">
+                  <span class="pi-ms-tag">v1.7</span>
+                  <span class="pi-title">template-ops — opinionated project starters</span>
+                </div>
+                <p class="pi-blurb">Pre-wire an entire pipeline — stack, skills, checkpoints — so a new project is ready from the first commit.</p>
+              </div>
+              <div class="pi-actions">
+                <span class="pi-chevron">▼</span>
+                <button class="vote-btn" onclick="event.stopPropagation()">
+                  <span class="v-arrow">▲</span>
+                  <span class="v-count">—</span>
+                  <span class="v-label">vote</span>
+                </button>
+              </div>
+            </div>
+            <div class="pi-detail">
+              <div class="pi-detail-inner">
+                <p>New skill for project starters that pre-wire a whole pipeline — stack, skills, and checkpoints — so a new project lands ready to run from the first commit. Works alongside the marketplace: templates can depend on and bundle community skills.</p>
+                <div class="pi-planned-note">Planned — companion to marketplace.</div>
+                <a href="#" class="pi-detail-link">Read the full v1.7 plan ↓</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /col-body -->
+      <div class="kbd-hint">Click any item to expand detail · click again to collapse</div>
+    </div><!-- /col-planned -->
+
+  </div><!-- /split-container -->
+</div><!-- /split-outer -->
+
+<script>
+/* ── Column Takeover (history column) ──────────────────────────── */
+const splitContainer = document.getElementById('split-a');
+
+function openHistoryCard(cardEl) {
+  // If clicking the already-open card, close it
+  if (cardEl.classList.contains('is-open')) {
+    closeAllHistory();
+    return;
+  }
+  // Close any other open cards (no animation conflict)
+  document.querySelectorAll('.rel-card.is-open').forEach(c => c.classList.remove('is-open'));
+  // Open this card + trigger column takeover
+  cardEl.classList.add('is-open');
+  splitContainer.classList.add('takeover');
+  // Smooth scroll card to top of list
+  const body = document.getElementById('history-body');
+  const offset = cardEl.offsetTop - 8;
+  body.scrollTo({ top: offset, behavior: 'smooth' });
+}
+
+function closeHistoryCard(event) {
+  event.stopPropagation();
+  closeAllHistory();
+}
+
+function closeAllHistory() {
+  document.querySelectorAll('.rel-card.is-open').forEach(c => c.classList.remove('is-open'));
+  splitContainer.classList.remove('takeover');
+}
+
+// Escape key collapses
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeAllHistory();
+});
+
+
+/* ── Inline Accordion (planned column) ─────────────────────────── */
+function togglePlanItem(itemEl) {
+  const isOpen = itemEl.classList.contains('is-open');
+  // Close all other plan items
+  document.querySelectorAll('.plan-item.is-open').forEach(item => {
+    if (item !== itemEl) item.classList.remove('is-open');
+  });
+  // Toggle this one
+  itemEl.classList.toggle('is-open', !isOpen);
+  // Scroll into view if opening
+  if (!isOpen) {
+    setTimeout(() => {
+      const body = itemEl.closest('.col-body');
+      const itemTop = itemEl.offsetTop;
+      const bodyTop = body.scrollTop;
+      const bodyHeight = body.clientHeight;
+      const itemBottom = itemTop + itemEl.offsetHeight;
+      if (itemBottom > bodyTop + bodyHeight - 20) {
+        body.scrollTo({ top: itemTop - 80, behavior: 'smooth' });
+      }
+    }, 100);
+  }
+}
+</script>
+
+</body>
+</html>
