@@ -91,6 +91,13 @@ function goodZip(_req, res) {
   res.end("PK\x03\x04");
 }
 
+function goodSkillRedirect(_req, res) {
+  // Old (pre-oc-) skill URL 301s to the prefixed path; relative Location is
+  // resolved by curl's %{redirect_url} against the request origin.
+  res.writeHead(301, { location: "/skills/oc-code-auditor" });
+  res.end();
+}
+
 let active;
 
 afterEach(async () => {
@@ -106,6 +113,7 @@ describe("scripts/smoke.sh", () => {
       "/": goodHomepage,
       "/api/health": goodHealth,
       "/opchain-skills.zip": goodZip,
+      "/skills/code-auditor": goodSkillRedirect,
     });
     const result = await runSmoke(active.url);
     expect(
@@ -126,6 +134,7 @@ describe("scripts/smoke.sh", () => {
       },
       "/api/health": goodHealth,
       "/opchain-skills.zip": goodZip,
+      "/skills/code-auditor": goodSkillRedirect,
     });
     const result = await runSmoke(active.url);
     expect(result.status).not.toBe(0);
@@ -140,6 +149,7 @@ describe("scripts/smoke.sh", () => {
         res.end('{"ok":true}');
       },
       "/opchain-skills.zip": goodZip,
+      "/skills/code-auditor": goodSkillRedirect,
     });
     const result = await runSmoke(active.url);
     expect(result.status).not.toBe(0);
@@ -154,6 +164,7 @@ describe("scripts/smoke.sh", () => {
       },
       "/api/health": goodHealth,
       "/opchain-skills.zip": goodZip,
+      "/skills/code-auditor": goodSkillRedirect,
     });
     const result = await runSmoke(active.url);
     expect(result.status).not.toBe(0);
