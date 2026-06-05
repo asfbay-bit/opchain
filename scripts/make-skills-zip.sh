@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Bundle opchain skills into:
-#   public/opchain-skills.zip            — combined bundle (all SKILL.md files)
+#   public/opchain-skills.zip            — combined bundle (every skill's full directory tree)
 #   public/skills/<id>.zip               — per-skill bundle (full skill directory tree)
 #
 # Per-skill zips power the "Download skill" button on /skills/<id>; the combined
-# zip powers the "download all" button on /skills.
+# zip powers the "download all" button on /skills. Both carry the complete skill
+# folder so SKILL.md's references/, scripts/, examples/, TRYIT.md, etc. come along.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS="$ROOT/skills"
@@ -16,16 +17,28 @@ mkdir -p "$PER_SKILL_DIR"
 rm -f "$COMBINED"
 rm -f "$PER_SKILL_DIR"/*.zip
 
-# ── Combined bundle (every SKILL.md) ─────────────────────────────────
+# ── Combined bundle (every skill's full directory tree) ──────────────
+# Zip each skill's whole folder, same as the per-skill bundles below, so
+# the "download all" zip carries SKILL.md *plus* its references/, scripts/,
+# examples/, TRYIT.md, packs/ — everything Claude Code needs to operate the
+# skill once it's unzipped into .claude/skills/. This block used to zip only
+# */SKILL.md, which shipped a bundle whose SKILL.md files pointed at sibling
+# files (e.g. "read references/orchestrator.md on first invocation") that
+# weren't in the download. README.md rides along as the install guide.
 (
   cd "$SKILLS" || exit 1
   shopt -s nullglob
-  files=(*/SKILL.md)
-  if [[ ${#files[@]} -eq 0 ]]; then
+  items=()
+  for dir in */; do
+    [[ -f "${dir}SKILL.md" ]] || continue
+    items+=("${dir%/}")
+  done
+  if [[ ${#items[@]} -eq 0 ]]; then
     echo "make-skills-zip: no SKILL.md files found" >&2
     exit 1
   fi
-  zip -q -9 "$COMBINED" "${files[@]}"
+  [[ -f README.md ]] && items+=(README.md)
+  zip -q -9 -r "$COMBINED" "${items[@]}"
 )
 echo "Wrote $COMBINED"
 
