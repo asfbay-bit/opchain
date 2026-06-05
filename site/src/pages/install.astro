@@ -78,7 +78,7 @@ const versionCmd = `curl -sS https://opchain.dev/api/health | jq .version`;
         </div>
         <p class="verify">
           <strong>Verify it worked.</strong> In that session, type
-          <code class="ic">/discover</code>. If app-architect starts an
+          <code class="ic">/discover</code>. If oc-app-architect starts an
           interview ("Who's the primary user? Sync or async? …"), you're
           set. If not, re-check that the files landed in
           <code class="ic">.claude/skills/&lt;name&gt;/SKILL.md</code>.
@@ -103,7 +103,7 @@ const versionCmd = `curl -sS https://opchain.dev/api/health | jq .version`;
           <li>Click <strong>Upload skill</strong> and pick the <code class="ic">.md</code> file.</li>
           <li>
             Start a new conversation and trigger by name
-            (<em>"I have an app idea"</em> auto-invokes app-architect) or by
+            (<em>"I have an app idea"</em> auto-invokes oc-app-architect) or by
             slash command (<code class="ic">/discover</code>).
           </li>
         </ol>
@@ -273,11 +273,11 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
           </div>
           <p class="path-sub">No code yet · greenfield project</p>
           <ol class="path-steps">
-            <li>Trigger <code class="ic">/discover</code> — <a href="/skills/app-architect">app-architect</a> runs the spec interview</li>
-            <li>Let <a href="/skills/stack-forge">stack-forge</a> pick the platform; review and confirm</li>
-            <li><a href="/skills/ux-engineer">ux-engineer</a> generates a style book and screens</li>
+            <li>Trigger <code class="ic">/discover</code> — <a href="/skills/oc-app-architect">oc-app-architect</a> runs the spec interview</li>
+            <li>Let <a href="/skills/oc-stack-forge">oc-stack-forge</a> pick the platform; review and confirm</li>
+            <li><a href="/skills/oc-ux-engineer">oc-ux-engineer</a> generates a style book and screens</li>
             <li>Sprint loop produces a working prototype</li>
-            <li><a href="/skills/git-ops">git-ops</a> + <a href="/skills/deploy-ops">deploy-ops</a> ship it</li>
+            <li><a href="/skills/oc-git-ops">oc-git-ops</a> + <a href="/skills/oc-deploy-ops">oc-deploy-ops</a> ship it</li>
           </ol>
         </article>
 
@@ -288,9 +288,9 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
           </div>
           <p class="path-sub">Code already on disk · no opchain history</p>
           <ol class="path-steps">
-            <li>Run <code class="ic">/rev-spec</code> — <a href="/skills/reverse-spec">reverse-spec</a> backfills a spec from the code</li>
+            <li>Run <code class="ic">/rev-spec</code> — <a href="/skills/oc-reverse-spec">oc-reverse-spec</a> backfills a spec from the code</li>
             <li>Type <code class="ic">/ops</code> for the orchestrator's read on what's open</li>
-            <li><a href="/skills/code-auditor">code-auditor</a> tells you the top-five concerns before your next commit</li>
+            <li><a href="/skills/oc-code-auditor">oc-code-auditor</a> tells you the top-five concerns before your next commit</li>
           </ol>
         </article>
 
@@ -301,10 +301,10 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
           </div>
           <p class="path-sub">Bug or feature already in progress</p>
           <ol class="path-steps">
-            <li><a href="/skills/bug-check">bug-check</a> on the diff — type / lint / secrets / vulns</li>
-            <li><a href="/skills/code-auditor">code-auditor</a> for an Auditor/Fixer/Verifier pass</li>
-            <li><a href="/skills/git-ops">git-ops</a> opens the PR with shape-aware title + body</li>
-            <li><a href="/skills/deploy-ops">deploy-ops</a> blocks prod until every audit gate is green</li>
+            <li><a href="/skills/oc-bug-check">oc-bug-check</a> on the diff — type / lint / secrets / vulns</li>
+            <li><a href="/skills/oc-code-auditor">oc-code-auditor</a> for an Auditor/Fixer/Verifier pass</li>
+            <li><a href="/skills/oc-git-ops">oc-git-ops</a> opens the PR with shape-aware title + body</li>
+            <li><a href="/skills/oc-deploy-ops">oc-deploy-ops</a> blocks prod until every audit gate is green</li>
           </ol>
         </article>
       </div>

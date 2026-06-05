@@ -58,11 +58,11 @@ const updatedLabel = updatedIso
     })
   : null;
 
-const isStackForge = skill.data.name === "stack-forge";
+const isStackForge = skill.data.name === "oc-stack-forge";
 const packCount = isStackForge ? (packsCatalog as unknown[]).length : 0;
 
 const triAgentEnabled = isCapabilityEnabled("tri-agent");
-const checkpointProtocolEnabled = isCapabilityEnabled("checkpoint-protocol");
+const checkpointProtocolEnabled = isCapabilityEnabled("oc-checkpoint-protocol");
 const installZipEnabled = defaultFor("site.feature.install-zip-download") as boolean;
 const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
 const visibleCommands = (skill.data.commands as string[]).filter(isCommandEnabled);
@@ -85,7 +85,7 @@ const nextSkill  = currentIdx >= 0 && currentIdx < orderedSkills.length - 1
   ? orderedSkills[currentIdx + 1]
   : null;
 
-// 20 — Foundational empty state. checkpoint-protocol (and any other
+// 20 — Foundational empty state. oc-checkpoint-protocol (and any other
 // success-role skill) is consumed BY other skills, not invoked
 // directly. Surface a few of those consumers so the page shows what
 // the protocol actually drives.
@@ -1640,7 +1640,7 @@ const consumers = isFoundational
   }
 
   /* 20 — Foundational empty state. The "consumers" pill grid in the
-     Try-it card on /skills/checkpoint-protocol etc. lists the skills
+     Try-it card on /skills/oc-checkpoint-protocol etc. lists the skills
      that read / write the protocol's checkpoint contract. */
   .protocol-consumers {
     display: flex;

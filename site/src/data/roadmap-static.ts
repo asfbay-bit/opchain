@@ -79,9 +79,9 @@ export const staticRoadmap: Roadmap = {
       },
       {
         id: "OPC-162",
-        title: "checkpoint-protocol v1.3 — cost + eval fields",
+        title: "oc-checkpoint-protocol v1.3 — cost + eval fields",
         blurb:
-          "First protocol bump since v1.2: adds cost, eval_scores, and telemetry_handle fields. bug-check and code-auditor start emitting eval scores against a stable rubric, not just pass/fail.",
+          "First protocol bump since v1.2: adds cost, eval_scores, and telemetry_handle fields. oc-bug-check and oc-code-auditor start emitting eval scores against a stable rubric, not just pass/fail.",
         url: "/changelog#v1-6",
         bucket: "planned",
         milestone: "v1.6",

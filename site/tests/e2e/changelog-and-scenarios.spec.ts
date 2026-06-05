@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
  * /changelog page + /demo scenario picker — kept in lockstep with the
  * release entries as opchain version-bumps. Current release is v1.4
  * (pack registry GA, /coverage page, 5 skill bumps); v1.3 sits one
- * release back (runtime PM, real platforms, release-ops); v1.2
+ * release back (runtime PM, real platforms, oc-release-ops); v1.2
  * remains the third entry (PM-MCP integration).
  *
  * The page also carries an "Upcoming releases" section above the release
