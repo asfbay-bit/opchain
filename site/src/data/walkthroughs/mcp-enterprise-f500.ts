@@ -3,10 +3,10 @@ import type { Walkthrough } from "./types";
 /**
  * Scenario 7 — MeridianHealth, a Fortune-500 health insurer, wants to roll
  * out Claude Code + MCP servers to ~220 engineers under HIPAA + ISO 27001 +
- * SOC2 Type II + an internal AI Governance Committee. security-auditor
- * threat-models the MCP attack surface, integrations-engineer designs the
- * broker / vault / egress-proxy wiring, monitoring-ops sets up the audit
- * pipeline, app-architect runs the phased rollout. The shape: max-security
+ * SOC2 Type II + an internal AI Governance Committee. oc-security-auditor
+ * threat-models the MCP attack surface, oc-integrations-engineer designs the
+ * broker / vault / egress-proxy wiring, oc-monitoring-ops sets up the audit
+ * pipeline, oc-app-architect runs the phased rollout. The shape: max-security
  * MCP discipline in a regulated enterprise — server allowlist, scoped
  * tokens, PHI-redacting custom MCPs, SIEM-forwarded audit log, abort
  * criteria for each rollout wave.
@@ -18,7 +18,7 @@ export const mcpEnterpriseF500: Walkthrough = {
   summary:
     "Threat-model the MCP attack surface, lock the allowlist to scoped + brokered tokens, redact PHI at the protocol boundary, forward every tool call to the SIEM, and roll out to 220 engineers in waves with explicit abort criteria.",
   description:
-    "MeridianHealth — Fortune-500 health insurer, 220 engineers across 14 product teams, HIPAA-covered, ISO 27001-certified, SOC2 Type II annually, with an internal AI Governance Committee that gates every AI tool adoption. Engineers want Claude Code. The Committee wants: a real threat model of the MCP attack surface, an allowlist with scoped tokens (no static API keys on laptops), a custom PHI-redacting proxy MCP for the FHIR + claims systems, an audit log forwarded to the corporate SIEM in real time, and a rollout plan with abort criteria. security-auditor runs the STRIDE-per-boundary sweep on the MCP protocol itself, then chains to integrations-engineer for the broker + egress-proxy wiring, monitoring-ops for the audit pipeline, and app-architect for the four-wave rollout. The output is a posture the Committee can sign and a phased plan the platform team can execute.",
+    "MeridianHealth — Fortune-500 health insurer, 220 engineers across 14 product teams, HIPAA-covered, ISO 27001-certified, SOC2 Type II annually, with an internal AI Governance Committee that gates every AI tool adoption. Engineers want Claude Code. The Committee wants: a real threat model of the MCP attack surface, an allowlist with scoped tokens (no static API keys on laptops), a custom PHI-redacting proxy MCP for the FHIR + claims systems, an audit log forwarded to the corporate SIEM in real time, and a rollout plan with abort criteria. oc-security-auditor runs the STRIDE-per-boundary sweep on the MCP protocol itself, then chains to oc-integrations-engineer for the broker + egress-proxy wiring, oc-monitoring-ops for the audit pipeline, and oc-app-architect for the four-wave rollout. The output is a posture the Committee can sign and a phased plan the platform team can execute.",
   inputs: [
     "Fortune-500 health insurer · 220 engineers · 14 product teams · 47 internal services",
     "HIPAA covered entity · ISO 27001 certified · SOC2 Type II annually · CCPA + 23 state privacy regimes",
@@ -34,7 +34,7 @@ export const mcpEnterpriseF500: Walkthrough = {
       body:
 `# MCP Protocol Threat Model — MeridianHealth
 
-**Produced by** security-auditor Phase 1 (Threat Model) · **Method:** STRIDE per MCP trust boundary · **Compliance lens:** HIPAA Security Rule §164.308 / §164.312, ISO 27001 A.5 / A.8 / A.12, SOC2 CC6 + CC7, MeridianHealth AI-Use Policy v3.4 · **Run-time:** 38 minutes
+**Produced by** oc-security-auditor Phase 1 (Threat Model) · **Method:** STRIDE per MCP trust boundary · **Compliance lens:** HIPAA Security Rule §164.308 / §164.312, ISO 27001 A.5 / A.8 / A.12, SOC2 CC6 + CC7, MeridianHealth AI-Use Policy v3.4 · **Run-time:** 38 minutes
 
 ## 1. Scope
 
@@ -218,7 +218,7 @@ Two of the three CRITICAL findings (M-1, M-2) directly implicate §164.308(a)(4)
 
 M-1, M-2, M-5 are the hard blockers. Until those are remediated, **no MCP server should be installed on any engineer laptop** beyond a Figma read-only sandbox for the design team.
 
-Chaining to **integrations-engineer** for the broker + egress-proxy + custom PHI-redacting FHIR proxy MCP design.
+Chaining to **oc-integrations-engineer** for the broker + egress-proxy + custom PHI-redacting FHIR proxy MCP design.
 
 ## 10. Acceptance for closing this threat model
 
@@ -227,9 +227,9 @@ The threat model is "closed" for this iteration when:
 - All 8 findings have evidence in §8 captured.
 - Allowlist + broker + redactor + audit pipeline are live in pre-prod, with synthetic drills passing.
 - Privacy Officer signs the Wave 0 readiness attestation.
-- Re-run of \`/secaudit\` against the live system reports the 3 CRITICAL findings as GREEN (the rest as PASS or accepted residual).
+- Re-run of \`/oc-secaudit\` against the live system reports the 3 CRITICAL findings as GREEN (the rest as PASS or accepted residual).
 
-Checkpoint: \`.checkpoints/security-auditor.checkpoint.json\`.`,
+Checkpoint: \`.checkpoints/oc-security-auditor.checkpoint.json\`.`,
     },
     {
       id: "mcp-allowlist",
@@ -265,7 +265,7 @@ The allowlist is stored as YAML in \`platform-security/mcp-allowlist.yaml\` and 
 | **Amplitude** | DENIED for prod | — | — | X | n/a | n/a | Member-portal events tagged with member id. Allowed on \`-staging\` only. |
 | **MeridianHealth FHIR Proxy** *(custom, on-prem)* | read with PHI redaction | mTLS + broker JWT | https → \`fhir-proxy.meridianhealth.internal\` | A | n/a (in-tenant; built for this rollout) | FHIR resources, redacted at boundary | The only sanctioned path for member-data context. |
 | **MeridianHealth Snowflake Proxy** *(custom, on-prem)* | read-only against \`gold_redacted_*\` schema | mTLS + broker JWT | https → \`snowflake-proxy.meridianhealth.internal\` | A | n/a (in-tenant) | aggregates only | Engineers cannot query member-level rows. |
-| **MeridianHealth ServiceNow** *(custom)* | read + write (incidents, change requests) | OAuth via broker | https → \`servicenow.meridianhealth.internal\` | A | n/a (in-tenant) | change records, incident summaries | Used by deploy-ops + monitoring-ops. |
+| **MeridianHealth ServiceNow** *(custom)* | read + write (incidents, change requests) | OAuth via broker | https → \`servicenow.meridianhealth.internal\` | A | n/a (in-tenant) | change records, incident summaries | Used by oc-deploy-ops + oc-monitoring-ops. |
 
 **Tier definitions**
 
@@ -412,7 +412,7 @@ Inverse of §5. Pull request to \`platform-security/mcp-allowlist.yaml\` with:
 
 After merge, the broker stops minting tokens for the audience within 15 minutes; Zscaler removes the FQDN from the allowlist; existing tokens expire on their natural 5-min TTL.
 
-Checkpoint: \`.checkpoints/integrations-engineer.checkpoint.json\` (Phase 2).`,
+Checkpoint: \`.checkpoints/oc-integrations-engineer.checkpoint.json\` (Phase 2).`,
     },
     {
       id: "secret-broker",
@@ -421,7 +421,7 @@ Checkpoint: \`.checkpoints/integrations-engineer.checkpoint.json\` (Phase 2).`,
       body:
 `# MCP Credential Broker + Egress Architecture
 
-**Produced by** integrations-engineer (chained from security-auditor) · **Pattern:** zero-trust / zero-static-secrets · **Existing infra reused:** Vault, Okta, Zscaler · **New components:** \`mcp-broker\`, \`mcp-redactor\`, \`mcptl\` (CLI)
+**Produced by** oc-integrations-engineer (chained from oc-security-auditor) · **Pattern:** zero-trust / zero-static-secrets · **Existing infra reused:** Vault, Okta, Zscaler · **New components:** \`mcp-broker\`, \`mcp-redactor\`, \`mcptl\` (CLI)
 
 ## 1. Why a broker
 
@@ -679,7 +679,7 @@ Error budget: 1 − target. Burn-rate alerts: 14.4× over 1h → page; 6× over 
 - **Per-team RBAC for MCP tools.** See \`rbac-matrix\` artifact.
 - **Rollout sequencing.** See \`rollout-plan\` artifact.
 
-Checkpoint: \`.checkpoints/integrations-engineer.checkpoint.json\`.`,
+Checkpoint: \`.checkpoints/oc-integrations-engineer.checkpoint.json\`.`,
     },
     {
       id: "audit-log",
@@ -688,7 +688,7 @@ Checkpoint: \`.checkpoints/integrations-engineer.checkpoint.json\`.`,
       body:
 `# MCP Audit Log + SIEM Forwarding
 
-**Produced by** monitoring-ops (chained from integrations-engineer) · **Target:** Splunk Cloud (corp SIEM) · **Compliance driver:** HIPAA §164.312(b), SOC2 CC7.2, ISO 27001 A.8.16
+**Produced by** oc-monitoring-ops (chained from oc-integrations-engineer) · **Target:** Splunk Cloud (corp SIEM) · **Compliance driver:** HIPAA §164.312(b), SOC2 CC7.2, ISO 27001 A.8.16
 
 ## 1. Goal
 
@@ -929,7 +929,7 @@ The audit pipeline must be **green** before Wave 1 of the engineer rollout (see 
 - 7-day soak with pilot team showing zero record loss.
 - BigQuery cold-storage retention policy attested by Privacy Officer.
 
-Checkpoint: \`.checkpoints/monitoring-ops.checkpoint.json\` (Phase 2).`,
+Checkpoint: \`.checkpoints/oc-monitoring-ops.checkpoint.json\` (Phase 2).`,
     },
     {
       id: "rbac-matrix",
@@ -1072,7 +1072,7 @@ Audit-log excerpts at each step, in real time:
 ### 6.6 Leaver edge cases
 
 - **In-flight tool call at termination.** The broker holds the request; if the JWT was minted before revocation, the call completes (cannot mid-call revoke). The post-completion audit log is the record.
-- **Pending checkpoint-protocol deferred-action queue.** Any deferred actions on the leaver's laptop are abandoned; the next \`/retry-pm\` from another engineer's session won't pick them up (different actor).
+- **Pending oc-checkpoint-protocol deferred-action queue.** Any deferred actions on the leaver's laptop are abandoned; the next \`/retry-pm\` from another engineer's session won't pick them up (different actor).
 - **Disabled vs deleted Okta user.** Disabled users retain their JWT until natural expiry but cannot mint new ones. Deleted users immediately fail at the broker (no Okta verification path).
 
 ## 7. Cross-team write break-glass
@@ -1097,7 +1097,7 @@ Break-glass usage is reviewed monthly; chronic use indicates a missing RBAC perm
 - **Quarterly** — broader review with the AI Governance Committee.
 - **Annual** — full re-attestation as part of SOC2 Type II and ISO 27001 surveillance.
 
-Checkpoint: \`.checkpoints/integrations-engineer.checkpoint.json\` (Phase 3).`,
+Checkpoint: \`.checkpoints/oc-integrations-engineer.checkpoint.json\` (Phase 3).`,
     },
     {
       id: "rollout-plan",
@@ -1106,7 +1106,7 @@ Checkpoint: \`.checkpoints/integrations-engineer.checkpoint.json\` (Phase 3).`,
       body:
 `# Rollout Plan — Claude Code + MCP at MeridianHealth
 
-**Owner:** app-architect (Platform Engineering Lead is accountable) · **Total duration:** 14 weeks pilot to GA · **Halt at any wave** if abort criteria trip.
+**Owner:** oc-app-architect (Platform Engineering Lead is accountable) · **Total duration:** 14 weeks pilot to GA · **Halt at any wave** if abort criteria trip.
 
 ## 1. Strategy
 
@@ -1302,7 +1302,7 @@ If Wave 3 fails (PHI leakage, severe redaction issue, etc.):
 4. **Wave 0-2 continue.** The FHIR Proxy is the only component scoped to Wave 3; disabling it does not affect earlier waves.
 5. **Recovery decision:** Privacy Officer + Sec Lead + Committee decide whether to re-attempt Wave 3 after fixes, or defer indefinitely.
 
-Checkpoint: \`.checkpoints/app-architect.checkpoint.json\`.`,
+Checkpoint: \`.checkpoints/oc-app-architect.checkpoint.json\`.`,
     },
     {
       id: "compliance-crosswalk",
@@ -1454,13 +1454,13 @@ Fifteen questions a HIPAA / SOC2 Type II / ISO 27001 surveillance auditor will a
 - Federal MCP-vendor list as it stabilises (industry trend, watch-only).
 - Updates to AI-Use Policy on each Anthropic model upgrade.
 
-Checkpoint: \`.checkpoints/security-auditor.checkpoint.json\` (Phase 4 — verification + sign-off).`,
+Checkpoint: \`.checkpoints/oc-security-auditor.checkpoint.json\` (Phase 4 — verification + sign-off).`,
     },
   ],
-  skills: ["security-auditor", "integrations-engineer", "monitoring-ops", "app-architect"],
+  skills: ["oc-security-auditor", "oc-integrations-engineer", "oc-monitoring-ops", "oc-app-architect"],
   runtime: "≈ 12 exchanges",
   steps: [
-    { type: "beat", label: "01 · Threat model", caption: "security-auditor sweeps the MCP attack surface", skills: ["security-auditor"] },
+    { type: "beat", label: "01 · Threat model", caption: "oc-security-auditor sweeps the MCP attack surface", skills: ["oc-security-auditor"] },
 
     {
       type: "exchange", role: "user",
@@ -1472,9 +1472,9 @@ We're worried about three things: (1) does MCP introduce a new way for PHI to le
 What do we do?`
     },
     {
-      type: "exchange", role: "claude", skill: "security-auditor",
+      type: "exchange", role: "claude", skill: "oc-security-auditor",
       content:
-`Invoking **security-auditor** in MCP mode. This is exactly the gap the skill was extended to cover — the protocol itself, not the downstream systems.
+`Invoking **oc-security-auditor** in MCP mode. This is exactly the gap the skill was extended to cover — the protocol itself, not the downstream systems.
 
 Four-stage sweep, MCP-specific:
 
@@ -1483,7 +1483,7 @@ Four-stage sweep, MCP-specific:
 3. **Hardening pass** — broker, redactor, audit pipeline, RBAC matrix.
 4. **Compliance crosswalk** — HIPAA Security Rule, SOC2, ISO, your internal AI-Use Policy.
 
-Each stage hands off to the right skill: integrations-engineer for the broker and FHIR Proxy MCP; monitoring-ops for the audit pipeline; app-architect for the rollout.
+Each stage hands off to the right skill: oc-integrations-engineer for the broker and FHIR Proxy MCP; oc-monitoring-ops for the audit pipeline; oc-app-architect for the rollout.
 
 Need: list of systems engineers want MCP context for (PM tools, repo, infra dashboards, FHIR), your existing identity + secret + egress posture (Okta? Vault? Zscaler?), and a sample of which engineering teams would pilot.`,
     },
@@ -1493,7 +1493,7 @@ Need: list of systems engineers want MCP context for (PM tools, repo, infra dash
 `Okta SSO, HashiCorp Vault, Zscaler, Splunk, GitHub Enterprise, Linear. PM context = Linear and Atlassian. Repo context = GitHub. Infra = Cloudflare. Member context = our Epic-backed FHIR API + claims data warehouse in Snowflake. Pilot = appsec + platform-eng + sre, ~12 engineers.`
     },
     {
-      type: "exchange", role: "claude", skill: "security-auditor",
+      type: "exchange", role: "claude", skill: "oc-security-auditor",
       content:
 `Running STRIDE per boundary. Top findings:
 
@@ -1508,18 +1508,18 @@ Need: list of systems engineers want MCP context for (PM tools, repo, infra dash
 
 HIPAA mapping: M-1, M-2 implicate §164.308(a)(4) and §164.312(a)(1). Until those are remediated, **no PHI-bearing system can sit behind an MCP.** That includes your FHIR API and Snowflake.
 
-Three of the eight are CRITICAL. Chaining to **integrations-engineer** for the broker + redactor + custom FHIR-Proxy MCP design — those are the controls that close M-1, M-2, and (combined with manual write confirmation) M-5.
+Three of the eight are CRITICAL. Chaining to **oc-integrations-engineer** for the broker + redactor + custom FHIR-Proxy MCP design — those are the controls that close M-1, M-2, and (combined with manual write confirmation) M-5.
 
-Writing the threat model to \`.checkpoints/security-auditor.checkpoint.json\`.`,
+Writing the threat model to \`.checkpoints/oc-security-auditor.checkpoint.json\`.`,
       artifacts: ["mcp-threat-model"],
     },
 
-    { type: "beat", label: "02 · Allowlist + broker", caption: "integrations-engineer designs the controlled deployment", skills: ["integrations-engineer"] },
+    { type: "beat", label: "02 · Allowlist + broker", caption: "oc-integrations-engineer designs the controlled deployment", skills: ["oc-integrations-engineer"] },
 
     {
-      type: "exchange", role: "claude", skill: "integrations-engineer",
+      type: "exchange", role: "claude", skill: "oc-integrations-engineer",
       content:
-`Picking up from security-auditor's findings. Three workstreams in parallel:
+`Picking up from oc-security-auditor's findings. Three workstreams in parallel:
 
 **Workstream A — Allowlist.** Server-by-server risk rating, tool-level scoping, deny-by-default at Zscaler. The denied list is more interesting than the allowed list:
 
@@ -1542,7 +1542,7 @@ Total build: ~4 weeks, two engineers + Privacy Office consultation.`,
       content: `Egress story for laptops? We don't want a developer somehow routing around Zscaler and pulling raw FHIR locally.`
     },
     {
-      type: "exchange", role: "claude", skill: "integrations-engineer",
+      type: "exchange", role: "claude", skill: "oc-integrations-engineer",
       content:
 `Three layers of egress control:
 
@@ -1555,12 +1555,12 @@ A laptop seizure or off-network device sees: no resolution, no Zscaler routing, 
 Local stdio-only MCPs (e.g. a hypothetical local-filesystem MCP — we don't enable it for this rollout) bypass the network entirely. We mitigate that surface (M-3, supply-chain) by allowlisting the binaries that \`mcptl\` distributes through our internal Homebrew tap; no random \`npm install\` of an MCP package on corp laptops.`
     },
 
-    { type: "beat", label: "03 · Audit pipeline", caption: "monitoring-ops wires the SIEM forwarder", skills: ["monitoring-ops"] },
+    { type: "beat", label: "03 · Audit pipeline", caption: "oc-monitoring-ops wires the SIEM forwarder", skills: ["oc-monitoring-ops"] },
 
     {
-      type: "exchange", role: "claude", skill: "monitoring-ops",
+      type: "exchange", role: "claude", skill: "oc-monitoring-ops",
       content:
-`Picking up from integrations-engineer. The broker is the only enforcement choke-point for tool calls — perfect place to emit audit records.
+`Picking up from oc-integrations-engineer. The broker is the only enforcement choke-point for tool calls — perfect place to emit audit records.
 
 **Pipeline.** \`mcp-broker\` → fluentbit sidecar → Splunk HEC (hot, 90-day) + BigQuery (cold, 7-year). On HEC failure, fluentbit spools to encrypted disk + alerts after 30-min outage. Loss budget: zero records dropped silently.
 
@@ -1583,7 +1583,7 @@ This is the §164.312(b) audit-controls answer for the next regulator inquiry.`,
       content: `If a regulator asks "show me every tool call by engineer X in March", how fast can we answer?`
     },
     {
-      type: "exchange", role: "claude", skill: "monitoring-ops",
+      type: "exchange", role: "claude", skill: "oc-monitoring-ops",
       content:
 `Splunk: minutes. \`index=mcp_audit actor.sub=alice@meridianhealth.com earliest=-1mon@mon latest=@mon\` returns the full audit log, hashed bodies, redaction hits, scopes. Within hot-tier (90 days), interactive.
 
@@ -1594,10 +1594,10 @@ If they ask "show me what engineer X actually saw" (the bodies, not the hashes),
 For a "did MCP cause this?" lookup the regulator would actually do: Splunk gives them the answer cold.`
     },
 
-    { type: "beat", label: "04 · RBAC + rollout", caption: "app-architect runs the wave plan", skills: ["app-architect"] },
+    { type: "beat", label: "04 · RBAC + rollout", caption: "oc-app-architect runs the wave plan", skills: ["oc-app-architect"] },
 
     {
-      type: "exchange", role: "claude", skill: "app-architect",
+      type: "exchange", role: "claude", skill: "oc-app-architect",
       content:
 `Last two pieces: who can do what, and how we get from 12 to 220 without a HIPAA event.
 
@@ -1620,14 +1620,14 @@ GA at W15+ with allowlist changes via PR + 2-of-3 sign-off, quarterly RBAC revie
       artifacts: ["rbac-matrix", "rollout-plan"],
     },
 
-    { type: "beat", label: "05 · Compliance attestation", caption: "security-auditor closes with the crosswalk", skills: ["security-auditor"] },
+    { type: "beat", label: "05 · Compliance attestation", caption: "oc-security-auditor closes with the crosswalk", skills: ["oc-security-auditor"] },
 
     {
       type: "exchange", role: "user",
       content: `Final question. Before the Committee meeting next week — what do I actually hand them?`
     },
     {
-      type: "exchange", role: "claude", skill: "security-auditor",
+      type: "exchange", role: "claude", skill: "oc-security-auditor",
       content:
 `Single packet. Seven artifacts:
 
@@ -1648,7 +1648,7 @@ The Committee's three concerns map cleanly onto the artefacts:
 - "We don't want long-lived API tokens on laptops" → broker + 5-min JWTs close M-2.
 - "What does the audit story look like?" → audit pipeline + Splunk dashboards + 7-year BigQuery + body-trace forensic procedure.
 
-Recommend approving Wave 0 in this meeting, holding subsequent waves for the standing review. Writing \`.checkpoints/security-auditor.checkpoint.json\` (Phase 4 — verification + sign-off).`,
+Recommend approving Wave 0 in this meeting, holding subsequent waves for the standing review. Writing \`.checkpoints/oc-security-auditor.checkpoint.json\` (Phase 4 — verification + sign-off).`,
       artifacts: ["compliance-crosswalk"],
     },
   ],

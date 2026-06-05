@@ -105,23 +105,23 @@ const packCounts = {
     <div class="ma-diagram-container">
 
       <!-- Foundation (CP + Orchestrator, stacked) -->
-      <details class="ma-foundation" open aria-label="Foundation layer: checkpoint-protocol and orchestrator">
+      <details class="ma-foundation" open aria-label="Foundation layer: oc-checkpoint-protocol and oc-orchestrator">
         <summary>
           <div class="ma-foundation-label">Foundation · cross-cutting</div>
         </summary>
         <div class="ma-foundation-pill">
           <div class="ma-fp-row">
             <span class="ma-fp-tag">PROTOCOL</span>
-            <span class="ma-fp-name">checkpoint-protocol</span>
+            <span class="ma-fp-name">oc-checkpoint-protocol</span>
           </div>
           <div class="ma-fp-desc">JSON schema written by every skill: phase · progress · blockers · next_actions. Single source of truth — no database, no vendor lock-in.</div>
         </div>
         <div class="ma-foundation-pill">
           <div class="ma-fp-row">
             <span class="ma-fp-tag">ORCH</span>
-            <span class="ma-fp-name">orchestrator</span>
+            <span class="ma-fp-name">oc-orchestrator</span>
           </div>
-          <div class="ma-fp-desc"><code>/ops</code> · routing · cross-project status · gate enforcement.</div>
+          <div class="ma-fp-desc"><code>/oc-ops</code> · routing · cross-project status · gate enforcement.</div>
         </div>
       </details>
 
@@ -133,7 +133,7 @@ const packCounts = {
           <span class="ma-band-of">Phase 1 of 5</span>
         </summary>
         <div class="ma-band-svg-wrap">
-          <svg viewBox="0 0 330 110" role="img" aria-label="Discover phase: reverse-spec specialist with spine ordinal 1">
+          <svg viewBox="0 0 330 110" role="img" aria-label="Discover phase: oc-reverse-spec specialist with spine ordinal 1">
             <rect x="40" y="20" width="250" height="72" rx="6" fill="#1c1710" stroke="#14b8a6" stroke-width="1.8" filter="url(#ma-glow-mint)"/>
             <rect x="40" y="20" width="250" height="72" rx="6" fill="rgba(20,184,166,.06)" stroke="#14b8a6" stroke-width="1"/>
             <rect x="148" y="10" width="34" height="20" rx="4" fill="#1c1710"/>
@@ -141,13 +141,13 @@ const packCounts = {
             <text x="165" y="24" fill="#14b8a6" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">1</text>
             <circle cx="278" cy="30" r="3" fill="#e05c18"/>
             <circle cx="270" cy="30" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="51" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">reverse-spec</text>
+            <text x="165" y="51" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-reverse-spec</text>
             <text x="165" y="68" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Workflow</text>
-            <text x="165" y="84" fill="#14b8a6" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/rev-spec · /rev-full</text>
+            <text x="165" y="84" fill="#14b8a6" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-rev-spec · /oc-rev-full</text>
           </svg>
         </div>
         <div class="ma-band-caption">
-          <p>Reverse-engineer existing codebases into structured spec documents. The output feeds <code>app-architect</code> as a Phase 2 baseline so the orchestrator never starts from a cold context. Optional — greenfield projects skip this band entirely.</p>
+          <p>Reverse-engineer existing codebases into structured spec documents. The output feeds <code>oc-app-architect</code> as a Phase 2 baseline so the oc-orchestrator never starts from a cold context. Optional — greenfield projects skip this band entirely.</p>
           <div class="ma-bc-cp"><span class="ma-bc-cp-badge">CP</span><span>phase · codebase_scan · spec_output</span></div>
         </div>
       </details>
@@ -160,14 +160,14 @@ const packCounts = {
           <span class="ma-band-of">Phase 2 of 5</span>
         </summary>
         <div class="ma-band-svg-wrap">
-          <svg viewBox="0 0 330 540" role="img" aria-label="Plan phase: scale-ops and stack-forge advise app-architect; migration-ops paired bidirectionally">
+          <svg viewBox="0 0 330 540" role="img" aria-label="Plan phase: oc-scale-ops and oc-stack-forge advise oc-app-architect; oc-migration-ops paired bidirectionally">
             <rect x="40" y="14" width="250" height="68" rx="6" fill="#1c1710" stroke="#38bdf8" stroke-width="1.8" filter="url(#ma-glow-cyan)"/>
             <rect x="40" y="14" width="250" height="68" rx="6" fill="rgba(56,189,248,.06)" stroke="#38bdf8" stroke-width="1"/>
             <circle cx="278" cy="24" r="3" fill="#e05c18"/>
             <circle cx="270" cy="24" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="40" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">scale-ops</text>
+            <text x="165" y="40" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-scale-ops</text>
             <text x="165" y="56" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Advisor</text>
-            <text x="165" y="72" fill="#38bdf8" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/scale · perf · capacity</text>
+            <text x="165" y="72" fill="#38bdf8" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-scale · perf · capacity</text>
             <line x1="140" y1="82" x2="140" y2="120" stroke="#e05c18" stroke-width="1.8" stroke-dasharray="6,3" marker-end="url(#ma-ah-ember)"/>
             <text x="118" y="104" fill="#e05c18" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="end">auto-invoke ↓</text>
             <line x1="190" y1="120" x2="190" y2="82" stroke="#c4b89e" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ma-ah-sand)"/>
@@ -176,9 +176,9 @@ const packCounts = {
             <rect x="40" y="128" width="250" height="68" rx="6" fill="rgba(56,189,248,.06)" stroke="#38bdf8" stroke-width="1"/>
             <circle cx="278" cy="138" r="3" fill="#e05c18"/>
             <circle cx="270" cy="138" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="154" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">stack-forge</text>
+            <text x="165" y="154" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-stack-forge</text>
             <text x="165" y="170" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Advisor</text>
-            <text x="165" y="186" fill="#38bdf8" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/stack · /stack-decide</text>
+            <text x="165" y="186" fill="#38bdf8" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-stack · /oc-stack-decide</text>
             <line x1="140" y1="196" x2="140" y2="234" stroke="#e05c18" stroke-width="1.8" stroke-dasharray="6,3" marker-end="url(#ma-ah-ember)"/>
             <text x="118" y="218" fill="#e05c18" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="end">auto-invoke ↓</text>
             <line x1="190" y1="234" x2="190" y2="196" stroke="#c4b89e" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ma-ah-sand)"/>
@@ -190,12 +190,12 @@ const packCounts = {
             <text x="165" y="248" fill="#14b8a6" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">2</text>
             <circle cx="298" cy="254" r="3" fill="#e05c18"/>
             <circle cx="290" cy="254" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="278" fill="#e8dfd0" font-size="17" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">app-architect</text>
+            <text x="165" y="278" fill="#e8dfd0" font-size="17" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-app-architect</text>
             <text x="165" y="298" fill="#c4b89e" font-size="13" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · Orchestrator</text>
             <text x="165" y="316" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Generator / Evaluator · QA ≥ 7/10</text>
-            <text x="165" y="338" fill="#fbbf24" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/app · /discover · /spec</text>
-            <text x="165" y="354" fill="#fbbf24" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/design · /build · /launch</text>
-            <text x="165" y="372" fill="#e05c18" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">auto-invokes: stack-forge · ux-engineer</text>
+            <text x="165" y="338" fill="#fbbf24" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-app · /oc-discover · /oc-spec</text>
+            <text x="165" y="354" fill="#fbbf24" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-design · /oc-build · /oc-launch</text>
+            <text x="165" y="372" fill="#e05c18" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">auto-invokes: oc-stack-forge · oc-ux-engineer</text>
             <line x1="140" y1="382" x2="140" y2="420" stroke="#e05c18" stroke-width="1.8" stroke-dasharray="6,3" marker-end="url(#ma-ah-ember)"/>
             <text x="118" y="404" fill="#e05c18" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="end">auto-invoke ↓</text>
             <line x1="190" y1="420" x2="190" y2="382" stroke="#c4b89e" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ma-ah-sand)"/>
@@ -204,21 +204,21 @@ const packCounts = {
             <rect x="40" y="428" width="250" height="68" rx="6" fill="rgba(20,184,166,.06)" stroke="#14b8a6" stroke-width="1"/>
             <circle cx="278" cy="438" r="3" fill="#e05c18"/>
             <circle cx="270" cy="438" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="454" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">migration-ops</text>
+            <text x="165" y="454" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-migration-ops</text>
             <text x="165" y="470" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist</text>
-            <text x="165" y="486" fill="#14b8a6" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/migrate · schema · platform</text>
+            <text x="165" y="486" fill="#14b8a6" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-migrate · schema · platform</text>
             <line x1="165" y1="504" x2="165" y2="528" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
             <text x="165" y="538" fill="#14b8a6" font-size="11" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">↓ spine 2 → 3 (build)</text>
           </svg>
         </div>
         <div class="ma-band-caption">
-          <p><code>app-architect</code> anchors the spine, auto-invoking <code>stack-forge</code> for platform decisions, taking advisory input from <code>scale-ops</code> on capacity, and routing <code>migration-ops</code> when a live system needs a schema, framework, or platform change. The plan checkpoint is the master record downstream skills consume.</p>
+          <p><code>oc-app-architect</code> anchors the spine, auto-invoking <code>oc-stack-forge</code> for platform decisions, taking advisory input from <code>oc-scale-ops</code> on capacity, and routing <code>oc-migration-ops</code> when a live system needs a schema, framework, or platform change. The plan checkpoint is the master record downstream skills consume.</p>
           <div class="ma-bc-cp"><span class="ma-bc-cp-badge">CP</span><span>phase · stack_decision · capacity · migration_plan</span></div>
         </div>
       </details>
 
       <!-- PACK FABRIC (cross-cutting, v1.4) — sits between Plan and Build. -->
-      <details class="ma-band ma-pack-fabric" open aria-label="Pack fabric: stack-forge packs (v1.4)">
+      <details class="ma-band ma-pack-fabric" open aria-label="Pack fabric: oc-stack-forge packs (v1.4)">
         <summary class="ma-band-header ma-pack-fabric-header">
           <span class="ma-band-num">✦</span>
           <span class="ma-band-title">Pack fabric</span>
@@ -226,8 +226,8 @@ const packCounts = {
         </summary>
         <div class="ma-pack-fabric-body">
           <p class="ma-pack-fabric-sub">
-            <code>stack-forge</code> owns the registry; 5 skills consume it.
-            Source: <code>skills/stack-forge/packs/&lt;id&gt;/pack.yml</code>
+            <code>oc-stack-forge</code> owns the registry; 5 skills consume it.
+            Source: <code>skills/oc-stack-forge/packs/&lt;id&gt;/pack.yml</code>
           </p>
           <div class="ma-pack-fabric-cells">
             <div class="ma-pf-cell ma-pf-lang">
@@ -269,7 +269,7 @@ const packCounts = {
           </div>
           <div class="ma-pack-fabric-foot">
             <span class="ma-pf-fanout">
-              consumed by <b>stack-forge</b> · <b>app-architect</b> · <b>migration-ops</b> · <b>api-dev</b> · <b>deploy-ops</b>
+              consumed by <b>oc-stack-forge</b> · <b>oc-app-architect</b> · <b>oc-migration-ops</b> · <b>oc-api-dev</b> · <b>oc-deploy-ops</b>
             </span>
             <a class="ma-pf-cta" href="/coverage">View /coverage →</a>
           </div>
@@ -284,23 +284,23 @@ const packCounts = {
           <span class="ma-band-of">Phase 3 of 5</span>
         </summary>
         <div class="ma-band-svg-wrap">
-          <svg viewBox="0 0 330 600" role="img" aria-label="Build phase: ux-engineer hands to dash-forge; api-dev and integrations-engineer both branch to code-auditor downstream">
+          <svg viewBox="0 0 330 600" role="img" aria-label="Build phase: oc-ux-engineer hands to oc-dash-forge; oc-api-dev and oc-integrations-engineer both branch to oc-code-auditor downstream">
             <rect x="20" y="14" width="290" height="92" rx="6" fill="#1c1710" stroke="#fbbf24" stroke-width="1.8" filter="url(#ma-glow-yellow)"/>
             <rect x="20" y="14" width="290" height="92" rx="6" fill="rgba(251,191,36,.06)" stroke="#fbbf24" stroke-width="1"/>
             <circle cx="298" cy="24" r="3" fill="#e05c18"/>
             <circle cx="290" cy="24" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="42" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">ux-engineer</text>
+            <text x="165" y="42" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-ux-engineer</text>
             <text x="165" y="60" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · Planner / Generator / Eval</text>
-            <text x="165" y="78" fill="#fbbf24" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/uxe · /design</text>
-            <text x="165" y="96" fill="#14b8a6" font-size="12" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">branches → dash-forge</text>
+            <text x="165" y="78" fill="#fbbf24" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-uxe · /oc-design</text>
+            <text x="165" y="96" fill="#14b8a6" font-size="12" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">branches → oc-dash-forge</text>
             <line x1="165" y1="106" x2="165" y2="128" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
             <rect x="20" y="136" width="290" height="86" rx="6" fill="#1c1710" stroke="#14b8a6" stroke-width="1.8" filter="url(#ma-glow-mint)"/>
             <rect x="20" y="136" width="290" height="86" rx="6" fill="rgba(20,184,166,.06)" stroke="#14b8a6" stroke-width="1"/>
             <circle cx="298" cy="146" r="3" fill="#e05c18"/>
             <circle cx="290" cy="146" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="164" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">dash-forge</text>
+            <text x="165" y="164" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-dash-forge</text>
             <text x="165" y="182" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Tufte-density UI</text>
-            <text x="165" y="200" fill="#14b8a6" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/data-forge · /dashboard</text>
+            <text x="165" y="200" fill="#14b8a6" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-data-forge · /dashboard</text>
             <text x="165" y="216" fill="#c4b89e" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">parallel build track ↓</text>
             <line x1="60" y1="240" x2="270" y2="240" stroke="#5a5040" stroke-width="1" stroke-dasharray="3,3"/>
             <text x="165" y="256" fill="#c4b89e" font-size="11" font-weight="600" letter-spacing="0.1em" font-family="JetBrains Mono,monospace" text-anchor="middle">PARALLEL · API + INTEGRATIONS</text>
@@ -308,28 +308,28 @@ const packCounts = {
             <rect x="20" y="270" width="290" height="92" rx="6" fill="rgba(251,191,36,.06)" stroke="#fbbf24" stroke-width="1"/>
             <circle cx="298" cy="280" r="3" fill="#e05c18"/>
             <circle cx="290" cy="280" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="298" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">api-dev</text>
+            <text x="165" y="298" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-api-dev</text>
             <text x="165" y="316" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · OpenAPI / GraphQL</text>
             <text x="165" y="334" fill="#fbbf24" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">first-party API surface</text>
-            <text x="165" y="352" fill="#14b8a6" font-size="12" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">branches → code-auditor</text>
+            <text x="165" y="352" fill="#14b8a6" font-size="12" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">branches → oc-code-auditor</text>
             <line x1="165" y1="362" x2="165" y2="380" stroke="#5a5040" stroke-width="1.5" stroke-dasharray="2,3"/>
             <rect x="20" y="386" width="290" height="92" rx="6" fill="#1c1710" stroke="#fbbf24" stroke-width="1.8" filter="url(#ma-glow-yellow)"/>
             <rect x="20" y="386" width="290" height="92" rx="6" fill="rgba(251,191,36,.06)" stroke="#fbbf24" stroke-width="1"/>
             <circle cx="298" cy="396" r="3" fill="#e05c18"/>
             <circle cx="290" cy="396" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="414" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">integrations-engineer</text>
+            <text x="165" y="414" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-integrations-engineer</text>
             <text x="165" y="432" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · Planner / Builder / Tester</text>
-            <text x="165" y="450" fill="#fbbf24" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/integrate · OAuth · webhooks</text>
-            <text x="165" y="468" fill="#14b8a6" font-size="12" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">branches → code-auditor</text>
+            <text x="165" y="450" fill="#fbbf24" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-integrate · OAuth · webhooks</text>
+            <text x="165" y="468" fill="#14b8a6" font-size="12" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">branches → oc-code-auditor</text>
             <rect x="40" y="496" width="250" height="44" rx="6" fill="rgba(251,191,36,.04)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,3"/>
             <text x="165" y="514" fill="#fbbf24" font-size="11" font-weight="600" letter-spacing="0.06em" font-family="JetBrains Mono,monospace" text-anchor="middle">↑ ALL 4 RETURN CHECKPOINTS</text>
-            <text x="165" y="530" fill="#c4b89e" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">to app-architect (Phase 2)</text>
+            <text x="165" y="530" fill="#c4b89e" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">to oc-app-architect (Phase 2)</text>
             <line x1="165" y1="556" x2="165" y2="586" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
             <text x="165" y="596" fill="#14b8a6" font-size="11" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">↓ spine 3 (ship)</text>
           </svg>
         </div>
         <div class="ma-band-caption">
-          <p>Three tri-agent loops (<code>ux-engineer</code> · <code>api-dev</code> · <code>integrations-engineer</code>) plus the dense-UI specialist (<code>dash-forge</code>) work in parallel. <code>ux-engineer</code> hands data-heavy screens to <code>dash-forge</code>; <code>api-dev</code> produces an OpenAPI/GraphQL contract that the deploy-time drift gate later enforces. All four feed checkpoints back to <code>app-architect</code>.</p>
+          <p>Three tri-agent loops (<code>oc-ux-engineer</code> · <code>oc-api-dev</code> · <code>oc-integrations-engineer</code>) plus the dense-UI specialist (<code>oc-dash-forge</code>) work in parallel. <code>oc-ux-engineer</code> hands data-heavy screens to <code>oc-dash-forge</code>; <code>oc-api-dev</code> produces an OpenAPI/GraphQL contract that the deploy-time drift gate later enforces. All four feed checkpoints back to <code>oc-app-architect</code>.</p>
           <div class="ma-bc-cp"><span class="ma-bc-cp-badge">CP</span><span>phase · ux_specs · api_surface · integrations · dashboards</span></div>
         </div>
       </details>
@@ -342,15 +342,15 @@ const packCounts = {
           <span class="ma-band-of">Phase 4 of 5</span>
         </summary>
         <div class="ma-band-svg-wrap">
-          <svg viewBox="0 0 330 880" role="img" aria-label="Ship phase: bug-check pre-commit, git-ops spine, three audit gates, release-ops at release boundaries, deploy-ops orchestrates production">
+          <svg viewBox="0 0 330 880" role="img" aria-label="Ship phase: oc-bug-check pre-commit, oc-git-ops spine, three audit gates, oc-release-ops at release boundaries, oc-deploy-ops orchestrates production">
             <rect x="20" y="14" width="290" height="86" rx="6" fill="#1c1710" stroke="#fb7185" stroke-width="1.8" filter="url(#ma-glow-rose)"/>
             <rect x="20" y="14" width="290" height="86" rx="6" fill="rgba(251,113,133,.06)" stroke="#fb7185" stroke-width="1"/>
             <circle cx="298" cy="24" r="3" fill="#e05c18"/>
             <circle cx="290" cy="24" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="42" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">bug-check</text>
+            <text x="165" y="42" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-bug-check</text>
             <text x="165" y="60" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate · pre-commit</text>
             <text x="165" y="78" fill="#fb7185" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">type · lint · secrets · vuln</text>
-            <text x="165" y="94" fill="#fb7185" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/bugcheck</text>
+            <text x="165" y="94" fill="#fb7185" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-bugcheck</text>
             <line x1="165" y1="100" x2="165" y2="124" stroke="#fb7185" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ma-ah-rose)"/>
             <rect x="20" y="132" width="290" height="84" rx="6" fill="#1c1710" stroke="#14b8a6" stroke-width="1.8" filter="url(#ma-glow-mint)"/>
             <rect x="20" y="132" width="290" height="84" rx="6" fill="rgba(20,184,166,.06)" stroke="#14b8a6" stroke-width="1"/>
@@ -359,30 +359,30 @@ const packCounts = {
             <text x="165" y="136" fill="#14b8a6" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">3</text>
             <circle cx="298" cy="142" r="3" fill="#e05c18"/>
             <circle cx="290" cy="142" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="160" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">git-ops</text>
+            <text x="165" y="160" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-git-ops</text>
             <text x="165" y="178" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Workflow</text>
-            <text x="165" y="196" fill="#14b8a6" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/git · /commit · /pr · /push</text>
-            <text x="165" y="212" fill="#c4b89e" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">auto-runs bug-check pre-commit ↑</text>
+            <text x="165" y="196" fill="#14b8a6" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-git · /oc-commit · /oc-pr · /oc-push</text>
+            <text x="165" y="212" fill="#c4b89e" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">auto-runs oc-bug-check pre-commit ↑</text>
             <rect x="40" y="232" width="250" height="28" rx="4" fill="rgba(251,113,133,.06)" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,3"/>
             <text x="165" y="251" fill="#fb7185" font-size="11" font-weight="700" letter-spacing="0.1em" font-family="JetBrains Mono,monospace" text-anchor="middle">↓ MUST PASS BEFORE PROD</text>
             <rect x="20" y="270" width="290" height="100" rx="6" fill="#1c1710" stroke="#fbbf24" stroke-width="1.8" filter="url(#ma-glow-yellow)"/>
             <rect x="20" y="270" width="290" height="100" rx="6" fill="rgba(251,191,36,.06)" stroke="#fbbf24" stroke-width="1"/>
             <circle cx="298" cy="280" r="3" fill="#e05c18"/>
             <circle cx="290" cy="280" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="298" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">code-auditor</text>
+            <text x="165" y="298" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-code-auditor</text>
             <text x="165" y="316" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · gates prod</text>
             <text x="165" y="334" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Auditor · Fixer · Verifier</text>
-            <text x="165" y="352" fill="#fbbf24" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/audit · score ≥ 7/10</text>
-            <text x="165" y="368" fill="#14b8a6" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">branches → security-auditor</text>
+            <text x="165" y="352" fill="#fbbf24" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-audit · score ≥ 7/10</text>
+            <text x="165" y="368" fill="#14b8a6" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">branches → oc-security-auditor</text>
             <line x1="165" y1="370" x2="165" y2="392" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
             <rect x="20" y="400" width="290" height="100" rx="6" fill="#1c1710" stroke="#fb7185" stroke-width="1.8" filter="url(#ma-glow-rose)"/>
             <rect x="20" y="400" width="290" height="100" rx="6" fill="rgba(251,113,133,.06)" stroke="#fb7185" stroke-width="1"/>
             <circle cx="298" cy="410" r="3" fill="#e05c18"/>
             <circle cx="290" cy="410" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="428" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">security-auditor</text>
+            <text x="165" y="428" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-security-auditor</text>
             <text x="165" y="446" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate · posture review</text>
             <text x="165" y="464" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">STRIDE · OWASP · TLS · CSP</text>
-            <text x="165" y="482" fill="#fb7185" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/security · /threat-model</text>
+            <text x="165" y="482" fill="#fb7185" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-security · /oc-threat-model</text>
             <text x="165" y="498" fill="#fb7185" font-size="11" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">3rd of 3 gates</text>
             <line x1="165" y1="506" x2="165" y2="540" stroke="#fb7185" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ma-ah-rose)"/>
             <text x="165" y="554" fill="#c4b89e" font-size="11" font-weight="600" letter-spacing="0.08em" font-family="JetBrains Mono,monospace" text-anchor="middle">3 GATES PASSED → RELEASE</text>
@@ -395,7 +395,7 @@ const packCounts = {
             <circle cx="290" cy="578" r="3" fill="#e05c18" opacity="0.55"/>
             <circle cx="44" cy="584" r="10" fill="#14b8a6" opacity="0.92"><title>18th skill in the opchain pipeline</title></circle>
             <text x="44" y="588" fill="#0a0807" font-size="11" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">18</text>
-            <text x="165" y="600" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">release-ops</text>
+            <text x="165" y="600" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-release-ops</text>
             <text x="165" y="618" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Workflow · NEW</text>
             <rect x="64" y="627" width="32" height="14" rx="3" fill="rgba(20,184,166,.20)" stroke="#14b8a6" stroke-width="0.8"/>
             <text x="80" y="637" fill="#14b8a6" font-size="9" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">plan</text>
@@ -412,7 +412,7 @@ const packCounts = {
             <rect x="238" y="627" width="28" height="14" rx="3" fill="rgba(20,184,166,.32)" stroke="#14b8a6" stroke-width="1"/>
             <text x="252" y="637" fill="#14b8a6" font-size="9" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ship</text>
             <text x="165" y="658" fill="#c4b89e" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">activates at release boundaries only</text>
-            <text x="165" y="678" fill="#14b8a6" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">/release · changelog · semver bump · ticket · post</text>
+            <text x="165" y="678" fill="#14b8a6" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-release · changelog · semver bump · ticket · post</text>
             <line x1="165" y1="692" x2="165" y2="716" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
             <text x="206" y="708" fill="#14b8a6" font-size="10" font-style="italic" font-family="JetBrains Mono,monospace">hand off</text>
             <rect x="20" y="722" width="290" height="106" rx="7" fill="#1c1710" stroke="#e05c18" stroke-width="2.2" filter="url(#ma-glow-ember)"/>
@@ -422,9 +422,9 @@ const packCounts = {
             <text x="165" y="726" fill="#14b8a6" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">5</text>
             <circle cx="298" cy="732" r="3" fill="#e05c18"/>
             <circle cx="290" cy="732" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="752" fill="#e8dfd0" font-size="17" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">deploy-ops</text>
+            <text x="165" y="752" fill="#e8dfd0" font-size="17" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-deploy-ops</text>
             <text x="165" y="770" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Orchestrator · Workflow</text>
-            <text x="165" y="790" fill="#e05c18" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/deploy</text>
+            <text x="165" y="790" fill="#e05c18" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-deploy</text>
             <text x="165" y="808" fill="#e05c18" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">gates → prod → rollback</text>
             <text x="165" y="824" fill="#c4b89e" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">enforces all 3 audit gates</text>
             <line x1="165" y1="838" x2="165" y2="862" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
@@ -432,7 +432,7 @@ const packCounts = {
           </svg>
         </div>
         <div class="ma-band-caption">
-          <p>Three audit gates (<code>bug-check</code> pre-commit, <code>code-auditor</code> for code-level findings, <code>security-auditor</code> for STRIDE/OWASP/infra) all must pass before <code>deploy-ops</code> will run the production sequence. At release boundaries the spine threads <code>git-ops → release-ops → deploy-ops</code>; <strong style="color:#14b8a6">release-ops</strong> produces the changelog · version bump · release ticket · announcement, then hands off (it is <em>not</em> itself a deployer).</p>
+          <p>Three audit gates (<code>oc-bug-check</code> pre-commit, <code>oc-code-auditor</code> for code-level findings, <code>oc-security-auditor</code> for STRIDE/OWASP/infra) all must pass before <code>oc-deploy-ops</code> will run the production sequence. At release boundaries the spine threads <code>oc-git-ops → oc-release-ops → oc-deploy-ops</code>; <strong style="color:#14b8a6">oc-release-ops</strong> produces the changelog · version bump · release ticket · announcement, then hands off (it is <em>not</em> itself a deployer).</p>
           <div class="ma-bc-cp"><span class="ma-bc-cp-badge">CP</span><span>phase · audit_score · posture · branch · pr · release_tag · deploy_status</span></div>
         </div>
       </details>
@@ -445,7 +445,7 @@ const packCounts = {
           <span class="ma-band-of">Phase 5 of 5</span>
         </summary>
         <div class="ma-band-svg-wrap">
-          <svg viewBox="0 0 330 130" role="img" aria-label="Monitor phase: monitoring-ops specialist with spine ordinal 6">
+          <svg viewBox="0 0 330 130" role="img" aria-label="Monitor phase: oc-monitoring-ops specialist with spine ordinal 6">
             <rect x="20" y="22" width="290" height="92" rx="7" fill="#1c1710" stroke="#14b8a6" stroke-width="2" filter="url(#ma-glow-mint)"/>
             <rect x="20" y="22" width="290" height="92" rx="7" fill="rgba(20,184,166,.08)" stroke="#14b8a6" stroke-width="1"/>
             <rect x="148" y="12" width="34" height="20" rx="4" fill="#1c1710"/>
@@ -453,14 +453,14 @@ const packCounts = {
             <text x="165" y="26" fill="#14b8a6" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">6</text>
             <circle cx="298" cy="32" r="3" fill="#e05c18"/>
             <circle cx="290" cy="32" r="3" fill="#e05c18" opacity="0.55"/>
-            <text x="165" y="56" fill="#e8dfd0" font-size="17" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">monitoring-ops</text>
+            <text x="165" y="56" fill="#e8dfd0" font-size="17" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-monitoring-ops</text>
             <text x="165" y="76" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · observability</text>
-            <text x="165" y="96" fill="#14b8a6" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/monitor · uptime · SLO</text>
-            <text x="165" y="110" fill="#c4b89e" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">+ api-dev SLO/drift manifest</text>
+            <text x="165" y="96" fill="#14b8a6" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-monitor · uptime · SLO</text>
+            <text x="165" y="110" fill="#c4b89e" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">+ oc-api-dev SLO/drift manifest</text>
           </svg>
         </div>
         <div class="ma-band-caption">
-          <p><code>deploy-ops</code> hands off to <code>monitoring-ops</code> once production is green. <code>monitoring-ops</code> also receives <code>api-dev</code>'s SLO + drift manifest so contract violations alert the same way uptime errors do. Incident response runbooks and postmortems live here.</p>
+          <p><code>oc-deploy-ops</code> hands off to <code>oc-monitoring-ops</code> once production is green. <code>oc-monitoring-ops</code> also receives <code>oc-api-dev</code>'s SLO + drift manifest so contract violations alert the same way uptime errors do. Incident response runbooks and postmortems live here.</p>
           <div class="ma-bc-cp"><span class="ma-bc-cp-badge">CP</span><span>phase · slo_status · alert_rules · incident_log</span></div>
         </div>
       </details>
@@ -471,45 +471,45 @@ const packCounts = {
           <div class="ma-appendix-eyebrow">Appendix A · Cross-cutting</div>
           <div class="ma-appendix-title">Checkpoint Protocol — sync topology</div>
         </summary>
-        <p class="ma-appendix-desc">Every skill (all 18) writes a JSON checkpoint after each state change. The orchestrator both reads from and writes to each — bidirectional sync. Diagram below shows 6 representative connections; the same topology extends to all 18 skills.</p>
+        <p class="ma-appendix-desc">Every skill (all 18) writes a JSON checkpoint after each state change. The oc-orchestrator both reads from and writes to each — bidirectional sync. Diagram below shows 6 representative connections; the same topology extends to all 18 skills.</p>
         <svg viewBox="0 0 330 360" role="img" aria-label="Orchestrator bidirectionally syncs checkpoints with all skills (6 shown)">
           <rect x="20" y="14" width="92" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="1.5"/>
           <text x="66" y="32" fill="#e05c18" font-size="11" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-          <text x="66" y="50" fill="#e8dfd0" font-size="11" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">reverse-spec</text>
+          <text x="66" y="50" fill="#e8dfd0" font-size="11" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-reverse-spec</text>
           <rect x="119" y="14" width="92" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="1.5"/>
           <text x="165" y="32" fill="#e05c18" font-size="11" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-          <text x="165" y="50" fill="#e8dfd0" font-size="11" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">app-architect</text>
+          <text x="165" y="50" fill="#e8dfd0" font-size="11" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-app-architect</text>
           <rect x="218" y="14" width="92" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="1.5"/>
           <text x="264" y="32" fill="#e05c18" font-size="11" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-          <text x="264" y="50" fill="#e8dfd0" font-size="11" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">git-ops</text>
+          <text x="264" y="50" fill="#e8dfd0" font-size="11" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-git-ops</text>
           <line x1="66" y1="64" x2="125" y2="148" stroke="#e05c18" stroke-width="1.5" stroke-dasharray="4,3" marker-start="url(#ma-ah-ember-rev)" marker-end="url(#ma-ah-ember)" opacity="0.85"/>
           <line x1="165" y1="64" x2="165" y2="148" stroke="#e05c18" stroke-width="1.5" stroke-dasharray="4,3" marker-start="url(#ma-ah-ember-rev)" marker-end="url(#ma-ah-ember)" opacity="0.85"/>
           <line x1="264" y1="64" x2="205" y2="148" stroke="#e05c18" stroke-width="1.5" stroke-dasharray="4,3" marker-start="url(#ma-ah-ember-rev)" marker-end="url(#ma-ah-ember)" opacity="0.85"/>
           <rect x="80" y="148" width="170" height="64" rx="6" fill="rgba(224,92,24,.20)" stroke="#e05c18" stroke-width="2" filter="url(#ma-glow-ember)"/>
-          <text x="165" y="173" fill="#f6f0e8" font-size="14" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">orchestrator</text>
-          <text x="165" y="192" fill="#e05c18" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">/ops · routing · sync</text>
+          <text x="165" y="173" fill="#f6f0e8" font-size="14" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-orchestrator</text>
+          <text x="165" y="192" fill="#e05c18" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-ops · routing · sync</text>
           <text x="165" y="206" fill="#c4b89e" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">reads + writes all CPs</text>
           <line x1="125" y1="212" x2="66" y2="296" stroke="#e05c18" stroke-width="1.5" stroke-dasharray="4,3" marker-start="url(#ma-ah-ember-rev)" marker-end="url(#ma-ah-ember)" opacity="0.85"/>
           <line x1="165" y1="212" x2="165" y2="296" stroke="#e05c18" stroke-width="1.5" stroke-dasharray="4,3" marker-start="url(#ma-ah-ember-rev)" marker-end="url(#ma-ah-ember)" opacity="0.85"/>
           <line x1="205" y1="212" x2="264" y2="296" stroke="#e05c18" stroke-width="1.5" stroke-dasharray="4,3" marker-start="url(#ma-ah-ember-rev)" marker-end="url(#ma-ah-ember)" opacity="0.85"/>
           <rect x="20" y="296" width="92" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="1.5"/>
           <text x="66" y="314" fill="#e05c18" font-size="11" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-          <text x="66" y="332" fill="#e8dfd0" font-size="11" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">deploy-ops</text>
+          <text x="66" y="332" fill="#e8dfd0" font-size="11" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-deploy-ops</text>
           <rect x="119" y="296" width="92" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="1.5"/>
           <text x="165" y="314" fill="#e05c18" font-size="11" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
           <text x="165" y="332" fill="#e8dfd0" font-size="11" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">monitor-ops</text>
           <rect x="218" y="296" width="92" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="1.5"/>
           <text x="264" y="314" fill="#e05c18" font-size="11" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-          <text x="264" y="332" fill="#e8dfd0" font-size="11" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">code-auditor</text>
+          <text x="264" y="332" fill="#e8dfd0" font-size="11" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-code-auditor</text>
         </svg>
         <div class="ma-cp-json">
 &#123;<br/>
-&nbsp;&nbsp;<span class="ma-k">"skill"</span>: <span class="ma-s">"app-architect"</span>,<br/>
+&nbsp;&nbsp;<span class="ma-k">"skill"</span>: <span class="ma-s">"oc-app-architect"</span>,<br/>
 &nbsp;&nbsp;<span class="ma-k">"phase"</span>: <span class="ma-s">"build"</span>,<br/>
 &nbsp;&nbsp;<span class="ma-k">"progress_table"</span>: &#123; <span class="ma-s">"discover"</span>: <span class="ma-s">"complete"</span> &#125;,<br/>
 &nbsp;&nbsp;<span class="ma-k">"context_primer"</span>: <span class="ma-s">"2-sentence summary..."</span>,<br/>
 &nbsp;&nbsp;<span class="ma-k">"blockers"</span>: [<span class="ma-s">"waiting on API key"</span>],<br/>
-&nbsp;&nbsp;<span class="ma-k">"next_actions"</span>: [<span class="ma-s">"/git-sync"</span>]<br/>
+&nbsp;&nbsp;<span class="ma-k">"next_actions"</span>: [<span class="ma-s">"/oc-git-sync"</span>]<br/>
 &#125;
         </div>
       </details>
@@ -520,8 +520,8 @@ const packCounts = {
           <div class="ma-appendix-eyebrow">Appendix B · Cross-cutting</div>
           <div class="ma-appendix-title">Orchestrator — routing decision flow</div>
         </summary>
-        <p class="ma-appendix-desc">When a request enters <code>/ops</code>, the orchestrator reads source-skill checkpoint state, decides the next skill, and dispatches. All three states shown together (desktop version animates each in sequence).</p>
-        <svg viewBox="0 0 330 320" role="img" aria-label="Routing flow: source skill request enters orchestrator, decision applied, target skill dispatched">
+        <p class="ma-appendix-desc">When a request enters <code>/oc-ops</code>, the oc-orchestrator reads source-skill checkpoint state, decides the next skill, and dispatches. All three states shown together (desktop version animates each in sequence).</p>
+        <svg viewBox="0 0 330 320" role="img" aria-label="Routing flow: source skill request enters oc-orchestrator, decision applied, target skill dispatched">
           <rect x="60" y="14" width="210" height="56" rx="6" fill="#1c1710" stroke="#fbbf24" stroke-width="1.8" filter="url(#ma-glow-yellow)"/>
           <rect x="60" y="14" width="210" height="56" rx="6" fill="rgba(251,191,36,.10)" stroke="#fbbf24" stroke-width="1"/>
           <text x="165" y="36" fill="#e8dfd0" font-size="13" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">source skill</text>
@@ -529,7 +529,7 @@ const packCounts = {
           <line x1="165" y1="70" x2="165" y2="104" stroke="#e05c18" stroke-width="2" marker-end="url(#ma-ah-ember)"/>
           <text x="180" y="92" fill="#e05c18" font-size="11" font-family="JetBrains Mono,monospace">request</text>
           <rect x="40" y="112" width="250" height="96" rx="6" fill="rgba(224,92,24,.18)" stroke="#e05c18" stroke-width="2" filter="url(#ma-glow-ember)"/>
-          <text x="165" y="138" fill="#f6f0e8" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">orchestrator</text>
+          <text x="165" y="138" fill="#f6f0e8" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-orchestrator</text>
           <text x="165" y="158" fill="#e05c18" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">read source CP</text>
           <text x="165" y="176" fill="#e05c18" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">match next_actions to registry</text>
           <text x="165" y="194" fill="#e05c18" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">enforce gates → dispatch</text>
@@ -557,15 +557,15 @@ const packCounts = {
             <div class="ma-li-name">Spine ordinal</div>
           </div>
           <div class="ma-li-desc">Numbered mint pill on the 5 primary-spine skills marks handoff position. Replaces directional arrows between bands — vertical reading order is the sequence.</div>
-          <div class="ma-li-eg">1 reverse-spec → 2 app-architect → 3 git-ops → 4 release-ops → 5 deploy-ops → 6 monitoring-ops</div>
+          <div class="ma-li-eg">1 oc-reverse-spec → 2 oc-app-architect → 3 oc-git-ops → 4 oc-release-ops → 5 oc-deploy-ops → 6 oc-monitoring-ops</div>
         </div>
         <div class="ma-legend-item">
           <div class="ma-legend-head">
             <div class="ma-li-line" style="border-color:var(--ma-ember);border-style:dashed"></div>
             <div class="ma-li-name">Auto-invoke</div>
           </div>
-          <div class="ma-li-desc">Orchestrator silently triggers a sub-skill without explicit user command. The sub-skill operates in the orchestrator's current phase context.</div>
-          <div class="ma-li-eg">e.g. <code>app-architect → stack-forge</code> · <code>app-architect → ux-engineer</code></div>
+          <div class="ma-li-desc">Orchestrator silently triggers a sub-skill without explicit user command. The sub-skill operates in the oc-orchestrator's current phase context.</div>
+          <div class="ma-li-eg">e.g. <code>oc-app-architect → oc-stack-forge</code> · <code>oc-app-architect → oc-ux-engineer</code></div>
         </div>
         <div class="ma-legend-item">
           <div class="ma-legend-head">
@@ -573,14 +573,14 @@ const packCounts = {
             <div class="ma-li-name">Advisory</div>
           </div>
           <div class="ma-li-desc">Non-blocking recommendations passed via checkpoint. The receiver can accept or override. No hard dependency.</div>
-          <div class="ma-li-eg">e.g. <code>scale-ops → app-architect</code> · <code>migration-ops ↔ app-architect</code></div>
+          <div class="ma-li-eg">e.g. <code>oc-scale-ops → oc-app-architect</code> · <code>oc-migration-ops ↔ oc-app-architect</code></div>
         </div>
         <div class="ma-legend-item">
           <div class="ma-legend-head">
             <div class="ma-li-line" style="border-color:var(--ma-auditor);border-style:dashed"></div>
             <div class="ma-li-name">Audit gate</div>
           </div>
-          <div class="ma-li-desc">Pipeline blocks until the gate writes a passing result. Three gates in this ecosystem: bug-check (pre-commit), code-auditor (code-level), security-auditor (posture).</div>
+          <div class="ma-li-desc">Pipeline blocks until the gate writes a passing result. Three gates in this ecosystem: oc-bug-check (pre-commit), oc-code-auditor (code-level), oc-security-auditor (posture).</div>
           <div class="ma-li-eg">score ≥ 7/10 · STRIDE clean · zero critical CVEs</div>
         </div>
         <div class="ma-legend-item">
@@ -594,10 +594,10 @@ const packCounts = {
         <div class="ma-legend-item">
           <div class="ma-legend-head">
             <div class="ma-li-swatch" style="background:var(--ma-ember);border-radius:50%;width:14px;height:14px;opacity:0.55"></div>
-            <div class="ma-li-name">ORC · orchestrator indicator</div>
+            <div class="ma-li-name">ORC · oc-orchestrator indicator</div>
           </div>
-          <div class="ma-li-desc">Faded ember dot adjacent to the CP dot indicates the skill participates in <code>/ops</code> routing. <strong>All 18 skills carry ORC</strong> — every skill is route-addressable by the orchestrator.</div>
-          <div class="ma-li-eg"><code>/ops</code> · cross-project routing · gate enforcement · "what should I do next"</div>
+          <div class="ma-li-desc">Faded ember dot adjacent to the CP dot indicates the skill participates in <code>/oc-ops</code> routing. <strong>All 18 skills carry ORC</strong> — every skill is route-addressable by the oc-orchestrator.</div>
+          <div class="ma-li-eg"><code>/oc-ops</code> · cross-project routing · gate enforcement · "what should I do next"</div>
         </div>
         <div class="ma-legend-divider"></div>
         <div class="ma-legend-subhead">Skill types</div>
@@ -607,7 +607,7 @@ const packCounts = {
             <div class="ma-li-name" style="color:var(--ma-triagent)">Tri-agent</div>
           </div>
           <div class="ma-li-desc">Skills running an internal Planner / Generator / Evaluator loop. The Evaluator scores output (≥ 7/10 to advance); failure triggers Generator retry until threshold or max iterations.</div>
-          <div class="ma-li-eg">app-architect · ux-engineer · api-dev · integrations-engineer · code-auditor</div>
+          <div class="ma-li-eg">oc-app-architect · oc-ux-engineer · oc-api-dev · oc-integrations-engineer · oc-code-auditor</div>
         </div>
         <div class="ma-legend-item">
           <div class="ma-legend-head">
@@ -615,7 +615,7 @@ const packCounts = {
             <div class="ma-li-name" style="color:var(--ma-advisor)">Advisor</div>
           </div>
           <div class="ma-li-desc">Non-orchestrating skills that return recommendations or analysis. No tri-agent loop. Results fed back via checkpoint; caller can override.</div>
-          <div class="ma-li-eg">stack-forge · scale-ops</div>
+          <div class="ma-li-eg">oc-stack-forge · oc-scale-ops</div>
         </div>
         <div class="ma-legend-item">
           <div class="ma-legend-head">
@@ -623,23 +623,23 @@ const packCounts = {
             <div class="ma-li-name" style="color:var(--ma-specialist)">Standalone specialist</div>
           </div>
           <div class="ma-li-desc">Single-purpose skills that produce a concrete artifact and hand it off. No internal loop, no orchestration of others.</div>
-          <div class="ma-li-eg">reverse-spec · dash-forge · git-ops · release-ops · migration-ops · monitoring-ops</div>
+          <div class="ma-li-eg">oc-reverse-spec · oc-dash-forge · oc-git-ops · oc-release-ops · oc-migration-ops · oc-monitoring-ops</div>
         </div>
         <div class="ma-legend-item">
           <div class="ma-legend-head">
             <div class="ma-li-swatch" style="background:rgba(224,92,24,.12);border:1.5px solid var(--ma-ember)"></div>
-            <div class="ma-li-name" style="color:var(--ma-ember)">Workflow / orchestrator</div>
+            <div class="ma-li-name" style="color:var(--ma-ember)">Workflow / oc-orchestrator</div>
           </div>
-          <div class="ma-li-desc">Skills that drive structured, sequential pipelines. <code>app-architect</code> orchestrates the build; <code>deploy-ops</code> orchestrates the ship; <code>orchestrator</code> routes across projects.</div>
-          <div class="ma-li-eg">app-architect · deploy-ops · orchestrator</div>
+          <div class="ma-li-desc">Skills that drive structured, sequential pipelines. <code>oc-app-architect</code> orchestrates the build; <code>oc-deploy-ops</code> orchestrates the ship; <code>oc-orchestrator</code> routes across projects.</div>
+          <div class="ma-li-eg">oc-app-architect · oc-deploy-ops · oc-orchestrator</div>
         </div>
         <div class="ma-legend-item">
           <div class="ma-legend-head">
             <div class="ma-li-swatch" style="background:rgba(251,113,133,.12);border:1.5px solid var(--ma-auditor)"></div>
             <div class="ma-li-name" style="color:var(--ma-auditor)">Audit gate</div>
           </div>
-          <div class="ma-li-desc">Quality enforcement skills that block pipeline progression until thresholds are met. Three in this ecosystem cover three layers: pre-commit, code-level (also tri-agent — see yellow stroke on code-auditor), security posture.</div>
-          <div class="ma-li-eg">bug-check · code-auditor · security-auditor</div>
+          <div class="ma-li-desc">Quality enforcement skills that block pipeline progression until thresholds are met. Three in this ecosystem cover three layers: pre-commit, code-level (also tri-agent — see yellow stroke on oc-code-auditor), security posture.</div>
+          <div class="ma-li-eg">oc-bug-check · oc-code-auditor · oc-security-auditor</div>
         </div>
       </div>
     </details>
@@ -658,12 +658,12 @@ const packCounts = {
           </div>
           <ul>
             <li>Mint pills on the 5 spine skills mark the handoff sequence</li>
-            <li><strong style="color:var(--ma-specialist)">1</strong> reverse-spec → <strong style="color:var(--ma-specialist)">2</strong> app-architect → <strong style="color:var(--ma-specialist)">3</strong> git-ops → <strong style="color:var(--ma-specialist)">4</strong> release-ops → <strong style="color:var(--ma-specialist)">5</strong> deploy-ops → <strong style="color:var(--ma-specialist)">6</strong> monitoring-ops</li>
+            <li><strong style="color:var(--ma-specialist)">1</strong> oc-reverse-spec → <strong style="color:var(--ma-specialist)">2</strong> oc-app-architect → <strong style="color:var(--ma-specialist)">3</strong> oc-git-ops → <strong style="color:var(--ma-specialist)">4</strong> oc-release-ops → <strong style="color:var(--ma-specialist)">5</strong> oc-deploy-ops → <strong style="color:var(--ma-specialist)">6</strong> oc-monitoring-ops</li>
             <li>Direction is implicit from vertical reading order</li>
             <li>Branch handoffs noted inline as captions:</li>
-            <li>&nbsp;&nbsp;ux-engineer <span style="color:var(--ma-specialist)">→ dash-forge</span></li>
-            <li>&nbsp;&nbsp;api-dev / integ-eng <span style="color:var(--ma-specialist)">→ code-auditor</span></li>
-            <li>&nbsp;&nbsp;code-auditor <span style="color:var(--ma-specialist)">→ security-auditor</span></li>
+            <li>&nbsp;&nbsp;oc-ux-engineer <span style="color:var(--ma-specialist)">→ oc-dash-forge</span></li>
+            <li>&nbsp;&nbsp;oc-api-dev / integ-eng <span style="color:var(--ma-specialist)">→ oc-code-auditor</span></li>
+            <li>&nbsp;&nbsp;oc-code-auditor <span style="color:var(--ma-specialist)">→ oc-security-auditor</span></li>
           </ul>
         </div>
         <div class="ma-card">
@@ -672,11 +672,11 @@ const packCounts = {
             <h3>Tri-Agent Patterns (5)</h3>
           </div>
           <ul>
-            <li>app-architect: Generator / Evaluator</li>
-            <li>ux-engineer: Planner / Generator / Evaluator</li>
-            <li>api-dev: Planner / Generator / Evaluator</li>
-            <li>integrations-engineer: Planner / Builder / Tester</li>
-            <li>code-auditor: Auditor / Fixer / Verifier</li>
+            <li>oc-app-architect: Generator / Evaluator</li>
+            <li>oc-ux-engineer: Planner / Generator / Evaluator</li>
+            <li>oc-api-dev: Planner / Generator / Evaluator</li>
+            <li>oc-integrations-engineer: Planner / Builder / Tester</li>
+            <li>oc-code-auditor: Auditor / Fixer / Verifier</li>
           </ul>
         </div>
         <div class="ma-card">
@@ -685,10 +685,10 @@ const packCounts = {
             <h3>Audit Gates (3)</h3>
           </div>
           <ul>
-            <li>bug-check — pre-commit type/lint/secret scan</li>
-            <li>code-auditor — code-level Auditor/Fixer/Verifier</li>
-            <li>security-auditor — STRIDE / OWASP / infra hardening</li>
-            <li>All three must pass before deploy-ops ships</li>
+            <li>oc-bug-check — pre-commit type/lint/secret scan</li>
+            <li>oc-code-auditor — code-level Auditor/Fixer/Verifier</li>
+            <li>oc-security-auditor — STRIDE / OWASP / infra hardening</li>
+            <li>All three must pass before oc-deploy-ops ships</li>
           </ul>
         </div>
         <div class="ma-card">

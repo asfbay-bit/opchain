@@ -1,0 +1,82 @@
+{
+  "protocol_version": "1.0",
+  "skill": "oc-code-auditor",
+  "project": "opchain.dev",
+  "project_dir": "/home/user/opchain",
+  "created_at": "2026-05-02T01:35:00Z",
+  "updated_at": "2026-05-14T17:35:00Z",
+
+  "phase": "audit",
+  "step": "v1.3-sweep-complete-v1.4-not-yet-audited",
+  "status": "complete",
+
+  "progress_summary": "Last full audit was the one-pass sweep over PRs #143-#155 (mobile workbench, mobile architecture diagram, welcome popup, full-bleed UI, top-right feedback pill, skill TOC restyle + click-to-flash, PostHog reverse-proxy) — 16 findings, grade B+. LHCI-1 through LHCI-5 all fixed and shipped. F-005, F-006 fixed; F-001/F-002 verified false-positive on inspection; F-011 (Desktop/Mobile workbench duplication) deferred to a refactor sprint. No new audit has been requested since 2026-05-03; the entire v1.4 cycle (PRs 1-8 ADEV-328 → ADEV-337) shipped without a code-auditor sweep — incremental risk is low because each PR's diff was small (pack YAMLs + dispatcher refactor + light schema changes), but a v1.5 pre-deploy sweep is worth scheduling before agent-forge / claude-api / rag-forge bodies land (Sprint 2-3).",
+
+  "progress_table": [
+    { "id": "scope",         "label": "Scoped to session PRs (~8k lines)",                 "status": "complete" },
+    { "id": "security",      "label": "Security sweep — XSS/CSRF/secrets/auth",            "status": "complete" },
+    { "id": "performance",   "label": "Performance sweep — listeners, animations, bundle", "status": "complete" },
+    { "id": "quality",       "label": "Quality sweep — duplication, dead code, types",     "status": "complete" },
+    { "id": "ux-a11y",       "label": "UX/a11y sweep — contrast, motion, focus, taps",     "status": "complete" },
+    { "id": "tests",         "label": "Test coverage — demo-mobile.spec.ts strength",      "status": "complete" },
+    { "id": "report",        "label": "Findings report produced",                          "status": "complete" }
+  ],
+
+  "context_primer": {
+    "key_decisions": [
+      "Auditor mode only — no Fixer/Verifier this round (user did not request fix-all).",
+      "Subagent-delegated sweep due to ~8k LOC scope; auditor verified the two CRITICAL claims by reading the cited lines and downgraded both as likely false positives.",
+      "LHCI surfaced a real dark-mode contrast issue on .pill[aria-pressed=true] in Pill.astro — the existing B-10 override only fixes light mode (line 50). Dark-mode pressed-pill text is ~4.0:1 on the alpha-blended accent-dim surface, just under AA 4.5:1 for small text.",
+      "Default page theme is dark (Base.astro line 97), which is what LHCI audits."
+    ],
+    "generated_files": [],
+    "user_preferences": [
+      "Wants concrete findings with file:line, not generalities.",
+      "Comfortable triaging findings — doesn't need every CRITICAL fixed immediately if it's a low-likelihood false positive."
+    ]
+  },
+
+  "blockers": [],
+
+  "next_actions": [
+    "Schedule a v1.5 pre-deploy audit sweep before Sprint 2-3 land — agent-forge and rag-forge introduce prompt-injection / tool-use surfaces that code-auditor needs new rules for. See ADEV-347/ADEV-348.",
+    "F-011 (Desktop/Mobile workbench transcript duplication) is still tech debt — schedule for a refactor sprint, not a bug-fix branch.",
+    "v1.4 (PRs 1-8) shipped without a sweep. Risk is bounded (small diffs, mostly pack YAMLs), but a single fast sweep of the dispatcher refactor (ADEV-330) is worth doing as a hygiene pass."
+  ],
+
+  "skill_state": {
+    "mode": "audit-only",
+    "scope": "session-prs",
+    "files_audited": [
+      "site/src/components/DesktopWorkbench.astro",
+      "site/src/components/MobileWorkbench.astro",
+      "site/src/components/MobileArchitecture.astro",
+      "site/src/components/WelcomePopup.astro",
+      "site/src/components/FeedbackWidget.astro",
+      "site/src/pages/demo.astro",
+      "site/src/pages/architecture.astro",
+      "site/src/pages/skills/[id].astro",
+      "site/src/pages/skills/index.astro",
+      "site/src/components/ui/Pill.astro",
+      "site/tests/e2e/demo-mobile.spec.ts"
+    ],
+    "findings_total": 16,
+    "findings_by_severity": { "critical": 2, "high": 6, "medium": 6, "low": 2 },
+    "findings_after_triage": { "critical": 0, "high": 6, "medium": 6, "low": 2 },
+    "grade": "B+",
+    "fixes_applied": 7,
+    "fixes_verified": 3,
+    "fixes_rejected": 0,
+    "headline_findings": [
+      { "id": "F-005", "title": "No prefers-reduced-motion guard on WelcomePopup transitions", "severity": "high", "location": "site/src/components/WelcomePopup.astro:107-254", "status": "fixed", "fix": "Added @media (prefers-reduced-motion: reduce) block disabling transition + transform on .welcome-scrim, .welcome-card, .welcome-btn." },
+      { "id": "F-006", "title": "Close-button contrast in light mode", "severity": "high", "location": "site/src/components/WelcomePopup.astro:165-176", "status": "fixed", "fix": "Added :global([data-theme=\"light\"]) .welcome-close { color: var(--text); } — promotes muted gray to high-contrast text token in light theme." },
+      { "id": "F-011", "title": "Desktop/Mobile workbench transcript rendering duplicated", "severity": "medium", "location": "site/src/components/{DesktopWorkbench,MobileWorkbench}.astro", "status": "deferred" },
+      { "id": "LHCI-1", "title": "Dark-mode pressed pill ~4.0:1 contrast on /skills filter", "severity": "high", "location": "site/src/components/ui/Pill.astro:44-50", "status": "fixed", "shipped_in": "PR #155 / 75b6f82", "verification": "LHCI a11y on /skills 0.96 → 1.00 post-merge" },
+      { "id": "LHCI-2", "title": "code[data-cmd] color (--ember) on alpha-pill bg ~4.22:1 — fails AA Normal at 12px", "severity": "high", "location": "site/src/pages/skills/[id].astro :prose code[data-cmd]", "status": "fixed", "fix": "Swapped color/border/background from var(--ember) to var(--workflow) (#FB923C / light: #8a3610). --workflow is the AA-calibrated bright-ember sibling already used for the workflow role; same visual family, clears AA on both themes." },
+      { "id": "LHCI-3", "title": "Skill detail TOC links fail target-size (24×24)", "severity": "high", "location": "site/src/pages/skills/[id].astro .toc-list a", "status": "fixed", "fix": "Bumped link padding from `padding-left: 0.55rem` to `padding: 4px 0 4px 0.55rem`. 14px×1.4 + 8px padding ≈ 28px, clears the 24px threshold without disrupting the fixed-position rail layout." },
+      { "id": "LHCI-4", "title": "Architecture band-label-text + legend-section-label use --slag (~2.30:1) — fails AA Normal", "severity": "high", "location": "site/src/pages/architecture.astro .arch-v2 .band-label-text + .legend-section-label", "status": "fixed", "fix": "Swapped color from var(--slag) (#5a5040) to var(--subtle) (#9d8b78), the calibrated dimmed-text token (5.06–5.42:1 across canonical surfaces). Active band still brightens to var(--sand) so the dim/active hierarchy is preserved." },
+      { "id": "LHCI-5", "title": "Architecture card spans + spine swatch use legacy teal #0D9488 (~4.48:1) — fails AA Normal at small sizes", "severity": "high", "location": "site/src/pages/architecture.astro lines 803-805 + .li-swatch-spine", "status": "fixed", "fix": "Swapped #0D9488 → #14B8A6 (matches global --specialist token after B-10 calibration). Three card span colors and the spine swatch (border + color + bg-mix). Other instances of #0D9488 in SVG text remain — Lighthouse doesn't audit SVG text contrast and these aren't flagged." }
+    ],
+    "depends_on": "checkpoint-protocol v1.0; reads ux-engineer + app-architect checkpoints for context"
+  }
+}

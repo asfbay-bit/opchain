@@ -6,7 +6,7 @@ import type { Walkthrough } from "./types";
  * paying customer in two weeks. opchain scaffolds Django + Postgres,
  * deploys to Render via render.yaml Blueprint, uses GitHub Issues
  * (not Linear) for tracking. Proves the v1.3 platform expansion is
- * real, not just words in stack-forge — and that the same opchain
+ * real, not just words in oc-stack-forge — and that the same opchain
  * pipeline that ships JS-on-Cloudflare also ships Python-on-Render
  * with no special-casing.
  */
@@ -15,9 +15,9 @@ export const djangoRenderShipped: Walkthrough = {
   title: "Django + Postgres + Render, shipped by opchain",
   tagline: "v1.3 supporting · platform expansion proof",
   summary:
-    "Solo founder builds a B2B invoicing app on Django + Postgres + Render with GitHub Issues for tracking. Same opchain pipeline as the Cloudflare-flavored scenarios — stack-forge picks the stack, app-architect scaffolds, git-ops shapes commits from GH issues, deploy-ops ships via render.yaml Blueprint. Two weeks ideation → paying customer.",
+    "Solo founder builds a B2B invoicing app on Django + Postgres + Render with GitHub Issues for tracking. Same opchain pipeline as the Cloudflare-flavored scenarios — oc-stack-forge picks the stack, oc-app-architect scaffolds, oc-git-ops shapes commits from GH issues, oc-deploy-ops ships via render.yaml Blueprint. Two weeks ideation → paying customer.",
   description:
-    "Quill is a B2B invoicing tool aimed at small US accounting firms (3-15 person partnerships) that hate QuickBooks but can't yet afford a dedicated finance ops team. Priya is the solo founder; she has 8 years of Python at a fintech, no Cloudflare experience, and wants the smallest possible ops surface. The opchain pipeline picks Django + Postgres + Render automatically (stack-forge decision tree: solo founder, no ops appetite, server-rendered UI, admin panel needed → Django/Render is the canonical match), scaffolds the project per the v1.3 \"Platform-Specific Recipes\" in app-architect's scaffold-guide, uses GitHub Issues as the PM provider (one-line config swap from Linear; same protocol §3 markers), and ships via render.yaml Blueprint (one-click Postgres + web service provisioning). The artifact set is what Priya actually ends up with after two weeks: the spec docs from /spec, the render.yaml Blueprint from /scaffold, the .opchain/pm.yaml configured for GitHub Issues, the first sprint contract, the first PR linked back to inv-org/quill#1.",
+    "Quill is a B2B invoicing tool aimed at small US accounting firms (3-15 person partnerships) that hate QuickBooks but can't yet afford a dedicated finance ops team. Priya is the solo founder; she has 8 years of Python at a fintech, no Cloudflare experience, and wants the smallest possible ops surface. The opchain pipeline picks Django + Postgres + Render automatically (oc-stack-forge decision tree: solo founder, no ops appetite, server-rendered UI, admin panel needed → Django/Render is the canonical match), scaffolds the project per the v1.3 \"Platform-Specific Recipes\" in oc-app-architect's scaffold-guide, uses GitHub Issues as the PM provider (one-line config swap from Linear; same protocol §3 markers), and ships via render.yaml Blueprint (one-click Postgres + web service provisioning). The artifact set is what Priya actually ends up with after two weeks: the spec docs from /oc-spec, the render.yaml Blueprint from /oc-scaffold, the .opchain/pm.yaml configured for GitHub Issues, the first sprint contract, the first PR linked back to inv-org/quill#1.",
   inputs: [
     "Solo founder · 8 years Python · fintech background · no Cloudflare experience",
     "Idea: B2B invoicing tool for small accounting firms (3-15 person partnerships)",
@@ -28,12 +28,12 @@ export const djangoRenderShipped: Walkthrough = {
   outputs: [
     {
       id: "discovery",
-      label: "/discover output — discovery summary + spec sketch",
+      label: "/oc-discover output — discovery summary + spec sketch",
       kind: "spec/00-project-overview.md",
       body:
 `# 00-project-overview.md — Quill
 
-**Produced by** app-architect /discover (Phase 1) · **Source ticket:** [inv-org/quill#1](https://github.com/inv-org/quill/issues/1) · **Run-time:** 14 minutes · **Discovery questions asked:** 9 (4 pre-filled from issue body)
+**Produced by** oc-app-architect /oc-discover (Phase 1) · **Source ticket:** [inv-org/quill#1](https://github.com/inv-org/quill/issues/1) · **Run-time:** 14 minutes · **Discovery questions asked:** 9 (4 pre-filled from issue body)
 
 ## 1. TL;DR
 
@@ -240,7 +240,7 @@ We are not building:
 
 **Q9 — Email delivery?** "Transactional. Resend is fine; Postmark is fine. Whatever is cheapest with good deliverability."
 
-## 11. Open questions for /spec
+## 11. Open questions for /oc-spec
 
 These resolve in the spec phase:
 
@@ -266,17 +266,17 @@ These resolve in the spec phase:
 | R5 | QuickBooks responds with a partnership-friendly tier | LOW | HIGH | Quill wins on price + per-firm install + partnership data model; even a QBO discount doesn't close all three |
 | R6 | Render outage during a customer's month-end batch | MED | HIGH | Document a 60-min PDF-export emergency runbook; daily Postgres backups via Render's built-in dump |
 
-Checkpoint: \`.checkpoints/app-architect.checkpoint.json\` (Phase 1).
+Checkpoint: \`.checkpoints/oc-app-architect.checkpoint.json\` (Phase 1).
 `,
     },
     {
       id: "stack",
-      label: "/spec stack-forge output — Django/Postgres/Render decision",
+      label: "/oc-spec oc-stack-forge output — Django/Postgres/Render decision",
       kind: "spec/01-tech-stack.md",
       body:
 `# 01-tech-stack.md — Quill
 
-**Produced by** stack-forge (auto-invoked by app-architect Phase 2) · **Method:** v1.3 "Platform Matrix" weighted scorecard · **Re-evaluation triggers** see §8 · **Run-time:** 9 minutes
+**Produced by** oc-stack-forge (auto-invoked by oc-app-architect Phase 2) · **Method:** v1.3 "Platform Matrix" weighted scorecard · **Re-evaluation triggers** see §8 · **Run-time:** 9 minutes
 
 ## 1. Decision criteria (defined before scoring)
 
@@ -443,7 +443,7 @@ Render \`runtime\` field: \`python\` (auto-detects 3.12 from
 At 25 firms, ops time per firm becomes the binding constraint, not
 infrastructure cost. Re-evaluation trigger §8 fires.
 
-Checkpoint: \`.checkpoints/stack-forge.checkpoint.json\`.
+Checkpoint: \`.checkpoints/oc-stack-forge.checkpoint.json\`.
 `,
     },
     {
@@ -452,7 +452,7 @@ Checkpoint: \`.checkpoints/stack-forge.checkpoint.json\`.
       kind: "render.yaml",
       body:
 `# render.yaml — Quill Blueprint
-# Produced by app-architect /scaffold per scaffold-guide.md § Django/Render.
+# Produced by oc-app-architect /oc-scaffold per scaffold-guide.md § Django/Render.
 # Render reads this on first push and provisions everything below.
 # Subsequent deploys are pure git push.
 
@@ -598,7 +598,7 @@ services:
       kind: "config.yaml",
       body:
 `# .opchain/pm.yaml — Quill (provider: github-issues)
-# Generated by app-architect /init; reviewed quarterly.
+# Generated by oc-app-architect /init; reviewed quarterly.
 #
 # v1.3 protocol applies to GH Issues identically to Linear / Jira;
 # only the tool names + state mappings change. Markers, retry,
@@ -655,7 +655,7 @@ pagerduty_routing:
   pdf-worker:        EP-QUILL-PRIMARY
   background-cron:   EP-QUILL-PRIMARY
 
-# Branch naming. git-ops fills the {slug} from the issue title.
+# Branch naming. oc-git-ops fills the {slug} from the issue title.
 worktree_naming: "feat/quill-{issue-number}-{slug}"
 
 # v1.3 tool registry resolves these protocol verbs to concrete MCP tools:
@@ -670,12 +670,12 @@ worktree_naming: "feat/quill-{issue-number}-{slug}"
     },
     {
       id: "scaffold",
-      label: "/scaffold output — Django project layout + selected file contents",
+      label: "/oc-scaffold output — Django project layout + selected file contents",
       kind: "tree",
       body:
-`# Files written by /scaffold (per scaffold-guide.md § Django/Render)
+`# Files written by /oc-scaffold (per scaffold-guide.md § Django/Render)
 
-**Produced by** app-architect /scaffold (Phase 3) · **Method:** scaffold-guide.md § Django recipe · **Files written:** 41 (18 source + 12 test + 11 config) · **Run-time:** 11 minutes
+**Produced by** oc-app-architect /oc-scaffold (Phase 3) · **Method:** scaffold-guide.md § Django recipe · **Files written:** 41 (18 source + 12 test + 11 config) · **Run-time:** 11 minutes
 
 ## 1. Layout
 
@@ -1077,7 +1077,7 @@ $ curl -fsS http://127.0.0.1:8000/health | jq .
 }
 \`\`\`
 
-Checkpoint: \`.checkpoints/app-architect.checkpoint.json\` (Phase 3).
+Checkpoint: \`.checkpoints/oc-app-architect.checkpoint.json\` (Phase 3).
 `,
     },
     {
@@ -1087,7 +1087,7 @@ Checkpoint: \`.checkpoints/app-architect.checkpoint.json\` (Phase 3).
       body:
 `# PR #1 — feat(billables): time-entry CRUD + bulk import
 
-> Auto-generated by opchain git-ops v1.2 from GitHub Issue
+> Auto-generated by opchain oc-git-ops v1.2 from GitHub Issue
 > [#5](https://github.com/inv-org/quill/issues/5).
 > Branch: \`feat/quill-5-time-entry-foundations\` · Base: \`main\` · SHA: \`bb1f0e2\`
 
@@ -1285,16 +1285,16 @@ If you're returning to this code in 6 months:
 - [x] **pytest** PASS (147 total, 14 new)
 - [x] **mypy** PASS (no new \`# type: ignore\` directives)
 - [x] **bandit** PASS (no security findings)
-- [x] **bug-check** PASS (1.1s)
+- [x] **oc-bug-check** PASS (1.1s)
 
 ## Comment posted back to issue #5
 
 \`\`\`
-<!-- opchain:git-ops:pr-opened:#1 -->
+<!-- opchain:oc-git-ops:pr-opened:#1 -->
 PR opened: https://github.com/inv-org/quill/pull/1
 Branch: feat/quill-5-time-entry-foundations
 Tests: 14 new, 147 total pass
-Audit gate: PASS (pytest, mypy, bandit, bug-check)
+Audit gate: PASS (pytest, mypy, bandit, oc-bug-check)
 \`\`\`
 
 (Same shape as the Linear scenarios — the v1.3 protocol abstracts the
@@ -1302,12 +1302,12 @@ provider; only the tool names change.)
 
 ## When this merges
 
-git-ops will:
+oc-git-ops will:
 
-1. Add comment with marker \`<!-- opchain:git-ops:pr-merged:#1 -->\`.
+1. Add comment with marker \`<!-- opchain:oc-git-ops:pr-merged:#1 -->\`.
 2. Remove label \`status:in-review\` from issue #5.
 3. Close issue #5 (the GitHub-Issues equivalent of Linear's \`Done\` state per \`pm.yaml\`).
-4. Trigger the auto-deploy pipeline (deploy-ops picks up from there).
+4. Trigger the auto-deploy pipeline (oc-deploy-ops picks up from there).
 
 ## Out of scope (linked tickets cover)
 
@@ -1320,7 +1320,7 @@ git-ops will:
 
 Refs: #5 · Sprint 1: time-entry foundations · Audit gate: PASS
 
-🤖 Generated with opchain git-ops v1.2.
+🤖 Generated with opchain oc-git-ops v1.2.
 `,
     },
     {
@@ -1328,20 +1328,20 @@ Refs: #5 · Sprint 1: time-entry foundations · Audit gate: PASS
       label: "First deploy via Render Blueprint",
       kind: "deploy.log",
       body:
-`# /deploy staging — first push to Render
+`# /oc-deploy staging — first push to Render
 
-**Produced by** deploy-ops · **Provider:** Render (auto-detected from \`render.yaml\`) · **Range:** \`<empty>..bb1f0e2\` (first deploy) · **Audit gate:** PASS
+**Produced by** oc-deploy-ops · **Provider:** Render (auto-detected from \`render.yaml\`) · **Range:** \`<empty>..bb1f0e2\` (first deploy) · **Audit gate:** PASS
 
 ## 1. Staging deploy (initial Blueprint apply)
 
 \`\`\`
-[deploy-ops] Provider detected: Render (render.yaml present at repo root)
-[deploy-ops] Audit gate:
-  ✓ code-auditor /audit pre-deploy  Grade A
+[oc-deploy-ops] Provider detected: Render (render.yaml present at repo root)
+[oc-deploy-ops] Audit gate:
+  ✓ oc-code-auditor /oc-audit pre-deploy  Grade A
   ✓ bandit                          PASS
   ✓ pytest                          147 / 147 PASS
-  ✓ bug-check                       PASS
-[deploy-ops] git push render main → 2026-05-22T14:08:11Z
+  ✓ oc-bug-check                       PASS
+[oc-deploy-ops] git push render main → 2026-05-22T14:08:11Z
 
 Render Blueprint applying:
   ✓ Database 'quill-db' (plan: starter, region: oregon, postgres 17)
@@ -1372,7 +1372,7 @@ Deploy:
     Applying invoices.0001_initial.              OK
   - startCommand: gunicorn core.wsgi:application --workers 1 → service healthy
 
-[deploy-ops] /api/health → 200; body:
+[oc-deploy-ops] /api/health → 200; body:
   {
     "ok": true,
     "service": "quill",
@@ -1393,7 +1393,7 @@ Deploy:
 ## 3. Post-deploy verification
 
 \`\`\`
-[deploy-ops] Smoke checks:
+[oc-deploy-ops] Smoke checks:
 
 $ curl -fsS https://quill-staging.onrender.com/health | jq .
   → ok=true, sha=bb1f0e2, db_ping_ms=4               PASS
@@ -1416,17 +1416,17 @@ All 4 smoke checks PASS.
 ## 4. Pre-create check for the deploy ticket
 
 \`\`\`
-[deploy-ops] mcp__mcp-server-github__list_issues(
+[oc-deploy-ops] mcp__mcp-server-github__list_issues(
     owner=inv-org, repo=quill,
     labels=["type:deploy"],
-    body_text_query="opchain:deploy-ops:deploy-created:staging:bb1f0e2"
+    body_text_query="opchain:oc-deploy-ops:deploy-created:staging:bb1f0e2"
   )
   → no match. Creating.
 
-[deploy-ops] mcp__mcp-server-github__issue_write(action=create):
+[oc-deploy-ops] mcp__mcp-server-github__issue_write(action=create):
   Title: "Deploy: staging <empty>..bb1f0e2 — first deploy"
   Body:
-    <!-- opchain:deploy-ops:deploy-created:staging:bb1f0e2 -->
+    <!-- opchain:oc-deploy-ops:deploy-created:staging:bb1f0e2 -->
 
     Environment: staging
     Range: <empty>..bb1f0e2  (initial)
@@ -1439,43 +1439,43 @@ All 4 smoke checks PASS.
   Labels: [opchain, agent-driven, type:deploy, status:staging-verified]
   → Created issue #14.
 
-[deploy-ops] Comment on each linked issue (#1, #3, #4, #5):
+[oc-deploy-ops] Comment on each linked issue (#1, #3, #4, #5):
   → 4 comments posted, each with marker
-    <!-- opchain:deploy-ops:linked-shipped:#14:#<n> -->
+    <!-- opchain:oc-deploy-ops:linked-shipped:#14:#<n> -->
 \`\`\`
 
-## 5. /deploy prod (Day 14, after Sarah signs the contract)
+## 5. /oc-deploy prod (Day 14, after Sarah signs the contract)
 
 \`\`\`
-[deploy-ops] git push render main (with prod service active)
-[deploy-ops] Build + deploy: 31s
-[deploy-ops] preDeployCommand: 6 migrations applied since last deploy
-[deploy-ops] /api/health → ok=true, sha=d18ca44
+[oc-deploy-ops] git push render main (with prod service active)
+[oc-deploy-ops] Build + deploy: 31s
+[oc-deploy-ops] preDeployCommand: 6 migrations applied since last deploy
+[oc-deploy-ops] /api/health → ok=true, sha=d18ca44
 
-[deploy-ops] Production smoke:
+[oc-deploy-ops] Production smoke:
   ✓ /health
   ✓ /admin/login/ renders
   ✓ HSTS + X-Frame-Options + Referrer-Policy headers present
   ✓ Resend send-test fired; delivery confirmed (rid: re_xxx...)
   ✓ Sarah's firm record loaded; first-partner login successful (Sarah)
 
-[deploy-ops] Quill is live: https://quill.priyabuilds.com
-[deploy-ops] Sarah's firm onboarded:
+[oc-deploy-ops] Quill is live: https://quill.priyabuilds.com
+[oc-deploy-ops] Sarah's firm onboarded:
   - Firm: 'sarah-cpa-partners' (7 partners)
   - 1 admin user provisioned (sarah@sarah-cpa.example)
   - 7 partner records imported via /firms/import-partners/
   - 4 engagements seeded for April pilot
   - First test invoice generated (PDF emailed to Sarah; she confirmed)
 
-[deploy-ops] mcp__mcp-server-github__add_issue_comment(
+[oc-deploy-ops] mcp__mcp-server-github__add_issue_comment(
   owner=inv-org, repo=quill, issue_number=14,
-  body="<!-- opchain:deploy-ops:prod-shipped:#14 -->
+  body="<!-- opchain:oc-deploy-ops:prod-shipped:#14 -->
         Prod deployed: d18ca44. Smoke 5/5 PASS. Sarah's firm onboarded;
         first invoice PDF emailed and confirmed. Closing deploy ticket.")
-[deploy-ops] mcp__mcp-server-github__issue_write(
+[oc-deploy-ops] mcp__mcp-server-github__issue_write(
   issue_number=14, state="closed", labels_add=["status:shipped"])
 
-[deploy-ops] First-firm onboarding delta (env vars set in Render dashboard):
+[oc-deploy-ops] First-firm onboarding delta (env vars set in Render dashboard):
   - ALLOWED_HOSTS: quill.priyabuilds.com,sarah-cpa.quill.priyabuilds.com
   - CSRF_TRUSTED_ORIGINS: https://quill.priyabuilds.com,https://sarah-cpa.quill.priyabuilds.com
   - QUILL_FIRM_SLUG: sarah-cpa-partners (single-tenant install)
@@ -1494,29 +1494,29 @@ At 25 firms, ops time per firm becomes the binding constraint, not
 infrastructure cost. Stack re-evaluation trigger fires (see
 \`stack\` artifact §8).
 
-Checkpoint: \`.checkpoints/deploy-ops.checkpoint.json\` (Quill — first deploy + first-firm onboarding).
+Checkpoint: \`.checkpoints/oc-deploy-ops.checkpoint.json\` (Quill — first deploy + first-firm onboarding).
 `,
     },
   ],
-  skills: ["app-architect", "stack-forge", "git-ops", "deploy-ops", "integrations-engineer"],
+  skills: ["oc-app-architect", "oc-stack-forge", "oc-git-ops", "oc-deploy-ops", "oc-integrations-engineer"],
   runtime: "≈ 10 exchanges",
   steps: [
     {
       type: "beat",
       label: "Day 1 — Priya files inv-org/quill#1",
-      caption: "She types the idea into a GH issue and runs `/discover --ticket inv-org/quill#1`. opchain pulls the issue body via mcp__mcp-server-github__issue_read.",
-      skills: ["app-architect"],
+      caption: "She types the idea into a GH issue and runs `/oc-discover --ticket inv-org/quill#1`. opchain pulls the issue body via mcp__mcp-server-github__issue_read.",
+      skills: ["oc-app-architect"],
     },
     {
       type: "exchange",
       role: "user",
       content:
-        "/discover --ticket inv-org/quill#1\n\nThe ticket has the rough idea: invoicing tool for small accounting firms. Solo founder, want to go fast.",
+        "/oc-discover --ticket inv-org/quill#1\n\nThe ticket has the rough idea: invoicing tool for small accounting firms. Solo founder, want to go fast.",
     },
     {
       type: "exchange",
       role: "claude",
-      skill: "app-architect",
+      skill: "oc-app-architect",
       content:
 `Reading the issue. \`mcp__mcp-server-github__issue_read(owner=inv-org, repo=quill, number=1)\`.
 
@@ -1543,7 +1543,7 @@ The ticket is rough but useful — I can pre-fill 4 of 9 discovery questions fro
     {
       type: "exchange",
       role: "claude",
-      skill: "app-architect",
+      skill: "oc-app-architect",
       content:
 `Got it. Writing \`spec/00-project-overview.md\` with "Source ticket: inv-org/quill#1" cited at the top.
 
@@ -1551,18 +1551,18 @@ The discovery output gets richer than typical because the ticket gave directiona
 
 Also writing a competitor matrix (§6), pricing rationale (§7) with the QBO + opportunity-cost math, and a risk register (§12) with 6 explicit risks. The risk that matters most is R3 — per-firm install ops time. We'll instrument that from day 1 (Priya's hours per firm per month, manually tracked).
 
-\`/spec\` next — auto-invoking stack-forge to pick the stack. I'll show you the scorecard before committing.`,
+\`/oc-spec\` next — auto-invoking oc-stack-forge to pick the stack. I'll show you the scorecard before committing.`,
       artifacts: ["discovery"],
     },
     {
       type: "exchange",
       role: "user",
-      content: "Before stack-forge runs — quick sanity check. Postgres feels like overkill for a single-tenant install. Why not SQLite?",
+      content: "Before oc-stack-forge runs — quick sanity check. Postgres feels like overkill for a single-tenant install. Why not SQLite?",
     },
     {
       type: "exchange",
       role: "claude",
-      skill: "app-architect",
+      skill: "oc-app-architect",
       content:
 `Fair pushback. SQLite scored 39.7 on the database scorecard (vs Postgres-on-Render at 45.9) — close enough that it's worth saying out loud why I picked Postgres.
 
@@ -1576,7 +1576,7 @@ Also writing a competitor matrix (§6), pricing rationale (§7) with the QBO + o
 
 The cost delta is \$7/mo. Even at 25 firms it's \$425/mo, which is rounding error against \$8,750 MRR.
 
-OK to keep Postgres? If yes I'll let stack-forge finish; if you want the SQLite scorecard revisited, I'll re-run with adjusted weights (probably bumping "Cost@scale" and "Solo-dev simplicity" significantly).`,
+OK to keep Postgres? If yes I'll let oc-stack-forge finish; if you want the SQLite scorecard revisited, I'll re-run with adjusted weights (probably bumping "Cost@scale" and "Solo-dev simplicity" significantly).`,
     },
     {
       type: "exchange",
@@ -1585,14 +1585,14 @@ OK to keep Postgres? If yes I'll let stack-forge finish; if you want the SQLite 
     },
     {
       type: "beat",
-      label: "Day 1 — stack-forge picks Django/Render automatically",
+      label: "Day 1 — oc-stack-forge picks Django/Render automatically",
       caption: "v1.3's Platform Matrix decision tree resolves cleanly. Six scorecards run; anti-picks recorded.",
-      skills: ["stack-forge"],
+      skills: ["oc-stack-forge"],
     },
     {
       type: "exchange",
       role: "claude",
-      skill: "stack-forge",
+      skill: "oc-stack-forge",
       content:
 `Running the v1.3 "Platform Matrix" against discovery context. Six scorecards:
 
@@ -1621,16 +1621,16 @@ re-evaluation trigger.`,
     },
     {
       type: "beat",
-      label: "Day 1 — /scaffold writes the project",
+      label: "Day 1 — /oc-scaffold writes the project",
       caption: "Per scaffold-guide.md § Django. Settings split, render.yaml Blueprint, pytest, Django admin all wired. 41 files written; 18 tests pass; runserver boots.",
-      skills: ["app-architect"],
+      skills: ["oc-app-architect"],
     },
     {
       type: "exchange",
       role: "claude",
-      skill: "app-architect",
+      skill: "oc-app-architect",
       content:
-`\`/scaffold\` writes 41 files from \`scaffold-guide.md § Django\`:
+`\`/oc-scaffold\` writes 41 files from \`scaffold-guide.md § Django\`:
 
 - **Settings split** into \`core/settings/{base,dev,prod}.py\` (DJANGO_SETTINGS_MODULE selects)
 - **\`render.yaml\` Blueprint** provisioning Postgres + web service + a staging variant, with worker / redis / cron stubs commented out for Sprint 4+
@@ -1666,7 +1666,7 @@ All green. Ready to start Sprint 1.`,
     {
       type: "exchange",
       role: "claude",
-      skill: "app-architect",
+      skill: "oc-app-architect",
       content:
 `Good catch. That's an \`INSTALLED_APPS\` ordering issue, not a missing
 file. Django imports apps in the order listed, and \`apps.billables\`
@@ -1710,18 +1710,18 @@ this again.`,
     {
       type: "beat",
       label: "Day 8 — first PR opens, linked back to issue #5",
-      caption: "git-ops uses GitHub Issues exactly like it uses Linear. Same protocol, different tool names.",
-      skills: ["git-ops"],
+      caption: "oc-git-ops uses GitHub Issues exactly like it uses Linear. Same protocol, different tool names.",
+      skills: ["oc-git-ops"],
     },
     {
       type: "exchange",
       role: "user",
-      content: "/git-sync inv-org/quill#5",
+      content: "/oc-git-sync inv-org/quill#5",
     },
     {
       type: "exchange",
       role: "claude",
-      skill: "git-ops",
+      skill: "oc-git-ops",
       content:
 `Reading issue #5 via \`mcp__mcp-server-github__issue_read\`. Title: "Sprint 1: time-entry foundations." Type: \`type:feature\` (from issue label).
 
@@ -1733,7 +1733,7 @@ this again.`,
 
 \`\`\`
 mcp__mcp-server-github__list_issue_comments(owner=inv-org, repo=quill, number=5)
-  → marker <!-- opchain:git-ops:pr-opened:#1 --> not present → safe to write
+  → marker <!-- opchain:oc-git-ops:pr-opened:#1 --> not present → safe to write
 \`\`\`
 
 \`mcp__mcp-server-github__add_issue_comment\` posts the marker comment back to issue #5.
@@ -1746,29 +1746,29 @@ PR #1 opened with 14 new tests, audit gate green, performance benchmarks documen
     {
       type: "beat",
       label: "Day 9 — first staging deploy via Render Blueprint",
-      caption: "deploy-ops detects render.yaml, walks the audit gate, ships. First deploy provisions Postgres + web service in one push.",
-      skills: ["deploy-ops"],
+      caption: "oc-deploy-ops detects render.yaml, walks the audit gate, ships. First deploy provisions Postgres + web service in one push.",
+      skills: ["oc-deploy-ops"],
     },
     {
       type: "exchange",
       role: "user",
-      content: "/deploy staging",
+      content: "/oc-deploy staging",
     },
     {
       type: "exchange",
       role: "claude",
-      skill: "deploy-ops",
+      skill: "oc-deploy-ops",
       content:
 `Provider detected: **Render** (\`render.yaml\` present at repo root).
 
-Audit gate: \`pytest\` PASS (147/147), \`mypy\` PASS, \`bandit\` PASS, \`bug-check\` PASS.
+Audit gate: \`pytest\` PASS (147/147), \`mypy\` PASS, \`bandit\` PASS, \`oc-bug-check\` PASS.
 
 \`git push render main\` — Render reads the Blueprint, provisions Postgres + web service in 47s, runs \`migrate --noinput\` as the preDeployCommand, swaps traffic.
 
 \`/api/health\` returns 200 + SHA bb1f0e2 ✓.
 
 **Pre-create check** on the deploy ticket:
-\`mcp__mcp-server-github__list_issues(owner=inv-org, repo=quill, labels=["type:deploy"], body_text_query="opchain:deploy-ops:deploy-created:staging:bb1f0e2")\` → no match → safe to create.
+\`mcp__mcp-server-github__list_issues(owner=inv-org, repo=quill, labels=["type:deploy"], body_text_query="opchain:oc-deploy-ops:deploy-created:staging:bb1f0e2")\` → no match → safe to create.
 
 Created issue #14 with the marker in the description. Posted linked-shipped comments back to #1, #3, #4, #5 (the issues whose commits made it into this deploy range).
 
@@ -1783,7 +1783,7 @@ Same flow as the Linear scenarios. Same markers. Different tool surface.`,
     {
       type: "exchange",
       role: "claude",
-      skill: "deploy-ops",
+      skill: "oc-deploy-ops",
       content:
 `Cost band from the stack decision (§10) — repeating here against the
 real Render dashboard numbers I'm seeing post-deploy:
@@ -1819,12 +1819,12 @@ instrument from day 1.`,
       type: "exchange",
       role: "user",
       content:
-        "Sarah signed. /deploy prod. What changed about the pipeline because we used Django + Render + GitHub Issues instead of CF Workers + Linear?",
+        "Sarah signed. /oc-deploy prod. What changed about the pipeline because we used Django + Render + GitHub Issues instead of CF Workers + Linear?",
     },
     {
       type: "exchange",
       role: "claude",
-      skill: "integrations-engineer",
+      skill: "oc-integrations-engineer",
       content:
 `Prod deploy 31s; \`/api/health\` returns SHA \`d18ca44\`. Sarah's firm
 onboarded (7 partners, 4 engagements, first test invoice PDF emailed
@@ -1842,15 +1842,15 @@ same deferred-action queue. The provider-specific things were:
   \`status:in-review\`) for non-terminal states and \`closed\` for the
   terminal one. Linear's state map points at workflow names. One-line
   config swap.
-- **deploy-ops Render section.** Different from the Cloudflare
+- **oc-deploy-ops Render section.** Different from the Cloudflare
   walkthrough — \`render.yaml\` Blueprint instead of \`wrangler deploy\`,
   \`preDeployCommand\` instead of a separate migration step, Render's
   \`fromDatabase\` reference instead of \`wrangler secret put DATABASE_URL\`.
 - **scaffold layout.** Django's \`apps/\` + \`core/settings/{base,dev,prod}\`
   + \`templates/\` pattern instead of Astro \`src/pages\` + \`src/components\`.
 - **Audit gate composition.** \`pytest + mypy + bandit\` instead of
-  \`vitest + tsc + npm audit\`. code-auditor's checks adapt to the
-  detected stack; bug-check's check list reads from
+  \`vitest + tsc + npm audit\`. oc-code-auditor's checks adapt to the
+  detected stack; oc-bug-check's check list reads from
   \`scaffold-guide.md § <stack>\` per-language.
 
 Everything else — the discovery → spec → roadmap → build → ship pipeline,

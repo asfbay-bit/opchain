@@ -1,7 +1,7 @@
 ---
 /**
  * Pipeline diagram — structured SVG of how the opchain skills chain,
- * from reverse-spec through the post-deploy monitoring + migration loop.
+ * from oc-reverse-spec through the post-deploy monitoring + migration loop.
  *
  * Design notes:
  *   - Industrial Utility palette; strokes use `currentColor` + tokens
@@ -10,7 +10,7 @@
  *   - `preserveAspectRatio="xMidYMid meet"` scales to container width
  *     while holding aspect ratio — no awkward squish on mobile.
  *   - Honors `prefers-reduced-motion` via the embedded <style>.
- *   - Two foundation bars (checkpoint-protocol + orchestrator) sit
+ *   - Two foundation bars (oc-checkpoint-protocol + orchestrator) sit
  *     above the pipeline; every skill inherits the checkpoint schema,
  *     and orchestrator is a read-only coordinator across all of them.
  */
@@ -30,29 +30,29 @@ const H = 38;
 
 const nodes: Node[] = [
   // Foundation bars — both span full width above the pipeline
-  { id: "checkpoint-protocol", label: "checkpoint-protocol", x: 60, y: 20, w: 880, h: 24, kind: "foundation" },
-  { id: "orchestrator",        label: "orchestrator",        x: 60, y: 52, w: 880, h: 24, kind: "foundation" },
+  { id: "oc-checkpoint-protocol", label: "oc-checkpoint-protocol", x: 60, y: 20, w: 880, h: 24, kind: "foundation" },
+  { id: "oc-orchestrator",        label: "oc-orchestrator",        x: 60, y: 52, w: 880, h: 24, kind: "foundation" },
 
   // Main spine — horizontal, centered vertically
-  { id: "reverse-spec",    label: "reverse-spec",    x: 40,  y: 180, kind: "spine" },
-  { id: "app-architect",   label: "app-architect",   x: 260, y: 180, kind: "spine", w: 132, h: 46 },
-  { id: "git-ops",         label: "git-ops",         x: 540, y: 180, kind: "spine" },
-  { id: "deploy-ops",      label: "deploy-ops",      x: 700, y: 180, kind: "spine" },
-  { id: "monitoring-ops",  label: "monitoring-ops",  x: 860, y: 180, w: 90, h: 38, kind: "spine" },
+  { id: "oc-reverse-spec",    label: "oc-reverse-spec",    x: 40,  y: 180, kind: "spine" },
+  { id: "oc-app-architect",   label: "oc-app-architect",   x: 260, y: 180, kind: "spine", w: 132, h: 46 },
+  { id: "oc-git-ops",         label: "oc-git-ops",         x: 540, y: 180, kind: "spine" },
+  { id: "oc-deploy-ops",      label: "oc-deploy-ops",      x: 700, y: 180, kind: "spine" },
+  { id: "oc-monitoring-ops",  label: "oc-monitoring-ops",  x: 860, y: 180, w: 90, h: 38, kind: "spine" },
 
-  // Plan branches — above the spine, feeding app-architect
-  { id: "stack-forge",   label: "stack-forge",   x: 210, y: 110, kind: "plan" },
-  { id: "ux-engineer",   label: "ux-engineer",   x: 310, y: 110, kind: "plan" },
-  { id: "dash-forge",    label: "dash-forge",    x: 410, y: 110, kind: "dash" },
-  { id: "scale-ops",     label: "scale-ops",     x: 520, y: 110, kind: "advisory" },
-  { id: "migration-ops", label: "migration-ops", x: 610, y: 110, w: 90, kind: "advisory" },
+  // Plan branches — above the spine, feeding oc-app-architect
+  { id: "oc-stack-forge",   label: "oc-stack-forge",   x: 210, y: 110, kind: "plan" },
+  { id: "oc-ux-engineer",   label: "oc-ux-engineer",   x: 310, y: 110, kind: "plan" },
+  { id: "oc-dash-forge",    label: "oc-dash-forge",    x: 410, y: 110, kind: "dash" },
+  { id: "oc-scale-ops",     label: "oc-scale-ops",     x: 520, y: 110, kind: "advisory" },
+  { id: "oc-migration-ops", label: "oc-migration-ops", x: 610, y: 110, w: 90, kind: "advisory" },
 
   // Side chain — below the spine
-  { id: "integrations-engineer", label: "integrations-engineer", x: 200, y: 275, kind: "side", w: 160 },
+  { id: "oc-integrations-engineer", label: "oc-integrations-engineer", x: 200, y: 275, kind: "side", w: 160 },
 
-  // Quality gate pair — below the spine, feeding deploy-ops
-  { id: "security-auditor", label: "security-auditor", x: 540, y: 275, w: 100, kind: "gate" },
-  { id: "code-auditor",     label: "code-auditor",     x: 670, y: 275, kind: "gate" },
+  // Quality gate pair — below the spine, feeding oc-deploy-ops
+  { id: "oc-security-auditor", label: "oc-security-auditor", x: 540, y: 275, w: 100, kind: "gate" },
+  { id: "oc-code-auditor",     label: "oc-code-auditor",     x: 670, y: 275, kind: "gate" },
 ];
 
 // Helper to find a node by id
@@ -72,25 +72,25 @@ type Edge = {
 
 const edges: Edge[] = [
   // Main spine — discover through monitor
-  { from: "reverse-spec",  to: "app-architect",  shape: "arrow", fromSide: "r", toSide: "l" },
-  { from: "app-architect", to: "git-ops",        shape: "arrow", fromSide: "r", toSide: "l" },
-  { from: "git-ops",       to: "deploy-ops",     shape: "arrow", fromSide: "r", toSide: "l" },
-  { from: "deploy-ops",    to: "monitoring-ops", shape: "arrow", fromSide: "r", toSide: "l" },
+  { from: "oc-reverse-spec",  to: "oc-app-architect",  shape: "arrow", fromSide: "r", toSide: "l" },
+  { from: "oc-app-architect", to: "oc-git-ops",        shape: "arrow", fromSide: "r", toSide: "l" },
+  { from: "oc-git-ops",       to: "oc-deploy-ops",     shape: "arrow", fromSide: "r", toSide: "l" },
+  { from: "oc-deploy-ops",    to: "oc-monitoring-ops", shape: "arrow", fromSide: "r", toSide: "l" },
 
-  // app-architect auto-invokes plan-phase skills (upward)
-  { from: "app-architect", to: "stack-forge",   shape: "arrow",  fromSide: "t", toSide: "b", curve: "elbow" },
-  { from: "app-architect", to: "ux-engineer",   shape: "arrow",  fromSide: "t", toSide: "b", curve: "elbow" },
-  { from: "ux-engineer",   to: "dash-forge",    shape: "arrow",  fromSide: "r", toSide: "l" },
-  { from: "app-architect", to: "scale-ops",     shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
-  { from: "app-architect", to: "migration-ops", shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
+  // oc-app-architect auto-invokes plan-phase skills (upward)
+  { from: "oc-app-architect", to: "oc-stack-forge",   shape: "arrow",  fromSide: "t", toSide: "b", curve: "elbow" },
+  { from: "oc-app-architect", to: "oc-ux-engineer",   shape: "arrow",  fromSide: "t", toSide: "b", curve: "elbow" },
+  { from: "oc-ux-engineer",   to: "oc-dash-forge",    shape: "arrow",  fromSide: "r", toSide: "l" },
+  { from: "oc-app-architect", to: "oc-scale-ops",     shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
+  { from: "oc-app-architect", to: "oc-migration-ops", shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
 
-  // Quality gate chain — code-auditor → security-auditor → deploy-ops
-  { from: "integrations-engineer", to: "code-auditor",     shape: "arrow",  fromSide: "r", toSide: "l" },
-  { from: "code-auditor",          to: "security-auditor", shape: "arrow",  fromSide: "l", toSide: "r" },
-  { from: "security-auditor",      to: "deploy-ops",       shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
+  // Quality gate chain — oc-code-auditor → oc-security-auditor → oc-deploy-ops
+  { from: "oc-integrations-engineer", to: "oc-code-auditor",     shape: "arrow",  fromSide: "r", toSide: "l" },
+  { from: "oc-code-auditor",          to: "oc-security-auditor", shape: "arrow",  fromSide: "l", toSide: "r" },
+  { from: "oc-security-auditor",      to: "oc-deploy-ops",       shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
 
-  // migration-ops feeds deploy-ops on cutover (dotted, on-demand)
-  { from: "migration-ops", to: "deploy-ops", shape: "dotted", fromSide: "b", toSide: "t", curve: "elbow" },
+  // oc-migration-ops feeds oc-deploy-ops on cutover (dotted, on-demand)
+  { from: "oc-migration-ops", to: "oc-deploy-ops", shape: "dotted", fromSide: "b", toSide: "t", curve: "elbow" },
 ];
 
 function edgePath(e: Edge): string {
@@ -144,13 +144,13 @@ const phaseLabels = [
         aria-label for the diagram as a whole. */}
     <title>opchain pipeline</title>
     <desc>
-      Every skill inherits the checkpoint-protocol JSON schema, and the
+      Every skill inherits the oc-checkpoint-protocol JSON schema, and the
       orchestrator skill reads across all of them for cross-project status and
-      routing. reverse-spec feeds app-architect, which auto-invokes
-      stack-forge, ux-engineer and dash-forge during plan, with scale-ops and
-      migration-ops as advisory plan-phase skills. app-architect hands off
-      through git-ops to deploy-ops, which in turn hands off to monitoring-ops
-      once production is live. The code-auditor → security-auditor chain gates
+      routing. oc-reverse-spec feeds oc-app-architect, which auto-invokes
+      oc-stack-forge, oc-ux-engineer and oc-dash-forge during plan, with oc-scale-ops and
+      oc-migration-ops as advisory plan-phase skills. oc-app-architect hands off
+      through oc-git-ops to oc-deploy-ops, which in turn hands off to oc-monitoring-ops
+      once production is live. The oc-code-auditor → oc-security-auditor chain gates
       deploys.
     </desc>
 
@@ -205,7 +205,7 @@ const phaseLabels = [
 
   <ul class="legend" aria-label="Legend">
     <li><span class="swatch swatch-spine"></span> main spine</li>
-    <li><span class="swatch swatch-plan"></span> auto-invoked by app-architect</li>
+    <li><span class="swatch swatch-plan"></span> auto-invoked by oc-app-architect</li>
     <li><span class="swatch swatch-gate"></span> quality gate (code + security)</li>
     <li><span class="swatch swatch-side"></span> side chain</li>
     <li><span class="swatch swatch-foundation"></span> foundation (checkpoint + orchestrator)</li>

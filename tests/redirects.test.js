@@ -84,3 +84,38 @@ describe("demo route consolidation", () => {
     );
   });
 });
+
+describe("oc- skill id redirects", () => {
+  it("301s /skills/<old-id> to /skills/oc-<old-id>", async () => {
+    const res = await worker.fetch(new Request("https://opchain.dev/skills/code-auditor"), makeEnv());
+    expect(res.status).toBe(301);
+    expect(res.headers.get("Location")).toBe("https://opchain.dev/skills/oc-code-auditor");
+  });
+
+  it("301s the trailing-slash form too", async () => {
+    const res = await worker.fetch(new Request("https://opchain.dev/skills/app-architect/"), makeEnv());
+    expect(res.status).toBe(301);
+    expect(res.headers.get("Location")).toBe("https://opchain.dev/skills/oc-app-architect");
+  });
+
+  it("301s the per-skill .zip bundle", async () => {
+    const res = await worker.fetch(new Request("https://opchain.dev/skills/stack-forge.zip"), makeEnv());
+    expect(res.status).toBe(301);
+    expect(res.headers.get("Location")).toBe("https://opchain.dev/skills/oc-stack-forge.zip");
+  });
+
+  it("does NOT redirect an already-prefixed /skills/oc-<id> (no loop)", async () => {
+    const res = await worker.fetch(new Request("https://opchain.dev/skills/oc-code-auditor"), makeEnv());
+    expect(res.status).not.toBe(301);
+  });
+
+  it("does NOT redirect an unknown /skills/<slug>", async () => {
+    const res = await worker.fetch(new Request("https://opchain.dev/skills/not-a-skill"), makeEnv());
+    expect(res.status).not.toBe(301);
+  });
+
+  it("does NOT redirect the /skills index", async () => {
+    const res = await worker.fetch(new Request("https://opchain.dev/skills"), makeEnv());
+    expect(res.status).not.toBe(301);
+  });
+});

@@ -134,7 +134,7 @@ Every flag has a wrangler env override:
 `<flag.name>` → `FLAG_<UPPER_SNAKE_REPLACING_DOTS_AND_DASHES>`. Examples:
 
 - `site.ops.api-feedback.kill` → `FLAG_SITE_OPS_API_FEEDBACK_KILL`
-- `skills.registry.app-architect.enabled` → `FLAG_SKILLS_REGISTRY_APP_ARCHITECT_ENABLED`
+- `skills.registry.oc-app-architect.enabled` → `FLAG_SKILLS_REGISTRY_APP_ARCHITECT_ENABLED`
 
 Booleans accept `true|false|1|0`. Use these for staging-only kill switches
 and for forcing values in tests.

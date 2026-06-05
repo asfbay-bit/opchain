@@ -4,9 +4,9 @@ import { expect, test } from "@playwright/test";
  * /changelog page + /demo scenario picker — kept in lockstep with the
  * release entries as opchain version-bumps. Current release is v1.4.2
  * (emergency patch — skill-bundle download fix, oc- skill-name aliases,
- * checkpoint-protocol / orchestrator hardening; no new scenarios). v1.4
+ * oc-checkpoint-protocol / oc-orchestrator hardening; no new scenarios). v1.4
  * (pack registry GA, /coverage page) sits one release back; v1.3
- * (runtime PM, real platforms, release-ops) two back.
+ * (runtime PM, real platforms, oc-release-ops) two back.
  *
  * The page also carries an "Upcoming releases" section above the release
  * history: v1.5 (next — built, awaiting deploy) then v1.6 / v1.7 (planned).
@@ -45,7 +45,7 @@ test.describe("/changelog", () => {
     await page.goto("/changelog");
 
     // Current release section exists and tags v1.4.2 (the emergency patch:
-    // bundle-download fix, oc- aliases, checkpoint/orchestrator hardening).
+    // bundle-download fix, oc- aliases, checkpoint/oc-orchestrator hardening).
     const current = page.locator("section.release.release--current");
     await expect(current).toBeVisible();
     await expect(current.locator(".rel-tag").first()).toHaveText("v1.4.2");

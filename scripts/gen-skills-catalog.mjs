@@ -156,8 +156,8 @@ function main() {
   ids.map(validateSkill);
 
   // Invariant: the foundational protocol skill must always be present.
-  if (!ids.includes("checkpoint-protocol")) {
-    throw new Error("invariant: skills/checkpoint-protocol must exist");
+  if (!ids.includes("oc-checkpoint-protocol")) {
+    throw new Error("invariant: skills/oc-checkpoint-protocol must exist");
   }
 
   console.log(`✓ skill catalog validated: ${ids.length} skills`);
