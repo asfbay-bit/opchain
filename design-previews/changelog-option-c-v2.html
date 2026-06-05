@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Option C v2 — Full-width tabs · opchain</title>
+<style>
+:root {
+  --bg:          #0e0e10;
+  --surface:     #16161a;
+  --card:        #1c1c22;
+  --raised:      #232329;
+  --border:      #2a2a32;
+  --text:        #ece6d8;
+  --muted:       #a8a298;
+  --subtle:      #6f6a62;
+  --accent:      #ff8a3d;
+  --accent-dim:  #3a1f0e;
+  --accent-hover:#ffa365;
+  --info:        #6ea0d3;
+  --info-dim:    #15212d;
+  --good:        #6fb27a;
+  --good-dim:    #1a2a1d;
+  --font-mono:   ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace;
+  --font-disp:   "InterDisplay", "Inter", system-ui, sans-serif;
+  --font-body:   "Inter", system-ui, sans-serif;
+  --r-xs: 4px; --r-sm: 6px; --r-md: 10px; --r-pill: 999px;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
+code { font-family: var(--font-mono); font-size: 11.5px; background: var(--surface); border: 0.5px solid var(--border); padding: 1px 5px; border-radius: var(--r-xs); }
+
+/* ── page header ──────────────────────────────────────── */
+.page-head { padding: 1.75rem 2rem 1.25rem; border-bottom: 0.5px solid var(--border); }
+.page-tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); border: 0.5px solid var(--accent); padding: 2px 8px; border-radius: var(--r-xs); }
+.page-head h1 { font-family: var(--font-disp); font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; margin: 0.5rem 0 0.2rem; }
+.page-head p { color: var(--muted); font-size: 13px; max-width: 62ch; }
+
+/* ── outer layout ─────────────────────────────────────── */
+.page-outer { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+/* ═══════════════════════════════════════════════════════
+   TAB BAR
+   ═══════════════════════════════════════════════════════ */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  border-bottom: 0.5px solid var(--border);
+  position: relative;
+  gap: 0;
+  margin-bottom: 0;
+}
+
+.tab-btn {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.7rem 1.25rem;
+  font-family: var(--font-disp); font-size: 13px; font-weight: 500;
+  color: var(--muted);
+  background: none; border: none; cursor: pointer;
+  position: relative; z-index: 2;
+  transition: color 0.18s;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--text); }
+
+.tab-count {
+  font-family: var(--font-mono); font-size: 9.5px;
+  background: var(--surface); border: 0.5px solid var(--border);
+  padding: 1px 6px; border-radius: var(--r-pill);
+  color: var(--subtle);
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+.tab-btn.active .tab-count {
+  background: var(--accent-dim); border-color: var(--accent); color: var(--accent);
+}
+.tab-btn:nth-child(2).active .tab-count,
+.tab-btn.tab-btn--next.active .tab-count {
+  background: var(--info-dim); border-color: var(--info); color: var(--info);
+}
+.tab-btn:nth-child(3).active .tab-count,
+.tab-btn.tab-btn--planned.active .tab-count {
+  background: var(--surface); border-color: var(--border); color: var(--subtle);
+}
+
+/* sliding indicator */
+.tab-indicator {
+  position: absolute; bottom: -0.5px; height: 2px;
+  background: var(--accent);
+  transition: left 0.3s var(--ease), width 0.3s var(--ease), background 0.3s;
+  border-radius: 1px;
+}
+.tab-indicator[data-active="1"] { background: var(--info); }
+.tab-indicator[data-active="2"] { background: var(--subtle); }
+
+/* nav arrows on far right */
+.tab-nav { margin-left: auto; display: flex; gap: 0.25rem; padding: 0.4rem 0.4rem 0.4rem 0; }
+.tab-nav-btn {
+  width: 28px; height: 28px; border-radius: var(--r-sm);
+  border: 0.5px solid var(--border); background: none; cursor: pointer; color: var(--muted);
+  display: flex; align-items: center; justify-content: center; font-size: 13px;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.tab-nav-btn:hover { border-color: var(--text); color: var(--text); background: var(--surface); }
+.tab-nav-btn:disabled { opacity: 0.28; pointer-events: none; }
+
+/* ═══════════════════════════════════════════════════════
+   TAB PANELS SLIDER
+   ═══════════════════════════════════════════════════════ */
+.tab-panels-outer {
+  overflow: hidden;
+  /* no clipping on height — let pages scroll naturally */
+}
+
+.tab-panels {
+  display: flex;
+  width: 300%;
+  transition: transform 0.35s var(--ease);
+}
+
+.tab-panels[data-active="0"] { transform: translateX(0); }
+.tab-panels[data-active="1"] { transform: translateX(-33.333%); }
+.tab-panels[data-active="2"] { transform: translateX(-66.666%); }
+
+.tab-panel {
+  width: 33.333%;
+  min-width: 0;
+  padding: 1.75rem 0;
+  /* panels don't individually scroll — page does */
+}
+
+/* ═══════════════════════════════════════════════════════
+   SHARED ATOMS
+   ═══════════════════════════════════════════════════════ */
+.eyebrow { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--subtle); margin-bottom: 0.2rem; }
+.detail-h2 { font-family: var(--font-disp); font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; margin-bottom: 0.25rem; }
+.detail-h3 { font-family: var(--font-disp); font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; margin: 1.1rem 0 0.4rem; }
+.detail-p  { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 0.65rem; }
+.detail-ul { padding-left: 1.1rem; margin-bottom: 0.5rem; }
+.detail-ul li { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin-bottom: 0.35rem; }
+.detail-ul li strong { color: var(--text); font-weight: 600; }
+.detail-meta { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; padding: 1px 7px; border-radius: var(--r-pill); border: 0.5px solid var(--border); color: var(--muted); background: var(--surface); }
+.tag--accent { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+.tag--info   { color: var(--info);   border-color: var(--info);   background: var(--info-dim); }
+.tag--good   { color: var(--good);   border-color: var(--good);   background: var(--good-dim); }
+.tag--subtle { color: var(--subtle); border-color: var(--border); }
+.ver-pill { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: var(--r-xs); }
+.ver-pill--current { color: var(--accent); border: 0.5px solid var(--accent); }
+.ver-pill--past    { color: var(--subtle); border: 0.5px solid var(--border); }
+.ver-pill--next    { color: var(--info);   border: 0.5px solid var(--info); }
+.compat-box { margin-top: 1rem; padding: 0.7rem 0.9rem; background: var(--good-dim); border: 0.5px solid var(--good); border-radius: var(--r-sm); font-size: 12.5px; color: var(--muted); }
+.compat-box strong { color: var(--good); }
+.planned-box { margin-top: 0.75rem; padding: 0.6rem 0.85rem; background: var(--surface); border: 0.5px dashed var(--border); border-radius: var(--r-sm); font-family: var(--font-mono); font-size: 10px; color: var(--subtle); letter-spacing: 0.04em; }
+.vote-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 1.2rem; padding-top: 0.85rem; border-top: 0.5px solid var(--border); }
+.vote-btn { display: inline-flex; align-items: center; gap: 0.45rem; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text); background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-md); padding: 6px 13px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.vote-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
+.vote-btn.voted { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+.vote-tally { font-family: var(--font-mono); font-size: 11px; color: var(--subtle); }
+.vote-label { font-size: 12px; color: var(--subtle); }
+
+/* ── panel section header ─────────────────────────────── */
+.panel-section-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 1.1rem;
+}
+.panel-title { font-family: var(--font-disp); font-size: 17px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+.panel-subtitle { font-size: 12.5px; color: var(--muted); }
+
+/* ═══════════════════════════════════════════════════════
+   TAB 0 — JUST RELEASED: expandable release cards
+   ═══════════════════════════════════════════════════════ */
+.rel-card {
+  border: 0.5px solid var(--border); border-radius: var(--r-md);
+  margin-bottom: 0.65rem; overflow: hidden; cursor: pointer;
+  transition: border-color 0.18s, background 0.18s;
+  position: relative;
+}
+.rel-card:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+.rel-card.is-open { border-color: var(--accent); background: var(--card); cursor: default; }
+.rel-card.is-open::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+
+.rc-row {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.85rem 1.1rem;
+  user-select: none;
+}
+.rc-toggle {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 0.5px solid var(--border); background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 10px; color: var(--subtle);
+  transition: transform 0.22s var(--ease), background 0.18s, border-color 0.18s;
+}
+.rel-card.is-open .rc-toggle { transform: rotate(90deg); background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.rc-meta { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.rc-head { display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; margin-bottom: 0.2rem; }
+.rc-title { font-family: var(--font-disp); font-size: 14px; font-weight: 600; color: var(--text); }
+.rc-date  { font-family: var(--font-mono); font-size: 10px; color: var(--subtle); margin-left: auto; }
+.rc-summary { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+
+.rc-detail {
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height 0.42s var(--ease-out), opacity 0.3s;
+}
+.rel-card.is-open .rc-detail { max-height: 1000px; opacity: 1; }
+.rc-detail-inner { padding: 0 1.1rem 1.25rem; border-top: 0.5px solid var(--border); padding-top: 1rem; }
+
+/* ═══════════════════════════════════════════════════════
+   TAB 1 — COMING NEXT: v1.5 full detail
+   ═══════════════════════════════════════════════════════ */
+.coming-next-hero {
+  background: var(--card); border: 0.5px solid var(--border); border-radius: var(--r-md);
+  padding: 1.4rem 1.5rem; margin-bottom: 1.25rem;
+  position: relative; overflow: hidden;
+}
+.coming-next-hero::before {
+  content: "";
+  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(180deg, var(--info), color-mix(in srgb, var(--info) 35%, transparent));
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--info); border: 0.5px solid var(--info); background: var(--info-dim);
+  padding: 2px 8px; border-radius: var(--r-pill);
+  margin-bottom: 0.65rem;
+}
+.hero-badge::before { content: "●"; font-size: 6px; }
+.hero-ver { font-family: var(--font-mono); font-size: 11px; color: var(--subtle); margin-bottom: 0.35rem; }
+.hero-title { font-family: var(--font-disp); font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+.hero-desc { font-size: 13px; color: var(--muted); line-height: 1.6; max-width: 64ch; }
+
+.skills-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0.55rem; margin-bottom: 1.25rem;
+}
+.skill-tile {
+  background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-sm);
+  padding: 0.75rem 0.9rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+.skill-tile:hover { border-color: var(--info); background: color-mix(in srgb, var(--info-dim) 60%, var(--surface)); }
+.skill-tile-name { font-family: var(--font-mono); font-size: 11px; color: var(--info); margin-bottom: 0.2rem; }
+.skill-tile-desc { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+
+.ripple-section {
+  background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-sm);
+  padding: 0.9rem 1rem; margin-bottom: 1rem;
+}
+.ripple-section .detail-h3 { margin-top: 0; margin-bottom: 0.6rem; }
+.ripple-list { list-style: none; padding: 0; margin: 0; }
+.ripple-list li { display: flex; gap: 0.5rem; font-size: 12.5px; color: var(--muted); line-height: 1.45; padding: 0.25rem 0; }
+.ripple-list li::before { content: "↳"; color: var(--subtle); flex-shrink: 0; font-family: var(--font-mono); }
+.ripple-list li strong { color: var(--text); }
+
+/* ═══════════════════════════════════════════════════════
+   TAB 2 — PLANNED: versioned accordion cards with votes
+   ═══════════════════════════════════════════════════════ */
+.plan-card {
+  border: 0.5px solid var(--border); border-radius: var(--r-md);
+  margin-bottom: 0.65rem; overflow: hidden; cursor: pointer;
+  transition: border-color 0.18s;
+  position: relative;
+}
+.plan-card:hover { border-color: color-mix(in srgb, var(--info) 35%, var(--border)); }
+.plan-card.is-open { border-color: var(--info); cursor: default; }
+.plan-card.is-open::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--info); }
+
+.pc-row {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.85rem 1.1rem;
+  user-select: none;
+}
+.pc-toggle {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 0.5px solid var(--border); background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 10px; color: var(--subtle);
+  transition: transform 0.22s var(--ease), background 0.18s, border-color 0.18s;
+}
+.plan-card.is-open .pc-toggle { transform: rotate(90deg); background: var(--info-dim); border-color: var(--info); color: var(--info); }
+.pc-meta { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.pc-head { display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; margin-bottom: 0.2rem; }
+.pc-title { font-family: var(--font-disp); font-size: 14px; font-weight: 600; color: var(--text); }
+.pc-timing { font-family: var(--font-mono); font-size: 10px; color: var(--subtle); margin-left: auto; }
+.pc-summary { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+.pc-footer { display: flex; align-items: center; gap: 0.5rem; padding: 0 1.1rem 0.65rem; }
+
+.pc-detail {
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height 0.42s var(--ease-out), opacity 0.3s;
+}
+.plan-card.is-open .pc-detail { max-height: 1200px; opacity: 1; }
+.pc-detail-inner { padding: 0 1.1rem 1.25rem; border-top: 0.5px solid var(--border); padding-top: 1rem; }
+
+/* ── divider ──────────────────────────────────────────── */
+.section-div { display: flex; align-items: center; gap: 0.75rem; margin: 1.5rem 0 1rem; }
+.section-div-line { flex: 1; height: 0.5px; background: var(--border); }
+.section-div-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--subtle); }
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <span class="page-tag">Option C v2</span>
+  <h1>Changelog &amp; Roadmap — full-width tabs</h1>
+  <p>Three tabs, full content width. Defaults to "Just Released". Slides between tabs. Release cards expand inline. Planned versions have full depth — voted, detailed, annotated.</p>
+</div>
+
+<div class="page-outer">
+
+  <!-- ══ TAB BAR ══════════════════════════════════════════ -->
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-btn active" onclick="switchTab(0)" id="tabBtn0">
+      Just Released <span class="tab-count" id="tc0">6</span>
+    </button>
+    <button class="tab-btn tab-btn--next" onclick="switchTab(1)" id="tabBtn1">
+      Coming Next <span class="tab-count" id="tc1">in progress</span>
+    </button>
+    <button class="tab-btn tab-btn--planned" onclick="switchTab(2)" id="tabBtn2">
+      Planned <span class="tab-count" id="tc2">2 releases</span>
+    </button>
+    <div class="tab-nav">
+      <button class="tab-nav-btn" id="navPrev" onclick="prevTab()" title="Previous tab" disabled>←</button>
+      <button class="tab-nav-btn" id="navNext" onclick="nextTab()" title="Next tab">→</button>
+    </div>
+    <div class="tab-indicator" id="tabIndicator"></div>
+  </div>
+
+  <!-- ══ TAB PANELS ════════════════════════════════════════ -->
+  <div class="tab-panels-outer">
+  <div class="tab-panels" id="tabPanels" data-active="0">
+
+    <!-- ─── PANEL 0: Just Released ─────────────────────── -->
+    <div class="tab-panel" id="panel0">
+      <div class="panel-section-head">
+        <div><div class="eyebrow">release history</div><div class="panel-title">What shipped</div></div>
+        <span class="panel-subtitle">Click any release to read full notes</span>
+      </div>
+
+      <div class="rel-card" onclick="toggleRelCard(this)">
+        <div class="rc-row">
+          <div class="rc-toggle">▶</div>
+          <div class="rc-meta">
+            <div class="rc-head"><span class="ver-pill ver-pill--current">v1.4.2</span><span class="rc-title">Complete bundles, honest checkpoints</span><span class="rc-date">Jun 05, 2026</span></div>
+            <p class="rc-summary">Emergency patch: full skill trees, <code>oc-</code> aliases, unified checkpoint schema, automated drift detection.</p>
+          </div>
+        </div>
+        <div class="rc-detail"><div class="rc-detail-inner">
+          <div class="detail-meta"><span class="tag tag--accent">emergency patch</span><span class="tag">18 skills</span><span class="tag">back-compatible</span></div>
+          <p class="detail-p">An out-of-band emergency patch: one user-facing breakage and a long-overdue correctness pass, shipped ahead of v1.5. The breakage — the "download all" skill bundle was shipping only each skill's <code>SKILL.md</code>, silently dropping the <code>references/</code>, <code>scripts/</code>, and <code>examples/</code> that make a skill actually run.</p>
+          <div class="detail-h3">What's new</div>
+          <ul class="detail-ul">
+            <li><strong>"Download all" ships complete skills again.</strong> <code>opchain-skills.zip</code> now bundles full skill trees, matching the per-skill downloads on /skills.</li>
+            <li><strong><code>oc-</code> canonical skill names.</strong> Every skill gains an <code>oc-&lt;name&gt;</code> alias so opchain skills are unambiguous next to same-named local skills.</li>
+            <li><strong>The orchestrator stops misreporting itself.</strong> Persistence docs rewritten to the git-tracked checkpoint it actually uses. The phantom <code>checkpoint.sh</code> is replaced by <code>scripts/checkpoint.mjs</code>.</li>
+            <li><strong>One checkpoint schema, actually enforced.</strong> Validator, spec, and README now agree on a single wire schema. Timestamp-sanity and referential checks added.</li>
+            <li><strong>Drift detection.</strong> Automated drift detection; stale checkpoints can no longer tell future-you to redo shipped work.</li>
+          </ul>
+          <div class="detail-h3">New CLI commands</div>
+          <ul class="detail-ul">
+            <li><code>checkpoint:doctor</code> — cross-checks checkpoints against <code>git log</code> + live <code>/api/health</code>, flags drift</li>
+            <li><code>checkpoint:next</code> — "what should I do next" for the local project</li>
+            <li><code>checkpoint:status --brief</code> / <code>--since=&lt;date&gt;</code></li>
+            <li><code>checkpoint:init</code> — deterministic cold-start scaffold</li>
+          </ul>
+          <div class="compat-box"><strong>Back-compatible with v1.4.</strong> The <code>oc-</code> names are additive aliases. All 18 skills lockstep-bump to <code>1.4.2</code>.</div>
+        </div></div>
+      </div>
+
+      <div class="rel-card" onclick="toggleRelCard(this)">
+        <div class="rc-row">
+          <div class="rc-toggle">▶</div>
+          <div class="rc-meta">
+            <div class="rc-head"><span class="ver-pill ver-pill--past">v1.4</span><span class="rc-title">Coverage as a plugin registry</span><span class="rc-date">May 12, 2026</span></div>
+            <p class="rc-summary">32 packs across 13 languages, 9 frameworks, 4 mobile platforms, 6 deploy targets. One <code>pack.yml</code> per pack, validated on every build.</p>
+          </div>
+        </div>
+        <div class="rc-detail"><div class="rc-detail-inner">
+          <div class="detail-meta"><span class="tag">pack registry</span><span class="tag">32 packs</span><span class="tag">5 skills bumped</span></div>
+          <p class="detail-p">opchain v1.4 turns <code>stack-forge</code>'s coverage from hardcoded prose into a versioned pack registry — one <code>pack.yml</code> per language, framework, mobile platform, or deploy target, validated on every build. Total coverage grows from 6 stacks in v1.3 to 32 packs in v1.4.</p>
+          <div class="detail-h3">What's new</div>
+          <ul class="detail-ul">
+            <li><strong>Pack registry architecture.</strong> <code>scripts/gen-stack-packs.mjs</code> validates every pack on every build.</li>
+            <li><strong>Hybrid dispatch.</strong> <code>deploy-ops</code> reads packs at runtime; <code>api-dev</code> reads packs at build time for typed scaffold metadata.</li>
+            <li><strong>Modern web bulk.</strong> elixir / bun / deno; phoenix / remix / sveltekit / solid packs.</li>
+            <li><strong>Enterprise bulk.</strong> java / csharp / kotlin / php; spring / dotnet / laravel packs.</li>
+            <li><strong>Apple/iOS.</strong> swift + swiftui + ios-swiftui mobile pack + app-store deploy adapter.</li>
+            <li><strong>Mobile bulk.</strong> kotlin-android / flutter / react-native-expo + play-store deploy adapter.</li>
+            <li><strong>Hosting adapters.</strong> railway / netlify / heroku / aws-amplify deploy-target packs.</li>
+          </ul>
+          <div class="compat-box"><strong>Back-compatible with v1.3.</strong> Five skills bump in lockstep.</div>
+        </div></div>
+      </div>
+
+      <div class="rel-card" onclick="toggleRelCard(this)">
+        <div class="rc-row">
+          <div class="rc-toggle">▶</div>
+          <div class="rc-meta">
+            <div class="rc-head"><span class="ver-pill ver-pill--past">v1.3</span><span class="rc-title">Runtime PM, real platforms, automated releases</span><span class="rc-date">May 11, 2026</span></div>
+            <p class="rc-summary">PM-MCP loop executable end-to-end. <code>release-ops</code> ships as the 18th skill. Platform menu expands.</p>
+          </div>
+        </div>
+        <div class="rc-detail"><div class="rc-detail-inner">
+          <div class="detail-meta"><span class="tag">release-ops</span><span class="tag">18th skill</span><span class="tag">PM-MCP live</span></div>
+          <p class="detail-p">opchain v1.3 makes the v1.2 PM-MCP prose executable end-to-end and ships <code>release-ops</code> — the 18th skill — to automate the scope → /changelog → bump → ship cadence opchain uses for itself.</p>
+          <div class="detail-h3">What's new</div>
+          <ul class="detail-ul">
+            <li><strong>The PM-MCP loop is real.</strong> Concrete tool-name registry, retry/backoff, idempotency markers, deferred-action queue.</li>
+            <li><strong><code>release-ops</code> is the 18th skill.</strong> <code>/release plan|draft|bump|announce|ship</code>. Reads checkpoints to propose next semver, drafts changelog entry, bumps all skill versions atomically.</li>
+            <li><strong>Platform menu grew.</strong> Django + Postgres + Render, Rails + Postgres + Heroku, Go + Fly.io, Rust + Axum + Shuttle.rs.</li>
+          </ul>
+          <div class="compat-box"><strong>Back-compatible with v1.2.</strong> All 18 skills lockstep at <code>1.3.0</code>.</div>
+        </div></div>
+      </div>
+
+      <div class="rel-card" onclick="toggleRelCard(this)">
+        <div class="rc-row">
+          <div class="rc-toggle">▶</div>
+          <div class="rc-meta">
+            <div class="rc-head"><span class="ver-pill ver-pill--past">v1.2</span><span class="rc-title">PM-tool MCP integration</span><span class="rc-date">May 05, 2026</span></div>
+            <p class="rc-summary">Linear, Jira, and GitHub Issues become first-class context for four skills.</p>
+          </div>
+        </div>
+        <div class="rc-detail"><div class="rc-detail-inner">
+          <div class="detail-meta"><span class="tag">PM-MCP</span><span class="tag">Linear</span><span class="tag">Jira</span></div>
+          <p class="detail-p">The ticket is the thread of execution. <code>app-architect</code>, <code>git-ops</code>, <code>deploy-ops</code>, and <code>monitoring-ops</code> all become PM-tool aware.</p>
+          <div class="detail-h3">What's new</div>
+          <ul class="detail-ul">
+            <li><strong>app-architect /discover</strong> accepts a ticket reference and pre-fills from ticket body. <code>/roadmap</code> writes the sprint plan back as a structured comment.</li>
+            <li><strong>git-ops /git-sync TICKET-1234</strong> shapes branch/commit/PR from the ticket, transitions state on merge.</li>
+            <li><strong>deploy-ops</strong> auto-creates a deploy ticket per environment.</li>
+            <li><strong>monitoring-ops</strong> opens an incident ticket when alerts fire.</li>
+          </ul>
+          <div class="compat-box"><strong>Back-compatible with v1.1.</strong> PM loop is enrichment, never a hard dependency.</div>
+        </div></div>
+      </div>
+
+      <div class="rel-card" onclick="toggleRelCard(this)">
+        <div class="rc-row">
+          <div class="rc-toggle">▶</div>
+          <div class="rc-meta">
+            <div class="rc-head"><span class="ver-pill ver-pill--past">v1.1</span><span class="rc-title">Stable release</span><span class="rc-date">Apr 2026</span></div>
+            <p class="rc-summary">Tri-agent harness, full pipeline, checkpoint-protocol v1.0. Six in-action scenarios.</p>
+          </div>
+        </div>
+        <div class="rc-detail"><div class="rc-detail-inner">
+          <div class="detail-meta"><span class="tag">tri-agent</span><span class="tag">checkpoint v1.0</span></div>
+          <p class="detail-p">Tri-agent harness across <code>app-architect</code>, <code>code-auditor</code>, <code>integrations-engineer</code>; full-pipeline flow from <code>/discover</code> to <code>/deploy</code>; checkpoint-protocol v1.0 across every skill; static Astro site; first set of six in-action scenarios.</p>
+        </div></div>
+      </div>
+
+      <div class="rel-card" onclick="toggleRelCard(this)">
+        <div class="rc-row">
+          <div class="rc-toggle">▶</div>
+          <div class="rc-meta">
+            <div class="rc-head"><span class="ver-pill ver-pill--past">v1.0</span><span class="rc-title">Initial release</span><span class="rc-date">Feb 2026</span></div>
+            <p class="rc-summary">First public Markdown skill catalog for Claude Code. The foundation everything since has built on.</p>
+          </div>
+        </div>
+        <div class="rc-detail"><div class="rc-detail-inner">
+          <div class="detail-meta"><span class="tag">initial</span></div>
+          <p class="detail-p">First public cut of the opchain skill catalog as a set of Markdown files installable into Claude Code. No site, no scenarios — just the skills.</p>
+        </div></div>
+      </div>
+
+    </div>
+    <!-- /panel0 -->
+
+
+    <!-- ─── PANEL 1: Coming Next ────────────────────────── -->
+    <div class="tab-panel" id="panel1">
+
+      <div class="panel-section-head">
+        <div><div class="eyebrow">next release</div><div class="panel-title">v1.5 — Build the AI app</div></div>
+        <span class="tag tag--info">in progress</span>
+      </div>
+
+      <div class="coming-next-hero">
+        <div class="hero-badge">building now</div>
+        <div class="hero-ver">v1.5.0</div>
+        <div class="hero-title">Build the AI app</div>
+        <p class="hero-desc">v1.5 closes the biggest categorical gap in the catalog: nothing today owns <em>AI-feature</em> design. Four new AI-native skills ship wired through the existing pipeline — model routing, RAG, agent harnesses, and prompts as first-class version-controlled artifacts.</p>
+      </div>
+
+      <div class="detail-h3" style="margin-top:0">Four new skills</div>
+      <div class="skills-grid">
+        <div class="skill-tile">
+          <div class="skill-tile-name">claude-api · /claude-api</div>
+          <p class="skill-tile-desc">Model routing (Opus/Sonnet/Haiku), prompt caching by default, streaming vs. batch, tool use, and migration playbooks for model-version bumps.</p>
+        </div>
+        <div class="skill-tile">
+          <div class="skill-tile-name">rag-forge · /rag</div>
+          <p class="skill-tile-desc">Tri-agent. Vector-DB decision tree, embedding choice, chunking, hybrid search, and retrieval eval with golden sets and recall@k / NDCG.</p>
+        </div>
+        <div class="skill-tile">
+          <div class="skill-tile-name">agent-forge · /agent</div>
+          <p class="skill-tile-desc">Tri-agent. Claude Agent SDK scaffold, subagent topology, tool-budget design, harness-loop shapes, and eval over golden trajectories.</p>
+        </div>
+        <div class="skill-tile">
+          <div class="skill-tile-name">prompt-ops · /prompt</div>
+          <p class="skill-tile-desc">Prompts as artifacts: file-shaped versioning, eval datasets, regression detection. <code>/prompt regress</code> blocks on a PR drop.</p>
+        </div>
+      </div>
+
+      <div class="ripple-section">
+        <div class="detail-h3">Cross-skill ripples</div>
+        <ul class="ripple-list">
+          <li><strong>app-architect</strong> gains an "AI app?" branch in <code>/discover</code> that routes to the four new skills.</li>
+          <li><strong>stack-forge</strong> adds vector-DB packs (pgvector, Turbopuffer, Pinecone, Supabase Vectors) to the pack registry.</li>
+          <li><strong>code-auditor</strong> learns prompt-injection and tool-use safety rules.</li>
+          <li><strong>/demo</strong> Worker is rewritten on <code>claude-api</code> patterns.</li>
+        </ul>
+      </div>
+
+      <div class="detail-h3">GTM alongside</div>
+      <p class="detail-p">New <code>/ai-recipes</code> walkthroughs, a "Build AI apps" row on <code>/compare</code>, an AI-app variant of <code>/pipeline-builder</code>, and a <code>/blog</code> dev-log scaffold with launch posts.</p>
+
+      <div class="compat-box"><strong>Back-compatible with v1.4.</strong> All 22 skills version-bump to <code>1.5.0</code>. Four new skills ship gated behind their <code>skills.registry.&lt;id&gt;.enabled</code> flags.</div>
+
+      <div class="vote-row">
+        <button class="vote-btn" id="voteV15" onclick="toggleVote('voteV15', 'tallyV15')">▲ vote for v1.5</button>
+        <span class="vote-tally" id="tallyV15">34 votes</span>
+        <span class="vote-label">· Shipping next</span>
+      </div>
+
+    </div>
+    <!-- /panel1 -->
+
+
+    <!-- ─── PANEL 2: Planned ─────────────────────────────── -->
+    <div class="tab-panel" id="panel2">
+
+      <div class="panel-section-head">
+        <div><div class="eyebrow">roadmap</div><div class="panel-title">What's planned</div></div>
+        <span class="panel-subtitle">Vote to signal priority</span>
+      </div>
+
+      <!-- v1.6 -->
+      <div class="plan-card" onclick="togglePlanCard(this)">
+        <div class="pc-row">
+          <div class="pc-toggle">▶</div>
+          <div class="pc-meta">
+            <div class="pc-head"><span class="ver-pill ver-pill--next">v1.6</span><span class="pc-title">The instrumented pipeline</span><span class="pc-timing">est. Jul 2026</span></div>
+            <p class="pc-summary"><code>cost-ops</code> + <code>telemetry-ops</code> + checkpoint-protocol v1.3. Answers "what did this feature cost?" and "is my pipeline getting better?"</p>
+          </div>
+        </div>
+        <div class="pc-footer">
+          <span class="tag tag--info">planned</span>
+          <span class="tag">2 new skills</span>
+          <span class="tag">checkpoint v1.3</span>
+        </div>
+        <div class="pc-detail"><div class="pc-detail-inner">
+          <div class="detail-meta"><span class="tag tag--info">planned</span><span class="tag">est. Jul 2026</span></div>
+          <p class="detail-p">v1.5 introduces four AI-native skills; the predictable next question is <em>what did they cost, and is my pipeline actually getting better?</em> v1.6 answers both — cost attribution and opt-in telemetry, and the first <code>checkpoint-protocol</code> bump since v1.2.</p>
+          <div class="detail-h3">New skills</div>
+          <ul class="detail-ul">
+            <li><strong><code>cost-ops</code> — <code>/cost</code>.</strong> Attributes Anthropic spend to each skill phase, adds budget gates to checkpoints, recommends model-tier routing. Finally answers "what did this feature cost to ship?"</li>
+            <li><strong><code>telemetry-ops</code> — <code>/telemetry</code>.</strong> Opt-in, local-first usage metering written to <code>.checkpoints/usage.sqlite</code>. Nothing leaves your machine unless you opt in.</li>
+          </ul>
+          <div class="detail-h3">Cross-skill ripples</div>
+          <ul class="detail-ul">
+            <li><strong>bug-check + code-auditor</strong> stop emitting bare pass/fail and start scoring against a stable rubric.</li>
+            <li><strong>monitoring-ops</strong> gains an AI-app template covering token rate, eval drift, and hallucination flags.</li>
+            <li><strong>orchestrator's <code>/ops next</code></strong> factors cost and remaining budget into recommendations.</li>
+          </ul>
+          <div class="detail-h3">Protocol bump</div>
+          <p class="detail-p"><code>checkpoint-protocol v1.3</code> adds <code>cost</code>, <code>eval_scores</code>, and <code>telemetry_handle</code>. <code>migration-ops</code> rolls it across every skill the same way the governance frontmatter rolled out in v1.4.</p>
+          <div class="compat-box"><strong>Back-compatible with v1.5.</strong> All 24 skills lockstep-bump to <code>1.6.0</code>.</div>
+          <div class="planned-box">Planned — scope may shift before release.</div>
+          <div class="vote-row">
+            <button class="vote-btn" id="voteV16" onclick="toggleVote('voteV16', 'tallyV16')">▲ vote for v1.6</button>
+            <span class="vote-tally" id="tallyV16">18 votes</span>
+            <span class="vote-label">· Planned for Jul 2026</span>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- v1.7 -->
+      <div class="plan-card" onclick="togglePlanCard(this)">
+        <div class="pc-row">
+          <div class="pc-toggle">▶</div>
+          <div class="pc-meta">
+            <div class="pc-head"><span class="ver-pill ver-pill--next">v1.7</span><span class="pc-title">Pick one distribution play</span><span class="pc-timing">lean: marketplace + templates</span></div>
+            <p class="pc-summary">By v1.6, opchain has 24 skills and AI coverage. The biggest remaining gap is distribution. v1.7 promotes one growth play into a flagship theme.</p>
+          </div>
+        </div>
+        <div class="pc-footer">
+          <span class="tag tag--info">planned</span>
+          <span class="tag">est. Sep 2026</span>
+        </div>
+        <div class="pc-detail"><div class="pc-detail-inner">
+          <div class="detail-meta"><span class="tag tag--info">planned</span><span class="tag">est. Sep 2026</span></div>
+          <p class="detail-p">By the time v1.6 ships, opchain has 24 skills, instrumented pipelines, and AI-native coverage. The biggest remaining gap isn't features — it's <strong>distribution</strong>. v1.7 deliberately promotes one growth play into a flagship theme instead of accreting more skills. The current lean is marketplace + templates.</p>
+          <div class="detail-h3">The lean plan</div>
+          <ul class="detail-ul">
+            <li><strong><code>marketplace</code>.</strong> A site surface for community-contributed skills and packs. Compounds once v1.6's telemetry exists to grade community contributions on real usage.</li>
+            <li><strong><code>template-ops</code> — <code>/template</code>.</strong> Opinionated project starters that pre-wire an entire pipeline — stack, skills, and checkpoints — so a new project is ready to run from the first commit.</li>
+          </ul>
+          <div class="detail-h3">Alternatives on the table</div>
+          <ul class="detail-ul">
+            <li><strong>Agency play.</strong> <code>monorepo-ops</code> for real multi-project checkpoint scoping, a <code>/for-agencies</code> expansion, and a client-handoff demo scenario.</li>
+            <li><strong>Pipeline depth.</strong> <code>discovery-ops</code> (JTBD / opportunity trees, upstream of <code>app-architect</code>) plus <code>qa-ops</code> splitting test-pyramid design out of <code>bug-check</code>.</li>
+          </ul>
+          <div class="planned-box">Lean, not locked — the final v1.7 theme is chosen after the v1.5 / v1.6 retro.</div>
+          <div class="vote-row">
+            <button class="vote-btn" id="voteV17lean" onclick="toggleVote('voteV17lean', 'tallyV17lean')">▲ vote for marketplace + templates</button>
+            <span class="vote-tally" id="tallyV17lean">11 votes</span>
+          </div>
+          <div class="vote-row" style="margin-top:0.5rem;border-top:none;padding-top:0;">
+            <button class="vote-btn" id="voteV17agency" onclick="toggleVote('voteV17agency', 'tallyV17agency')">▲ vote for agency play</button>
+            <span class="vote-tally" id="tallyV17agency">7 votes</span>
+          </div>
+          <div class="vote-row" style="margin-top:0.5rem;border-top:none;padding-top:0;">
+            <button class="vote-btn" id="voteV17depth" onclick="toggleVote('voteV17depth', 'tallyV17depth')">▲ vote for pipeline depth</button>
+            <span class="vote-tally" id="tallyV17depth">5 votes</span>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="section-div"><div class="section-div-line"></div><div class="section-div-label">backlog</div><div class="section-div-line"></div></div>
+      <p class="detail-p" style="font-size:12.5px;">Backlog is empty — scope beyond v1.7 is deliberately open until v1.5 and v1.6 ship and the retros are done. Vote above to influence what lands in v1.7.</p>
+
+    </div>
+    <!-- /panel2 -->
+
+  </div>
+  </div>
+
+</div>
+
+<script>
+let activeTab = 0;
+const panels = document.getElementById('tabPanels');
+const indicator = document.getElementById('tabIndicator');
+
+function switchTab(idx) {
+  if (idx < 0 || idx > 2) return;
+  activeTab = idx;
+  panels.dataset.active = idx;
+  indicator.dataset.active = idx;
+
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => btn.classList.toggle('active', i === idx));
+  document.getElementById('navPrev').disabled = idx === 0;
+  document.getElementById('navNext').disabled = idx === 2;
+
+  requestAnimationFrame(() => updateIndicator());
+}
+
+function prevTab() { switchTab(activeTab - 1); }
+function nextTab() { switchTab(activeTab + 1); }
+
+function updateIndicator() {
+  const btn = document.getElementById('tabBtn' + activeTab);
+  const bar = document.getElementById('tabBar');
+  if (!btn) return;
+  indicator.style.left = btn.offsetLeft + 'px';
+  indicator.style.width = btn.offsetWidth + 'px';
+}
+
+// Init indicator
+window.addEventListener('load', () => updateIndicator());
+window.addEventListener('resize', () => updateIndicator());
+
+// Release card toggle
+function toggleRelCard(card) {
+  const wasOpen = card.classList.contains('is-open');
+  document.querySelectorAll('.rel-card.is-open').forEach(c => c.classList.remove('is-open'));
+  if (!wasOpen) card.classList.add('is-open');
+}
+
+// Plan card toggle
+function togglePlanCard(card) {
+  const wasOpen = card.classList.contains('is-open');
+  document.querySelectorAll('.plan-card.is-open').forEach(c => c.classList.remove('is-open'));
+  if (!wasOpen) card.classList.add('is-open');
+}
+
+// Vote toggle (optimistic UI)
+function toggleVote(btnId, tallyId) {
+  const btn = document.getElementById(btnId);
+  const tally = document.getElementById(tallyId);
+  if (!btn || !tally) return;
+  const voted = btn.classList.toggle('voted');
+  const current = parseInt(tally.textContent, 10);
+  tally.textContent = (voted ? current + 1 : current - 1) + ' votes';
+}
+
+// Keyboard nav between tabs
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') nextTab();
+  else if (e.key === 'ArrowLeft') prevTab();
+});
+</script>
+</body>
+</html>
