@@ -13,7 +13,7 @@ description: >
   Third-party API integrations with Planner/Builder/Tester loop. Use for /integrate,
   "connect to Salesforce", "webhook", "OAuth", "API integration", "connect to Slack",
   or any external service connection. For designing or building your *own* first-party
-  API (OpenAPI/GraphQL authoring, versioning, SDK generation), use api-dev instead.
+  API (OpenAPI/GraphQL authoring, versioning, SDK generation), use oc-api-dev instead.
   Trigger liberally.
 ---
 
@@ -28,9 +28,9 @@ against the real (sandbox) API with edge cases the Builder didn't consider.
 **Boundary:** this skill is the *consumer* side — building clients for someone else's
 API (Stripe, Slack, Salesforce, Google APIs, OAuth providers). For designing or
 building **your own** first-party API that other clients will consume (OpenAPI /
-GraphQL authoring, versioning, SDK generation), use `api-dev` instead. Webhook
+GraphQL authoring, versioning, SDK generation), use `oc-api-dev` instead. Webhook
 *receivers* tied to a single integration (`POST /webhooks/stripe`) stay here;
-public/product API surfaces belong in `api-dev`.
+public/product API surfaces belong in `oc-api-dev`.
 
 ## /integrate — Command Reference
 
@@ -471,12 +471,12 @@ the patterns; downstream skills cite this section AND the protocol doc.
 ### When PM-MCP integration matters
 
 - The user has a PM ticket they're working from. Reading the ticket as
-  context is far cheaper than re-asking. (`app-architect /discover`,
-  `git-ops /git-sync TICKET-1234`.)
+  context is far cheaper than re-asking. (`oc-app-architect /discover`,
+  `oc-git-ops /git-sync TICKET-1234`.)
 - Work product needs to be reflected back to the PM tool. Sprint plans,
   PRs, deploy windows, incidents — all live there as records. Writing
-  back closes the loop. (`app-architect /roadmap`, `git-ops` on PR open
-  + merge, `deploy-ops` per environment, `monitoring-ops` per alert.)
+  back closes the loop. (`oc-app-architect /roadmap`, `oc-git-ops` on PR open
+  + merge, `oc-deploy-ops` per environment, `oc-monitoring-ops` per alert.)
 - The org's audit posture requires it. Enterprises (see scenarios 7-8)
   treat the PM tool as the system-of-record for engineering work; an
   agent flow that doesn't update the ticket is invisible to compliance.
@@ -520,16 +520,16 @@ environments).
 
 ### Patterns by phase (quick reference; canonical text in each skill)
 
-**Read-then-shape** (app-architect Phase 1, code-auditor on a bug
-ticket, monitoring-ops on a runbook reference):
+**Read-then-shape** (oc-app-architect Phase 1, oc-code-auditor on a bug
+ticket, oc-monitoring-ops on a runbook reference):
 1. Get the ticket via the registry-resolved `get_issue` tool, applying the
    retry policy from [`pm-mcp-protocol.md` §2](references/pm-mcp-protocol.md).
 2. Use the body + comments as discovery / spec context.
 3. Continue the phase normally; cite the ticket id in produced
    artifacts.
 
-**Write-on-close** (app-architect Phase 4, git-ops on PR merge,
-deploy-ops on prod ship, monitoring-ops on alert resolution):
+**Write-on-close** (oc-app-architect Phase 4, oc-git-ops on PR merge,
+oc-deploy-ops on prod ship, oc-monitoring-ops on alert resolution):
 1. Complete the phase / event.
 2. Compose a structured comment summarising what changed + artifact links;
    prepend the idempotency marker from
@@ -546,8 +546,8 @@ deploy-ops on prod ship, monitoring-ops on alert resolution):
 5. On retry-budget exhaustion, defer per
    [`pm-mcp-protocol.md` §4](references/pm-mcp-protocol.md).
 
-**Auto-create** (deploy-ops creates a deploy ticket, monitoring-ops
-opens an incident ticket, release-ops creates a release ticket):
+**Auto-create** (oc-deploy-ops creates a deploy ticket, oc-monitoring-ops
+opens an incident ticket, oc-release-ops creates a release ticket):
 1. Compose ticket title + description from event context. The
    description carries the idempotency marker per Section 3 of the
    protocol; pre-write check via `list_issues` filtered to the
@@ -619,7 +619,7 @@ skill respects rejections).
 ## Checkpoint Integration
 
 ### Checkpoint Location
-`{project-dir}/.checkpoints/integrations-engineer.checkpoint.json`
+`{project-dir}/.checkpoints/oc-integrations-engineer.checkpoint.json`
 
 ### When to Write
 
@@ -661,17 +661,17 @@ skill respects rejections).
 
 | Reads from | Why |
 |---|---|
-| app-architect | 04-integrations.md → discovery baseline |
-| reverse-spec | Existing integrations → inventory pre-fill |
-| stack-forge | Auth pattern → compatible implementation |
-| deploy-ops | Environment config → where secrets stored |
+| oc-app-architect | 04-integrations.md → discovery baseline |
+| oc-reverse-spec | Existing integrations → inventory pre-fill |
+| oc-stack-forge | Auth pattern → compatible implementation |
+| oc-deploy-ops | Environment config → where secrets stored |
 
 | Read by | Why |
 |---|---|
-| code-auditor | Integration health → security context |
-| deploy-ops | Integration status → deploy confidence |
-| scale-ops | API rate limits → scaling constraints |
-| api-dev | When this app's first-party API needs to call out to a third-party that integrations-engineer wired up |
+| oc-code-auditor | Integration health → security context |
+| oc-deploy-ops | Integration status → deploy confidence |
+| oc-scale-ops | API rate limits → scaling constraints |
+| oc-api-dev | When this app's first-party API needs to call out to a third-party that oc-integrations-engineer wired up |
 
 ---
 

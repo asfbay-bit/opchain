@@ -361,7 +361,7 @@ Output: actual test files written to the project, not a report.
 ## Checkpoint Integration
 
 ### Checkpoint Location
-`{project-dir}/.checkpoints/code-auditor.checkpoint.json`
+`{project-dir}/.checkpoints/oc-code-auditor.checkpoint.json`
 
 ### When to Write
 
@@ -393,16 +393,16 @@ Output: actual test files written to the project, not a report.
 
 | Reads from | Why |
 |---|---|
-| reverse-spec | Stack, architecture, file inventory → skip re-scanning |
-| app-architect | Sprint scores, known issues → don't re-report |
-| stack-forge | Typed pipeline standard → grade against |
+| oc-reverse-spec | Stack, architecture, file inventory → skip re-scanning |
+| oc-app-architect | Sprint scores, known issues → don't re-report |
+| oc-stack-forge | Typed pipeline standard → grade against |
 
 | Read by | Why |
 |---|---|
-| deploy-ops | Finding count, grade → deploy gate |
-| git-ops | Report path → include in PR |
-| app-architect | Findings → pre-seed Phase 6 evaluator |
-| ux-engineer | Component health → UX audit context |
+| oc-deploy-ops | Finding count, grade → deploy gate |
+| oc-git-ops | Report path → include in PR |
+| oc-app-architect | Findings → pre-seed Phase 6 evaluator |
+| oc-ux-engineer | Component health → UX audit context |
 
 ---
 
@@ -411,14 +411,14 @@ Output: actual test files written to the project, not a report.
 Audits run inside a context. The PR was opened from a ticket; the
 sprint that produced the code is linked to a ticket. v1.2 makes the
 auditor post its findings back where humans expect to see them: the
-PM tool. See `integrations-engineer` for the canonical PM-MCP
+PM tool. See `oc-integrations-engineer` for the canonical PM-MCP
 patterns.
 
 ### Finding-summary comment
 
 After every `/audit pre-deploy` or `/audit full` run, if a linked
 PM ticket can be resolved (from the PR body, the
-`app-architect.checkpoint.json`, or the user prompt), post a
+`oc-app-architect.checkpoint.json`, or the user prompt), post a
 structured summary comment:
 
 ```
@@ -428,7 +428,7 @@ Top three (by severity × exploitability):
   1. {file:line} — {one-line title}
   2. {file:line} — {one-line title}
   3. {file:line} — {one-line title}
-Full report: .checkpoints/code-auditor.checkpoint.json
+Full report: .checkpoints/oc-code-auditor.checkpoint.json
 ```
 
 The comment is intentionally compact — full findings live in the
@@ -481,7 +481,7 @@ than creating a duplicate.
    code is clean. Missing semicolon is not HIGH.
 3. **Fixes must be verified.** An unverified fix is a hope, not a solution.
 4. **Minimal diffs.** Fix the finding, nothing more. Scope creep in fixes is a bug.
-5. **Don't re-report known issues.** Check app-architect Phase 6 and prior audit checkpoints.
+5. **Don't re-report known issues.** Check oc-app-architect Phase 6 and prior audit checkpoints.
 6. **Grade honestly.** A C is a C. Don't inflate.
 7. **Skepticism is the Verifier's job.** The Fixer assumes their fix works. The
    Verifier assumes it doesn't. This tension produces real quality.

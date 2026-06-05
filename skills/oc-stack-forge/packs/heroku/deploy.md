@@ -70,7 +70,7 @@ scale** — a multi-dyno app + a serious Postgres easily lands at $100-300/
 month before add-ons. The pricing is honest about what it is; teams
 picking Heroku in 2026 know they're buying maturity, not cost.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Eco dynos sleep** — apps on the $5 tier go to sleep after 30 min
   idle. First request after sleep takes 5-15s. Anything user-facing in
@@ -78,7 +78,7 @@ picking Heroku in 2026 know they're buying maturity, not cost.
 - **24-hour dyno restart** — every dyno restarts at least once per day.
   In-memory state is not durable; long-running jobs need to checkpoint.
 - **Slug size cap** — 500MB compiled slug. Heavy ML deps (torch, tensorflow)
-  blow through this; stack-forge flags Python ML workloads heading to
+  blow through this; oc-stack-forge flags Python ML workloads heading to
   Heroku and steers them to container deploys instead.
 - **Region scarcity** — `us` and `eu` only on the common-runtime. Apps
   with regulatory requirements outside those regions need Heroku Private
@@ -86,7 +86,7 @@ picking Heroku in 2026 know they're buying maturity, not cost.
 - **Postgres connection limits** — Heroku Postgres tiers cap concurrent
   connections aggressively. PgBouncer (or app-level pooling like
   `asyncpg.create_pool` / Rails' `DATABASE_POOL`) is mandatory at any
-  real scale; stack-forge bakes this into its guidance.
+  real scale; oc-stack-forge bakes this into its guidance.
 - **Heroku Connect / pipelines lock-in** — pipelines and review apps are
   Heroku-specific; expect rework when migrating off.
 - **Add-on pricing surprises** — every add-on has its own pricing curve;

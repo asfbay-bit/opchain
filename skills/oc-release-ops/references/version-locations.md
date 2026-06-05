@@ -48,7 +48,7 @@ spot-check:
 - `README.md` — the install snippet should reference `main` or a stable tag,
   not a stale version number. As of v1.3 there are no version pins here.
 - `skills/README.md` — same.
-- Any blog / external pages — out of scope for release-ops; the user owns
+- Any blog / external pages — out of scope for oc-release-ops; the user owns
   those surfaces.
 
 ---
@@ -61,7 +61,7 @@ When adding a new place that surfaces the release version:
 2. Update `scripts/validate-pm-mcp.mjs` family of validators (or add
    `scripts/check-version-lockstep.mjs`) to assert lockstep.
 3. Make sure `/release bump` writes it.
-4. Add a regression test under `tests/release-ops-*.test.js`.
+4. Add a regression test under `tests/oc-release-ops-*.test.js`.
 
-Adding a version surface without updating this file is a release-ops bug;
+Adding a version surface without updating this file is a oc-release-ops bug;
 `/release verify` should catch the divergence on the next release.

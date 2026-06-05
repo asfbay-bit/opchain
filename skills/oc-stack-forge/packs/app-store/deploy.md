@@ -1,7 +1,7 @@
 # App Store
 
 Apple's distribution channel for iOS, iPadOS, watchOS, tvOS, and visionOS
-apps — and, separately, the Mac App Store for macOS. From `stack-forge`'s
+apps — and, separately, the Mac App Store for macOS. From `oc-stack-forge`'s
 perspective, App Store is a `kind: deploy-target` pack: the destination an
 iOS / iPadOS / watchOS / tvOS / visionOS app ships to, much the way
 Cloudflare Workers is a destination for a TypeScript+Hono backend.
@@ -27,10 +27,10 @@ ios-swiftui  (mobile, mobilePlatform=ios)
 app-store  (deploy-target — this pack)
 ```
 
-When `stack-forge` consults `ios-swiftui` for a deploy adapter, it follows
+When `oc-stack-forge` consults `ios-swiftui` for a deploy adapter, it follows
 the `defaultPlatform` edge to this pack. The PR 6.5 cross-platform packs
 (`flutter`, `react-native-expo`) declare both `app-store` and `play-store`
-in `supportedPlatforms` — `stack-forge` asks the operator which target is
+in `supportedPlatforms` — `oc-stack-forge` asks the operator which target is
 in scope.
 
 ## Submission flow
@@ -48,7 +48,7 @@ The full release-checklist lives in `ios-swiftui/mobile.md` (rendered by
 4. **Submit for App Store Review.** Standard review queue: 24-72h.
    Expedited review is available for critical fixes.
 5. **Release** (manual / automatic / scheduled). Manual is the default
-   `stack-forge` recommends.
+   `oc-stack-forge` recommends.
 
 ## Distinct from `play-store`
 
@@ -65,7 +65,7 @@ The submission flows are not interchangeable:
 | In-app purchase | Apple StoreKit | Google Play Billing |
 | Cost share | 30% (15% under $1M / year via Small Business Program) | 30% (15% on first $1M / year automatically) |
 
-`stack-forge` does not unify the two. Operators pick one (or both)
+`oc-stack-forge` does not unify the two. Operators pick one (or both)
 explicitly; the release checklist follows.
 
 ## Cost band (2026-Q2, rough)
@@ -77,7 +77,7 @@ explicitly; the release checklist follows.
 | Revenue share | 15% (Small Business Program) / 30% | SBP automatic under $1M annual; rises to 30% past the threshold. |
 | Mac for builds | Required hardware | Apple Silicon for current Xcode. Hosted Mac CI (Bitrise, Codemagic, MacStadium, Xcode Cloud) starts at ~$30/month. |
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **No `npm run deploy` equivalent.** Submission is human + Apple review;
   pretending otherwise leads to broken deploy automations. `dispatchMobile`

@@ -32,9 +32,9 @@ ramps faster).
 | Build | `dotnet build` | Restores + compiles. CI runs `dotnet build -c Release` then `dotnet publish -c Release` for deployable output. |
 | Lint | `dotnet format --verify-no-changes` | Same as csharp base. ASP.NET Core's analyzers add controller- and middleware-specific rules. |
 | Asset pipeline | None built-in for APIs | Static files served via `app.UseStaticFiles()`. For Blazor / MVC views, build assets with a JS bundler externally. |
-| Generator | `dotnet new webapi`, `dotnet new mvc`, `dotnet new blazor` | Idiomatic project templates; stack-forge defers to these for greenfield. |
+| Generator | `dotnet new webapi`, `dotnet new mvc`, `dotnet new blazor` | Idiomatic project templates; oc-stack-forge defers to these for greenfield. |
 
-## When stack-forge picks ASP.NET Core
+## When oc-stack-forge picks ASP.NET Core
 
 The language → framework decision is short:
 
@@ -44,7 +44,7 @@ purpose ∈ {web-api, web-app, grpc-service, real-time, internal-tool}
 → ASP.NET Core
 ```
 
-When the workload is "library", "CLI tool", or "WPF/WinForms desktop", stack-forge
+When the workload is "library", "CLI tool", or "WPF/WinForms desktop", oc-stack-forge
 picks plain `dotnet new console` or the appropriate desktop template — not ASP.NET
 Core.
 
@@ -73,10 +73,10 @@ capability.
 | AWS Lambda | Serverless ASP.NET Core | .NET 8 native AOT + `Amazon.Lambda.AspNetCoreServer` gets cold start under 200ms. |
 | Kubernetes (AKS / EKS) | Multi-service deployments | AKS for Microsoft-shop, EKS otherwise. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the hardcoded
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the hardcoded
 matrix in `SKILL.md`.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **EF Core change-tracking on read-only queries** — bulk reads without `AsNoTracking()`
   hold all entities in memory + change tracker. Stack-forge audits flag handler methods

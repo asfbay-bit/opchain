@@ -308,7 +308,7 @@ Don't just check if tests exist — check what they actually test:
 
 ### Cross-Package Type Sharing
 
-This is critical for stack-forge audit. Check:
+This is critical for oc-stack-forge audit. Check:
 - Are types defined once and imported across packages?
 - Or are types duplicated (drift risk)?
 - Is there a shared types/contracts package?

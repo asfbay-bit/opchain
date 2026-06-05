@@ -167,8 +167,8 @@ npx bundlesize --config bundlesize.config.json
 
 After setting budgets, integrate into the pipeline:
 - **In CI**: Lighthouse CI and bundle size checks block PRs that exceed budgets
-- **In deploy-ops**: Performance budgets are part of the smoke test suite
-- **In code-auditor**: `/audit perf` checks budget compliance
+- **In oc-deploy-ops**: Performance budgets are part of the smoke test suite
+- **In oc-code-auditor**: `/audit perf` checks budget compliance
 
 ---
 
@@ -398,7 +398,7 @@ When moving from [current tier] to [next tier]:
 ## Checkpoint Integration
 
 ### Checkpoint Location
-`{project-dir}/.checkpoints/scale-ops.checkpoint.json`
+`{project-dir}/.checkpoints/oc-scale-ops.checkpoint.json`
 
 ### When to Write
 
@@ -415,16 +415,16 @@ When moving from [current tier] to [next tier]:
 
 | Reads from | Why |
 |---|---|
-| stack-forge | Stack architecture → infrastructure limits |
-| code-auditor | Performance findings → pre-identified bottlenecks |
-| deploy-ops | Current deployment config → infrastructure baseline |
-| integrations-engineer | API rate limits → external constraints |
+| oc-stack-forge | Stack architecture → infrastructure limits |
+| oc-code-auditor | Performance findings → pre-identified bottlenecks |
+| oc-deploy-ops | Current deployment config → infrastructure baseline |
+| oc-integrations-engineer | API rate limits → external constraints |
 
 | Read by | Why |
 |---|---|
-| deploy-ops | Readiness score → deploy confidence at scale |
-| code-auditor | Performance budgets → `/audit perf` thresholds |
-| app-architect | Cost projections → spec cost estimates |
+| oc-deploy-ops | Readiness score → deploy confidence at scale |
+| oc-code-auditor | Performance budgets → `/audit perf` thresholds |
+| oc-app-architect | Cost projections → spec cost estimates |
 
 ---
 
@@ -432,7 +432,7 @@ When moving from [current tier] to [next tier]:
 
 Scaling work is advisory — recommendations the engineering team
 will act on over weeks. v1.2 makes those recommendations
-discoverable + ownable in the PM tool. See `integrations-engineer`
+discoverable + ownable in the PM tool. See `oc-integrations-engineer`
 for the canonical PM-MCP patterns.
 
 ### Load-test summary on the linked ticket
@@ -448,7 +448,7 @@ Top three bottlenecks (by headroom × business-impact):
   1. {component} — {one-line finding}
   ...
 Cost projection: ~${USD/month} at {target-scale}
-Full report: .checkpoints/scale-ops.checkpoint.json
+Full report: .checkpoints/oc-scale-ops.checkpoint.json
 ```
 
 ### HIGH-risk findings as scaling sub-tickets

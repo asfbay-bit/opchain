@@ -183,8 +183,8 @@ Example: "Modular monolith: all code in one codebase, clear module boundaries vi
 > Discovery-level intent — high-level endpoint inventory, request/response shapes,
 > and error envelope. The full contract (OpenAPI 3.1 or GraphQL schema, versioning
 > policy, pagination/idempotency conventions, SDK generation) is *elaborated by
-> the `api-dev` skill* during Phase 2 handoff. Don't hand-author the OpenAPI here
-> — it lives in `api/openapi.yaml` once api-dev runs.
+> the `oc-api-dev` skill* during Phase 2 handoff. Don't hand-author the OpenAPI here
+> — it lives in `api/openapi.yaml` once oc-api-dev runs.
 
 ### Endpoint Inventory
 | Method | Path | Description | Auth | Request Shape | Response Shape | Notes |
@@ -274,15 +274,15 @@ CREATE POLICY "owner_isolation" ON items FOR ALL USING (auth.uid() = user_id);
 ## API Security
 
 > Policy *declarations* go here. Concrete rate-limit infrastructure is sized by
-> `scale-ops`; threat-modelling of the surface is `security-auditor`'s job;
-> `api-dev` translates these declarations into the OpenAPI spec
+> `oc-scale-ops`; threat-modelling of the surface is `oc-security-auditor`'s job;
+> `oc-api-dev` translates these declarations into the OpenAPI spec
 > (`securitySchemes`, response headers, deprecation metadata).
 
 - Rate limiting: [X requests per Y minutes per Z (user/IP); strategy for logged-in vs. anonymous]
 - Input validation: [Zod/Joi on all endpoints; max payload size]
 - CORS: [Allowed origins; credentials policy]
 - CSRF: [Double-submit cookie / SameSite flag / other]
-- API versioning: [URL-based (v1, v2) to allow deprecation without breaking clients — api-dev enforces strategy]
+- API versioning: [URL-based (v1, v2) to allow deprecation without breaking clients — oc-api-dev enforces strategy]
 
 ## OWASP Top 10 (This Project)
 [List only the OWASP Top 10 items relevant to THIS app with specific mitigations. E.g., "A03:2021 Injection → validated inputs + prepared statements; A05:2021 Broken Access Control → RLS policies on all queries; etc."]

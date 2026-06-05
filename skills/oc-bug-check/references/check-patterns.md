@@ -1,7 +1,7 @@
 # Check Patterns Reference
 
 Detailed patterns, false positive handling, and stack-specific adaptations for each
-bug-check check. The SKILL.md describes WHAT is checked; this file provides the
+oc-bug-check check. The SKILL.md describes WHAT is checked; this file provides the
 implementation details and edge cases.
 
 ---

@@ -18,8 +18,8 @@ commands:
 description: >
   Practice-level security posture assessment: threat modeling (STRIDE), OWASP Top 10
   compliance mapping, runtime/infra hardening (CSP, TLS, DNS, WAF, Cloudflare config),
-  and attack surface mapping. Operates ABOVE code-auditor — code-auditor finds SQLi and
-  hardcoded secrets; security-auditor asks "what's the threat model?" and "is the infra
+  and attack surface mapping. Operates ABOVE oc-code-auditor — oc-code-auditor finds SQLi and
+  hardcoded secrets; oc-security-auditor asks "what's the threat model?" and "is the infra
   hardened?" ALWAYS trigger on /security, /secaudit, /sec, /threat-model, /owasp,
   /hardening, /attack-surface, /posture. Also trigger on: "threat model this app",
   "is this secure enough", "OWASP compliance", "security review", "attack surface",
@@ -33,8 +33,8 @@ description: >
 
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
-Practice-level security assessment that operates above code-auditor. Where code-auditor
-greps for SQL injection and hardcoded secrets, security-auditor asks: *What's the threat
+Practice-level security assessment that operates above oc-code-auditor. Where oc-code-auditor
+greps for SQL injection and hardcoded secrets, oc-security-auditor asks: *What's the threat
 model? Who are the adversaries? What's exposed? Is the infrastructure hardened? Are we
 compliant?*
 
@@ -78,21 +78,21 @@ SECURITY AUDITOR COMMANDS
 
 ---
 
-## Relationship to code-auditor
+## Relationship to oc-code-auditor
 
 | Layer | Owner | Examples |
 |---|---|---|
-| **Code-level** | code-auditor | SQLi, XSS, hardcoded secrets, auth middleware, dep vulns |
-| **Architecture-level** | security-auditor | Threat models, trust boundaries, data flow, attack surface |
-| **Compliance-level** | security-auditor | OWASP Top 10 mapping, SOC2 gap analysis, policy checklists |
-| **Infra/runtime-level** | security-auditor | CSP headers, TLS config, DNS security, WAF rules |
+| **Code-level** | oc-code-auditor | SQLi, XSS, hardcoded secrets, auth middleware, dep vulns |
+| **Architecture-level** | oc-security-auditor | Threat models, trust boundaries, data flow, attack surface |
+| **Compliance-level** | oc-security-auditor | OWASP Top 10 mapping, SOC2 gap analysis, policy checklists |
+| **Infra/runtime-level** | oc-security-auditor | CSP headers, TLS config, DNS security, WAF rules |
 
 **Chaining rules:**
-- After `/audit security` (code-auditor) → invoke security-auditor for architecture + infra layers
-- During `/security posture` step 2 → check if code-auditor checkpoint exists. If not,
+- After `/audit security` (oc-code-auditor) → invoke oc-security-auditor for architecture + infra layers
+- During `/security posture` step 2 → check if oc-code-auditor checkpoint exists. If not,
   invoke `/audit security` before proceeding. Threat modeling without code-level findings
   is incomplete.
-- If threat model reveals code-level risks not in code-auditor's findings → invoke
+- If threat model reveals code-level risks not in oc-code-auditor's findings → invoke
   `/audit security` targeted at the specific area
 
 ---
@@ -114,7 +114,7 @@ For each component, evaluate all six STRIDE categories:
 
 ### Process
 
-1. **Inventory components.** Read reverse-spec or app-architect checkpoint for architecture.
+1. **Inventory components.** Read oc-reverse-spec or oc-app-architect checkpoint for architecture.
    If none exists, scan the codebase for: routes, databases, external APIs, auth flows,
    static assets, scheduled tasks, WebSocket connections.
 
@@ -367,9 +367,9 @@ by each app's report. Write one checkpoint per app, not one per repo.
 
 ### Process
 
-1. **Gather context.** Read checkpoints: reverse-spec, app-architect, code-auditor, deploy-ops.
+1. **Gather context.** Read checkpoints: oc-reverse-spec, oc-app-architect, oc-code-auditor, oc-deploy-ops.
 
-2. **Ensure code-level coverage.** If no code-auditor checkpoint exists, invoke
+2. **Ensure code-level coverage.** If no oc-code-auditor checkpoint exists, invoke
    `/audit security` first. Architecture-level assessment without code-level findings
    is incomplete.
 
@@ -379,7 +379,7 @@ by each app's report. Write one checkpoint per app, not one per repo.
 
 5. **Run Pillar 3:** Runtime hardening sweep including detection/response.
 
-6. **Synthesize.** Cross-reference: do code-auditor findings map to STRIDE categories?
+6. **Synthesize.** Cross-reference: do oc-code-auditor findings map to STRIDE categories?
    Do hardening gaps align with attack surface exposure? Flag anything in threat model
    not covered by code or infra controls.
 
@@ -416,7 +416,7 @@ for format.
 ## Checkpoint Integration
 
 ### Location
-`{project-dir}/.checkpoints/security-auditor.checkpoint.json`
+`{project-dir}/.checkpoints/oc-security-auditor.checkpoint.json`
 
 ### When to Write
 
@@ -455,18 +455,18 @@ for format.
 
 | Reads from | Why |
 |---|---|
-| reverse-spec | Architecture, component inventory, data flows |
-| app-architect | Spec, auth design, data model |
-| code-auditor | Code-level security findings → cross-reference, don't duplicate |
-| deploy-ops | Deployment config, environment variables, platform settings |
-| stack-forge | Platform capabilities and limitations |
+| oc-reverse-spec | Architecture, component inventory, data flows |
+| oc-app-architect | Spec, auth design, data model |
+| oc-code-auditor | Code-level security findings → cross-reference, don't duplicate |
+| oc-deploy-ops | Deployment config, environment variables, platform settings |
+| oc-stack-forge | Platform capabilities and limitations |
 
 | Read by | Why |
 |---|---|
-| deploy-ops | Posture grade → deployment gate (optional) |
-| code-auditor | Threat model → guide where to focus code sweeps |
-| app-architect | Security requirements → inform spec updates |
-| scale-ops | DoS findings → capacity planning input |
+| oc-deploy-ops | Posture grade → deployment gate (optional) |
+| oc-code-auditor | Threat model → guide where to focus code sweeps |
+| oc-app-architect | Security requirements → inform spec updates |
+| oc-scale-ops | DoS findings → capacity planning input |
 
 ---
 
@@ -475,8 +475,8 @@ for format.
 Security findings have higher impact than code findings: they often
 require coordinated remediation across teams + a paper trail for
 audit. v1.2 routes `/secaudit` output through the PM tool with
-slightly different rules from `code-auditor`. See
-`integrations-engineer` for the canonical PM-MCP patterns.
+slightly different rules from `oc-code-auditor`. See
+`oc-integrations-engineer` for the canonical PM-MCP patterns.
 
 ### Posture summary on the linked ticket
 
@@ -491,7 +491,7 @@ Top three (by exploitability × impact):
   1. {component} — {one-line finding}
   ...
 Compliance lens: {SOC2 / HIPAA / CMMC / ISO mapping summary}
-Full report: .checkpoints/security-auditor.checkpoint.json
+Full report: .checkpoints/oc-security-auditor.checkpoint.json
 ```
 
 ### CRITICAL findings as incident tickets
@@ -516,7 +516,7 @@ in most PM tools route to on-call workflows + status pages.
 ### HIGH findings as security sub-tickets
 
 HIGH findings get filed as `bug`-typed sub-tickets parent-linked to
-the source PR ticket, same shape as code-auditor's HIGH+ pattern.
+the source PR ticket, same shape as oc-code-auditor's HIGH+ pattern.
 Labels include `security`, `severity:HIGH`, and the relevant OWASP
 category.
 
@@ -531,7 +531,7 @@ PM ticket is the engineer-facing surface.
 ### Re-scan hygiene
 
 `/secaudit` re-runs check existing security tickets. A finding that
-no longer reproduces gets a `security-auditor verified clean in {sha}`
+no longer reproduces gets a `oc-security-auditor verified clean in {sha}`
 comment + transition to `done`. Regressions reopen the same ticket
 rather than create duplicates.
 
@@ -539,7 +539,7 @@ rather than create duplicates.
 
 In environments with the broker / redactor / cross-domain rules
 described in scenarios `mcp-enterprise-f500` and
-`mcp-enterprise-defense`, the security-auditor's PM-MCP writes pass
+`mcp-enterprise-defense`, the oc-security-auditor's PM-MCP writes pass
 through the same broker as every other tool call — same audit log,
 same scope rules. The Security Lead role typically holds elevated
 PM-MCP scope by design.
@@ -564,7 +564,7 @@ PM-MCP scope by design.
    eyes open rather than creating an infinite backlog.
 3. **Concrete remediation.** "Implement proper access control" is useless. "Add
    `requireAuth()` middleware to `/api/admin/*` routes" is actionable.
-4. **Don't duplicate code-auditor.** Code bugs are code-auditor's job. Cross-reference;
+4. **Don't duplicate oc-code-auditor.** Code bugs are oc-code-auditor's job. Cross-reference;
    don't re-scan.
 5. **Compliance ≠ security.** Passing a checklist doesn't mean secure. The threat model
    is the real assessment; compliance is the paper trail.

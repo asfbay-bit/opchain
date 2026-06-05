@@ -33,9 +33,9 @@ Kotlin syntax).
 | Build | `mvn package` | Produces an executable fat-jar (Spring Boot Maven plugin). `mvn spring-boot:run` for local dev. |
 | Lint | `mvn checkstyle:check` | Same as Java base. Spring Boot starters have a clean checkstyle profile. |
 | Asset pipeline | None built-in | Spring Boot serves static assets from `src/main/resources/static/`. Pair with a JS bundler when the project includes frontend code. |
-| Generator | `spring init` (Spring Initializr CLI) | Idiomatic project bootstrap; stack-forge defers to this for greenfield. |
+| Generator | `spring init` (Spring Initializr CLI) | Idiomatic project bootstrap; oc-stack-forge defers to this for greenfield. |
 
-## When stack-forge picks Spring Boot
+## When oc-stack-forge picks Spring Boot
 
 The language → framework decision is short:
 
@@ -46,7 +46,7 @@ purpose ∈ {web-api, web-app, internal-tool, enterprise-integration}
 ```
 
 When the workload is "library", "CLI tool", or "Lambda-style serverless with cold-start
-sensitivity", stack-forge picks plain Java (or Quarkus, advisory-only in v1.4).
+sensitivity", oc-stack-forge picks plain Java (or Quarkus, advisory-only in v1.4).
 
 ## Idiomatic Spring layout
 
@@ -62,7 +62,7 @@ src/main/java/com/example/app/
 └── domain/                   # JPA entities + value objects
 ```
 
-DTOs separate from JPA entities at the controller boundary — stack-forge audits flag
+DTOs separate from JPA entities at the controller boundary — oc-stack-forge audits flag
 controllers returning entities directly (lazy-load + serialisation footguns).
 
 ## Default deploy targets
@@ -75,10 +75,10 @@ controllers returning entities directly (lazy-load + serialisation footguns).
 | Heroku | Small Spring Boot apps | Easy onboarding; the official Java buildpack works fine. |
 | Render | Heroku-style alternative | Same shape as Heroku, often cheaper. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the hardcoded
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the hardcoded
 matrix in `SKILL.md`.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **N+1 JPA queries** — `@OneToMany` defaults to `LAZY`, which fires a query per access
   in iteration. Stack-forge audits flag iteration over entity collections without

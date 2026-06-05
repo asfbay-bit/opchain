@@ -14,7 +14,7 @@ commands:
   - /oc-rev-stack
   - /oc-rev-sprint
 description: >
-  Reverse-engineer existing code into spec docs. Use for /rev-spec, /reverse-spec,
+  Reverse-engineer existing code into spec docs. Use for /rev-spec, /oc-reverse-spec,
   "document this codebase", "generate specs from code", "backfill specs", or when
   pointing at existing code that needs documentation. Trigger liberally.
 ---
@@ -23,26 +23,26 @@ description: >
 
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
-Read an existing codebase and generate the structured spec documents that app-architect
+Read an existing codebase and generate the structured spec documents that oc-app-architect
 expects as inputs. This is the reverse of the normal pipeline: instead of idea → spec →
 code, it goes code → spec → pipeline-ready.
 
 ## Why This Exists
 
-The build pipeline (app-architect Phase 2 stack decision → Phase 6 build loop) assumes
+The build pipeline (oc-app-architect Phase 2 stack decision → Phase 6 build loop) assumes
 spec documents exist. But most real projects were built before the pipeline existed, or
 grew organically without formal specs. Reverse-spec bridges that gap — it reads what's
 actually built and produces the documentation that makes the project legible to the rest
 of the toolchain.
 
 This matters because without specs:
-- **app-architect** can't generate a roadmap for new features (no baseline to build from)
-- **stack-forge** can't run a gap analysis (no documented architecture to compare against)
-- **app-architect Phase 6** can't decompose features into sprints (no spec.md or sprint-plan.md to reference)
+- **oc-app-architect** can't generate a roadmap for new features (no baseline to build from)
+- **oc-stack-forge** can't run a gap analysis (no documented architecture to compare against)
+- **oc-app-architect Phase 6** can't decompose features into sprints (no spec.md or sprint-plan.md to reference)
 
-## /reverse-spec — Command Reference
+## /oc-reverse-spec — Command Reference
 
-When the user types `/reverse-spec`, display this menu:
+When the user types `/oc-reverse-spec`, display this menu:
 
 ```
 REVERSE SPEC COMMANDS
@@ -50,7 +50,7 @@ REVERSE SPEC COMMANDS
 
   MODES
   /rev-scan       Quick scan — inventory what exists, recommend spec priority
-  /rev-full       Full spec generation — produce all app-architect spec docs
+  /rev-full       Full spec generation — produce all oc-app-architect spec docs
   /rev-design     Design system extraction — colors, typography, components
   /rev-stack      Stack-forge gap analysis — typed pipeline audit
   /rev-sprint     Tri-dev onramp — generate spec.md + sprint-plan.md for a feature
@@ -65,7 +65,7 @@ REVERSE SPEC COMMANDS
   /checkpoint reset   Archive and clear checkpoint
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Type any command to begin. /reverse-spec to see this again.
+  Type any command to begin. /oc-reverse-spec to see this again.
 ```
 
 ### Command Behavior
@@ -132,7 +132,7 @@ Ask the user (or infer from context) which scope applies:
 |---|---|---|---|
 | **Monorepo** | Root path of a multi-app repo | Inventory all apps, shared libs, infra config. Generate top-level overview + per-app specs. | All spec docs + per-app summaries |
 | **Single App** | Path to one application | Full analysis: schema, API, UI, auth, integrations, config | All spec docs (00-10) |
-| **Feature/Module** | Path to a specific directory or set of files | Focused analysis: what this module does, its interfaces, dependencies | Targeted spec sections + app-architect sprint docs |
+| **Feature/Module** | Path to a specific directory or set of files | Focused analysis: what this module does, its interfaces, dependencies | Targeted spec sections + oc-app-architect sprint docs |
 | **Uploaded/Pasted** | Files in /mnt/user-data/uploads or pasted code | Best-effort analysis from available code | Whatever can be inferred; flag gaps prominently |
 
 ### Orientation Scan
@@ -209,10 +209,10 @@ user needs to validate or that downstream tools need to account for.
 
 ## Phase 2: Spec Generation
 
-Generate spec documents in the exact format app-architect uses. Read
-`/mnt/skills/user/app-architect/references/spec-template.md` for the canonical templates.
+Generate spec documents in the exact format oc-app-architect uses. Read
+`/mnt/skills/user/oc-app-architect/references/spec-template.md` for the canonical templates.
 
-The key difference from forward-mode app-architect: **reverse-spec describes what IS,
+The key difference from forward-mode oc-app-architect: **oc-reverse-spec describes what IS,
 not what SHOULD BE.** Every section should reflect the actual codebase, with gaps and
 recommendations clearly separated from observations.
 
@@ -236,10 +236,10 @@ reverse-spec-output/
 │   ├── design-system.md            # Extracted colors, typography, spacing, components
 │   └── component-inventory.md      # Every component with props, states, usage
 ├── gap-analysis.md                 # What's missing vs. best practices
-├── stack-forge-audit.md            # Typed pipeline gap analysis for stack-forge
+├── stack-forge-audit.md            # Typed pipeline gap analysis for oc-stack-forge
 └── app-architect-ready/
     ├── spec.md                     # app-architect-format product spec
-    └── sprint-plan.md              # Ready for app-architect /build (if feature scope given)
+    └── sprint-plan.md              # Ready for oc-app-architect /build (if feature scope given)
 ```
 
 ### Document Generation Rules
@@ -247,7 +247,7 @@ reverse-spec-output/
 1. **Generate only what the code supports.** If there's no payment code, skip 05-monetization.md.
    If there's no analytics, skip 08-analytics.md. Don't fabricate sections.
 
-2. **Use the app-architect template structure exactly.** This ensures downstream tools
+2. **Use the oc-app-architect template structure exactly.** This ensures downstream tools
    can consume the output without translation. Read the spec-template.md reference and
    follow its heading structure, table formats, and section organization.
 
@@ -263,7 +263,7 @@ reverse-spec-output/
    [HIGH/MEDIUM/LOW per claim. Flag UNKNOWN items.]
 
    ### Gaps & Recommendations
-   [What's missing. What best practices aren't followed. What app-architect/stack-forge
+   [What's missing. What best practices aren't followed. What oc-app-architect/oc-stack-forge
    would expect to find here. Prioritize by impact.]
    ```
 
@@ -282,11 +282,11 @@ Reverse-spec adopts the checkpoint protocol v1.0.
 
 Read `references/checkpoint-protocol.md` for the full protocol specification.
 
-Checkpoint file location: `{project-dir}/.checkpoints/reverse-spec.checkpoint.json`
+Checkpoint file location: `{project-dir}/.checkpoints/oc-reverse-spec.checkpoint.json`
 
 ### Backward Compatibility
 
-If `.checkpoints/reverse-spec.checkpoint.json` does NOT exist but
+If `.checkpoints/oc-reverse-spec.checkpoint.json` does NOT exist but
 `reverse-spec-output/checkpoint.md` DOES exist, read the markdown version
 and offer to migrate: "Found a legacy checkpoint in markdown format. Migrate
 to the standard JSON format? (This enables cross-skill checkpoint reads.)"
@@ -300,9 +300,9 @@ On migration, map the fields:
 
 ### Resume on Start
 
-When `/reverse-spec`, `/rev-scan`, `/rev-full`, or any /rev-* command is invoked:
+When `/oc-reverse-spec`, `/rev-scan`, `/rev-full`, or any /rev-* command is invoked:
 
-1. Check for checkpoint: `bash scripts/checkpoint.sh exists <project-dir> reverse-spec`
+1. Check for checkpoint: `bash scripts/checkpoint.sh exists <project-dir> oc-reverse-spec`
 2. If exists (JSON):
    - Read checkpoint
    - Display: analysis progress, generated docs, next action
@@ -368,11 +368,11 @@ Context drift across sessions can cause contradictions. Three guards:
 ## Phase 3: Design System Extraction (`/rev-design`)
 
 If the project has a frontend, extract the design system from the code. This produces
-documentation that matches what app-architect Phase 3a (Style Book) would generate.
+documentation that matches what oc-app-architect Phase 3a (Style Book) would generate.
 
 ### What to Extract
 
-Read the UX design guide at `/mnt/skills/user/app-architect/references/ux-design-guide.md`
+Read the UX design guide at `/mnt/skills/user/oc-app-architect/references/ux-design-guide.md`
 for the canonical design system structure, then extract:
 
 - **Colors**: CSS variables, Tailwind config theme.colors, any color constants
@@ -400,7 +400,7 @@ For each UI component found:
 
 ## Phase 4: Stack-Forge Gap Analysis (`/rev-stack`)
 
-Run the stack-forge typed pipeline audit. Read `/mnt/skills/user/stack-forge/SKILL.md`
+Run the oc-stack-forge typed pipeline audit. Read `/mnt/skills/user/oc-stack-forge/SKILL.md`
 for the pattern, then check each link in the chain:
 
 ```
@@ -418,19 +418,19 @@ For each link, report:
 | Generated TS | ❌ Missing | Frontend types are hand-written | Drift risk |
 | CI Enforcement | ❌ Missing | No type-check or schema-drift CI step | Add to pipeline |
 
-This output is designed to feed directly into stack-forge's retroactive use mode.
+This output is designed to feed directly into oc-stack-forge's retroactive use mode.
 
 ---
 
 ## Phase 5: App-Architect Onramp (`/rev-sprint`)
 
-Generate the two files app-architect Phase 6 needs to start building:
+Generate the two files oc-app-architect Phase 6 needs to start building:
 
-### spec.md (app-architect Format)
+### spec.md (oc-app-architect Format)
 
-Use the app-architect spec structure (Overview, Features, Design Direction, Technical
+Use the oc-app-architect spec structure (Overview, Features, Design Direction, Technical
 Constraints, Out of Scope) but populate it from the reverse-engineered analysis.
-This describes the project AS IT EXISTS, so app-architect's Generator (Phase 6) has a
+This describes the project AS IT EXISTS, so oc-app-architect's Generator (Phase 6) has a
 baseline to extend from.
 
 ### sprint-plan.md (For New Features)
@@ -440,7 +440,7 @@ accounts for the existing codebase. The sprints should:
 - Reference existing code that the feature builds on
 - Identify existing patterns to follow (or break from, with justification)
 - Flag tech debt that needs resolution before the feature can land
-- Follow stack-forge's stack-ordered decomposition if the project is CF-native
+- Follow oc-stack-forge's stack-ordered decomposition if the project is CF-native
 
 ---
 
@@ -466,7 +466,7 @@ Narrower analysis:
 2. Generate only the spec sections relevant to this module
 3. Focus on: data model (tables this module touches), API (endpoints it owns),
    components (UI it renders), and integration points (what it calls)
-4. Always generate an app-architect sprint doc if the user wants to extend this module
+4. Always generate an oc-app-architect sprint doc if the user wants to extend this module
 
 ### Uploaded/Pasted Code
 
@@ -505,9 +505,9 @@ Docs Generated:
   ...
 
 Pipeline Readiness:
-  app-architect: READY (can run /roadmap with these specs)
-  stack-forge:   PARTIAL (missing OpenAPI spec, see gap-analysis.md)
-  app-architect: READY (spec.md + sprint-plan.md generated)
+  oc-app-architect: READY (can run /roadmap with these specs)
+  oc-stack-forge:   PARTIAL (missing OpenAPI spec, see gap-analysis.md)
+  oc-app-architect: READY (spec.md + sprint-plan.md generated)
 
 Top 3 Gaps:
   1. No OpenAPI spec generation — blocks typed pipeline
@@ -517,7 +517,7 @@ Top 3 Gaps:
 Next Steps:
   1. Review generated specs for accuracy (especially MEDIUM/LOW items)
   2. Run /rev-stack for detailed typed pipeline audit
-  3. Use /app-architect /roadmap to plan next features against these specs
+  3. Use /oc-app-architect /roadmap to plan next features against these specs
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -525,16 +525,16 @@ Next Steps:
 
 ## PM-Tool MCP Integration (v1.2+)
 
-A reverse-spec run produces 8-11 markdown files describing what
+A oc-reverse-spec run produces 8-11 markdown files describing what
 exists. In legacy projects without a PM trail, those documents are
 the first record of the system at all — most teams want them
 mirrored into the PM tool so they become discoverable + linkable
-from future work. See `integrations-engineer` for the canonical
+from future work. See `oc-integrations-engineer` for the canonical
 PM-MCP patterns.
 
 ### `/rev-spec --pm-mirror`
 
-Opt-in flag (off by default — reverse-spec on a private fork
+Opt-in flag (off by default — oc-reverse-spec on a private fork
 doesn't want PM mirroring). When set:
 
 1. Create a parent ticket in the configured PM tool:
@@ -547,34 +547,34 @@ doesn't want PM mirroring). When set:
    - title: `Spec: {file-title}`
    - body: the file's executive summary + a `Source:` link
      pointing at the file path in the repo.
-   - labels: `reverse-spec`, `documentation`.
+   - labels: `oc-reverse-spec`, `documentation`.
 3. Record the parent + child ticket ids in the
-   `reverse-spec.checkpoint.json` for downstream skills (notably
-   `app-architect /roadmap`) to read.
+   `oc-reverse-spec.checkpoint.json` for downstream skills (notably
+   `oc-app-architect /roadmap`) to read.
 
-### Hand-off to app-architect
+### Hand-off to oc-app-architect
 
-After `/rev-full` completes, actively chain to app-architect per orchestrator.md §3
+After `/rev-full` completes, actively chain to oc-app-architect per orchestrator.md §3
 (Active Invocation):
 
-1. State the chain: "Reverse-spec analysis complete. Now using app-architect to extend
+1. State the chain: "Reverse-spec analysis complete. Now using oc-app-architect to extend
    from this baseline."
-2. Read `app-architect/SKILL.md` and `app-architect/references/orchestrator.md`.
-3. Check for `.checkpoints/app-architect.checkpoint.json` (resume if present).
+2. Read `oc-app-architect/SKILL.md` and `oc-app-architect/references/orchestrator.md`.
+3. Check for `.checkpoints/oc-app-architect.checkpoint.json` (resume if present).
 4. Execute the appropriate command: `/discover --ticket {parent-id}` if PM tickets were
    filed (treats this run as the discovery), otherwise `/spec` directly.
-5. App-architect reads the reverse-spec checkpoint and PM-ticket pointers. Phase 4
+5. App-architect reads the oc-reverse-spec checkpoint and PM-ticket pointers. Phase 4
    (`/roadmap`) then writes the new sprint plan back to the same parent or a new sibling.
 
 ### Findings as sub-tickets
 
-If the reverse-spec run surfaced concerning findings (security
+If the oc-reverse-spec run surfaced concerning findings (security
 posture gaps, scaling risks, integration-rot indicators), file
 each as a sub-ticket of the parent with the appropriate skill
 label:
-- `security` finding → labeled for security-auditor follow-up.
-- `scaling` finding → labeled for scale-ops.
-- `integration` finding → labeled for integrations-engineer.
+- `security` finding → labeled for oc-security-auditor follow-up.
+- `scaling` finding → labeled for oc-scale-ops.
+- `integration` finding → labeled for oc-integrations-engineer.
 
 The team's standard triage process picks them up from there.
 

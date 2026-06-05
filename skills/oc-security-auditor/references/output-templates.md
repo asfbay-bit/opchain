@@ -1,6 +1,6 @@
 # Output Templates
 
-Reference templates for security-auditor findings and reports. The SKILL.md describes
+Reference templates for oc-security-auditor findings and reports. The SKILL.md describes
 *what* to assess; this file describes *how to format* the output.
 
 ---
@@ -124,7 +124,7 @@ to close *before* engaging auditors.
 **Date:** [date]
 **Scope:** [full | threat-model | compliance | hardening]
 **Tier:** [Lite | Standard | Comprehensive]
-**Assessor:** security-auditor skill
+**Assessor:** oc-security-auditor skill
 
 ## Executive Summary
 [3-5 sentences: overall posture, critical risks, top recommendation]
@@ -154,13 +154,13 @@ to close *before* engaging auditors.
 ## Prioritized Remediation Plan
 | Priority | Finding | Risk | Effort | Owner |
 |---|---|---|---|---|
-| P0 | Add CSP header | HIGH | S | deploy-ops |
-| P1 | Implement audit logging | MEDIUM | M | app-architect |
-| P2 | Harden HSTS max-age | LOW | S | deploy-ops |
+| P0 | Add CSP header | HIGH | S | oc-deploy-ops |
+| P1 | Implement audit logging | MEDIUM | M | oc-app-architect |
+| P2 | Harden HSTS max-age | LOW | S | oc-deploy-ops |
 
 ## Cross-References
-- code-auditor findings: [checkpoint reference or summary]
-- deploy-ops config: [checkpoint reference or summary]
+- oc-code-auditor findings: [checkpoint reference or summary]
+- oc-deploy-ops config: [checkpoint reference or summary]
 
 ## Next Steps
 1. [Immediate action]
@@ -221,4 +221,4 @@ All findings across all pillars use this consistent format:
 [How to confirm the fix worked]
 ```
 
-Finding IDs use the `SA-` prefix to distinguish from code-auditor's `F-` prefix.
+Finding IDs use the `SA-` prefix to distinguish from oc-code-auditor's `F-` prefix.

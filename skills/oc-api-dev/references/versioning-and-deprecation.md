@@ -161,7 +161,7 @@ Stored at `api/deprecations.md`. Every entry has:
   - 2026-07-27: email at T-3 months
   - 2026-09-27: email at T-1 month
   - 2026-10-20: final email at T-1 week
-- **Usage tracking:** monitoring-ops dashboard `legacy-api-usage`,
+- **Usage tracking:** oc-monitoring-ops dashboard `legacy-api-usage`,
   `requests_to_listWidgetsLegacy_total`
 - **Sunset action:** return `410 Gone` with problem+json pointing at the
   migration guide. Do not silently proxy to the new endpoint.
@@ -173,7 +173,7 @@ Stored at `api/deprecations.md`. Every entry has:
 2. Wire `Deprecation` + `Sunset` + `Link` headers in the handler.
 3. Add an entry to `api/deprecations.md` with sunset date and migration plan.
 4. Add a changelog entry (`api/CHANGELOG.md`).
-5. Notify monitoring-ops to track usage of the deprecated operation.
+5. Notify oc-monitoring-ops to track usage of the deprecated operation.
 6. Schedule consumer notifications (T-3mo, T-1mo, T-1wk).
 7. Calendar reminder for the sunset date with the runbook.
 8. After sunset: handler returns `410 Gone` with a problem+json body pointing

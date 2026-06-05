@@ -2,7 +2,7 @@
 
 Three archetypes. Every dashboard picks one primary. Hybrid designs fail — pick one, offer a toggle for the other use case.
 
-**Pipeline context:** This file feeds Phase 1 of dash-forge. Phase 0 intake drives the pick.
+**Pipeline context:** This file feeds Phase 1 of oc-dash-forge. Phase 0 intake drives the pick.
 
 ---
 

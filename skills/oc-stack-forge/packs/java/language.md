@@ -33,17 +33,17 @@ surface is edge-runtime (no JVM there at all).
 | Build | `mvn package` | Produces a deployable JAR/WAR. CI usually runs `mvn -B verify` to bundle test + package. |
 | Lint | `mvn checkstyle:check` | Checkstyle is the canonical lint. Spotbugs / PMD are common secondary scanners. |
 | Format | `mvn spotless:apply` | Google Java Format via Spotless plugin. Runs as a pre-commit hook in most teams. |
-| Package manager | `mvn` (Maven Central) | Lockfile-equivalent is `pom.xml` + the local `~/.m2/repository` cache. Gradle is the common alternative (`gradle build`); stack-forge defers to whichever is present in the repo. |
+| Package manager | `mvn` (Maven Central) | Lockfile-equivalent is `pom.xml` + the local `~/.m2/repository` cache. Gradle is the common alternative (`gradle build`); oc-stack-forge defers to whichever is present in the repo. |
 
 ## Frameworks
 
-These are the java-language frameworks stack-forge recommends:
+These are the java-language frameworks oc-stack-forge recommends:
 
 - **Spring Boot** — the dominant full-stack framework. Stack-forge picks it for any
   web-facing Java service unless the team explicitly wants something lighter. Pairs
   with Spring Data JPA, Spring Security, Spring Cloud.
 
-Other niches stack-forge will mention in advisories but does not pack:
+Other niches oc-stack-forge will mention in advisories but does not pack:
 
 - **Quarkus** — Kotlin-friendly, GraalVM-native-image-first. Good for serverless Java
   where cold start matters. Not packed in v1.4; revisit in v1.5.
@@ -61,8 +61,8 @@ Java is statically typed and the ecosystem leans into it hard:
 | Client | `openapi-generator` | Generates typed clients in any target language from the springdoc-emitted spec. |
 | Validation | Bean Validation (`jakarta.validation`) | Annotations on DTOs (`@NotNull`, `@Size`, `@Valid`); enforced at the controller boundary. |
 
-When app-architect Phase 2 detects a first-party API surface and stack-forge picks
-Java + Spring, control passes to `api-dev` to materialise the OpenAPI chain via
+When oc-app-architect Phase 2 detects a first-party API surface and oc-stack-forge picks
+Java + Spring, control passes to `oc-api-dev` to materialise the OpenAPI chain via
 springdoc + openapi-generator.
 
 ## Default deploy targets
@@ -75,7 +75,7 @@ springdoc + openapi-generator.
 | Heroku | Small Spring Boot services | Easiest path for sub-50-MAU prototypes. Loses cost-efficiency above small scale. |
 | Render | Heroku-style alternative | Same shape as Heroku, often cheaper. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the hardcoded
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the hardcoded
 matrix in `SKILL.md`.
 
 ## Cost band (2026-Q2, rough)
@@ -89,7 +89,7 @@ JVM-on-container always carries a memory-floor cost the edge runtimes don't — 
 idle Spring Boot app wants ~256 MB. Factor that into hobby-tier numbers. Check vendor
 pricing at decision time.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Cold start on serverless** — Lambda + Spring Boot is a known pain point.
   Stack-forge will advise GraalVM native image (via Spring Native or Quarkus) when the

@@ -46,7 +46,7 @@ clarifying question to determine which phase they're in:
 - About to commit code? → Start with `/bugcheck`
 - Have code but need quality check? → Start with `/audit`
 - Have code ready to ship? → Start with `/git-sync` then `/deploy`
-- Have existing code, no docs? → Start with reverse-spec
+- Have existing code, no docs? → Start with oc-reverse-spec
 
 Don't ask if the intent is clear. "Build me a recipe app" → go straight to `/discover`.
 
@@ -57,68 +57,68 @@ Don't ask if the intent is clear. "Build me a recipe app" → go straight to `/d
 This is the canonical flow. Every skill knows where it sits and what comes before/after.
 
 ```
-reverse-spec ──► app-architect ──► git-ops ──► deploy-ops ──► monitoring-ops
+oc-reverse-spec ──► oc-app-architect ──► oc-git-ops ──► oc-deploy-ops ──► oc-monitoring-ops
                       │                │           ▲
-                      │                │           │ release-ops sits between
-                      │                │           │ git-ops and deploy-ops
+                      │                │           │ oc-release-ops sits between
+                      │                │           │ oc-git-ops and oc-deploy-ops
                       │                │           │ at release boundaries
-                      │                └── auto-invokes bug-check before /commit + /sync
-                      ├── Phase 2: auto-invokes stack-forge
+                      │                └── auto-invokes oc-bug-check before /commit + /sync
+                      ├── Phase 2: auto-invokes oc-stack-forge
                       ├── Phase 3: design pipeline
-                      │     ├── auto-attaches ux-engineer on UI sprints
-                      │     └── ux-engineer ──► dash-forge on data-heavy screens
+                      │     ├── auto-attaches oc-ux-engineer on UI sprints
+                      │     └── oc-ux-engineer ──► oc-dash-forge on data-heavy screens
                       ├── Phase 6: build loop (Generator → Evaluator)
-                      │     └── auto-attaches ux-engineer on UI sprints
+                      │     └── auto-attaches oc-ux-engineer on UI sprints
                       └── Phase 7: launch handoff
 
 foundation:
-  checkpoint-protocol ──► schema bundled in every skill
-  orchestrator ──► cross-project registry, status, routing (/ops)
+  oc-checkpoint-protocol ──► schema bundled in every skill
+  oc-orchestrator ──► cross-project registry, status, routing (/ops)
 
 pre-commit gate:
-  bug-check ──► fast type/lint/test/secret/build/dep checks (<2 min, blocks commit)
+  oc-bug-check ──► fast type/lint/test/secret/build/dep checks (<2 min, blocks commit)
 
 quality gates (run before deploy):
-  code-auditor ──► finds code-level issues
-  security-auditor ──► threat model, hardening, attack surface
+  oc-code-auditor ──► finds code-level issues
+  oc-security-auditor ──► threat model, hardening, attack surface
 
 post-deploy:
-  monitoring-ops ──► uptime, errors, alerts, incidents
+  oc-monitoring-ops ──► uptime, errors, alerts, incidents
 
 release boundary:
-  release-ops ──► plan / draft / bump / announce / ship a versioned release
-                  (sits between git-ops and deploy-ops; only invoked at
+  oc-release-ops ──► plan / draft / bump / announce / ship a versioned release
+                  (sits between oc-git-ops and oc-deploy-ops; only invoked at
                   release time, not on every PR)
 
 cross-cutting:
-  api-dev ──► runs when designing/building the app's own first-party API
-  integrations-engineer ──► runs when external APIs needed
-  migration-ops ──► runs when a live system's engine changes (DB / framework / platform)
-  scale-ops ──► runs when scaling questions arise
-  dash-forge ──► invoked by ux-engineer (or app-architect) for dashboards + dense data UIs
+  oc-api-dev ──► runs when designing/building the app's own first-party API
+  oc-integrations-engineer ──► runs when external APIs needed
+  oc-migration-ops ──► runs when a live system's engine changes (DB / framework / platform)
+  oc-scale-ops ──► runs when scaling questions arise
+  oc-dash-forge ──► invoked by oc-ux-engineer (or oc-app-architect) for dashboards + dense data UIs
 ```
 
 ### Upstream/Downstream Map
 
 | Skill | Reads checkpoints from | Chains to (invoke actively) |
 |---|---|---|
-| **orchestrator** | every skill (read-only, cross-project) | — (dispatches to any skill by intent) |
-| **app-architect** | reverse-spec | git-ops (after build), deploy-ops (at launch), migration-ops (when existing systems need engine changes) |
-| **stack-forge** | app-architect (discovery context) | — (returns control to app-architect) |
-| **ux-engineer** | app-architect (design baseline) | dash-forge (on data-heavy screens), otherwise returns control |
-| **dash-forge** | ux-engineer (tokens + design spec), app-architect (design phase, dashboard surface) | — (returns control to caller with design spec + prototype) |
-| **code-auditor** | reverse-spec, app-architect | security-auditor (posture review above code-level findings), deploy-ops (pre-deploy gate) |
-| **security-auditor** | code-auditor (findings), reverse-spec, app-architect, deploy-ops | deploy-ops (posture check before prod gate) |
-| **integrations-engineer** | app-architect (integration spec) | code-auditor (verify integration) |
-| **api-dev** | app-architect (`02-architecture.md`, `03-data-model.md`), stack-forge (typed pipeline), reverse-spec (existing-endpoint inventory) | code-auditor (audits scaffolded handlers), security-auditor (CORS/rate-limit posture), monitoring-ops (SLO + drift manifest), deploy-ops (drift gate) |
-| **migration-ops** | app-architect (spec), reverse-spec (current state) | deploy-ops (cutover), monitoring-ops (verify post-migration) |
-| **git-ops** | app-architect (sprint context), bug-check (gate result) | bug-check (pre-commit gate, auto-invoked), deploy-ops (post-push) |
-| **bug-check** | git-ops (gate trigger) | git-ops (returns pass / fail / bypass; failure blocks the commit) |
-| **deploy-ops** | code-auditor (audit grade), security-auditor (posture), git-ops (branch status) | monitoring-ops (post-ship observability) |
-| **monitoring-ops** | deploy-ops (what shipped) | — (incident loops back to app-architect / code-auditor as needed) |
-| **release-ops** | every skill's `*.checkpoint.json` (what shipped per skill since last release), app-architect (sprint outputs feed changelog draft), git-ops (merged-PR list), deploy-ops (last-shipped commit SHA) | git-ops (release PR / tag), deploy-ops (staging then prod ship) |
-| **scale-ops** | stack-forge (platform limits) | — (advisory, no chain) |
-| **reverse-spec** | — (entry point for existing code) | app-architect (handoff specs) |
+| **oc-orchestrator** | every skill (read-only, cross-project) | — (dispatches to any skill by intent) |
+| **oc-app-architect** | oc-reverse-spec | oc-git-ops (after build), oc-deploy-ops (at launch), oc-migration-ops (when existing systems need engine changes) |
+| **oc-stack-forge** | oc-app-architect (discovery context) | — (returns control to oc-app-architect) |
+| **oc-ux-engineer** | oc-app-architect (design baseline) | oc-dash-forge (on data-heavy screens), otherwise returns control |
+| **oc-dash-forge** | oc-ux-engineer (tokens + design spec), oc-app-architect (design phase, dashboard surface) | — (returns control to caller with design spec + prototype) |
+| **oc-code-auditor** | oc-reverse-spec, oc-app-architect | oc-security-auditor (posture review above code-level findings), oc-deploy-ops (pre-deploy gate) |
+| **oc-security-auditor** | oc-code-auditor (findings), oc-reverse-spec, oc-app-architect, oc-deploy-ops | oc-deploy-ops (posture check before prod gate) |
+| **oc-integrations-engineer** | oc-app-architect (integration spec) | oc-code-auditor (verify integration) |
+| **oc-api-dev** | oc-app-architect (`02-architecture.md`, `03-data-model.md`), oc-stack-forge (typed pipeline), oc-reverse-spec (existing-endpoint inventory) | oc-code-auditor (audits scaffolded handlers), oc-security-auditor (CORS/rate-limit posture), oc-monitoring-ops (SLO + drift manifest), oc-deploy-ops (drift gate) |
+| **oc-migration-ops** | oc-app-architect (spec), oc-reverse-spec (current state) | oc-deploy-ops (cutover), oc-monitoring-ops (verify post-migration) |
+| **oc-git-ops** | oc-app-architect (sprint context), oc-bug-check (gate result) | oc-bug-check (pre-commit gate, auto-invoked), oc-deploy-ops (post-push) |
+| **oc-bug-check** | oc-git-ops (gate trigger) | oc-git-ops (returns pass / fail / bypass; failure blocks the commit) |
+| **oc-deploy-ops** | oc-code-auditor (audit grade), oc-security-auditor (posture), oc-git-ops (branch status) | oc-monitoring-ops (post-ship observability) |
+| **oc-monitoring-ops** | oc-deploy-ops (what shipped) | — (incident loops back to oc-app-architect / oc-code-auditor as needed) |
+| **oc-release-ops** | every skill's `*.checkpoint.json` (what shipped per skill since last release), oc-app-architect (sprint outputs feed changelog draft), oc-git-ops (merged-PR list), oc-deploy-ops (last-shipped commit SHA) | oc-git-ops (release PR / tag), oc-deploy-ops (staging then prod ship) |
+| **oc-scale-ops** | oc-stack-forge (platform limits) | — (advisory, no chain) |
+| **oc-reverse-spec** | — (entry point for existing code) | oc-app-architect (handoff specs) |
 
 ---
 
@@ -132,11 +132,11 @@ When a skill reaches a handoff point, follow this exact pattern:
 
 ```
 WRONG (passive suggestion):
-  "You might want to run git-ops to commit these changes."
+  "You might want to run oc-git-ops to commit these changes."
 
 RIGHT (active invocation):
-  "Sprint 3 passed. Now committing changes using the git-ops skill."
-  [Read the git-ops SKILL.md]
+  "Sprint 3 passed. Now committing changes using the oc-git-ops skill."
+  [Read the oc-git-ops SKILL.md]
   [Execute /git-sync using the sprint context from the checkpoint]
 ```
 
@@ -144,19 +144,19 @@ RIGHT (active invocation):
 
 | Trigger | From | To | What to do |
 |---|---|---|---|
-| All build sprints pass | app-architect | git-ops | Invoke git-ops, run /git-sync with sprint context |
-| /git-commit or /git-sync starts | git-ops | bug-check | Auto-invoke bug-check; pass → proceed with commit; fail → block, surface report, offer `/bugcheck fix` or `/bugcheck bypass` |
-| git-sync completes | git-ops | deploy-ops | Invoke deploy-ops, run /deploy audit then /deploy staging |
-| Launch phase starts | app-architect | code-auditor → deploy-ops | Run /audit pre-deploy first, then /deploy staging |
-| Existing codebase analyzed | reverse-spec | app-architect | Invoke app-architect, load reverse-spec's output as Phase 2 baseline |
-| Integration needed | app-architect (Phase 2) | integrations-engineer | Invoke integrations-engineer for the specific service |
-| First-party API surface in spec | app-architect (Phase 2) | api-dev | Invoke api-dev `/api design` to elaborate `02-architecture.md` API Design into an OpenAPI/GraphQL contract |
-| Stack decision needed | app-architect (Phase 2) | stack-forge | Auto-invoke (already wired in app-architect) |
-| UI sprint detected | app-architect (Phase 6) | ux-engineer | Auto-attach Design Evaluator (already wired) |
-| Data-heavy screen flagged | ux-engineer (Phase 1 intake) or app-architect (Phase 3 design) | dash-forge | Package tokens + design spec into dash-forge context, invoke /data-forge; hand the resulting spec + prototype back to the caller |
-| Release boundary reached (user says "cut a release", "ship v1.3", "bump versions") | any skill | release-ops | Invoke release-ops `/release plan` to propose the next semver and theme, then walk through `draft → bump → announce → ship` |
-| `/release ship` advances to PR | release-ops | git-ops | Invoke git-ops `/git-sync v<semver>` with the bump commit; release-ops resumes after merge |
-| `/release ship` advances to deploy | release-ops | deploy-ops | Invoke deploy-ops `/deploy staging` then `/deploy` on user confirmation; release-ops closes the release ticket on prod ship |
+| All build sprints pass | oc-app-architect | oc-git-ops | Invoke oc-git-ops, run /git-sync with sprint context |
+| /git-commit or /git-sync starts | oc-git-ops | oc-bug-check | Auto-invoke oc-bug-check; pass → proceed with commit; fail → block, surface report, offer `/bugcheck fix` or `/bugcheck bypass` |
+| git-sync completes | oc-git-ops | oc-deploy-ops | Invoke oc-deploy-ops, run /deploy audit then /deploy staging |
+| Launch phase starts | oc-app-architect | oc-code-auditor → oc-deploy-ops | Run /audit pre-deploy first, then /deploy staging |
+| Existing codebase analyzed | oc-reverse-spec | oc-app-architect | Invoke oc-app-architect, load oc-reverse-spec's output as Phase 2 baseline |
+| Integration needed | oc-app-architect (Phase 2) | oc-integrations-engineer | Invoke oc-integrations-engineer for the specific service |
+| First-party API surface in spec | oc-app-architect (Phase 2) | oc-api-dev | Invoke oc-api-dev `/api design` to elaborate `02-architecture.md` API Design into an OpenAPI/GraphQL contract |
+| Stack decision needed | oc-app-architect (Phase 2) | oc-stack-forge | Auto-invoke (already wired in oc-app-architect) |
+| UI sprint detected | oc-app-architect (Phase 6) | oc-ux-engineer | Auto-attach Design Evaluator (already wired) |
+| Data-heavy screen flagged | oc-ux-engineer (Phase 1 intake) or oc-app-architect (Phase 3 design) | oc-dash-forge | Package tokens + design spec into oc-dash-forge context, invoke /data-forge; hand the resulting spec + prototype back to the caller |
+| Release boundary reached (user says "cut a release", "ship v1.3", "bump versions") | any skill | oc-release-ops | Invoke oc-release-ops `/release plan` to propose the next semver and theme, then walk through `draft → bump → announce → ship` |
+| `/release ship` advances to PR | oc-release-ops | oc-git-ops | Invoke oc-git-ops `/git-sync v<semver>` with the bump commit; oc-release-ops resumes after merge |
+| `/release ship` advances to deploy | oc-release-ops | oc-deploy-ops | Invoke oc-deploy-ops `/deploy staging` then `/deploy` on user confirmation; oc-release-ops closes the release ticket on prod ship |
 
 ### How to Invoke Another Skill
 
@@ -208,7 +208,7 @@ A novice user should be able to type a single sentence and get the full pipeline
 User: "I want to build a workout tracker app"
 
 Claude: [Reads orchestrator.md → identifies this as a new project]
-        [Invokes app-architect → starts /discover]
+        [Invokes oc-app-architect → starts /discover]
         [Guides through discovery, spec, design, sprints, build, ship]
 ```
 
@@ -219,18 +219,18 @@ right skill and phase based on the request.
 
 | User says (examples) | Route to | Phase |
 |---|---|---|
-| "Build me an app" / "I have an idea for..." | app-architect | /discover |
-| "Here's my codebase, document it" | reverse-spec | /rev-full |
-| "What stack should I use for..." | stack-forge | /stack-decide |
-| "Check this before I commit" / "Pre-commit" / "Lint and test" / "Quick audit" | bug-check | /bugcheck |
-| "Review this code" / "Is this code good?" | code-auditor | /audit full |
-| "Fix the UX" / "The design is inconsistent" | ux-engineer | /uxe eval |
-| "Connect to Salesforce" / "Set up webhooks" | integrations-engineer | /integrate plan |
-| "Design our API" / "Write the OpenAPI" / "Versioning strategy" / "Generate an SDK" | api-dev | /api design |
-| "Deploy this" / "Ship it" | deploy-ops | /deploy staging |
-| "Commit my changes" / "Push to git" | git-ops | /git-sync |
-| "Can this handle more users?" | scale-ops | /scale audit |
-| "Cut a release" / "Ship v1.3" / "Bump versions" / "Draft the changelog" / "Tag the release" | release-ops | /release plan |
+| "Build me an app" / "I have an idea for..." | oc-app-architect | /discover |
+| "Here's my codebase, document it" | oc-reverse-spec | /rev-full |
+| "What stack should I use for..." | oc-stack-forge | /stack-decide |
+| "Check this before I commit" / "Pre-commit" / "Lint and test" / "Quick audit" | oc-bug-check | /bugcheck |
+| "Review this code" / "Is this code good?" | oc-code-auditor | /audit full |
+| "Fix the UX" / "The design is inconsistent" | oc-ux-engineer | /uxe eval |
+| "Connect to Salesforce" / "Set up webhooks" | oc-integrations-engineer | /integrate plan |
+| "Design our API" / "Write the OpenAPI" / "Versioning strategy" / "Generate an SDK" | oc-api-dev | /api design |
+| "Deploy this" / "Ship it" | oc-deploy-ops | /deploy staging |
+| "Commit my changes" / "Push to git" | oc-git-ops | /git-sync |
+| "Can this handle more users?" | oc-scale-ops | /scale audit |
+| "Cut a release" / "Ship v1.3" / "Bump versions" / "Draft the changelog" / "Tag the release" | oc-release-ops | /release plan |
 | "Continue where we left off" | [check all checkpoints] | [resume most recent] |
 
 ---
@@ -247,11 +247,11 @@ If multiple checkpoints exist, present a status summary:
 
 ```
 Found existing project state:
-  ✅ app-architect: spec approved, design approved, sprint 2 of 4 in progress
-  ✅ code-auditor: last audit 2 hours ago, grade B+
-  ⏳ deploy-ops: not started
+  ✅ oc-app-architect: spec approved, design approved, sprint 2 of 4 in progress
+  ✅ oc-code-auditor: last audit 2 hours ago, grade B+
+  ⏳ oc-deploy-ops: not started
 
-Resuming app-architect build loop (Sprint 2).
+Resuming oc-app-architect build loop (Sprint 2).
 ```
 
 This gives the user (and Claude) a complete picture of where the project stands
@@ -279,73 +279,73 @@ These are the optimized descriptions that maximize Claude's trigger accuracy.
 Each skill's YAML frontmatter `description` field should match exactly:
 
 ```yaml
-# app-architect
+# oc-app-architect
 description: >
   Unified app development: idea → spec → design → build with Generator/Evaluator
   QA loop → launch. Use for /app, /discover, /spec, /design, /build, /launch,
   "build me an app", "I have an app idea", or any software project. Auto-invokes
-  stack-forge and ux-engineer. Trigger liberally.
+  oc-stack-forge and oc-ux-engineer. Trigger liberally.
 
-# stack-forge
+# oc-stack-forge
 description: >
   Stack advisor for any platform: Cloudflare, Vercel, AWS, Supabase, Rails, Django.
   Use for /stack, /stack-decide, /feature, "what stack", "tech stack", "what should I
-  build with", or framework comparisons. Auto-invoked by app-architect. Trigger liberally.
+  build with", or framework comparisons. Auto-invoked by oc-app-architect. Trigger liberally.
 
-# reverse-spec
+# oc-reverse-spec
 description: >
-  Reverse-engineer existing code into spec docs. Use for /rev-spec, /reverse-spec,
+  Reverse-engineer existing code into spec docs. Use for /rev-spec, /oc-reverse-spec,
   "document this codebase", "generate specs from code", "backfill specs", or when
   pointing at existing code that needs documentation. Trigger liberally.
 
-# bug-check
+# oc-bug-check
 description: >
   Pre-commit QA gate that runs on every commit. Fast, opinionated checks: type
   safety, lint, tests, anti-pattern scan, secret detection, build verification,
   and dependency vulnerability scan. Blocks commits on failures, warns on cautions,
-  passes silently on clean code. Auto-invoked by git-ops before every /git-commit
+  passes silently on clean code. Auto-invoked by oc-git-ops before every /git-commit
   and /git-sync. Use for /bugcheck, "check this before I commit", "run the checks",
   "is this safe to commit", "pre-commit", "quick audit", "lint and test", "any bugs
   in this?", "sanity check". Trigger liberally.
 
-# code-auditor
+# oc-code-auditor
 description: >
   Code quality auditor with Auditor/Fixer/Verifier loop. Use for /audit, "audit this",
   "find bugs", "code review", "pre-deploy check", "what's wrong with this code", or any
-  code-level quality question. For fast pre-commit checks, escalate to bug-check. For
-  architecture- or infra-level security, escalate to security-auditor. Trigger liberally.
+  code-level quality question. For fast pre-commit checks, escalate to oc-bug-check. For
+  architecture- or infra-level security, escalate to oc-security-auditor. Trigger liberally.
 
-# security-auditor
+# oc-security-auditor
 description: >
   Practice-level security posture assessment: threat modeling (STRIDE), OWASP Top 10
   compliance mapping, runtime/infra hardening (CSP, TLS, DNS, WAF), and attack-surface
-  mapping. Runs ABOVE code-auditor. Use for /security, /secaudit, /threat-model, /owasp,
+  mapping. Runs ABOVE oc-code-auditor. Use for /security, /secaudit, /threat-model, /owasp,
   /hardening, /attack-surface, "is this secure enough", "SOC2 readiness", "pen test prep",
   "security architecture review". Trigger liberally.
 
-# ux-engineer
+# oc-ux-engineer
 description: >
   UI/UX design harness with Design Planner/Generator/Evaluator loop. Use for /uxe,
   "review the UX", "design iteration", "component library", "accessibility audit",
   "is the UI consistent", or any design quality question. Trigger liberally.
 
-# dash-forge
+# oc-dash-forge
 description: >
   Dashboard and dense-information UI designer. Produces design specs AND working React
   prototypes with mock data for three archetypes: executive, operations, analyst. Use
-  for /data-forge, /dash-forge, "design a dashboard", "BI design", "KPI dashboard",
-  "analytics UI", "monitoring dashboard". Auto-invoked by ux-engineer / app-architect
+  for /data-forge, /oc-dash-forge, "design a dashboard", "BI design", "KPI dashboard",
+  "analytics UI", "monitoring dashboard". Auto-invoked by oc-ux-engineer / oc-app-architect
   when the UI is data-heavy. Trigger liberally.
 
-# integrations-engineer
+# oc-integrations-engineer
 description: >
   Third-party API integrations with Planner/Builder/Tester loop. Use for /integrate,
   "connect to Salesforce", "webhook", "OAuth", "API integration", "connect to Slack",
   or any external service connection. For designing or building your *own* first-party
-  API (OpenAPI/GraphQL authoring, versioning, SDK generation), use api-dev instead.
+  API (OpenAPI/GraphQL authoring, versioning, SDK generation), use oc-api-dev instead.
   Trigger liberally.
 
-# api-dev
+# oc-api-dev
 description: >
   First-party API design and build harness with Designer/Builder/Conformance loop.
   Owns OpenAPI/GraphQL authoring, schema↔code parity, versioning + sunset strategy,
@@ -354,9 +354,9 @@ description: >
   /api spec, /api scaffold, /api version, /api lint, /api sdk, "design our API",
   "OpenAPI", "GraphQL schema", "versioning strategy", "deprecate endpoint",
   "generate SDK", "schema drift". For consuming someone else's API (Stripe, Slack,
-  OAuth) use integrations-engineer instead. Trigger liberally.
+  OAuth) use oc-integrations-engineer instead. Trigger liberally.
 
-# migration-ops
+# oc-migration-ops
 description: >
   Migration and refactor operator for live systems. Database migrations (D1 → Postgres,
   schema overhauls), framework upgrades (Hono v3→v4, React 18→19), auth provider swaps,
@@ -365,34 +365,34 @@ description: >
   "migrate from X to Y", "upgrade to", "restructure the monorepo", "deprecation". Trigger
   when transforming an existing system from one state to another. Trigger liberally.
 
-# git-ops
+# oc-git-ops
 description: >
   Git workflow: branch, commit, PR, sync. Use for /git, /commit, /pr, /push,
   "commit this", "push to git", "create a PR", "sync to repo", or any git
   operation. Trigger liberally.
 
-# deploy-ops
+# oc-deploy-ops
 description: >
   Deployment pipeline: audit gate → staging → production. Use for
   /deploy, "deploy this", "ship it", "push to production", "staging", "rollback",
-  or any deployment task. Hands off post-deploy observability to monitoring-ops.
+  or any deployment task. Hands off post-deploy observability to oc-monitoring-ops.
   Trigger liberally.
 
-# monitoring-ops
+# oc-monitoring-ops
 description: >
   Post-deployment observability: uptime monitoring, error tracking, structured logging,
-  alerting pipelines, and incident response runbooks. Sits after deploy-ops — deploy-ops
-  ships it, monitoring-ops watches it. Use for /monitor, "set up monitoring", "error
+  alerting pipelines, and incident response runbooks. Sits after oc-deploy-ops — oc-deploy-ops
+  ships it, oc-monitoring-ops watches it. Use for /monitor, "set up monitoring", "error
   tracking", "alerting", "incident response", "observability", "what's happening in prod",
   "set up Sentry", "SLO", "runbook". Trigger liberally.
 
-# scale-ops
+# oc-scale-ops
 description: >
   Scaling readiness: load test, perf budgets, caching, capacity planning. Use for
   /scale, "load test", "can this handle more users", "performance", "caching strategy",
   or any scaling question. Trigger liberally.
 
-# orchestrator
+# oc-orchestrator
 description: >
   Pipeline coordinator for the opchain dev ecosystem. Multi-project registry, cross-skill
   status, smart routing, and "what should I do next?" recommendations. Use for /ops,
@@ -400,13 +400,13 @@ description: >
   "show me everything". Also trigger when the user seems lost, references multiple
   projects, or asks a vague dev question that needs routing. Trigger liberally.
 
-# release-ops
+# oc-release-ops
 description: >
   Release-cadence operator. Plan, draft, bump, announce, and ship versioned
   releases of opchain (or any opchain-managed project). Reads sprint
   checkpoints, proposes the next semver, drafts the /changelog entry from
   what actually shipped, bumps every skill version atomically, and hands
-  off to git-ops + deploy-ops. Use for /release, /release plan, /release
+  off to oc-git-ops + oc-deploy-ops. Use for /release, /release plan, /release
   draft, /release bump, /release announce, /release ship, "cut a release",
   "ship v1.3", "tag the release", "draft the changelog", "what's in this
   release", "version bump". Trigger liberally on release-cadence work.
@@ -418,25 +418,25 @@ description: >
 
 Every skill should know these facts:
 
-- **Foundation:** `checkpoint-protocol` (shared JSON schema bundled in every skill) and
-  `orchestrator` (multi-project registry + router via `/ops`).
-- **Tri-agent skills:** app-architect (Generator/Evaluator), ux-engineer (Design
-  Planner/Generator/Evaluator), code-auditor (Auditor/Fixer/Verifier),
-  integrations-engineer (Planner/Builder/Tester), api-dev (Designer/Builder/Conformance).
-- **Auto-invocations:** stack-forge during app-architect Phase 2; ux-engineer during
-  app-architect UI sprints; dash-forge from ux-engineer or app-architect on data-heavy
-  screens; bug-check from git-ops before every `/git-commit` and `/git-sync`.
-- **Pipeline flow:** reverse-spec → app-architect → git-ops → deploy-ops → monitoring-ops.
-- **Release boundary:** release-ops sits between git-ops and deploy-ops; runs only on
+- **Foundation:** `oc-checkpoint-protocol` (shared JSON schema bundled in every skill) and
+  `oc-orchestrator` (multi-project registry + router via `/ops`).
+- **Tri-agent skills:** oc-app-architect (Generator/Evaluator), oc-ux-engineer (Design
+  Planner/Generator/Evaluator), oc-code-auditor (Auditor/Fixer/Verifier),
+  oc-integrations-engineer (Planner/Builder/Tester), oc-api-dev (Designer/Builder/Conformance).
+- **Auto-invocations:** oc-stack-forge during oc-app-architect Phase 2; oc-ux-engineer during
+  oc-app-architect UI sprints; oc-dash-forge from oc-ux-engineer or oc-app-architect on data-heavy
+  screens; oc-bug-check from oc-git-ops before every `/git-commit` and `/git-sync`.
+- **Pipeline flow:** oc-reverse-spec → oc-app-architect → oc-git-ops → oc-deploy-ops → oc-monitoring-ops.
+- **Release boundary:** oc-release-ops sits between oc-git-ops and oc-deploy-ops; runs only on
   versioned-release events (`/release plan` / `draft` / `bump` / `announce` / `ship`),
   not on every PR. v1.3 added it as the 18th skill; opchain itself dogfoods it.
-- **Pre-commit gate:** bug-check (fast metal-detector — type / lint / tests / secrets /
+- **Pre-commit gate:** oc-bug-check (fast metal-detector — type / lint / tests / secrets /
   build / dep scan in <2 min; blocks the commit on failure).
-- **Quality gates (pre-deploy):** code-auditor → security-auditor (runs above code-auditor
+- **Quality gates (pre-deploy):** oc-code-auditor → oc-security-auditor (runs above oc-code-auditor
   for threat model / hardening).
-- **Cross-cutting skills:** api-dev (first-party APIs — OpenAPI/GraphQL, versioning,
-  SDKs), integrations-engineer (external APIs), migration-ops (live system changes —
-  DB, framework, platform), scale-ops (advisory), dash-forge (dense data UIs).
+- **Cross-cutting skills:** oc-api-dev (first-party APIs — OpenAPI/GraphQL, versioning,
+  SDKs), oc-integrations-engineer (external APIs), oc-migration-ops (live system changes —
+  DB, framework, platform), oc-scale-ops (advisory), oc-dash-forge (dense data UIs).
 - **Checkpoint protocol:** every skill writes to `.checkpoints/[skill].checkpoint.json`.
-- **Tri-dev is retired.** Its build harness lives inside app-architect Phase 6.
-  If a user asks for tri-dev, route to app-architect /build.
+- **Tri-dev is retired.** Its build harness lives inside oc-app-architect Phase 6.
+  If a user asks for tri-dev, route to oc-app-architect /build.

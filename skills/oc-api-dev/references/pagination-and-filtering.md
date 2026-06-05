@@ -212,7 +212,7 @@ POST /operations/op_abc123:cancel
 
 If consumers register a `notification_url`, POST the final operation envelope to
 it when status becomes terminal. Use the outbound-webhook patterns from
-`integrations-engineer` (signed body, retries with backoff, idempotency on the
+`oc-integrations-engineer` (signed body, retries with backoff, idempotency on the
 receiver side).
 
 ---

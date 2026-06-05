@@ -34,7 +34,7 @@ description: >
   "deprecation", "end of life", "update all skills", "skill format change",
   "checkpoint protocol upgrade", "bulk update SKILL.md". Trigger when user describes
   transforming an existing system from one state to another — not greenfield building
-  (app-architect) or documenting what exists (reverse-spec), but changing what exists
+  (oc-app-architect) or documenting what exists (oc-reverse-spec), but changing what exists
   into something different. Also covers opchain ecosystem upgrades (skill format
   changes, protocol version bumps, bulk SKILL.md updates). Trigger liberally.
 ---
@@ -43,8 +43,8 @@ description: >
 
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
-The "change the engine mid-flight" skill. Fills the gap between reverse-spec ("what I
-have") and app-architect ("what I want") when the answer is "transform one into the
+The "change the engine mid-flight" skill. Fills the gap between oc-reverse-spec ("what I
+have") and oc-app-architect ("what I want") when the answer is "transform one into the
 other" — without downtime, without data loss, and with a rollback at every step.
 
 This is inherently multi-session work. A database migration plan might span 3–4
@@ -75,7 +75,7 @@ MIGRATION OPS COMMANDS
 
   UTILITIES
   /migrate dry-run      Simulate the next step without applying changes
-  /migrate ecosystem    Bulk-update opchain skills (format, protocol, orchestrator)
+  /migrate ecosystem    Bulk-update opchain skills (format, protocol, oc-orchestrator)
   /migrate abandon      Abandon an in-progress migration (archive checkpoint)
   /checkpoint           Show checkpoint status
 
@@ -90,23 +90,23 @@ MIGRATION OPS COMMANDS
 ```
 EXISTING SYSTEM (documented or not)
        │
-       ├──► reverse-spec (if undocumented → produces baseline specs)
+       ├──► oc-reverse-spec (if undocumented → produces baseline specs)
        │
        ▼
 ┌──────────────┐
 │ MIGRATION-OPS│  current state → migration plan → incremental execution → target state
-│              │  Reads: reverse-spec, stack-forge, app-architect, code-auditor
-│              │  Chains to: code-auditor (post-migration verify), deploy-ops (cutover)
+│              │  Reads: oc-reverse-spec, oc-stack-forge, oc-app-architect, oc-code-auditor
+│              │  Chains to: oc-code-auditor (post-migration verify), oc-deploy-ops (cutover)
 └──────┬───────┘
        │
-       ├──► code-auditor /audit (post-migration quality gate)
-       ├──► deploy-ops /deploy (cutover deployment)
-       └──► app-architect (if migration reveals spec updates needed)
+       ├──► oc-code-auditor /audit (post-migration quality gate)
+       ├──► oc-deploy-ops /deploy (cutover deployment)
+       └──► oc-app-architect (if migration reveals spec updates needed)
 ```
 
 Migration-ops sits between "what exists" and "what should exist" — it's the
-transformation engine. It does NOT build new features (app-architect) or document
-existing code (reverse-spec). It transforms running systems from state A to state B.
+transformation engine. It does NOT build new features (oc-app-architect) or document
+existing code (oc-reverse-spec). It transforms running systems from state A to state B.
 
 ---
 
@@ -123,7 +123,7 @@ which reference playbook to load and which verification strategy to use.
 | **Platform** | Workers → Vercel, Supabase → raw Postgres, Heroku → Fly.io | HIGH | DNS cutover, cold start behavior, binding changes |
 | **Structural** | Monorepo restructure, module extraction, package split | MEDIUM | Import path breakage, CI pipeline updates |
 | **Dependency** | Major version bumps, library swap (Axios → fetch, Moment → date-fns) | LOW-MED | API surface changes, bundle impact |
-| **Ecosystem** | Opchain skill format changes, checkpoint protocol upgrades, orchestrator rewrites, bulk SKILL.md updates | LOW-MED | Consistency across N skills, no skill left behind |
+| **Ecosystem** | Opchain skill format changes, checkpoint protocol upgrades, oc-orchestrator rewrites, bulk SKILL.md updates | LOW-MED | Consistency across N skills, no skill left behind |
 
 ### Auto-Detection
 
@@ -162,7 +162,7 @@ Check for existing documentation in this order:
    for the documented architecture.
 4. **Stack-forge checkpoint** — read stack decisions for current platform/framework choices.
 5. **Code scan** — if no upstream checkpoints exist, run a targeted scan of the specific
-   layer being migrated (not a full reverse-spec).
+   layer being migrated (not a full oc-reverse-spec).
 
 ### Step 2: Define Target State
 
@@ -499,7 +499,7 @@ At the end of each session (or when context is getting long):
 
 ### Session Resume
 
-On resume, migration-ops:
+On resume, oc-migration-ops:
 1. Reads its checkpoint
 2. Displays migration progress and current system state
 3. Checks if manual tasks are complete
@@ -547,33 +547,33 @@ affected.
 
 | Skill | Relationship |
 |---|---|
-| **reverse-spec** | Upstream. Reads reverse-spec output for current state documentation. If no reverse-spec exists, runs a targeted scan of the migration-relevant layers only. |
-| **stack-forge** | Upstream. Reads stack decisions. For platform moves, invokes stack-forge to validate the target stack before planning. |
-| **app-architect** | Peer. If migration reveals spec updates needed (new architecture after database change), chains to app-architect to update spec files. |
-| **code-auditor** | Downstream. After migration completes, invokes `/audit full` on the migrated code to catch quality regressions. |
-| **deploy-ops** | Downstream. For platform moves and cutover deploys, chains to deploy-ops for the deployment steps. |
-| **security-auditor** | Downstream. Auth migrations always trigger a security posture check afterward. |
-| **scale-ops** | Peer. Platform moves may change scaling characteristics. Reads scale-ops for performance baselines. |
-| **git-ops** | Downstream. After migration steps that produce code changes, suggests git-ops commit. |
-| **monitoring-ops** | Downstream. Platform moves and database migrations change health check URLs, connection targets, and alert thresholds. Invoke `/monitor setup` to update monitoring config after cutover. |
+| **oc-reverse-spec** | Upstream. Reads oc-reverse-spec output for current state documentation. If no oc-reverse-spec exists, runs a targeted scan of the migration-relevant layers only. |
+| **oc-stack-forge** | Upstream. Reads stack decisions. For platform moves, invokes oc-stack-forge to validate the target stack before planning. |
+| **oc-app-architect** | Peer. If migration reveals spec updates needed (new architecture after database change), chains to oc-app-architect to update spec files. |
+| **oc-code-auditor** | Downstream. After migration completes, invokes `/audit full` on the migrated code to catch quality regressions. |
+| **oc-deploy-ops** | Downstream. For platform moves and cutover deploys, chains to oc-deploy-ops for the deployment steps. |
+| **oc-security-auditor** | Downstream. Auth migrations always trigger a security posture check afterward. |
+| **oc-scale-ops** | Peer. Platform moves may change scaling characteristics. Reads oc-scale-ops for performance baselines. |
+| **oc-git-ops** | Downstream. After migration steps that produce code changes, suggests oc-git-ops commit. |
+| **oc-monitoring-ops** | Downstream. Platform moves and database migrations change health check URLs, connection targets, and alert thresholds. Invoke `/monitor setup` to update monitoring config after cutover. |
 
 ### Active Chaining
 
 | Trigger | Action |
 |---|---|
-| Assessment needs current state docs | Check reverse-spec checkpoint → if missing, run targeted scan |
-| Platform move planned | Invoke stack-forge to validate target stack |
-| Migration complete | Invoke code-auditor `/audit full` |
-| Auth migration complete | Invoke security-auditor `/security posture` |
-| Code changes from migration steps | Suggest git-ops `/git-sync` |
-| Cutover deployment needed | Invoke deploy-ops `/deploy staging` then `/deploy prod` |
-| Platform or database migration complete | Invoke monitoring-ops `/monitor setup` to update health checks and alert targets |
+| Assessment needs current state docs | Check oc-reverse-spec checkpoint → if missing, run targeted scan |
+| Platform move planned | Invoke oc-stack-forge to validate target stack |
+| Migration complete | Invoke oc-code-auditor `/audit full` |
+| Auth migration complete | Invoke oc-security-auditor `/security posture` |
+| Code changes from migration steps | Suggest oc-git-ops `/git-sync` |
+| Cutover deployment needed | Invoke oc-deploy-ops `/deploy staging` then `/deploy prod` |
+| Platform or database migration complete | Invoke oc-monitoring-ops `/monitor setup` to update health checks and alert targets |
 
 ---
 
 ## Session Persistence (Checkpoint Protocol)
 
-Checkpoint: `{project-dir}/.checkpoints/migration-ops.checkpoint.json`
+Checkpoint: `{project-dir}/.checkpoints/oc-migration-ops.checkpoint.json`
 
 ### Resume on Start
 
@@ -664,19 +664,19 @@ Type-specific fields by migration type:
 
 | Reads from | Why |
 |---|---|
-| reverse-spec | Current state documentation — architecture, schema, stack |
-| app-architect | Spec files — data model, API design, auth spec |
-| stack-forge | Stack decisions — platform capabilities, limitations |
-| code-auditor | Pre-existing findings — don't introduce new issues |
-| scale-ops | Performance baselines — detect regression after migration |
-| deploy-ops | Deployment config — environments, URLs, health checks |
+| oc-reverse-spec | Current state documentation — architecture, schema, stack |
+| oc-app-architect | Spec files — data model, API design, auth spec |
+| oc-stack-forge | Stack decisions — platform capabilities, limitations |
+| oc-code-auditor | Pre-existing findings — don't introduce new issues |
+| oc-scale-ops | Performance baselines — detect regression after migration |
+| oc-deploy-ops | Deployment config — environments, URLs, health checks |
 
 | Read by | Why |
 |---|---|
-| deploy-ops | Migration status → deploy confidence, cutover readiness |
-| code-auditor | Post-migration findings → quality gate |
-| app-architect | Spec updates needed → architecture doc refresh |
-| orchestrator | Migration progress → pipeline status, blockers |
+| oc-deploy-ops | Migration status → deploy confidence, cutover readiness |
+| oc-code-auditor | Post-migration findings → quality gate |
+| oc-app-architect | Spec updates needed → architecture doc refresh |
+| oc-orchestrator | Migration progress → pipeline status, blockers |
 
 ---
 
@@ -699,7 +699,7 @@ For the full output formats and example renders, see `references/migration-playb
 ```
 project-dir/
 ├── .checkpoints/
-│   └── migration-ops.checkpoint.json
+│   └── oc-migration-ops.checkpoint.json
 ├── migrations/
 │   ├── assessment.md              # Assessment report
 │   ├── migration-plan.md          # Full plan with all steps
@@ -722,7 +722,7 @@ Migrations are multi-week, multi-step, multi-engineer. They are
 also genuinely scary — the kind of work where everyone in the org
 wants to know the current state. v1.2 makes that state legible
 in the PM tool the team already lives in. See
-`integrations-engineer` for the canonical PM-MCP patterns.
+`oc-integrations-engineer` for the canonical PM-MCP patterns.
 
 ### Parent + step-child mirror
 
@@ -742,7 +742,7 @@ When `/migrate plan` produces the migration plan:
    - body: step procedure + rollback + verification criteria.
    - state: `Todo` initially.
 3. Record parent + child ids in the
-   `migration-ops.checkpoint.json` so the executor knows which
+   `oc-migration-ops.checkpoint.json` so the executor knows which
    ticket to update at each step.
 
 ### Per-step state machine
@@ -770,7 +770,7 @@ Every state transition emits a comment on the step ticket:
 {state-from} → {state-to} at {timestamp}
 Verifier: {pass-summary OR failure-detail}
 Next: {next-action OR blocker}
-Checkpoint: .checkpoints/migration-ops.checkpoint.json
+Checkpoint: .checkpoints/oc-migration-ops.checkpoint.json
 ```
 
 If the step touches a separately-tracked feature ticket (e.g. the
@@ -788,8 +788,8 @@ Aborts are big enough that they get their own visibility:
 
 ### Communication discipline
 
-For long-running migrations (multi-week), monitoring-ops and
-deploy-ops will write into the same parent ticket via their own
+For long-running migrations (multi-week), oc-monitoring-ops and
+oc-deploy-ops will write into the same parent ticket via their own
 PM-MCP integrations — deploy tickets parent-link to the migration
 parent, incident tickets back-reference if any incident is traced
 to a migration step. The parent ticket becomes the project

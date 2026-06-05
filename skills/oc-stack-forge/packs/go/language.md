@@ -35,7 +35,7 @@ shared types in-process (TypeScript).
 
 ## Frameworks (land in later v1.4 PRs)
 
-These are the go-language frameworks stack-forge will recommend once their
+These are the go-language frameworks oc-stack-forge will recommend once their
 packs ship in PRs 4-7:
 
 - **chi** (preferred) — idiomatic `net/http` router; minimal magic.
@@ -61,8 +61,8 @@ openapi-typescript client`.
 | Validation | `go-playground/validator` | manual | Tag-driven validation on request structs. |
 | Client | `openapi-typescript` | grpc-web | OpenAPI for REST clients; gRPC-web when the API is gRPC. |
 
-When app-architect Phase 2 detects a first-party API surface and stack-forge
-has picked Go, control passes to `api-dev` to author the contract (often
+When oc-app-architect Phase 2 detects a first-party API surface and oc-stack-forge
+has picked Go, control passes to `oc-api-dev` to author the contract (often
 spec-first via ogen) and generate the SDK.
 
 ## Default deploy targets
@@ -88,7 +88,7 @@ Go's single-binary deploys and low memory footprint make it the cheapest
 language in the catalog to run at any non-trivial scale. The headline cost
 is dev-team learning curve, not infrastructure.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Goroutine leaks** — fire-and-forget `go func()` calls without a
   `context.Context` will pile up. Stack-forge flags handler patterns that

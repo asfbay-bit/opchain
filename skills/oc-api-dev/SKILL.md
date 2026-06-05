@@ -25,7 +25,7 @@ description: >
   /api spec, /api scaffold, /api version, /api lint, /api sdk, "design our API",
   "OpenAPI", "GraphQL schema", "versioning strategy", "deprecate endpoint",
   "generate SDK", "schema drift". For consuming someone else's API (Stripe, Slack,
-  OAuth) use integrations-engineer instead. Trigger liberally.
+  OAuth) use oc-integrations-engineer instead. Trigger liberally.
 ---
 
 # API Developer
@@ -38,9 +38,9 @@ Conformance hits the running server, validates responses against the spec, and
 diffs the new spec against the previously-shipped one to flag undeclared breaking
 changes.
 
-This is the producer-side counterpart to `integrations-engineer`. If you're
+This is the producer-side counterpart to `oc-integrations-engineer`. If you're
 consuming someone else's API (Stripe, Slack, Salesforce, OAuth providers), use
-`integrations-engineer`. If you're designing/building the API your own clients,
+`oc-integrations-engineer`. If you're designing/building the API your own clients,
 customers, or partners consume, use this skill.
 
 ---
@@ -82,7 +82,7 @@ API DEVELOPER COMMANDS
 
 ```
 API DESIGN INTENT
-(from app-architect 02-architecture.md API Design section)
+(from oc-app-architect 02-architecture.md API Design section)
         │
         ▼
 ┌──────────────────┐
@@ -158,7 +158,7 @@ consumers. Key behaviors:
 ### Designer Workflow
 
 1. Read upstream context: `02-architecture.md` API Design section, `03-data-model.md`,
-   stack-forge's chosen framework + typed-pipeline tooling, reverse-spec inventory
+   oc-stack-forge's chosen framework + typed-pipeline tooling, oc-reverse-spec inventory
    (if retrofitting).
 2. Confirm style (REST/GraphQL/gRPC), versioning strategy, auth scheme.
 3. Author the contract — every operation, every shape, every error code.
@@ -289,10 +289,10 @@ versioning strategy with the user. Write checkpoint: phase `designed`.
 
 ### Step 2: Builder Implements
 
-Builder reads the chosen stack from stack-forge's checkpoint and uses the
-typed-pipeline tooling that stack-forge already recommended:
+Builder reads the chosen stack from oc-stack-forge's checkpoint and uses the
+typed-pipeline tooling that oc-stack-forge already recommended:
 
-| Stack (from stack-forge) | Spec authoring | Server validation | SDK generation |
+| Stack (from oc-stack-forge) | Spec authoring | Server validation | SDK generation |
 |---|---|---|---|
 | Hono + D1 + Workers | `@hono/zod-openapi` (Zod → OpenAPI) | Hono middleware | `openapi-typescript` + `openapi-fetch` |
 | FastAPI + Postgres | Pydantic → built-in OpenAPI | FastAPI middleware | `openapi-typescript` |
@@ -300,7 +300,7 @@ typed-pipeline tooling that stack-forge already recommended:
 | Express / Fastify + TS | `zod-to-openapi` | Zod middleware | `openapi-typescript` |
 | Rails | `rswag` | Rails strong params | `openapi-typescript` |
 
-Don't reinvent the toolchain. Read `stack-forge/references/typed-pipeline.md` for
+Don't reinvent the toolchain. Read `oc-stack-forge/references/typed-pipeline.md` for
 detailed implementation per stack and pick from that menu.
 
 ### Step 3: Conformance Agent
@@ -367,7 +367,7 @@ Key behaviors:
 ### Step 4: Iterate or Advance
 
 - **PASS**: API is shippable. Publish docs, register SLO + drift manifest with
-  monitoring-ops, hand off to deploy-ops.
+  oc-monitoring-ops, hand off to oc-deploy-ops.
 - **FAIL + rounds remaining**: Feed report to Builder, fix, re-run Conformance.
 - **FAIL + max rounds**: Escalate to user.
 
@@ -414,39 +414,39 @@ Run between commits, in CI, or on demand. Outputs:
 - Status codes the code returns but the spec doesn't list
 - Response fields with mismatched types or nullability
 
-deploy-ops gates production deploys on this command returning zero drift.
+oc-deploy-ops gates production deploys on this command returning zero drift.
 
 ---
 
-## Boundaries (what api-dev does NOT own)
+## Boundaries (what oc-api-dev does NOT own)
 
 | Concern | Owner | Why |
 |---|---|---|
-| OAuth flow / API-key handling for *consuming* a third-party | `integrations-engineer` | Consumer side |
-| Webhook receivers tied to a single integration | `integrations-engineer` | Lives only because of that third-party |
-| Stack/framework recommendation, typed-pipeline tooling | `stack-forge` | Recommends; api-dev materialises |
-| Discovery-level "API design" intent in `02-architecture.md` | `app-architect` Phase 2 | Intent; api-dev elaborates |
-| Rate-limit *infrastructure* and capacity math | `scale-ops` | api-dev declares the policy in the spec; scale-ops sizes / implements |
-| Threat model of the API surface | `security-auditor` | api-dev emits the surface; security-auditor reviews |
-| Per-endpoint SLO *implementation* + alert pipelines | `monitoring-ops` | api-dev emits SLO targets + drift-rule manifest; monitoring-ops wires alerts |
-| Secret rotation procedures | `integrations-engineer` `/integrate secrets` | Already owned |
+| OAuth flow / API-key handling for *consuming* a third-party | `oc-integrations-engineer` | Consumer side |
+| Webhook receivers tied to a single integration | `oc-integrations-engineer` | Lives only because of that third-party |
+| Stack/framework recommendation, typed-pipeline tooling | `oc-stack-forge` | Recommends; oc-api-dev materialises |
+| Discovery-level "API design" intent in `02-architecture.md` | `oc-app-architect` Phase 2 | Intent; oc-api-dev elaborates |
+| Rate-limit *infrastructure* and capacity math | `oc-scale-ops` | oc-api-dev declares the policy in the spec; oc-scale-ops sizes / implements |
+| Threat model of the API surface | `oc-security-auditor` | oc-api-dev emits the surface; oc-security-auditor reviews |
+| Per-endpoint SLO *implementation* + alert pipelines | `oc-monitoring-ops` | oc-api-dev emits SLO targets + drift-rule manifest; oc-monitoring-ops wires alerts |
+| Secret rotation procedures | `oc-integrations-engineer` `/integrate secrets` | Already owned |
 
-api-dev's outputs (rate-limit policy, CORS policy, SLO targets, drift manifest)
+oc-api-dev's outputs (rate-limit policy, CORS policy, SLO targets, drift manifest)
 are *declarations* in the spec. Sibling skills implement them.
 
 ---
 
 ## Per-language scaffold adapters (v1.4+)
 
-stack-forge ships a pack per language under `skills/stack-forge/packs/<id>/pack.yml`
-declaring the canonical testRunner, buildCmd, lintCmd, and a langRef. api-dev's
+oc-stack-forge ships a pack per language under `skills/oc-stack-forge/packs/<id>/pack.yml`
+declaring the canonical testRunner, buildCmd, lintCmd, and a langRef. oc-api-dev's
 Builder phase reads the **build-time codegen** output
 `src/generated/api-dev-adapters.json` to template the right commands into the
 generated scaffolds.
 
 The codegen runs in `prebuild` after `gen-stack-packs` (so the pack contract is
 already validated) and before `gen-flags`. Adding a new language pack auto-extends
-api-dev — no api-dev code changes needed once the pack lands.
+oc-api-dev — no oc-api-dev code changes needed once the pack lands.
 
 ### Adapter shape
 
@@ -468,12 +468,12 @@ api-dev — no api-dev code changes needed once the pack lands.
 
 ### Why codegen (and not runtime read)?
 
-api-dev's Builder writes generated source — test stubs, mock servers, CI config
+oc-api-dev's Builder writes generated source — test stubs, mock servers, CI config
 fragments. Those need the test/build commands templated *in*, not looked up at
-runtime. Codegen produces a stable JSON artifact api-dev can `import` once and
-template across many files in one Builder pass. (deploy-ops takes the opposite
+runtime. Codegen produces a stable JSON artifact oc-api-dev can `import` once and
+template across many files in one Builder pass. (oc-deploy-ops takes the opposite
 trade-off — runtime read, because it makes a single dispatch decision per
-deploy. See `deploy-ops/SKILL.md § Pack-aware dispatch`.)
+deploy. See `oc-deploy-ops/SKILL.md § Pack-aware dispatch`.)
 
 ### Failure modes
 
@@ -483,16 +483,16 @@ deploy. See `deploy-ops/SKILL.md § Pack-aware dispatch`.)
 - **Pack ships malformed pack.yml** — `gen-stack-packs` fails first;
   `gen-api-dev-adapters` never runs. Builder never sees a partial adapter set.
 - **Pack with `kind` other than language** — the codegen skips it explicitly.
-  Frameworks and mobile packs are out of api-dev's surface (frameworks pick up
-  the same language adapter; mobile dispatches through stack-forge's
-  release-checklist path, not api-dev).
+  Frameworks and mobile packs are out of oc-api-dev's surface (frameworks pick up
+  the same language adapter; mobile dispatches through oc-stack-forge's
+  release-checklist path, not oc-api-dev).
 
 ---
 
 ## Checkpoint Integration
 
 ### Checkpoint Location
-`{project-dir}/.checkpoints/api-dev.checkpoint.json`
+`{project-dir}/.checkpoints/oc-api-dev.checkpoint.json`
 
 ### When to Write
 
@@ -532,18 +532,18 @@ deploy. See `deploy-ops/SKILL.md § Pack-aware dispatch`.)
 
 | Reads from | Why |
 |---|---|
-| app-architect | `02-architecture.md` API Design + `03-data-model.md` → discovery baseline |
-| stack-forge | Chosen framework + typed-pipeline tooling |
-| reverse-spec | Existing-endpoint inventory when retrofitting |
-| integrations-engineer | `04-integrations.md` carve-outs (inbound webhook receivers stay there) |
+| oc-app-architect | `02-architecture.md` API Design + `03-data-model.md` → discovery baseline |
+| oc-stack-forge | Chosen framework + typed-pipeline tooling |
+| oc-reverse-spec | Existing-endpoint inventory when retrofitting |
+| oc-integrations-engineer | `04-integrations.md` carve-outs (inbound webhook receivers stay there) |
 
 | Read by | Why |
 |---|---|
-| code-auditor | Audits scaffolded handlers against the spec |
-| security-auditor | Reads CORS + rate-limit policy as posture inputs |
-| monitoring-ops | Ingests SLO targets + drift-alert manifest |
-| deploy-ops | Drift gate — `api-dev /api drift` must report zero before prod |
-| integrations-engineer | When a sibling app integrates *this* API, the published spec is the source of truth |
+| oc-code-auditor | Audits scaffolded handlers against the spec |
+| oc-security-auditor | Reads CORS + rate-limit policy as posture inputs |
+| oc-monitoring-ops | Ingests SLO targets + drift-alert manifest |
+| oc-deploy-ops | Drift gate — `oc-api-dev /api drift` must report zero before prod |
+| oc-integrations-engineer | When a sibling app integrates *this* API, the published spec is the source of truth |
 
 ---
 
@@ -552,7 +552,7 @@ deploy. See `deploy-ops/SKILL.md § Pack-aware dispatch`.)
 API changes have ripple effects: SDK consumers need lead time on
 breaking changes; deprecations need calendar visibility; spec drift
 is a deploy-blocker. v1.2 routes those signals through the PM tool
-so they're not buried in a checkpoint. See `integrations-engineer`
+so they're not buried in a checkpoint. See `oc-integrations-engineer`
 for the canonical PM-MCP patterns.
 
 ### Breaking-change tickets
@@ -565,7 +565,7 @@ When `/api version` proposes a major-version bump (or
 - One **child ticket per consumer** known to depend on the affected
   surface. Consumer registry comes from `.opchain/api-consumers.yaml`
   if present, or from the SDK download / API-key telemetry if
-  monitoring-ops is wired.
+  oc-monitoring-ops is wired.
 
 Each consumer ticket has the suggested upgrade path + the deadline
 matching the deprecation policy in `.opchain/pm.yaml`
@@ -580,12 +580,12 @@ When `/api deprecate <endpoint>` is invoked:
 - Open a calendar-keyed reminder ticket scheduled for the
   sunset date with the cleanup checklist.
 - If the deprecated endpoint has not actually been removed by the
-  sunset date, monitoring-ops opens an incident ticket
+  sunset date, oc-monitoring-ops opens an incident ticket
   parent-linked to the deprecation reminder.
 
 ### Drift gate visibility
 
-`/api drift` is a deploy-ops pre-condition. When drift is detected:
+`/api drift` is a oc-deploy-ops pre-condition. When drift is detected:
 
 - Comment on the linked PR ticket: `API drift detected — spec and
   implementation diverge in {endpoint}. Deploy gate will refuse
@@ -628,7 +628,7 @@ linked PM ticket that contributed to the version:
 6. **Breaking changes are declared, not snuck.** Every breaking change ships
    a new major version with Sunset headers and a migration guide.
 7. **Declare policy, don't implement infrastructure.** Rate-limit policy and
-   SLO targets live in the spec. Sibling skills (scale-ops, monitoring-ops)
+   SLO targets live in the spec. Sibling skills (oc-scale-ops, oc-monitoring-ops)
    implement the runtime.
 8. **Read the consumer's side too.** A clean spec that produces a painful SDK
    isn't done. Round-trip the SDK against the live server.

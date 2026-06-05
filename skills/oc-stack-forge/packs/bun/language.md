@@ -1,11 +1,11 @@
 # Bun
 
 Bun is technically a TypeScript/JavaScript runtime, not a separate language —
-but it gets its own stack-forge pack because the canonical toolchain
+but it gets its own oc-stack-forge pack because the canonical toolchain
 (`bun test`, `bun build`, `bun install`) diverges from Node's, and the runtime
 APIs (`Bun.serve`, `Bun.file`, native SQLite) make it a different surface to
 target. Picking `bun` over `typescript` is a runtime/toolchain choice, not a
-language choice; stack-forge models it as a sibling language pack so the
+language choice; oc-stack-forge models it as a sibling language pack so the
 adapter graph stays simple.
 
 ## When to pick it
@@ -74,7 +74,7 @@ identically. Bun-specific notes:
 | bun.sh deploy | When it ships | Currently in preview; not the opchain default until GA. |
 | Cloudflare Workers | NOT supported | Workers runtime is V8 + Workers APIs, not Bun. Use `typescript` pack instead. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the
 hardcoded matrix in `SKILL.md`.
 
 ## Cost band (2026-Q2, rough)
@@ -87,7 +87,7 @@ hardcoded matrix in `SKILL.md`.
 Bun's smaller container size and faster cold starts tend to shave 10–20% off
 PaaS costs vs equivalent Node services at the same workload.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Native module compat** — most Node native modules work, but the long tail
   (`better-sqlite3`, some image libs, some crypto libs) still fails. Audit

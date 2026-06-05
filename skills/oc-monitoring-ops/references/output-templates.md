@@ -1,6 +1,6 @@
 # Output Templates
 
-Report formats for monitoring-ops assessments, ops reports, and status summaries.
+Report formats for oc-monitoring-ops assessments, ops reports, and status summaries.
 
 ---
 
@@ -228,8 +228,8 @@ HEALTH CHECK — [project] — [timestamp]
 
 ## Finding Format
 
-Monitoring-ops findings use the `MO-` prefix to distinguish from code-auditor (`F-`)
-and security-auditor (`SA-`) findings.
+Monitoring-ops findings use the `MO-` prefix to distinguish from oc-code-auditor (`F-`)
+and oc-security-auditor (`SA-`) findings.
 
 ```markdown
 ### [MO-001] [Short title]

@@ -180,9 +180,9 @@ grep -rn "width:\s*\d\{3,\}px" --include="*.css" --include="*.scss" --include="*
 
 ---
 
-## 5. Style Book Compliance (app-architect projects)
+## 5. Style Book Compliance (oc-app-architect projects)
 
-If the project was designed through app-architect Phase 3:
+If the project was designed through oc-app-architect Phase 3:
 
 1. Read the style book (`design/style-book.html`) or design tokens
 2. Compare actual implementations against defined tokens:

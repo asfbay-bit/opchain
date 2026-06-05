@@ -32,17 +32,17 @@ ecosystem you need lives in JVM-only (Hadoop, Kafka clients, some payment SDKs).
 | Build | `dotnet build` | Restores + compiles. CI usually runs `dotnet build -c Release` to bundle a release build. `dotnet publish -c Release` for deployable artifacts. |
 | Lint | `dotnet format --verify-no-changes` | Built-in formatter + analyzer enforcement. Fails CI if formatting drifts. |
 | Format | `dotnet format` | Applies fixes. Pre-commit hook in most teams. |
-| Package manager | NuGet (`dotnet add package`, lockfile via `packages.lock.json`) | Lockfile is opt-in but stack-forge recommends enabling it for reproducibility. |
+| Package manager | NuGet (`dotnet add package`, lockfile via `packages.lock.json`) | Lockfile is opt-in but oc-stack-forge recommends enabling it for reproducibility. |
 
 ## Frameworks
 
-These are the csharp-language frameworks stack-forge recommends:
+These are the csharp-language frameworks oc-stack-forge recommends:
 
 - **ASP.NET Core** — the dominant web framework. Stack-forge picks it for any
   web-facing C# service. Minimal APIs for small services; full MVC for richer
   surfaces. Pairs with EF Core for ORM, SignalR for real-time.
 
-Other niches stack-forge will mention in advisories but does not pack:
+Other niches oc-stack-forge will mention in advisories but does not pack:
 
 - **Blazor (Server / WebAssembly)** — full-stack C# with the frontend in C# too.
   Niche but growing; in v1.5 we may add a dedicated Blazor framework pack.
@@ -60,8 +60,8 @@ C# is statically typed with deep tooling support:
 | Client | NSwag or `openapi-generator` | NSwag for C#-native; openapi-generator for cross-language clients. |
 | Validation | FluentValidation or DataAnnotations | DataAnnotations on DTOs (`[Required]`, `[Range]`); FluentValidation for richer rules. |
 
-When app-architect Phase 2 detects a first-party API surface and stack-forge picks
-C# + ASP.NET Core, control passes to `api-dev` to materialise the OpenAPI chain via
+When oc-app-architect Phase 2 detects a first-party API surface and oc-stack-forge picks
+C# + ASP.NET Core, control passes to `oc-api-dev` to materialise the OpenAPI chain via
 Swashbuckle + NSwag.
 
 ## Default deploy targets
@@ -74,7 +74,7 @@ Swashbuckle + NSwag.
 | AWS Lambda | Serverless C# | .NET 8 native AOT gets cold start under 200ms. Pair with API Gateway. |
 | Kubernetes (AKS / EKS) | Multi-service deployments | When the org already runs k8s. AKS for Microsoft-shop, EKS otherwise. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the hardcoded
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the hardcoded
 matrix in `SKILL.md`.
 
 ## Cost band (2026-Q2, rough)
@@ -88,7 +88,7 @@ matrix in `SKILL.md`.
 in 64 MB. That tilts cost favorably when the workload is small but not tiny. Check
 vendor pricing at decision time.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **EF Core change-tracking overhead** — entity-tracking is on by default and gets
   expensive on bulk operations. Stack-forge audits flag `Add` loops without

@@ -5,7 +5,7 @@ soft-real-time** — chat backends, presence systems, IoT fan-in, live dashboard
 The BEAM gives you preemptive scheduling, supervisor trees, and per-request
 isolated processes for free; Elixir gives that runtime an ergonomic, modern
 syntax. When the team's instinct is "we need a queue + websockets + per-user
-state" stack-forge nudges toward Elixir before the team accidentally rebuilds
+state" oc-stack-forge nudges toward Elixir before the team accidentally rebuilds
 half of OTP in another language.
 
 ## When to pick it
@@ -37,7 +37,7 @@ is the productivity bottleneck).
 
 ## Frameworks
 
-These are the elixir-language frameworks stack-forge recommends:
+These are the elixir-language frameworks oc-stack-forge recommends:
 
 - **Phoenix** — full-stack web framework. The default for any web-facing
   Elixir service. Pairs naturally with LiveView for server-rendered
@@ -70,7 +70,7 @@ real. It does recommend turning it on once the codebase passes ~5kLOC.
 | AWS ECS / Fargate | Enterprise with existing AWS | Container the release; manage clustering yourself via libcluster. |
 | Render | Single-node Phoenix | Fine for low-scale; loses BEAM clustering ergonomics. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the
 hardcoded matrix in `SKILL.md`.
 
 ## Cost band (2026-Q2, rough)
@@ -83,10 +83,10 @@ hardcoded matrix in `SKILL.md`.
 Check vendor pricing at decision time. Real-time workloads push cost up faster
 than CRUD APIs because each open WebSocket is a persistent process.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Cold-start mental model** — supervisor trees, processes, and message passing
-  are non-trivial. Teams new to OTP need ramp-up time; stack-forge advisories
+  are non-trivial. Teams new to OTP need ramp-up time; oc-stack-forge advisories
   cover this when the team profile signals no Erlang experience.
 - **NIF temptation** — the BEAM's safety story dies the moment you load a NIF
   that segfaults. Stack-forge flags any NIF dependency in the audit pass.
@@ -95,7 +95,7 @@ than CRUD APIs because each open WebSocket is a persistent process.
   teams ship via blue-green and skip hot upgrades entirely; that's fine.
 - **Phoenix LiveView vs. SPA** — LiveView is amazing for low-latency surfaces
   (same data center as the user). Cross-continent users feel the WS round trip;
-  stack-forge recommends static SPA + Channels in that case.
+  oc-stack-forge recommends static SPA + Channels in that case.
 
 ## Status
 

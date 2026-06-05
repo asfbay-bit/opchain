@@ -37,13 +37,13 @@ primarily Android client code (use the mobile kotlin-android pack from PR 6.5 in
 
 ## Frameworks
 
-These are the kotlin-language frameworks stack-forge recommends:
+These are the kotlin-language frameworks oc-stack-forge recommends:
 
 - **Spring Boot (Kotlin)** — the dominant web framework. Stack-forge picks it for any
   web-facing Kotlin service. First-class Kotlin support since Spring 5; pairs cleanly
   with Spring Data JPA and Spring Security.
 
-Other niches stack-forge will mention in advisories but does not pack:
+Other niches oc-stack-forge will mention in advisories but does not pack:
 
 - **Ktor** — JetBrains-built async web framework; coroutine-native. Excellent fit
   for streaming / WebSocket-heavy workloads. May get a dedicated pack in v1.5.
@@ -62,8 +62,8 @@ Kotlin is statically typed with strong null-safety guarantees:
 | Client | `openapi-generator` (kotlin generator) | Typed Kotlin clients from springdoc-emitted spec. |
 | Validation | Bean Validation (`jakarta.validation`) | Annotations on data classes (`@NotNull`, `@Size`, `@Valid`). Kotlin's nullable types add a compile-time layer above runtime validation. |
 
-When app-architect Phase 2 detects a first-party API surface and stack-forge picks
-Kotlin + Spring, control passes to `api-dev` to materialise the OpenAPI chain.
+When oc-app-architect Phase 2 detects a first-party API surface and oc-stack-forge picks
+Kotlin + Spring, control passes to `oc-api-dev` to materialise the OpenAPI chain.
 
 ## Default deploy targets
 
@@ -75,7 +75,7 @@ Kotlin + Spring, control passes to `api-dev` to materialise the OpenAPI chain.
 | Render | Heroku-style alternative | Same shape as Heroku, often cheaper. |
 | Google Cloud Run | Containerised stateless services | Good fit for scale-to-zero workloads; pairs with Kotlin's faster startup vs. Java. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the hardcoded
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the hardcoded
 matrix in `SKILL.md`.
 
 ## Cost band (2026-Q2, rough)
@@ -89,7 +89,7 @@ JVM memory floor still applies; idle Spring Boot wants ~256 MB. Kotlin doesn't c
 that — coroutines reduce thread count but the JVM heap floor is constant. Check vendor
 pricing at decision time.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Coroutine cancellation propagation** — forgetting `coroutineScope` or `supervisorScope`
   in nested launches leaks structured concurrency. Stack-forge audits for top-level

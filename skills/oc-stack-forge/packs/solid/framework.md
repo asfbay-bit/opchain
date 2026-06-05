@@ -47,7 +47,7 @@ without Start for SPA-only work); the workload is mostly content sites
 | Node | Self-hosted long-running | `node-server` preset; standalone Node output. |
 | Deno Deploy | Deno-flavored edge | `deno-deploy` preset; uses Deno's runtime. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the
 hardcoded matrix in `SKILL.md`.
 
 ## Signal contract
@@ -69,7 +69,7 @@ Server data uses `createAsync` and route-level `query`/`action` primitives
 that mirror Remix's loader/action split — but with signals on the client
 so loading states and error boundaries fall out naturally.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Don't destructure props** — Solid props are reactive proxies. Destructuring
   breaks reactivity. Stack-forge's audit flags `const { foo } = props` in

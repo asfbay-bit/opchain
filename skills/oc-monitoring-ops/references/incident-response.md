@@ -166,7 +166,7 @@ If errors mention a third-party service (Stripe, Salesforce, etc.):
 |---|---|---|
 | Bad deploy (regression) | `npx wrangler rollback` | Forward-deploy fix |
 | External service down | Enable fallback/graceful degradation | Wait for recovery |
-| Traffic spike | Check scale-ops thresholds; consider rate limiting | Adjust limits |
+| Traffic spike | Check oc-scale-ops thresholds; consider rate limiting | Adjust limits |
 | Database issue | Check D1 dashboard; look for lock contention | Restart Worker |
 | Code bug (no recent deploy) | Fix forward — patch + deploy | N/A |
 

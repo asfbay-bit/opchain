@@ -3,9 +3,9 @@
 Canonical runtime contract for opchain skills that read and write project-management
 tickets through MCP servers. v1.2 introduced the prose; v1.3 makes it executable.
 
-This document is referenced by `integrations-engineer` (canonical owner) and by every
-downstream PM-aware skill: `app-architect`, `git-ops`, `deploy-ops`, `monitoring-ops`,
-and `release-ops`. **All concrete MCP tool invocations made by those skills must
+This document is referenced by `oc-integrations-engineer` (canonical owner) and by every
+downstream PM-aware skill: `oc-app-architect`, `oc-git-ops`, `oc-deploy-ops`, `oc-monitoring-ops`,
+and `oc-release-ops`. **All concrete MCP tool invocations made by those skills must
 follow this contract.**
 
 ---
@@ -107,8 +107,8 @@ marker of the form:
 ```
 
 Where:
-- `<skill>` = the producing skill (`app-architect`, `git-ops`, `deploy-ops`,
-  `monitoring-ops`, `release-ops`).
+- `<skill>` = the producing skill (`oc-app-architect`, `oc-git-ops`, `oc-deploy-ops`,
+  `oc-monitoring-ops`, `oc-release-ops`).
 - `<event>` = the named event the comment represents (`sprint-contract`,
   `pr-opened`, `pr-merged`, `staging-verified`, `prod-shipped`, `incident-fired`,
   `release-announced`, ...).
@@ -159,13 +159,13 @@ array to its checkpoint (alongside the existing `skill_state`):
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-05-07T18:21:33Z-a3f1",
-      "skill": "app-architect",
+      "skill": "oc-app-architect",
       "verb": "/roadmap",
       "operation": "add_comment",
       "provider": "linear",
       "tool_name": "mcp__claude_ai_Linear__save_comment",
       "ticket_id": "PROJ-142",
-      "marker": "<!-- opchain:app-architect:sprint-contract:sprint-1 -->",
+      "marker": "<!-- opchain:oc-app-architect:sprint-contract:sprint-1 -->",
       "payload": {
         "issue_id": "PROJ-142",
         "body": "Sprint 1: Runtime PM-MCP made real ..."
@@ -250,7 +250,7 @@ These rules apply to every PM-aware skill. The validator (Section 6) enforces th
 6. **Tool overrides honoured.** A skill must consult `tool_overrides` before
    the registry default.
 7. **Cite this doc.** Each skill's PM-MCP section must contain an explicit
-   `See [pm-mcp-protocol.md] in integrations-engineer/references` reference.
+   `See [pm-mcp-protocol.md] in oc-integrations-engineer/references` reference.
 
 ---
 
@@ -282,12 +282,12 @@ introduce additional states beyond the universal set:
 
 | State | Used by | Meaning |
 |---|---|---|
-| `staging-verified` | deploy-ops | Smoke tests passed on staging. |
-| `shipped` | deploy-ops | Production deploy succeeded. |
-| `rolled-back` | deploy-ops | Deploy reverted; do not re-attempt without root-cause. |
-| `blocked` | deploy-ops, app-architect | Build / deploy gate failed; needs human input. |
-| `resolved-pending-postmortem` | monitoring-ops | Alert auto-cleared; postmortem owed. |
-| `noisy-alert` (label, not state) | monitoring-ops | Tagged on the incident ticket when threshold exceeded. |
+| `staging-verified` | oc-deploy-ops | Smoke tests passed on staging. |
+| `shipped` | oc-deploy-ops | Production deploy succeeded. |
+| `rolled-back` | oc-deploy-ops | Deploy reverted; do not re-attempt without root-cause. |
+| `blocked` | oc-deploy-ops, oc-app-architect | Build / deploy gate failed; needs human input. |
+| `resolved-pending-postmortem` | oc-monitoring-ops | Alert auto-cleared; postmortem owed. |
+| `noisy-alert` (label, not state) | oc-monitoring-ops | Tagged on the incident ticket when threshold exceeded. |
 
 Each project's `pm.yaml` should define how to map these to its actual workflow
 states under a `states.extended` map. Example:
@@ -311,15 +311,15 @@ the skill leaves the state unchanged and posts a comment instead.
 
 ---
 
-## Appendix B — Worked example: `git-ops /git-sync PROJ-142 --retry-pm`
+## Appendix B — Worked example: `oc-git-ops /git-sync PROJ-142 --retry-pm`
 
 A concrete trace of every rule above firing in sequence, drawn from the v1.3
 hero scenario.
 
 1. User runs `/git-sync PROJ-142 --retry-pm` after a previous attempt deferred
    a PR-opened comment due to a 503.
-2. git-ops reads `.checkpoints/git-ops.checkpoint.json`, finds one entry in
-   `pm_deferred_actions[]` with `marker: <!-- opchain:git-ops:pr-opened:#412 -->`,
+2. oc-git-ops reads `.checkpoints/oc-git-ops.checkpoint.json`, finds one entry in
+   `pm_deferred_actions[]` with `marker: <!-- opchain:oc-git-ops:pr-opened:#412 -->`,
    `retriable: true`.
 3. Resolves provider from `.opchain/pm.yaml` → `linear`. Resolves tool name from
    the registry: `mcp__claude_ai_Linear__save_comment`. No override applies.

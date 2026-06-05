@@ -13,7 +13,7 @@ commands:
 description: >
   Stack advisor for any platform: Cloudflare, Vercel, AWS, Supabase, Rails, Django.
   Use for /stack, /stack-decide, /feature, "what stack", "tech stack", "what should I
-  build with", or framework comparisons. Auto-invoked by app-architect. Trigger liberally.
+  build with", or framework comparisons. Auto-invoked by oc-app-architect. Trigger liberally.
 ---
 
 # Stack Forge
@@ -21,7 +21,7 @@ description: >
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
 Opinionated stack advisor that helps you pick the right tools and enforces type safety
-across whatever stack you choose. Auto-invoked by app-architect during Phase 2 — you
+across whatever stack you choose. Auto-invoked by oc-app-architect during Phase 2 — you
 don't call it separately for new projects.
 
 Works with any stack: Cloudflare Workers, Vercel/Next.js, AWS Lambda, Supabase, Rails,
@@ -32,8 +32,8 @@ stack-specific, loaded from reference docs at runtime.
 
 ```
 APP-ARCHITECT (planning)                TRI-DEV (building)
-  Phase 2: Spec ──auto-calls──▶ stack-forge decision tree
-  Phase 5: Scaffold ──auto-calls──▶ stack-forge project structure
+  Phase 2: Spec ──auto-calls──▶ oc-stack-forge decision tree
+  Phase 5: Scaffold ──auto-calls──▶ oc-stack-forge project structure
                                          │
   Feature request ───────────────────────▶ /feature → sprint decomposition
                                          │
@@ -42,16 +42,16 @@ APP-ARCHITECT (planning)                TRI-DEV (building)
                                    Evaluator reads per-layer criteria
 ```
 
-**App-architect auto-invokes stack-forge** — when Phase 2 starts, stack-forge's decision
+**App-architect auto-invokes oc-stack-forge** — when Phase 2 starts, oc-stack-forge's decision
 tree runs automatically to generate `01-tech-stack.md` and `02-architecture.md`. The user
-doesn't need to call `/stack-forge` separately. Stack-forge reads the discovery interview
+doesn't need to call `/oc-stack-forge` separately. Stack-forge reads the discovery interview
 results and recommends the best stack for the project's requirements.
 
-**App-architect Phase 6 uses stack-forge** for stack-ordered sprint decomposition regardless of stack choice.
+**App-architect Phase 6 uses oc-stack-forge** for stack-ordered sprint decomposition regardless of stack choice.
 
 ---
 
-## /stack-forge — Command Reference
+## /oc-stack-forge — Command Reference
 
 ```
 STACK FORGE COMMANDS
@@ -83,7 +83,7 @@ STACK FORGE COMMANDS
 
 The decision tree adapts to the project. It doesn't assume Cloudflare or any platform —
 it starts from requirements and narrows down. Skip questions where the answer is already
-clear from app-architect discovery, user memory, or conversation context.
+clear from oc-app-architect discovery, user memory, or conversation context.
 
 **Before answering any question, web search for current best practices.** Frameworks
 change fast — a recommendation from 6 months ago may be wrong today. Search for
@@ -199,7 +199,7 @@ After the decision tree, produce a summary:
 | Scale | 1K+ | $50-200 |
 ```
 
-When invoked by app-architect, this output becomes `01-tech-stack.md`.
+When invoked by oc-app-architect, this output becomes `01-tech-stack.md`.
 
 ---
 
@@ -227,10 +227,10 @@ DB Schema → ORM Types → API Types → API Spec (OpenAPI) → Generated Clien
 
 Read `references/typed-pipeline.md` for detailed implementation per stack.
 
-stack-forge *recommends* the typed pipeline. The `api-dev` skill *materialises*
+oc-stack-forge *recommends* the typed pipeline. The `oc-api-dev` skill *materialises*
 it: authoring the OpenAPI / GraphQL contract, scaffolding typed handlers, and
-generating the SDK. When app-architect Phase 2 detects a first-party API
-surface, it auto-invokes api-dev with the stack chosen here.
+generating the SDK. When oc-app-architect Phase 2 detects a first-party API
+surface, it auto-invokes oc-api-dev with the stack chosen here.
 
 ---
 
@@ -268,9 +268,9 @@ Read `references/deployment-patterns.md` for detailed patterns per platform.
 ## Platform Matrix (v1.3+)
 
 opchain v1.3 expands the platform menu beyond the JS / Cloudflare bias of v1.0–v1.2.
-Four full-stack patterns are first-class targets: stack-forge recommends them,
-app-architect's `references/scaffold-guide.md` knows how to scaffold them, and
-deploy-ops knows how to ship them.
+Four full-stack patterns are first-class targets: oc-stack-forge recommends them,
+oc-app-architect's `references/scaffold-guide.md` knows how to scaffold them, and
+oc-deploy-ops knows how to ship them.
 
 | Stack | DB | Deploy target | When to pick it |
 |---|---|---|---|
@@ -303,21 +303,21 @@ Costs are 2026-Q2 estimates from public pricing; check the platform docs at deci
 
 | Stack | Scaffold recipe | Deploy recipe |
 |---|---|---|
-| Django + Postgres + Render | [`scaffold-guide.md` § Django](../app-architect/references/scaffold-guide.md) | [`deploy-ops` § Render](../deploy-ops/SKILL.md) |
-| Rails + Postgres + Heroku | [`scaffold-guide.md` § Rails](../app-architect/references/scaffold-guide.md) | [`deploy-ops` § Heroku](../deploy-ops/SKILL.md) |
-| Go + Fly.io | [`scaffold-guide.md` § Go](../app-architect/references/scaffold-guide.md) | [`deploy-ops` § Fly.io](../deploy-ops/SKILL.md) |
-| Rust + Axum + Shuttle.rs | [`scaffold-guide.md` § Rust](../app-architect/references/scaffold-guide.md) | [`deploy-ops` § Shuttle.rs](../deploy-ops/SKILL.md) |
+| Django + Postgres + Render | [`scaffold-guide.md` § Django](../oc-app-architect/references/scaffold-guide.md) | [`oc-deploy-ops` § Render](../oc-deploy-ops/SKILL.md) |
+| Rails + Postgres + Heroku | [`scaffold-guide.md` § Rails](../oc-app-architect/references/scaffold-guide.md) | [`oc-deploy-ops` § Heroku](../oc-deploy-ops/SKILL.md) |
+| Go + Fly.io | [`scaffold-guide.md` § Go](../oc-app-architect/references/scaffold-guide.md) | [`oc-deploy-ops` § Fly.io](../oc-deploy-ops/SKILL.md) |
+| Rust + Axum + Shuttle.rs | [`scaffold-guide.md` § Rust](../oc-app-architect/references/scaffold-guide.md) | [`oc-deploy-ops` § Shuttle.rs](../oc-deploy-ops/SKILL.md) |
 
 ### What NOT to add to this matrix
 
 The matrix is intentionally short. New stacks earn a row only when:
 
-1. There's a documented `scaffold-guide.md` recipe AND a `deploy-ops` provider section.
+1. There's a documented `scaffold-guide.md` recipe AND a `oc-deploy-ops` provider section.
 2. At least one in-action `/demo` scenario exercises the stack end-to-end.
 3. The pairing (language + framework + DB + deploy) is opinionated — opchain
    recommends ONE deploy target per stack rather than listing every option.
 
-Adding a stack without all three is a stack-forge bug; the matrix becomes noise instead of guidance.
+Adding a stack without all three is a oc-stack-forge bug; the matrix becomes noise instead of guidance.
 
 ---
 
@@ -326,7 +326,7 @@ Adding a stack without all three is a stack-forge bug; the matrix becomes noise 
 Mobile packs (iOS / Android / Flutter / React Native — landing in PRs 6 + 6.5
 of the v1.4 sequence) do not have a "deploy command" the way web packs do.
 App Store / Play Store reviews are the gate; TestFlight / Internal-testing
-tracks gate beta cohorts. stack-forge's dispatcher recognises `kind: mobile`
+tracks gate beta cohorts. oc-stack-forge's dispatcher recognises `kind: mobile`
 and routes through a **release-checklist** envelope instead of trying to
 execute commands.
 
@@ -346,7 +346,7 @@ const out = dispatchMobile("ios-swiftui");
 //   }
 ```
 
-The returned envelope is rendered verbatim at the head of any stack-forge
+The returned envelope is rendered verbatim at the head of any oc-stack-forge
 output for a mobile pack so the downstream agent (or user) cannot
 accidentally interpret it as a deploy command.
 
@@ -356,22 +356,22 @@ accidentally interpret it as a deploy command.
 |---|---|---|
 | `null` | Pack does not exist. | Surface "unknown pack" error. |
 | `{ kind: "not-mobile", actualKind }` | Pack exists but isn't mobile. | Fall back to the regular dispatcher. |
-| `{ kind: "mobile", platform, … }` | Mobile pack. | Render `releaseChecklist` + the `mobileRef` doc; do **not** invoke deploy-ops. |
+| `{ kind: "mobile", platform, … }` | Mobile pack. | Render `releaseChecklist` + the `mobileRef` doc; do **not** invoke oc-deploy-ops. |
 
 ### What goes in the release checklist
 
 The actual checklist content lives in each mobile pack's `mobileRef` doc (e.g.
-`skills/stack-forge/packs/ios-swiftui/mobile.md`, landing in PR 6). The
+`skills/oc-stack-forge/packs/ios-swiftui/mobile.md`, landing in PR 6). The
 template the agent renders has a fixed prelude:
 
 ```
 {displayName} ({platform}) — checklist-driven, not automated.
-stack-forge will render the release checklist from {mobileRef} rather than
+oc-stack-forge will render the release checklist from {mobileRef} rather than
 executing commands. App Store / Play Store review windows are the gate.
 ```
 
 …followed by the body of `mobileRef`. Mobile dispatch deliberately does NOT
-invoke `deploy-ops`; release-ops handles the App-Store / Play-Store /
+invoke `oc-deploy-ops`; oc-release-ops handles the App-Store / Play-Store /
 TestFlight / Internal-Testing workflow.
 
 ### Why this lands in PR 3, ahead of the first real mobile pack
@@ -387,7 +387,7 @@ pack lands.
 
 ## Feature Decomposition (`/feature`)
 
-Decomposes a feature into stack-ordered sprints for app-architect Phase 6 regardless of platform:
+Decomposes a feature into stack-ordered sprints for oc-app-architect Phase 6 regardless of platform:
 
 ```
 1. DB layer (schema, migrations)
@@ -403,28 +403,28 @@ verified ground truth. This ordering is universal across stacks.
 
 ---
 
-## Invocation by app-architect
+## Invocation by oc-app-architect
 
-**Stack-forge is actively invoked by app-architect during Phase 2** per orchestrator.md §3.
-When called, stack-forge:
+**Stack-forge is actively invoked by oc-app-architect during Phase 2** per orchestrator.md §3.
+When called, oc-stack-forge:
 
-1. Reads the discovery context from `.checkpoints/app-architect.checkpoint.json` (requirements, users, constraints, budget, team experience).
+1. Reads the discovery context from `.checkpoints/oc-app-architect.checkpoint.json` (requirements, users, constraints, budget, team experience).
 2. Runs the decision tree (platform → backend → database → auth → frontend), web-searching for current framework status.
 3. Produces the stack recommendation.
-4. Writes its own checkpoint and returns control to app-architect, which then writes `01-tech-stack.md` and `02-architecture.md`.
-5. User reviews stack at app-architect's Spec Approval Gate.
+4. Writes its own checkpoint and returns control to oc-app-architect, which then writes `01-tech-stack.md` and `02-architecture.md`.
+5. User reviews stack at oc-app-architect's Spec Approval Gate.
 
-**The user does not call `/stack-forge` separately for new projects** — app-architect
-chains to it via the active-invocation pattern. `/stack-forge` is only invoked standalone for:
+**The user does not call `/oc-stack-forge` separately for new projects** — oc-app-architect
+chains to it via the active-invocation pattern. `/oc-stack-forge` is only invoked standalone for:
 - Quick stack questions outside a project context
 - Feature decomposition (`/feature`) for existing projects
-- Gap analysis on existing codebases (with reverse-spec)
+- Gap analysis on existing codebases (with oc-reverse-spec)
 
 ---
 
 ## Session Persistence (Checkpoint Protocol)
 
-Checkpoint location: `{project-dir}/.checkpoints/stack-forge.checkpoint.json`
+Checkpoint location: `{project-dir}/.checkpoints/oc-stack-forge.checkpoint.json`
 
 ### When to Write
 
@@ -456,15 +456,15 @@ Checkpoint location: `{project-dir}/.checkpoints/stack-forge.checkpoint.json`
 
 | Reads from | Why |
 |---|---|
-| app-architect | Discovery interview → stack decision context |
-| reverse-spec | Existing stack → gap analysis baseline |
+| oc-app-architect | Discovery interview → stack decision context |
+| oc-reverse-spec | Existing stack → gap analysis baseline |
 
 | Read by | Why |
 |---|---|
-| app-architect | Stack recommendation → Phase 2 spec (automatic); Phase 6 uses sprint decomposition patterns |
-| code-auditor | Type pipeline standard → compliance check |
-| scale-ops | Platform limits → scaling constraints |
-| deploy-ops | Platform → deployment patterns |
+| oc-app-architect | Stack recommendation → Phase 2 spec (automatic); Phase 6 uses sprint decomposition patterns |
+| oc-code-auditor | Type pipeline standard → compliance check |
+| oc-scale-ops | Platform limits → scaling constraints |
+| oc-deploy-ops | Platform → deployment patterns |
 
 ---
 
@@ -476,7 +476,7 @@ Checkpoint location: `{project-dir}/.checkpoints/stack-forge.checkpoint.json`
 | /testing | `references/testing-patterns.md` | Testing pyramid per framework |
 | /deploy | `references/deployment-patterns.md` | Deploy patterns per platform |
 | /errors | `references/error-handling.md` | Structured errors, logging |
-| /feature | `references/feature-decomposition.md` | Sprint templates for app-architect Phase 6 |
+| /feature | `references/feature-decomposition.md` | Sprint templates for oc-app-architect Phase 6 |
 | — | `references/cf-deployment.md` | CF-specific patterns (Workers, D1, KV) |
 
 **When a reference doc doesn't cover the selected stack**, web search for current
@@ -487,16 +487,16 @@ point, not a ceiling.
 
 ## PM-Tool MCP Integration (v1.2+)
 
-stack-forge produces architectural decisions. Those decisions
+oc-stack-forge produces architectural decisions. Those decisions
 deserve a permanent home in the PM tool — the next engineer
 investigating "why are we on this stack?" should not have to dig
-through chat logs. v1.2 makes stack-forge an Architectural
-Decision Record (ADR) author. See `integrations-engineer` for
+through chat logs. v1.2 makes oc-stack-forge an Architectural
+Decision Record (ADR) author. See `oc-integrations-engineer` for
 the canonical PM-MCP patterns.
 
 ### Stack-decision comment on the linked ticket
 
-When stack-forge runs from app-architect Phase 2 (the typical
+When oc-stack-forge runs from oc-app-architect Phase 2 (the typical
 case), the source ticket comes from the parent invocation. After
 the stack is selected, post:
 
@@ -515,11 +515,11 @@ Full rationale: spec/01-tech-stack.md
 
 The `ADR-{N}` is auto-numbered from the project's existing ADR
 counter (read from `.opchain/adr-counter` if present; otherwise
-maintained by stack-forge in the checkpoint).
+maintained by oc-stack-forge in the checkpoint).
 
 ### Standalone `/stack-decide` runs
 
-When stack-forge is invoked outside a Phase 2 flow with
+When oc-stack-forge is invoked outside a Phase 2 flow with
 `/stack-decide --ticket TICKET-1234`, the ticket is treated as
 the ADR home. Otherwise the decision lives in the project's
 `docs/adr/` directory only.
@@ -553,5 +553,5 @@ prior stack-decision comment in PM:
 4. **CI is the enforcer.** If it's not in CI, it's a suggestion, not a rule.
 5. **The team's stack wins.** Unless there's a compelling technical reason, match what
    the team already knows. Migration cost > marginal framework benefit.
-6. **Automatic, not optional.** Stack decisions happen inside app-architect Phase 2,
+6. **Automatic, not optional.** Stack decisions happen inside oc-app-architect Phase 2,
    not as a separate step the user might forget.

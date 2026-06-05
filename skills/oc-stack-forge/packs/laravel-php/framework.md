@@ -32,9 +32,9 @@ PHP); the workload is edge-runtime (no PHP there).
 | Build | `composer install --no-dev` | Inherited from PHP. Frontend assets via `npm run build` (Vite, integrated since Laravel 9.19). |
 | Lint | `phpcs` | Inherited from PHP. Laravel Pint (`./vendor/bin/pint`) is the framework-blessed code style fixer; opinionated PSR-12 + Laravel-specific rules. |
 | Dev server | `php artisan serve` | Built-in dev server. Use `php artisan queue:work` + `php artisan schedule:work` to mirror production behaviour locally. |
-| Generator | `php artisan make:*` | Idiomatic scaffolds (`make:model`, `make:controller`, `make:migration`, etc.); stack-forge defers to these for greenfield. |
+| Generator | `php artisan make:*` | Idiomatic scaffolds (`make:model`, `make:controller`, `make:migration`, etc.); oc-stack-forge defers to these for greenfield. |
 
-## When stack-forge picks Laravel
+## When oc-stack-forge picks Laravel
 
 The language → framework decision is short:
 
@@ -44,7 +44,7 @@ purpose ∈ {web-api, web-app, admin-panel, internal-tool, cms}
 → Laravel
 ```
 
-When the workload is "WordPress plugin", "library", or "CLI tool", stack-forge picks
+When the workload is "WordPress plugin", "library", or "CLI tool", oc-stack-forge picks
 plain PHP (or WordPress's plugin scaffolding) instead of Laravel.
 
 ## Eloquent vs. raw SQL
@@ -63,7 +63,7 @@ without `with()` eager loading.
 
 ## Full-stack patterns
 
-Laravel offers several full-stack approaches; stack-forge defaults by team profile:
+Laravel offers several full-stack approaches; oc-stack-forge defaults by team profile:
 
 | Pattern | When | Notes |
 |---|---|---|
@@ -82,10 +82,10 @@ Laravel offers several full-stack approaches; stack-forge defaults by team profi
 | Render | Heroku-style alternative | Same shape as Heroku, often cheaper. Background worker support for queues. |
 | Fly.io | Multi-region Laravel | Container the app + Postgres on Fly's network. Good fit for global apps. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the hardcoded
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the hardcoded
 matrix in `SKILL.md`.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **N+1 in Eloquent** — `with()` eager loading is easy to forget. Stack-forge audits
   flag `->all()` or `->get()` followed by relation access in a loop. Enable

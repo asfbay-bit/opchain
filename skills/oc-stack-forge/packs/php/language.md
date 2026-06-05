@@ -29,25 +29,25 @@ edge-runtime (no PHP there outside niche FaaS providers).
 
 | Concern | Tool | Notes |
 |---|---|---|
-| Test runner | `phpunit` | The standard. Pest is a popular alternative with a more expressive syntax — stack-forge defers to whatever the project uses. CI runs `vendor/bin/phpunit`. |
+| Test runner | `phpunit` | The standard. Pest is a popular alternative with a more expressive syntax — oc-stack-forge defers to whatever the project uses. CI runs `vendor/bin/phpunit`. |
 | Build | `composer install --no-dev` | "Build" in PHP is producing a deployable vendor tree without dev dependencies. CI/CD images this directory. |
-| Lint | `phpcs` | PHP_CodeSniffer; PSR-12 is the canonical ruleset. `phpstan` and `psalm` are heavier static-analysis tools that stack-forge recommends adding once codebases pass ~5kLOC. |
+| Lint | `phpcs` | PHP_CodeSniffer; PSR-12 is the canonical ruleset. `phpstan` and `psalm` are heavier static-analysis tools that oc-stack-forge recommends adding once codebases pass ~5kLOC. |
 | Format | `phpcbf` (sniffer auto-fix), `php-cs-fixer` | Both work; `php-cs-fixer` has richer rules. Pre-commit hook in most teams. |
 | Package manager | Composer (Packagist) | Lockfile is `composer.lock`, committed. Stack-forge insists on lockfile + `composer install` (not `update`) in CI. |
 
 ## Frameworks
 
-These are the php-language frameworks stack-forge recommends:
+These are the php-language frameworks oc-stack-forge recommends:
 
 - **Laravel** — the dominant full-stack framework. Stack-forge picks it for any
   greenfield PHP web app. Pairs with Eloquent ORM, Livewire/Inertia for hybrid
   full-stack, queues + scheduler built in.
 
-Other niches stack-forge will mention in advisories but does not pack:
+Other niches oc-stack-forge will mention in advisories but does not pack:
 
 - **Symfony** — Laravel's serious sibling; component-based architecture, used heavily
   in enterprise PHP. May get a dedicated framework pack in v1.5.
-- **WordPress** — the CMS, not a framework, but stack-forge will offer scaffolding
+- **WordPress** — the CMS, not a framework, but oc-stack-forge will offer scaffolding
   advice for plugin/theme work. Out of v1.4 scope.
 - **Slim / Lumen** — micro-frameworks for API-only services. Niche.
 
@@ -63,8 +63,8 @@ PHP gained real static typing in 7+, sharpened further in 8+:
 | Static analysis | `phpstan` (level 6+) or `psalm` | The closest PHP gets to a type checker. Catches whole classes of bug; worth adding to CI for any non-trivial app. |
 | Validation | Laravel Form Requests, or `respect/validation` | Form Requests for HTTP boundary; Respect for arbitrary shapes. |
 
-When app-architect Phase 2 detects a first-party API surface and stack-forge picks
-PHP + Laravel, control passes to `api-dev` to materialise the OpenAPI chain via
+When oc-app-architect Phase 2 detects a first-party API surface and oc-stack-forge picks
+PHP + Laravel, control passes to `oc-api-dev` to materialise the OpenAPI chain via
 l5-swagger + openapi-generator.
 
 ## Default deploy targets
@@ -77,7 +77,7 @@ l5-swagger + openapi-generator.
 | Render | Heroku-style alternative | Same shape as Heroku, often cheaper. |
 | AWS Elastic Beanstalk | Enterprise lift-and-shift | When the team is already on AWS and wants a managed PHP runtime. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the hardcoded
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the hardcoded
 matrix in `SKILL.md`.
 
 ## Cost band (2026-Q2, rough)
@@ -91,7 +91,7 @@ PHP is the cheapest mainstream backend at small scale — shared hosting starts 
 $3/mo. Above small scale the pricing converges with other stacks. Check vendor pricing
 at decision time.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **N+1 queries in Eloquent** — `with()` eager loading is easy to forget. Stack-forge's
   audit pass flags `->all()` followed by accessor calls on relations.

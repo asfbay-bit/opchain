@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://opchain.dev/schemas/stack-pack/v1.json",
-  "title": "stack-forge pack",
-  "description": "A coverage pack — a language, framework, deploy target, or mobile platform that stack-forge can recommend or scaffold. One pack.yml per directory under skills/stack-forge/packs/. See CONTRIBUTING.md for authoring guide.",
+  "title": "oc-stack-forge pack",
+  "description": "A coverage pack — a language, framework, deploy target, or mobile platform that oc-stack-forge can recommend or scaffold. One pack.yml per directory under skills/oc-stack-forge/packs/. See CONTRIBUTING.md for authoring guide.",
   "type": "object",
   "required": ["id", "kind", "status", "since"],
   "additionalProperties": false,
@@ -13,13 +13,13 @@
       "pattern": "^[a-z][a-z0-9-]*$",
       "minLength": 2,
       "maxLength": 40,
-      "description": "Stable identifier. Must match the directory name (skills/stack-forge/packs/<id>/pack.yml) and be globally unique across all kinds. Drives the coverage flag id: skills.coverage.<id>.enabled (for kind in {language, framework, mobile})."
+      "description": "Stable identifier. Must match the directory name (skills/oc-stack-forge/packs/<id>/pack.yml) and be globally unique across all kinds. Drives the coverage flag id: skills.coverage.<id>.enabled (for kind in {language, framework, mobile})."
     },
     "displayName": {
       "type": "string",
       "minLength": 1,
       "maxLength": 60,
-      "description": "Human-readable label for stack-forge UI and ADR documents. Defaults to id with hyphens replaced by spaces."
+      "description": "Human-readable label for oc-stack-forge UI and ADR documents. Defaults to id with hyphens replaced by spaces."
     },
     "kind": {
       "type": "string",
@@ -56,7 +56,7 @@
     "buildCmd": {
       "type": "string",
       "minLength": 1,
-      "description": "Canonical build invocation for the pack. Used in stack-forge scaffolds and ADRs."
+      "description": "Canonical build invocation for the pack. Used in oc-stack-forge scaffolds and ADRs."
     },
     "lintCmd": {
       "type": "string",
@@ -66,7 +66,7 @@
     "defaultPlatform": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9-]*$",
-      "description": "Pack id of the deploy-target stack-forge picks by default for this pack. Must be a member of supportedPlatforms."
+      "description": "Pack id of the deploy-target oc-stack-forge picks by default for this pack. Must be a member of supportedPlatforms."
     },
     "supportedPlatforms": {
       "type": "array",
@@ -125,7 +125,7 @@
         },
         "notes": {
           "type": "string",
-          "description": "Optional migration notes shown in stack-forge advisories."
+          "description": "Optional migration notes shown in oc-stack-forge advisories."
         }
       }
     }

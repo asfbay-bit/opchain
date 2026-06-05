@@ -31,7 +31,7 @@ Run top-to-bottom; first match wins.
    exposed?**
    → **Major.**
 
-3. **Did the orchestrator pipeline-map drop or rename a skill that downstream
+3. **Did the oc-orchestrator pipeline-map drop or rename a skill that downstream
    skills referenced?**
    → **Major.**
 
@@ -48,7 +48,7 @@ Run top-to-bottom; first match wins.
 7. **Were new scenarios added to /demo?**
    → **Minor.** (The site catalog grew.)
 
-8. **Were new platforms / stacks added to stack-forge / scaffold / deploy-ops
+8. **Were new platforms / stacks added to oc-stack-forge / scaffold / oc-deploy-ops
    without changing existing patterns?**
    → **Minor.**
 
@@ -92,8 +92,8 @@ in a patch release.
 ### v1.0 → v1.1 (decision: Minor)
 
 Triggers: full Astro site added (new infra), tri-agent harness pattern shipped
-across `app-architect`, `code-auditor`, `integrations-engineer` (new prose
-patterns), checkpoint-protocol v1.0 added (new shared schema), six in-action
+across `oc-app-architect`, `oc-code-auditor`, `oc-integrations-engineer` (new prose
+patterns), oc-checkpoint-protocol v1.0 added (new shared schema), six in-action
 scenarios added (catalog grew).
 
 Rule 4 (new patterns), 6 (new sections), 7 (new scenarios) — Minor.
@@ -108,8 +108,8 @@ Rule 6, 7, 8 — Minor.
 
 ### v1.2 → v1.3 (decision: Minor)
 
-Triggers: 18th skill `release-ops` added (Rule 4), Django/Rails/Go platform
-expansion in stack-forge / scaffold / deploy-ops (Rule 8), three new scenarios
+Triggers: 18th skill `oc-release-ops` added (Rule 4), Django/Rails/Go platform
+expansion in oc-stack-forge / scaffold / oc-deploy-ops (Rule 8), three new scenarios
 (Rule 7), new validator `validate-pm-mcp` (build-time invariant). No
 checkpoint-schema change, no verb removal, no breaking change.
 

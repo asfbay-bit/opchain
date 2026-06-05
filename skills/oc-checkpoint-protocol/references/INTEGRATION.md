@@ -44,7 +44,7 @@ RESUME CHECK
 
 ---
 
-## app-architect
+## oc-app-architect
 
 ### Where to Write Checkpoints
 
@@ -84,7 +84,7 @@ RESUME CHECK
 ]
 ```
 
-### Key context_primer Fields for app-architect
+### Key context_primer Fields for oc-app-architect
 
 ```json
 {
@@ -169,7 +169,7 @@ RESUME CHECK
 
 ---
 
-## reverse-spec (migration from markdown checkpoint)
+## oc-reverse-spec (migration from markdown checkpoint)
 
 ### Migration Steps
 
@@ -192,7 +192,7 @@ RESUME CHECK
 
 ---
 
-## stack-forge
+## oc-stack-forge
 
 ### Where to Write Checkpoints
 
@@ -229,7 +229,7 @@ loses all thread between them.
 
 ## Validation Checklist
 
-Before marking a skill as "checkpoint-protocol compliant," verify:
+Before marking a skill as "oc-checkpoint-protocol compliant," verify:
 
 - [ ] Writes checkpoint after every phase/step completion
 - [ ] Writes checkpoint after every gate approval
@@ -240,4 +240,4 @@ Before marking a skill as "checkpoint-protocol compliant," verify:
 - [ ] `next_actions` is specific enough to start working immediately
 - [ ] `progress_table` covers all phases the skill defines
 - [ ] Checkpoint file is under 4KB
-- [ ] Cross-skill reads work (e.g., deploy-ops can read tri-dev's checkpoint)
+- [ ] Cross-skill reads work (e.g., oc-deploy-ops can read tri-dev's checkpoint)

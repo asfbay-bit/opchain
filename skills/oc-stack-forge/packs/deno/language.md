@@ -2,7 +2,7 @@
 
 Like Bun, Deno is a TypeScript/JavaScript runtime — not a separate language —
 but the toolchain (`deno test`, `deno task`, `deno lint`), the permission
-model, and the deno.json contract make it a distinct stack-forge surface. The
+model, and the deno.json contract make it a distinct oc-stack-forge surface. The
 stand-out feature is permissions: a Deno program can't read the filesystem,
 open the network, or read env vars without explicit `--allow-*` flags. That
 makes Deno the natural pick when the workload has multi-tenant or
@@ -62,7 +62,7 @@ identically to the TypeScript pack:
 | ORM / schema | Drizzle (npm: specifier) | Best Deno-native experience. Prisma also works via npm. |
 | API contract | Zod + framework-specific OpenAPI plugin | Same as TS. |
 | Test integration | `deno test` with `--allow-*` scoping | Use `--allow-net=api.example.com` not `--allow-all` for representative test coverage. |
-| Permissions | `--allow-read=./data --allow-net=:8080` | Pin to minimum scope in CI; stack-forge audits for blanket `--allow-all`. |
+| Permissions | `--allow-read=./data --allow-net=:8080` | Pin to minimum scope in CI; oc-stack-forge audits for blanket `--allow-all`. |
 
 ## Default deploy targets
 
@@ -74,7 +74,7 @@ identically to the TypeScript pack:
 | AWS Lambda | Enterprise with existing AWS | Deno Lambda runtime via container or community layers. |
 | Cloudflare Workers | NOT supported | Workers is V8 + Workers APIs, not Deno. Use `typescript` pack. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the
 hardcoded matrix in `SKILL.md`.
 
 ## Cost band (2026-Q2, rough)
@@ -87,7 +87,7 @@ hardcoded matrix in `SKILL.md`.
 Deno Deploy is cheapest at small scale because it bills per-request without
 per-instance minimums.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Permissions in CI** — `--allow-all` in CI defeats the permission model.
   Stack-forge audits for blanket flags and recommends scope-pinned flags.

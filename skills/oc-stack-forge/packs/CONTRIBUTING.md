@@ -1,8 +1,8 @@
-# Authoring a stack-forge pack
+# Authoring a oc-stack-forge pack
 
-A **pack** is a unit of stack-forge coverage: a language, framework, deploy
-target, or mobile platform that stack-forge can recommend or scaffold. Each
-pack is a directory under `skills/stack-forge/packs/<id>/` containing a
+A **pack** is a unit of oc-stack-forge coverage: a language, framework, deploy
+target, or mobile platform that oc-stack-forge can recommend or scaffold. Each
+pack is a directory under `skills/oc-stack-forge/packs/<id>/` containing a
 `pack.yml` and (optionally) reference docs.
 
 This file is the spec; `_schema.json` is the machine-readable contract.
@@ -11,7 +11,7 @@ This file is the spec; `_schema.json` is the machine-readable contract.
 ## Layout
 
 ```
-skills/stack-forge/packs/
+skills/oc-stack-forge/packs/
 ├── _schema.json                 ← machine-readable contract
 ├── CONTRIBUTING.md              ← this file
 └── <pack-id>/
@@ -121,10 +121,10 @@ Each `*Ref` doc has a **soft cap of 50KB** and a **hard cap of 100KB**.
 - Under 50KB: clean PASS.
 - 50KB – 100KB: build emits a warning. Trim or split the doc.
 - Over 100KB: build fails. Ref docs ride along inside the per-skill zip
-  shown on `/skills/stack-forge`; bloat is visible to anyone downloading
+  shown on `/skills/oc-stack-forge`; bloat is visible to anyone downloading
   the bundle.
 
-Ref docs are Markdown only (`.md`). Keep them focused on what stack-forge
+Ref docs are Markdown only (`.md`). Keep them focused on what oc-stack-forge
 needs to *recommend* the pack — opinionated defaults, gotchas, scaffold
 templates. Don't duplicate language tutorials.
 
@@ -140,7 +140,7 @@ experimental ──► beta ──► stable ──► deprecated
 - **beta** — API stable but limited coverage, hidden by default. Opt-in via flag.
 - **stable** — full coverage, visible by default. Most packs ship here.
 - **deprecated** — superseded by another pack. Requires a `deprecated` block
-  pointing to a replacement. Hidden by default; stack-forge shows a
+  pointing to a replacement. Hidden by default; oc-stack-forge shows a
   migration note when consulted.
 
 Bumping from beta → stable is a normal PR. Bumping to deprecated requires
@@ -162,7 +162,7 @@ gen-catalog       → validates SKILL.md against the full flag set
 
 ## Adding a new pack — checklist
 
-1. Create `skills/stack-forge/packs/<id>/pack.yml` matching one of the
+1. Create `skills/oc-stack-forge/packs/<id>/pack.yml` matching one of the
    skeletons above. Match `id` to the directory name.
 2. Add ref docs as needed; keep each under 50KB.
 3. Run `npm run prebuild` and confirm `gen-stack-packs.mjs` reports your

@@ -39,7 +39,7 @@ DEPLOY OPS COMMANDS
   /deploy status     Show current deployment state
 
   GATES
-  /deploy audit      Run pre-deploy audit (calls code-auditor)
+  /deploy audit      Run pre-deploy audit (calls oc-code-auditor)
   /deploy smoke      Run post-deploy smoke tests
   /deploy health     Check production health
 
@@ -105,7 +105,7 @@ grep -q '"deploy"' package.json 2>/dev/null && echo "Deploy script found in pack
 
 ### Deploy Config
 
-Create or update `.deploy-ops.json`:
+Create or update `.oc-deploy-ops.json`:
 
 ```json
 {
@@ -155,7 +155,7 @@ Create or update `.deploy-ops.json`:
 2. **Check auth** — `wrangler whoami` or CF API token in env
 3. **Check environments** — staging/prod wrangler.toml configured?
 4. **Check D1 databases** — staging and prod DBs exist?
-5. **Generate .deploy-ops.json** — ask user to confirm/adjust
+5. **Generate .oc-deploy-ops.json** — ask user to confirm/adjust
 6. **Verify deploy works** — dry-run `wrangler deploy --dry-run`
 7. **Set up smoke test URLs** — derive from wrangler.toml routes
 
@@ -163,33 +163,33 @@ Create or update `.deploy-ops.json`:
 
 ## Pre-Deploy Audit Gate (/deploy audit)
 
-Before any deploy, run **two** audits in order: code-auditor (code-level
-findings) then security-auditor (architecture / hardening / threat
+Before any deploy, run **two** audits in order: oc-code-auditor (code-level
+findings) then oc-security-auditor (architecture / hardening / threat
 model). Both must pass for `/deploy staging` and `/deploy prod` to
 proceed.
 
-### 1. code-auditor — code-level gate
+### 1. oc-code-auditor — code-level gate
 
 ```bash
 # Reuse the existing checkpoint if it's recent
-node scripts/checkpoint.mjs status code-auditor
+node scripts/checkpoint.mjs status oc-code-auditor
 # If updated_at < 1h old, reuse. Otherwise:
-#   Skill(skill="code-auditor", args="/audit pre-deploy")
+#   Skill(skill="oc-code-auditor", args="/audit pre-deploy")
 ```
 
-### 2. security-auditor — posture gate
+### 2. oc-security-auditor — posture gate
 
-Code-auditor finds SQLi and hardcoded secrets; security-auditor asks
+Code-auditor finds SQLi and hardcoded secrets; oc-security-auditor asks
 "what's the threat model?" and "is the infra hardened?". Run it
 before the first production deploy and any time the surface area
 changes (new auth flow, new public endpoint, new third-party
 integration).
 
 ```bash
-node scripts/checkpoint.mjs status security-auditor
+node scripts/checkpoint.mjs status oc-security-auditor
 # Reuse if updated_at < 24h old AND no high-impact changes since.
 # Otherwise:
-#   Skill(skill="security-auditor", args="/security pre-deploy")
+#   Skill(skill="oc-security-auditor", args="/security pre-deploy")
 ```
 
 ### Gate Rules
@@ -320,24 +320,24 @@ echo "Production: $STATUS (${LATENCY}s)"
 (( $(echo "$LATENCY > 2.0" | bc -l 2>/dev/null) )) && echo "⚠️ High latency"
 ```
 
-### Hand off to monitoring-ops
+### Hand off to oc-monitoring-ops
 
-After a successful production promotion, **invoke monitoring-ops** to
+After a successful production promotion, **invoke oc-monitoring-ops** to
 verify post-deploy observability (uptime checks, error tracking,
-SLO/SLI alarms). Deploy-ops ships it; monitoring-ops watches it.
+SLO/SLI alarms). Deploy-ops ships it; oc-monitoring-ops watches it.
 
 ```
-Skill(skill="monitoring-ops", args="/monitor verify")
+Skill(skill="oc-monitoring-ops", args="/monitor verify")
 ```
 
-monitoring-ops reads this skill's checkpoint to learn what shipped
+oc-monitoring-ops reads this skill's checkpoint to learn what shipped
 (version, commit SHA, prod URL) and confirms:
 
 - Uptime monitor is configured and pinging the new deployment.
 - Error tracking sees fresh events from the new version.
 - Any new alerts/SLOs needed for surfaces introduced in this release.
 
-If monitoring-ops reports gaps (no uptime monitor, no error tracking,
+If oc-monitoring-ops reports gaps (no uptime monitor, no error tracking,
 new endpoints without SLOs), surface them and let the user decide
 whether to address now or schedule for a follow-up.
 
@@ -414,7 +414,7 @@ notify "✅ *gtrack* deployed to production — $(git rev-parse --short HEAD)"
 ## Checkpoint Integration
 
 ### Checkpoint Location
-`{project-dir}/.checkpoints/deploy-ops.checkpoint.json`
+`{project-dir}/.checkpoints/oc-deploy-ops.checkpoint.json`
 
 ### When to Write
 
@@ -445,16 +445,16 @@ notify "✅ *gtrack* deployed to production — $(git rev-parse --short HEAD)"
 
 | Reads from | Why |
 |---|---|
-| code-auditor | Audit grade → deploy gate |
-| app-architect | Phase 6 sprint pass → deploy confidence |
-| git-ops | Branch merged → ready to deploy |
+| oc-code-auditor | Audit grade → deploy gate |
+| oc-app-architect | Phase 6 sprint pass → deploy confidence |
+| oc-git-ops | Branch merged → ready to deploy |
 
 ### Triggered By
 
 Deploy-ops can be invoked directly, but also gets suggested by other skills:
-- **git-ops**: After `/git-sync` completes, git-ops suggests `/deploy staging`
-- **app-architect**: After final Phase 6 sprint passes, app-architect suggests `/audit pre-deploy` → `/deploy`
-- **app-architect**: Phase 7 (Launch) suggests the deploy pipeline
+- **oc-git-ops**: After `/git-sync` completes, oc-git-ops suggests `/deploy staging`
+- **oc-app-architect**: After final Phase 6 sprint passes, oc-app-architect suggests `/audit pre-deploy` → `/deploy`
+- **oc-app-architect**: Phase 7 (Launch) suggests the deploy pipeline
 
 When triggered by another skill's suggestion, read that skill's checkpoint for context
 (e.g., what was just pushed, what audit results exist) to skip redundant steps.
@@ -483,7 +483,7 @@ jobs:
 
 The walkthrough above is Cloudflare-Workers-flavored because that's opchain's
 own runtime. v1.3's platform-expansion sprint added first-class provider
-sections for the four other targets in `stack-forge`'s Platform Matrix. Each
+sections for the four other targets in `oc-stack-forge`'s Platform Matrix. Each
 section gives the deploy command, env-var pattern, smoke-test surface, and
 rollback path. The audit gate, `/deploy audit`, runs the same way regardless
 of provider.
@@ -507,7 +507,7 @@ Critical vars for opchain-managed projects:
 swapping traffic.
 
 **Smoke tests:** `curl -s https://<service>.onrender.com/health` returns the
-deployed commit SHA; deploy-ops compares to local HEAD. Latency check uses
+deployed commit SHA; oc-deploy-ops compares to local HEAD. Latency check uses
 `curl -w '%{time_total}'`.
 
 **Rollback:** `render deploys list --service=<id>` → `render deploys rollback
@@ -542,7 +542,7 @@ if you need to roll back a migration too, that's a separate
 `heroku run rails db:rollback`.
 
 **Audit gate:** Rails projects run `bundle exec brakeman` and
-`bundle exec rspec` in CI before promoting; deploy-ops orchestrates via
+`bundle exec rspec` in CI before promoting; oc-deploy-ops orchestrates via
 `/deploy audit` which dispatches to the project's `bin/audit` if present.
 
 ### Fly.io (Go primary, Rust alt, anything Dockerfile-based)
@@ -569,7 +569,7 @@ or `fly deploy --rollback`. Fly keeps the prior image registered until the
 next successful deploy, so rollback is image-swap fast.
 
 **Audit gate:** Go: `go vet ./... && go test ./... && govulncheck ./...`. Rust:
-`cargo clippy -- -D warnings && cargo test && cargo audit`. deploy-ops
+`cargo clippy -- -D warnings && cargo test && cargo audit`. oc-deploy-ops
 dispatches by reading the project root for `go.mod` / `Cargo.toml`.
 
 ### Shuttle.rs (Rust primary)
@@ -607,22 +607,22 @@ not first-class in v1.3:
 
 | Platform | Status | Why |
 |---|---|---|
-| Vercel | Reachable via stack-forge `references/deployment-patterns.md`, but no v1.3 scaffold recipe | Overlaps too closely with CF Workers for opchain's audience; pick one. |
-| AWS Lambda | Same | Steep operational ramp; deploy-ops would need dramatically different audit/rollback shape. |
+| Vercel | Reachable via oc-stack-forge `references/deployment-patterns.md`, but no v1.3 scaffold recipe | Overlaps too closely with CF Workers for opchain's audience; pick one. |
+| AWS Lambda | Same | Steep operational ramp; oc-deploy-ops would need dramatically different audit/rollback shape. |
 | Railway | Same | Render covers the same niche; redundant. |
 | Cloud Run | Same | Fly.io covers the same niche with a simpler dev loop. |
-| Bare-metal / VPS | Out of scope | deploy-ops is opinionated about managed deploys; bare-metal needs migration-ops, not deploy-ops. |
+| Bare-metal / VPS | Out of scope | oc-deploy-ops is opinionated about managed deploys; bare-metal needs oc-migration-ops, not oc-deploy-ops. |
 
 A future minor release can promote any of these by adding a scaffold recipe
-in `app-architect/references/scaffold-guide.md` AND a provider section here
+in `oc-app-architect/references/scaffold-guide.md` AND a provider section here
 AND at least one in-action `/demo` scenario.
 
 ---
 
 ## Pack-aware dispatch (v1.4+)
 
-v1.4 introduces the stack-forge pack registry (`skills/stack-forge/packs/<id>/pack.yml`).
-deploy-ops consumes it at **runtime** via `src/lib/pack-dispatch.js` to pick
+v1.4 introduces the oc-stack-forge pack registry (`skills/oc-stack-forge/packs/<id>/pack.yml`).
+oc-deploy-ops consumes it at **runtime** via `src/lib/pack-dispatch.js` to pick
 the right provider section above without re-implementing the matrix.
 
 The contract is intentionally minimal — pack lookups are cheap and the
@@ -651,14 +651,14 @@ Resolution order:
    keyed by language (Python → Render, Ruby → Heroku, Go → Fly.io, Rust →
    Shuttle, TypeScript → Cloudflare Workers). This is the v1.4 PR 3-through-6
    state for the 5 backfilled language packs.
-3. **Pack miss** — caller error. deploy-ops surfaces `unknown pack: <id>`
+3. **Pack miss** — caller error. oc-deploy-ops surfaces `unknown pack: <id>`
    and exits. No fuzzy matching.
 
 ### Worked example — `/deploy staging` on a Python project
 
 ```
 1. /deploy staging
-2. Read pack hint from project's stack-forge.checkpoint.json:
+2. Read pack hint from project's oc-stack-forge.checkpoint.json:
      activePack: "python"
 3. getDispatchTarget("python") → { defaultPlatform: null, supportedPlatforms: [] }
 4. Fall back to language → Platform Matrix:
@@ -675,7 +675,7 @@ the pack's `defaultPlatform` is the answer, no fallback needed.
 
 The dispatcher is a single-field lookup per deploy invocation — codegen
 would buy a few μs and lose the property that `pack.yml` is the single
-source of truth at the moment deploy-ops actually runs. (api-dev codegens
+source of truth at the moment oc-deploy-ops actually runs. (oc-api-dev codegens
 because it needs to template per-language scaffolds *into generated source
 code* — different shape, different trade-off.)
 
@@ -683,16 +683,16 @@ code* — different shape, different trade-off.)
 
 ## PM-Tool MCP Integration (v1.3+)
 
-deploy-ops creates a **deploy ticket** per environment + commit +
+oc-deploy-ops creates a **deploy ticket** per environment + commit +
 ship and updates every PM ticket linked to commits in the deploy.
 
 The runtime contract — concrete tool names, retry policy, idempotency
 markers, the `pm_deferred_actions[]` schema, and the extended state
 vocabulary (`staging-verified` / `shipped` / `rolled-back` / `blocked`)
 — lives in
-[`integrations-engineer/references/pm-mcp-protocol.md`](../integrations-engineer/references/pm-mcp-protocol.md).
+[`oc-integrations-engineer/references/pm-mcp-protocol.md`](../oc-integrations-engineer/references/pm-mcp-protocol.md).
 **All MCP calls below honour that contract; this section says only how
-deploy-ops shapes the deploy ticket and per-event updates.**
+oc-deploy-ops shapes the deploy ticket and per-event updates.**
 
 ### Deploy ticket creation
 
@@ -706,7 +706,7 @@ passes:
    marker per protocol §3:
 
    ```
-   <!-- opchain:deploy-ops:deploy-created:<env>:<HEAD-sha> -->
+   <!-- opchain:oc-deploy-ops:deploy-created:<env>:<HEAD-sha> -->
 
    Environment: {env}
    Range: {prev-sha}..{HEAD-sha}
@@ -730,7 +730,7 @@ passes:
      or "Task" if missing).
    - parent / blocked-by relations to each linked ticket, if the
      PM tool supports them.
-6. Record the deploy-ticket id in `deploy-ops.checkpoint.json`
+6. Record the deploy-ticket id in `oc-deploy-ops.checkpoint.json`
    `skill_state.pm.deploy_tickets[]`.
 
 ### Per-event updates
@@ -741,10 +741,10 @@ short-circuit per protocol §3. Pre-write check via `list_comments`
 
 | Event | Marker | Action |
 |---|---|---|
-| Smoke tests pass (staging) | `<!-- opchain:deploy-ops:staging-verified:<deploy-id> -->` | `add_comment` to deploy ticket: PASS + URL; transition deploy ticket → `staging-verified` (resolved from `pm.yaml.states.extended`). |
-| Production ship | `<!-- opchain:deploy-ops:prod-shipped:<deploy-id> -->` | `add_comment` to deploy ticket: prod URL + version stamp; transition → `shipped`. For each linked ticket, separate marker `<!-- opchain:deploy-ops:linked-shipped:<deploy-id>:<ticket-id> -->` with body "Shipped to prod via deploy {id}". |
-| Rollback | `<!-- opchain:deploy-ops:rollback:<deploy-id> -->` | `add_comment` to deploy ticket: rollback reason + previous-version SHA; transition → `rolled-back`. For each linked ticket, marker `<!-- opchain:deploy-ops:linked-rollback:<deploy-id>:<ticket-id> -->` body "Rolled back — re-investigate". |
-| Smoke fail | `<!-- opchain:deploy-ops:smoke-fail:<deploy-id> -->` | `add_comment` to deploy ticket: failure summary; transition → `blocked`; the prod gate refuses. |
+| Smoke tests pass (staging) | `<!-- opchain:oc-deploy-ops:staging-verified:<deploy-id> -->` | `add_comment` to deploy ticket: PASS + URL; transition deploy ticket → `staging-verified` (resolved from `pm.yaml.states.extended`). |
+| Production ship | `<!-- opchain:oc-deploy-ops:prod-shipped:<deploy-id> -->` | `add_comment` to deploy ticket: prod URL + version stamp; transition → `shipped`. For each linked ticket, separate marker `<!-- opchain:oc-deploy-ops:linked-shipped:<deploy-id>:<ticket-id> -->` with body "Shipped to prod via deploy {id}". |
+| Rollback | `<!-- opchain:oc-deploy-ops:rollback:<deploy-id> -->` | `add_comment` to deploy ticket: rollback reason + previous-version SHA; transition → `rolled-back`. For each linked ticket, marker `<!-- opchain:oc-deploy-ops:linked-rollback:<deploy-id>:<ticket-id> -->` body "Rolled back — re-investigate". |
+| Smoke fail | `<!-- opchain:oc-deploy-ops:smoke-fail:<deploy-id> -->` | `add_comment` to deploy ticket: failure summary; transition → `blocked`; the prod gate refuses. |
 
 State strings (`staging-verified` / `shipped` / `rolled-back` /
 `blocked`) **must** be resolved from `pm.yaml.states.extended` — never
@@ -755,7 +755,7 @@ hard-coded — so each project can map them to its actual workflow names.
 The deploy ticket lives until production ships (or rollback closes
 the loop). A staging deploy ticket left open >7d auto-comments on
 itself with marker
-`<!-- opchain:deploy-ops:stale-staging:<deploy-id> -->` body
+`<!-- opchain:oc-deploy-ops:stale-staging:<deploy-id> -->` body
 "Stale deploy — close manually if abandoned" so the PM tool
 reflects reality. The 7-day auto-comment is itself idempotent —
 the marker prevents duplicate stale-warnings on resumed sessions.
@@ -763,8 +763,8 @@ the marker prevents duplicate stale-warnings on resumed sessions.
 ### `/deploy --retry-pm` flush
 
 Invokes the protocol §4 flush against
-`deploy-ops.checkpoint.json` `pm_deferred_actions[]`. Filter to
-`skill: "deploy-ops"` and `retriable: true`. Surfaces
+`oc-deploy-ops.checkpoint.json` `pm_deferred_actions[]`. Filter to
+`skill: "oc-deploy-ops"` and `retriable: true`. Surfaces
 `flushed N / failed M`. The deploy itself never blocks on PM-MCP;
 this flush is purely the post-ship reconciliation path.
 
@@ -778,7 +778,7 @@ this flush is purely the post-ship reconciliation path.
   comments are unaffected.
 - Deploy spans 50+ tickets → comment on the deploy ticket only;
   individual linked tickets get a single rollup comment with marker
-  `<!-- opchain:deploy-ops:rollup:<deploy-id> -->` listing all
+  `<!-- opchain:oc-deploy-ops:rollup:<deploy-id> -->` listing all
   included tickets to avoid notification spam.
 
 ---

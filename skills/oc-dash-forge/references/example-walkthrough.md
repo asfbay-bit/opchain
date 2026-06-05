@@ -1,10 +1,10 @@
 # Worked Example: Ops Dashboard for PenThreshold Compliance Monitoring
 
-A complete run of dash-forge on a realistic scenario. Use this as the north star for output quality.
+A complete run of oc-dash-forge on a realistic scenario. Use this as the north star for output quality.
 
 **Scenario:** Aidan wants a real-time monitoring dashboard for the PenThreshold IT training compliance platform — the ops team needs to see at a glance whether training is landing, which integrations are healthy, and what's backing up.
 
-This run was invoked by `/app-architect` during its Phase 3b wireframe review, which detected the dashboard surface and routed to `/data-forge`.
+This run was invoked by `/oc-app-architect` during its Phase 3b wireframe review, which detected the dashboard surface and routed to `/data-forge`.
 
 ---
 
@@ -13,8 +13,8 @@ This run was invoked by `/app-architect` during its Phase 3b wireframe review, w
 ### Upstream context found
 
 - `data-architect-handoff.md` exists (PenThreshold schema: users, courses, completions, requirements, tickets)
-- app-architect style book exists (Penumbra blue + neutral warm grays, Inter font, 8px spacing scale)
-- No prior dash-forge checkpoint
+- oc-app-architect style book exists (Penumbra blue + neutral warm grays, Inter font, 8px spacing scale)
+- No prior oc-dash-forge checkpoint
 
 ### Exec summary
 
@@ -36,7 +36,7 @@ Only 5 questions because upstream context was rich:
 | What thresholds = red vs. yellow vs. green? | Sync lag >15 min = red, >5 min = yellow. Backlog >50 = red, >20 = yellow. Ticket spike = 2σ over 7-day baseline |
 | Who acts on red alerts? | Whoever is on-call. Dashboard should show owner per alert |
 | Is there alert sound / notification? | No — this is passive monitoring. Pager duty handles alerts |
-| Any constraint on React libraries? | No — match app-architect's stack (already uses Tailwind + shadcn) |
+| Any constraint on React libraries? | No — match oc-app-architect's stack (already uses Tailwind + shadcn) |
 
 Checkpoint written.
 
@@ -260,21 +260,21 @@ This prototype uses mock data in `mock-data.ts`. To wire to real data:
 5. Incidents: the incidents table is the existing ServiceNow integration — wire via /incidents API, poll every 2 min
 6. Recent events: EventHub stream, last 50 events
 
-### Return to app-architect
+### Return to oc-app-architect
 
-> `/app-architect` → add "PenThreshold Ops Dashboard" to Phase 3d punch list with source=dash-forge
+> `/oc-app-architect` → add "PenThreshold Ops Dashboard" to Phase 3d punch list with source=oc-dash-forge
 > Build sprint estimate: S (4–6 hours, mostly wiring)
 ```
 
 ### Parent checkpoint updated
 
-app-architect's checkpoint now has:
+oc-app-architect's checkpoint now has:
 
 ```jsonc
 "sub_skill_invocations": [
   {
-    "skill": "dash-forge",
-    "checkpoint_path": "/home/claude/penthreshold/.checkpoints/dash-forge.checkpoint.json",
+    "skill": "oc-dash-forge",
+    "checkpoint_path": "/home/claude/penthreshold/.checkpoints/oc-dash-forge.checkpoint.json",
     "status": "complete",
     "handoff_path": "/home/claude/penthreshold/dash-forge-handoff/"
   }
@@ -291,5 +291,5 @@ Re-reading this run, the things to imitate:
 2. **Archetype pick was defended with specifics.** "Wall monitor + on-call + 2-min refresh" — three concrete intake answers.
 3. **Every tile has a declared drill path.** Not "some of them are clickable" — every one.
 4. **Mock data is real.** "ServiceNow Connector" and "Azure AD Sync" not "Integration A" and "Integration B".
-5. **Tokens handed back up.** `tokens.ts` is in a format ux-engineer can consume for its component library.
+5. **Tokens handed back up.** `tokens.ts` is in a format oc-ux-engineer can consume for its component library.
 6. **Audit passed before handoff.** 13 checks documented, not skipped.

@@ -33,9 +33,9 @@ Spring learning curve is the bottleneck, not the language).
 | Build | `gradle build` | Produces an executable fat-jar (Spring Boot Gradle plugin). Use `./gradlew bootRun` for local dev. Maven is supported but most Kotlin-first repos use Gradle. |
 | Lint | `ktlint` | Same as Kotlin base. Spring Boot Kotlin scaffolds have a clean ktlint profile. `detekt` adds heavier static analysis. |
 | Asset pipeline | None built-in | Spring Boot serves static assets from `src/main/resources/static/`. Pair with a JS bundler when the project includes frontend code. |
-| Generator | `start.spring.io` with Kotlin selected | Idiomatic Kotlin Spring Boot project bootstrap; stack-forge defers to this for greenfield. |
+| Generator | `start.spring.io` with Kotlin selected | Idiomatic Kotlin Spring Boot project bootstrap; oc-stack-forge defers to this for greenfield. |
 
-## When stack-forge picks Spring Boot (Kotlin)
+## When oc-stack-forge picks Spring Boot (Kotlin)
 
 The language → framework decision is short:
 
@@ -45,7 +45,7 @@ purpose ∈ {web-api, web-app, internal-tool, enterprise-integration}
 → Spring Boot (Kotlin)
 ```
 
-When the workload is "library", "CLI tool", or "Android client", stack-forge picks
+When the workload is "library", "CLI tool", or "Android client", oc-stack-forge picks
 plain Kotlin (or the kotlin-android mobile pack) instead of Spring.
 
 ## Kotlin-idiomatic Spring patterns
@@ -67,7 +67,7 @@ class UserService(private val repo: UserRepository) {
 }
 ```
 
-Notes stack-forge will enforce:
+Notes oc-stack-forge will enforce:
 
 - Constructor injection over field injection (no `@Autowired` on `var` fields).
 - Data classes for DTOs; plain classes with explicit constructors for JPA entities
@@ -85,10 +85,10 @@ Notes stack-forge will enforce:
 | Heroku | Small Spring Boot Kotlin apps | Easy onboarding; the official JVM buildpack works fine. |
 | Render | Heroku-style alternative | Same shape as Heroku, often cheaper. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the hardcoded
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the hardcoded
 matrix in `SKILL.md`.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **`open` modifier for JPA entities** — Kotlin classes are `final` by default; JPA
   needs them open for proxy generation. Stack-forge bakes the `kotlin-allopen` Gradle

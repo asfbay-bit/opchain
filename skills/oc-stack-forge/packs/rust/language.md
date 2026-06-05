@@ -38,7 +38,7 @@ committing).
 
 ## Frameworks (land in later v1.4 PRs)
 
-These are the rust-language frameworks stack-forge will recommend once their
+These are the rust-language frameworks oc-stack-forge will recommend once their
 packs ship in PRs 4-7:
 
 - **Axum** (preferred) — Tokio-native, tower middleware ecosystem,
@@ -64,8 +64,8 @@ openapi-typescript client`.
 | Validation | `validator` crate | `garde` | Both support derive-macro field-level rules; `validator` is more common. |
 | Client | `openapi-typescript` | typeshare for cross-language types | OpenAPI for REST clients; typeshare when sharing Rust types directly to TS / Kotlin / Swift consumers. |
 
-When app-architect Phase 2 detects a first-party API surface and stack-forge
-has picked Rust, control passes to `api-dev` to author the contract via
+When oc-app-architect Phase 2 detects a first-party API surface and oc-stack-forge
+has picked Rust, control passes to `oc-api-dev` to author the contract via
 `utoipa` (or spec-first if the API has non-Rust producers) and generate the
 SDK.
 
@@ -73,7 +73,7 @@ SDK.
 
 | Target | Default for | Notes |
 |---|---|---|
-| Shuttle.rs | Most new Rust services | Postgres + secrets provisioning out of the box; "infra as code in your `main.rs`" maps cleanly onto Rust's strict-by-default model. The default stack-forge pick. |
+| Shuttle.rs | Most new Rust services | Postgres + secrets provisioning out of the box; "infra as code in your `main.rs`" maps cleanly onto Rust's strict-by-default model. The default oc-stack-forge pick. |
 | Fly.io | Apps wanting regional placement | Multi-region Postgres, regional VMs; works well for latency-sensitive APIs. |
 | AWS Lambda | Bursty workloads in existing AWS | Cold starts are excellent with `cargo-lambda`; pair with API Gateway. |
 | Cloudflare Workers (WASM) | Edge-deployed Rust via `workers-rs` | Smaller subset of Rust available; ideal for parsers/codecs running at the edge. |
@@ -93,7 +93,7 @@ team learning curve, not infrastructure. Stack-forge will not recommend
 Rust to a team without prior exposure unless the workload genuinely demands
 it.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Compile-time tax** — `cargo build` on a non-trivial workspace can take
   minutes. Stack-forge bakes `sccache` and Cranelift-backend dev builds
@@ -107,7 +107,7 @@ it.
 - **`Result<T, Box<dyn Error>>` everywhere** — convenient in scripts,
   painful in production. Stack-forge recommends `thiserror` for library-
   visible errors and `anyhow` only at the binary boundary.
-- **Cross-compilation** — Rust supports it, but stack-forge defaults to
+- **Cross-compilation** — Rust supports it, but oc-stack-forge defaults to
   building in the target environment (CI for Linux x86_64, GitHub Actions
   runners). Don't promise macOS dev → Linux prod parity without testing.
 

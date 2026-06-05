@@ -2,7 +2,7 @@
 
 Pick the right chart for the data shape. Wrong chart = user can't read the story, no matter how well-styled.
 
-**Pipeline context:** This file feeds Phase 2 and Phase 3 of dash-forge.
+**Pipeline context:** This file feeds Phase 2 and Phase 3 of oc-dash-forge.
 
 ---
 

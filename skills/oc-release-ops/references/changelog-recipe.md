@@ -49,7 +49,7 @@ Each release entry is one `<section class="release">` (or
 - **Lead with the user-visible change**, in bold inline-code or bold prose.
 - Then a one-sentence explanation of what changed and why.
 - Avoid implementation jargon ("replaced placeholder mcp.<provider> with
-  concrete tool names" → "**git-ops now actually calls the Linear MCP
+  concrete tool names" → "**oc-git-ops now actually calls the Linear MCP
   tools** when you `/git-sync TICKET-1234`, with retry / backoff and a
   deferred-action queue if Linear is unreachable.")
 - ≤ 280 characters per bullet (the changelog page reading rhythm).
@@ -115,7 +115,7 @@ For the v1.3 release `/release draft` produces:
   <p class="rel-summary">
     opchain v1.3 makes the v1.2 PM-MCP prose executable end-to-end,
     expands the platform menu beyond JS / Cloudflare, and ships
-    <code>release-ops</code> — the 18th skill — to automate the
+    <code>oc-release-ops</code> — the 18th skill — to automate the
     "scope → /changelog → bump → ship" cadence opchain uses for itself.
   </p>
 
@@ -123,7 +123,7 @@ For the v1.3 release `/release draft` produces:
   <ul>
     <li><strong>The PM-MCP loop is real.</strong> ...</li>
     <li><strong>Platform menu grew.</strong> ...</li>
-    <li><strong><code>release-ops</code> is the 18th skill.</strong> ...</li>
+    <li><strong><code>oc-release-ops</code> is the 18th skill.</strong> ...</li>
     ...
   </ul>
 

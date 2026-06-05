@@ -26,9 +26,9 @@ Move code from Claude's workspace to a git repository with proper branch managem
 commit structure, and PR descriptions. This is the bridge between "Claude built it"
 and "it's in version control."
 
-## /git-ops — Command Reference
+## /oc-git-ops — Command Reference
 
-When the user types `/git-ops`, display this menu:
+When the user types `/oc-git-ops`, display this menu:
 
 ```
 GIT OPS COMMANDS
@@ -49,7 +49,7 @@ GIT OPS COMMANDS
   /checkpoint       Show checkpoint status
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Type any command to begin. /git-ops to see this again.
+  Type any command to begin. /oc-git-ops to see this again.
 ```
 
 ---
@@ -138,7 +138,7 @@ Examples:
 
 ### Convention from Checkpoint
 
-If an app-architect checkpoint exists, derive the branch name from it:
+If an oc-app-architect checkpoint exists, derive the branch name from it:
 - Sprint 1 build → `feat/sprint-1-auth-flow`
 - Code audit fix → `fix/audit-f001-rate-limiting`
 - Deploy setup → `deploy/ci-cd-pipeline`
@@ -197,9 +197,9 @@ One commit per logical unit of work. Rules of thumb:
 | Full sprint | 3-6 commits following the build order |
 | Config/tooling changes | 1 commit, separate from feature work |
 
-### Auto-Commit from app-architect Phase 6 Sprints
+### Auto-Commit from oc-app-architect Phase 6 Sprints
 
-When app-architect completes a Phase 6 sprint, git-ops can auto-structure commits:
+When oc-app-architect completes a Phase 6 sprint, oc-git-ops can auto-structure commits:
 
 ```bash
 # Read the sprint contract for commit scoping
@@ -216,19 +216,19 @@ git add src/auth/__tests__/ tests/
 git commit -m "test(auth): add unit + integration tests for passkey auth"
 ```
 
-### Pre-Commit Gate (auto-invokes bug-check)
+### Pre-Commit Gate (auto-invokes oc-bug-check)
 
-**Before staging files or running `git commit`, invoke the bug-check skill.**
-This is the canonical pre-commit gate — git-ops does NOT run its own
+**Before staging files or running `git commit`, invoke the oc-bug-check skill.**
+This is the canonical pre-commit gate — oc-git-ops does NOT run its own
 ad-hoc lint/type/test checks. Bug-check owns the seven-check suite
 (types, lint, tests, anti-patterns, secrets, build, deps) and decides
 PASS or FAIL.
 
 ```
-Skill(skill="bug-check", args="/bugcheck run")
+Skill(skill="oc-bug-check", args="/bugcheck run")
 ```
 
-Then read `.checkpoints/bug-check.checkpoint.json` for the verdict.
+Then read `.checkpoints/oc-bug-check.checkpoint.json` for the verdict.
 
 | Verdict | Action |
 |---|---|
@@ -238,7 +238,7 @@ Then read `.checkpoints/bug-check.checkpoint.json` for the verdict.
 
 The runtime also has a `PreToolUse(Bash)` hook at
 `.claude/hooks/pre-commit-bugcheck.sh` that blocks `git commit` when the
-bug-check checkpoint is missing or stale (>10min) or has a non-PASS
+oc-bug-check checkpoint is missing or stale (>10min) or has a non-PASS
 verdict. The hook is the safety net; this section is the contract that
 keeps the assistant from tripping it.
 
@@ -282,11 +282,11 @@ Pull from all available sources to build a comprehensive PR description:
 - [ ] Unit tests pass (`npm test`)
 - [ ] Type check passes (`tsc --noEmit`)
 - [ ] Manual testing completed
-[If app-architect Phase 6: "Evaluated by app-architect evaluator: X.X/10 (sprint N)"]
+[If oc-app-architect Phase 6: "Evaluated by oc-app-architect evaluator: X.X/10 (sprint N)"]
 
 ## Audit Status
 
-[If code-auditor ran: "Pre-deploy audit: Grade [X], [N] findings ([M] addressed in this PR)"]
+[If oc-code-auditor ran: "Pre-deploy audit: Grade [X], [N] findings ([M] addressed in this PR)"]
 [If not: "No code audit run — consider `/audit pre-deploy` before merging"]
 
 ## Deployment Notes
@@ -323,7 +323,7 @@ One command that runs the entire flow:
 3. **Create branch** — `git checkout -b <branch>`
 4. **Stage changes** — intelligently stage (skip build artifacts, node_modules)
 5. **Structure commits** — group by logical unit
-6. **Run bug-check gate** — invoke `Skill(skill="bug-check", args="/bugcheck run")`. **FAIL aborts the sync** — surface the failing checks and stop. The user can `/bugcheck fix`, `/bugcheck bypass`, or address the failures and re-run `/git-sync`.
+6. **Run oc-bug-check gate** — invoke `Skill(skill="oc-bug-check", args="/bugcheck run")`. **FAIL aborts the sync** — surface the failing checks and stop. The user can `/bugcheck fix`, `/bugcheck bypass`, or address the failures and re-run `/git-sync`.
 7. **Push** — `git push -u origin <branch>`
 8. **Generate PR description** — from all available context
 9. **Create PR** — via gh CLI or output for manual creation
@@ -333,31 +333,31 @@ At each step, show progress. If any step needs user input, ask once and continue
 ### Post-Sync Handoff
 
 After `/git-sync` completes successfully:
-- If a deploy-ops config exists for this project, suggest:
+- If a oc-deploy-ops config exists for this project, suggest:
   "Changes pushed. Run `/deploy staging` to deploy to staging?"
-- If no deploy-ops config exists, suggest:
+- If no oc-deploy-ops config exists, suggest:
   "Changes pushed. Run `/deploy init` to set up deployment, or `/audit pre-deploy` for a quality check."
 
 ---
 
 ## Project Governance Awareness
 
-If a `GOVERNANCE.md` file exists in the project root (generated by app-architect or
+If a `GOVERNANCE.md` file exists in the project root (generated by oc-app-architect or
 the project-governance skill), read it before committing. Respect:
 - **Naming conventions** — file naming, branch naming overrides
 - **Directory structure** — where new files should be placed
 - **Version tracking** — which documents are master copies vs. working drafts
-- **Git strategy** — branching model (if different from git-ops defaults)
+- **Git strategy** — branching model (if different from oc-git-ops defaults)
 
-If governance conventions conflict with git-ops defaults, governance wins — it's
-project-specific, git-ops defaults are generic.
+If governance conventions conflict with oc-git-ops defaults, governance wins — it's
+project-specific, oc-git-ops defaults are generic.
 
 ---
 
 ## Checkpoint Integration
 
 ### Checkpoint Location
-`{project-dir}/.checkpoints/git-ops.checkpoint.json`
+`{project-dir}/.checkpoints/oc-git-ops.checkpoint.json`
 
 ### When to Write
 
@@ -378,21 +378,21 @@ The reference implementation lives at
 On `pull_request: closed` with `merged == true`, it runs:
 
 ```bash
-node scripts/checkpoint.mjs update git-ops \
+node scripts/checkpoint.mjs update oc-git-ops \
   "--skill_state.merged_prs+:json={...}" \
   "--step=last-merge-#${PR_NUM}" \
   "--status=in_progress"
 
-git add .checkpoints/git-ops.checkpoint.json
-git commit -m "chore(checkpoint): stamp git-ops after #N merge [skip ci]"
+git add .checkpoints/oc-git-ops.checkpoint.json
+git commit -m "chore(checkpoint): stamp oc-git-ops after #N merge [skip ci]"
 git push origin main
 ```
 
-When scaffolding a new project that uses git-ops, drop that workflow
+When scaffolding a new project that uses oc-git-ops, drop that workflow
 file. It needs `permissions: contents: write` and the
 `[skip ci]` trailer so it doesn't loop. Other skills' checkpoints
-(orchestrator, app-architect, ux-engineer, etc.) stay assistant-driven
-because their content is contextual — only `git-ops` has a fully
+(oc-orchestrator, oc-app-architect, oc-ux-engineer, etc.) stay assistant-driven
+because their content is contextual — only `oc-git-ops` has a fully
 deterministic post-merge update worth automating.
 
 ### context_primer Template
@@ -415,9 +415,9 @@ deterministic post-merge update worth automating.
 
 | Reads from | Why |
 |---|---|
-| app-architect | Roadmap tasks → PR description, phase → branch naming; Phase 6 sprint contract → commit scoping, eval scores → PR description |
-| code-auditor | Audit grade → PR description, findings → commit grouping |
-| deploy-ops | Deploy status → PR deployment notes |
+| oc-app-architect | Roadmap tasks → PR description, phase → branch naming; Phase 6 sprint contract → commit scoping, eval scores → PR description |
+| oc-code-auditor | Audit grade → PR description, findings → commit grouping |
+| oc-deploy-ops | Deploy status → PR deployment notes |
 
 ---
 
@@ -434,7 +434,7 @@ build/
 .wrangler/
 .checkpoints/          # Checkpoint protocol files
 *.checkpoint.json.bak  # Archived checkpoints
-.git-ops-config.json   # Local git-ops config
+.git-ops-config.json   # Local oc-git-ops config
 ```
 
 If `.gitignore` is missing entries, add them in a separate `chore: update .gitignore`
@@ -446,14 +446,14 @@ commit before the feature commits.
 
 When the user invokes any verb with a ticket id —
 `/git-sync TICKET-1234`, `/commit --ticket PLAT-12`, or pastes a
-Linear / Jira / GitHub Issues URL — git-ops reads the ticket via
+Linear / Jira / GitHub Issues URL — oc-git-ops reads the ticket via
 the configured PM-MCP and uses it for branch, commit, and PR shape.
 
 The runtime contract — concrete tool names, retry policy, idempotency
 markers, and the `pm_deferred_actions[]` schema — lives in
-[`integrations-engineer/references/pm-mcp-protocol.md`](../integrations-engineer/references/pm-mcp-protocol.md).
+[`oc-integrations-engineer/references/pm-mcp-protocol.md`](../oc-integrations-engineer/references/pm-mcp-protocol.md).
 **All MCP calls below honour that contract; this section says only how
-git-ops shapes branch / commit / PR / state from the ticket.**
+oc-git-ops shapes branch / commit / PR / state from the ticket.**
 
 ### `/git-sync TICKET-1234` flow
 
@@ -480,25 +480,25 @@ git-ops shapes branch / commit / PR / state from the ticket.**
    "ready-to-close" state).
 5. **PR title + body** — title begins with `[TICKET-1234]` followed by
    the concise change summary. Body is generated from the ticket
-   description, the diff summary, and the auditor / bug-check report
+   description, the diff summary, and the auditor / oc-bug-check report
    (if present). It includes a top-line
    `**Linked ticket:** [TICKET-1234](url)` and a plain-text `Refs:
    TICKET-1234` footer so Linear can auto-link even if branch detection
    fails.
 6. **PR open** — pre-write check via the `list_comments` tool (Linear)
    or `issue_read` (GitHub, comments inline) for marker
-   `<!-- opchain:git-ops:pr-opened:#<pr-number> -->`. If absent, call
+   `<!-- opchain:oc-git-ops:pr-opened:#<pr-number> -->`. If absent, call
    the registry-resolved `add_comment` tool (Linear:
    `mcp__claude_ai_Linear__save_comment`; GitHub:
    `mcp__mcp-server-github__add_issue_comment`) with body
-   `<!-- opchain:git-ops:pr-opened:#<pr-number> -->\nPR opened: <url>`.
+   `<!-- opchain:oc-git-ops:pr-opened:#<pr-number> -->\nPR opened: <url>`.
    Then resolve the `in_review` state string from `pm.yaml.states` and
    call the `transition` tool (Linear / GitHub: `save_issue` /
    `issue_write` with state field; Jira:
    `mcp__atlassian__jira_transition_issue`).
-7. **PR merge** (when git-ops observes the merge or is invoked with
+7. **PR merge** (when oc-git-ops observes the merge or is invoked with
    `/git-sync --closed`) — same pre-write check pattern with marker
-   `<!-- opchain:git-ops:pr-merged:#<pr-number> -->`; comment carries
+   `<!-- opchain:oc-git-ops:pr-merged:#<pr-number> -->`; comment carries
    the merge SHA + commit subject; transition to `done` (resolved
    from `pm.yaml.states`).
 
@@ -515,14 +515,14 @@ If the staged diff spans multiple tickets (e.g. user says
 "this closes PLAT-1 and PLAT-2"), use the first as the branch /
 PR primary and add a `Refs:` line per additional ticket. Comment
 on each via `add_comment`, each carrying its own ticket-scoped
-marker `<!-- opchain:git-ops:pr-opened:#<pr-number>:<ticket-id> -->`
+marker `<!-- opchain:oc-git-ops:pr-opened:#<pr-number>:<ticket-id> -->`
 so re-runs are idempotent per ticket.
 
 ### `/git-sync --retry-pm` flush
 
 Invokes the protocol §4 flush against
-`git-ops.checkpoint.json` `pm_deferred_actions[]`. Filter to
-`skill: "git-ops"` and `retriable: true`. Surfaces
+`oc-git-ops.checkpoint.json` `pm_deferred_actions[]`. Filter to
+`skill: "oc-git-ops"` and `retriable: true`. Surfaces
 `flushed N / failed M`.
 
 ### Failure modes

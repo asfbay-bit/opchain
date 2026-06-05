@@ -67,7 +67,7 @@ For the iOS side (post-PR 6 adapter): `eas build --platform ios` then
 `eas submit --platform ios --latest` to TestFlight, then promote.
 
 Local builds (`npx expo run:android`) work for dev but require a full
-Android SDK install; stack-forge defaults all release-track builds to
+Android SDK install; oc-stack-forge defaults all release-track builds to
 EAS to keep contributor setup minimal.
 
 ## Versioning

@@ -38,7 +38,7 @@ registry, and answers three questions:
 3. **Route me.** — Smart dispatch to the right skill based on intent.
 
 This is an **additive layer**. Every existing skill retains its own welcome protocol
-and works independently. The orchestrator provides a better front door and a unified
+and works independently. The oc-orchestrator provides a better front door and a unified
 view across projects — it doesn't replace any skill's internal logic.
 
 ---
@@ -75,7 +75,7 @@ ORCHESTRATOR COMMANDS
   META
   /ops health          Self-check: are all skill files accessible?
   /ops skills          List all installed opchain skills with versions
-  /checkpoint          Show orchestrator state (memory registry + session cache)
+  /checkpoint          Show oc-orchestrator state (memory registry + session cache)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Type any command, or just describe what you need.
@@ -85,7 +85,7 @@ ORCHESTRATOR COMMANDS
 
 ## Session-Start Protocol
 
-Run this on every new session, before doing any other orchestrator work:
+Run this on every new session, before doing any other oc-orchestrator work:
 
 ```bash
 npm run checkpoint:status
@@ -104,7 +104,7 @@ ls .checkpoints/*.checkpoint.json 2>/dev/null && cat .checkpoints/*.checkpoint.j
 ```
 
 If `.checkpoints/` doesn't exist at all, this is a cold start —
-delegate to `checkpoint-protocol` to scaffold the schema, README,
+delegate to `oc-checkpoint-protocol` to scaffold the schema, README,
 `scripts/checkpoint.mjs`, and the post-merge auto-stamp workflow
 before doing anything else.
 
@@ -145,7 +145,7 @@ chat history.
          │ reads                        │ dispatches to
          ▼                              ▼
   .checkpoints/*.json            Other opchain skills
-  (all projects)                 (app-architect, code-auditor, etc.)
+  (all projects)                 (oc-app-architect, oc-code-auditor, etc.)
 ```
 
 ### Design Constraints
@@ -153,8 +153,8 @@ chat history.
 1. **Read-only coordinator.** Orchestrator reads other skills' checkpoints but NEVER
    writes to them. It persists its own state via memory (registry) and session files
    (routing history, scan cache).
-2. **Additive, not gating.** Skills work without the orchestrator installed. The
-   orchestrator makes the ecosystem smarter, not dependent.
+2. **Additive, not gating.** Skills work without the oc-orchestrator installed. The
+   oc-orchestrator makes the ecosystem smarter, not dependent.
 3. **No build artifacts.** Orchestrator produces status reports and routing decisions,
    never code, specs, designs, or documents.
 4. **Dispatch, don't duplicate.** When routing, actively invoke the target skill
@@ -169,18 +169,18 @@ The registry tracks all projects the user is actively working on.
 ### Persistence Model
 
 **Critical constraint:** Claude's filesystem resets between conversations. A global
-checkpoint file would be wiped every session. The orchestrator uses a two-layer
+checkpoint file would be wiped every session. The oc-orchestrator uses a two-layer
 persistence strategy:
 
 1. **Primary: `memory_user_edits`** — The project registry (names, paths, priority,
    monorepo structure) is stored as a memory edit. This survives across conversations.
    Format: one compact JSON line per `memory_user_edits add` call.
 
-2. **Session cache: `~/.opchain/orchestrator.session.json`** — Ephemeral per-session
+2. **Session cache: `~/.opchain/oc-orchestrator.session.json`** — Ephemeral per-session
    file for routing history, last scan results, and active project state. Rebuilt
    from memory + checkpoint scanning at session start.
 
-On session start, the orchestrator reads its memory edit for the registry, then scans
+On session start, the oc-orchestrator reads its memory edit for the registry, then scans
 each registered path's `.checkpoints/` directory for live skill state. The session
 cache is a performance optimization, not a persistence layer.
 
@@ -230,13 +230,13 @@ app-scoped checkpoints using **subdirectories** within `.checkpoints/`:
 ```
 aidops-core/
 ├── .checkpoints/
-│   ├── reverse-spec.checkpoint.json       ← project-wide (applies to whole repo)
-│   ├── git-ops.checkpoint.json            ← project-wide
+│   ├── oc-reverse-spec.checkpoint.json       ← project-wide (applies to whole repo)
+│   ├── oc-git-ops.checkpoint.json            ← project-wide
 │   ├── gtrackr/
-│   │   ├── app-architect.checkpoint.json  ← app-specific
-│   │   └── code-auditor.checkpoint.json
+│   │   ├── oc-app-architect.checkpoint.json  ← app-specific
+│   │   └── oc-code-auditor.checkpoint.json
 │   └── dose/
-│       └── app-architect.checkpoint.json
+│       └── oc-app-architect.checkpoint.json
 ├── apps/
 │   ├── gtrackr/
 │   ├── dose/
@@ -244,12 +244,12 @@ aidops-core/
 ```
 
 This follows the existing checkpoint protocol convention (each skill writes
-`{skill}.checkpoint.json`) — the orchestrator just adds an app-level directory
+`{skill}.checkpoint.json`) — the oc-orchestrator just adds an app-level directory
 grouping. Skills writing app-specific checkpoints set `project_dir` to
 `{monorepo}/.checkpoints/{app}/` instead of `{monorepo}/.checkpoints/`.
 
 **Migration note:** This requires a minor amendment to the checkpoint protocol
-(v1.1) to support subdirectory scoping. Until then, the orchestrator can also
+(v1.1) to support subdirectory scoping. Until then, the oc-orchestrator can also
 fall back to scanning the `project` field inside each checkpoint to group by
 app when all checkpoints are flat in `.checkpoints/`.
 
@@ -258,16 +258,16 @@ Status output groups by app within a monorepo:
 ```
 ▶ aidops-core                             [active]
   Project-wide:
-    ✅ reverse-spec    complete     Specs for 4 apps
-    ⏳ git-ops         not started
+    ✅ oc-reverse-spec    complete     Specs for 4 apps
+    ⏳ oc-git-ops         not started
 
   gtrackr:
-    🔄 app-architect   in_progress  Sprint 2/4
-    ✅ code-auditor    complete     Grade B+
+    🔄 oc-app-architect   in_progress  Sprint 2/4
+    ✅ oc-code-auditor    complete     Grade B+
     🚫 BLOCKER: F-003 rate limiting
 
   dose:
-    🔄 app-architect   in_progress  Phase 3 design
+    🔄 oc-app-architect   in_progress  Phase 3 design
 ```
 
 ### Registration Flow (`/ops register`)
@@ -284,12 +284,12 @@ Status output groups by app within a monorepo:
 ### Auto-Discovery
 
 When any opchain skill is invoked and the project directory is NOT in the registry,
-the orchestrator should auto-register it on next `/ops` invocation. Detection:
+the oc-orchestrator should auto-register it on next `/ops` invocation. Detection:
 checkpoint files exist at a path not in the registry → suggest registration.
 
 ### Cold Start (First-Ever Invocation)
 
-When the orchestrator is invoked with no memory edit and no checkpoint files found
+When the oc-orchestrator is invoked with no memory edit and no checkpoint files found
 anywhere:
 
 ```
@@ -344,23 +344,23 @@ OPCHAIN STATUS — All Projects
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ▶ aidops-core                              [active]
-  ✅ reverse-spec      complete     Specs generated for 4 apps
-  🔄 app-architect     in_progress  Sprint 2/4 — CRUD API (gtrackr)
-  ✅ code-auditor      complete     Grade B+, 2 HIGH findings open
-  ⏳ deploy-ops        not started
-  ⏳ git-ops           not started
-  🚫 BLOCKER: rate limiting gap (code-auditor F-003)
-  → Next: Fix F-003, then resume app-architect sprint 2
+  ✅ oc-reverse-spec      complete     Specs generated for 4 apps
+  🔄 oc-app-architect     in_progress  Sprint 2/4 — CRUD API (gtrackr)
+  ✅ oc-code-auditor      complete     Grade B+, 2 HIGH findings open
+  ⏳ oc-deploy-ops        not started
+  ⏳ oc-git-ops           not started
+  🚫 BLOCKER: rate limiting gap (oc-code-auditor F-003)
+  → Next: Fix F-003, then resume oc-app-architect sprint 2
 
 ▶ GET RIPPED
-  🔄 app-architect     in_progress  Phase 3 — design pipeline
-  ⏳ code-auditor      not started
+  🔄 oc-app-architect     in_progress  Phase 3 — design pipeline
+  ⏳ oc-code-auditor      not started
   → Next: Complete design approval gate
 
 ▶ penthreshold
-  ✅ dash-forge        complete     Exec archetype, prototype delivered
-  ⏳ app-architect     not started
-  → Next: Feed dash-forge handoff into app-architect Phase 3d
+  ✅ oc-dash-forge        complete     Exec archetype, prototype delivered
+  ⏳ oc-app-architect     not started
+  → Next: Feed oc-dash-forge handoff into oc-app-architect Phase 3d
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   3 projects | 2 active pipelines | 1 blocker
@@ -395,11 +395,11 @@ When two actions have the same priority level, the one earlier in the canonical
 pipeline wins:
 
 ```
-reverse-spec → app-architect → git-ops → deploy-ops
+oc-reverse-spec → oc-app-architect → oc-git-ops → oc-deploy-ops
                     ↕
-          code-auditor (required before deploy)
-          integrations-engineer (when needed)
-          scale-ops (advisory)
+          oc-code-auditor (required before deploy)
+          oc-integrations-engineer (when needed)
+          oc-scale-ops (advisory)
 ```
 
 ### Cross-Project Priority
@@ -426,16 +426,16 @@ edit directly.
 NEXT ACTION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Project: aidops-core (gtrackr)
-Skill:   code-auditor
+Skill:   oc-code-auditor
 Action:  Fix finding F-003 (missing rate limiting on /api/auth/*)
-Why:     Blocks app-architect sprint 2 evaluator pass + deploy-ops gate
+Why:     Blocks oc-app-architect sprint 2 evaluator pass + oc-deploy-ops gate
 Command: /audit fix F-003
 
 Run it now? (Y) proceeds, (N) shows the next item in the queue.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-On (Y): orchestrator actively invokes the recommended skill with the right context.
+On (Y): oc-orchestrator actively invokes the recommended skill with the right context.
 
 ---
 
@@ -448,18 +448,18 @@ table currently in orchestrator.md.
 
 | Intent Signal | Route to | Phase |
 |---|---|---|
-| "build me an app", "I have an idea" | app-architect | /discover |
-| "document this codebase", "backfill specs" | reverse-spec | /rev-full |
-| "what stack should I use" | stack-forge | /stack-decide |
-| "review this code", "find bugs", "audit" | code-auditor | /audit full |
-| "fix the UX", "design is inconsistent" | ux-engineer | /uxe eval |
-| "connect to [service]", "webhook", "OAuth" | integrations-engineer | /integrate plan |
-| "deploy this", "ship it" | deploy-ops | /deploy staging |
-| "commit", "push to git", "create a PR" | git-ops | /git-sync |
-| "can this handle more users", "performance" | scale-ops | /scale audit |
-| "dashboard", "analytics UI", "BI design" | dash-forge | /data-forge |
+| "build me an app", "I have an idea" | oc-app-architect | /discover |
+| "document this codebase", "backfill specs" | oc-reverse-spec | /rev-full |
+| "what stack should I use" | oc-stack-forge | /stack-decide |
+| "review this code", "find bugs", "audit" | oc-code-auditor | /audit full |
+| "fix the UX", "design is inconsistent" | oc-ux-engineer | /uxe eval |
+| "connect to [service]", "webhook", "OAuth" | oc-integrations-engineer | /integrate plan |
+| "deploy this", "ship it" | oc-deploy-ops | /deploy staging |
+| "commit", "push to git", "create a PR" | oc-git-ops | /git-sync |
+| "can this handle more users", "performance" | oc-scale-ops | /scale audit |
+| "dashboard", "analytics UI", "BI design" | oc-dash-forge | /data-forge |
 | "continue where I left off" | [scan checkpoints] | [resume most recent] |
-| "what should I work on" | orchestrator | /ops next |
+| "what should I work on" | oc-orchestrator | /ops next |
 
 ### Routing Process
 
@@ -487,9 +487,9 @@ options with one-line explanations:
 ```
 That could go a few directions:
 
-1. code-auditor /audit security — if you want to find vulnerabilities
-2. security-auditor /scan — if you want a full security posture review (coming soon)
-3. code-auditor /audit fix-all — if you already know the issues and want fixes
+1. oc-code-auditor /audit security — if you want to find vulnerabilities
+2. oc-security-auditor /scan — if you want a full security posture review (coming soon)
+3. oc-code-auditor /audit fix-all — if you already know the issues and want fixes
 
 Which one?
 ```
@@ -508,16 +508,16 @@ Shows the canonical pipeline DAG with the project's current position highlighted
 PIPELINE — aidops-core (gtrackr)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  ✅ reverse-spec ──► 🔄 app-architect ──► ⏳ git-ops ──► ⏳ deploy-ops
+  ✅ oc-reverse-spec ──► 🔄 oc-app-architect ──► ⏳ oc-git-ops ──► ⏳ oc-deploy-ops
                            │
-                           ├── ✅ stack-forge (Phase 2)
-                           ├── ⏳ ux-engineer (Phase 3/6)
+                           ├── ✅ oc-stack-forge (Phase 2)
+                           ├── ⏳ oc-ux-engineer (Phase 3/6)
                            └── 🔄 Sprint 2/4 in progress
                                   └── 🚫 Blocked: F-003
 
   Quality plugins:
-    ✅ code-auditor     Grade B+ (2 HIGH open)
-    ⏳ scale-ops        Not run
+    ✅ oc-code-auditor     Grade B+ (2 HIGH open)
+    ⏳ oc-scale-ops        Not run
     ⏳ integrations     Not needed (no external APIs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -535,15 +535,15 @@ BLOCKERS — All Projects
 
   aidops-core (gtrackr)
   🚫 B1: Missing rate limiting on auth endpoints
-     Source: code-auditor F-003
-     Blocking: app-architect sprint 2
+     Source: oc-code-auditor F-003
+     Blocking: oc-app-architect sprint 2
      Needs: code_fix
      Resolution: Add rate-limit middleware → /audit fix F-003
 
   GET RIPPED
   🚫 B1: Design direction not approved
-     Source: app-architect Phase 3 gate
-     Blocking: app-architect punch list
+     Source: oc-app-architect Phase 3 gate
+     Blocking: oc-app-architect punch list
      Needs: user_decision
      Resolution: Review style book + wireframes → /approve
 
@@ -569,18 +569,18 @@ Verifies the ecosystem is intact:
 ```
 ECOSYSTEM HEALTH
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  ✅ app-architect     v1.1.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ stack-forge       v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ reverse-spec      v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ ux-engineer       v1.1.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ dash-forge        v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ code-auditor      v1.0.0   SKILL.md ✓  checkpoint.sh ✓
+  ✅ oc-app-architect     v1.1.0   SKILL.md ✓  checkpoint.sh ✓
+  ✅ oc-stack-forge       v1.0.0   SKILL.md ✓  checkpoint.sh ✓
+  ✅ oc-reverse-spec      v1.0.0   SKILL.md ✓  checkpoint.sh ✓
+  ✅ oc-ux-engineer       v1.1.0   SKILL.md ✓  checkpoint.sh ✓
+  ✅ oc-dash-forge        v1.0.0   SKILL.md ✓  checkpoint.sh ✓
+  ✅ oc-code-auditor      v1.0.0   SKILL.md ✓  checkpoint.sh ✓
   ✅ integrations-eng  v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ git-ops           v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ deploy-ops        v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ scale-ops         v1.0.0   SKILL.md ✓  checkpoint.sh ✓
+  ✅ oc-git-ops           v1.0.0   SKILL.md ✓  checkpoint.sh ✓
+  ✅ oc-deploy-ops        v1.0.0   SKILL.md ✓  checkpoint.sh ✓
+  ✅ oc-scale-ops         v1.0.0   SKILL.md ✓  checkpoint.sh ✓
   ✅ checkpoint-proto  v1.0.0   SKILL.md ✓  checkpoint.sh ✓
-  ✅ orchestrator      v1.0.0   SKILL.md ✓  (self)
+  ✅ oc-orchestrator      v1.0.0   SKILL.md ✓  (self)
 
   11 skills + 1 protocol | all healthy
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -597,10 +597,10 @@ update timestamp and progress_summary, sorted reverse-chronologically.
 ```
 LAST KNOWN STATE — Per Skill
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  15:30 today   aidops-core    code-auditor   Audit complete, grade B+
-  14:45 today   aidops-core    app-architect  Sprint 2/4 in progress
-  yesterday     GET RIPPED     app-architect  Phase 3 design started
-  3 days ago    penthreshold   dash-forge     Prototype delivered
+  15:30 today   aidops-core    oc-code-auditor   Audit complete, grade B+
+  14:45 today   aidops-core    oc-app-architect  Sprint 2/4 in progress
+  yesterday     GET RIPPED     oc-app-architect  Phase 3 design started
+  3 days ago    penthreshold   oc-dash-forge     Prototype delivered
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -616,9 +616,9 @@ routing_history in the session cache tracks dispatches within the current conver
 | Layer | Location | Survives session reset? | Contents |
 |---|---|---|---|
 | Memory | `memory_user_edits` | Yes | Project registry (names, paths, priority, apps) |
-| Session | `~/.opchain/orchestrator.session.json` | No | Active project, routing history, last scan cache |
+| Session | `~/.opchain/oc-orchestrator.session.json` | No | Active project, routing history, last scan cache |
 
-The orchestrator does NOT use the standard `{project}/.checkpoints/` convention for
+The oc-orchestrator does NOT use the standard `{project}/.checkpoints/` convention for
 its own state because it's cross-project. It reads other skills' checkpoints at those
 standard locations but stores its own registry in memory and its session state in an
 ephemeral file.
@@ -632,7 +632,7 @@ ephemeral file.
   "last_scan": "2026-04-21T15:30:00Z",
   "scan_cache": {
     "aidops-core": {
-      "skills_found": ["reverse-spec", "app-architect", "code-auditor"],
+      "skills_found": ["oc-reverse-spec", "oc-app-architect", "oc-code-auditor"],
       "blocker_count": 1,
       "status_summary": "Sprint 2/4, 1 blocker"
     }
@@ -641,7 +641,7 @@ ephemeral file.
     {
       "at": "2026-04-21T15:30:00Z",
       "intent": "audit the code",
-      "routed_to": "code-auditor",
+      "routed_to": "oc-code-auditor",
       "project": "aidops-core"
     }
   ]
@@ -672,7 +672,7 @@ ephemeral file.
 
 | Read by | Why |
 |---|---|
-| No skill reads orchestrator state | It's a coordinator, not a dependency. Skills that need project context get it from their own checkpoints or conversation context. |
+| No skill reads oc-orchestrator state | It's a coordinator, not a dependency. Skills that need project context get it from their own checkpoints or conversation context. |
 
 ### When to Write
 
@@ -686,7 +686,7 @@ ephemeral file.
 
 ### `/checkpoint` Behavior
 
-Unlike other skills, the orchestrator doesn't have a single checkpoint file. When
+Unlike other skills, the oc-orchestrator doesn't have a single checkpoint file. When
 `/checkpoint` is invoked, it shows both persistence layers:
 
 ```
@@ -700,7 +700,7 @@ Session (ephemeral):
   Active: aidops-core
   Last scan: 2 min ago
   Routing history: 3 dispatches this session
-  Session file: ~/.opchain/orchestrator.session.json
+  Session file: ~/.opchain/oc-orchestrator.session.json
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -710,7 +710,7 @@ Session (ephemeral):
 
 ### Session Start Detection
 
-When the orchestrator is invoked at the start of a conversation (no prior messages),
+When the oc-orchestrator is invoked at the start of a conversation (no prior messages),
 run an automatic scan and present the most relevant status:
 
 ```
@@ -727,14 +727,14 @@ Welcome back. Here's where things stand:
 If a checkpoint's `updated_at` is >7 days old and status is `in_progress`:
 
 ```
-⚠️ aidops-core / app-architect hasn't been updated in 9 days.
+⚠️ aidops-core / oc-app-architect hasn't been updated in 9 days.
    Last status: Sprint 2 in progress.
    This might be stale. Resume or reset?
 ```
 
 ### Pipeline Completion Detection
 
-Not every project uses every skill. The orchestrator determines the **applicable
+Not every project uses every skill. The oc-orchestrator determines the **applicable
 pipeline** for a project by checking which skills have ever written a checkpoint
 (or were referenced in another skill's checkpoint as a dependency).
 
@@ -745,17 +745,17 @@ When detected:
 
 ```
 🎉 penthreshold — pipeline complete!
-   dash-forge ✅ → app-architect ✅ → git-ops ✅ → deploy-ops ✅
-   (scale-ops, integrations-engineer not applicable — no checkpoints)
+   oc-dash-forge ✅ → oc-app-architect ✅ → oc-git-ops ✅ → oc-deploy-ops ✅
+   (oc-scale-ops, oc-integrations-engineer not applicable — no checkpoints)
    Archive this project? (/ops unregister penthreshold)
 ```
 
 ### Implicit Project Detection
 
 If the user says "deploy gtrackr" and gtrackr is a known app in the aidops-core
-monorepo, the orchestrator should:
+monorepo, the oc-orchestrator should:
 1. Set active project to aidops-core
-2. Route to deploy-ops with the gtrackr app context
+2. Route to oc-deploy-ops with the gtrackr app context
 3. No extra question needed
 
 ---
@@ -768,24 +768,24 @@ The existing `orchestrator.md` file bundled in every skill remains as-is. It def
 - Active chaining protocol (how skills invoke each other)
 - Novice mode (guided walkthrough)
 
-The orchestrator **skill** adds:
+The oc-orchestrator **skill** adds:
 - Multi-project registry (orchestrator.md has no concept of multiple projects)
 - Cross-project status aggregation (orchestrator.md scans one project at a time)
 - Priority engine (orchestrator.md has no prioritization logic)
 - Routing with project context (orchestrator.md's routing table doesn't consider which project)
 - Activity history (orchestrator.md has no temporal tracking)
 
-Over time, skills may choose to delegate their welcome protocol to the orchestrator
-(check if orchestrator checkpoint exists → read active project from it → skip own
+Over time, skills may choose to delegate their welcome protocol to the oc-orchestrator
+(check if oc-orchestrator checkpoint exists → read active project from it → skip own
 project detection). But this is opt-in, not required.
 
 ---
 
 ## PM-Tool MCP Integration (v1.2+)
 
-The orchestrator already reads every skill's checkpoint to answer
+The oc-orchestrator already reads every skill's checkpoint to answer
 "where did I leave off?". v1.2 makes it PM-aware by reading the
-`pm_refs` field added in checkpoint-protocol v1.2 — the orchestrator
+`pm_refs` field added in oc-checkpoint-protocol v1.2 — the oc-orchestrator
 becomes a router by ticket id, not just by project / phase.
 
 ### Cross-skill PM thread aggregation
@@ -797,18 +797,18 @@ registered project, then aggregates:
 Active threads (by ticket):
 
   PLAT-4471 — Add CSV export to /api/customers
-    app-architect     spec-approved   (source)
-    git-ops           PR opened       (linked)
-    deploy-ops        shipped         (deploy: PLAT-4485)
-    monitoring-ops    resolved        (incident: PLAT-4503)
+    oc-app-architect     spec-approved   (source)
+    oc-git-ops           PR opened       (linked)
+    oc-deploy-ops        shipped         (deploy: PLAT-4485)
+    oc-monitoring-ops    resolved        (incident: PLAT-4503)
 
   AEGIS-9 — Migrate auth provider Auth0 → Clerk
-    migration-ops     step 4/9        (parent + 9 children)
-    deploy-ops        ─               (waiting)
+    oc-migration-ops     step 4/9        (parent + 9 children)
+    oc-deploy-ops        ─               (waiting)
 
   EXP-12 — Image-search prototype
-    app-architect     /discover       (source)
-    stack-forge       decided         (ADR-7)
+    oc-app-architect     /discover       (source)
+    oc-stack-forge       decided         (ADR-7)
 ```
 
 The view collapses by project but is queryable by ticket: `/ops
@@ -817,16 +817,16 @@ ticket PLAT-4471` shows that thread alone.
 ### `/ops resume TICKET-ID` — route by ticket
 
 New verb (v1.2). User says "resume work on PLAT-4471" and the
-orchestrator:
+oc-orchestrator:
 
 1. Searches `pm_refs` across all skill checkpoints for the
    ticket id.
 2. Identifies which skill last touched it + what phase.
 3. Recommends the next action, citing the specific skill and
    command. Examples:
-   - "Last touched by `git-ops` 2 days ago — PR is in review.
+   - "Last touched by `oc-git-ops` 2 days ago — PR is in review.
      Run `/git-sync --refresh` to update."
-   - "Last touched by `app-architect` Phase 4. Next: `/build`."
+   - "Last touched by `oc-app-architect` Phase 4. Next: `/build`."
 
 ### `/ops next` (existing verb, v1.2-enhanced)
 
@@ -849,11 +849,11 @@ checkpoint state, and reports inconsistencies:
 ```
 PM ↔ checkpoint reconciliation:
 
-  PLAT-4471 — In Progress (PM)   ↔   shipped (deploy-ops)
+  PLAT-4471 — In Progress (PM)   ↔   shipped (oc-deploy-ops)
     ⚠  PM ticket should be Done. Likely auto-transition failed.
     Suggested: /git-sync --retry-pm
 
-  AEGIS-9 — In Progress (PM)     ↔   step 4/9 (migration-ops)
+  AEGIS-9 — In Progress (PM)     ↔   step 4/9 (oc-migration-ops)
     ✓  In sync.
 
   CHURN-3 — In Progress (PM)     ↔   no checkpoint
@@ -867,8 +867,8 @@ during a transition).
 
 ### Multi-project routing
 
-In a multi-project setup (orchestrator's existing strength),
-`pm_refs` are namespaced by project so the orchestrator never
+In a multi-project setup (oc-orchestrator's existing strength),
+`pm_refs` are namespaced by project so the oc-orchestrator never
 confuses `PLAT-1` from project A with `PLAT-1` from project B
 (different PM workspaces, different broker scopes).
 
@@ -879,9 +879,9 @@ confuses `PLAT-1` from project A with `PLAT-1` from project B
   full picture.
 - PM-MCP available but `pm_refs` field absent in a skill's
   checkpoint → that skill simply doesn't appear in the PM
-  thread view; checkpoint-protocol v1.2 backfill happens on
+  thread view; oc-checkpoint-protocol v1.2 backfill happens on
   the skill's next write.
-- Cross-project PM ambiguity → orchestrator prompts the user
+- Cross-project PM ambiguity → oc-orchestrator prompts the user
   to disambiguate when a ticket id appears in multiple PM
   workspaces.
 
@@ -889,7 +889,7 @@ confuses `PLAT-1` from project A with `PLAT-1` from project B
 
 ## Principles
 
-1. **Read everything, write only your own state.** The orchestrator's power
+1. **Read everything, write only your own state.** The oc-orchestrator's power
    comes from its cross-skill read access. It never modifies another skill's
    checkpoints. Its own state lives in memory (registry) and session files (cache).
 2. **Recommend, don't block.** `/ops next` is a recommendation, not a gate. The user
@@ -901,6 +901,6 @@ confuses `PLAT-1` from project A with `PLAT-1` from project B
 5. **Pipeline order is the tie-breaker.** When priority is equal, earlier pipeline
    position wins. Unblock downstream skills first.
 6. **Dispatch, don't duplicate.** When routing, read the target skill's SKILL.md and
-   invoke its command. Don't re-implement skill logic inside the orchestrator.
+   invoke its command. Don't re-implement skill logic inside the oc-orchestrator.
 7. **Stale data is worse than no data.** Flag old checkpoints. Don't present week-old
    status as current truth.

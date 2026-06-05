@@ -2,7 +2,7 @@
 
 Shipping an iOS app is **checklist-driven, not automated.** App Store review
 windows, code-signing, and Apple's metadata gates make every release a
-multi-step human process. `stack-forge` renders this doc verbatim via
+multi-step human process. `oc-stack-forge` renders this doc verbatim via
 `dispatchMobile("ios-swiftui")` rather than executing a deploy command —
 the agent should walk the operator through the steps below, not try to
 `xcrun altool` its way to production.
@@ -135,7 +135,7 @@ account. Approved expedites typically clear review in 2-12 hours.
    and request **expedited review** with a clear "critical regression"
    justification.
 
-## Common rejection reasons (stack-forge will warn ahead)
+## Common rejection reasons (oc-stack-forge will warn ahead)
 
 - **Missing or inaccurate App Privacy disclosures.** Every SDK that
   touches user data must be reflected.
@@ -168,13 +168,13 @@ For CI: ship the Apple Distribution cert + provisioning profile into the
 runner's keychain. Fastlane's `match` is the standard pattern; Xcode
 Cloud handles it natively.
 
-## What stack-forge does NOT do for iOS releases
+## What oc-stack-forge does NOT do for iOS releases
 
 - No `git push` shortcut for production. Submission is human + review.
 - No `wrangler deploy` equivalent. The closest analogue is `fastlane
   release`, but it still goes through App Store Connect upload + review.
 - No automatic version bump. Marketing version is product-driven, not
-  tooling-driven; build number can be CI-derived but stack-forge does
+  tooling-driven; build number can be CI-derived but oc-stack-forge does
   not pick the scheme for you.
 
 That is the deliberate output of `dispatchMobile`: the user gets a

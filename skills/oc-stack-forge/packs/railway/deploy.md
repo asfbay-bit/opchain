@@ -63,7 +63,7 @@ Pricing is **usage-based** on top of the plan fee — CPU-seconds, RAM-GB-
 hours, egress GB. A typical small-team API + Postgres lands around $20-40/
 month all-in. Check Railway's pricing page at decision time.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Cold starts on the hobby tier** — services with no recent traffic
   spin down. Production-critical workloads should sit on a usage tier
@@ -72,7 +72,7 @@ month all-in. Check Railway's pricing page at decision time.
   that need multi-region latency (or strict data-residency) should pick a
   different target.
 - **Custom domains + SSL** — straightforward via the dashboard, but DNS
-  propagation can stall; stack-forge flags projects whose launch plan
+  propagation can stall; oc-stack-forge flags projects whose launch plan
   doesn't budget at least an hour for the first custom-domain handshake.
 - **Env vars vs. secrets** — Railway treats both as the same "variables"
   surface, which is convenient but means anyone with project access

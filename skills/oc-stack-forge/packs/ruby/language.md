@@ -24,7 +24,7 @@ Ruby pull (Python/TS will be a softer landing).
 
 | Concern | Tool | Notes |
 |---|---|---|
-| Test runner | `rspec` (preferred), `minitest` | Rails defaults to minitest; stack-forge recommends rspec for richer matchers, but stays agnostic. |
+| Test runner | `rspec` (preferred), `minitest` | Rails defaults to minitest; oc-stack-forge recommends rspec for richer matchers, but stays agnostic. |
 | Build | `bundle exec rake build` | For gem packaging. Rails apps don't really "build" — they're deployed as source + assets. |
 | Lint | `bundle exec rubocop` | The de-facto standard; pair with `standard` for opinionated defaults. |
 | Type checker | `sorbet` or `rbs` + `steep` | Optional; Ruby typing is gradual. Stack-forge defaults to "no static types" unless the project already uses one. |
@@ -33,11 +33,11 @@ Ruby pull (Python/TS will be a softer landing).
 
 ## Frameworks (land in later v1.4 PRs)
 
-These are the ruby-language frameworks stack-forge will recommend once their
+These are the ruby-language frameworks oc-stack-forge will recommend once their
 packs ship in PRs 4-7:
 
 - **Rails** — the default; full-stack, convention-driven, Hotwire-aware.
-  This is the framework stack-forge actually picks when you choose Ruby.
+  This is the framework oc-stack-forge actually picks when you choose Ruby.
 - **Sinatra** — micro-framework; default when "Rails is overkill" for a
   tiny service.
 
@@ -59,8 +59,8 @@ openapi-typescript client`.
 | Validation | ActiveModel validations + strong params | dry-validation | ActiveModel for in-model rules; dry-validation for explicit schema objects. |
 | Client | `openapi-typescript` | grape-swagger (if using Grape) | Generated from the emitted OpenAPI spec. |
 
-When app-architect Phase 2 detects a first-party API surface and stack-forge
-has picked Ruby, control passes to `api-dev` to author the contract
+When oc-app-architect Phase 2 detects a first-party API surface and oc-stack-forge
+has picked Ruby, control passes to `oc-api-dev` to author the contract
 explicitly and generate the SDK.
 
 ## Default deploy targets
@@ -84,7 +84,7 @@ Deploy-target packs land alongside framework packs in PRs 4-7.
 Heroku is the most expensive at scale and the most ergonomic at any scale.
 Stack-forge picks it when dev velocity > monthly bill; otherwise Render.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Background jobs are not optional** — every non-trivial Rails app needs
   Sidekiq (or a Solid Queue / Good Job equivalent). Stack-forge bakes the

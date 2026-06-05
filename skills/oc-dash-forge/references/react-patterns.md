@@ -2,7 +2,7 @@
 
 Stack-specific boilerplate and mock-data patterns for the Phase 3 prototype build.
 
-**Pipeline context:** This file feeds Phase 3 of dash-forge.
+**Pipeline context:** This file feeds Phase 3 of oc-dash-forge.
 
 ---
 
@@ -43,7 +43,7 @@ export type DashboardData = {
 };
 ```
 
-This keeps the prototype plug-compatible with the real data source — when app-architect wires it up, the types don't change.
+This keeps the prototype plug-compatible with the real data source — when oc-app-architect wires it up, the types don't change.
 
 ---
 

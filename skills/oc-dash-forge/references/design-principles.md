@@ -2,7 +2,7 @@
 
 Distilled from Edward Tufte, Stephen Few, Colin Ware, and hard-won practice. These are the rules that make dense dashboards legible — violate them deliberately, not by accident.
 
-**Pipeline context:** This file feeds Phase 2 of dash-forge.
+**Pipeline context:** This file feeds Phase 2 of oc-dash-forge.
 
 ---
 
@@ -181,7 +181,7 @@ Summary on top (what's happening), detail on the bottom or expanding (why). Brus
 
 ## Accessibility Floor
 
-Not optional. Every dash-forge output must pass these:
+Not optional. Every oc-dash-forge output must pass these:
 
 1. **Text contrast:** 4.5:1 for body, 3:1 for large text. Test with a contrast checker.
 2. **Color alone never carries meaning.** Every color distinction backed by text, shape, or position.

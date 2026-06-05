@@ -33,7 +33,7 @@ a single AVFoundation / MetalKit canvas (UIKit + a Metal view is simpler).
 | Live preview | Xcode Previews | `#Preview { … }` macro (Swift 5.9+) renders views in the canvas without a full app launch. |
 | Snapshot | `swift-snapshot-testing` (pointfree) | Optional; pins SwiftUI output to PNG / text fixtures for regression catching. |
 
-## When stack-forge picks SwiftUI
+## When oc-stack-forge picks SwiftUI
 
 ```
 language = swift
@@ -42,9 +42,9 @@ deployment-target ≥ iOS 15 / macOS 12 / watchOS 8 / tvOS 15
 → SwiftUI
 ```
 
-When the workload is "library only" or "command-line tool", stack-forge
+When the workload is "library only" or "command-line tool", oc-stack-forge
 stays on the `swift` language pack without a framework selection. When the
-deployment-target floor is older than iOS 15, stack-forge advises UIKit and
+deployment-target floor is older than iOS 15, oc-stack-forge advises UIKit and
 flags the version constraint.
 
 ## State management
@@ -71,12 +71,12 @@ those still ship in modern SwiftUI for back-compat.
 | Enterprise distribution | Internal corporate apps | Apple Developer Enterprise Program; not for App Store apps. |
 | Mac App Store / Notarization | macOS apps | MAS for sandboxed apps; notarization for direct DMG / pkg distribution. |
 
-`stack-forge` calls `dispatchMobile("ios-swiftui")` for the deploy step. That
+`oc-stack-forge` calls `dispatchMobile("ios-swiftui")` for the deploy step. That
 renders the App Store release checklist from `ios-swiftui/mobile.md`
 verbatim — no executable command is generated, because submission is a
 review-gated process.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **NavigationStack vs NavigationView.** NavigationView is deprecated in
   iOS 16+; new code should use `NavigationStack` + `NavigationPath`. Mixed

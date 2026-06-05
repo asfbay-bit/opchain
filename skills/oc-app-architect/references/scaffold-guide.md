@@ -390,7 +390,7 @@ After generating the scaffold, verify before handing to the user:
 The recipes below cover the four full-stack patterns added in v1.3's
 platform-expansion sprint. Each recipe is self-contained: directory layout, the
 key config files, the test command, the dev-loop command, and the deploy
-hand-off to deploy-ops. Consult `stack-forge` "Platform Matrix" for when each
+hand-off to oc-deploy-ops. Consult `oc-stack-forge` "Platform Matrix" for when each
 stack is the right pick.
 
 ### Django + Postgres + Render
@@ -434,7 +434,7 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-**Deploy:** `git push render main` after Blueprint provisioning; `deploy-ops`
+**Deploy:** `git push render main` after Blueprint provisioning; `oc-deploy-ops`
 section "Render" has the audit-gate sequence. Render auto-runs migrations via
 the `release` command in `render.yaml`.
 
@@ -465,7 +465,7 @@ project/
 - `Procfile` `release:` step runs `db:migrate` on every deploy — never run
   migrations manually.
 - Use `rspec-rails`, not Minitest, for v1.3 scaffolds (matches the existing
-  scenario coverage and integrates more cleanly with bug-check).
+  scenario coverage and integrates more cleanly with oc-bug-check).
 - Postgres URL from `DATABASE_URL`; Rails reads it natively via `database.yml`
   pointing at the env var.
 
@@ -477,7 +477,7 @@ bin/rails server
 ```
 
 **Deploy:** `git push heroku main` — review apps are automatic per PR;
-`deploy-ops` "Heroku" section covers staging promotion + rollback.
+`oc-deploy-ops` "Heroku" section covers staging promotion + rollback.
 
 ### Go + Postgres + Fly.io
 
@@ -515,7 +515,7 @@ go run ./cmd/migrate up
 go run .
 ```
 
-**Deploy:** `fly deploy` — Fly's release_command runs migrations; `deploy-ops`
+**Deploy:** `fly deploy` — Fly's release_command runs migrations; `oc-deploy-ops`
 "Fly.io" section has the audit gate + rollback (`fly releases list` →
 `fly deploy --image <prior-tag>`).
 
@@ -546,7 +546,7 @@ project/
   Terraform / Pulumi / dashboard config needed for the standard case.
 - Use `axum` (not `actix-web`) for v1.3 scaffolds — Shuttle's first-party
   examples lean axum, and it composes better with `tower` middleware that
-  the integrations-engineer skill expects.
+  the oc-integrations-engineer skill expects.
 - Use `sqlx` (compile-time-checked queries) over `diesel` (heavier ORM).
   `sqlx::migrate!()` runs `.sql` files in `src/store/migrations/` on boot.
 - `cargo test` runs integration tests against an ephemeral Postgres that
@@ -561,7 +561,7 @@ cargo shuttle run                  # spawns local Shuttle runtime + Postgres
 
 **Deploy:** `cargo shuttle deploy` — Shuttle reads `main.rs` for infra,
 provisions Postgres + secrets on first deploy, hot-swaps the binary on
-subsequent ones. `deploy-ops` "Shuttle.rs" section covers staging via
+subsequent ones. `oc-deploy-ops` "Shuttle.rs" section covers staging via
 project-aliasing + rollback (`cargo shuttle deployment list` →
 `cargo shuttle deployment <id> redeploy`).
 

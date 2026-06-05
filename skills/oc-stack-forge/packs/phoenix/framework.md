@@ -30,9 +30,9 @@ non-Elixir runtime — they don't exist outside BEAM.
 | Build | `mix compile` | Same as the Elixir language pack. `mix phx.gen.release` for production releases. |
 | Lint | `mix credo --strict` | Same as Elixir base. Phoenix scaffolding has a clean credo profile. |
 | Asset pipeline | `mix assets.deploy` | esbuild + tailwind built in since Phoenix 1.7. No webpack. |
-| Generator | `mix phx.gen.live`, `mix phx.gen.json`, `mix phx.gen.html` | Idiomatic scaffolds; stack-forge defers to these for greenfield. |
+| Generator | `mix phx.gen.live`, `mix phx.gen.json`, `mix phx.gen.html` | Idiomatic scaffolds; oc-stack-forge defers to these for greenfield. |
 
-## When stack-forge picks Phoenix
+## When oc-stack-forge picks Phoenix
 
 The language → framework decision is short:
 
@@ -43,7 +43,7 @@ purpose ∈ {web-api, web-app, real-time, internal-tool, admin-panel}
 ```
 
 When the workload is "pure background worker" or "CLI tool" or "library",
-stack-forge picks plain Elixir + OTP without Phoenix.
+oc-stack-forge picks plain Elixir + OTP without Phoenix.
 
 ## LiveView vs. SPA
 
@@ -68,10 +68,10 @@ escalates to SPA when latency or offline concerns dominate.
 | AWS ECS / Fargate | Enterprise with existing AWS | Container `mix release` output; manage clustering via libcluster. |
 | Render | Small single-node Phoenix | Simpler than Fly but loses clustering ergonomics. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the
 hardcoded matrix in `SKILL.md`.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **LiveView WebSocket fan-out at scale** — broadcasting to many subscribers
   is a per-process cost. Phoenix.PubSub is great up to ~50k connections per

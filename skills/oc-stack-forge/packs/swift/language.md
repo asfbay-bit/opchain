@@ -4,7 +4,7 @@ Apple's strongly-typed, value-oriented application language. Stack-forge picks
 Swift first when the deliverable is a native iOS, iPadOS, macOS, watchOS, or
 visionOS app — anywhere the App Store is the distribution channel and the
 runtime is an Apple platform. Outside that envelope Swift loses its leverage
-(tooling and library ecosystems on Linux exist but lag), and stack-forge
+(tooling and library ecosystems on Linux exist but lag), and oc-stack-forge
 recommends another language pack instead.
 
 ## When to pick it
@@ -28,9 +28,9 @@ backend / data-heavy (other language packs win on ecosystem).
 |---|---|---|
 | Test runner | `swift test` | Driven by XCTest under the hood; SwiftPM-native. Xcode also runs the same suites via `xcodebuild test`. |
 | Build | `swift build` | Swift Package Manager build. App-bundle builds for the App Store still go through `xcodebuild` / Xcode Cloud. |
-| Lint | `swiftlint` | The de-facto community linter. Configure via `.swiftlint.yml`; stack-forge generates a permissive baseline. |
-| Format | `swift-format` | Apple's official formatter (Swift 5.8+). Optional but stack-forge assumes it's wired into pre-commit. |
-| Package manager | Swift Package Manager (`Package.swift`) | First-party. CocoaPods and Carthage still exist; stack-forge defaults to SwiftPM. |
+| Lint | `swiftlint` | The de-facto community linter. Configure via `.swiftlint.yml`; oc-stack-forge generates a permissive baseline. |
+| Format | `swift-format` | Apple's official formatter (Swift 5.8+). Optional but oc-stack-forge assumes it's wired into pre-commit. |
+| Package manager | Swift Package Manager (`Package.swift`) | First-party. CocoaPods and Carthage still exist; oc-stack-forge defaults to SwiftPM. |
 | IDE | Xcode | Mandatory for App Store builds (code-signing + asset catalogs live in the `.xcodeproj`). VS Code + sourcekit-lsp works for plain library code. |
 
 ## Frameworks
@@ -63,7 +63,7 @@ App-side concerns Swift owns end-to-end:
 | Notarized DMG / pkg | macOS apps distributed outside the Mac App Store | Still requires Apple Developer code-signing + notarization. |
 
 Mobile deploys are **checklist-driven**, not script-driven — the App Store
-review queue is the gate, and `stack-forge` renders the release checklist
+review queue is the gate, and `oc-stack-forge` renders the release checklist
 from `ios-swiftui/mobile.md` via `dispatchMobile()` rather than executing a
 deploy command. See the `app-store` deploy-target pack and the iOS mobile
 pack for the full submission flow.
@@ -81,7 +81,7 @@ release (currently Apple Silicon-only for new App Store submissions). Xcode
 Cloud is optional — most teams use GitHub Actions with `xcodebuild` runners,
 or Bitrise / Codemagic for hosted Mac CI.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **App Store Connect setup** is the longest-pole task. Bundle ID
   registration, certificates, provisioning profiles, App Store listing,

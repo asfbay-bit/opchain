@@ -691,12 +691,12 @@ For each skill:
   - [ ] Can read existing v[N] checkpoint
   - [ ] Writes v[N+1] format
   - [ ] Resume protocol works with both versions
-  - [ ] Cross-skill reads still work (e.g., deploy-ops reads code-auditor)
+  - [ ] Cross-skill reads still work (e.g., oc-deploy-ops reads oc-code-auditor)
 ```
 
 ### Step Template: Orchestrator.md Rewrite
 
-The orchestrator protocol file is bundled in every dev skill. When it changes,
+The oc-orchestrator protocol file is bundled in every dev skill. When it changes,
 all copies must sync.
 
 ```markdown
@@ -732,9 +732,9 @@ For each skill directory containing references/orchestrator.md:
 
 ### Step Template: Skill Rename / Merge
 
-When renaming a skill (e.g., `tri-dev` → `app-architect` Phase 6) or merging two skills
+When renaming a skill (e.g., `tri-dev` → `oc-app-architect` Phase 6) or merging two skills
 into one. This is the most complex ecosystem migration because it touches skill files,
-trigger descriptions, checkpoint references, orchestrator routing tables, AND the user's
+trigger descriptions, checkpoint references, oc-orchestrator routing tables, AND the user's
 Claude memory edits.
 
 ```markdown
@@ -752,7 +752,7 @@ matched the old skill.
 
 ## Step 3: Update Orchestrator Routing
 
-In orchestrator.md (and the orchestrator skill):
+In orchestrator.md (and the oc-orchestrator skill):
   - Remove old skill from pipeline map
   - Add redirect: "If user asks for [old-skill], route to [new-skill]"
   - Update upstream/downstream table
@@ -779,7 +779,7 @@ stored in Claude's memory:
   2. memory_user_edits command="replace" — update to new skill name
 
 This is critical — if memory says "use tri-dev for builds" but tri-dev is
-merged into app-architect, Claude will try to invoke a skill that no longer exists.
+merged into oc-app-architect, Claude will try to invoke a skill that no longer exists.
 
 ## Step 7: Remove Old Skill
 
@@ -817,8 +817,8 @@ plus a changelog:
 ### Changed Skills
 | Skill | Files Changed | Change Summary |
 |---|---|---|
-| app-architect | SKILL.md, references/orchestrator.md | Added new frontmatter field, updated pipeline map |
-| code-auditor | references/orchestrator.md | Updated pipeline map |
+| oc-app-architect | SKILL.md, references/orchestrator.md | Added new frontmatter field, updated pipeline map |
+| oc-code-auditor | references/orchestrator.md | Updated pipeline map |
 | ... | ... | ... |
 
 ### Unchanged Skills

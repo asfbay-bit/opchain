@@ -1,6 +1,6 @@
 # Output Templates
 
-Report formats for bug-check gate verdicts, reports, and history.
+Report formats for oc-bug-check gate verdicts, reports, and history.
 
 ---
 
@@ -175,7 +175,7 @@ BUG CHECK CONFIG — [project]
 ## Finding Format
 
 Bug-check findings are ephemeral — they're per-run, not persisted findings like
-code-auditor (F-) or security-auditor (SA-). They don't get IDs because they're
+oc-code-auditor (F-) or oc-security-auditor (SA-). They don't get IDs because they're
 resolved by fixing the code and re-running, not by tracking them across sessions.
 
 Format per finding:

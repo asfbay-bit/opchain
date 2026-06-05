@@ -23,7 +23,7 @@ Skip when: the workload is latency-sensitive at the millisecond level
 
 | Concern | Tool | Notes |
 |---|---|---|
-| Test runner | `pytest` | The de-facto default; `unittest` works but pytest is what stack-forge recommends. |
+| Test runner | `pytest` | The de-facto default; `unittest` works but pytest is what oc-stack-forge recommends. |
 | Build | `python -m build` | PEP 517 / `pyproject.toml` modern packaging. |
 | Lint + format | `ruff check .`, `ruff format .` | Replaces flake8 + isort + black; one tool, one config. |
 | Type checker | `mypy` (preferred) or `pyright` | Pydantic models give you runtime + type-time validation. |
@@ -32,7 +32,7 @@ Skip when: the workload is latency-sensitive at the millisecond level
 
 ## Frameworks (land in later v1.4 PRs)
 
-These are the python-language frameworks stack-forge will recommend once
+These are the python-language frameworks oc-stack-forge will recommend once
 their packs ship in PRs 4-7:
 
 - **Django** — full-stack, batteries-included; admin panel, ORM, migrations,
@@ -59,8 +59,8 @@ generates a TypeScript client from the emitted OpenAPI spec.
 | Validation | DRF serializers | Pydantic | Pydantic doubles as runtime validator and type source. |
 | Client | `openapi-typescript` | `openapi-typescript` | Generated from the emitted OpenAPI spec. |
 
-When app-architect Phase 2 detects a first-party API surface and stack-forge
-has picked Python, control passes to `api-dev` to author the OpenAPI surface
+When oc-app-architect Phase 2 detects a first-party API surface and oc-stack-forge
+has picked Python, control passes to `oc-api-dev` to author the OpenAPI surface
 explicitly and generate the SDK.
 
 ## Default deploy targets
@@ -71,7 +71,7 @@ explicitly and generate the SDK.
 | Fly.io | FastAPI workloads needing edge placement | Regional VMs without configuring a CDN. |
 | AWS Elastic Beanstalk / ECS | Enterprise with existing AWS | Higher floor, more knobs. |
 | Cloud Run | Containerised stateless services | Scales to zero; pairs cleanly with Cloud SQL. |
-| Cloudflare Workers (Python) | Beta runtime | Edge Python is in preview; stack-forge does not default to it yet. |
+| Cloudflare Workers (Python) | Beta runtime | Edge Python is in preview; oc-stack-forge does not default to it yet. |
 
 Deploy-target packs land alongside framework packs in PRs 4-7.
 
@@ -84,7 +84,7 @@ Deploy-target packs land alongside framework packs in PRs 4-7.
 
 Check vendor pricing at decision time — these are anchors, not commitments.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Python version skew** — production `3.11` vs dev `3.13` is a common
   source of subtle bugs. Stack-forge insists on pinning via `pyproject.toml`

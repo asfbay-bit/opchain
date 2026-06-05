@@ -1,8 +1,8 @@
-# Checkpoint Schema — dash-forge
+# Checkpoint Schema — oc-dash-forge
 
 Conforms to aidops checkpoint protocol v1.0.
 
-**Location:** `{project-dir}/.checkpoints/dash-forge.checkpoint.json`
+**Location:** `{project-dir}/.checkpoints/oc-dash-forge.checkpoint.json`
 
 Default if unset: `/home/claude/dash-forge-session/`
 
@@ -14,7 +14,7 @@ Default if unset: `/home/claude/dash-forge-session/`
 {
   // === HEADER ===
   "protocol_version": "1.0",
-  "skill": "dash-forge",
+  "skill": "oc-dash-forge",
   "project": "IT Training Compliance Dashboard",
   "project_dir": "/home/claude/it-training-compliance",
   "created_at": "2026-04-17T14:00:00Z",
@@ -147,7 +147,7 @@ Rule: any artifact > ~50 lines or > ~5KB lives in its own file.
 ```
 {project-dir}/
 ├── .checkpoints/
-│   └── dash-forge.checkpoint.json      ← pointers here
+│   └── oc-dash-forge.checkpoint.json      ← pointers here
 └── dash-forge-handoff/
     ├── spec.md
     ├── tokens.ts
@@ -196,7 +196,7 @@ On user revision requests (e.g., "change the archetype"), revert the target phas
 ## Resume Prompt
 
 ```
-Found dash-forge checkpoint from [updated_at].
+Found oc-dash-forge checkpoint from [updated_at].
 Project: [project]
 Archetype: [archetype]
 Phase: [phase] — [step]

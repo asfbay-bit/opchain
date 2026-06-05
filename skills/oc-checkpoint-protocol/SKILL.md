@@ -27,14 +27,14 @@ of it like HTTP — the spec lives here, the implementations live in each skill.
 
 ## Problem Statement
 
-Claude's context resets between conversations. Multi-step skills (app-architect,
-tri-dev, reverse-spec, stack-forge, code-auditor, deploy-ops, git-ops) lose all
+Claude's context resets between conversations. Multi-step skills (oc-app-architect,
+tri-dev, oc-reverse-spec, oc-stack-forge, oc-code-auditor, oc-deploy-ops, oc-git-ops) lose all
 progress when a session ends. Today:
 
-- **reverse-spec** has a bespoke `checkpoint.md` — the most mature implementation
+- **oc-reverse-spec** has a bespoke `checkpoint.md` — the most mature implementation
 - **tri-dev** has file-based state (contracts, eval reports) but no formal resume
-- **app-architect** has gates but zero session persistence
-- **stack-forge**, **life-architect**, and others have no continuity at all
+- **oc-app-architect** has gates but zero session persistence
+- **oc-stack-forge**, **life-architect**, and others have no continuity at all
 
 Each skill reinvents (or doesn't) its own persistence. The user pays the cost:
 re-explaining context, re-reading files, and hoping Claude picks up where it left off.
@@ -52,9 +52,9 @@ directory. JSON (not markdown) because it's machine-parseable for cross-skill re
 
 Example paths:
 ```
-/home/claude/gtrack/.checkpoints/app-architect.checkpoint.json
-/home/claude/gtrack/.checkpoints/code-auditor.checkpoint.json
-/home/claude/gtrack/.checkpoints/reverse-spec.checkpoint.json
+/home/claude/gtrack/.checkpoints/oc-app-architect.checkpoint.json
+/home/claude/gtrack/.checkpoints/oc-code-auditor.checkpoint.json
+/home/claude/gtrack/.checkpoints/oc-reverse-spec.checkpoint.json
 ```
 
 Multiple skills can checkpoint the same project simultaneously without collision.
@@ -65,7 +65,7 @@ Multiple skills can checkpoint the same project simultaneously without collision
 {
   // === HEADER (required) ===
   "protocol_version": "1.2",
-  "skill": "app-architect",              // Skill that owns this checkpoint
+  "skill": "oc-app-architect",              // Skill that owns this checkpoint
   "project": "gtrack",                   // Human-readable project name
   "project_dir": "/home/claude/gtrack",  // Absolute path
   "created_at": "2026-03-31T14:00:00Z",
@@ -261,17 +261,17 @@ Skills can read each other's checkpoints (read-only) for coordination:
 
 | Reader | Reads | Why |
 |---|---|---|
-| app-architect | reverse-spec checkpoint | Know what analysis exists for the codebase |
-| deploy-ops | app-architect checkpoint | Know which sprints have passed QA |
-| git-ops | any skill checkpoint | Know what files to commit |
-| code-auditor | reverse-spec checkpoint | Know what analysis has been done |
+| oc-app-architect | oc-reverse-spec checkpoint | Know what analysis exists for the codebase |
+| oc-deploy-ops | oc-app-architect checkpoint | Know which sprints have passed QA |
+| oc-git-ops | any skill checkpoint | Know what files to commit |
+| oc-code-auditor | oc-reverse-spec checkpoint | Know what analysis has been done |
 
 **Rules:**
 - Read the `header`, `progress`, `progress_table`, `context_primer`, and `blockers`
 - Never read `skill_state` — it's private to the owning skill
 - Never write to another skill's checkpoint
 - If you need to coordinate, write to your own checkpoint and reference the other:
-  `"depends_on": "app-architect checkpoint shows spec approved at 2026-03-31T12:00:00Z"`
+  `"depends_on": "oc-app-architect checkpoint shows spec approved at 2026-03-31T12:00:00Z"`
 
 ---
 
@@ -316,7 +316,7 @@ When this skill is invoked on a fresh project that has no
    `checkpoint:validate`.
 4. CI step — call `npm run checkpoint:validate` from your CI pipeline.
 5. `.github/workflows/checkpoint-after-merge.yml` (optional but
-   recommended) — auto-stamps the git-ops checkpoint on every merge to
+   recommended) — auto-stamps the oc-git-ops checkpoint on every merge to
    `main` so the team doesn't have to remember.
 
 **Do not** add `.checkpoints/` to `.gitignore`. Tracking the directory in
@@ -349,12 +349,12 @@ The behavior is identical regardless of which skill the user is currently in.
 ```
 project-dir/
 ├── .checkpoints/
-│   ├── app-architect.checkpoint.json
-│   ├── code-auditor.checkpoint.json
-│   ├── reverse-spec.checkpoint.json
-│   └── deploy-ops.checkpoint.json
-├── spec/           (app-architect output)
-├── sprints/        (app-architect Phase 6 build loop output)
+│   ├── oc-app-architect.checkpoint.json
+│   ├── oc-code-auditor.checkpoint.json
+│   ├── oc-reverse-spec.checkpoint.json
+│   └── oc-deploy-ops.checkpoint.json
+├── spec/           (oc-app-architect output)
+├── sprints/        (oc-app-architect Phase 6 build loop output)
 ├── src/            (project source)
 └── ...
 ```
@@ -390,7 +390,7 @@ Downstream skills read it to find context without re-asking.
       "id": "PLAT-4471",                     // ticket id
       "url": "https://linear.app/onramp/issue/PLAT-4471",
       "role": "source",                      // "source" | "child" | "deploy" | "incident" | "linked"
-      "created_by_skill": "app-architect",   // which skill linked it
+      "created_by_skill": "oc-app-architect",   // which skill linked it
       "first_seen_at": "2026-05-04T12:00:00Z"
     }
   ]
@@ -409,8 +409,8 @@ Downstream skills read it to find context without re-asking.
 
 When any skill starts, after reading its own checkpoint, it
 **also reads `pm_refs` from sibling-skill checkpoints** to find
-context. Example: git-ops, on `/git-sync` with no explicit ticket
-id, looks at `app-architect.checkpoint.json#pm_refs` to find the
+context. Example: oc-git-ops, on `/git-sync` with no explicit ticket
+id, looks at `oc-app-architect.checkpoint.json#pm_refs` to find the
 source ticket from the most recent build phase.
 
 ### Write pattern
@@ -426,10 +426,10 @@ across sessions (the audit trail is per-session).
 skill in v1.2:
 
 ```
-app-architect    spec-approved    PM: PLAT-4471 (source) + 3 children
-git-ops          PR-merged        PM: PLAT-4471 (linked)
-deploy-ops       shipped          PM: PLAT-4485 (deploy) → PLAT-4471
-monitoring-ops   resolved         PM: PLAT-4503 (incident) → PLAT-4485
+oc-app-architect    spec-approved    PM: PLAT-4471 (source) + 3 children
+oc-git-ops          PR-merged        PM: PLAT-4471 (linked)
+oc-deploy-ops       shipped          PM: PLAT-4485 (deploy) → PLAT-4471
+oc-monitoring-ops   resolved         PM: PLAT-4503 (incident) → PLAT-4485
 ```
 
 This makes the cross-skill PM thread legible at session resume.

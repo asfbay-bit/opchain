@@ -28,7 +28,7 @@ description: >
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
 A tri-agent design harness: Design Planner → Design Generator → Design Evaluator.
-The same architecture that makes app-architect's Phase 6 build loop produce honest
+The same architecture that makes oc-app-architect's Phase 6 build loop produce honest
 quality scores — skeptical evaluation with agent separation — applied to UI/UX design.
 
 Also runs cross-screen flow analysis, maintains a living component library, and
@@ -36,10 +36,10 @@ enforces fidelity between approved designs and built code.
 
 Works in two modes:
 - **Standalone**: Full tri-design workflow for new or existing projects
-- **app-architect plugin**: Adds a Design Evaluator alongside the Code Evaluator
-  during UI-heavy app-architect Phase 6 build sprints
+- **oc-app-architect plugin**: Adds a Design Evaluator alongside the Code Evaluator
+  during UI-heavy oc-app-architect Phase 6 build sprints
 
-## /ux-engineer — Command Reference
+## /oc-ux-engineer — Command Reference
 
 ```
 UX ENGINEER COMMANDS
@@ -54,10 +54,10 @@ UX ENGINEER COMMANDS
   /uxe flow          Map and audit user flows across screens
   /uxe components    View, update, or audit the living component library
   /uxe fidelity      Compare built code against approved design artifacts
-  /uxe dash          Route data-heavy UI to dash-forge for specialized design
+  /uxe dash          Route data-heavy UI to oc-dash-forge for specialized design
 
   APP-ARCHITECT PLUGIN
-  /uxe attach        Activate Design Evaluator for current app-architect Phase 6 build session
+  /uxe attach        Activate Design Evaluator for current oc-app-architect Phase 6 build session
   /uxe detach        Deactivate Design Evaluator (code-only evaluation)
 
   UTILITIES
@@ -74,7 +74,7 @@ UX ENGINEER COMMANDS
 ## Tri-Design Architecture
 
 ```
-DESIGN BRIEF (from user, app-architect, or prompt)
+DESIGN BRIEF (from user, oc-app-architect, or prompt)
         │
         ▼
 ┌──────────────┐
@@ -124,15 +124,15 @@ The same failure modes that plague code generation hit design even harder:
 
 ---
 
-## Routing to dash-forge (`/uxe dash`)
+## Routing to oc-dash-forge (`/uxe dash`)
 
 Some screens are primarily **data display**: dashboards, BI views, analytics, monitoring consoles, dense reports. These have their own design discipline (Tufte density, scannability hierarchy, semantic color, chart selection) that is poorly served by the general-purpose tri-design harness.
 
-For these screens, ux-engineer routes to **dash-forge** — a specialized skill for dashboard and dense-information UI.
+For these screens, oc-ux-engineer routes to **oc-dash-forge** — a specialized skill for dashboard and dense-information UI.
 
 ### Auto-detect triggers
 
-During `/uxe plan` or when evaluating a brief, ux-engineer should recognize dashboard surfaces and surface the routing option. Triggers:
+During `/uxe plan` or when evaluating a brief, oc-ux-engineer should recognize dashboard surfaces and surface the routing option. Triggers:
 
 - Brief mentions "dashboard", "analytics", "BI", "KPI", "monitoring", "report view"
 - ≥3 charts or ≥5 KPIs on the same screen
@@ -142,34 +142,34 @@ During `/uxe plan` or when evaluating a brief, ux-engineer should recognize dash
 When detected, offer:
 
 ```
-This screen looks data-heavy. Route design to dash-forge?
+This screen looks data-heavy. Route design to oc-dash-forge?
 
-dash-forge specializes in:
+oc-dash-forge specializes in:
   - Exec / Ops / Analyst archetype branching
   - Density tuning, semantic color, chart selection
   - Working React prototype with archetype-appropriate viz stack (Tremor / Recharts / D3)
 
-  (Y) Route to dash-forge
-  (N) Continue with ux-engineer tri-design harness
+  (Y) Route to oc-dash-forge
+  (N) Continue with oc-ux-engineer tri-design harness
 ```
 
 ### Explicit routing: `/uxe dash`
 
-User can force routing with `/uxe dash [brief]`. ux-engineer packages its current context (tokens, component library, design spec if any) and invokes dash-forge's `/data-forge` with upstream context pre-populated.
+User can force routing with `/uxe dash [brief]`. oc-ux-engineer packages its current context (tokens, component library, design spec if any) and invokes oc-dash-forge's `/data-forge` with upstream context pre-populated.
 
 ### Token handoff (bidirectional)
 
-- **ux-engineer → dash-forge:** If ux-engineer already has approved tokens, pass them as design constraints. dash-forge will specialize density/chart-color tokens within that system.
-- **dash-forge → ux-engineer:** When dash-forge produces dashboard tokens (semantic color, density scales), hand them back so ux-engineer's living component library stays consistent.
+- **oc-ux-engineer → oc-dash-forge:** If oc-ux-engineer already has approved tokens, pass them as design constraints. oc-dash-forge will specialize density/chart-color tokens within that system.
+- **oc-dash-forge → oc-ux-engineer:** When oc-dash-forge produces dashboard tokens (semantic color, density scales), hand them back so oc-ux-engineer's living component library stays consistent.
 
 ### When NOT to route
 
-Keep the work in ux-engineer if:
+Keep the work in oc-ux-engineer if:
 - The data surface is a single inline widget in a larger form/workflow screen
 - The "dashboard" is just a landing page with a few summary tiles (≤3) plus navigation
 - User explicitly wants the tri-design harness applied
 
-Rule of thumb: if the screen IS the dashboard, route. If the screen CONTAINS a small data widget, handle it in ux-engineer.
+Rule of thumb: if the screen IS the dashboard, route. If the screen CONTAINS a small data widget, handle it in oc-ux-engineer.
 
 ---
 
@@ -191,7 +191,7 @@ The Planner is an experienced design director. Key behaviors:
   Commit to a direction and justify it.
 - Consider the user's context: device, environment, frequency of use, expertise.
 - Plan for the worst case: longest text, slowest connection, smallest screen.
-- **Scan for data surfaces.** Before finalizing the screen inventory, flag any screen that is primarily data display (see Routing to dash-forge section above for triggers). For each flagged screen, ask the user: "This is a data-heavy screen. Route to dash-forge? (Y/N)". If Y, mark the screen in the spec as `source: dash-forge` and stop detailed design work for that screen — dash-forge will own it.
+- **Scan for data surfaces.** Before finalizing the screen inventory, flag any screen that is primarily data display (see Routing to oc-dash-forge section above for triggers). For each flagged screen, ask the user: "This is a data-heavy screen. Route to oc-dash-forge? (Y/N)". If Y, mark the screen in the spec as `source: oc-dash-forge` and stop detailed design work for that screen — oc-dash-forge will own it.
 
 ### Outputs
 
@@ -542,8 +542,8 @@ Adds Design Evaluator alongside Code Evaluator during UI sprints.
 
 ### How It Works
 
-1. `/uxe attach` during an app-architect Phase 6 build session
-2. Read app-architect checkpoint for current sprint
+1. `/uxe attach` during an oc-app-architect Phase 6 build session
+2. Read oc-app-architect checkpoint for current sprint
 3. For each sprint with UI work:
    - Code Evaluator runs (functionality, completeness, code quality)
    - Design Evaluator runs (hierarchy, states, consistency, a11y)
@@ -586,7 +586,7 @@ Auto-detect from contract keywords:
 ```
 project-dir/
 ├── .checkpoints/
-│   └── ux-engineer.checkpoint.json
+│   └── oc-ux-engineer.checkpoint.json
 ├── design/
 │   ├── design-spec.md               # Design Planner output
 │   ├── design-sprints.md            # Sprint plan
@@ -607,7 +607,7 @@ project-dir/
 ## Checkpoint Integration
 
 ### Checkpoint Location
-`{project-dir}/.checkpoints/ux-engineer.checkpoint.json`
+`{project-dir}/.checkpoints/oc-ux-engineer.checkpoint.json`
 
 ### When to Write
 
@@ -621,7 +621,7 @@ project-dir/
 | Flow map generated | Flow data, coherence score |
 | Component added/modified | Registry update |
 | Fidelity check run | Fidelity scores |
-| Attached to app-architect Phase 6 | Session link |
+| Attached to oc-app-architect Phase 6 | Session link |
 
 ### skill_state
 
@@ -646,16 +646,16 @@ project-dir/
 
 | Reads from | Why |
 |---|---|
-| app-architect | Style book, wireframes, punch list → baseline; Phase 6 sprint contracts → plugin mode context |
-| reverse-spec | Extracted design system → existing project baseline |
-| code-auditor | `/audit ux` findings → avoid duplicating work |
+| oc-app-architect | Style book, wireframes, punch list → baseline; Phase 6 sprint contracts → plugin mode context |
+| oc-reverse-spec | Extracted design system → existing project baseline |
+| oc-code-auditor | `/audit ux` findings → avoid duplicating work |
 | frontend-design | Aesthetic direction → Generator reference |
 
 | Read by | Why |
 |---|---|
-| app-architect | Design scores → Phase 6 combined sprint verdict |
-| code-auditor | Component health → UX audit context |
-| deploy-ops | Fidelity score → deploy confidence |
+| oc-app-architect | Design scores → Phase 6 combined sprint verdict |
+| oc-code-auditor | Component health → UX audit context |
+| oc-deploy-ops | Fidelity score → deploy confidence |
 
 ---
 
@@ -663,7 +663,7 @@ project-dir/
 
 UI sprints have an extra grader (the Design Evaluator) that
 produces scores design teams care about. v1.2 makes those scores
-visible in the PM tool. See `integrations-engineer` for the
+visible in the PM tool. See `oc-integrations-engineer` for the
 canonical PM-MCP patterns.
 
 ### Design-eval summary on the linked ticket
@@ -717,10 +717,10 @@ it's a block depends on team policy + the PR review process.
 
 ### Dash-forge handoff back-reference
 
-When ux-engineer detects a dashboard surface and routes to
-dash-forge, both skills' PM-MCP integrations coordinate: ux-engineer
-adds a `Routed to dash-forge for {screen-name}; handoff bundle
-attached.` comment, dash-forge later appends its own design-spec +
+When oc-ux-engineer detects a dashboard surface and routes to
+oc-dash-forge, both skills' PM-MCP integrations coordinate: oc-ux-engineer
+adds a `Routed to oc-dash-forge for {screen-name}; handoff bundle
+attached.` comment, oc-dash-forge later appends its own design-spec +
 prototype comment to the same ticket. The thread reads end-to-end.
 
 ### Failure modes

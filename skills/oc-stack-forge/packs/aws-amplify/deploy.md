@@ -53,7 +53,7 @@ output:
 
 Framework packs with first-party Amplify support: **Next.js**, **Nuxt**,
 **SvelteKit**, **Astro**, **Remix**. (Of those, sveltekit + remix are
-v1.4 stack-forge framework packs; the others arrive in later releases.)
+v1.4 oc-stack-forge framework packs; the others arrive in later releases.)
 
 ## Pricing band (2026-Q2, rough)
 
@@ -69,14 +69,14 @@ DynamoDB typically lands in the $20-100/month range; **bandwidth, Lambda
 invocations, and DynamoDB throughput** are the line items that scale
 unpredictably.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **CloudFormation deploy latency** — backend deploys take 5-15 min on
   first apply; updates are 2-5 min. Plan releases around that, especially
   for hotfixes.
 - **Gen 1 vs. Gen 2 fork in docs** — most blog posts and Stack Overflow
   answers from before 2024 are Gen 1. The CLI surface is different;
-  stack-forge defaults new projects to Gen 2 and flags anything that
+  oc-stack-forge defaults new projects to Gen 2 and flags anything that
   looks like a Gen 1 migration as needing planning.
 - **IAM blast radius** — Amplify provisions IAM roles with broad
   permissions by default. Production projects need to audit and tighten
@@ -89,7 +89,7 @@ unpredictably.
   the first hour of custom-domain setup.
 - **Env vars + secrets** — Amplify env vars are CloudFormation parameters
   and end up in plain text in the template. Real secrets belong in AWS
-  Secrets Manager or SSM Parameter Store; stack-forge flags any project
+  Secrets Manager or SSM Parameter Store; oc-stack-forge flags any project
   that stores tokens directly in Amplify env vars.
 - **Cost observability is hard** — the bill spans multiple AWS services.
   Tag everything with an `Environment=prod|staging` tag from day one;

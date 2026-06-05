@@ -18,7 +18,7 @@ description: >
   Pre-commit QA gate that runs on every commit. Fast, opinionated checks: type
   safety, lint, tests, anti-pattern scan, secret detection, build verification,
   and dependency vulnerability scan. Blocks commits on failures, warns on cautions,
-  passes silently on clean code. Auto-invoked by git-ops before every /git-commit
+  passes silently on clean code. Auto-invoked by oc-git-ops before every /git-commit
   and /git-sync. Use for /bugcheck, "check this before I commit", "run the checks",
   "is this safe to commit", "pre-commit", "quick audit", "lint and test", "any bugs
   in this?", "sanity check". Trigger liberally.
@@ -32,7 +32,7 @@ Fast pre-commit QA gate. Runs in under 2 minutes. Catches the bugs, type errors,
 test failures, and anti-patterns that shouldn't make it into a commit — before they
 cost real debugging time downstream.
 
-This is NOT code-auditor. Code-auditor runs a deep tri-agent sweep (Auditor → Fixer →
+This is NOT oc-code-auditor. Code-auditor runs a deep tri-agent sweep (Auditor → Fixer →
 Verifier) that takes 30+ minutes and produces a graded report. Bug-check is the metal
 detector at the door — fast, blunt, binary: every check resolves to **PASS** or **FAIL**.
 Individual checks may emit advisory **WARN** notes (e.g. "no test suite detected")
@@ -71,7 +71,7 @@ BUG CHECK COMMANDS
 
 ## Session Persistence (Checkpoint Protocol)
 
-Checkpoint: `{project-dir}/.checkpoints/bug-check.checkpoint.json`
+Checkpoint: `{project-dir}/.checkpoints/oc-bug-check.checkpoint.json`
 
 ### Resume on Start
 
@@ -79,7 +79,7 @@ When `/bugcheck` is invoked:
 1. Check for checkpoint
 2. If exists: show last verdict, streak, carried debt count
 3. If carried debt > 0: surface bypassed issues before running new checks
-4. Run the check suite (no "continue/restart" prompt — bug-check always runs fresh)
+4. Run the check suite (no "continue/restart" prompt — oc-bug-check always runs fresh)
 
 Bug-check differs from other opchain skills: there's no "resume" decision. The gate
 always runs the full check suite. The checkpoint provides context (streak, debt, history),
@@ -90,7 +90,7 @@ not resumable state.
 ## How This Skill Fits the Pipeline
 
 ```
-app-architect /build ──► BUG-CHECK (gate) ──► git-ops /commit ──► deploy-ops
+oc-app-architect /build ──► BUG-CHECK (gate) ──► oc-git-ops /commit ──► oc-deploy-ops
                               │
                          ┌────┴────┐
                          │         │
@@ -99,11 +99,11 @@ app-architect /build ──► BUG-CHECK (gate) ──► git-ops /commit ──
                     silently   show what broke
 ```
 
-**Auto-invocation:** git-ops calls bug-check before every `/git-commit` and `/git-sync`.
-If bug-check fails, the commit is blocked with a clear failure report. The user can
+**Auto-invocation:** oc-git-ops calls oc-bug-check before every `/git-commit` and `/git-sync`.
+If oc-bug-check fails, the commit is blocked with a clear failure report. The user can
 override with `/bugcheck bypass` (logged, not silent).
 
-**Relationship to code-auditor:** Bug-check is a subset. It runs the checks that are
+**Relationship to oc-code-auditor:** Bug-check is a subset. It runs the checks that are
 fast enough for every commit. Code-auditor's deep sweep runs before deploy (gate) or
 on demand (ad-hoc). They complement, not compete:
 
@@ -423,7 +423,7 @@ configurable — they always FAIL.
 
 ## Scope: Changed vs. All
 
-By default, bug-check only checks **changed files** (staged + unstaged changes).
+By default, oc-bug-check only checks **changed files** (staged + unstaged changes).
 This keeps runs fast (<30s for typical commits).
 
 **Scope-aware vs. full-project checks:** Not all checks support file-level scoping.
@@ -436,7 +436,7 @@ secrets, and tests (via `--changed` or related-test detection).
 - First run on a new project
 - Before a major release
 - After merging a large PR
-- When code-auditor's last checkpoint is stale
+- When oc-code-auditor's last checkpoint is stale
 
 ### Detecting Changed Files
 
@@ -457,7 +457,7 @@ git diff --name-only --diff-filter=ACMR HEAD | grep -E '\.(ts|tsx|js|jsx)$'
 
 ### Auto-Invocation
 
-When git-ops receives `/git-commit` or `/git-sync`:
+When oc-git-ops receives `/git-commit` or `/git-sync`:
 
 1. Check for `.bugcheck.json` at project root (or use defaults)
 2. Run `/bugcheck run`
@@ -467,7 +467,7 @@ When git-ops receives `/git-commit` or `/git-sync`:
 
 ### Commit Message Annotation
 
-If bug-check ran and passed, git-ops appends to the commit footer:
+If oc-bug-check ran and passed, oc-git-ops appends to the commit footer:
 
 ```
 bugcheck: pass (7/7, 0 warnings, 1.2s)
@@ -530,16 +530,16 @@ Extends the session persistence section above with full schema details.
 
 | Reads from | Why |
 |---|---|
-| code-auditor | Known findings → don't re-report what code-auditor already flagged |
-| app-architect | Sprint contract → know which files are in-scope for this commit |
-| deploy-ops | Environment config → which build command to use |
+| oc-code-auditor | Known findings → don't re-report what oc-code-auditor already flagged |
+| oc-app-architect | Sprint contract → know which files are in-scope for this commit |
+| oc-deploy-ops | Environment config → which build command to use |
 
 | Read by | Why |
 |---|---|
-| git-ops | Gate verdict → commit or block |
-| code-auditor | Bug-check pass rate → skip basic checks in deep audit |
-| deploy-ops | Last bug-check status → deploy confidence |
-| orchestrator | Pass/fail trend, carried debt → project health |
+| oc-git-ops | Gate verdict → commit or block |
+| oc-code-auditor | Bug-check pass rate → skip basic checks in deep audit |
+| oc-deploy-ops | Last oc-bug-check status → deploy confidence |
+| oc-orchestrator | Pass/fail trend, carried debt → project health |
 
 ---
 
@@ -590,7 +590,7 @@ Bug-check auto-detects the stack from config files and adapts:
 | Python (FastAPI) | `mypy .` or `pyright .` | `ruff check .` | `pytest` | N/A |
 | Go | `go vet ./...` | `golangci-lint run` | `go test ./...` | `go build ./...` |
 
-If no recognized stack is detected, bug-check runs only the universal checks:
+If no recognized stack is detected, oc-bug-check runs only the universal checks:
 anti-patterns, secrets, and dependency scan.
 
 ### Python Adaptations
@@ -614,30 +614,30 @@ grep -rn "print(" --include="*.py" --exclude-dir=venv --exclude-dir=test .
 
 ## PM-Tool MCP Integration (v1.2+)
 
-bug-check is the cheapest skill to run; its job is to be silent on
+oc-bug-check is the cheapest skill to run; its job is to be silent on
 clean code and loud on bad. v1.2 makes the loud case visible in the
-PM tool when a linked ticket is in play. See `integrations-engineer`
+PM tool when a linked ticket is in play. See `oc-integrations-engineer`
 for the canonical PM-MCP patterns.
 
 ### On PASS (clean)
 
 Nothing posted. The principle is that the PM tool is for state
 changes the team needs to see, not for "everything is fine." A clean
-bug-check run is the default; advertising it dilutes signal.
+oc-bug-check run is the default; advertising it dilutes signal.
 
 ### On FAIL (gate blocks the commit)
 
-If git-ops invoked bug-check with a ticket in context (the typical
+If oc-git-ops invoked oc-bug-check with a ticket in context (the typical
 `/git-sync TICKET-1234` flow), post a comment to the linked ticket:
 
 ```
-bug-check FAIL — commit blocked.
+oc-bug-check FAIL — commit blocked.
 Failed checks: {N of M}
 First failure:
   - type-check: 3 errors in src/api/customers.csv.ts
   - tests: 2 failed in tests/api/customers.csv.spec.ts
 Suggested next step: /bugcheck fix
-Full report: .checkpoints/bug-check.checkpoint.json
+Full report: .checkpoints/oc-bug-check.checkpoint.json
 ```
 
 The comment is a one-shot status, not a thread. Subsequent
@@ -650,7 +650,7 @@ If the user invokes `/bugcheck bypass` (the explicit override path),
 post:
 
 ```
-bug-check BYPASSED on user request — {reason if provided}.
+oc-bug-check BYPASSED on user request — {reason if provided}.
 Skipped checks: {list}.
 Reviewer: please confirm this is acceptable.
 ```
@@ -662,7 +662,7 @@ PM comment is the human-readable reflection.)
 ### Failure modes
 
 - No linked ticket → no PM write; checkpoint records intent only.
-- bug-check is invoked outside git-ops (manual `/bugcheck`) → no
+- oc-bug-check is invoked outside oc-git-ops (manual `/bugcheck`) → no
   PM write; user can pass `--ticket TICKET-1234` to opt in.
 - PM provider rate-limits during a CI burst → batch failures into
   a daily roll-up comment on the team's standing-board ticket
@@ -672,10 +672,10 @@ PM comment is the human-readable reflection.)
 
 ## Principles
 
-1. **Fast or useless.** If bug-check takes >2 minutes, developers will bypass it
+1. **Fast or useless.** If oc-bug-check takes >2 minutes, developers will bypass it
    every time. Speed is the feature.
 2. **Binary verdict.** Pass or fail. No grades, no nuance, no "mostly good." That's
-   code-auditor's job.
+   oc-code-auditor's job.
 3. **Changed files by default.** Checking the whole codebase on every commit is slow
    and noisy. Check what changed. Run `--all` periodically.
 4. **Secrets always block.** There is no "warning" for leaked credentials. This is

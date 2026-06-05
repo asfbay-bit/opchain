@@ -28,8 +28,8 @@ commands:
   - /oc-monitor status
 description: >
   Post-deployment observability: uptime monitoring, error tracking, structured logging,
-  alerting pipelines, and incident response runbooks. Sits after deploy-ops in the
-  pipeline — deploy-ops ships it, monitoring-ops watches it. Use for /monitor,
+  alerting pipelines, and incident response runbooks. Sits after oc-deploy-ops in the
+  pipeline — oc-deploy-ops ships it, oc-monitoring-ops watches it. Use for /monitor,
   "set up monitoring", "error tracking", "uptime check", "alerting", "incident
   response", "observability", "what's happening in prod", "set up Sentry", "logging
   strategy", "on-call", "runbook", "SLO", "SLI", "is prod healthy", "why is it
@@ -40,7 +40,7 @@ description: >
 
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
-Post-deployment observability skill. Deploy-ops ships the code; monitoring-ops
+Post-deployment observability skill. Deploy-ops ships the code; oc-monitoring-ops
 watches it run. Covers five domains: uptime monitoring, error tracking, structured
 logging, alerting pipelines, and incident response.
 
@@ -76,7 +76,7 @@ MONITORING OPS COMMANDS
   /monitor postmortem    Structured post-incident review
 
   REPORT
-  /monitor dashboard     Design an ops monitoring dashboard (routes to dash-forge)
+  /monitor dashboard     Design an ops monitoring dashboard (routes to oc-dash-forge)
   /monitor report        Generate weekly/monthly ops report
   /monitor audit         Full observability maturity assessment
   /monitor compare       Compare two monitoring snapshots (drift detection)
@@ -94,7 +94,7 @@ MONITORING OPS COMMANDS
 
 ## Session Persistence (Checkpoint Protocol)
 
-Checkpoint: `{project-dir}/.checkpoints/monitoring-ops.checkpoint.json`
+Checkpoint: `{project-dir}/.checkpoints/oc-monitoring-ops.checkpoint.json`
 
 ### Resume on Start
 
@@ -115,35 +115,35 @@ checkpoint serves double duty: session persistence AND operational snapshot.
 ## How This Skill Fits the Pipeline
 
 ```
-reverse-spec → app-architect → git-ops → deploy-ops → MONITORING-OPS
+oc-reverse-spec → oc-app-architect → oc-git-ops → oc-deploy-ops → MONITORING-OPS
                                                             │
                                               ┌─────────────┤
                                               │             │
-                                         security-auditor   scale-ops
+                                         oc-security-auditor   oc-scale-ops
                                          (detection/        (perf
                                           response input)    budgets)
 ```
 
-**deploy-ops ships it, monitoring-ops watches it.** The handoff:
+**oc-deploy-ops ships it, oc-monitoring-ops watches it.** The handoff:
 
-1. deploy-ops completes production promotion
-2. deploy-ops runs health check (basic HTTP 200 verification)
-3. If monitoring-ops checkpoint exists: monitoring-ops takes over ongoing observation
-4. If not: deploy-ops suggests `/monitor setup` for the project
+1. oc-deploy-ops completes production promotion
+2. oc-deploy-ops runs health check (basic HTTP 200 verification)
+3. If oc-monitoring-ops checkpoint exists: oc-monitoring-ops takes over ongoing observation
+4. If not: oc-deploy-ops suggests `/monitor setup` for the project
 
-deploy-ops's health check is a one-shot verification. monitoring-ops provides
+oc-deploy-ops's health check is a one-shot verification. oc-monitoring-ops provides
 continuous observation, error aggregation, alerting, and incident coordination.
 
 ### Cross-Skill Connections
 
 | Skill | Relationship |
 |---|---|
-| **deploy-ops** | Upstream. deploy-ops ships → monitoring-ops watches. Shares health check URLs, environment config. |
-| **security-auditor** | Peer. security-auditor's Pillar 3 (detection/response) maps directly to monitoring-ops's alerting + incident response. security-auditor defines WHAT to detect; monitoring-ops implements HOW to detect it. |
-| **scale-ops** | Peer. scale-ops sets performance budgets; monitoring-ops enforces them via alerting. Latency SLOs from scale-ops become monitoring-ops alert thresholds. |
-| **code-auditor** | Upstream consumer. code-auditor's `/audit pre-deploy` findings can include "missing error handling" — monitoring-ops's `/monitor instrument` addresses the gap at the observability layer. |
-| **app-architect** | Upstream. Reads spec for expected behaviors, user flows, and error handling strategy to inform what to monitor. |
-| **dash-forge** | Downstream for visualization. `/monitor dashboard` routes to dash-forge with an ops archetype context for monitoring UI design. |
+| **oc-deploy-ops** | Upstream. oc-deploy-ops ships → oc-monitoring-ops watches. Shares health check URLs, environment config. |
+| **oc-security-auditor** | Peer. oc-security-auditor's Pillar 3 (detection/response) maps directly to oc-monitoring-ops's alerting + incident response. oc-security-auditor defines WHAT to detect; oc-monitoring-ops implements HOW to detect it. |
+| **oc-scale-ops** | Peer. oc-scale-ops sets performance budgets; oc-monitoring-ops enforces them via alerting. Latency SLOs from oc-scale-ops become oc-monitoring-ops alert thresholds. |
+| **oc-code-auditor** | Upstream consumer. oc-code-auditor's `/audit pre-deploy` findings can include "missing error handling" — oc-monitoring-ops's `/monitor instrument` addresses the gap at the observability layer. |
+| **oc-app-architect** | Upstream. Reads spec for expected behaviors, user flows, and error handling strategy to inform what to monitor. |
+| **oc-dash-forge** | Downstream for visualization. `/monitor dashboard` routes to oc-dash-forge with an ops archetype context for monitoring UI design. |
 
 ---
 
@@ -167,14 +167,14 @@ the project's scale, sensitivity, and infrastructure.
 ## Phase 1: Setup (`/monitor setup`)
 
 Guided setup that instruments a project for observability. Reads existing config
-(deploy-ops checkpoint, wrangler.toml, package.json) to avoid asking questions
+(oc-deploy-ops checkpoint, wrangler.toml, package.json) to avoid asking questions
 with known answers.
 
 ### Setup Wizard
 
 Use `ask_user_input` for remaining unknowns:
 
-1. **What tier?** (auto-detect from scale-ops/deploy-ops context, confirm)
+1. **What tier?** (auto-detect from oc-scale-ops/oc-deploy-ops context, confirm)
 2. **Error tracking provider?** (Sentry, LogRocket, Highlight, BetterStack, or console-only)
 3. **Uptime monitoring?** (BetterStack, UptimeRobot, Checkly, or CF Health Checks)
 4. **Alerting channel?** (Telegram, Slack, Discord, email, PagerDuty)
@@ -193,7 +193,7 @@ Use `ask_user_input` for remaining unknowns:
 ### Health Endpoint Contract
 
 Every monitored app needs a `GET /api/health` endpoint. This is the shared contract
-between deploy-ops (one-shot check), monitoring-ops (continuous check), and external
+between oc-deploy-ops (one-shot check), oc-monitoring-ops (continuous check), and external
 uptime monitors.
 
 **Response shape:**
@@ -210,7 +210,7 @@ uptime monitors.
 - Returns 200 when all checks pass, 503 when any check is "down"
 - Each dependency (DB, KV, external API) gets its own named check
 - Include deployed version for deploy-correlation
-- Include per-check latency at T2+ (for scale-ops integration)
+- Include per-check latency at T2+ (for oc-scale-ops integration)
 
 Read `references/instrumentation.md` for full implementation patterns per stack
 (Workers, Next.js, FastAPI), including structured logger, request monitoring middleware,
@@ -222,7 +222,7 @@ and Sentry transport for Workers.
 
 ### Health Check (`/monitor health`)
 
-Goes deeper than deploy-ops's one-shot 200 check:
+Goes deeper than oc-deploy-ops's one-shot 200 check:
 
 1. **HTTP status** — hit `/api/health`, verify 200
 2. **Per-dependency status** — parse response body, check each named service (DB, KV, etc.)
@@ -405,13 +405,13 @@ and metrics snapshot format.
 
 ## Dashboard Routing (`/monitor dashboard`)
 
-When the user wants a monitoring dashboard, route to dash-forge with ops archetype
+When the user wants a monitoring dashboard, route to oc-dash-forge with ops archetype
 pre-selected:
 
 ```
-Detected monitoring dashboard request. Routing to dash-forge with ops archetype.
+Detected monitoring dashboard request. Routing to oc-dash-forge with ops archetype.
 
-dash-forge will produce:
+oc-dash-forge will produce:
   - High-density ops layout (dark mode, tight tiles)
   - Real-time KPI tiles (error rate, latency, throughput, uptime)
   - Incident table, event feed, throughput chart
@@ -420,7 +420,7 @@ dash-forge will produce:
 Proceeding to /data-forge with ops context...
 ```
 
-Package the following context for dash-forge:
+Package the following context for oc-dash-forge:
 - Archetype: ops (pre-selected, skip interview)
 - Data sources: health endpoint, error tracking, uptime service, structured logs
 - KPIs: error rate, p95 latency, uptime %, active incidents, deploy recency
@@ -433,7 +433,7 @@ Package the following context for dash-forge:
 Generate a periodic operations summary covering availability, performance, errors,
 SLO status, deploys, and incidents. Cadence depends on tier: T1 = monthly, T2+ = weekly.
 
-The report pulls from: monitoring-ops checkpoint (SLO budget, incident count), deploy-ops
+The report pulls from: oc-monitoring-ops checkpoint (SLO budget, incident count), oc-deploy-ops
 checkpoint (deploy count, rollbacks), and error tracking service (error counts, top issues).
 
 See `references/output-templates.md` for the full report template.
@@ -443,7 +443,7 @@ See `references/output-templates.md` for the full report template.
 ## Snapshot Comparison (`/monitor compare`)
 
 Compares two monitoring snapshots to track observability posture over time. Mirrors
-security-auditor's `/security compare` pattern.
+oc-security-auditor's `/security compare` pattern.
 
 Input: two checkpoint timestamps or dates. If one argument, compares against current state.
 
@@ -458,7 +458,7 @@ coverage. Highlights regressions prominently. Uses the comparison format from
 ```
 project-dir/
 ├── .checkpoints/
-│   └── monitoring-ops.checkpoint.json
+│   └── oc-monitoring-ops.checkpoint.json
 ├── .monitoring.json                 # Tool config (URLs, check IDs, channels)
 ├── monitoring/
 │   ├── config.md                    # Strategy: what's monitored, thresholds, tools
@@ -487,7 +487,7 @@ project-dir/
 ## Checkpoint Integration
 
 ### Location
-`{project-dir}/.checkpoints/monitoring-ops.checkpoint.json`
+`{project-dir}/.checkpoints/oc-monitoring-ops.checkpoint.json`
 
 ### When to Write
 
@@ -548,18 +548,18 @@ project-dir/
 
 | Reads from | Why |
 |---|---|
-| deploy-ops | Health check URLs, environment config, deploy history |
-| security-auditor | Detection/response requirements → what to monitor for |
-| scale-ops | Performance budgets → SLO/alert thresholds |
-| app-architect | Spec, error handling strategy → instrumentation targets |
-| code-auditor | Error handling gaps → logging instrumentation needs |
+| oc-deploy-ops | Health check URLs, environment config, deploy history |
+| oc-security-auditor | Detection/response requirements → what to monitor for |
+| oc-scale-ops | Performance budgets → SLO/alert thresholds |
+| oc-app-architect | Spec, error handling strategy → instrumentation targets |
+| oc-code-auditor | Error handling gaps → logging instrumentation needs |
 
 | Read by | Why |
 |---|---|
-| deploy-ops | Health status → deploy confidence, post-deploy verification |
-| security-auditor | Detection/response maturity → Pillar 3 input |
-| scale-ops | Latency/error metrics → capacity planning data |
-| orchestrator | Active incidents, maturity grade → project health |
+| oc-deploy-ops | Health status → deploy confidence, post-deploy verification |
+| oc-security-auditor | Detection/response maturity → Pillar 3 input |
+| oc-scale-ops | Latency/error metrics → capacity planning data |
+| oc-orchestrator | Active incidents, maturity grade → project health |
 
 ---
 
@@ -598,15 +598,15 @@ project-dir/
 
 ## PM-Tool MCP Integration (v1.3+)
 
-monitoring-ops opens **incident tickets** in the PM tool when
+oc-monitoring-ops opens **incident tickets** in the PM tool when
 alerts fire, and back-references them through resolution.
 
 The runtime contract — concrete tool names, retry policy, idempotency
 markers, the `pm_deferred_actions[]` schema, and the extended state
 vocabulary (`resolved-pending-postmortem`) — lives in
-[`integrations-engineer/references/pm-mcp-protocol.md`](../integrations-engineer/references/pm-mcp-protocol.md).
+[`oc-integrations-engineer/references/pm-mcp-protocol.md`](../oc-integrations-engineer/references/pm-mcp-protocol.md).
 **All MCP calls below honour that contract; this section says only how
-monitoring-ops shapes incidents and per-event updates.**
+oc-monitoring-ops shapes incidents and per-event updates.**
 
 ### On alert fire
 
@@ -616,7 +616,7 @@ monitoring-ops shapes incidents and per-event updates.**
    per protocol §3:
 
    ```
-   <!-- opchain:monitoring-ops:incident-fired:<alert-event-id> -->
+   <!-- opchain:oc-monitoring-ops:incident-fired:<alert-event-id> -->
 
    Alert: {alert-name} ({severity})
    Fired at: {iso-timestamp}
@@ -642,8 +642,8 @@ monitoring-ops shapes incidents and per-event updates.**
      `severity:<level>`), merged with `pm.yaml.labels_default`.
    - parent / blocked-by relation to the most recent deploy ticket
      if one is open (likely culprit) — read from
-     `deploy-ops.checkpoint.json` `skill_state.pm.deploy_tickets[]`.
-5. Record incident id in `monitoring-ops.checkpoint.json`
+     `oc-deploy-ops.checkpoint.json` `skill_state.pm.deploy_tickets[]`.
+5. Record incident id in `oc-monitoring-ops.checkpoint.json`
    `skill_state.pm.incidents[]` with the correlating Sentry /
    PagerDuty event id.
 
@@ -656,17 +656,17 @@ Each row uses a unique idempotency marker. Pre-write check via
 
 | Event | Marker | Action |
 |---|---|---|
-| Alert auto-resolves (back to baseline) | `<!-- opchain:monitoring-ops:auto-resolved:<incident-id> -->` | `add_comment`: "Auto-resolved — {duration}"; transition → `resolved-pending-postmortem` (resolved from `pm.yaml.states.extended`). Do not close. |
-| Engineer ack via PagerDuty | `<!-- opchain:monitoring-ops:acked:<incident-id>:<engineer-id> -->` | `add_comment`: "{engineer} acknowledged"; transition → `in_progress`. |
-| Status page update | `<!-- opchain:monitoring-ops:status-update:<incident-id>:<update-id> -->` | `add_comment` mirroring the public update. |
-| Postmortem published | `<!-- opchain:monitoring-ops:postmortem:<incident-id> -->` | `add_comment` with link; transition → `done`. |
+| Alert auto-resolves (back to baseline) | `<!-- opchain:oc-monitoring-ops:auto-resolved:<incident-id> -->` | `add_comment`: "Auto-resolved — {duration}"; transition → `resolved-pending-postmortem` (resolved from `pm.yaml.states.extended`). Do not close. |
+| Engineer ack via PagerDuty | `<!-- opchain:oc-monitoring-ops:acked:<incident-id>:<engineer-id> -->` | `add_comment`: "{engineer} acknowledged"; transition → `in_progress`. |
+| Status page update | `<!-- opchain:oc-monitoring-ops:status-update:<incident-id>:<update-id> -->` | `add_comment` mirroring the public update. |
+| Postmortem published | `<!-- opchain:oc-monitoring-ops:postmortem:<incident-id> -->` | `add_comment` with link; transition → `done`. |
 
 ### Postmortem back-reference
 
-When the postmortem is written, monitoring-ops appends an
+When the postmortem is written, oc-monitoring-ops appends an
 action-item sub-ticket per remediation item, parent = the incident
 ticket. Each remediation sub-ticket carries marker
-`<!-- opchain:monitoring-ops:remediation:<incident-id>:<item-n> -->`
+`<!-- opchain:oc-monitoring-ops:remediation:<incident-id>:<item-n> -->`
 in its description and is created via the `create_issue` tool with
 the pre-create check pattern above. Each remediation sub-ticket is
 assigned to the owning team's default assignee (from
@@ -675,7 +675,7 @@ assigned to the owning team's default assignee (from
 ### Alert hygiene
 
 If an alert fires more than N times in 24h (default 5; configurable
-per alert), monitoring-ops adds a `noisy-alert` label (per protocol
+per alert), oc-monitoring-ops adds a `noisy-alert` label (per protocol
 Appendix A — labels, not state) to the incident and surfaces a
 tuning recommendation rather than spamming new tickets — same
 incident gets new comments, not new tickets. The pre-create check
@@ -684,8 +684,8 @@ in step 3 above ensures this naturally for in-window alerts.
 ### `/monitor --retry-pm` flush
 
 Invokes the protocol §4 flush against
-`monitoring-ops.checkpoint.json` `pm_deferred_actions[]`. Filter to
-`skill: "monitoring-ops"` and `retriable: true`. Critical alerts
+`oc-monitoring-ops.checkpoint.json` `pm_deferred_actions[]`. Filter to
+`skill: "oc-monitoring-ops"` and `retriable: true`. Critical alerts
 should NOT depend on flush succeeding — Telegram / PagerDuty fire
 regardless; the flush is reconciliation only.
 
@@ -698,7 +698,7 @@ regardless; the flush is reconciliation only.
   a single rollup ticket via the marker dedupe in step 3 (the same
   alert-event-id naturally folds into one incident); separate
   comments per alert event with marker
-  `<!-- opchain:monitoring-ops:burst-event:<incident-id>:<event-n> -->`.
+  `<!-- opchain:oc-monitoring-ops:burst-event:<incident-id>:<event-n> -->`.
 - 403 on incident creation → defer with `retriable: false`; surface
   to the on-call channel as a side message; never silently widen scope.
 

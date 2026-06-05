@@ -44,7 +44,7 @@ existing React app is high (Svelte's mental model is different enough that
 | Node | Self-hosted long-running | `@sveltejs/adapter-node`; output is a standalone Node server. |
 | Static | Pure SSG sites | `@sveltejs/adapter-static`; no server runtime needed. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the
 hardcoded matrix in `SKILL.md`.
 
 ## Load function contract
@@ -73,7 +73,7 @@ The two-tier load model lets you decide per-route whether work happens
 server-side, client-side, or both. Stack-forge picks `+page.server.ts` for
 data that touches the DB or secrets and `+page.ts` for derived fetches.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Adapter mismatch** — picking the wrong adapter (e.g. node when you want
   cloudflare) causes confusing deploy failures. Stack-forge writes the

@@ -50,13 +50,13 @@ Functions) is JS-only:
 | Functions | AWS Lambda Node 20 | Background Functions and Scheduled Functions both available; same Lambda underneath. |
 | Edge Functions | Deno | V8 isolates with the Deno API surface; ~50ms cold-start, run at the CDN edge. |
 
-The first-party adapters that ship as **stack-forge framework packs**:
+The first-party adapters that ship as **oc-stack-forge framework packs**:
 
 | Framework pack | Netlify adapter | Notes |
 |---|---|---|
 | sveltekit | `@sveltejs/adapter-netlify` | Auto-routes SSR pages to Functions, static pages to CDN. |
 | remix | `@remix-run/netlify` | Loader/action functions deploy as Netlify Functions. |
-| (astro) | `@astrojs/netlify` | Astro is not yet a stack-forge framework pack; adapter is mentioned here for completeness. |
+| (astro) | `@astrojs/netlify` | Astro is not yet a oc-stack-forge framework pack; adapter is mentioned here for completeness. |
 
 ## Pricing band (2026-Q2, rough)
 
@@ -70,7 +70,7 @@ Bandwidth overage is **$55 per 100GB** on Pro — a meaningful cliff for
 content sites that go viral. Stack-forge will flag projects that plan
 high-bandwidth media delivery on Netlify without a CDN-image strategy.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Function cold starts** — first hit after idle can be 1-3s. SSR apps
   whose homepage is a Function will feel slow on the first request from

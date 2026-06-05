@@ -46,7 +46,7 @@ work.
 | AWS Lambda | Enterprise with existing AWS | `@remix-run/architect` adapter; deploys to Lambda + API Gateway. |
 | Netlify | Marketing-leaning sites | Native Netlify adapter; functions for server work. |
 
-Deploy-target packs land in PR 7. Until then stack-forge falls back to the
+Deploy-target packs land in PR 7. Until then oc-stack-forge falls back to the
 hardcoded matrix in `SKILL.md`.
 
 ## Loader / action contract
@@ -70,11 +70,11 @@ export default function Component() {
 }
 ```
 
-Stack-forge's `api-dev` integration treats `loader` as a typed GET handler
+Stack-forge's `oc-api-dev` integration treats `loader` as a typed GET handler
 and `action` as a typed POST/PUT/DELETE handler — no separate API
 definition needed when the API is co-located with the UI.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **Vendor adapter drift** — each deploy target has its own adapter package.
   Switching targets is a multi-line change but not magic; audit the build

@@ -66,7 +66,7 @@ vice versa) when the platform channel hits a missing native impl.
 | **Codemagic** | Flutter-native CI/CD; cleanest signing + Fastlane integration for the cross-platform case. Stack-forge default for non-trivial setups. |
 | **GitHub Actions + Fastlane** | Self-hosted; full control. Requires a macOS runner for iOS builds. |
 
-For PR 6.5 stack-forge defaults to **direct Play Console upload** for
+For PR 6.5 oc-stack-forge defaults to **direct Play Console upload** for
 the Android side and defers the iOS side until the `app-store`
 adapter lands.
 
@@ -106,7 +106,7 @@ number on every store upload; never reuse it on either store.
 - **Hot reload vs hot restart vs full rebuild** — only full release
   builds (`--release`) catch tree-shaking / R8 / dead-code issues.
   Never ship without a release-mode smoke test.
-- **Web / desktop targets** — Flutter supports them but stack-forge's
+- **Web / desktop targets** — Flutter supports them but oc-stack-forge's
   `flutter` pack scopes to mobile. Web/desktop are separate
   conversations.
 

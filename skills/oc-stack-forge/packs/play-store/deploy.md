@@ -4,16 +4,16 @@
 the **Google Play Console**. It's a `kind: deploy-target` pack —
 sub-selection only — so it **does not generate a coverage flag**.
 Mobile packs (`kotlin-android`, `flutter`, `react-native-expo`) list
-`play-store` in their `supportedPlatforms` array; stack-forge picks
+`play-store` in their `supportedPlatforms` array; oc-stack-forge picks
 this adapter when one of those packs is in play and the surface is
 Android distribution.
 
-## What stack-forge dispatches here
+## What oc-stack-forge dispatches here
 
 Unlike the server-side deploy-target packs (Cloudflare, Render, Fly),
 the Play Console is **not** an API-first deploy surface. The
 `dispatchMobile()` envelope from PR 3 renders the steps below verbatim
-as a checklist. stack-forge does not run `gradle publish` or hit the
+as a checklist. oc-stack-forge does not run `gradle publish` or hit the
 Play Developer API directly; the human submits via Console UI or the
 Gradle Play Publisher plugin from their laptop / CI.
 
@@ -38,12 +38,12 @@ Internal → Closed → Open → Production
 
 | Track | Audience | Review window | Use for |
 |---|---|---|---|
-| Internal testing | Up to 100 listed testers | Minutes | Smoke-test the upload artifact end-to-end. Required first step in stack-forge's pipeline. |
+| Internal testing | Up to 100 listed testers | Minutes | Smoke-test the upload artifact end-to-end. Required first step in oc-stack-forge's pipeline. |
 | Closed testing | Lists / Google Groups of testers | Hours | Beta cohort, dogfood. Generates the pre-launch report. |
 | Open testing | Anyone with the opt-in link | Hours | Public beta; counts toward install base. Optional. |
 | Production | All eligible devices | A few hours – ~1 day for new app submissions; faster on subsequent updates | The real release. Always pair with staged rollout. |
 
-stack-forge convention: every release passes through Internal first.
+oc-stack-forge convention: every release passes through Internal first.
 The Internal-track upload is what generates the **pre-launch report**
 that Production submission depends on for the first release of an app.
 
@@ -70,7 +70,7 @@ auto-updates revert. There is no per-user downgrade.
 
 Every production submission goes through Play's automated + human
 review against the developer programme policies. Common rejection
-reasons stack-forge surfaces:
+reasons oc-stack-forge surfaces:
 
 - **Missing or stale privacy policy URL** in the Console listing.
 - **Data-safety form** mismatched with what the app actually collects

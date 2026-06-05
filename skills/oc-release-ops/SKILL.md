@@ -2,7 +2,7 @@
 name: oc-release-ops
 displayName: OC · Release Ops
 version: 1.3.0
-shortDesc: Plan, draft, bump, announce, ship a release. Closes the loop from sprint outputs to /changelog to git-ops to deploy-ops.
+shortDesc: Plan, draft, bump, announce, ship a release. Closes the loop from sprints to /changelog to oc-git-ops to oc-deploy-ops.
 phases: [build]
 triAgent: false
 tryable: true
@@ -18,7 +18,7 @@ description: >
   releases of opchain (or any opchain-managed project). Reads sprint
   checkpoints, proposes the next semver, drafts the /changelog entry from
   what actually shipped, bumps every skill version atomically, and hands
-  off to git-ops + deploy-ops. Use for /release, /release plan, /release
+  off to oc-git-ops + oc-deploy-ops. Use for /release, /release plan, /release
   draft, /release bump, /release announce, /release ship, "cut a release",
   "ship v1.3", "tag the release", "draft the changelog", "what's in this
   release", "version bump". Trigger liberally on release-cadence work.
@@ -28,15 +28,15 @@ description: >
 
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
-Release-ops sits between `git-ops` and `deploy-ops` at release boundaries. The
+Release-ops sits between `oc-git-ops` and `oc-deploy-ops` at release boundaries. The
 recurring "scope → sprint plan → changelog → version bump → ship" pattern that
 opchain itself uses (and that any opchain-managed project will eventually want)
 is what this skill owns. v1.3 dogfoods this skill for its own release.
 
-**Boundary:** release-ops is **not** a deployer. It produces the artefacts a
+**Boundary:** oc-release-ops is **not** a deployer. It produces the artefacts a
 release needs (changelog entry, version bumps, release announcement, release
-ticket) and hands off to `git-ops` for the merge / tag and `deploy-ops` for
-staging + prod. Every action is reversible up to the moment `deploy-ops`
+ticket) and hands off to `oc-git-ops` for the merge / tag and `oc-deploy-ops` for
+staging + prod. Every action is reversible up to the moment `oc-deploy-ops`
 ships.
 
 ---
@@ -63,7 +63,7 @@ RELEASE OPS COMMANDS
   /release rollback       Revert the last bump if not yet shipped
 
   SESSION
-  /checkpoint             Show release-ops checkpoint
+  /checkpoint             Show oc-release-ops checkpoint
   /checkpoint show        Full checkpoint JSON
   /checkpoint reset       Archive and restart
 
@@ -99,12 +99,12 @@ RELEASE TRIGGER
         ▼
 ┌───────────────┐  composes release announcement (release ticket via PM-MCP +
 │   /release    │  internal announcement copy + external blog/social copy);
-│   announce    │  per integrations-engineer pm-mcp-protocol.md.
+│   announce    │  per oc-integrations-engineer pm-mcp-protocol.md.
 └───────┬───────┘
         │
         ▼
 ┌───────────────┐  invokes /release verify → npm run prebuild gates;
-│   /release    │  hands the branch to git-ops /git-sync and tells the user
+│   /release    │  hands the branch to oc-git-ops /git-sync and tells the user
 │   ship        │  to run /deploy staging → /deploy prod.
 └───────────────┘
 ```
@@ -122,7 +122,7 @@ The first step. Decides the next semver and the release theme.
 - `site/src/pages/changelog.astro` — last shipped release's entry (its tag is
   the last shipped semver).
 - `git log <last-release-tag>..HEAD --oneline` — merged commits since the last
-  release (release-ops resolves the last tag from the changelog page if there
+  release (oc-release-ops resolves the last tag from the changelog page if there
   is no git tag).
 
 ### Outputs
@@ -157,7 +157,7 @@ Produce a `/changelog` entry ready for review.
   "What's new" → "Two new scenarios" → "Configuration" → "Compatibility" →
   "Security posture") for stylistic consistency.
 - Each "What's new" bullet leads with **the user-visible change**, not the
-  implementation detail. "git-ops now reads ticket state via real MCP tool
+  implementation detail. "oc-git-ops now reads ticket state via real MCP tool
   names" beats "Replaced placeholder mcp.<provider>.<verb> patterns."
 - Every scenario shipped in the release gets a one-paragraph callout under
   "Scenarios" with a deep link to `/demo#<id>`.
@@ -226,9 +226,9 @@ Compose the announcement surfaces.
 ### Outputs
 
 1. **Release ticket** in the configured PM tool (per
-   `integrations-engineer/references/pm-mcp-protocol.md` §3 idempotency
+   `oc-integrations-engineer/references/pm-mcp-protocol.md` §3 idempotency
    rules). Marker:
-   `<!-- opchain:release-ops:release-ticket:v<semver> -->`. Title:
+   `<!-- opchain:oc-release-ops:release-ticket:v<semver> -->`. Title:
    `Release v<semver> — <theme>`. Description: the changelog summary +
    links to the new scenarios + the bump commit.
 2. **Internal announcement copy** — one paragraph for whatever channel the
@@ -244,7 +244,7 @@ Compose the announcement surfaces.
 ### `--retry-pm` flush
 
 If the PM call fails, the release-ticket payload is recorded to
-`release-ops.checkpoint.json` `pm_deferred_actions[]` per the protocol §4.
+`oc-release-ops.checkpoint.json` `pm_deferred_actions[]` per the protocol §4.
 `/release announce --retry-pm` flushes later. The release proceeds; the
 PM ticket is enrichment.
 
@@ -259,17 +259,17 @@ End-of-pipeline handoff.
 ### Sequence
 
 1. `/release verify` — run the full pre-ship gate. Hard-blocks on any failure.
-2. Hand off to `git-ops`:
-   - Invoke the git-ops skill (read its SKILL.md per orchestrator §3 active
+2. Hand off to `oc-git-ops`:
+   - Invoke the oc-git-ops skill (read its SKILL.md per oc-orchestrator §3 active
      chaining).
-   - Run `/git-sync v<semver>` with the bump commit. git-ops opens / merges
+   - Run `/git-sync v<semver>` with the bump commit. oc-git-ops opens / merges
      the release PR.
-3. Hand off to `deploy-ops`:
-   - Invoke deploy-ops.
+3. Hand off to `oc-deploy-ops`:
+   - Invoke oc-deploy-ops.
    - Run `/deploy staging` first; user eyeballs.
    - Run `/deploy` (prod) on user confirmation.
 4. Update homepage pill + close release ticket via PM-MCP per protocol §3
-   marker `<!-- opchain:release-ops:release-shipped:v<semver> -->`.
+   marker `<!-- opchain:oc-release-ops:release-shipped:v<semver> -->`.
 5. Write checkpoint: phase `shipped`, status `complete`.
 
 ### `/release verify` (the gate)
@@ -299,8 +299,8 @@ If the release was bumped but **not yet shipped** (`/deploy` not yet run):
 4. Write checkpoint: phase `rolled-back`.
 
 If the release **has shipped**, do NOT use `/release rollback` — invoke
-`deploy-ops /rollback` to revert the worker, then file a fresh release with
-an incremented patch version that documents the rollback. release-ops never
+`oc-deploy-ops /rollback` to revert the worker, then file a fresh release with
+an incremented patch version that documents the rollback. oc-release-ops never
 overwrites a shipped release in-place.
 
 ---
@@ -308,7 +308,7 @@ overwrites a shipped release in-place.
 ## Multi-project mode
 
 In an opchain-managed project (where opchain itself is *not* the artefact),
-release-ops produces the same outputs but operates on the project's own
+oc-release-ops produces the same outputs but operates on the project's own
 versioned surfaces. Configuration lives in `.opchain/release.yaml`:
 
 ```yaml
@@ -330,7 +330,7 @@ SKILL.md files, not a single `package.json`.
 ## Checkpoint Integration
 
 ### Checkpoint Location
-`{project-dir}/.checkpoints/release-ops.checkpoint.json`
+`{project-dir}/.checkpoints/oc-release-ops.checkpoint.json`
 
 ### When to Write
 
@@ -370,33 +370,33 @@ SKILL.md files, not a single `package.json`.
 | Reads from | Why |
 |---|---|
 | every skill's `*.checkpoint.json` | What shipped per skill since last release |
-| `app-architect.checkpoint.json` | Sprint outputs feed the changelog draft |
-| `git-ops.checkpoint.json` | Merged-PR list feeds "What's new" bullets |
-| `deploy-ops.checkpoint.json` | Last-shipped commit SHA |
+| `oc-app-architect.checkpoint.json` | Sprint outputs feed the changelog draft |
+| `oc-git-ops.checkpoint.json` | Merged-PR list feeds "What's new" bullets |
+| `oc-deploy-ops.checkpoint.json` | Last-shipped commit SHA |
 
 | Read by | Why |
 |---|---|
-| `git-ops` | Knows a release is in flight; `/git-sync` shapes the release PR specifically |
-| `deploy-ops` | Treats release-ops handoff as authoritative for the release tag |
-| `monitoring-ops` | Tags incidents in the first 24h after a release with `post-release` |
+| `oc-git-ops` | Knows a release is in flight; `/git-sync` shapes the release PR specifically |
+| `oc-deploy-ops` | Treats oc-release-ops handoff as authoritative for the release tag |
+| `oc-monitoring-ops` | Tags incidents in the first 24h after a release with `post-release` |
 
 ---
 
 ## PM-Tool MCP Integration (v1.3+)
 
-release-ops creates a **release ticket** per release and updates it through
+oc-release-ops creates a **release ticket** per release and updates it through
 the pipeline.
 
 The runtime contract — concrete tool names, retry policy, idempotency
 markers, the `pm_deferred_actions[]` schema — lives in
-[`integrations-engineer/references/pm-mcp-protocol.md`](../integrations-engineer/references/pm-mcp-protocol.md).
+[`oc-integrations-engineer/references/pm-mcp-protocol.md`](../oc-integrations-engineer/references/pm-mcp-protocol.md).
 **All MCP calls below honour that contract; this section says only how
-release-ops shapes the release ticket.**
+oc-release-ops shapes the release ticket.**
 
 ### Release ticket creation (during `/release announce`)
 
 1. Compose release-ticket description with marker
-   `<!-- opchain:release-ops:release-ticket:v<semver> -->` followed by the
+   `<!-- opchain:oc-release-ops:release-ticket:v<semver> -->` followed by the
    changelog summary, scenario links, and the bump commit SHA.
 2. Pre-create check: registry-resolved `list_issues` (Linear:
    `mcp__claude_ai_Linear__list_issues`; GitHub:
@@ -406,22 +406,22 @@ release-ops shapes the release ticket.**
 3. Otherwise call registry-resolved `create_issue` (Linear:
    `mcp__claude_ai_Linear__save_issue`; GitHub:
    `mcp__mcp-server-github__issue_write` action=create).
-4. Record the release-ticket id in `release-ops.checkpoint.json`
+4. Record the release-ticket id in `oc-release-ops.checkpoint.json`
    `skill_state.current_release.release_ticket_id`.
 
 ### Per-event updates
 
 | Event | Marker | Action |
 |---|---|---|
-| Bump committed | `<!-- opchain:release-ops:bump-committed:v<semver> -->` | `add_comment` linking the bump commit. |
-| Staging shipped (from deploy-ops handoff) | `<!-- opchain:release-ops:staging:v<semver> -->` | `add_comment` with staging URL. |
-| Production shipped | `<!-- opchain:release-ops:shipped:v<semver> -->` | `add_comment` with prod URL + version stamp; transition release ticket → `shipped` (resolved from `pm.yaml.states.extended`). |
+| Bump committed | `<!-- opchain:oc-release-ops:bump-committed:v<semver> -->` | `add_comment` linking the bump commit. |
+| Staging shipped (from oc-deploy-ops handoff) | `<!-- opchain:oc-release-ops:staging:v<semver> -->` | `add_comment` with staging URL. |
+| Production shipped | `<!-- opchain:oc-release-ops:shipped:v<semver> -->` | `add_comment` with prod URL + version stamp; transition release ticket → `shipped` (resolved from `pm.yaml.states.extended`). |
 
 ### `/release announce --retry-pm`
 
 Invokes the protocol §4 flush against
-`release-ops.checkpoint.json` `pm_deferred_actions[]`. Filter to
-`skill: "release-ops"` and `retriable: true`. The release proceeds even if
+`oc-release-ops.checkpoint.json` `pm_deferred_actions[]`. Filter to
+`skill: "oc-release-ops"` and `retriable: true`. The release proceeds even if
 the PM write fails; flush is reconciliation only.
 
 ### Failure modes
@@ -446,9 +446,9 @@ the PM write fails; flush is reconciliation only.
    the catalog is semver-stamped. Don't couple them.
 5. **Compatibility is a contract.** Every release explicitly states
    "back-compatible with X.Y" or lists migration steps. Silence is a bug.
-6. **Hand off, don't ship.** release-ops produces artefacts; git-ops merges,
-   deploy-ops ships. Three skills, one pipeline.
+6. **Hand off, don't ship.** oc-release-ops produces artefacts; oc-git-ops merges,
+   oc-deploy-ops ships. Three skills, one pipeline.
 7. **Reversibility until prod.** Every step before `/deploy` is reversible.
    After prod, fix forward with a new release.
-8. **Dogfood the cadence.** opchain itself uses release-ops for its own
+8. **Dogfood the cadence.** opchain itself uses oc-release-ops for its own
    releases — the v1.3 release shipped via `/release ship v1.3.0`.

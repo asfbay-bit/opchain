@@ -129,7 +129,7 @@ export async function captureException(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Sentry-Auth": `Sentry sentry_version=7, sentry_key=${key}, sentry_client=monitoring-ops/1.0`,
+        "X-Sentry-Auth": `Sentry sentry_version=7, sentry_key=${key}, sentry_client=oc-monitoring-ops/1.0`,
       },
       body: JSON.stringify(payload),
     });

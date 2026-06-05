@@ -22,11 +22,11 @@ description: >
   Specialized dashboard and dense-information UI designer. Produces design specs AND
   working React prototypes with mock data for three archetypes: executive (KPI-driven,
   low density), operations (real-time, monitoring-dense), and analyst (exploratory,
-  drill-heavy). ALWAYS trigger on /data-forge, /dash-forge, /dashboard, /dataviz-design.
+  drill-heavy). ALWAYS trigger on /data-forge, /oc-dash-forge, /dashboard, /dataviz-design.
   Also trigger on: "design a dashboard", "dashboard mockup", "BI design", "data
   visualization design", "KPI dashboard", "analytics UI", "monitoring dashboard",
   "dense information display", "what should the dashboard look like", "design a report
-  view". Auto-invoked by /ux-engineer when the UI is data-heavy and by /app-architect
+  view". Auto-invoked by /oc-ux-engineer when the UI is data-heavy and by /oc-app-architect
   when the design phase encounters a dashboard surface. Trigger liberally whenever
   dashboards, BI interfaces, or dense data displays come up.
 ---
@@ -37,7 +37,7 @@ Dashboard and dense-information UI designer. Takes data (from data-architect han
 
 1. **Design spec** — layout, density, component choices, interaction model, design tokens
 2. **Working React prototype** — renderable artifact with mock data, archetype-appropriate viz stack
-3. **Handoff packet** — spec + prototype + integration notes for app-architect Phase 6 build
+3. **Handoff packet** — spec + prototype + integration notes for oc-app-architect Phase 6 build
 
 **Scope:** Design and prototype. Not production data wiring, not backend. Prototype uses mock data that looks realistic.
 
@@ -45,7 +45,7 @@ Dashboard and dense-information UI designer. Takes data (from data-architect han
 
 ## /data-forge — Command Reference
 
-Entry command: `/data-forge` (or aliases `/dash-forge`, `/dashforge`). Sub-commands use `/df-*` prefix.
+Entry command: `/data-forge` (or aliases `/oc-dash-forge`, `/dashforge`). Sub-commands use `/df-*` prefix.
 
 ```
 DASH FORGE COMMANDS
@@ -99,28 +99,28 @@ Use when the user already has a frontend team and only needs the design, or when
 
 ## Parent Skill Integration (Checkpoints)
 
-dash-forge can run standalone OR be invoked by `/ux-engineer` or `/app-architect` mid-flow. In both cases:
+oc-dash-forge can run standalone OR be invoked by `/oc-ux-engineer` or `/oc-app-architect` mid-flow. In both cases:
 
 ### Checkpoint coordination
 
-- dash-forge writes its own `dash-forge.checkpoint.json` to `{project-dir}/.checkpoints/`
-- Parent skill's checkpoint adds a `sub_skill_invocations` entry pointing at the dash-forge checkpoint
+- oc-dash-forge writes its own `oc-dash-forge.checkpoint.json` to `{project-dir}/.checkpoints/`
+- Parent skill's checkpoint adds a `sub_skill_invocations` entry pointing at the oc-dash-forge checkpoint
 - `/status` in either skill reads both and surfaces combined progress
 
 ### Context inheritance
 
-On invocation, dash-forge inherits:
+On invocation, oc-dash-forge inherits:
 
 | From | Read | Use in |
 |---|---|---|
 | `data-architect-handoff.md` | Schema, top-10 analytics, platform | Phase 0 intake (what data exists) |
-| ux-engineer tokens file | Color/type/spacing tokens | Phase 2 (as constraints, specialize inside) |
-| app-architect style book | Brand palette, component patterns | Phase 2 (align tokens with app) |
+| oc-ux-engineer tokens file | Color/type/spacing tokens | Phase 2 (as constraints, specialize inside) |
+| oc-app-architect style book | Brand palette, component patterns | Phase 2 (align tokens with app) |
 | parent spec.md | User persona, decision context | Phase 0 intake (shortcut) |
 
 ### Token handoff out
 
-At end of Phase 2, dash-forge writes `tokens.ts` in the handoff bundle with this format (consumable by ux-engineer):
+At end of Phase 2, oc-dash-forge writes `tokens.ts` in the handoff bundle with this format (consumable by oc-ux-engineer):
 
 ```ts
 export const dashboardTokens = {
@@ -152,13 +152,13 @@ export const dashboardTokens = {
 };
 ```
 
-ux-engineer reads this to update its living component library.
+oc-ux-engineer reads this to update its living component library.
 
 ---
 
-## When to Use This Skill vs. ux-engineer
+## When to Use This Skill vs. oc-ux-engineer
 
-| Use dash-forge when | Use ux-engineer when |
+| Use oc-dash-forge when | Use oc-ux-engineer when |
 |---|---|
 | Screen is primarily data display | Screen is primarily forms / workflow / content |
 | ≥3 charts or ≥5 KPIs on the same view | General app UI |
@@ -166,7 +166,7 @@ ux-engineer reads this to update its living component library.
 | Dense info needs scannability design | Design system / token work |
 | Upstream is data-architect or a data source | Upstream is discovery / spec |
 
-**If both apply** (e.g., a data-heavy feature in a larger app), dash-forge handles the dashboard surface and hands component tokens back to ux-engineer for app-wide consistency.
+**If both apply** (e.g., a data-heavy feature in a larger app), oc-dash-forge handles the dashboard surface and hands component tokens back to oc-ux-engineer for app-wide consistency.
 
 ---
 
@@ -191,8 +191,8 @@ Phase 4: Handoff               (spec + prototype + integration notes)
 Before asking anything, **check for upstream context:**
 
 1. Is there a `data-architect-handoff.md` in the project dir? Read it — schema, analytics top 10, platform are all relevant.
-2. Was this called from `/ux-engineer`? Read its design spec / tokens for consistency.
-3. Was this called from `/app-architect`? Read the spec + style book.
+2. Was this called from `/oc-ux-engineer`? Read its design spec / tokens for consistency.
+3. Was this called from `/oc-app-architect`? Read the spec + style book.
 4. Is there a checkpoint from a prior run?
 
 Skim what exists. Only ask what you don't already know.
@@ -208,7 +208,7 @@ Skim what exists. Only ask what you don't already know.
 
 | Context | Questions |
 |---|---|
-| Upstream rich (data-architect + ux-engineer context) | 2–4 |
+| Upstream rich (data-architect + oc-ux-engineer context) | 2–4 |
 | Some upstream (one handoff doc or spec) | 4–7 |
 | Standalone, data source known | 7–10 |
 | Standalone, data unclear | 10–15, iterate |
@@ -356,7 +356,7 @@ INTERACTION MODEL
 
 ## Phase 4: Handoff
 
-Single artifact for app-architect Phase 6 to build against:
+Single artifact for oc-app-architect Phase 6 to build against:
 
 ```
 {project-dir}/dash-forge-handoff/
@@ -366,7 +366,7 @@ Single artifact for app-architect Phase 6 to build against:
 └── integration-notes.md    ← how to wire to real data source
 ```
 
-**Tell user:** "Hand this to `/app-architect` Phase 6 for build (which decomposes sprints internally)."
+**Tell user:** "Hand this to `/oc-app-architect` Phase 6 for build (which decomposes sprints internally)."
 
 ---
 
@@ -410,7 +410,7 @@ Every phase output follows:
 
 ## Checkpoint Protocol
 
-**Location:** `{project-dir}/.checkpoints/dash-forge.checkpoint.json`
+**Location:** `{project-dir}/.checkpoints/oc-dash-forge.checkpoint.json`
 Default if unset: `/home/claude/dash-forge-session/`
 
 **Read `references/checkpoint-schema.md`** for schema.
@@ -450,39 +450,39 @@ Large artifacts (prototype file, full spec) stored as file pointers, not inline 
 
 ```
                            ┌──────────────┐
-data-architect ──handoff──►│  dash-forge  │──handoff──► app-architect (Phase 6 build)
+data-architect ──handoff──►│  oc-dash-forge  │──handoff──► oc-app-architect (Phase 6 build)
                            └──────────────┘
                                   ▲
                                   │ routes when UI is data-heavy
                            ┌──────┴───────┐
-                           │ ux-engineer  │
+                           │ oc-ux-engineer  │
                            └──────────────┘
                                   ▲
                                   │ calls during Phase 3 Design
                            ┌──────┴───────┐
-                           │ app-architect│
+                           │ oc-app-architect│
                            └──────────────┘
 ```
 
-- **Upstream (common):** data-architect handoff, ux-engineer design referral, app-architect design phase
+- **Upstream (common):** data-architect handoff, oc-ux-engineer design referral, oc-app-architect design phase
 - **Upstream (rare):** direct invocation with just "design me a dashboard"
-- **Downstream:** app-architect Phase 6 build (handles sprint decomposition internally)
-- **Peer:** ux-engineer handles non-data UI; consistent token handoff both ways
+- **Downstream:** oc-app-architect Phase 6 build (handles sprint decomposition internally)
+- **Peer:** oc-ux-engineer handles non-data UI; consistent token handoff both ways
 
 ---
 
 ## PM-Tool MCP Integration (v1.2+)
 
-Dashboard work is bursty: a single dash-forge run produces a
+Dashboard work is bursty: a single oc-dash-forge run produces a
 substantial handoff bundle (design spec + prototype + component
 inventory + integration notes). v1.2 makes that bundle linkable
-from the PM tool so app-architect's build phase + reviewers can
-find it without grepping the repo. See `integrations-engineer`
+from the PM tool so oc-app-architect's build phase + reviewers can
+find it without grepping the repo. See `oc-integrations-engineer`
 for the canonical PM-MCP patterns.
 
 ### Handoff comment on the linked ticket
 
-When `/data-forge` (or `/dash-forge`) completes, post:
+When `/data-forge` (or `/oc-dash-forge`) completes, post:
 
 ```
 Dashboard handoff: {archetype} ({Exec / Ops / Analyst})
@@ -495,8 +495,8 @@ Dashboard handoff: {archetype} ({Exec / Ops / Analyst})
   /df-audit: PASS (or FAIL: {summary})
 ```
 
-If routed-from ux-engineer (the typical path), reply on the same
-ticket where ux-engineer's "Routed to dash-forge" comment lives.
+If routed-from oc-ux-engineer (the typical path), reply on the same
+ticket where oc-ux-engineer's "Routed to oc-dash-forge" comment lives.
 The thread reads end-to-end.
 
 ### Archetype-decision record
@@ -521,7 +521,7 @@ current state. The handoff comment posts only after audit passes.
 ### Failure modes
 
 - No linked ticket → handoff bundle written to filesystem only.
-- ux-engineer originating ticket missing → post the handoff
+- oc-ux-engineer originating ticket missing → post the handoff
   unparented; the user can link it manually if needed.
 - MCP unavailable → log intent to checkpoint as deferred.
 

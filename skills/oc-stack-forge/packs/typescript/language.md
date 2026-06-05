@@ -25,12 +25,12 @@ incumbent in another language with no migration appetite.
 | Test runner | `vitest` | Fast, ESM-native, plays well with Astro / Vite / Hono. |
 | Build | `npm run build` | Project script; usually wraps `tsc` + bundler. |
 | Lint | `eslint .` | TypeScript ESLint plugin set; flat-config in newer projects. |
-| Format | `prettier --write .` | Optional but stack-forge defaults to assuming it's present. |
+| Format | `prettier --write .` | Optional but oc-stack-forge defaults to assuming it's present. |
 | Package manager | `npm` (default), `pnpm`, `bun` | Stack-forge stays agnostic; defers to lockfile present. |
 
 ## Frameworks (land in later v1.4 PRs)
 
-These are the typescript-language frameworks stack-forge will recommend once
+These are the typescript-language frameworks oc-stack-forge will recommend once
 their packs ship in PRs 4-7:
 
 - **Hono** — edge-first API framework; default for Cloudflare Workers.
@@ -57,8 +57,8 @@ language. Default recommendations:
 | Client | `openapi-fetch` (REST), tRPC client | tRPC for monorepos; openapi-fetch when the API serves non-TS clients too. |
 | Validation | Zod / Valibot | Same library on both sides — request validation = type generation. |
 
-When app-architect Phase 2 detects a first-party API surface and stack-forge
-has picked TypeScript, control passes to `api-dev` to materialise the chain
+When oc-app-architect Phase 2 detects a first-party API surface and oc-stack-forge
+has picked TypeScript, control passes to `oc-api-dev` to materialise the chain
 (OpenAPI authoring, typed handlers, SDK generation).
 
 ## Default deploy targets
@@ -72,7 +72,7 @@ has picked TypeScript, control passes to `api-dev` to materialise the chain
 | Render | Server-rendered apps wanting Heroku ergonomics | Lower friction than AWS, more capable than Vercel for backends. |
 
 Deploy-target packs land alongside the framework packs in PRs 4-7. Until then
-stack-forge falls back to its hardcoded recommendation table in `SKILL.md`.
+oc-stack-forge falls back to its hardcoded recommendation table in `SKILL.md`.
 
 ## Cost band (2026-Q2, rough)
 
@@ -83,7 +83,7 @@ stack-forge falls back to its hardcoded recommendation table in `SKILL.md`.
 
 Check vendor pricing at decision time — these are anchors, not commitments.
 
-## Gotchas stack-forge will flag
+## Gotchas oc-stack-forge will flag
 
 - **ESM vs CommonJS** — modern bundlers and Workers demand ESM; some legacy
   npm packages still ship CJS-only. Stack-forge nudges toward ESM-first
@@ -92,8 +92,8 @@ Check vendor pricing at decision time — these are anchors, not commitments.
   background timers. If the project needs any of those, pivot deploy target
   to a container runtime (Fly.io / Render / AWS).
 - **Type drift between client and server** — without a typed pipeline, the
-  client gradually stops matching the API. The `api-dev` skill exists to
-  prevent that; stack-forge flags projects that pick TypeScript without
+  client gradually stops matching the API. The `oc-api-dev` skill exists to
+  prevent that; oc-stack-forge flags projects that pick TypeScript without
   committing to the typed pipeline.
 
 ## Status
