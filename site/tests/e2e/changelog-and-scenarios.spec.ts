@@ -2,10 +2,11 @@ import { expect, test } from "@playwright/test";
 
 /**
  * /changelog page + /demo scenario picker — kept in lockstep with the
- * release entries as opchain version-bumps. Current release is v1.4
- * (pack registry GA, /coverage page, 5 skill bumps); v1.3 sits one
- * release back (runtime PM, real platforms, release-ops); v1.2
- * remains the third entry (PM-MCP integration).
+ * release entries as opchain version-bumps. Current release is v1.4.2
+ * (emergency patch — skill-bundle download fix, oc- skill-name aliases,
+ * checkpoint-protocol / orchestrator hardening; no new scenarios). v1.4
+ * (pack registry GA, /coverage page) sits one release back; v1.3
+ * (runtime PM, real platforms, release-ops) two back.
  *
  * The page also carries an "Upcoming releases" section above the release
  * history: v1.5 (next — built, awaiting deploy) then v1.6 / v1.7 (planned).
@@ -13,13 +14,14 @@ import { expect, test } from "@playwright/test";
  * timeline cards (#v1-5 / #v1-6 / #v1-7).
  *
  * Two specs:
- *   1. /changelog — current shipped entry is v1.4, v1.3 demoted to past;
- *      the v1.4 entry deep-links to /coverage; the upcoming section lists
- *      v1.5 → v1.6 → v1.7.
+ *   1. /changelog — current shipped entry is v1.4.2, v1.4 demoted to past;
+ *      the v1.4 entry (section#v1-4) still deep-links to /coverage; the
+ *      upcoming section lists v1.5 → v1.6 → v1.7.
  *
  *   2. /demo — the three v1.3 scenarios + the three v1.2 scenarios
- *      remain pickable on /demo. v1.4 ships no new scenarios — the
- *      release surface is /coverage, not a workbench artifact.
+ *      remain pickable on /demo. Neither v1.4 nor v1.4.2 ships new
+ *      scenarios — the release surfaces are /coverage and the bundle /
+ *      checkpoint tooling, not workbench artifacts.
  */
 
 const v13_SCENARIOS = [
@@ -39,27 +41,31 @@ const v12_SCENARIOS = [
 const ALL_PICKABLE = [...v13_SCENARIOS, ...v12_SCENARIOS];
 
 test.describe("/changelog", () => {
-  test("v1.4 is the current release; v1.3 is demoted", async ({ page }) => {
+  test("v1.4.2 is the current release; v1.4 is demoted", async ({ page }) => {
     await page.goto("/changelog");
 
-    // Current release section exists and tags v1.4.
+    // Current release section exists and tags v1.4.2 (the emergency patch:
+    // bundle-download fix, oc- aliases, checkpoint/orchestrator hardening).
     const current = page.locator("section.release.release--current");
     await expect(current).toBeVisible();
-    await expect(current.locator(".rel-tag").first()).toHaveText("v1.4");
+    await expect(current.locator(".rel-tag").first()).toHaveText("v1.4.2");
 
-    // The v1.3 entry exists, demoted to past. Exclude the upcoming
+    // The v1.4 entry exists, demoted to past. Exclude the upcoming
     // sections (.release--next) — they share the .release base class but
     // are forward-looking (v1.5 next, v1.6/v1.7 planned), not past releases.
     const past = page
       .locator("section.release:not(.release--current):not(.release--next)")
       .first();
     await expect(past).toBeVisible();
-    await expect(past.locator(".rel-tag").first()).toHaveText("v1.3");
+    await expect(past.locator(".rel-tag").first()).toHaveText("v1.4");
   });
 
   test("the v1.4 entry deep-links to /coverage (the pack catalog)", async ({ page }) => {
     await page.goto("/changelog");
-    const link = page.locator(`section.release--current a[href="/coverage"]`).first();
+    // v1.4 is now a past release (demoted by v1.4.2), so target it by id
+    // rather than by .release--current — advertising /coverage is a
+    // property of the v1.4 entry, not of whatever release is current.
+    const link = page.locator(`section#v1-4 a[href="/coverage"]`).first();
     await expect(link, "expected /changelog v1.4 entry to deep-link to /coverage")
       .toBeVisible();
   });
