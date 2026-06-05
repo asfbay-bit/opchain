@@ -60,8 +60,10 @@ function runSmoke(url) {
         ...process.env,
         DEPLOY_URL: url,
         // Collapse the retry schedule so failing cases don't pay 15s per check.
-        // Production CI retains the 5×3s default (smoke.sh:22-23).
-        SMOKE_RETRIES: "1",
+        // 2 immediate retries (no sleep) absorb transient in-process-server
+        // timing blips without slowing the suite. Production CI retains the
+        // 5×3s default (smoke.sh:22-23).
+        SMOKE_RETRIES: "2",
         SMOKE_RETRY_SLEEP: "0",
       },
     });
