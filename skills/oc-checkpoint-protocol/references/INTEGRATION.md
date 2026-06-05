@@ -180,7 +180,7 @@ RESUME CHECK
    - "Key Findings So Far" → `context_primer.key_decisions`
    - "Blockers & Open Questions" → `blockers`
    - "Next Session Should" → `next_actions`
-3. `/rev-status` reads from new location
+3. `/oc-rev-status` reads from new location
 4. Keep backward compat: if `.checkpoints/` doesn't exist but `checkpoint.md` does,
    read the markdown version and offer to migrate
 
@@ -199,13 +199,13 @@ RESUME CHECK
 | Event | What to Save |
 |---|---|
 | Stack decision tree completed | Decisions per question |
-| `/feature` decomposition generated | Sprint plan reference |
+| `/oc-feature` decomposition generated | Sprint plan reference |
 | Gap analysis completed | Gap findings summary |
 
 ### SKILL.md Changes Required
 
-1. Add checkpoint writes after `/stack-decide` completes
-2. Add checkpoint writes after `/feature` generates a sprint plan
+1. Add checkpoint writes after `/oc-stack-decide` completes
+2. Add checkpoint writes after `/oc-feature` generates a sprint plan
 3. Add `/checkpoint` to command reference
 
 ---

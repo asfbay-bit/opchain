@@ -163,7 +163,7 @@ app.use("*", requestMonitoring);
 app.use("/api/*", authMiddleware);
 
 // 4. Routes
-app.route("/api", routes);
+app.route("/oc-api", routes);
 
 // 5. Error handler (catches anything monitoring middleware re-throws)
 app.onError(errorHandler);

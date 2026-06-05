@@ -94,7 +94,7 @@ jobs:
           MSG="$EMOJI *${{ github.repository }}* deploy: $RESULT
           Commit: \`${{ github.sha }}\`
           By: ${{ github.actor }}"
-          curl -s -X POST "https://api.telegram.org/bot${{ vars.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+          curl -s -X POST "https://oc-api.telegram.org/bot${{ vars.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d "chat_id=${{ vars.TELEGRAM_CHAT_ID }}" -d "text=$MSG" -d "parse_mode=Markdown"
 ```
 

@@ -20,7 +20,7 @@ commands:
   - /oc-ops recent
 description: >
   Pipeline coordinator for the opchain dev ecosystem. Multi-project registry, cross-skill
-  status, smart routing, and "what should I do next?" recommendations. Use for /ops,
+  status, smart routing, and "what should I do next?" recommendations. Use for /oc-ops,
   "what's the status", "where did I leave off", "which project", "what should I work on",
   "show me everything", or any question about pipeline state across projects. Also trigger
   when the user seems lost, references multiple projects, or asks a vague dev question
@@ -43,38 +43,38 @@ view across projects — it doesn't replace any skill's internal logic.
 
 ---
 
-## /ops — Command Reference
+## /oc-ops — Command Reference
 
 ```
 ORCHESTRATOR COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   STATUS
-  /ops                 Show all projects + active skill state
-  /ops status          Same as /ops — full status dashboard
-  /ops status [project] Status for one project (all skills)
+  /oc-ops                 Show all projects + active skill state
+  /oc-ops status          Same as /oc-ops — full status dashboard
+  /oc-ops status [project] Status for one project (all skills)
 
   ROUTING
-  /ops next            Recommend the single highest-priority action
-  /ops next [project]  Next action for a specific project
-  /ops route [intent]  Route a vague request to the right skill + phase
+  /oc-ops next            Recommend the single highest-priority action
+  /oc-ops next [project]  Next action for a specific project
+  /oc-ops route [intent]  Route a vague request to the right skill + phase
 
   PROJECT REGISTRY
-  /ops projects        List all registered projects with health
-  /ops register        Register a new project (path + name)
-  /ops unregister      Remove a project from the registry
-  /ops switch [project] Set the active project for this session
-  /ops scan            Auto-discover projects by scanning workspace
+  /oc-ops projects        List all registered projects with health
+  /oc-ops register        Register a new project (path + name)
+  /oc-ops unregister      Remove a project from the registry
+  /oc-ops switch [project] Set the active project for this session
+  /oc-ops scan            Auto-discover projects by scanning workspace
 
   PIPELINE
-  /ops pipeline        Show the canonical pipeline DAG
-  /ops pipeline [project] Show where a project sits in the pipeline
-  /ops blockers        Show all blockers across all projects
-  /ops recent          Last-known state per skill (sorted by recency)
+  /oc-ops pipeline        Show the canonical pipeline DAG
+  /oc-ops pipeline [project] Show where a project sits in the pipeline
+  /oc-ops blockers        Show all blockers across all projects
+  /oc-ops recent          Last-known state per skill (sorted by recency)
 
   META
-  /ops health          Self-check: are all skill files accessible?
-  /ops skills          List all installed opchain skills with versions
+  /oc-ops health          Self-check: are all skill files accessible?
+  /oc-ops skills          List all installed opchain skills with versions
   /checkpoint          Show oc-orchestrator state (memory registry + session cache)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -138,9 +138,9 @@ chat history.
 │  └─────────────────────────────────────────────────┘  │
 │                          │                            │
 │                          ▼                            │
-│                   /ops next output                    │
-│                   /ops status output                  │
-│                   /ops route → active invocation      │
+│                   /oc-ops next output                    │
+│                   /oc-ops status output                  │
+│                   /oc-ops route → active invocation      │
 └──────────────────────────────────────────────────────┘
          │ reads                        │ dispatches to
          ▼                              ▼
@@ -216,11 +216,11 @@ Schema design rationale:
 - **No `last_activity` or `tags`** — derived at runtime from checkpoint timestamps
   and manifest scanning. Caching derivable data creates staleness.
 - **`priority` instead of boolean `active`** — values: `primary`, `secondary`,
-  `archived`. Primary projects surface first in `/ops next` cross-project recommendations.
+  `archived`. Primary projects surface first in `/oc-ops next` cross-project recommendations.
 - **`apps` array** — for monorepos, lists sub-applications. Single-app projects
   set this to `null`. Enables per-app checkpoint scanning and status grouping.
 - **`active_project` is session state, not registry** — it starts as `default_project`
-  each session and can be switched with `/ops switch`. Only `default_project` persists.
+  each session and can be switched with `/oc-ops switch`. Only `default_project` persists.
 
 ### Monorepo Sub-Project Handling
 
@@ -270,7 +270,7 @@ Status output groups by app within a monorepo:
     🔄 oc-app-architect   in_progress  Phase 3 design
 ```
 
-### Registration Flow (`/ops register`)
+### Registration Flow (`/oc-ops register`)
 
 1. Ask for project path (or detect from conversation context)
 2. Scan `{path}/.checkpoints/` for existing skill checkpoints
@@ -284,7 +284,7 @@ Status output groups by app within a monorepo:
 ### Auto-Discovery
 
 When any opchain skill is invoked and the project directory is NOT in the registry,
-the oc-orchestrator should auto-register it on next `/ops` invocation. Detection:
+the oc-orchestrator should auto-register it on next `/oc-ops` invocation. Detection:
 checkpoint files exist at a path not in the registry → suggest registration.
 
 ### Cold Start (First-Ever Invocation)
@@ -297,11 +297,11 @@ No projects registered yet. Let's set up your workspace.
 
 I can scan for existing opchain checkpoints, or you can register a project manually.
 
-  /ops register [path]  — Register a specific project
-  /ops scan             — Scan common paths for checkpoint files
+  /oc-ops register [path]  — Register a specific project
+  /oc-ops scan             — Scan common paths for checkpoint files
 ```
 
-`/ops scan` checks: `/home/claude/*/`, looking for `.checkpoints/` directories or
+`/oc-ops scan` checks: `/home/claude/*/`, looking for `.checkpoints/` directories or
 `package.json` / `wrangler.toml` files. Presents discovered projects for confirmation.
 
 ---
@@ -332,12 +332,12 @@ For each checkpoint found:
 Scanning all checkpoints on every command is cheap for 2-3 projects (<50ms) but
 could slow down with many projects or slow filesystems. Strategy:
 
-- On first `/ops` invocation per session: full scan, write to session cache
+- On first `/oc-ops` invocation per session: full scan, write to session cache
 - On subsequent invocations: read from session cache unless >5 minutes stale
-- `/ops status --fresh` forces a re-scan
+- `/oc-ops status --fresh` forces a re-scan
 - Any routing dispatch invalidates the cache (the dispatched skill may write a checkpoint)
 
-### Unified Status Output (`/ops status`)
+### Unified Status Output (`/oc-ops status`)
 
 ```
 OPCHAIN STATUS — All Projects
@@ -366,14 +366,14 @@ OPCHAIN STATUS — All Projects
   3 projects | 2 active pipelines | 1 blocker
 ```
 
-### Single-Project Status (`/ops status [project]`)
+### Single-Project Status (`/oc-ops status [project]`)
 
 Deeper view for one project — shows full progress tables per skill, all blockers
 with proposed resolutions, and the complete next_actions queue.
 
 ---
 
-## Priority Engine (`/ops next`)
+## Priority Engine (`/oc-ops next`)
 
 Recommends the single most important action across all projects (or for a specific
 project). Priority rules, in order:
@@ -414,10 +414,10 @@ of the action-level hierarchy:
 2. **Recency** — within the same priority class, the more recently active project
    gets slight priority (user momentum).
 3. **Session context** — if the user has been working on project X this conversation,
-   favor project X for `/ops next` unless another project has a strictly higher-priority
+   favor project X for `/oc-ops next` unless another project has a strictly higher-priority
    action.
 
-The user can override priority class with `/ops register` or by editing the memory
+The user can override priority class with `/oc-ops register` or by editing the memory
 edit directly.
 
 ### Output Format
@@ -429,7 +429,7 @@ Project: aidops-core (gtrackr)
 Skill:   oc-code-auditor
 Action:  Fix finding F-003 (missing rate limiting on /api/auth/*)
 Why:     Blocks oc-app-architect sprint 2 evaluator pass + oc-deploy-ops gate
-Command: /audit fix F-003
+Command: /oc-audit fix F-003
 
 Run it now? (Y) proceeds, (N) shows the next item in the queue.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -439,7 +439,7 @@ On (Y): oc-orchestrator actively invokes the recommended skill with the right co
 
 ---
 
-## Router Engine (`/ops route`)
+## Router Engine (`/oc-ops route`)
 
 Smart dispatch for vague or multi-skill requests. This operationalizes the routing
 table currently in orchestrator.md.
@@ -448,18 +448,18 @@ table currently in orchestrator.md.
 
 | Intent Signal | Route to | Phase |
 |---|---|---|
-| "build me an app", "I have an idea" | oc-app-architect | /discover |
-| "document this codebase", "backfill specs" | oc-reverse-spec | /rev-full |
-| "what stack should I use" | oc-stack-forge | /stack-decide |
-| "review this code", "find bugs", "audit" | oc-code-auditor | /audit full |
-| "fix the UX", "design is inconsistent" | oc-ux-engineer | /uxe eval |
-| "connect to [service]", "webhook", "OAuth" | oc-integrations-engineer | /integrate plan |
-| "deploy this", "ship it" | oc-deploy-ops | /deploy staging |
-| "commit", "push to git", "create a PR" | oc-git-ops | /git-sync |
-| "can this handle more users", "performance" | oc-scale-ops | /scale audit |
-| "dashboard", "analytics UI", "BI design" | oc-dash-forge | /data-forge |
+| "build me an app", "I have an idea" | oc-app-architect | /oc-discover |
+| "document this codebase", "backfill specs" | oc-reverse-spec | /oc-rev-full |
+| "what stack should I use" | oc-stack-forge | /oc-stack-decide |
+| "review this code", "find bugs", "audit" | oc-code-auditor | /oc-audit full |
+| "fix the UX", "design is inconsistent" | oc-ux-engineer | /oc-uxe eval |
+| "connect to [service]", "webhook", "OAuth" | oc-integrations-engineer | /oc-integrate plan |
+| "deploy this", "ship it" | oc-deploy-ops | /oc-deploy staging |
+| "commit", "push to git", "create a PR" | oc-git-ops | /oc-git-sync |
+| "can this handle more users", "performance" | oc-scale-ops | /oc-scale audit |
+| "dashboard", "analytics UI", "BI design" | oc-dash-forge | /oc-data-forge |
 | "continue where I left off" | [scan checkpoints] | [resume most recent] |
-| "what should I work on" | oc-orchestrator | /ops next |
+| "what should I work on" | oc-orchestrator | /oc-ops next |
 
 ### Routing Process
 
@@ -487,9 +487,9 @@ options with one-line explanations:
 ```
 That could go a few directions:
 
-1. oc-code-auditor /audit security — if you want to find vulnerabilities
+1. oc-code-auditor /oc-audit security — if you want to find vulnerabilities
 2. oc-security-auditor /scan — if you want a full security posture review (coming soon)
-3. oc-code-auditor /audit fix-all — if you already know the issues and want fixes
+3. oc-code-auditor /oc-audit fix-all — if you already know the issues and want fixes
 
 Which one?
 ```
@@ -498,7 +498,7 @@ Never present more than 3 options.
 
 ---
 
-## Pipeline Visualization (`/ops pipeline`)
+## Pipeline Visualization (`/oc-ops pipeline`)
 
 Shows the canonical pipeline DAG with the project's current position highlighted.
 
@@ -525,7 +525,7 @@ PIPELINE — aidops-core (gtrackr)
 
 ---
 
-## Blockers Dashboard (`/ops blockers`)
+## Blockers Dashboard (`/oc-ops blockers`)
 
 Aggregates all blockers from all checkpoints across all projects.
 
@@ -538,7 +538,7 @@ BLOCKERS — All Projects
      Source: oc-code-auditor F-003
      Blocking: oc-app-architect sprint 2
      Needs: code_fix
-     Resolution: Add rate-limit middleware → /audit fix F-003
+     Resolution: Add rate-limit middleware → /oc-audit fix F-003
 
   GET RIPPED
   🚫 B1: Design direction not approved
@@ -553,7 +553,7 @@ BLOCKERS — All Projects
 
 ---
 
-## Skill Health Check (`/ops health`)
+## Skill Health Check (`/oc-ops health`)
 
 Verifies the ecosystem is intact:
 
@@ -588,10 +588,10 @@ ECOSYSTEM HEALTH
 
 ---
 
-## Activity Snapshot (`/ops recent`)
+## Activity Snapshot (`/oc-ops recent`)
 
 Checkpoints store only their most recent `updated_at` — there's no historical event
-log. `/ops recent` reconstructs a snapshot from what's available: each skill's last
+log. `/oc-ops recent` reconstructs a snapshot from what's available: each skill's last
 update timestamp and progress_summary, sorted reverse-chronologically.
 
 ```
@@ -659,7 +659,7 @@ ephemeral file.
 
 | Error | Detection | Recovery |
 |---|---|---|
-| Registered path doesn't exist | `stat {path}` fails | Flag project as unreachable, skip in status, suggest `/ops unregister` |
+| Registered path doesn't exist | `stat {path}` fails | Flag project as unreachable, skip in status, suggest `/oc-ops unregister` |
 | Checkpoint file is malformed JSON | JSON parse error | Skip that skill, flag in status: "⚠️ {skill} checkpoint corrupt" |
 | Memory edit is stale (references deleted project) | Path scan fails | Remove from registry, update memory edit |
 | No checkpoints at registered path | Empty `.checkpoints/` dir | Show project as registered but no pipeline activity |
@@ -680,8 +680,8 @@ ephemeral file.
 |---|---|---|
 | Project registered/unregistered | Yes | Yes |
 | Active project changed | No | Yes |
-| `/ops next` computed | No | Yes (routing_history) |
-| `/ops status` scanned | No | Yes (scan_cache) |
+| `/oc-ops next` computed | No | Yes (routing_history) |
+| `/oc-ops status` scanned | No | Yes (scan_cache) |
 | Routing dispatched | No | Yes (routing_history) |
 
 ### `/checkpoint` Behavior
@@ -719,7 +719,7 @@ Welcome back. Here's where things stand:
 ▶ aidops-core has a blocker (rate limiting fix needed)
 ▶ GET RIPPED is waiting on your design approval
 
-/ops next recommends: Fix F-003 on aidops-core (unblocks the build pipeline)
+/oc-ops next recommends: Fix F-003 on aidops-core (unblocks the build pipeline)
 ```
 
 ### Stale Checkpoint Detection
@@ -747,7 +747,7 @@ When detected:
 🎉 penthreshold — pipeline complete!
    oc-dash-forge ✅ → oc-app-architect ✅ → oc-git-ops ✅ → oc-deploy-ops ✅
    (oc-scale-ops, oc-integrations-engineer not applicable — no checkpoints)
-   Archive this project? (/ops unregister penthreshold)
+   Archive this project? (/oc-ops unregister penthreshold)
 ```
 
 ### Implicit Project Detection
@@ -790,7 +790,7 @@ becomes a router by ticket id, not just by project / phase.
 
 ### Cross-skill PM thread aggregation
 
-`/ops` reads `pm_refs` across every skill checkpoint in every
+`/oc-ops` reads `pm_refs` across every skill checkpoint in every
 registered project, then aggregates:
 
 ```
@@ -807,14 +807,14 @@ Active threads (by ticket):
     oc-deploy-ops        ─               (waiting)
 
   EXP-12 — Image-search prototype
-    oc-app-architect     /discover       (source)
+    oc-app-architect     /oc-discover       (source)
     oc-stack-forge       decided         (ADR-7)
 ```
 
-The view collapses by project but is queryable by ticket: `/ops
+The view collapses by project but is queryable by ticket: `/oc-ops
 ticket PLAT-4471` shows that thread alone.
 
-### `/ops resume TICKET-ID` — route by ticket
+### `/oc-ops resume TICKET-ID` — route by ticket
 
 New verb (v1.2). User says "resume work on PLAT-4471" and the
 oc-orchestrator:
@@ -825,12 +825,12 @@ oc-orchestrator:
 3. Recommends the next action, citing the specific skill and
    command. Examples:
    - "Last touched by `oc-git-ops` 2 days ago — PR is in review.
-     Run `/git-sync --refresh` to update."
-   - "Last touched by `oc-app-architect` Phase 4. Next: `/build`."
+     Run `/oc-git-sync --refresh` to update."
+   - "Last touched by `oc-app-architect` Phase 4. Next: `/oc-build`."
 
-### `/ops next` (existing verb, v1.2-enhanced)
+### `/oc-ops next` (existing verb, v1.2-enhanced)
 
-`/ops next` already considers project + phase. v1.2 also
+`/oc-ops next` already considers project + phase. v1.2 also
 considers PM-ticket priority:
 
 - A ticket marked `Urgent` or `priority:high` in the PM tool
@@ -840,7 +840,7 @@ considers PM-ticket priority:
 - Stale-but-active threads (no checkpoint write in > 7d) get a
   `stale?` annotation.
 
-### `/ops pm-status` — what does the PM tool say?
+### `/oc-ops pm-status` — what does the PM tool say?
 
 New advisory verb. Queries the configured PM-MCP for the user's
 assigned tickets in `In Progress` state, cross-references with
@@ -851,7 +851,7 @@ PM ↔ checkpoint reconciliation:
 
   PLAT-4471 — In Progress (PM)   ↔   shipped (oc-deploy-ops)
     ⚠  PM ticket should be Done. Likely auto-transition failed.
-    Suggested: /git-sync --retry-pm
+    Suggested: /oc-git-sync --retry-pm
 
   AEGIS-9 — In Progress (PM)     ↔   step 4/9 (oc-migration-ops)
     ✓  In sync.
@@ -874,7 +874,7 @@ confuses `PLAT-1` from project A with `PLAT-1` from project B
 
 ### Failure modes
 
-- No PM-MCP configured anywhere → `/ops` operates as v1.1; no
+- No PM-MCP configured anywhere → `/oc-ops` operates as v1.1; no
   PM aggregation; the existing project / phase view is the
   full picture.
 - PM-MCP available but `pm_refs` field absent in a skill's
@@ -892,9 +892,9 @@ confuses `PLAT-1` from project A with `PLAT-1` from project B
 1. **Read everything, write only your own state.** The oc-orchestrator's power
    comes from its cross-skill read access. It never modifies another skill's
    checkpoints. Its own state lives in memory (registry) and session files (cache).
-2. **Recommend, don't block.** `/ops next` is a recommendation, not a gate. The user
+2. **Recommend, don't block.** `/oc-ops next` is a recommendation, not a gate. The user
    can always invoke any skill directly.
-3. **One answer per question.** `/ops next` returns ONE action, not a list. The user
+3. **One answer per question.** `/oc-ops next` returns ONE action, not a list. The user
    can ask again for the next item in the queue.
 4. **Project context is first-class.** Every command accepts an optional project
    argument. If omitted, use active_project (session state) or default_project (memory).

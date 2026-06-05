@@ -14,7 +14,7 @@ returns the same shape with `Content-Type: application/problem+json`.
 
 ```json
 {
-  "type":     "https://api.example.com/errors/widget-not-found",
+  "type":     "https://oc-api.example.com/errors/widget-not-found",
   "title":    "Widget not found",
   "status":   404,
   "detail":   "No widget with id wid_abc123 exists.",
@@ -54,7 +54,7 @@ verifies each one is reachable and renders correctly.
 
 ```json
 {
-  "type":   "https://api.example.com/errors/validation-failed",
+  "type":   "https://oc-api.example.com/errors/validation-failed",
   "title":  "Validation failed",
   "status": 422,
   "errors": [
@@ -94,7 +94,7 @@ function problem(c: Context, status: number, type: string, title: string, opts?:
 }) {
   return c.json(
     {
-      type:   `https://api.example.com${type}`,
+      type:   `https://oc-api.example.com${type}`,
       title,
       status,
       instance: c.req.path,

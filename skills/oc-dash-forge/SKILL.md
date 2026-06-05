@@ -22,7 +22,7 @@ description: >
   Specialized dashboard and dense-information UI designer. Produces design specs AND
   working React prototypes with mock data for three archetypes: executive (KPI-driven,
   low density), operations (real-time, monitoring-dense), and analyst (exploratory,
-  drill-heavy). ALWAYS trigger on /data-forge, /oc-dash-forge, /dashboard, /dataviz-design.
+  drill-heavy). ALWAYS trigger on /oc-data-forge, /oc-dash-forge, /dashboard, /dataviz-design.
   Also trigger on: "design a dashboard", "dashboard mockup", "BI design", "data
   visualization design", "KPI dashboard", "analytics UI", "monitoring dashboard",
   "dense information display", "what should the dashboard look like", "design a report
@@ -43,47 +43,47 @@ Dashboard and dense-information UI designer. Takes data (from data-architect han
 
 ---
 
-## /data-forge — Command Reference
+## /oc-data-forge — Command Reference
 
-Entry command: `/data-forge` (or aliases `/oc-dash-forge`, `/dashforge`). Sub-commands use `/df-*` prefix.
+Entry command: `/oc-data-forge` (or aliases `/oc-dash-forge`, `/dashforge`). Sub-commands use `/df-*` prefix.
 
 ```
 DASH FORGE COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Entry: /data-forge  (shows this menu)
+  Entry: /oc-data-forge  (shows this menu)
 
   CORE FLOW
-  /df-intake      Understand users, decisions, data, density requirements
-  /df-archetype   Pick archetype (exec / ops / analyst) with defense
-  /df-layout      Information architecture + grid + component inventory
-  /df-tokens      Design tokens (color semantics, density scale, type ramp)
-  /df-prototype   Build working React prototype with mock data
-  /df-spec-only   Skip prototype — produce design spec only
-  /df-full        Run all phases end-to-end
+  /oc-df-intake      Understand users, decisions, data, density requirements
+  /oc-df-archetype   Pick archetype (exec / ops / analyst) with defense
+  /oc-df-layout      Information architecture + grid + component inventory
+  /oc-df-tokens      Design tokens (color semantics, density scale, type ramp)
+  /oc-df-prototype   Build working React prototype with mock data
+  /oc-df-spec-only   Skip prototype — produce design spec only
+  /oc-df-full        Run all phases end-to-end
 
   UTILITIES
-  /df-audit       Quality checks (density, legibility, chart fit, a11y)
-  /df-status      Checkpoint progress
-  /df-resume      Resume from last checkpoint
+  /oc-df-audit       Quality checks (density, legibility, chart fit, a11y)
+  /oc-df-status      Checkpoint progress
+  /oc-df-resume      Resume from last checkpoint
   /df-reset       Archive and restart
-  /df-variants    Generate 2-3 layout variants for user to choose
+  /oc-df-variants    Generate 2-3 layout variants for user to choose
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-### `/df-full` behavior
+### `/oc-df-full` behavior
 
 Runs all phases with one gate:
 1. Intake (adaptive — skim upstream context first)
 2. Archetype pick (auto-proceed if clear)
 3. Layout + tokens (show, proceed)
 4. **Gate: "Layout look right? (Y/n or describe changes)"**
-5. Prototype build, run `/df-audit` silently
+5. Prototype build, run `/oc-df-audit` silently
 6. Report prototype artifact path + handoff file
 
 User interrupts with "pause" or "change X" to revert to manual control.
 
-### `/df-spec-only` behavior
+### `/oc-df-spec-only` behavior
 
 Skip Phase 3 (prototype). Run phases 0–2, then generate a spec document covering:
 - Archetype pick + defense
@@ -370,9 +370,9 @@ Single artifact for oc-app-architect Phase 6 to build against:
 
 ---
 
-## /df-audit — Quality Self-Check
+## /oc-df-audit — Quality Self-Check
 
-Runs on demand and automatically before `/df-prototype` completion.
+Runs on demand and automatically before `/oc-df-prototype` completion.
 
 | Check | Pass criteria |
 |---|---|
@@ -390,7 +390,7 @@ Runs on demand and automatically before `/df-prototype` completion.
 | Contrast | Body text ≥4.5:1, large text ≥3:1 (spot-check 3 tiles minimum) |
 | Screen reader | Charts have `<title>`/`<desc>` or accompanying data table |
 
-Critical failures block `/df-prototype` completion.
+Critical failures block `/oc-df-prototype` completion.
 
 ---
 
@@ -416,7 +416,7 @@ Default if unset: `/home/claude/dash-forge-session/`
 **Read `references/checkpoint-schema.md`** for schema.
 
 Write on: phase end, mid-phase intake, user pause, before destructive ops.
-Read on: first action each session, before any phase command, on `/df-status` or `/df-resume`.
+Read on: first action each session, before any phase command, on `/oc-df-status` or `/oc-df-resume`.
 
 ### Progress table
 
@@ -440,7 +440,7 @@ Large artifacts (prototype file, full spec) stored as file pointers, not inline 
 4. **Aesthetic color.** Using brand blue/orange for data series without semantic roles.
 5. **Chart-for-everything.** Some data is a table. Some is a single number. Don't chart by reflex.
 6. **Mock data lies.** Uniform distributions hide layout problems that real data exposes.
-7. **Skipping `/df-audit`.** Prototype ships with `console.error` on color contrast and nobody notices.
+7. **Skipping `/oc-df-audit`.** Prototype ships with `console.error` on color contrast and nobody notices.
 8. **Mobile-first when it shouldn't be.** Dashboards are usually desktop. Don't reverse without a reason.
 9. **Building the full dashboard before layout gate.** Wastes tokens. Gate on layout first.
 
@@ -482,7 +482,7 @@ for the canonical PM-MCP patterns.
 
 ### Handoff comment on the linked ticket
 
-When `/data-forge` (or `/oc-dash-forge`) completes, post:
+When `/oc-data-forge` (or `/oc-dash-forge`) completes, post:
 
 ```
 Dashboard handoff: {archetype} ({Exec / Ops / Analyst})
@@ -492,7 +492,7 @@ Dashboard handoff: {archetype} ({Exec / Ops / Analyst})
   Mock-data fixtures: {fixture-count}
   Prototype: dash-forge-handoff/prototype.tsx
   Integration notes: dash-forge-handoff/integration-notes.md
-  /df-audit: PASS (or FAIL: {summary})
+  /oc-df-audit: PASS (or FAIL: {summary})
 ```
 
 If routed-from oc-ux-engineer (the typical path), reply on the same
@@ -512,9 +512,9 @@ Reason: {one-line — usually about the user persona's task shape}
 Rejected: {alternatives}, because {reason}.
 ```
 
-### `/df-audit` failures
+### `/oc-df-audit` failures
 
-If `/df-audit` fails, post the failure summary on the ticket
+If `/oc-df-audit` fails, post the failure summary on the ticket
 **before** the handoff comment, so the ticket reflects the
 current state. The handoff comment posts only after audit passes.
 

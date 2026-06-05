@@ -12,7 +12,7 @@ commands:
   - /oc-deploy audit
 description: >
   Deployment pipeline: audit gate → staging → production → monitoring. Use for
-  /deploy, "deploy this", "ship it", "push to production", "staging", "rollback",
+  /oc-deploy, "deploy this", "ship it", "push to production", "staging", "rollback",
   "health check", or any deployment task. Trigger liberally.
 ---
 
@@ -24,34 +24,34 @@ Orchestrate the full deployment lifecycle: pre-deploy quality gate → staging d
 smoke test → production promotion → health check → rollback if needed. Built for
 Cloudflare Workers + D1 + Pages, with the aidops-core monorepo as the primary target.
 
-## /deploy — Command Reference
+## /oc-deploy — Command Reference
 
-When the user types `/deploy`, display this menu:
+When the user types `/oc-deploy`, display this menu:
 
 ```
 DEPLOY OPS COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   PIPELINE
-  /deploy staging    Deploy to staging environment
-  /deploy prod       Promote staging to production (or direct deploy)
-  /deploy rollback   Revert to previous production version
-  /deploy status     Show current deployment state
+  /oc-deploy staging    Deploy to staging environment
+  /oc-deploy prod       Promote staging to production (or direct deploy)
+  /oc-deploy rollback   Revert to previous production version
+  /oc-deploy status     Show current deployment state
 
   GATES
-  /deploy audit      Run pre-deploy audit (calls oc-code-auditor)
-  /deploy smoke      Run post-deploy smoke tests
-  /deploy health     Check production health
+  /oc-deploy audit      Run pre-deploy audit (calls oc-code-auditor)
+  /oc-deploy smoke      Run post-deploy smoke tests
+  /oc-deploy health     Check production health
 
   SETUP
-  /deploy init       Set up deployment config for a project
-  /deploy env        Manage environment variables and secrets
+  /oc-deploy init       Set up deployment config for a project
+  /oc-deploy env        Manage environment variables and secrets
 
   UTILITIES
   /checkpoint        Show checkpoint status
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Type any command to begin. /deploy to see this again.
+  Type any command to begin. /oc-deploy to see this again.
 ```
 
 ---
@@ -86,7 +86,7 @@ CODE (committed)
 
 ---
 
-## Phase 0: Setup (/deploy init)
+## Phase 0: Setup (/oc-deploy init)
 
 ### Project Detection
 
@@ -161,11 +161,11 @@ Create or update `.oc-deploy-ops.json`:
 
 ---
 
-## Pre-Deploy Audit Gate (/deploy audit)
+## Pre-Deploy Audit Gate (/oc-deploy audit)
 
 Before any deploy, run **two** audits in order: oc-code-auditor (code-level
 findings) then oc-security-auditor (architecture / hardening / threat
-model). Both must pass for `/deploy staging` and `/deploy prod` to
+model). Both must pass for `/oc-deploy staging` and `/oc-deploy prod` to
 proceed.
 
 ### 1. oc-code-auditor — code-level gate
@@ -174,7 +174,7 @@ proceed.
 # Reuse the existing checkpoint if it's recent
 node scripts/checkpoint.mjs status oc-code-auditor
 # If updated_at < 1h old, reuse. Otherwise:
-#   Skill(skill="oc-code-auditor", args="/audit pre-deploy")
+#   Skill(skill="oc-code-auditor", args="/oc-audit pre-deploy")
 ```
 
 ### 2. oc-security-auditor — posture gate
@@ -189,7 +189,7 @@ integration).
 node scripts/checkpoint.mjs status oc-security-auditor
 # Reuse if updated_at < 24h old AND no high-impact changes since.
 # Otherwise:
-#   Skill(skill="oc-security-auditor", args="/security pre-deploy")
+#   Skill(skill="oc-security-auditor", args="/oc-security pre-deploy")
 ```
 
 ### Gate Rules
@@ -207,7 +207,7 @@ the findings and ask for explicit confirmation before proceeding.
 
 ---
 
-## Staging Deploy (/deploy staging)
+## Staging Deploy (/oc-deploy staging)
 
 ### Deploy Sequence (Cloudflare Workers + D1)
 
@@ -240,7 +240,7 @@ fi
 For the aidops monorepo with the deploy API:
 
 ```bash
-curl -X POST "https://deploy.aidops.workers.dev/deploy" \
+curl -X POST "https://oc-deploy.aidops.workers.dev/deploy" \
   -H "Authorization: Bearer <deploy-token>" \
   -H "Content-Type: application/json" \
   -d '{"app": "<app-name>", "env": "staging"}'
@@ -248,7 +248,7 @@ curl -X POST "https://deploy.aidops.workers.dev/deploy" \
 
 Fallback to direct wrangler if deploy API isn't available.
 
-### Post-Staging Smoke Tests (/deploy smoke)
+### Post-Staging Smoke Tests (/oc-deploy smoke)
 
 Run immediately after staging deploy:
 
@@ -280,7 +280,7 @@ echo "Result: $PASS passed, $FAIL failed"
 
 ---
 
-## Production Promotion (/deploy prod)
+## Production Promotion (/oc-deploy prod)
 
 ### Pre-Promotion Checklist
 
@@ -307,7 +307,7 @@ npx wrangler deploy
 # Run health check
 ```
 
-### Post-Deploy Health (/deploy health)
+### Post-Deploy Health (/oc-deploy health)
 
 ```bash
 PROD_URL="<production-url>"
@@ -327,7 +327,7 @@ verify post-deploy observability (uptime checks, error tracking,
 SLO/SLI alarms). Deploy-ops ships it; oc-monitoring-ops watches it.
 
 ```
-Skill(skill="oc-monitoring-ops", args="/monitor verify")
+Skill(skill="oc-monitoring-ops", args="/oc-monitor verify")
 ```
 
 oc-monitoring-ops reads this skill's checkpoint to learn what shipped
@@ -343,7 +343,7 @@ whether to address now or schedule for a follow-up.
 
 ---
 
-## Rollback (/deploy rollback)
+## Rollback (/oc-deploy rollback)
 
 ### Wrangler Rollback
 
@@ -373,7 +373,7 @@ If production health check fails after deploy:
 
 ### On-Demand Health Check
 
-`/deploy health` runs the full suite:
+`/oc-deploy health` runs the full suite:
 - HTTP status check on all smoke test URLs
 - Latency measurement
 - CF Workers analytics via API (request count, error rate) if token available
@@ -383,7 +383,7 @@ If production health check fails after deploy:
 
 ```bash
 # Requires CF_API_TOKEN and CF_ACCOUNT_ID
-curl -s "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/analytics/stored" \
+curl -s "https://oc-api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/analytics/stored" \
   -H "Authorization: Bearer $CF_API_TOKEN" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
@@ -402,7 +402,7 @@ For projects with Telegram integration:
 notify() {
   local msg="$1"
   [[ -n "$TELEGRAM_BOT_TOKEN" && -n "$TELEGRAM_CHAT_ID" ]] && \
-    curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+    curl -s -X POST "https://oc-api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
       -d "chat_id=$TELEGRAM_CHAT_ID" -d "text=$msg" -d "parse_mode=Markdown"
 }
 
@@ -452,8 +452,8 @@ notify "✅ *gtrack* deployed to production — $(git rev-parse --short HEAD)"
 ### Triggered By
 
 Deploy-ops can be invoked directly, but also gets suggested by other skills:
-- **oc-git-ops**: After `/git-sync` completes, oc-git-ops suggests `/deploy staging`
-- **oc-app-architect**: After final Phase 6 sprint passes, oc-app-architect suggests `/audit pre-deploy` → `/deploy`
+- **oc-git-ops**: After `/oc-git-sync` completes, oc-git-ops suggests `/oc-deploy staging`
+- **oc-app-architect**: After final Phase 6 sprint passes, oc-app-architect suggests `/oc-audit pre-deploy` → `/oc-deploy`
 - **oc-app-architect**: Phase 7 (Launch) suggests the deploy pipeline
 
 When triggered by another skill's suggestion, read that skill's checkpoint for context
@@ -463,7 +463,7 @@ When triggered by another skill's suggestion, read that skill's checkpoint for c
 
 ## GitHub Actions Template
 
-For automated CI/CD, generate with `/deploy init`:
+For automated CI/CD, generate with `/oc-deploy init`:
 
 Read `references/github-actions.md` for full workflow. Structure:
 
@@ -485,7 +485,7 @@ The walkthrough above is Cloudflare-Workers-flavored because that's opchain's
 own runtime. v1.3's platform-expansion sprint added first-class provider
 sections for the four other targets in `oc-stack-forge`'s Platform Matrix. Each
 section gives the deploy command, env-var pattern, smoke-test surface, and
-rollback path. The audit gate, `/deploy audit`, runs the same way regardless
+rollback path. The audit gate, `/oc-deploy audit`, runs the same way regardless
 of provider.
 
 ### Render (Django, Node static, Rails alt)
@@ -543,7 +543,7 @@ if you need to roll back a migration too, that's a separate
 
 **Audit gate:** Rails projects run `bundle exec brakeman` and
 `bundle exec rspec` in CI before promoting; oc-deploy-ops orchestrates via
-`/deploy audit` which dispatches to the project's `bin/audit` if present.
+`/oc-deploy audit` which dispatches to the project's `bin/audit` if present.
 
 ### Fly.io (Go primary, Rust alt, anything Dockerfile-based)
 
@@ -645,7 +645,7 @@ const target = getDispatchTarget("python");
 Resolution order:
 
 1. **Pack hit + populated platforms** — dispatch to the `defaultPlatform`'s
-   provider section. The user can override with `/deploy ... --platform <id>`
+   provider section. The user can override with `/oc-deploy ... --platform <id>`
    as long as the override is in `supportedPlatforms`.
 2. **Pack hit + empty platforms** — fall back to the Platform Matrix above
    keyed by language (Python → Render, Ruby → Heroku, Go → Fly.io, Rust →
@@ -654,10 +654,10 @@ Resolution order:
 3. **Pack miss** — caller error. oc-deploy-ops surfaces `unknown pack: <id>`
    and exits. No fuzzy matching.
 
-### Worked example — `/deploy staging` on a Python project
+### Worked example — `/oc-deploy staging` on a Python project
 
 ```
-1. /deploy staging
+1. /oc-deploy staging
 2. Read pack hint from project's oc-stack-forge.checkpoint.json:
      activePack: "python"
 3. getDispatchTarget("python") → { defaultPlatform: null, supportedPlatforms: [] }
@@ -696,7 +696,7 @@ oc-deploy-ops shapes the deploy ticket and per-event updates.**
 
 ### Deploy ticket creation
 
-When `/deploy staging` or `/deploy prod` starts and audit gate
+When `/oc-deploy staging` or `/oc-deploy prod` starts and audit gate
 passes:
 
 1. Walk the commit range from last-deployed to HEAD.
@@ -760,7 +760,7 @@ itself with marker
 reflects reality. The 7-day auto-comment is itself idempotent —
 the marker prevents duplicate stale-warnings on resumed sessions.
 
-### `/deploy --retry-pm` flush
+### `/oc-deploy --retry-pm` flush
 
 Invokes the protocol §4 flush against
 `oc-deploy-ops.checkpoint.json` `pm_deferred_actions[]`. Filter to
@@ -771,7 +771,7 @@ this flush is purely the post-ship reconciliation path.
 ### Failure modes
 
 - MCP unavailable / unconfigured → deploy proceeds; intended
-  comments / transitions are deferred per protocol §4. `/deploy
+  comments / transitions are deferred per protocol §4. `/oc-deploy
   --retry-pm` flushes later.
 - 403 on a per-linked-ticket comment → defer that one entry with
   `retriable: false`; the deploy ticket and other linked-ticket

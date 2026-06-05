@@ -21,8 +21,8 @@ description: >
   First-party API design and build harness with Designer/Builder/Conformance loop.
   Owns OpenAPI/GraphQL authoring, schema↔code parity, versioning + sunset strategy,
   pagination/error/idempotency conventions, typed handler scaffolding, and SDK
-  generation for the API your own clients consume. Use for /api, /api design,
-  /api spec, /api scaffold, /api version, /api lint, /api sdk, "design our API",
+  generation for the API your own clients consume. Use for /oc-api, /oc-api design,
+  /oc-api spec, /oc-api scaffold, /oc-api version, /oc-api lint, /oc-api sdk, "design our API",
   "OpenAPI", "GraphQL schema", "versioning strategy", "deprecate endpoint",
   "generate SDK", "schema drift". For consuming someone else's API (Stripe, Slack,
   OAuth) use oc-integrations-engineer instead. Trigger liberally.
@@ -45,35 +45,35 @@ customers, or partners consume, use this skill.
 
 ---
 
-## /api — Command Reference
+## /oc-api — Command Reference
 
 ```
 API DEVELOPER COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   TRI-AGENT HARNESS
-  /api design         Author the API contract (Designer agent)
-  /api build          Scaffold + conformance loop (Builder → Conformance)
-  /api test           Run Conformance against an existing server
+  /oc-api design         Author the API contract (Designer agent)
+  /oc-api build          Scaffold + conformance loop (Builder → Conformance)
+  /oc-api test           Run Conformance against an existing server
 
   AUTHOR
-  /api spec           Generate / update OpenAPI or GraphQL schema from data model
-  /api scaffold       Generate typed handlers + validation middleware from spec
-  /api lint           Run spectral / redocly lint on the spec
+  /oc-api spec           Generate / update OpenAPI or GraphQL schema from data model
+  /oc-api scaffold       Generate typed handlers + validation middleware from spec
+  /oc-api lint           Run spectral / redocly lint on the spec
 
   LIFECYCLE
-  /api version        Plan a new version (URL or header strategy)
-  /api deprecate      Mark endpoints deprecated; emit Sunset/Deprecation headers
-  /api docs           Render human-readable docs from the spec
-  /api sdk            Generate TypeScript / Python / Go SDK from the spec
+  /oc-api version        Plan a new version (URL or header strategy)
+  /oc-api deprecate      Mark endpoints deprecated; emit Sunset/Deprecation headers
+  /oc-api docs           Render human-readable docs from the spec
+  /oc-api sdk            Generate TypeScript / Python / Go SDK from the spec
 
   UTILITIES
-  /api list           Show all endpoints with version + deprecation status
-  /api drift          Compare spec to running code; report mismatches
+  /oc-api list           Show all endpoints with version + deprecation status
+  /oc-api drift          Compare spec to running code; report mismatches
   /checkpoint         Show checkpoint status
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Type any command to begin. /api to see this again.
+  Type any command to begin. /oc-api to see this again.
 ```
 
 ---
@@ -132,7 +132,7 @@ API DESIGN INTENT
 
 ---
 
-## Phase 1: API Designer (`/api design`)
+## Phase 1: API Designer (`/oc-api design`)
 
 ### Designer Persona
 
@@ -176,7 +176,7 @@ info:
     Versioning: URL-based (/v1/, /v2/). Sunset headers on deprecation.
     Errors: RFC 9457 problem+json. Pagination: opaque cursor.
 servers:
-  - url: https://api.example.com/v1
+  - url: https://oc-api.example.com/v1
 security:
   - bearerAuth: []
 paths:
@@ -256,7 +256,7 @@ versioning strategy with the user. Write checkpoint: phase `designed`.
 
 ---
 
-## Phase 2: Build Loop (`/api build`)
+## Phase 2: Build Loop (`/oc-api build`)
 
 ### Step 1: Build Contract
 
@@ -377,14 +377,14 @@ Max iterations: 3.
 
 ## Lifecycle Commands
 
-### `/api version` — plan a new version
+### `/oc-api version` — plan a new version
 
 Read `references/versioning-and-deprecation.md`. Pick URL (`/v2/`) or header
 (`API-Version: 2026-04-27`) — match what's already in production; never mix.
 Output: a new spec file (`api/v2/openapi.yaml`) plus a migration guide template
 under `api/migrations/v1-to-v2.md`.
 
-### `/api deprecate` — mark endpoints deprecated
+### `/oc-api deprecate` — mark endpoints deprecated
 
 For each deprecated endpoint:
 - Set `deprecated: true` in the spec.
@@ -394,19 +394,19 @@ For each deprecated endpoint:
 - Open a tracked deprecation entry in `api/deprecations.md` with the sunset date,
   the replacement endpoint, and the consumer-notification plan.
 
-### `/api docs` — render human-readable docs
+### `/oc-api docs` — render human-readable docs
 
 Default: Redoc, served at `/docs` from the spec file. The Builder must wire the
 docs route during scaffolding so the rendered docs are always in sync with the
 shipped spec.
 
-### `/api sdk` — generate SDK
+### `/oc-api sdk` — generate SDK
 
 TypeScript via `openapi-typescript` + `openapi-fetch` is the default; other
 languages on request. SDK version tracks the API version (`v1.x` SDK ↔ `/v1`
 API). Publish to a registry only after Conformance round-trip passes.
 
-### `/api drift` — code-vs-spec drift report
+### `/oc-api drift` — code-vs-spec drift report
 
 Run between commits, in CI, or on demand. Outputs:
 - Operations missing handlers
@@ -429,7 +429,7 @@ oc-deploy-ops gates production deploys on this command returning zero drift.
 | Rate-limit *infrastructure* and capacity math | `oc-scale-ops` | oc-api-dev declares the policy in the spec; oc-scale-ops sizes / implements |
 | Threat model of the API surface | `oc-security-auditor` | oc-api-dev emits the surface; oc-security-auditor reviews |
 | Per-endpoint SLO *implementation* + alert pipelines | `oc-monitoring-ops` | oc-api-dev emits SLO targets + drift-rule manifest; oc-monitoring-ops wires alerts |
-| Secret rotation procedures | `oc-integrations-engineer` `/integrate secrets` | Already owned |
+| Secret rotation procedures | `oc-integrations-engineer` `/oc-integrate secrets` | Already owned |
 
 oc-api-dev's outputs (rate-limit policy, CORS policy, SLO targets, drift manifest)
 are *declarations* in the spec. Sibling skills implement them.
@@ -542,7 +542,7 @@ deploy. See `oc-deploy-ops/SKILL.md § Pack-aware dispatch`.)
 | oc-code-auditor | Audits scaffolded handlers against the spec |
 | oc-security-auditor | Reads CORS + rate-limit policy as posture inputs |
 | oc-monitoring-ops | Ingests SLO targets + drift-alert manifest |
-| oc-deploy-ops | Drift gate — `oc-api-dev /api drift` must report zero before prod |
+| oc-deploy-ops | Drift gate — `oc-api-dev /oc-api drift` must report zero before prod |
 | oc-integrations-engineer | When a sibling app integrates *this* API, the published spec is the source of truth |
 
 ---
@@ -557,8 +557,8 @@ for the canonical PM-MCP patterns.
 
 ### Breaking-change tickets
 
-When `/api version` proposes a major-version bump (or
-`/api lint` detects a breaking change in a non-major version), file:
+When `/oc-api version` proposes a major-version bump (or
+`/oc-api lint` detects a breaking change in a non-major version), file:
 
 - A **breaking-change parent ticket** with the new version + the
   list of breaking endpoints + migration guide.
@@ -573,7 +573,7 @@ matching the deprecation policy in `.opchain/pm.yaml`
 
 ### Deprecation notices
 
-When `/api deprecate <endpoint>` is invoked:
+When `/oc-api deprecate <endpoint>` is invoked:
 
 - Comment on every ticket that mentions the endpoint (search via
   the PM-MCP) noting the deprecation date.
@@ -585,7 +585,7 @@ When `/api deprecate <endpoint>` is invoked:
 
 ### Drift gate visibility
 
-`/api drift` is a oc-deploy-ops pre-condition. When drift is detected:
+`/oc-api drift` is a oc-deploy-ops pre-condition. When drift is detected:
 
 - Comment on the linked PR ticket: `API drift detected — spec and
   implementation diverge in {endpoint}. Deploy gate will refuse
@@ -597,7 +597,7 @@ When `/api deprecate <endpoint>` is invoked:
 
 ### SDK release notes auto-comment
 
-When `/api sdk` produces a new SDK release, post a comment on every
+When `/oc-api sdk` produces a new SDK release, post a comment on every
 linked PM ticket that contributed to the version:
 `SDK {language} v{version} released; includes your change ({endpoint}).`
 
@@ -609,7 +609,7 @@ linked PM ticket that contributed to the version:
   parent ticket only with a query link rather than commenting on
   each.
 - Breaking change in a v0.x project (semver pre-1) → no PM
-  fan-out by default; opt-in via `/api version --pm-broadcast`.
+  fan-out by default; opt-in via `/oc-api version --pm-broadcast`.
 
 ---
 

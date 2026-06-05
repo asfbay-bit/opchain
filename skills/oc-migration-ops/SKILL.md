@@ -27,8 +27,8 @@ description: >
   provider swaps, monorepo restructures, and platform moves (Workers → Vercel, Supabase
   → raw Postgres). Produces incremental migration plans with rollback points at every
   step, executes with verification gates, and validates end state matches target spec.
-  ALWAYS trigger on /migrate, /migration, /upgrade, /refactor, /swap, /move-to,
-  /platform-move. Also trigger on: "migrate from X to Y", "upgrade to", "swap auth
+  ALWAYS trigger on /oc-migrate, /oc-migration, /oc-upgrade, /oc-refactor, /oc-swap, /oc-move-to,
+  /oc-platform-move. Also trigger on: "migrate from X to Y", "upgrade to", "swap auth
   provider", "move database", "restructure the monorepo", "change from X to Y",
   "refactor to use", "breaking changes", "version upgrade", "switch from X to Y",
   "deprecation", "end of life", "update all skills", "skill format change",
@@ -50,33 +50,33 @@ other" — without downtime, without data loss, and with a rollback at every ste
 This is inherently multi-session work. A database migration plan might span 3–4
 conversations. Checkpoint protocol adoption is critical from day one.
 
-## /migrate — Command Reference
+## /oc-migrate — Command Reference
 
 ```
 MIGRATION OPS COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   PLAN
-  /migrate              Show this menu
-  /migrate assess       Inventory current state + classify migration type
-  /migrate plan         Generate incremental migration plan with rollback points
-  /migrate impact       Blast radius analysis — what breaks during each step
+  /oc-migrate              Show this menu
+  /oc-migrate assess       Inventory current state + classify migration type
+  /oc-migrate plan         Generate incremental migration plan with rollback points
+  /oc-migrate impact       Blast radius analysis — what breaks during each step
 
   EXECUTE
-  /migrate execute      Start or resume execution from migration plan
-  /migrate step [N]     Execute a specific step (with pre/post verification)
-  /migrate verify       Run verification suite against current state
-  /migrate rollback     Revert to last verified checkpoint
+  /oc-migrate execute      Start or resume execution from migration plan
+  /oc-migrate step [N]     Execute a specific step (with pre/post verification)
+  /oc-migrate verify       Run verification suite against current state
+  /oc-migrate rollback     Revert to last verified checkpoint
 
   OBSERVE
-  /migrate status       Current migration state from checkpoint
-  /migrate diff         Compare current state vs. target state
-  /migrate history      Show completed steps with pass/fail and timing
+  /oc-migrate status       Current migration state from checkpoint
+  /oc-migrate diff         Compare current state vs. target state
+  /oc-migrate history      Show completed steps with pass/fail and timing
 
   UTILITIES
-  /migrate dry-run      Simulate the next step without applying changes
-  /migrate ecosystem    Bulk-update opchain skills (format, protocol, oc-orchestrator)
-  /migrate abandon      Abandon an in-progress migration (archive checkpoint)
+  /oc-migrate dry-run      Simulate the next step without applying changes
+  /oc-migrate ecosystem    Bulk-update opchain skills (format, protocol, oc-orchestrator)
+  /oc-migrate abandon      Abandon an in-progress migration (archive checkpoint)
   /checkpoint           Show checkpoint status
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -99,8 +99,8 @@ EXISTING SYSTEM (documented or not)
 │              │  Chains to: oc-code-auditor (post-migration verify), oc-deploy-ops (cutover)
 └──────┬───────┘
        │
-       ├──► oc-code-auditor /audit (post-migration quality gate)
-       ├──► oc-deploy-ops /deploy (cutover deployment)
+       ├──► oc-code-auditor /oc-audit (post-migration quality gate)
+       ├──► oc-deploy-ops /oc-deploy (cutover deployment)
        └──► oc-app-architect (if migration reveals spec updates needed)
 ```
 
@@ -143,7 +143,7 @@ If ambiguous, ask ONE clarifying question using `ask_user_input`.
 
 ---
 
-## Phase 0: Assessment (`/migrate assess`)
+## Phase 0: Assessment (`/oc-migrate assess`)
 
 Before planning anything, understand the current state and the target state. This is
 the most important phase — a bad assessment produces a bad plan.
@@ -232,7 +232,7 @@ Write checkpoint: phase "assessed".
 
 ---
 
-## Phase 1: Migration Plan (`/migrate plan`)
+## Phase 1: Migration Plan (`/oc-migrate plan`)
 
 Generate an incremental migration plan. Every step has a verification gate and a
 rollback procedure. The plan follows the **expand-migrate-contract** pattern where
@@ -360,7 +360,7 @@ Write checkpoint: phase "planned".
 
 ---
 
-## Phase 2: Execution (`/migrate execute`)
+## Phase 2: Execution (`/oc-migrate execute`)
 
 Execute the migration plan step by step. Each step is a mini-cycle: pre-check (block on missing
 preconditions) → execute (rollback on error) → verify (retry / manual fix / rollback on fail) →
@@ -408,7 +408,7 @@ CLAUDE: [X min] | USER: [Y min]
 
 ---
 
-## Phase 3: Verification (`/migrate verify`)
+## Phase 3: Verification (`/oc-migrate verify`)
 
 Run the full verification suite against the current state. This can be invoked:
 - After completing all steps (final verification)
@@ -452,7 +452,7 @@ Run the full verification suite against the current state. This can be invoked:
 
 ---
 
-## Rollback (`/migrate rollback`)
+## Rollback (`/oc-migrate rollback`)
 
 Revert to the last verified state. Rollback granularity depends on migration progress:
 
@@ -508,7 +508,7 @@ On resume, oc-migration-ops:
 
 ---
 
-## Impact Analysis (`/migrate impact`)
+## Impact Analysis (`/oc-migrate impact`)
 
 Before executing, analyze blast radius — what could break at each step and who's
 affected.
@@ -550,12 +550,12 @@ affected.
 | **oc-reverse-spec** | Upstream. Reads oc-reverse-spec output for current state documentation. If no oc-reverse-spec exists, runs a targeted scan of the migration-relevant layers only. |
 | **oc-stack-forge** | Upstream. Reads stack decisions. For platform moves, invokes oc-stack-forge to validate the target stack before planning. |
 | **oc-app-architect** | Peer. If migration reveals spec updates needed (new architecture after database change), chains to oc-app-architect to update spec files. |
-| **oc-code-auditor** | Downstream. After migration completes, invokes `/audit full` on the migrated code to catch quality regressions. |
+| **oc-code-auditor** | Downstream. After migration completes, invokes `/oc-audit full` on the migrated code to catch quality regressions. |
 | **oc-deploy-ops** | Downstream. For platform moves and cutover deploys, chains to oc-deploy-ops for the deployment steps. |
 | **oc-security-auditor** | Downstream. Auth migrations always trigger a security posture check afterward. |
 | **oc-scale-ops** | Peer. Platform moves may change scaling characteristics. Reads oc-scale-ops for performance baselines. |
 | **oc-git-ops** | Downstream. After migration steps that produce code changes, suggests oc-git-ops commit. |
-| **oc-monitoring-ops** | Downstream. Platform moves and database migrations change health check URLs, connection targets, and alert thresholds. Invoke `/monitor setup` to update monitoring config after cutover. |
+| **oc-monitoring-ops** | Downstream. Platform moves and database migrations change health check URLs, connection targets, and alert thresholds. Invoke `/oc-monitor setup` to update monitoring config after cutover. |
 
 ### Active Chaining
 
@@ -563,11 +563,11 @@ affected.
 |---|---|
 | Assessment needs current state docs | Check oc-reverse-spec checkpoint → if missing, run targeted scan |
 | Platform move planned | Invoke oc-stack-forge to validate target stack |
-| Migration complete | Invoke oc-code-auditor `/audit full` |
-| Auth migration complete | Invoke oc-security-auditor `/security posture` |
-| Code changes from migration steps | Suggest oc-git-ops `/git-sync` |
-| Cutover deployment needed | Invoke oc-deploy-ops `/deploy staging` then `/deploy prod` |
-| Platform or database migration complete | Invoke oc-monitoring-ops `/monitor setup` to update health checks and alert targets |
+| Migration complete | Invoke oc-code-auditor `/oc-audit full` |
+| Auth migration complete | Invoke oc-security-auditor `/oc-security posture` |
+| Code changes from migration steps | Suggest oc-git-ops `/oc-git-sync` |
+| Cutover deployment needed | Invoke oc-deploy-ops `/oc-deploy staging` then `/oc-deploy prod` |
+| Platform or database migration complete | Invoke oc-monitoring-ops `/oc-monitor setup` to update health checks and alert targets |
 
 ---
 
@@ -577,7 +577,7 @@ Checkpoint: `{project-dir}/.checkpoints/oc-migration-ops.checkpoint.json`
 
 ### Resume on Start
 
-When any `/migrate` command is invoked:
+When any `/oc-migrate` command is invoked:
 1. Check for checkpoint
 2. If exists: show migration type, current step, verification status, next action
 3. Ask: "Continue from step [N], restart, or show full checkpoint?"
@@ -585,12 +585,12 @@ When any `/migrate` command is invoked:
 ### Concurrent Migration Guard
 
 **One active migration per project.** If a checkpoint exists with `status: in_progress`,
-block any new `/migrate assess` or `/migrate plan` until the current migration is
-completed, rolled back, or explicitly abandoned via `/migrate abandon`. This prevents
+block any new `/oc-migrate assess` or `/oc-migrate plan` until the current migration is
+completed, rolled back, or explicitly abandoned via `/oc-migrate abandon`. This prevents
 half-finished migrations from being orphaned by a new one starting on top.
 
-`/migrate abandon` archives the checkpoint (`.bak`) and warns: "Abandoning mid-migration
-may leave the system in a partial state. Run `/migrate verify` to check current health."
+`/oc-migrate abandon` archives the checkpoint (`.bak`) and warns: "Abandoning mid-migration
+may leave the system in a partial state. Run `/oc-migrate verify` to check current health."
 
 ### progress_table
 
@@ -680,15 +680,15 @@ Type-specific fields by migration type:
 
 ---
 
-## Diff View (`/migrate diff`) and History (`/migrate history`)
+## Diff View (`/oc-migrate diff`) and History (`/oc-migrate history`)
 
-`/migrate diff` compares current system state against target state, showing per-area progress
+`/oc-migrate diff` compares current system state against target state, showing per-area progress
 (Schema / Data / API / Auth / Config) with completion percentages, current dual-write posture,
 and the next step.
 
-`/migrate history` reads `steps_verified` and `step_failures` from the checkpoint and lists each
+`/oc-migrate history` reads `steps_verified` and `step_failures` from the checkpoint and lists each
 completed step with outcome (✅/❌→✅ retry/❌ failed), duration, and session number. Both
-views are read-only summaries — execution happens via `/migrate execute`.
+views are read-only summaries — execution happens via `/oc-migrate execute`.
 
 For the full output formats and example renders, see `references/migration-playbooks.md`.
 
@@ -726,7 +726,7 @@ in the PM tool the team already lives in. See
 
 ### Parent + step-child mirror
 
-When `/migrate plan` produces the migration plan:
+When `/oc-migrate plan` produces the migration plan:
 
 1. Create a **parent ticket**:
    - title: `Migration: {from-engine} → {to-engine}`
@@ -751,8 +751,8 @@ The plan is the source of truth; the PM tool reflects it.
 
 ```
 plan-pending      Step is in the plan, not yet started
-in_progress       /migrate execute picked it up
-verified          /migrate verify passed
+in_progress       /oc-migrate execute picked it up
+verified          /oc-migrate verify passed
 blocked           Verification failed; rollback in progress
 rolled-back       Step was undone; back to plan-pending or aborted
 done              Verified + signed off; safe to advance
@@ -798,7 +798,7 @@ homepage.
 ### Failure modes
 
 - PM provider down at a step transition → checkpoint records the
-  intended transition; user can `/migrate sync-pm` to flush.
+  intended transition; user can `/oc-migrate sync-pm` to flush.
 - Migration spans 50+ steps → use a phase-grouping pattern:
   parent → phase tickets (≤6) → step tickets per phase. Avoids a
   flat list of 50 children that nobody can navigate.

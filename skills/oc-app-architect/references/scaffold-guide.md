@@ -568,7 +568,7 @@ project-aliasing + rollback (`cargo shuttle deployment list` →
 **Alt deploy (Fly.io):** if the team wants more infra control or already
 runs other services on Fly, see the Go/Fly.io recipe — same `Dockerfile`
 shape with `FROM rust:1.83-slim AS build` → `FROM gcr.io/distroless/cc-debian12`
-final stage; `fly.toml` `release_command = ["./migrate"]`.
+final stage; `fly.toml` `release_command = ["./oc-migrate"]`.
 
 ---
 

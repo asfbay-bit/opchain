@@ -29,7 +29,7 @@ commands:
 description: >
   Post-deployment observability: uptime monitoring, error tracking, structured logging,
   alerting pipelines, and incident response runbooks. Sits after oc-deploy-ops in the
-  pipeline — oc-deploy-ops ships it, oc-monitoring-ops watches it. Use for /monitor,
+  pipeline — oc-deploy-ops ships it, oc-monitoring-ops watches it. Use for /oc-monitor,
   "set up monitoring", "error tracking", "uptime check", "alerting", "incident
   response", "observability", "what's happening in prod", "set up Sentry", "logging
   strategy", "on-call", "runbook", "SLO", "SLI", "is prod healthy", "why is it
@@ -47,39 +47,39 @@ logging, alerting pipelines, and incident response.
 This skill does NOT build features or deploy code — it instruments what's already
 deployed and establishes the feedback loop that catches problems before users report them.
 
-## /monitor — Command Reference
+## /oc-monitor — Command Reference
 
 ```
 MONITORING OPS COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   SETUP
-  /monitor setup         Guided observability stack setup for a project
-  /monitor stack         Recommend monitoring tools for the stack
-  /monitor instrument    Add structured logging + error capture to codebase
+  /oc-monitor setup         Guided observability stack setup for a project
+  /oc-monitor stack         Recommend monitoring tools for the stack
+  /oc-monitor instrument    Add structured logging + error capture to codebase
 
   OBSERVE
-  /monitor health        Live health check — hit endpoints, report status
-  /monitor errors        Check error tracking service for recent issues
-  /monitor uptime        Show uptime status and recent incidents
-  /monitor metrics       Key metrics snapshot (latency, error rate, throughput)
-  /monitor status        Current monitoring state from checkpoint
+  /oc-monitor health        Live health check — hit endpoints, report status
+  /oc-monitor errors        Check error tracking service for recent issues
+  /oc-monitor uptime        Show uptime status and recent incidents
+  /oc-monitor metrics       Key metrics snapshot (latency, error rate, throughput)
+  /oc-monitor status        Current monitoring state from checkpoint
 
   ALERT
-  /monitor alerts        Design or audit alerting rules
-  /monitor oncall        Set up on-call rotation and escalation
-  /monitor slo           Define or review SLOs/SLIs/error budgets
+  /oc-monitor alerts        Design or audit alerting rules
+  /oc-monitor oncall        Set up on-call rotation and escalation
+  /oc-monitor slo           Define or review SLOs/SLIs/error budgets
 
   RESPOND
-  /monitor incident      Start or review an incident response
-  /monitor runbook       Generate or update operational runbooks
-  /monitor postmortem    Structured post-incident review
+  /oc-monitor incident      Start or review an incident response
+  /oc-monitor runbook       Generate or update operational runbooks
+  /oc-monitor postmortem    Structured post-incident review
 
   REPORT
-  /monitor dashboard     Design an ops monitoring dashboard (routes to oc-dash-forge)
-  /monitor report        Generate weekly/monthly ops report
-  /monitor audit         Full observability maturity assessment
-  /monitor compare       Compare two monitoring snapshots (drift detection)
+  /oc-monitor dashboard     Design an ops monitoring dashboard (routes to oc-dash-forge)
+  /oc-monitor report        Generate weekly/monthly ops report
+  /oc-monitor audit         Full observability maturity assessment
+  /oc-monitor compare       Compare two monitoring snapshots (drift detection)
 
   SESSION
   /checkpoint            Show checkpoint status
@@ -87,7 +87,7 @@ MONITORING OPS COMMANDS
   /checkpoint reset      Archive and restart
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Type any command to begin. /monitor to see this again.
+  Type any command to begin. /oc-monitor to see this again.
 ```
 
 ---
@@ -98,7 +98,7 @@ Checkpoint: `{project-dir}/.checkpoints/oc-monitoring-ops.checkpoint.json`
 
 ### Resume on Start
 
-When any `/monitor` command is invoked:
+When any `/oc-monitor` command is invoked:
 1. Check for checkpoint
 2. If exists: show tier, tools, SLO status, active incidents, maturity grade, next action
 3. Ask: "Continue, restart, or show full checkpoint?"
@@ -129,7 +129,7 @@ oc-reverse-spec → oc-app-architect → oc-git-ops → oc-deploy-ops → MONITO
 1. oc-deploy-ops completes production promotion
 2. oc-deploy-ops runs health check (basic HTTP 200 verification)
 3. If oc-monitoring-ops checkpoint exists: oc-monitoring-ops takes over ongoing observation
-4. If not: oc-deploy-ops suggests `/monitor setup` for the project
+4. If not: oc-deploy-ops suggests `/oc-monitor setup` for the project
 
 oc-deploy-ops's health check is a one-shot verification. oc-monitoring-ops provides
 continuous observation, error aggregation, alerting, and incident coordination.
@@ -141,9 +141,9 @@ continuous observation, error aggregation, alerting, and incident coordination.
 | **oc-deploy-ops** | Upstream. oc-deploy-ops ships → oc-monitoring-ops watches. Shares health check URLs, environment config. |
 | **oc-security-auditor** | Peer. oc-security-auditor's Pillar 3 (detection/response) maps directly to oc-monitoring-ops's alerting + incident response. oc-security-auditor defines WHAT to detect; oc-monitoring-ops implements HOW to detect it. |
 | **oc-scale-ops** | Peer. oc-scale-ops sets performance budgets; oc-monitoring-ops enforces them via alerting. Latency SLOs from oc-scale-ops become oc-monitoring-ops alert thresholds. |
-| **oc-code-auditor** | Upstream consumer. oc-code-auditor's `/audit pre-deploy` findings can include "missing error handling" — oc-monitoring-ops's `/monitor instrument` addresses the gap at the observability layer. |
+| **oc-code-auditor** | Upstream consumer. oc-code-auditor's `/oc-audit pre-deploy` findings can include "missing error handling" — oc-monitoring-ops's `/oc-monitor instrument` addresses the gap at the observability layer. |
 | **oc-app-architect** | Upstream. Reads spec for expected behaviors, user flows, and error handling strategy to inform what to monitor. |
-| **oc-dash-forge** | Downstream for visualization. `/monitor dashboard` routes to oc-dash-forge with an ops archetype context for monitoring UI design. |
+| **oc-dash-forge** | Downstream for visualization. `/oc-monitor dashboard` routes to oc-dash-forge with an ops archetype context for monitoring UI design. |
 
 ---
 
@@ -164,7 +164,7 @@ the project's scale, sensitivity, and infrastructure.
 
 ---
 
-## Phase 1: Setup (`/monitor setup`)
+## Phase 1: Setup (`/oc-monitor setup`)
 
 Guided setup that instruments a project for observability. Reads existing config
 (oc-deploy-ops checkpoint, wrangler.toml, package.json) to avoid asking questions
@@ -220,7 +220,7 @@ and Sentry transport for Workers.
 
 ## Phase 2: Observe
 
-### Health Check (`/monitor health`)
+### Health Check (`/oc-monitor health`)
 
 Goes deeper than oc-deploy-ops's one-shot 200 check:
 
@@ -232,7 +232,7 @@ Goes deeper than oc-deploy-ops's one-shot 200 check:
 
 Output uses the Health Check Report format from `references/output-templates.md`.
 
-### Error Tracking (`/monitor errors`)
+### Error Tracking (`/oc-monitor errors`)
 
 Checks the configured error tracking service. Adapts to what's available:
 
@@ -242,7 +242,7 @@ Checks the configured error tracking service. Adapts to what's available:
 | Console-only | `wrangler tail` structured log grep | Recent error-level entries, deduplication by message |
 | BetterStack / Highlight | Service-specific API | Unresolved issues + error trends |
 
-### Metrics Snapshot (`/monitor metrics`)
+### Metrics Snapshot (`/oc-monitor metrics`)
 
 Aggregate key metrics from available sources:
 
@@ -260,7 +260,7 @@ PRODUCTION METRICS — [project]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-### Status (`/monitor status`)
+### Status (`/oc-monitor status`)
 
 Reads the checkpoint and displays the current monitoring state without hitting
 any live endpoints. This is a checkpoint read, not a health check.
@@ -281,7 +281,7 @@ MONITORING STATUS — [project]
 
 ---
 
-## Phase 3: Alert (`/monitor alerts`)
+## Phase 3: Alert (`/oc-monitor alerts`)
 
 ### Alert Design Principles
 
@@ -305,7 +305,7 @@ MONITORING STATUS — [project]
 | Error budget burn | >50% of monthly error budget consumed | WARN | `runbooks/error-budget.md` |
 | Deploy failure | CI/CD pipeline fails on production | CRITICAL | `runbooks/deploy-failure.md` |
 
-### SLO Definition (`/monitor slo`)
+### SLO Definition (`/oc-monitor slo`)
 
 Service Level Objectives quantify "good enough." They prevent over-engineering
 reliability for apps that don't need five nines.
@@ -326,7 +326,7 @@ alert transport code, and SLO burn-rate alerting math.
 
 ---
 
-## Phase 4: Respond (`/monitor incident`)
+## Phase 4: Respond (`/oc-monitor incident`)
 
 Read `references/incident-response.md` for full incident template, runbook template,
 and post-mortem template.
@@ -370,7 +370,7 @@ DIAGNOSE (what's broken? use runbook decision tree)
 
 ---
 
-## Observability Audit (`/monitor audit`)
+## Observability Audit (`/oc-monitor audit`)
 
 Full maturity assessment. Scores each domain and recommends the next upgrade.
 
@@ -403,7 +403,7 @@ and metrics snapshot format.
 
 ---
 
-## Dashboard Routing (`/monitor dashboard`)
+## Dashboard Routing (`/oc-monitor dashboard`)
 
 When the user wants a monitoring dashboard, route to oc-dash-forge with ops archetype
 pre-selected:
@@ -417,7 +417,7 @@ oc-dash-forge will produce:
   - Incident table, event feed, throughput chart
   - Working React prototype with mock data
 
-Proceeding to /data-forge with ops context...
+Proceeding to /oc-data-forge with ops context...
 ```
 
 Package the following context for oc-dash-forge:
@@ -428,7 +428,7 @@ Package the following context for oc-dash-forge:
 
 ---
 
-## Ops Report (`/monitor report`)
+## Ops Report (`/oc-monitor report`)
 
 Generate a periodic operations summary covering availability, performance, errors,
 SLO status, deploys, and incidents. Cadence depends on tier: T1 = monthly, T2+ = weekly.
@@ -440,10 +440,10 @@ See `references/output-templates.md` for the full report template.
 
 ---
 
-## Snapshot Comparison (`/monitor compare`)
+## Snapshot Comparison (`/oc-monitor compare`)
 
 Compares two monitoring snapshots to track observability posture over time. Mirrors
-oc-security-auditor's `/security compare` pattern.
+oc-security-auditor's `/oc-security compare` pattern.
 
 Input: two checkpoint timestamps or dates. If one argument, compares against current state.
 
@@ -681,7 +681,7 @@ tuning recommendation rather than spamming new tickets — same
 incident gets new comments, not new tickets. The pre-create check
 in step 3 above ensures this naturally for in-window alerts.
 
-### `/monitor --retry-pm` flush
+### `/oc-monitor --retry-pm` flush
 
 Invokes the protocol §4 flush against
 `oc-monitoring-ops.checkpoint.json` `pm_deferred_actions[]`. Filter to

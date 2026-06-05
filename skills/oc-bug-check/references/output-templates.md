@@ -39,7 +39,7 @@ BUG CHECK — PASS with warnings ⚠️
      Run `npm audit fix` to resolve.
 
   5 PASS, 2 WARN. Proceeding to commit.
-  Run /bugcheck fix to auto-resolve fixable warnings.
+  Run /oc-bugcheck fix to auto-resolve fixable warnings.
 ```
 
 ---
@@ -71,8 +71,8 @@ BUG CHECK — FAIL ❌
      ⚠️ Rotate this key immediately if it was ever committed.
 
   Commit blocked. Fix 6 issues before committing.
-  Run /bugcheck fix for auto-fixable items (lint, formatting).
-  Run /bugcheck bypass to override (logged).
+  Run /oc-bugcheck fix for auto-fixable items (lint, formatting).
+  Run /oc-bugcheck bypass to override (logged).
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -88,7 +88,7 @@ BUG CHECK — BYPASSED ⏩
 
   Commit proceeding with [BYPASS] prefix.
   These issues are now carried debt — they'll surface on every
-  subsequent /bugcheck until resolved.
+  subsequent /oc-bugcheck until resolved.
 
   Carried debt: 5 issues across 2 checks
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -96,7 +96,7 @@ BUG CHECK — BYPASSED ⏩
 
 ---
 
-## Report (`/bugcheck report`)
+## Report (`/oc-bugcheck report`)
 
 ```
 BUG CHECK REPORT — [project]
@@ -122,7 +122,7 @@ BUG CHECK REPORT — [project]
 
   Failure Patterns:
     Most common: type_safety (3 of last 20 failures)
-    Auto-fix rate: 60% of warnings resolved by /bugcheck fix
+    Auto-fix rate: 60% of warnings resolved by /oc-bugcheck fix
     Avg duration: 1.1s
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
@@ -148,7 +148,7 @@ BUG CHECK — PASS ✅ (but 3 issues carried from bypass)
 
 ---
 
-## Config Display (`/bugcheck config`)
+## Config Display (`/oc-bugcheck config`)
 
 ```
 BUG CHECK CONFIG — [project]
@@ -191,5 +191,5 @@ Format per finding:
 For auto-fixable findings, append:
 
 ```
-     ↳ Auto-fixable: run /bugcheck fix
+     ↳ Auto-fixable: run /oc-bugcheck fix
 ```

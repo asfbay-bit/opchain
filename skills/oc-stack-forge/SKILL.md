@@ -12,7 +12,7 @@ commands:
   - /oc-feature
 description: >
   Stack advisor for any platform: Cloudflare, Vercel, AWS, Supabase, Rails, Django.
-  Use for /stack, /stack-decide, /feature, "what stack", "tech stack", "what should I
+  Use for /oc-stack, /oc-stack-decide, /oc-feature, "what stack", "tech stack", "what should I
   build with", or framework comparisons. Auto-invoked by oc-app-architect. Trigger liberally.
 ---
 
@@ -35,7 +35,7 @@ APP-ARCHITECT (planning)                TRI-DEV (building)
   Phase 2: Spec ──auto-calls──▶ oc-stack-forge decision tree
   Phase 5: Scaffold ──auto-calls──▶ oc-stack-forge project structure
                                          │
-  Feature request ───────────────────────▶ /feature → sprint decomposition
+  Feature request ───────────────────────▶ /oc-feature → sprint decomposition
                                          │
                                    Planner reads feature-decomposition
                                    Generator reads stack-specific patterns
@@ -57,18 +57,18 @@ results and recommends the best stack for the project's requirements.
 STACK FORGE COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   STACK SELECTION
-  /stack-decide     Run the full stack decision tree
-  /stack-compare    Compare 2-3 specific stack options side by side
+  /oc-stack-decide     Run the full stack decision tree
+  /oc-stack-compare    Compare 2-3 specific stack options side by side
 
   PATTERNS
   /typed-pipeline   Set up type chain for the selected stack
   /testing          Configure testing pyramid for the stack
-  /deploy           Deployment patterns for the selected platform
+  /oc-deploy           Deployment patterns for the selected platform
   /errors           Error handling + logging patterns
   /ci               CI pipeline for the stack
 
   TRI-DEV INTEGRATION
-  /feature          Decompose a feature into stack-ordered sprints
+  /oc-feature          Decompose a feature into stack-ordered sprints
 
   SESSION
   /checkpoint       Show checkpoint status
@@ -77,7 +77,7 @@ STACK FORGE COMMANDS
 
 ---
 
-## Stack Decision Tree (`/stack-decide`)
+## Stack Decision Tree (`/oc-stack-decide`)
 
 ### How It Works
 
@@ -280,7 +280,7 @@ oc-deploy-ops knows how to ship them.
 | **Go (`net/http` or chi)** | Postgres / SQLite | Fly.io (primary) / Cloud Run | Latency-sensitive APIs, long-running connections, high-throughput workers; prefer single-binary deploy. |
 | **Rust + Axum** | Postgres / SQLite | Shuttle.rs (primary) / Fly.io | Performance-critical APIs, deep correctness requirements, teams comfortable with the ecosystem. Shuttle gives Postgres + secrets provisioning out of the box. |
 
-### Decision criteria (for /stack-decide)
+### Decision criteria (for /oc-stack-decide)
 
 - **Django/Render** — picks itself when: solo dev, no ops appetite, server-rendered UI, admin panel needed, time-to-first-deploy is the dominant cost. Render's free tier covers the entire app; Postgres is one click. Skip if: you need <50ms global latency or sub-second cold-starts.
 - **Rails/Heroku** — picks itself when: team has Rails experience, Hotwire/Turbo replaces a SPA, the app is CRUD-heavy with traditional auth. Heroku's pipeline (review apps + staging + prod) is the smoothest mainstream path. Skip if: cost-at-scale matters more than dev velocity.
@@ -385,7 +385,7 @@ pack lands.
 
 ---
 
-## Feature Decomposition (`/feature`)
+## Feature Decomposition (`/oc-feature`)
 
 Decomposes a feature into stack-ordered sprints for oc-app-architect Phase 6 regardless of platform:
 
@@ -417,7 +417,7 @@ When called, oc-stack-forge:
 **The user does not call `/oc-stack-forge` separately for new projects** — oc-app-architect
 chains to it via the active-invocation pattern. `/oc-stack-forge` is only invoked standalone for:
 - Quick stack questions outside a project context
-- Feature decomposition (`/feature`) for existing projects
+- Feature decomposition (`/oc-feature`) for existing projects
 - Gap analysis on existing codebases (with oc-reverse-spec)
 
 ---
@@ -474,9 +474,9 @@ Checkpoint location: `{project-dir}/.checkpoints/oc-stack-forge.checkpoint.json`
 |---|---|---|
 | /typed-pipeline | `references/typed-pipeline.md` | Type chains per stack |
 | /testing | `references/testing-patterns.md` | Testing pyramid per framework |
-| /deploy | `references/deployment-patterns.md` | Deploy patterns per platform |
+| /oc-deploy | `references/deployment-patterns.md` | Deploy patterns per platform |
 | /errors | `references/error-handling.md` | Structured errors, logging |
-| /feature | `references/feature-decomposition.md` | Sprint templates for oc-app-architect Phase 6 |
+| /oc-feature | `references/feature-decomposition.md` | Sprint templates for oc-app-architect Phase 6 |
 | — | `references/cf-deployment.md` | CF-specific patterns (Workers, D1, KV) |
 
 **When a reference doc doesn't cover the selected stack**, web search for current
@@ -517,16 +517,16 @@ The `ADR-{N}` is auto-numbered from the project's existing ADR
 counter (read from `.opchain/adr-counter` if present; otherwise
 maintained by oc-stack-forge in the checkpoint).
 
-### Standalone `/stack-decide` runs
+### Standalone `/oc-stack-decide` runs
 
 When oc-stack-forge is invoked outside a Phase 2 flow with
-`/stack-decide --ticket TICKET-1234`, the ticket is treated as
+`/oc-stack-decide --ticket TICKET-1234`, the ticket is treated as
 the ADR home. Otherwise the decision lives in the project's
 `docs/adr/` directory only.
 
 ### Re-decisions
 
-If `/stack-decide` is invoked on a project that already has a
+If `/oc-stack-decide` is invoked on a project that already has a
 prior stack-decision comment in PM:
 
 - Find the prior comment via the PM-MCP search.

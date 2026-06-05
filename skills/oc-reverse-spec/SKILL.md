@@ -14,7 +14,7 @@ commands:
   - /oc-rev-stack
   - /oc-rev-sprint
 description: >
-  Reverse-engineer existing code into spec docs. Use for /rev-spec, /oc-reverse-spec,
+  Reverse-engineer existing code into spec docs. Use for /oc-rev-spec, /oc-reverse-spec,
   "document this codebase", "generate specs from code", "backfill specs", or when
   pointing at existing code that needs documentation. Trigger liberally.
 ---
@@ -49,15 +49,15 @@ REVERSE SPEC COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   MODES
-  /rev-scan       Quick scan — inventory what exists, recommend spec priority
-  /rev-full       Full spec generation — produce all oc-app-architect spec docs
-  /rev-design     Design system extraction — colors, typography, components
-  /rev-stack      Stack-forge gap analysis — typed pipeline audit
-  /rev-sprint     Tri-dev onramp — generate spec.md + sprint-plan.md for a feature
+  /oc-rev-scan       Quick scan — inventory what exists, recommend spec priority
+  /oc-rev-full       Full spec generation — produce all oc-app-architect spec docs
+  /oc-rev-design     Design system extraction — colors, typography, components
+  /oc-rev-stack      Stack-forge gap analysis — typed pipeline audit
+  /oc-rev-sprint     Tri-dev onramp — generate spec.md + sprint-plan.md for a feature
 
   UTILITIES
-  /rev-status     Show progress from checkpoint — what's done, what's next
-  /rev-diff       Compare generated specs against actual code (drift check)
+  /oc-rev-status     Show progress from checkpoint — what's done, what's next
+  /oc-rev-diff       Compare generated specs against actual code (drift check)
 
   SESSION
   /checkpoint         Show checkpoint status
@@ -70,29 +70,29 @@ REVERSE SPEC COMMANDS
 
 ### Command Behavior
 
-**`/rev-scan`**: Run Phase 0 only (orientation). Quick inventory, no deep analysis. Produces
+**`/oc-rev-scan`**: Run Phase 0 only (orientation). Quick inventory, no deep analysis. Produces
 the orientation summary and recommends which spec docs to prioritize.
 
-**`/rev-full`**: Run the complete pipeline — Phase 0 through Phase 2, generating all applicable
+**`/oc-rev-full`**: Run the complete pipeline — Phase 0 through Phase 2, generating all applicable
 spec docs. This is the default when the user says "reverse spec this codebase." Uses the
 checkpoint system to span sessions if needed.
 
-**`/rev-design`**: Can run standalone (without `/rev-full`). Reads only the frontend layer
+**`/oc-rev-design`**: Can run standalone (without `/oc-rev-full`). Reads only the frontend layer
 (components, styles, config) and produces `design/design-system.md` + `design/component-inventory.md`.
 If Phase 1 analysis already exists in checkpoint, reuses it; otherwise runs a targeted frontend-only scan.
 
-**`/rev-stack`**: Can run standalone. Reads only the type pipeline artifacts (schema, ORM, API types,
+**`/oc-rev-stack`**: Can run standalone. Reads only the type pipeline artifacts (schema, ORM, API types,
 OpenAPI, codegen, CI). Produces `stack-forge-audit.md`. If no prior analysis exists, runs a
 targeted scan of just the typed pipeline layers.
 
-**`/rev-sprint`**: Requires either prior `/rev-full` analysis or enough context from conversation/memory
+**`/oc-rev-sprint`**: Requires either prior `/oc-rev-full` analysis or enough context from conversation/memory
 to understand the project. Generates `app-architect-ready/spec.md` and optionally `sprint-plan.md` for a
 specified feature.
 
-**`/rev-status`**: Reads checkpoint (JSON, or legacy markdown). If no checkpoint exists,
-says so and suggests `/rev-scan` to start.
+**`/oc-rev-status`**: Reads checkpoint (JSON, or legacy markdown). If no checkpoint exists,
+says so and suggests `/oc-rev-scan` to start.
 
-**`/rev-diff`**: Re-reads the codebase and compares against previously generated specs. Flags
+**`/oc-rev-diff`**: Re-reads the codebase and compares against previously generated specs. Flags
 drift (code changed since specs were generated). Requires prior spec generation.
 
 ---
@@ -239,7 +239,7 @@ reverse-spec-output/
 ├── stack-forge-audit.md            # Typed pipeline gap analysis for oc-stack-forge
 └── app-architect-ready/
     ├── spec.md                     # app-architect-format product spec
-    └── sprint-plan.md              # Ready for oc-app-architect /build (if feature scope given)
+    └── sprint-plan.md              # Ready for oc-app-architect /oc-build (if feature scope given)
 ```
 
 ### Document Generation Rules
@@ -300,7 +300,7 @@ On migration, map the fields:
 
 ### Resume on Start
 
-When `/oc-reverse-spec`, `/rev-scan`, `/rev-full`, or any /rev-* command is invoked:
+When `/oc-reverse-spec`, `/oc-rev-scan`, `/oc-rev-full`, or any /rev-* command is invoked:
 
 1. Check for checkpoint: `bash scripts/checkpoint.sh exists <project-dir> oc-reverse-spec`
 2. If exists (JSON):
@@ -365,7 +365,7 @@ Context drift across sessions can cause contradictions. Three guards:
 
 ---
 
-## Phase 3: Design System Extraction (`/rev-design`)
+## Phase 3: Design System Extraction (`/oc-rev-design`)
 
 If the project has a frontend, extract the design system from the code. This produces
 documentation that matches what oc-app-architect Phase 3a (Style Book) would generate.
@@ -398,7 +398,7 @@ For each UI component found:
 
 ---
 
-## Phase 4: Stack-Forge Gap Analysis (`/rev-stack`)
+## Phase 4: Stack-Forge Gap Analysis (`/oc-rev-stack`)
 
 Run the oc-stack-forge typed pipeline audit. Read `/mnt/skills/user/oc-stack-forge/SKILL.md`
 for the pattern, then check each link in the chain:
@@ -422,7 +422,7 @@ This output is designed to feed directly into oc-stack-forge's retroactive use m
 
 ---
 
-## Phase 5: App-Architect Onramp (`/rev-sprint`)
+## Phase 5: App-Architect Onramp (`/oc-rev-sprint`)
 
 Generate the two files oc-app-architect Phase 6 needs to start building:
 
@@ -505,7 +505,7 @@ Docs Generated:
   ...
 
 Pipeline Readiness:
-  oc-app-architect: READY (can run /roadmap with these specs)
+  oc-app-architect: READY (can run /oc-roadmap with these specs)
   oc-stack-forge:   PARTIAL (missing OpenAPI spec, see gap-analysis.md)
   oc-app-architect: READY (spec.md + sprint-plan.md generated)
 
@@ -516,8 +516,8 @@ Top 3 Gaps:
 
 Next Steps:
   1. Review generated specs for accuracy (especially MEDIUM/LOW items)
-  2. Run /rev-stack for detailed typed pipeline audit
-  3. Use /oc-app-architect /roadmap to plan next features against these specs
+  2. Run /oc-rev-stack for detailed typed pipeline audit
+  3. Use /oc-app-architect /oc-roadmap to plan next features against these specs
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -532,7 +532,7 @@ mirrored into the PM tool so they become discoverable + linkable
 from future work. See `oc-integrations-engineer` for the canonical
 PM-MCP patterns.
 
-### `/rev-spec --pm-mirror`
+### `/oc-rev-spec --pm-mirror`
 
 Opt-in flag (off by default — oc-reverse-spec on a private fork
 doesn't want PM mirroring). When set:
@@ -550,21 +550,21 @@ doesn't want PM mirroring). When set:
    - labels: `oc-reverse-spec`, `documentation`.
 3. Record the parent + child ticket ids in the
    `oc-reverse-spec.checkpoint.json` for downstream skills (notably
-   `oc-app-architect /roadmap`) to read.
+   `oc-app-architect /oc-roadmap`) to read.
 
 ### Hand-off to oc-app-architect
 
-After `/rev-full` completes, actively chain to oc-app-architect per orchestrator.md §3
+After `/oc-rev-full` completes, actively chain to oc-app-architect per orchestrator.md §3
 (Active Invocation):
 
 1. State the chain: "Reverse-spec analysis complete. Now using oc-app-architect to extend
    from this baseline."
 2. Read `oc-app-architect/SKILL.md` and `oc-app-architect/references/orchestrator.md`.
 3. Check for `.checkpoints/oc-app-architect.checkpoint.json` (resume if present).
-4. Execute the appropriate command: `/discover --ticket {parent-id}` if PM tickets were
-   filed (treats this run as the discovery), otherwise `/spec` directly.
+4. Execute the appropriate command: `/oc-discover --ticket {parent-id}` if PM tickets were
+   filed (treats this run as the discovery), otherwise `/oc-spec` directly.
 5. App-architect reads the oc-reverse-spec checkpoint and PM-ticket pointers. Phase 4
-   (`/roadmap`) then writes the new sprint plan back to the same parent or a new sibling.
+   (`/oc-roadmap`) then writes the new sprint plan back to the same parent or a new sibling.
 
 ### Findings as sub-tickets
 
@@ -581,7 +581,7 @@ The team's standard triage process picks them up from there.
 ### Failure modes
 
 - `--pm-mirror` set but no MCP configured → skill prompts user
-  to run `/integrate plan pm` first, or proceed without
+  to run `/oc-integrate plan pm` first, or proceed without
   mirroring.
 - Parent ticket creation fails → emit specs to the filesystem
   as usual; log the intended PM mirror as deferred in the

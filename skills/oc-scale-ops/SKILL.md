@@ -11,7 +11,7 @@ commands:
   - /oc-scale audit
 description: >
   Scaling readiness: load test, perf budgets, caching, capacity planning. Use for
-  /scale, "load test", "can this handle more users", "performance", "caching strategy",
+  /oc-scale, "load test", "can this handle more users", "performance", "caching strategy",
   or any scaling question. Trigger liberally.
 ---
 
@@ -24,40 +24,40 @@ performance budgets, caching strategy, query optimization, CDN config, and
 capacity planning. Produces a scaling readiness report with a concrete upgrade
 path from current capacity to target capacity.
 
-## /scale — Command Reference
+## /oc-scale — Command Reference
 
 ```
 SCALE OPS COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   ASSESS
-  /scale audit          Full scaling readiness assessment
-  /scale budget         Set or audit performance budgets
-  /scale bottleneck     Identify the #1 scaling bottleneck
+  /oc-scale audit          Full scaling readiness assessment
+  /oc-scale budget         Set or audit performance budgets
+  /oc-scale bottleneck     Identify the #1 scaling bottleneck
 
   TEST
-  /scale loadtest       Run load test against target URL
-  /scale benchmark      Benchmark specific endpoints
+  /oc-scale loadtest       Run load test against target URL
+  /oc-scale benchmark      Benchmark specific endpoints
 
   OPTIMIZE
-  /scale cache          Design or audit caching strategy
-  /scale queries        Audit and optimize database queries
-  /scale cdn            CDN and edge optimization
+  /oc-scale cache          Design or audit caching strategy
+  /oc-scale queries        Audit and optimize database queries
+  /oc-scale cdn            CDN and edge optimization
 
   PLAN
-  /scale plan           Capacity plan from current → target users
-  /scale cost           Cost projection at target scale
+  /oc-scale plan           Capacity plan from current → target users
+  /oc-scale cost           Cost projection at target scale
 
   UTILITIES
   /checkpoint           Show checkpoint status
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Type any command to begin. /scale to see this again.
+  Type any command to begin. /oc-scale to see this again.
 ```
 
 ---
 
-## Scaling Readiness Assessment (`/scale audit`)
+## Scaling Readiness Assessment (`/oc-scale audit`)
 
 Comprehensive evaluation of how the app handles load. Produces a readiness
 score and prioritized optimization list.
@@ -129,7 +129,7 @@ score and prioritized optimization list.
 
 ---
 
-## Performance Budgets (`/scale budget`)
+## Performance Budgets (`/oc-scale budget`)
 
 Define measurable limits for each performance dimension:
 
@@ -168,11 +168,11 @@ npx bundlesize --config bundlesize.config.json
 After setting budgets, integrate into the pipeline:
 - **In CI**: Lighthouse CI and bundle size checks block PRs that exceed budgets
 - **In oc-deploy-ops**: Performance budgets are part of the smoke test suite
-- **In oc-code-auditor**: `/audit perf` checks budget compliance
+- **In oc-code-auditor**: `/oc-audit perf` checks budget compliance
 
 ---
 
-## Load Testing (`/scale loadtest`)
+## Load Testing (`/oc-scale loadtest`)
 
 ### Using oha (Rust-based HTTP load tester)
 
@@ -226,7 +226,7 @@ done | awk '{sum+=$1} END {print "Avg:", sum/NR, "s"}'
 - Tool: oha
 - Concurrency: 100
 - Duration: 30s
-- Target: https://app.workers.dev/api/health
+- Target: https://oc-app.workers.dev/api/health
 
 ### Results
 | Metric | Value | Budget | Status |
@@ -247,7 +247,7 @@ done | awk '{sum+=$1} END {print "Avg:", sum/NR, "s"}'
 
 ---
 
-## Caching Strategy (`/scale cache`)
+## Caching Strategy (`/oc-scale cache`)
 
 ### Cache Layers for Cloudflare Stack
 
@@ -319,7 +319,7 @@ app.post('/api/contacts', async (c) => {
 
 ---
 
-## Query Optimization (`/scale queries`)
+## Query Optimization (`/oc-scale queries`)
 
 ### Find Slow Queries
 
@@ -359,7 +359,7 @@ EXPLAIN QUERY PLAN SELECT * FROM sessions WHERE user_id = ? AND created_at > ?;
 
 ---
 
-## Capacity Planning (`/scale plan`)
+## Capacity Planning (`/oc-scale plan`)
 
 ### Scaling Path Template
 
@@ -423,7 +423,7 @@ When moving from [current tier] to [next tier]:
 | Read by | Why |
 |---|---|
 | oc-deploy-ops | Readiness score → deploy confidence at scale |
-| oc-code-auditor | Performance budgets → `/audit perf` thresholds |
+| oc-code-auditor | Performance budgets → `/oc-audit perf` thresholds |
 | oc-app-architect | Cost projections → spec cost estimates |
 
 ---
@@ -437,7 +437,7 @@ for the canonical PM-MCP patterns.
 
 ### Load-test summary on the linked ticket
 
-After every `/scale audit` or `/scale loadtest`, post a structured
+After every `/oc-scale audit` or `/oc-scale loadtest`, post a structured
 summary on the linked PM ticket:
 
 ```
@@ -464,14 +464,14 @@ For every finding tagged HIGH or CRITICAL on the readiness scale:
 
 ### Capacity-planning artifacts
 
-`/scale capacity` produces a 12-month capacity projection. The
+`/oc-scale capacity` produces a 12-month capacity projection. The
 output is uploaded as a comment with the projection table + a
 calendar-keyed reminder ticket scheduled for the next review
 window (default 90 days).
 
 ### Cost recommendations
 
-When `/scale cost` finds a > 30% cost-reduction opportunity, file a
+When `/oc-scale cost` finds a > 30% cost-reduction opportunity, file a
 sub-ticket with the projected savings + the change required. Cost
 recommendations smaller than that stay in the report only — not
 worth the PM noise.
@@ -480,7 +480,7 @@ worth the PM noise.
 
 - No linked ticket → report still produced; no PM write.
 - MCP unavailable → log intended writes to checkpoint; user can
-  `/scale sync-pm` later.
+  `/oc-scale sync-pm` later.
 - Load test still running when invoked → defer the PM comment until
   the run completes; never post partial results.
 

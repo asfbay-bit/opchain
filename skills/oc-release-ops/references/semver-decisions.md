@@ -1,6 +1,6 @@
 # Semver decisions for opchain releases
 
-Decision tree for `/release plan`. Outputs the proposed next version given
+Decision tree for `/oc-release plan`. Outputs the proposed next version given
 what's merged since the last release.
 
 ---
@@ -67,7 +67,7 @@ when the skill's prose did not change in that release. Reasons:
 
 - Reduces "which version is current?" confusion when the user grep'd a single
   SKILL.md.
-- Lets `/release verify` enforce a single invariant (`every skill === release
+- Lets `/oc-release verify` enforce a single invariant (`every skill === release
   version`) instead of a per-skill changelog.
 - Aligns with the `/changelog` page being the source of truth — entries are
   release-version-keyed, not per-skill-version-keyed.

@@ -8,4 +8,4 @@ On subsequent turns, run a simulated oc-bug-check gate:
 - **Secret Detection** — scan for hardcoded keys, tokens, passwords
 - **Test Coverage** — note if tests exist for the changed code
 
-Give a clear **PASS / WARN / FAIL** verdict with specific file:line references for each finding. Suggest `/bugcheck fix` for auto-fixable issues. Format with markdown.
+Give a clear **PASS / WARN / FAIL** verdict with specific file:line references for each finding. Suggest `/oc-bugcheck fix` for auto-fixable issues. Format with markdown.

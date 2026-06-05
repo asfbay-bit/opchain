@@ -1,10 +1,10 @@
-# Changelog recipe — how `/release draft` composes the entry
+# Changelog recipe — how `/oc-release draft` composes the entry
 
 The `/changelog` page is the source-of-truth narrative for what shipped. Each
 release entry follows the same structure so readers can scan multiple
 releases without re-learning the layout.
 
-This recipe is the canonical instruction `/release draft` follows. Update
+This recipe is the canonical instruction `/oc-release draft` follows. Update
 this file when the layout evolves; the next release auto-conforms.
 
 ---
@@ -50,7 +50,7 @@ Each release entry is one `<section class="release">` (or
 - Then a one-sentence explanation of what changed and why.
 - Avoid implementation jargon ("replaced placeholder mcp.<provider> with
   concrete tool names" → "**oc-git-ops now actually calls the Linear MCP
-  tools** when you `/git-sync TICKET-1234`, with retry / backoff and a
+  tools** when you `/oc-git-sync TICKET-1234`, with retry / backoff and a
   deferred-action queue if Linear is unreachable.")
 - ≤ 280 characters per bullet (the changelog page reading rhythm).
 
@@ -88,7 +88,7 @@ Each release entry is one `<section class="release">` (or
 ## Example: v1.2 entry as a template
 
 The v1.2 entry in `site/src/pages/changelog.astro` is the canonical template.
-When `/release draft` runs, it reads the previous-release entry and mirrors:
+When `/oc-release draft` runs, it reads the previous-release entry and mirrors:
 
 - The DOM structure (sections, headers, classes).
 - The voice (declarative, present tense, second person where natural).
@@ -102,7 +102,7 @@ covers v1.x cleanly.
 
 ## v1.3 entry skeleton
 
-For the v1.3 release `/release draft` produces:
+For the v1.3 release `/oc-release draft` produces:
 
 ```html
 <section class="release release--current">
@@ -146,4 +146,4 @@ For the v1.3 release `/release draft` produces:
 ```
 
 The exact prose is generated from the sprint checkpoints + merged PR
-titles + the release plan headline ranking from `/release plan`.
+titles + the release plan headline ranking from `/oc-release plan`.

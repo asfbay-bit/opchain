@@ -20,8 +20,8 @@ description: >
   compliance mapping, runtime/infra hardening (CSP, TLS, DNS, WAF, Cloudflare config),
   and attack surface mapping. Operates ABOVE oc-code-auditor — oc-code-auditor finds SQLi and
   hardcoded secrets; oc-security-auditor asks "what's the threat model?" and "is the infra
-  hardened?" ALWAYS trigger on /security, /secaudit, /sec, /threat-model, /owasp,
-  /hardening, /attack-surface, /posture. Also trigger on: "threat model this app",
+  hardened?" ALWAYS trigger on /oc-security, /oc-secaudit, /oc-sec, /oc-threat-model, /oc-owasp,
+  /oc-hardening, /oc-attack-surface, /oc-posture. Also trigger on: "threat model this app",
   "is this secure enough", "OWASP compliance", "security review", "attack surface",
   "harden this", "what are the security risks", "SOC2 readiness", "pen test prep",
   "how would someone attack this", "security architecture review", "CSP policy",
@@ -42,38 +42,38 @@ Three pillars: **Threat Modeling**, **Compliance Mapping**, **Runtime Hardening*
 
 For all output formats and report templates, read `references/output-templates.md`.
 
-## /security — Command Reference
+## /oc-security — Command Reference
 
 ```
 SECURITY AUDITOR COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   THREAT MODELING
-  /security threat-model       Full STRIDE analysis of the application
-  /security attack-surface     Map all entry points, data flows, trust boundaries
-  /security adversaries        Profile likely threat actors and their capabilities
-  /security data-flow          Trace sensitive data from ingress to storage to egress
+  /oc-security threat-model       Full STRIDE analysis of the application
+  /oc-security attack-surface     Map all entry points, data flows, trust boundaries
+  /oc-security adversaries        Profile likely threat actors and their capabilities
+  /oc-security data-flow          Trace sensitive data from ingress to storage to egress
 
   COMPLIANCE
-  /security owasp              OWASP Top 10 compliance checklist (current year)
-  /security posture            Full posture assessment (all three pillars)
-  /security readiness [framework]  SOC2 / ISO27001 / HIPAA readiness gap analysis
-  /security report             Regenerate posture report from last checkpoint
+  /oc-security owasp              OWASP Top 10 compliance checklist (current year)
+  /oc-security posture            Full posture assessment (all three pillars)
+  /oc-security readiness [framework]  SOC2 / ISO27001 / HIPAA readiness gap analysis
+  /oc-security report             Regenerate posture report from last checkpoint
 
   RUNTIME HARDENING
-  /security headers            Audit HTTP security headers (CSP, HSTS, X-Frame, etc.)
-  /security tls                TLS/SSL configuration check
-  /security dns                DNS security (DNSSEC, CAA, SPF/DKIM/DMARC)
-  /security cloudflare         Cloudflare-specific: WAF, Bot Management, Page Rules
-  /security infra              Full infrastructure hardening sweep
+  /oc-security headers            Audit HTTP security headers (CSP, HSTS, X-Frame, etc.)
+  /oc-security tls                TLS/SSL configuration check
+  /oc-security dns                DNS security (DNSSEC, CAA, SPF/DKIM/DMARC)
+  /oc-security cloudflare         Cloudflare-specific: WAF, Bot Management, Page Rules
+  /oc-security infra              Full infrastructure hardening sweep
 
   UTILITIES
-  /security prioritize         Rank all findings by risk × effort matrix
-  /security compare [before] [after]  Compare two posture snapshots
+  /oc-security prioritize         Rank all findings by risk × effort matrix
+  /oc-security compare [before] [after]  Compare two posture snapshots
   /checkpoint                  Show checkpoint status
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Type any command to begin. /security to see this again.
+  Type any command to begin. /oc-security to see this again.
 ```
 
 ---
@@ -88,18 +88,18 @@ SECURITY AUDITOR COMMANDS
 | **Infra/runtime-level** | oc-security-auditor | CSP headers, TLS config, DNS security, WAF rules |
 
 **Chaining rules:**
-- After `/audit security` (oc-code-auditor) → invoke oc-security-auditor for architecture + infra layers
-- During `/security posture` step 2 → check if oc-code-auditor checkpoint exists. If not,
-  invoke `/audit security` before proceeding. Threat modeling without code-level findings
+- After `/oc-audit security` (oc-code-auditor) → invoke oc-security-auditor for architecture + infra layers
+- During `/oc-security posture` step 2 → check if oc-code-auditor checkpoint exists. If not,
+  invoke `/oc-audit security` before proceeding. Threat modeling without code-level findings
   is incomplete.
 - If threat model reveals code-level risks not in oc-code-auditor's findings → invoke
-  `/audit security` targeted at the specific area
+  `/oc-audit security` targeted at the specific area
 
 ---
 
 ## Pillar 1: Threat Modeling
 
-### STRIDE Analysis (`/security threat-model`)
+### STRIDE Analysis (`/oc-security threat-model`)
 
 For each component, evaluate all six STRIDE categories:
 
@@ -144,12 +144,12 @@ Med Likl.  │    LOW     │   MEDIUM   │    HIGH
 Low Likl.  │    LOW     │    LOW     │   MEDIUM
 ```
 
-### Attack Surface Mapping (`/security attack-surface`)
+### Attack Surface Mapping (`/oc-security attack-surface`)
 
 Enumerate every entry point: HTTP endpoints, data stores, external integrations, static
 assets, trust boundaries. See `references/output-templates.md` for the table format.
 
-### Adversary Profiling (`/security adversaries`)
+### Adversary Profiling (`/oc-security adversaries`)
 
 Define realistic threat actors for the application. Generic starting set:
 
@@ -164,7 +164,7 @@ Define realistic threat actors for the application. Generic starting set:
 Tailor to the specific app. A personal fitness tracker has different adversaries than
 a multi-tenant SaaS platform. Remove actors that don't apply; add app-specific ones.
 
-### Data Flow Tracing (`/security data-flow`)
+### Data Flow Tracing (`/oc-security data-flow`)
 
 Trace every sensitive data type from ingress to egress. Connective tissue between attack
 surface mapping and STRIDE — shows exactly *where* sensitive data is vulnerable.
@@ -202,7 +202,7 @@ surface mapping and STRIDE — shows exactly *where* sensitive data is vulnerabl
 
 ## Pillar 2: Compliance Mapping
 
-### OWASP Top 10 Checklist (`/security owasp`)
+### OWASP Top 10 Checklist (`/oc-security owasp`)
 
 For each OWASP category, assess the application's posture. Use web search to confirm
 the current list (it updates every few years). Fallback if search is unavailable — the
@@ -217,7 +217,7 @@ A10: Server-Side Request Forgery (SSRF)
 Status per category: ✅ PASS, ⚠️ PARTIAL, ❌ FAIL. See `references/output-templates.md`
 for the assessment format.
 
-### Framework Readiness (`/security readiness [framework]`)
+### Framework Readiness (`/oc-security readiness [framework]`)
 
 Supported: SOC2, ISO27001, HIPAA, PCI-DSS. Generate a gap analysis of applicable controls
 vs. current state. See `references/output-templates.md` for format.
@@ -225,17 +225,17 @@ vs. current state. See `references/output-templates.md` for format.
 **Important:** This is readiness *mapping*, not certification. Always note that actual
 compliance requires formal assessment by qualified auditors.
 
-### Report Regeneration (`/security report`)
+### Report Regeneration (`/oc-security report`)
 
 Regenerates the posture report from the current checkpoint without re-running assessments.
 Requires a checkpoint with at least one completed pillar. If no checkpoint exists,
-redirects to `/security posture`.
+redirects to `/oc-security posture`.
 
 ---
 
 ## Pillar 3: Runtime Hardening
 
-### HTTP Security Headers (`/security headers`)
+### HTTP Security Headers (`/oc-security headers`)
 
 Check the deployed application's response headers. If a URL is available, use web_fetch.
 Otherwise, check the code for header-setting logic.
@@ -257,18 +257,18 @@ Score: X/8 headers configured correctly. Priority fix whichever has highest impa
 vulnerabilities in older browsers. If present in a response, don't flag as a finding;
 CSP supersedes it. If set, recommend `X-XSS-Protection: 0` to disable legacy behavior.
 
-### TLS Configuration (`/security tls`)
+### TLS Configuration (`/oc-security tls`)
 
 Check: TLS 1.2+ (1.3 preferred), certificate validity, cipher suite strength, HSTS
 preload status. For edge-proxied sites (Cloudflare, Vercel), TLS is automatic — focus
 on the platform-specific TLS settings instead.
 
-### DNS Security (`/security dns`)
+### DNS Security (`/oc-security dns`)
 
 Check: DNSSEC, CAA records, SPF/DKIM/DMARC (if domain sends email), no dangling CNAMEs
 (subdomain takeover risk), no unintentional wildcard DNS.
 
-### Platform-Specific Hardening (`/security cloudflare`)
+### Platform-Specific Hardening (`/oc-security cloudflare`)
 
 **Platform routing:** The checks below use Cloudflare as the default (matching the aidops
 stack). For other platforms, adapt the equivalent controls:
@@ -297,7 +297,7 @@ stack). For other platforms, adapt the equivalent controls:
 **If Cloudflare MCP is connected:** Use it to read actual configuration. If not, check
 `wrangler.toml` and advise on dashboard settings.
 
-### Infrastructure Sweep (`/security infra`)
+### Infrastructure Sweep (`/oc-security infra`)
 
 Runs all runtime checks in sequence: headers → TLS → DNS → platform config →
 detection/response → cross-reference with threat model if one exists.
@@ -331,7 +331,7 @@ Every hardening sweep includes detection/response checks. Prevention fails event
 
 ---
 
-## Posture Assessment (`/security posture`)
+## Posture Assessment (`/oc-security posture`)
 
 The full-stack assessment. Runs all three pillars and produces an executive report.
 
@@ -356,8 +356,8 @@ These determine the **assessment tier:**
 Auto-detect from checkpoints when possible; confirm with user. Don't run Comprehensive
 on a personal hobby app (Principle 7).
 
-**Tier scope is advisory for `/security posture` only.** Individual commands (`/security
-owasp`, `/security headers`, etc.) always run at full depth regardless of tier — if the
+**Tier scope is advisory for `/oc-security posture` only.** Individual commands (`/oc-security
+owasp`, `/oc-security headers`, etc.) always run at full depth regardless of tier — if the
 user explicitly asks, deliver.
 
 **Monorepo scoping:** For multi-app repos (like aidops-core), assess per-app — each app
@@ -370,7 +370,7 @@ by each app's report. Write one checkpoint per app, not one per repo.
 1. **Gather context.** Read checkpoints: oc-reverse-spec, oc-app-architect, oc-code-auditor, oc-deploy-ops.
 
 2. **Ensure code-level coverage.** If no oc-code-auditor checkpoint exists, invoke
-   `/audit security` first. Architecture-level assessment without code-level findings
+   `/oc-audit security` first. Architecture-level assessment without code-level findings
    is incomplete.
 
 3. **Run Pillar 1:** Threat model (STRIDE + attack surface + adversaries + data flow).
@@ -387,7 +387,7 @@ by each app's report. Write one checkpoint per app, not one per repo.
 
 ---
 
-## Prioritization (`/security prioritize`)
+## Prioritization (`/oc-security prioritize`)
 
 Takes all findings across pillars and produces a risk × effort matrix:
 
@@ -404,7 +404,7 @@ Output: Findings sorted into buckets with specific next actions.
 
 ---
 
-## Posture Comparison (`/security compare`)
+## Posture Comparison (`/oc-security compare`)
 
 Compares two posture snapshots to track improvement. Input: two dates or checkpoint paths.
 If one argument, compares against current checkpoint. Diffs finding counts, OWASP score,
@@ -474,13 +474,13 @@ for format.
 
 Security findings have higher impact than code findings: they often
 require coordinated remediation across teams + a paper trail for
-audit. v1.2 routes `/secaudit` output through the PM tool with
+audit. v1.2 routes `/oc-secaudit` output through the PM tool with
 slightly different rules from `oc-code-auditor`. See
 `oc-integrations-engineer` for the canonical PM-MCP patterns.
 
 ### Posture summary on the linked ticket
 
-After every `/secaudit` run, post a structured summary on the linked
+After every `/oc-secaudit` run, post a structured summary on the linked
 PM ticket (if any):
 
 ```
@@ -530,7 +530,7 @@ PM ticket is the engineer-facing surface.
 
 ### Re-scan hygiene
 
-`/secaudit` re-runs check existing security tickets. A finding that
+`/oc-secaudit` re-runs check existing security tickets. A finding that
 no longer reproduces gets a `oc-security-auditor verified clean in {sha}`
 comment + transition to `done`. Regressions reopen the same ticket
 rather than create duplicates.

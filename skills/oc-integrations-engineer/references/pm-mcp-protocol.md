@@ -160,7 +160,7 @@ array to its checkpoint (alongside the existing `skill_state`):
     {
       "id": "deferred-2026-05-07T18:21:33Z-a3f1",
       "skill": "oc-app-architect",
-      "verb": "/roadmap",
+      "verb": "/oc-roadmap",
       "operation": "add_comment",
       "provider": "linear",
       "tool_name": "mcp__claude_ai_Linear__save_comment",
@@ -186,7 +186,7 @@ array to its checkpoint (alongside the existing `skill_state`):
 |---|---|---|
 | `id` | yes | Stable id; format `deferred-<iso-ts>-<4-hex>`. |
 | `skill` | yes | Producing skill. |
-| `verb` | yes | The user-facing verb that produced this (`/roadmap`, `/git-sync`, ...). |
+| `verb` | yes | The user-facing verb that produced this (`/oc-roadmap`, `/oc-git-sync`, ...). |
 | `operation` | yes | Logical op: `get_issue`, `add_comment`, `save_issue`, `transition`. |
 | `provider` | yes | `linear` / `jira` / `github-issues`. |
 | `tool_name` | yes | Resolved concrete tool name from the registry (after `tool_overrides`). |
@@ -311,12 +311,12 @@ the skill leaves the state unchanged and posts a comment instead.
 
 ---
 
-## Appendix B — Worked example: `oc-git-ops /git-sync PROJ-142 --retry-pm`
+## Appendix B — Worked example: `oc-git-ops /oc-git-sync PROJ-142 --retry-pm`
 
 A concrete trace of every rule above firing in sequence, drawn from the v1.3
 hero scenario.
 
-1. User runs `/git-sync PROJ-142 --retry-pm` after a previous attempt deferred
+1. User runs `/oc-git-sync PROJ-142 --retry-pm` after a previous attempt deferred
    a PR-opened comment due to a 503.
 2. oc-git-ops reads `.checkpoints/oc-git-ops.checkpoint.json`, finds one entry in
    `pm_deferred_actions[]` with `marker: <!-- opchain:oc-git-ops:pr-opened:#412 -->`,

@@ -39,7 +39,7 @@ export async function sendTelegramAlert(env: Env, alert: AlertPayload) {
     `_${alert.timestamp || new Date().toISOString()}_`,
   ].join("\n");
 
-  await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+  await fetch(`https://oc-api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

@@ -17,7 +17,7 @@ commands:
   - /oc-launch
 description: >
   Unified app development: idea → spec → design → build with Generator/Evaluator
-  QA loop → launch. Use for /app, /discover, /spec, /design, /build, /launch,
+  QA loop → launch. Use for /oc-app, /oc-discover, /oc-spec, /oc-design, /oc-build, /oc-launch,
   "build me an app", "I have an app idea", or any software project. Auto-invokes
   oc-stack-forge and oc-ux-engineer. Trigger liberally.
 ---
@@ -32,30 +32,30 @@ using a Generator → Evaluator harness (build phase with automated QA).
 
 This is one skill, not two. Planning and building are the same pipeline.
 
-## /app — Command Reference
+## /oc-app — Command Reference
 
 ```
 APP ARCHITECT COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   PLANNING PHASES
-  /discover       Discovery interview (Phase 1)
-  /spec           Spec generation + oc-stack-forge (Phase 2)
-  /design         Design pipeline — style book, wireframes, prototypes (Phase 3)
-                    auto-routes data-heavy screens to /data-forge
-  /roadmap        Sprint plan generation (Phase 4)
+  /oc-discover       Discovery interview (Phase 1)
+  /oc-spec           Spec generation + oc-stack-forge (Phase 2)
+  /oc-design         Design pipeline — style book, wireframes, prototypes (Phase 3)
+                    auto-routes data-heavy screens to /oc-data-forge
+  /oc-roadmap        Sprint plan generation (Phase 4)
 
   BUILD PHASES
-  /scaffold       Generate runnable project structure (Phase 5)
-  /build          Start or resume Generator → Evaluator sprint loop (Phase 6)
+  /oc-scaffold       Generate runnable project structure (Phase 5)
+  /oc-build          Start or resume Generator → Evaluator sprint loop (Phase 6)
   /eval           Run Evaluator on current sprint (ad-hoc QA)
-  /launch         Launch checklist + deploy handoff (Phase 7)
+  /oc-launch         Launch checklist + deploy handoff (Phase 7)
 
   UTILITIES
   /status         Current phase, gates passed, sprint scores, next action
   /approve        Approve current gate and advance
-  /export-spec    Generate master spec document (.docx)
-  /punch-list     View or edit the screen & component punch list
+  /oc-export-spec    Generate master spec document (.docx)
+  /oc-punch-list     View or edit the screen & component punch list
   /contract       View or edit current sprint contract
 
   SESSION
@@ -157,7 +157,7 @@ sprint completion.
 
 ---
 
-## Phase 1: Discovery Interview (`/discover`)
+## Phase 1: Discovery Interview (`/oc-discover`)
 
 Conduct a structured interview. Group questions 2-3 per round. Skip what's already
 known from context.
@@ -174,7 +174,7 @@ Write checkpoint: phase "discovery".
 
 ---
 
-## Phase 2: Spec Generation (`/spec`)
+## Phase 2: Spec Generation (`/oc-spec`)
 
 ### Stack Selection (chains to oc-stack-forge)
 
@@ -183,7 +183,7 @@ Before generating spec files, chain to oc-stack-forge per orchestrator.md §3 (A
 1. State the chain: "Discovery is approved. Now using oc-stack-forge to choose the stack."
 2. Read `oc-stack-forge/SKILL.md` and `oc-stack-forge/references/orchestrator.md`.
 3. Check for `.checkpoints/oc-stack-forge.checkpoint.json` (resume if present).
-4. Execute `/stack-decide` with the discovery context (platform → backend → database → auth → frontend). Stack-forge web-searches for current framework status before recommending.
+4. Execute `/oc-stack-decide` with the discovery context (platform → backend → database → auth → frontend). Stack-forge web-searches for current framework status before recommending.
 5. Stack-forge returns the recommendation; if the user already stated preferences during discovery, oc-stack-forge validates the choice rather than re-interviewing.
 6. Present recommendation → user confirms → stack informs all remaining spec files in this phase.
 
@@ -213,7 +213,7 @@ Write checkpoint: phase "spec-approved".
 
 ---
 
-## Phase 3: Design Pipeline (`/design`)
+## Phase 3: Design Pipeline (`/oc-design`)
 
 Read `references/ux-design-guide.md` for the full methodology.
 
@@ -240,7 +240,7 @@ navigation paths.
 **Data-heavy surfaces chain to oc-dash-forge.** When a screen is data-heavy (≥3 charts/tables, real-time updates, BI/monitoring/analyst archetype, or downstream of a data-architect handoff), invoke oc-dash-forge per orchestrator.md §3:
 
 1. Read `oc-dash-forge/SKILL.md` for the canonical archetype scoping table.
-2. Execute `/data-forge` with the design tokens + spec context.
+2. Execute `/oc-data-forge` with the design tokens + spec context.
 3. Mark the screen `source: oc-dash-forge` and skip inline wireframes — oc-dash-forge's handoff bundle plugs into the Phase 3e punch list directly.
 
 Non-data-heavy screens get wireframes generated inline using the Phase 3a token system.
@@ -274,7 +274,7 @@ Write checkpoint: phase "punch-list-approved".
 
 ---
 
-## Phase 4: Sprint Plan (`/roadmap`)
+## Phase 4: Sprint Plan (`/oc-roadmap`)
 
 Convert the punch list and spec into an ordered sprint plan. Each sprint is a coherent,
 demoable chunk of work. One sprint plan, one format — used directly by Phase 6 build loop.
@@ -319,7 +319,7 @@ Write checkpoint: phase "sprint-plan-approved".
 
 ---
 
-## Phase 5: Scaffold (`/scaffold`)
+## Phase 5: Scaffold (`/oc-scaffold`)
 
 One-time project setup. Read `references/scaffold-guide.md`.
 
@@ -333,7 +333,7 @@ Write checkpoint: phase "scaffold".
 
 ---
 
-## Phase 6: Build Loop (`/build`)
+## Phase 6: Build Loop (`/oc-build`)
 
 This is the core of the skill. For each sprint from the sprint plan, run a
 Generator → Evaluator loop.
@@ -484,7 +484,7 @@ After each outcome: update checkpoint, suggest oc-git-ops commit if appropriate.
 
 ---
 
-## Phase 7: Launch (`/launch`)
+## Phase 7: Launch (`/oc-launch`)
 
 ### Pre-Launch Pipeline
 
@@ -492,11 +492,11 @@ Chain through the launch pipeline per orchestrator.md §3. Each step actively in
 next skill — read its SKILL.md, check its checkpoint, execute the command — rather than
 suggesting it:
 
-1. **oc-code-auditor** — read `oc-code-auditor/SKILL.md`, execute `/audit pre-deploy`. Block on CRITICAL/HIGH findings.
-2. **oc-security-auditor** — read `oc-security-auditor/SKILL.md`, execute `/security posture`. Block on CRITICAL findings.
-3. **oc-git-ops** — read `oc-git-ops/SKILL.md`, execute `/git-sync`. (oc-git-ops auto-invokes oc-bug-check before commit.)
-4. **oc-deploy-ops** — read `oc-deploy-ops/SKILL.md`, execute `/deploy staging`. After staging smoke-tests pass and user confirms, execute `/deploy prod`.
-5. **oc-monitoring-ops** — read `oc-monitoring-ops/SKILL.md`, execute `/monitor` to wire post-deploy observability.
+1. **oc-code-auditor** — read `oc-code-auditor/SKILL.md`, execute `/oc-audit pre-deploy`. Block on CRITICAL/HIGH findings.
+2. **oc-security-auditor** — read `oc-security-auditor/SKILL.md`, execute `/oc-security posture`. Block on CRITICAL findings.
+3. **oc-git-ops** — read `oc-git-ops/SKILL.md`, execute `/oc-git-sync`. (oc-git-ops auto-invokes oc-bug-check before commit.)
+4. **oc-deploy-ops** — read `oc-deploy-ops/SKILL.md`, execute `/oc-deploy staging`. After staging smoke-tests pass and user confirms, execute `/oc-deploy prod`.
+5. **oc-monitoring-ops** — read `oc-monitoring-ops/SKILL.md`, execute `/oc-monitor` to wire post-deploy observability.
 
 ### Launch Checklist
 - [ ] DNS configured
@@ -582,8 +582,8 @@ project-dir/
 |---|---|
 | **oc-stack-forge** | Auto-invoked during Phase 2. Produces stack recommendation that informs all specs. |
 | **oc-ux-engineer** | Design Evaluator auto-attaches during UI sprints in Phase 6. Also usable standalone for design iteration. |
-| **oc-code-auditor** | Evaluator reads oc-code-auditor checkpoint for pre-existing issues. Phase 7 suggests `/audit pre-deploy`. |
-| **oc-git-ops** | Suggested after each sprint passes. Phase 7 suggests `/git-sync`. |
+| **oc-code-auditor** | Evaluator reads oc-code-auditor checkpoint for pre-existing issues. Phase 7 suggests `/oc-audit pre-deploy`. |
+| **oc-git-ops** | Suggested after each sprint passes. Phase 7 suggests `/oc-git-sync`. |
 | **oc-deploy-ops** | Phase 7 hands off to deploy pipeline. |
 | **oc-integrations-engineer** | Phase 2 spec `04-integrations.md` can trigger integration planning (third-party APIs we *consume*). |
 | **oc-api-dev** | Phase 2 spec `02-architecture.md` "API Design" + `03-architecture.md` data model trigger oc-api-dev to elaborate the first-party API contract (OpenAPI/GraphQL, versioning, SDK). |
@@ -596,24 +596,24 @@ project-dir/
 
 ### Full pipeline (new project)
 ```
-/discover → /spec → /design → /roadmap → /scaffold → /build → /launch
+/oc-discover → /oc-spec → /oc-design → /oc-roadmap → /oc-scaffold → /oc-build → /oc-launch
 ```
 
 ### From existing specs (oc-reverse-spec output)
 ```
-/roadmap → /scaffold → /build → /launch
+/oc-roadmap → /oc-scaffold → /oc-build → /oc-launch
 ```
 
 ### Quick feature (existing project)
 ```
-/build [feature description]
+/oc-build [feature description]
 → Generates sprint plan for just this feature
 → Runs build loop
 ```
 
 ### Spec-only (no build)
 ```
-/discover → /spec → /design → /export-spec
+/oc-discover → /oc-spec → /oc-design → /oc-export-spec
 → Produces master-spec.docx without building
 ```
 
@@ -629,10 +629,10 @@ formats, and the `pm_deferred_actions[]` schema come from that doc — this
 section says only how the contract applies to the three PM-aware phases of
 this skill.**
 
-### Phase 1 — `/discover` reads ticket context
+### Phase 1 — `/oc-discover` reads ticket context
 
 If the user's prompt includes a recognised ticket id (or
-`/discover --ticket TICKET-1234`):
+`/oc-discover --ticket TICKET-1234`):
 
 1. Detect provider from `.opchain/pm.yaml`; default Linear if missing and
    the ticket pattern is `[A-Z]+-\d+`. Apply `tool_overrides` from `pm.yaml`
@@ -653,7 +653,7 @@ If the ticket has child tickets (Linear sub-issues, Jira sub-tasks,
 GitHub linked issues), fetch them too — they often define the
 sprint-level decomposition that Phase 4 wants.
 
-### Phase 4 — `/roadmap` writes sprint plan back
+### Phase 4 — `/oc-roadmap` writes sprint plan back
 
 When the sprint plan is approved, for each sprint:
 
@@ -668,7 +668,7 @@ When the sprint plan is approved, for each sprint:
    Test requirements: ...
    Definition of done: ...
    Effort: CLAUDE Xh / USER Yh
-   Generated by oc-app-architect /roadmap on {date}.
+   Generated by oc-app-architect /oc-roadmap on {date}.
    ```
 
 2. Pre-write check: call the registry-resolved `list_comments` (Linear)
@@ -691,9 +691,9 @@ When the sprint plan is approved, for each sprint:
    `oc-app-architect.checkpoint.json` `skill_state.pm.sprint_comments[]`
    for traceability.
 6. On retry-budget exhaustion, defer per protocol §4 with marker
-   preserved so a later `/roadmap --retry-pm` flush is idempotent.
+   preserved so a later `/oc-roadmap --retry-pm` flush is idempotent.
 
-### Phase 6 — `/build` updates sprint state
+### Phase 6 — `/oc-build` updates sprint state
 
 On each sprint pass / fail:
 
@@ -710,7 +710,7 @@ On each sprint pass / fail:
 
 ### `--retry-pm` flush
 
-`/roadmap --retry-pm` and `/build --retry-pm` both invoke the protocol §4
+`/oc-roadmap --retry-pm` and `/oc-build --retry-pm` both invoke the protocol §4
 flush sequence against `oc-app-architect.checkpoint.json`
 `pm_deferred_actions[]`. Filter to entries with `skill: "oc-app-architect"`
 and `retriable: true`. Surface a one-line `flushed N / failed M` summary
@@ -721,7 +721,7 @@ to the user.
 - No ticket reference in user prompt → skill operates as v1.1 (no PM
   context). Never invents a ticket.
 - MCP call fails (transient) → defer per protocol §4 with
-  `retriable: true`; user can `/roadmap --retry-pm` later. Phase
+  `retriable: true`; user can `/oc-roadmap --retry-pm` later. Phase
   output is unchanged.
 - Cross-team scope-violation (broker 403) → defer with
   `retriable: false`, surface the permission error, never auto-flush.

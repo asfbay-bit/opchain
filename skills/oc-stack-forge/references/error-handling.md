@@ -213,7 +213,7 @@ Middleware runs in reverse order of addition (Starlette/Hono both follow this pa
 // Order matters — first added = outermost = runs first on request, last on response
 // 1. CORS (outermost — must wrap everything including error responses)
 app.use("*", cors({
-  origin: ["https://app.aidops.dev"],
+  origin: ["https://oc-app.aidops.dev"],
   allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   allowHeaders: ["Content-Type", "Authorization"],
   credentials: true,
@@ -235,7 +235,7 @@ app.use("/api/*", authMiddleware);
 # 1. CORS (outermost — added first)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://app.aidops.dev"],
+    allow_origins=["https://oc-app.aidops.dev"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

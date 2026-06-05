@@ -4,7 +4,7 @@ A complete run of oc-dash-forge on a realistic scenario. Use this as the north s
 
 **Scenario:** Aidan wants a real-time monitoring dashboard for the PenThreshold IT training compliance platform — the ops team needs to see at a glance whether training is landing, which integrations are healthy, and what's backing up.
 
-This run was invoked by `/oc-app-architect` during its Phase 3b wireframe review, which detected the dashboard surface and routed to `/data-forge`.
+This run was invoked by `/oc-app-architect` during its Phase 3b wireframe review, which detected the dashboard surface and routed to `/oc-data-forge`.
 
 ---
 
@@ -211,7 +211,7 @@ export const incidents: Incident[] = [
 ];
 ```
 
-### /df-audit result
+### /oc-df-audit result
 
 All 13 checks passed:
 - ✅ Archetype defense tied to wall-monitor context + on-call role + 2-min refresh

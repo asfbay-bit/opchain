@@ -394,7 +394,7 @@ Downstream skills read it to find context without re-asking.
 
 When any skill starts, after reading its own checkpoint, it
 **also reads `pm_refs` from sibling-skill checkpoints** to find
-context. Example: oc-git-ops, on `/git-sync` with no explicit ticket
+context. Example: oc-git-ops, on `/oc-git-sync` with no explicit ticket
 id, looks at `oc-app-architect.checkpoint.json#pm_refs` to find the
 source ticket from the most recent build phase.
 

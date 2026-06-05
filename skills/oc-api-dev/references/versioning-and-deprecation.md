@@ -11,8 +11,8 @@ project, not a small change.
 ### URL path (recommended default)
 
 ```
-https://api.example.com/v1/widgets
-https://api.example.com/v2/widgets
+https://oc-api.example.com/v1/widgets
+https://oc-api.example.com/v2/widgets
 ```
 
 - One major version per URL prefix.
@@ -98,7 +98,7 @@ deprecation window.
 ## Deprecation Headers
 
 When marking an endpoint or field deprecated, every response from that operation
-emits these headers. Use `/api deprecate` to wire them.
+emits these headers. Use `/oc-api deprecate` to wire them.
 
 ### Deprecation (RFC 9745)
 
@@ -122,8 +122,8 @@ APIs, 1 month for fully-internal APIs.
 ### Link
 
 ```
-Link: <https://api.example.com/docs/migrations/v1-to-v2>; rel="deprecation"
-Link: <https://api.example.com/v2/widgets>; rel="successor-version"
+Link: <https://oc-api.example.com/docs/migrations/v1-to-v2>; rel="deprecation"
+Link: <https://oc-api.example.com/v2/widgets>; rel="successor-version"
 ```
 
 Always emit both `rel="deprecation"` (pointing at the migration guide) and
@@ -140,7 +140,7 @@ paths:
       ...
 ```
 
-The `deprecated: true` flag drives `/api docs` to show a banner and `/api sdk`
+The `deprecated: true` flag drives `/oc-api docs` to show a banner and `/oc-api sdk`
 to mark the generated method `@deprecated`.
 
 ---

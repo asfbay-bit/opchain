@@ -2,7 +2,7 @@
 name: oc-git-ops
 displayName: OC · Git Ops
 version: 1.3.0
-shortDesc: Branch, commit, PR, sync workflows. v1.2 is PM-aware — `/git-sync TICKET-1234` reads ticket; transitions on merge.
+shortDesc: Branch, commit, PR, sync workflows. v1.2 is PM-aware — `/oc-git-sync TICKET-1234` reads ticket; transitions on merge.
 phases: [build]
 triAgent: false
 tryable: true
@@ -13,7 +13,7 @@ commands:
   - /oc-push
   - /oc-git-sync
 description: >
-  Git workflow: branch, commit, PR, sync. Use for /git, /commit, /pr, /push,
+  Git workflow: branch, commit, PR, sync. Use for /oc-git, /oc-commit, /oc-pr, /oc-push,
   "commit this", "push to git", "create a PR", "sync to repo", or any git
   operation. Trigger liberally.
 ---
@@ -35,17 +35,17 @@ GIT OPS COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   WORKFLOW
-  /git-init         Clone repo + set up workspace for a project
+  /oc-git-init         Clone repo + set up workspace for a project
   /git-branch       Create a feature branch from convention
-  /git-commit       Stage + commit with structured message
-  /git-pr           Generate PR description from commits/checkpoint
+  /oc-git-commit       Stage + commit with structured message
+  /oc-git-pr           Generate PR description from commits/checkpoint
   /git-push         Push branch to remote
-  /git-sync         Full workflow: branch → commit → push → PR
+  /oc-git-sync         Full workflow: branch → commit → push → PR
 
   UTILITIES
-  /git-status       Show current branch, staged changes, remote state
+  /oc-git-status       Show current branch, staged changes, remote state
   /git-diff         Show what's changed since last commit
-  /git-convention   Show/set naming conventions for this project
+  /oc-git-convention   Show/set naming conventions for this project
   /checkpoint       Show checkpoint status
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -75,7 +75,7 @@ The typical flow:
 
 ---
 
-## Phase 0: Repository Setup (/git-init)
+## Phase 0: Repository Setup (/oc-git-init)
 
 ### First Time
 
@@ -143,7 +143,7 @@ If an oc-app-architect checkpoint exists, derive the branch name from it:
 - Code audit fix → `fix/audit-f001-rate-limiting`
 - Deploy setup → `deploy/ci-cd-pipeline`
 
-### /git-convention
+### /oc-git-convention
 
 Set or view the project's naming conventions:
 
@@ -162,7 +162,7 @@ EOF
 
 ---
 
-## Commit Structure (/git-commit)
+## Commit Structure (/oc-git-commit)
 
 ### Conventional Commits
 
@@ -225,7 +225,7 @@ ad-hoc lint/type/test checks. Bug-check owns the seven-check suite
 PASS or FAIL.
 
 ```
-Skill(skill="oc-bug-check", args="/bugcheck run")
+Skill(skill="oc-bug-check", args="/oc-bugcheck run")
 ```
 
 Then read `.checkpoints/oc-bug-check.checkpoint.json` for the verdict.
@@ -233,7 +233,7 @@ Then read `.checkpoints/oc-bug-check.checkpoint.json` for the verdict.
 | Verdict | Action |
 |---|---|
 | PASS | Proceed to `git add` + `git commit` |
-| FAIL | **ABORT.** Surface the failing checks and offer the user `/bugcheck fix` (auto-fix lint/format) or `/bugcheck bypass` (logged override). Do NOT call `git commit` until verdict flips to PASS or the user explicitly bypasses. |
+| FAIL | **ABORT.** Surface the failing checks and offer the user `/oc-bugcheck fix` (auto-fix lint/format) or `/oc-bugcheck bypass` (logged override). Do NOT call `git commit` until verdict flips to PASS or the user explicitly bypasses. |
 | (no checkpoint) | Bug-check hasn't run — invoke it first. |
 
 The runtime also has a `PreToolUse(Bash)` hook at
@@ -244,7 +244,7 @@ keeps the assistant from tripping it.
 
 ---
 
-## PR Description (/git-pr)
+## PR Description (/oc-git-pr)
 
 ### Auto-Generated from Context
 
@@ -287,7 +287,7 @@ Pull from all available sources to build a comprehensive PR description:
 ## Audit Status
 
 [If oc-code-auditor ran: "Pre-deploy audit: Grade [X], [N] findings ([M] addressed in this PR)"]
-[If not: "No code audit run — consider `/audit pre-deploy` before merging"]
+[If not: "No code audit run — consider `/oc-audit pre-deploy` before merging"]
 
 ## Deployment Notes
 
@@ -310,12 +310,12 @@ echo "Create the PR manually and paste this description."
 
 ---
 
-## Full Sync Workflow (/git-sync)
+## Full Sync Workflow (/oc-git-sync)
 
 One command that runs the entire flow:
 
 ```
-/git-sync [description]
+/oc-git-sync [description]
 ```
 
 1. **Detect context** — read checkpoints for project, skill, and current state
@@ -323,7 +323,7 @@ One command that runs the entire flow:
 3. **Create branch** — `git checkout -b <branch>`
 4. **Stage changes** — intelligently stage (skip build artifacts, node_modules)
 5. **Structure commits** — group by logical unit
-6. **Run oc-bug-check gate** — invoke `Skill(skill="oc-bug-check", args="/bugcheck run")`. **FAIL aborts the sync** — surface the failing checks and stop. The user can `/bugcheck fix`, `/bugcheck bypass`, or address the failures and re-run `/git-sync`.
+6. **Run oc-bug-check gate** — invoke `Skill(skill="oc-bug-check", args="/oc-bugcheck run")`. **FAIL aborts the sync** — surface the failing checks and stop. The user can `/oc-bugcheck fix`, `/oc-bugcheck bypass`, or address the failures and re-run `/oc-git-sync`.
 7. **Push** — `git push -u origin <branch>`
 8. **Generate PR description** — from all available context
 9. **Create PR** — via gh CLI or output for manual creation
@@ -332,11 +332,11 @@ At each step, show progress. If any step needs user input, ask once and continue
 
 ### Post-Sync Handoff
 
-After `/git-sync` completes successfully:
+After `/oc-git-sync` completes successfully:
 - If a oc-deploy-ops config exists for this project, suggest:
-  "Changes pushed. Run `/deploy staging` to deploy to staging?"
+  "Changes pushed. Run `/oc-deploy staging` to deploy to staging?"
 - If no oc-deploy-ops config exists, suggest:
-  "Changes pushed. Run `/deploy init` to set up deployment, or `/audit pre-deploy` for a quality check."
+  "Changes pushed. Run `/oc-deploy init` to set up deployment, or `/oc-audit pre-deploy` for a quality check."
 
 ---
 
@@ -445,7 +445,7 @@ commit before the feature commits.
 ## PM-Tool MCP Integration (v1.3+)
 
 When the user invokes any verb with a ticket id —
-`/git-sync TICKET-1234`, `/commit --ticket PLAT-12`, or pastes a
+`/oc-git-sync TICKET-1234`, `/oc-commit --ticket PLAT-12`, or pastes a
 Linear / Jira / GitHub Issues URL — oc-git-ops reads the ticket via
 the configured PM-MCP and uses it for branch, commit, and PR shape.
 
@@ -455,7 +455,7 @@ markers, and the `pm_deferred_actions[]` schema — lives in
 **All MCP calls below honour that contract; this section says only how
 oc-git-ops shapes branch / commit / PR / state from the ticket.**
 
-### `/git-sync TICKET-1234` flow
+### `/oc-git-sync TICKET-1234` flow
 
 1. Resolve provider from `.opchain/pm.yaml` (or detect from id pattern
    / URL). Apply `tool_overrides` from `pm.yaml` before falling through
@@ -497,17 +497,17 @@ oc-git-ops shapes branch / commit / PR / state from the ticket.**
    `issue_write` with state field; Jira:
    `mcp__atlassian__jira_transition_issue`).
 7. **PR merge** (when oc-git-ops observes the merge or is invoked with
-   `/git-sync --closed`) — same pre-write check pattern with marker
+   `/oc-git-sync --closed`) — same pre-write check pattern with marker
    `<!-- opchain:oc-git-ops:pr-merged:#<pr-number> -->`; comment carries
    the merge SHA + commit subject; transition to `done` (resolved
    from `pm.yaml.states`).
 
-### `/commit` enrichment
+### `/oc-commit` enrichment
 
-If a ticket id appears in the user's prompt but no `/git-sync`,
+If a ticket id appears in the user's prompt but no `/oc-git-sync`,
 just enrich the commit body with `Refs: TICKET-1234` and stop —
-the comment + transition is `/git-sync` territory. No MCP call is
-made by `/commit` alone.
+the comment + transition is `/oc-git-sync` territory. No MCP call is
+made by `/oc-commit` alone.
 
 ### Multi-ticket commits
 
@@ -518,7 +518,7 @@ on each via `add_comment`, each carrying its own ticket-scoped
 marker `<!-- opchain:oc-git-ops:pr-opened:#<pr-number>:<ticket-id> -->`
 so re-runs are idempotent per ticket.
 
-### `/git-sync --retry-pm` flush
+### `/oc-git-sync --retry-pm` flush
 
 Invokes the protocol §4 flush against
 `oc-git-ops.checkpoint.json` `pm_deferred_actions[]`. Filter to
@@ -533,7 +533,7 @@ Invokes the protocol §4 flush against
 - Ticket id format unrecognised → treat as plain text in the user
   prompt; do not call MCP.
 - `add_comment` retry-budget exhausted (transient) → defer per
-  protocol §4 with `retriable: true`; user can `/git-sync --retry-pm`
+  protocol §4 with `retriable: true`; user can `/oc-git-sync --retry-pm`
   later. The PR is unaffected.
 - 403 (cross-team scope) → defer with `retriable: false`; surface
   the permission error; never auto-flush. The PR is unaffected.

@@ -1,15 +1,15 @@
 # Version locations in the opchain repo
 
-`/release bump` rewrites every location below in lockstep. If you add a
+`/oc-release bump` rewrites every location below in lockstep. If you add a
 new place that displays a version string, add it here AND to
 `scripts/check-version-lockstep.mjs` (when that script exists; for v1.3
-the check lives in this skill's `/release verify` step).
+the check lives in this skill's `/oc-release verify` step).
 
 ---
 
 ## Required locations
 
-These must all match the release version. `/release verify` fails if any
+These must all match the release version. `/oc-release verify` fails if any
 diverge.
 
 | Path | What | Pattern |
@@ -27,7 +27,7 @@ changelog page anchors are major.minor; patches roll into the same anchor.
 ## NOT bumped (intentionally)
 
 These display version-like strings but are decoupled from the marketing
-version. Do **not** rewrite them in `/release bump`.
+version. Do **not** rewrite them in `/oc-release bump`.
 
 | Path | Reason |
 |---|---|
@@ -42,7 +42,7 @@ version. Do **not** rewrite them in `/release bump`.
 
 ## Locations to audit each release
 
-Not bumped automatically, but `/release plan` lists these for the user to
+Not bumped automatically, but `/oc-release plan` lists these for the user to
 spot-check:
 
 - `README.md` — the install snippet should reference `main` or a stable tag,
@@ -60,8 +60,8 @@ When adding a new place that surfaces the release version:
 1. Add a row to the "Required locations" table above.
 2. Update `scripts/validate-pm-mcp.mjs` family of validators (or add
    `scripts/check-version-lockstep.mjs`) to assert lockstep.
-3. Make sure `/release bump` writes it.
+3. Make sure `/oc-release bump` writes it.
 4. Add a regression test under `tests/oc-release-ops-*.test.js`.
 
 Adding a version surface without updating this file is a oc-release-ops bug;
-`/release verify` should catch the divergence on the next release.
+`/oc-release verify` should catch the divergence on the next release.

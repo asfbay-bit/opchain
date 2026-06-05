@@ -84,7 +84,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 const app = new OpenAPIHono<{ Bindings: Env }>();
 
 // Mount routes...
-app.route("/api", userRoutes);
+app.route("/oc-api", userRoutes);
 
 // Serve OpenAPI spec
 app.doc31("/openapi.json", {

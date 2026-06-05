@@ -170,7 +170,7 @@ archetype.in_progress → archetype.complete
   ↓
 layout.in_progress → layout.complete   (user gate before proceeding)
   ↓
-prototype.in_progress → prototype.complete  (runs /df-audit, must pass)
+prototype.in_progress → prototype.complete  (runs /oc-df-audit, must pass)
   ↓
 handoff.in_progress → handoff.complete  →  top-level status: "complete"
 ```
@@ -183,7 +183,7 @@ On user revision requests (e.g., "change the archetype"), revert the target phas
 
 - End of every phase
 - Mid-phase significant decisions (archetype picked, layout approved)
-- Before running `/df-prototype` (captures layout state)
+- Before running `/oc-df-prototype` (captures layout state)
 - User pause
 - Before destructive operations
 
@@ -191,7 +191,7 @@ On user revision requests (e.g., "change the archetype"), revert the target phas
 
 - First action of every session
 - Before any `/df-*` command
-- On `/df-status` or `/df-resume`
+- On `/oc-df-status` or `/oc-df-resume`
 
 ## Resume Prompt
 

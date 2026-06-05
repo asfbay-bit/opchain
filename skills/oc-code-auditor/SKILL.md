@@ -10,7 +10,7 @@ commands:
   - /oc-audit
   - /oc-audit full
 description: >
-  Code quality auditor with Auditor/Fixer/Verifier loop. Use for /audit, "audit this",
+  Code quality auditor with Auditor/Fixer/Verifier loop. Use for /oc-audit, "audit this",
   "find bugs", "security audit", "code review", "pre-deploy check", "what's wrong with
   this code", or any code quality question. Trigger liberally.
 ---
@@ -22,39 +22,39 @@ description: >
 Tri-agent code quality system: Auditor finds problems → Fixer proposes remediations →
 Verifier confirms the fixes actually solve the findings (not just cosmetic reshuffles).
 
-The Auditor-only mode (`/audit`) runs a one-pass sweep and produces a findings report.
-The full harness (`/audit fix-all`) chains all three agents for find → fix → verify.
+The Auditor-only mode (`/oc-audit`) runs a one-pass sweep and produces a findings report.
+The full harness (`/oc-audit fix-all`) chains all three agents for find → fix → verify.
 
-## /audit — Command Reference
+## /oc-audit — Command Reference
 
 ```
 CODE AUDITOR COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   SWEEP MODES
-  /audit full            Full codebase sweep — all categories
-  /audit security        Security-focused (auth, injection, secrets, CORS)
-  /audit perf            Performance (N+1, bundle, caching, queries)
-  /audit quality         Code quality (dead code, complexity, patterns)
-  /audit ux              UX/accessibility (a11y, states, consistency, responsive)
-  /audit pre-deploy      Pre-deployment gate (security + perf + config)
-  /audit file [path]     Audit specific file(s)
-  /audit diff            Audit git diff or staged changes
+  /oc-audit full            Full codebase sweep — all categories
+  /oc-audit security        Security-focused (auth, injection, secrets, CORS)
+  /oc-audit perf            Performance (N+1, bundle, caching, queries)
+  /oc-audit quality         Code quality (dead code, complexity, patterns)
+  /oc-audit ux              UX/accessibility (a11y, states, consistency, responsive)
+  /oc-audit pre-deploy      Pre-deployment gate (security + perf + config)
+  /oc-audit file [path]     Audit specific file(s)
+  /oc-audit diff            Audit git diff or staged changes
 
   TRI-AGENT HARNESS
-  /audit fix-all         Run full Auditor → Fixer → Verifier loop
-  /audit fix <id>        Fix a single finding with verification
-  /audit verify          Re-run Verifier on previous fixes
+  /oc-audit fix-all         Run full Auditor → Fixer → Verifier loop
+  /oc-audit fix <id>        Fix a single finding with verification
+  /oc-audit verify          Re-run Verifier on previous fixes
 
   BOOTSTRAP
-  /audit test-bootstrap  Generate test suite for untested codebase
+  /oc-audit test-bootstrap  Generate test suite for untested codebase
 
   UTILITIES
-  /audit report          Regenerate findings report from last audit
+  /oc-audit report          Regenerate findings report from last audit
   /checkpoint            Show checkpoint status
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Type any command to begin. /audit to see this again.
+  Type any command to begin. /oc-audit to see this again.
 ```
 
 ---
@@ -216,7 +216,7 @@ After individual sweeps:
 
 ---
 
-## Phase 2: Fixer Agent (`/audit fix <id>` or `/audit fix-all`)
+## Phase 2: Fixer Agent (`/oc-audit fix <id>` or `/oc-audit fix-all`)
 
 The Fixer takes audit findings and produces concrete code changes. It reads the
 finding, reads the relevant source code, and produces a diff.
@@ -258,7 +258,7 @@ the email is properly escaped.
 - `src/api/auth.ts` (1 file, +2 lines, -1 line)
 ```
 
-### Fix-All Workflow (`/audit fix-all`)
+### Fix-All Workflow (`/oc-audit fix-all`)
 
 Run the full loop on all findings:
 
@@ -330,19 +330,19 @@ If a fix is REJECTED or PARTIAL:
 
 | Mode | Sweeps | Tri-Agent | Best for |
 |---|---|---|---|
-| `/audit full` | All 5 | Auditor only | First audit, periodic health check |
-| `/audit security` | 1a + auth cross-cut | Auditor only | Pre-deploy, after auth changes |
-| `/audit perf` | 1b | Auditor only | Performance investigation |
-| `/audit quality` | 1c | Auditor only | Tech debt assessment |
-| `/audit ux` | 1e | Auditor only | Before UAT, UX health check |
-| `/audit pre-deploy` | 1a + 1b + 1d | Auditor only | Deploy gate |
-| `/audit fix <id>` | — | Fixer + Verifier | Fix one specific finding |
-| `/audit fix-all` | All applicable | All three agents | Full find-fix-verify cycle |
-| `/audit verify` | — | Verifier only | Re-verify previous fixes |
+| `/oc-audit full` | All 5 | Auditor only | First audit, periodic health check |
+| `/oc-audit security` | 1a + auth cross-cut | Auditor only | Pre-deploy, after auth changes |
+| `/oc-audit perf` | 1b | Auditor only | Performance investigation |
+| `/oc-audit quality` | 1c | Auditor only | Tech debt assessment |
+| `/oc-audit ux` | 1e | Auditor only | Before UAT, UX health check |
+| `/oc-audit pre-deploy` | 1a + 1b + 1d | Auditor only | Deploy gate |
+| `/oc-audit fix <id>` | — | Fixer + Verifier | Fix one specific finding |
+| `/oc-audit fix-all` | All applicable | All three agents | Full find-fix-verify cycle |
+| `/oc-audit verify` | — | Verifier only | Re-verify previous fixes |
 
 ---
 
-## Test Bootstrap (`/audit test-bootstrap`)
+## Test Bootstrap (`/oc-audit test-bootstrap`)
 
 Generate a starter test suite for untested codebases. Not a quality audit —
 a bootstrapping operation.
@@ -416,7 +416,7 @@ patterns.
 
 ### Finding-summary comment
 
-After every `/audit pre-deploy` or `/audit full` run, if a linked
+After every `/oc-audit pre-deploy` or `/oc-audit full` run, if a linked
 PM ticket can be resolved (from the PR body, the
 `oc-app-architect.checkpoint.json`, or the user prompt), post a
 structured summary comment:
@@ -456,7 +456,7 @@ holds work that someone is going to act on.
 
 ### Re-run hygiene
 
-If a subsequent `/audit` round shows that a previously-filed sub-ticket
+If a subsequent `/oc-audit` round shows that a previously-filed sub-ticket
 no longer reproduces (the issue is closed in code), append a comment
 to the sub-ticket: `Auditor verified clean in {sha}` and transition
 to `done` from `.opchain/pm.yaml` states. If a previously-clean

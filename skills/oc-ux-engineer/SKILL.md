@@ -18,7 +18,7 @@ commands:
   - /oc-uxe attach
   - /oc-uxe detach
 description: >
-  UI/UX design harness with Design Planner/Generator/Evaluator loop. Use for /uxe,
+  UI/UX design harness with Design Planner/Generator/Evaluator loop. Use for /oc-uxe,
   "review the UX", "design iteration", "component library", "accessibility audit",
   "is the UI consistent", or any design quality question. Trigger liberally.
 ---
@@ -46,27 +46,27 @@ UX ENGINEER COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   TRI-DESIGN HARNESS
-  /uxe plan          Run the Design Planner on a brief
-  /uxe build         Start or resume Design Generator → Evaluator loop
-  /uxe eval          Run the Design Evaluator ad-hoc on any artifact
+  /oc-uxe plan          Run the Design Planner on a brief
+  /oc-uxe build         Start or resume Design Generator → Evaluator loop
+  /oc-uxe eval          Run the Design Evaluator ad-hoc on any artifact
 
   MODULES
-  /uxe flow          Map and audit user flows across screens
-  /uxe components    View, update, or audit the living component library
-  /uxe fidelity      Compare built code against approved design artifacts
-  /uxe dash          Route data-heavy UI to oc-dash-forge for specialized design
+  /oc-uxe flow          Map and audit user flows across screens
+  /oc-uxe components    View, update, or audit the living component library
+  /oc-uxe fidelity      Compare built code against approved design artifacts
+  /oc-uxe dash          Route data-heavy UI to oc-dash-forge for specialized design
 
   APP-ARCHITECT PLUGIN
-  /uxe attach        Activate Design Evaluator for current oc-app-architect Phase 6 build session
-  /uxe detach        Deactivate Design Evaluator (code-only evaluation)
+  /oc-uxe attach        Activate Design Evaluator for current oc-app-architect Phase 6 build session
+  /oc-uxe detach        Deactivate Design Evaluator (code-only evaluation)
 
   UTILITIES
-  /uxe status        Show current design state, scores, component coverage
-  /uxe export        Export component library as interactive HTML
+  /oc-uxe status        Show current design state, scores, component coverage
+  /oc-uxe export        Export component library as interactive HTML
   /checkpoint        Show checkpoint status
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Type any command to begin. /uxe to see this again.
+  Type any command to begin. /oc-uxe to see this again.
 ```
 
 ---
@@ -124,7 +124,7 @@ The same failure modes that plague code generation hit design even harder:
 
 ---
 
-## Routing to oc-dash-forge (`/uxe dash`)
+## Routing to oc-dash-forge (`/oc-uxe dash`)
 
 Some screens are primarily **data display**: dashboards, BI views, analytics, monitoring consoles, dense reports. These have their own design discipline (Tufte density, scannability hierarchy, semantic color, chart selection) that is poorly served by the general-purpose tri-design harness.
 
@@ -132,7 +132,7 @@ For these screens, oc-ux-engineer routes to **oc-dash-forge** — a specialized 
 
 ### Auto-detect triggers
 
-During `/uxe plan` or when evaluating a brief, oc-ux-engineer should recognize dashboard surfaces and surface the routing option. Triggers:
+During `/oc-uxe plan` or when evaluating a brief, oc-ux-engineer should recognize dashboard surfaces and surface the routing option. Triggers:
 
 - Brief mentions "dashboard", "analytics", "BI", "KPI", "monitoring", "report view"
 - ≥3 charts or ≥5 KPIs on the same screen
@@ -153,9 +153,9 @@ oc-dash-forge specializes in:
   (N) Continue with oc-ux-engineer tri-design harness
 ```
 
-### Explicit routing: `/uxe dash`
+### Explicit routing: `/oc-uxe dash`
 
-User can force routing with `/uxe dash [brief]`. oc-ux-engineer packages its current context (tokens, component library, design spec if any) and invokes oc-dash-forge's `/data-forge` with upstream context pre-populated.
+User can force routing with `/oc-uxe dash [brief]`. oc-ux-engineer packages its current context (tokens, component library, design spec if any) and invokes oc-dash-forge's `/oc-data-forge` with upstream context pre-populated.
 
 ### Token handoff (bidirectional)
 
@@ -173,7 +173,7 @@ Rule of thumb: if the screen IS the dashboard, route. If the screen CONTAINS a s
 
 ---
 
-## Phase 1: Design Planning (`/uxe plan`)
+## Phase 1: Design Planning (`/oc-uxe plan`)
 
 The Design Planner takes a brief and expands it into a design specification.
 
@@ -254,7 +254,7 @@ Write checkpoint: phase "planned".
 
 ---
 
-## Phase 2: Design Build Loop (`/uxe build`)
+## Phase 2: Design Build Loop (`/oc-uxe build`)
 
 For each design sprint, run the Generator → Evaluator loop.
 
@@ -390,7 +390,7 @@ Max iterations per sprint: 3. Pass threshold: all criteria ≥ 6/10.
 
 ---
 
-## Module: Cross-Screen Flow Analysis (`/uxe flow`)
+## Module: Cross-Screen Flow Analysis (`/oc-uxe flow`)
 
 Maps every user journey and audits for coherence. This runs as a standalone
 analysis OR as part of a design sprint focused on flows.
@@ -441,7 +441,7 @@ analysis OR as part of a design sprint focused on flows.
 
 ---
 
-## Module: Living Component Library (`/uxe components`)
+## Module: Living Component Library (`/oc-uxe components`)
 
 A component registry that evolves with the build.
 
@@ -489,10 +489,10 @@ Stored in `design/component-registry.json`:
 ### Commands
 
 ```
-/uxe components list          Show all with status and coverage
-/uxe components add <name>    Register a new component
-/uxe components audit         Consistency check across all components
-/uxe components export        Generate interactive HTML library
+/oc-uxe components list          Show all with status and coverage
+/oc-uxe components add <name>    Register a new component
+/oc-uxe components audit         Consistency check across all components
+/oc-uxe components export        Generate interactive HTML library
 ```
 
 ### Component Audit
@@ -507,7 +507,7 @@ Checks every registered component:
 
 ---
 
-## Module: Design-to-Code Fidelity (`/uxe fidelity`)
+## Module: Design-to-Code Fidelity (`/oc-uxe fidelity`)
 
 Compares approved design against built code.
 
@@ -536,13 +536,13 @@ Compares approved design against built code.
 
 ---
 
-## Tri-Dev Plugin Mode (`/uxe attach`)
+## Tri-Dev Plugin Mode (`/oc-uxe attach`)
 
 Adds Design Evaluator alongside Code Evaluator during UI sprints.
 
 ### How It Works
 
-1. `/uxe attach` during an oc-app-architect Phase 6 build session
+1. `/oc-uxe attach` during an oc-app-architect Phase 6 build session
 2. Read oc-app-architect checkpoint for current sprint
 3. For each sprint with UI work:
    - Code Evaluator runs (functionality, completeness, code quality)
@@ -577,7 +577,7 @@ Adds Design Evaluator alongside Code Evaluator during UI sprints.
 Auto-detect from contract keywords:
 - UI/component/screen/page/layout/style → attach Design Evaluator
 - Pure backend (API, migration, auth logic) → skip
-- Override: `/uxe attach --force` or `/uxe detach`
+- Override: `/oc-uxe attach --force` or `/oc-uxe detach`
 
 ---
 
@@ -648,7 +648,7 @@ project-dir/
 |---|---|
 | oc-app-architect | Style book, wireframes, punch list → baseline; Phase 6 sprint contracts → plugin mode context |
 | oc-reverse-spec | Extracted design system → existing project baseline |
-| oc-code-auditor | `/audit ux` findings → avoid duplicating work |
+| oc-code-auditor | `/oc-audit ux` findings → avoid duplicating work |
 | frontend-design | Aesthetic direction → Generator reference |
 
 | Read by | Why |
@@ -702,7 +702,7 @@ Lower-severity violations stay in the eval report only.
 
 ### Design-system drift comments
 
-If `/uxe consistency` finds drift (a new component using off-token
+If `/oc-uxe consistency` finds drift (a new component using off-token
 colors or off-scale spacing), comment on the linked ticket:
 
 ```

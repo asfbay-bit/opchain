@@ -18,8 +18,8 @@ description: >
   Pre-commit QA gate that runs on every commit. Fast, opinionated checks: type
   safety, lint, tests, anti-pattern scan, secret detection, build verification,
   and dependency vulnerability scan. Blocks commits on failures, warns on cautions,
-  passes silently on clean code. Auto-invoked by oc-git-ops before every /git-commit
-  and /git-sync. Use for /bugcheck, "check this before I commit", "run the checks",
+  passes silently on clean code. Auto-invoked by oc-git-ops before every /oc-git-commit
+  and /oc-git-sync. Use for /oc-bugcheck, "check this before I commit", "run the checks",
   "is this safe to commit", "pre-commit", "quick audit", "lint and test", "any bugs
   in this?", "sanity check". Trigger liberally.
 ---
@@ -39,32 +39,32 @@ Individual checks may emit advisory **WARN** notes (e.g. "no test suite detected
 that are surfaced in the report but do not affect the gate verdict — only FAIL blocks
 the commit.
 
-## /bugcheck — Command Reference
+## /oc-bugcheck — Command Reference
 
 ```
 BUG CHECK COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   GATE
-  /bugcheck              Run all checks on staged/changed files
-  /bugcheck run          Same as /bugcheck
-  /bugcheck run --all    Run on entire codebase (not just changes)
-  /bugcheck fix          Auto-fix what's fixable (lint, formatting)
+  /oc-bugcheck              Run all checks on staged/changed files
+  /oc-bugcheck run          Same as /oc-bugcheck
+  /oc-bugcheck run --all    Run on entire codebase (not just changes)
+  /oc-bugcheck fix          Auto-fix what's fixable (lint, formatting)
 
   CONFIG
-  /bugcheck config       Show or edit check configuration
-  /bugcheck config strict    Enable strict mode (zero warnings allowed)
-  /bugcheck config lenient   Allow warnings, block only on errors
+  /oc-bugcheck config       Show or edit check configuration
+  /oc-bugcheck config strict    Enable strict mode (zero warnings allowed)
+  /oc-bugcheck config lenient   Allow warnings, block only on errors
 
   REPORT
-  /bugcheck report       Show last run results from checkpoint
-  /bugcheck history      Show pass/fail trend from checkpoint
+  /oc-bugcheck report       Show last run results from checkpoint
+  /oc-bugcheck history      Show pass/fail trend from checkpoint
 
   OVERRIDE
-  /bugcheck bypass       Skip gate this once (logs the bypass in checkpoint)
+  /oc-bugcheck bypass       Skip gate this once (logs the bypass in checkpoint)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Runs automatically before /git-commit and /git-sync.
+  Runs automatically before /oc-git-commit and /oc-git-sync.
 ```
 
 ---
@@ -75,7 +75,7 @@ Checkpoint: `{project-dir}/.checkpoints/oc-bug-check.checkpoint.json`
 
 ### Resume on Start
 
-When `/bugcheck` is invoked:
+When `/oc-bugcheck` is invoked:
 1. Check for checkpoint
 2. If exists: show last verdict, streak, carried debt count
 3. If carried debt > 0: surface bypassed issues before running new checks
@@ -90,7 +90,7 @@ not resumable state.
 ## How This Skill Fits the Pipeline
 
 ```
-oc-app-architect /build ──► BUG-CHECK (gate) ──► oc-git-ops /commit ──► oc-deploy-ops
+oc-app-architect /oc-build ──► BUG-CHECK (gate) ──► oc-git-ops /oc-commit ──► oc-deploy-ops
                               │
                          ┌────┴────┐
                          │         │
@@ -99,9 +99,9 @@ oc-app-architect /build ──► BUG-CHECK (gate) ──► oc-git-ops /commit 
                     silently   show what broke
 ```
 
-**Auto-invocation:** oc-git-ops calls oc-bug-check before every `/git-commit` and `/git-sync`.
+**Auto-invocation:** oc-git-ops calls oc-bug-check before every `/oc-git-commit` and `/oc-git-sync`.
 If oc-bug-check fails, the commit is blocked with a clear failure report. The user can
-override with `/bugcheck bypass` (logged, not silent).
+override with `/oc-bugcheck bypass` (logged, not silent).
 
 **Relationship to oc-code-auditor:** Bug-check is a subset. It runs the checks that are
 fast enough for every commit. Code-auditor's deep sweep runs before deploy (gate) or
@@ -148,7 +148,7 @@ npx eslint . --ext .ts,.tsx --max-warnings 0
 | Warnings only | WARN (pass in lenient mode, fail in strict) |
 | Errors | FAIL — list errors with file:line |
 
-**Auto-fixable?** Yes. `/bugcheck fix` runs `eslint --fix` and `prettier --write`.
+**Auto-fixable?** Yes. `/oc-bugcheck fix` runs `eslint --fix` and `prettier --write`.
 
 ### Check 3: Test Suite
 
@@ -230,7 +230,7 @@ grep -rn -E "(sk-|sk_live_|pk_live_|ghp_|gho_|github_pat_)" \
 | Result | Verdict |
 |---|---|
 | No matches | PASS |
-| Any match | FAIL — **always blocks**, no override without `/bugcheck bypass` |
+| Any match | FAIL — **always blocks**, no override without `/oc-bugcheck bypass` |
 
 **Why secrets are always FAIL:** A committed secret is a security incident. There's
 no "warning" threshold for leaked credentials.
@@ -311,12 +311,12 @@ BUG CHECK — FAIL ❌
   ❌ Secret detected
      src/config.ts:8 — possible API key: sk_live_...
 
-  Fix these before committing. Run /bugcheck fix for auto-fixable issues.
+  Fix these before committing. Run /oc-bugcheck fix for auto-fixable issues.
 ```
 
 ---
 
-## Auto-Fix (`/bugcheck fix`)
+## Auto-Fix (`/oc-bugcheck fix`)
 
 Fixes what's auto-fixable, then re-runs the check suite:
 
@@ -328,7 +328,7 @@ npx eslint . --ext .ts,.tsx --fix
 npx prettier --write "src/**/*.{ts,tsx}"
 
 # Re-run checks
-/bugcheck run
+/oc-bugcheck run
 ```
 
 **What's auto-fixable:**
@@ -346,15 +346,15 @@ npx prettier --write "src/**/*.{ts,tsx}"
 
 ---
 
-## Bypass Protocol (`/bugcheck bypass`)
+## Bypass Protocol (`/oc-bugcheck bypass`)
 
-Sometimes you need to commit WIP or unblock a pipeline. `/bugcheck bypass` allows it,
+Sometimes you need to commit WIP or unblock a pipeline. `/oc-bugcheck bypass` allows it,
 but with accountability:
 
 1. User confirms they want to bypass
 2. Bug-check logs the bypass in the checkpoint: which checks failed, when, who bypassed
 3. The commit message gets a `[BYPASS]` prefix: `[BYPASS] feat(auth): WIP session handling`
-4. Next `/bugcheck run` shows: "Last commit bypassed gate — N issues carried forward"
+4. Next `/oc-bugcheck run` shows: "Last commit bypassed gate — N issues carried forward"
 
 **Bypass is NOT silent.** It creates visible debt that surfaces on every subsequent run
 until resolved. This prevents bypass-as-habit.
@@ -376,7 +376,7 @@ until resolved. This prevents bypass-as-habit.
 
 ---
 
-## Configuration (`/bugcheck config`)
+## Configuration (`/oc-bugcheck config`)
 
 Stored in `.bugcheck.json` at project root:
 
@@ -432,7 +432,7 @@ because TypeScript and bundlers resolve the complete dependency graph. The "chan
 files" scope applies to lint (via `--file` flag where supported), anti-patterns,
 secrets, and tests (via `--changed` or related-test detection).
 
-`/bugcheck run --all` checks the entire codebase explicitly. Use for:
+`/oc-bugcheck run --all` checks the entire codebase explicitly. Use for:
 - First run on a new project
 - Before a major release
 - After merging a large PR
@@ -457,13 +457,13 @@ git diff --name-only --diff-filter=ACMR HEAD | grep -E '\.(ts|tsx|js|jsx)$'
 
 ### Auto-Invocation
 
-When oc-git-ops receives `/git-commit` or `/git-sync`:
+When oc-git-ops receives `/oc-git-commit` or `/oc-git-sync`:
 
 1. Check for `.bugcheck.json` at project root (or use defaults)
-2. Run `/bugcheck run`
+2. Run `/oc-bugcheck run`
 3. If PASS or WARN (lenient mode): proceed to commit
-4. If FAIL: block commit, show failure report, suggest `/bugcheck fix`
-5. User can `/bugcheck bypass` to force, or fix and re-run
+4. If FAIL: block commit, show failure report, suggest `/oc-bugcheck fix`
+5. User can `/oc-bugcheck bypass` to force, or fix and re-run
 
 ### Commit Message Annotation
 
@@ -559,7 +559,7 @@ for bragging rights.
 
 ---
 
-## Report (`/bugcheck report`)
+## Report (`/oc-bugcheck report`)
 
 Shows the last run and trend:
 
@@ -574,7 +574,7 @@ BUG CHECK REPORT — [project]
     ✅ ✅ ✅ ❌ ✅ ✅ ✅ ⚠️ ✅ ✅
 
   Most common failure: type_safety (3 of last 20 fails)
-  Auto-fix rate: 60% of warnings resolved by /bugcheck fix
+  Auto-fix rate: 60% of warnings resolved by /oc-bugcheck fix
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -628,7 +628,7 @@ oc-bug-check run is the default; advertising it dilutes signal.
 ### On FAIL (gate blocks the commit)
 
 If oc-git-ops invoked oc-bug-check with a ticket in context (the typical
-`/git-sync TICKET-1234` flow), post a comment to the linked ticket:
+`/oc-git-sync TICKET-1234` flow), post a comment to the linked ticket:
 
 ```
 oc-bug-check FAIL — commit blocked.
@@ -636,7 +636,7 @@ Failed checks: {N of M}
 First failure:
   - type-check: 3 errors in src/api/customers.csv.ts
   - tests: 2 failed in tests/api/customers.csv.spec.ts
-Suggested next step: /bugcheck fix
+Suggested next step: /oc-bugcheck fix
 Full report: .checkpoints/oc-bug-check.checkpoint.json
 ```
 
@@ -646,7 +646,7 @@ spam.
 
 ### On bypass (rare; explicit override)
 
-If the user invokes `/bugcheck bypass` (the explicit override path),
+If the user invokes `/oc-bugcheck bypass` (the explicit override path),
 post:
 
 ```
@@ -662,7 +662,7 @@ PM comment is the human-readable reflection.)
 ### Failure modes
 
 - No linked ticket → no PM write; checkpoint records intent only.
-- oc-bug-check is invoked outside oc-git-ops (manual `/bugcheck`) → no
+- oc-bug-check is invoked outside oc-git-ops (manual `/oc-bugcheck`) → no
   PM write; user can pass `--ticket TICKET-1234` to opt in.
 - PM provider rate-limits during a CI burst → batch failures into
   a daily roll-up comment on the team's standing-board ticket

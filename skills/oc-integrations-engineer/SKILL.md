@@ -10,7 +10,7 @@ commands:
   - /oc-integrate
   - /oc-integrate plan
 description: >
-  Third-party API integrations with Planner/Builder/Tester loop. Use for /integrate,
+  Third-party API integrations with Planner/Builder/Tester loop. Use for /oc-integrate,
   "connect to Salesforce", "webhook", "OAuth", "API integration", "connect to Slack",
   or any external service connection. For designing or building your *own* first-party
   API (OpenAPI/GraphQL authoring, versioning, SDK generation), use oc-api-dev instead.
@@ -32,33 +32,33 @@ GraphQL authoring, versioning, SDK generation), use `oc-api-dev` instead. Webhoo
 *receivers* tied to a single integration (`POST /webhooks/stripe`) stay here;
 public/product API surfaces belong in `oc-api-dev`.
 
-## /integrate — Command Reference
+## /oc-integrate — Command Reference
 
 ```
 INTEGRATIONS ENGINEER COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   TRI-AGENT HARNESS
-  /integrate plan       Design an integration (Planner agent)
-  /integrate build      Build an integration (Builder → Tester loop)
-  /integrate test       Run Tester against an existing integration
+  /oc-integrate plan       Design an integration (Planner agent)
+  /oc-integrate build      Build an integration (Builder → Tester loop)
+  /oc-integrate test       Run Tester against an existing integration
 
   QUICK BUILD
-  /integrate connect    Guided build for a single integration (streamlined)
-  /integrate webhook    Set up inbound or outbound webhook
-  /integrate oauth      Implement OAuth 2.0 flow
+  /oc-integrate connect    Guided build for a single integration (streamlined)
+  /oc-integrate webhook    Set up inbound or outbound webhook
+  /oc-integrate oauth      Implement OAuth 2.0 flow
 
   OPERATE
-  /integrate health     Check health of all active integrations
-  /integrate secrets    Audit secret storage and rotation
-  /integrate retry      Configure retry/backoff for an integration
+  /oc-integrate health     Check health of all active integrations
+  /oc-integrate secrets    Audit secret storage and rotation
+  /oc-integrate retry      Configure retry/backoff for an integration
 
   UTILITIES
-  /integrate list       Show all integrations with status
+  /oc-integrate list       Show all integrations with status
   /checkpoint           Show checkpoint status
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Type any command to begin. /integrate to see this again.
+  Type any command to begin. /oc-integrate to see this again.
 ```
 
 ---
@@ -111,7 +111,7 @@ INTEGRATION REQUIREMENT
 
 ---
 
-## Phase 1: Integration Planner (`/integrate plan`)
+## Phase 1: Integration Planner (`/oc-integrate plan`)
 
 ### Planner Persona
 
@@ -141,7 +141,7 @@ Key behaviors:
 ### Overview
 - **Direction:** Inbound / Outbound / Both
 - **Auth:** API key / OAuth 2.0 / Webhook secret / Bearer token
-- **Base URL:** https://api.service.com/v2
+- **Base URL:** https://oc-api.service.com/v2
 - **Sandbox:** [URL or "not available"]
 - **Rate limits:** [requests per minute/hour]
 - **SDK:** [available? use it or build typed client?]
@@ -187,7 +187,7 @@ Write checkpoint: phase "planned".
 
 ---
 
-## Phase 2: Build Loop (`/integrate build`)
+## Phase 2: Build Loop (`/oc-integrate build`)
 
 ### Step 1: Integration Contract
 
@@ -342,7 +342,7 @@ Max iterations: 3. A single endpoint failure = overall FAIL.
 
 ---
 
-## Quick Build Mode (`/integrate connect`)
+## Quick Build Mode (`/oc-integrate connect`)
 
 For simple integrations (API key auth, 1-3 endpoints), skip the full harness:
 
@@ -356,7 +356,7 @@ Use full harness for: Salesforce, Stripe, Google APIs, anything with OAuth.
 
 ---
 
-## Webhook Patterns (`/integrate webhook`)
+## Webhook Patterns (`/oc-integrate webhook`)
 
 ### Inbound (they call you)
 
@@ -408,7 +408,7 @@ async function sendWebhook(url: string, payload: any, secret: string) {
 
 ## Operate
 
-### Health Check (`/integrate health`)
+### Health Check (`/oc-integrate health`)
 
 For each active integration:
 
@@ -426,7 +426,7 @@ INTEGRATION HEALTH — [project]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-### Secret Audit (`/integrate secrets`)
+### Secret Audit (`/oc-integrate secrets`)
 
 Check every integration's secrets:
 - Stored in wrangler secrets or KV (not .env or code)?
@@ -471,11 +471,11 @@ the patterns; downstream skills cite this section AND the protocol doc.
 ### When PM-MCP integration matters
 
 - The user has a PM ticket they're working from. Reading the ticket as
-  context is far cheaper than re-asking. (`oc-app-architect /discover`,
-  `oc-git-ops /git-sync TICKET-1234`.)
+  context is far cheaper than re-asking. (`oc-app-architect /oc-discover`,
+  `oc-git-ops /oc-git-sync TICKET-1234`.)
 - Work product needs to be reflected back to the PM tool. Sprint plans,
   PRs, deploy windows, incidents — all live there as records. Writing
-  back closes the loop. (`oc-app-architect /roadmap`, `oc-git-ops` on PR open
+  back closes the loop. (`oc-app-architect /oc-roadmap`, `oc-git-ops` on PR open
   + merge, `oc-deploy-ops` per environment, `oc-monitoring-ops` per alert.)
 - The org's audit posture requires it. Enterprises (see scenarios 7-8)
   treat the PM tool as the system-of-record for engineering work; an
@@ -505,7 +505,7 @@ The agent recognises a PM ticket reference when:
    - A URL matching `linear.app/.+/issue/.+`,
      `*.atlassian.net/browse/.+`, or `github.com/.+/issues/\d+`.
 2. The user provides the id explicitly to a command:
-   `/git-sync PLAT-4471`, `/discover --ticket PLAT-4471`.
+   `/oc-git-sync PLAT-4471`, `/oc-discover --ticket PLAT-4471`.
 3. The skill is in a phase where it actively asks the user
    ("Is there a Jira ticket for this?").
 
