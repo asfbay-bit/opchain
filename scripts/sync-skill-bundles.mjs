@@ -5,8 +5,8 @@
 // `references/checkpoint-protocol.md` in sync with their canonical sources.
 //
 // Sources of truth:
-//   - skills/orchestrator.md                 (bundled verbatim)
-//   - skills/checkpoint-protocol/SKILL.md    (bundled with YAML frontmatter stripped)
+//   - skills/orchestrator.md                    (bundled verbatim)
+//   - skills/oc-checkpoint-protocol/SKILL.md    (bundled with YAML frontmatter stripped)
 //
 // Run:        node scripts/sync-skill-bundles.mjs
 // CI check:   node scripts/sync-skill-bundles.mjs --check   (exit 1 if drift)
@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILLS_DIR = join(REPO_ROOT, 'skills');
 const ORCHESTRATOR_SRC = join(SKILLS_DIR, 'orchestrator.md');
-const PROTOCOL_SRC = join(SKILLS_DIR, 'checkpoint-protocol', 'SKILL.md');
+const PROTOCOL_SRC = join(SKILLS_DIR, 'oc-checkpoint-protocol', 'SKILL.md');
 
 const checkMode = process.argv.includes('--check');
 

@@ -24,7 +24,7 @@ import { fileURLToPath } from "node:url";
 import yaml from "js-yaml";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const PACKS_DIR = process.env.OPCHAIN_PACKS_DIR ?? join(ROOT, "skills", "stack-forge", "packs");
+const PACKS_DIR = process.env.OPCHAIN_PACKS_DIR ?? join(ROOT, "skills", "oc-stack-forge", "packs");
 const OUT_DIR = process.env.OPCHAIN_OUT_DIR ?? join(ROOT, "src", "generated");
 const OUT_FILE = join(OUT_DIR, "packs-catalog.json");
 

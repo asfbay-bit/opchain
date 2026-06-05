@@ -37,13 +37,13 @@ function runValidator(skillsDir) {
 
 function makeFixture({ extraSkills = {} } = {}) {
   const dir = mkdtempSync(join(tmpdir(), "opchain-skills-fixture-"));
-  // checkpoint-protocol is required by the validator
-  mkdirSync(join(dir, "checkpoint-protocol"), { recursive: true });
+  // oc-checkpoint-protocol is required by the validator
+  mkdirSync(join(dir, "oc-checkpoint-protocol"), { recursive: true });
   writeFileSync(
-    join(dir, "checkpoint-protocol", "SKILL.md"),
+    join(dir, "oc-checkpoint-protocol", "SKILL.md"),
     [
       "---",
-      "name: checkpoint-protocol",
+      "name: oc-checkpoint-protocol",
       "displayName: Checkpoint Protocol",
       "version: 1.0.0",
       "shortDesc: Cross-skill protocol for session persistence.",
@@ -53,7 +53,7 @@ function makeFixture({ extraSkills = {} } = {}) {
       "description: Cross-skill protocol for session persistence.",
       "---",
       "",
-      "# checkpoint-protocol",
+      "# oc-checkpoint-protocol",
       "",
     ].join("\n"),
   );

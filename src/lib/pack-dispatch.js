@@ -40,7 +40,7 @@ function packsDir() {
   // Read on every call so tests can flip OPCHAIN_PACKS_DIR per case
   // without restarting the module. Production callers hit the same env
   // var once at startup so the cost is one process.env lookup.
-  return process.env.OPCHAIN_PACKS_DIR ?? join(ROOT, "skills", "stack-forge", "packs");
+  return process.env.OPCHAIN_PACKS_DIR ?? join(ROOT, "skills", "oc-stack-forge", "packs");
 }
 
 const ID_RE = /^[a-z][a-z0-9-]*$/;

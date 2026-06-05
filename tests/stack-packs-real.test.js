@@ -39,7 +39,7 @@ import { fileURLToPath } from "node:url";
 import yaml from "js-yaml";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const PACKS_DIR = join(ROOT, "skills", "stack-forge", "packs");
+const PACKS_DIR = join(ROOT, "skills", "oc-stack-forge", "packs");
 const SCRIPT = join(ROOT, "scripts", "gen-stack-packs.mjs");
 const REF_SOFT_BYTES = 50 * 1024;
 
