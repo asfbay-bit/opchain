@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Sprint 6 — build the Astro site + materialize it in public/ so the
-# Worker's ASSETS binding serves it. Preserves public/docs (still synced
-# from skills/), public/opchain-skills.zip, public/favicon.svg.
+# Worker's ASSETS binding serves it. Preserves public/docs (synced from
+# skills/), public/opchain-skills.zip, and the per-skill
+# public/skills/<id>.zip bundles — all produced by earlier build steps
+# (sync-docs, make-zip) and absent from Astro's dist output.
 #
 # Runs as part of `npm run prebuild`; also callable directly.
 
@@ -34,6 +36,17 @@ for entry in "${PRESERVE[@]}"; do
   fi
 done
 
+# The per-skill bundles (skills/<id>.zip) sit in the same directory Astro
+# generates its skills/<id>/ pages into, so they can't be preserved as a
+# whole top-level entry without clobbering that output. Snapshot just the
+# loose .zip files and merge them back into the rebuilt skills/ dir below.
+mkdir -p "${TMP}/skills"
+for z in "${PUBLIC}"/skills/*.zip; do
+  if [ -e "${z}" ]; then
+    mv "${z}" "${TMP}/skills/"
+  fi
+done
+
 rm -rf "${PUBLIC}"
 mkdir -p "${PUBLIC}"
 
@@ -44,6 +57,15 @@ for entry in "${PRESERVE[@]}"; do
     mv "${TMP}/${entry}" "${PUBLIC}/${entry}"
   fi
 done
+
+# Restore the per-skill bundles alongside the freshly built skills/ pages.
+for z in "${TMP}"/skills/*.zip; do
+  if [ -e "${z}" ]; then
+    mkdir -p "${PUBLIC}/skills"
+    mv "${z}" "${PUBLIC}/skills/"
+  fi
+done
+rmdir "${TMP}/skills" 2>/dev/null || true
 rmdir "${TMP}" 2>/dev/null || true
 
 echo "[build-site] injecting CSP nonce placeholder"
