@@ -290,9 +290,127 @@ import RoadmapForm from "../components/RoadmapForm.astro";
       <h2 class="rhh">What's already shipped</h2>
     </div>
 
-    <section class="release release--current" id="v1-4">
+    <section class="release release--current" id="v1-4-2">
       <header class="rel-head">
-        <span class="rel-tag">v1.4</span>
+        <span class="rel-tag">v1.4.2</span>
+        <h2>Complete bundles, honest checkpoints</h2>
+        <span class="rel-date">2026-06-05</span>
+      </header>
+
+      <p class="rel-summary">
+        v1.4.2 is an out-of-band emergency patch: one user-facing breakage and
+        a long-overdue correctness pass, shipped ahead of v1.5. The breakage
+        &mdash; the &ldquo;download all&rdquo; skill bundle was shipping only
+        each skill's <code>SKILL.md</code>, silently dropping the
+        <code>references/</code>, <code>scripts/</code>, and
+        <code>examples/</code> that make a skill actually run, so a fresh
+        catalog download was incomplete. Alongside the fix, every skill gains an
+        <code>oc-</code>-prefixed alias, and a twelve-theme audit drags
+        <code>checkpoint-protocol</code> and the <code>orchestrator</code> back
+        into line with reality.
+      </p>
+
+      <h3>What's new</h3>
+      <ul>
+        <li>
+          <strong>&ldquo;Download all&rdquo; ships complete skills again.</strong>
+          The combined <code>opchain-skills.zip</code> was zipping only
+          <code>*/SKILL.md</code>, dropping every skill's
+          <code>references/</code>, <code>scripts/</code>,
+          <code>examples/</code>, and <code>TRYIT.md</code> &mdash; the files
+          Claude Code needs to actually operate a skill. It now bundles full
+          skill trees, matching the per-skill downloads on
+          <a href="/skills">/skills</a>.
+        </li>
+        <li>
+          <strong><code>oc-</code> canonical skill names.</strong> Every skill
+          gains an <code>oc-&lt;name&gt;</code> alias &mdash;
+          <code>oc-app-architect</code>, <code>oc-git-ops</code>,
+          <code>oc-deploy-ops</code>, and the rest &mdash; so opchain skills are
+          unambiguous next to same-named local skills. The bare names still
+          resolve, so nothing you have already wired up breaks.
+        </li>
+        <li>
+          <strong>The orchestrator stops misreporting itself.</strong> Its
+          persistence docs described an ephemeral <code>~/.opchain/</code> +
+          <code>memory_user_edits</code> store that would not survive a web
+          session; they are rewritten to the git-tracked
+          <code>.checkpoints/orchestrator.checkpoint.json</code> it actually
+          uses. The phantom <code>checkpoint.sh</code> &mdash; which
+          <code>/ops health</code> reported as present for a file that never
+          existed &mdash; is replaced by <code>scripts/checkpoint.mjs</code>,
+          and <code>/ops</code> verbs now read versions from frontmatter and are
+          labelled Implemented vs Illustrative.
+        </li>
+        <li>
+          <strong>One checkpoint schema, actually enforced.</strong> The
+          validator, the protocol spec, and the README now agree on a single
+          wire schema (<code>protocol_version</code> pinned at <code>1.0</code>,
+          no live-file migration). <code>next_actions</code> is required while a
+          checkpoint is <code>in_progress</code>, and the validator gained
+          <code>blockers[].needs</code> enum, timestamp-sanity, and referential
+          checks. The contradictory &ldquo;4&nbsp;KB budget&rdquo; rule is
+          reconciled to a soft target; stale tri-dev / life-architect
+          references are swept.
+        </li>
+        <li>
+          <strong>Drift detection &amp; merge reliability.</strong> The
+          orchestrator logged three manual reconciliations in three weeks
+          (&ldquo;shipped but says launch-pending&rdquo;, a missed merged PR, a
+          broken-JSON CI break). v1.4.2 adds automated drift detection and
+          resume-UX upgrades so a stale checkpoint cannot tell future-you to
+          redo shipped work, and documents the GitHub auto-merge
+          JSON-corruption foot-gun with a <code>.checkpoints/history/</code>
+          rotation convention to shrink the conflict surface.
+        </li>
+      </ul>
+
+      <h3>New tooling</h3>
+      <ul>
+        <li>
+          <code>checkpoint:doctor</code> &mdash; cross-checks checkpoints
+          against <code>git log</code> + live <code>/api/health</code> and flags
+          drift.
+        </li>
+        <li>
+          <code>checkpoint:next</code> &mdash; registry-free &ldquo;what should
+          I do next&rdquo; for the local project.
+        </li>
+        <li>
+          <code>checkpoint:status --brief</code> /
+          <code>--since=&lt;date&gt;</code> &mdash; terse resume view + a
+          momentum digest, with a stale-age flag and a &ldquo;decisions waiting
+          on you&rdquo; banner.
+        </li>
+        <li>
+          <code>checkpoint:init</code> &mdash; deterministic cold-start scaffold
+          (no more &ldquo;cp from opchain.dev&rdquo;).
+        </li>
+        <li>
+          <code>checkpoint -- done &lt;skill&gt;</code> &mdash; pop the top
+          <code>next_action</code> into a <code>recently_done</code> log and
+          restamp.
+        </li>
+      </ul>
+
+      <h3>Compatibility</h3>
+      <p>
+        Back-compatible with v1.4 &mdash; no migration required. The
+        <code>oc-&lt;name&gt;</code> names are additive aliases, so existing
+        references to the bare names keep resolving. The checkpoint wire schema
+        stays pinned at <code>protocol_version 1.0</code> and live
+        <code>.checkpoints/</code> files are left untouched; the stricter
+        validator only enforces fields the spec already defined, so compliant
+        checkpoints pass unchanged. The one change you will feel is the fixed
+        download &mdash; <code>opchain-skills.zip</code> now carries full skill
+        trees instead of bare <code>SKILL.md</code> files. All eighteen skills
+        lockstep-bump to <code>1.4.2</code> with the release.
+      </p>
+    </section>
+
+    <section class="release" id="v1-4">
+      <header class="rel-head">
+        <span class="rel-tag rel-tag--past">v1.4</span>
         <h2>Coverage as a plugin registry</h2>
         <span class="rel-date">2026-05-12</span>
       </header>
