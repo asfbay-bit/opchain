@@ -65,15 +65,36 @@ fields + the `status` enum + filename-skill consistency.
 ## Tooling
 
 ```bash
-# Print a human-readable summary of every checkpoint.
+# Where did I leave off? (full summary; --brief = just the top action + blockers)
 npm run checkpoint:status
+node scripts/checkpoint.mjs status --brief
 
-# Validate every .checkpoint.json against the schema.
-npm run checkpoint:validate
+# What should I do RIGHT NOW? (priority engine — no orchestrator registry needed)
+node scripts/checkpoint.mjs next
 
-# Update a field on a checkpoint (creates the file if missing).
+# Is any checkpoint drifting from reality? (git history + filesystem cross-check)
+node scripts/checkpoint.mjs doctor          # add --online to compare /api/health vs HEAD
+
+# Validate every .checkpoint.json against the schema (CI runs this).
+npm run checkpoint:validate                 # --strict also fails on warnings
+
+# Update a field (creates the file if missing); done = complete the top next action.
 node scripts/checkpoint.mjs update <skill> --status=in_progress --step=...
+node scripts/checkpoint.mjs done <skill>
 ```
+
+### Status glyphs (canonical legend)
+
+One vocabulary, used by `checkpoint` output and the orchestrator alike:
+
+| Glyph | Meaning |
+|---|---|
+| ✅ | complete |
+| 🔄 | in_progress |
+| ⏳ | not_started |
+| 🚫 | blocked (has an open blocker) |
+| ⛔ | a decision is waiting on **you** (`blockers[].needs: user_decision`) |
+| ⚠ | stale / drift (e.g. in_progress and untouched >7 days) |
 
 ## Merge driver
 
@@ -85,6 +106,14 @@ the side with the newer `updated_at` for those fields and only raises a
 real conflict on substantive content (`progress_summary`, `next_actions`,
 `progress_table`, etc.). The driver is registered per-clone by
 `npm prepare`, so `npm install` is the only setup step.
+
+> ⚠️ **The driver runs on local `git merge` only.** GitHub's server-side
+> "Update branch" / auto-merge buttons do **not** invoke it, so a checkpoint
+> conflict resolved there can ship invalid JSON and fail CI (this happened on
+> 2026-05-15). If two PRs both touch a checkpoint, resolve it with a local
+> `git merge` (driver runs), and always `npm run checkpoint:validate` before
+> pushing. Rotating volatile `skill_state` telemetry into
+> `.checkpoints/history/` keeps the conflict surface small in the first place.
 
 ## Resume protocol (informal)
 

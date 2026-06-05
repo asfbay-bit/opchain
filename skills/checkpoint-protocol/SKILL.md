@@ -2,7 +2,7 @@
 name: checkpoint-protocol
 displayName: Checkpoint Protocol
 version: 1.3.0
-shortDesc: Session persistence across skills. v1.2 adds a `pm_refs` schema field so checkpoints carry linked PM ticket ids.
+shortDesc: Session persistence across skills — a JSON checkpoint contract plus status/next/doctor/validate tooling that survives across conversations and catches drift.
 phases: [foundation]
 triAgent: false
 tryable: false
@@ -13,7 +13,7 @@ description: >
   survives across conversations.
 ---
 
-# Checkpoint Protocol v1.2
+# Checkpoint Protocol
 
 A cross-skill convention for session persistence. Any skill that runs multi-step
 workflows across conversations adopts this protocol to save, resume, and recover
@@ -22,6 +22,20 @@ state without the user re-explaining context.
 This is a **protocol**, not a skill. It defines a file format, naming convention,
 resume behavior, and integration contract that individual skills implement. Think
 of it like HTTP — the spec lives here, the implementations live in each skill.
+
+### Two versions, don't confuse them
+
+- **`protocol_version`** — the **on-disk schema version**, currently `"1.0"`. It
+  lives inside every checkpoint file and only changes when the file *shape* changes
+  in a way the validator must know about. The validator (`scripts/checkpoint.mjs`)
+  enforces it.
+- **Skill release version** — the `version` in this file's YAML frontmatter. It
+  tracks the evolution of the *docs and tooling* (the `pm_refs` extension, the
+  `doctor`/`next` commands, etc.) and moves independently. release-ops bumps it.
+
+A new field like `pm_refs` is an **optional, additive extension** under schema
+`1.0` — old checkpoints stay valid, new ones may include it. The schema version
+does **not** bump just because the tooling grew a feature.
 
 ---
 
@@ -64,7 +78,7 @@ Multiple skills can checkpoint the same project simultaneously without collision
 ```jsonc
 {
   // === HEADER (required) ===
-  "protocol_version": "1.2",
+  "protocol_version": "1.0",             // On-disk schema version (not the skill release version)
   "skill": "app-architect",              // Skill that owns this checkpoint
   "project": "gtrack",                   // Human-readable project name
   "project_dir": "/home/claude/gtrack",  // Absolute path
@@ -77,7 +91,7 @@ Multiple skills can checkpoint the same project simultaneously without collision
   "status": "in_progress",               // in_progress | blocked | complete | failed
   "progress_summary": "Sprint 1 passed (8.2/10). Sprint 2 generator built, evaluator running.",
 
-  // === PROGRESS TABLE (required) ===
+  // === PROGRESS TABLE (recommended; validator warns if missing while in_progress) ===
   // Ordered list of all phases/steps with completion status
   "progress_table": [
     { "id": "planning",       "label": "Planner",          "status": "complete" },
@@ -86,7 +100,7 @@ Multiple skills can checkpoint the same project simultaneously without collision
     { "id": "sprint-3",       "label": "Sprint 3: UI",     "status": "not_started" }
   ],
 
-  // === CONTEXT PRIMER (required) ===
+  // === CONTEXT PRIMER (recommended — this is what lets resume skip a full re-read) ===
   // Dense, self-contained summary. A new session reads ONLY this + generated files
   // to resume work. Must be complete enough that re-reading the full codebase or
   // re-running prior phases is unnecessary.
@@ -123,12 +137,14 @@ Multiple skills can checkpoint the same project simultaneously without collision
     }
   ],
 
-  // === NEXT ACTIONS (required) ===
+  // === NEXT ACTIONS (required while status is in_progress — resume reads [0] first) ===
   // What the next session should do FIRST. Ordered by priority.
+  // Each item is a string, or { "text": "...", "done_when": "<shell cmd>" } so a
+  // session can self-verify completion. `checkpoint done <skill>` pops item [0].
   "next_actions": [
     "Read evaluator report: sprints/sprint-2/eval-round-1.md",
     "Fix rate limiting gap flagged in blocker b1",
-    "Re-run evaluator on sprint 2"
+    { "text": "Re-run evaluator on sprint 2", "done_when": "npm test" }
   ],
 
   // === SKILL-SPECIFIC STATE (optional) ===
@@ -154,6 +170,11 @@ Multiple skills can checkpoint the same project simultaneously without collision
 | `blocked` | Waiting on user decision or external dependency | Show blockers, ask for resolution |
 | `complete` | All phases done | Inform user, offer next steps |
 | `failed` | Unrecoverable error occurred | Show failure context, offer restart or manual fix |
+
+> **Two enums, deliberately.** The top-level `status` is one of the four above.
+> Individual `progress_table[].status` rows use a **superset** that also allows
+> `not_started` — a single phase can be not-started even though the checkpoint as
+> a whole is `in_progress`. The validator enforces each set in its own place.
 
 ---
 
@@ -182,13 +203,15 @@ Progress: [X/Y phases complete]
 Next: [first item from next_actions]
 ```
 
-### Step 3: Confirm
+### Step 3: Confirm (only when there's something to confirm)
 
-Ask the user ONE question:
+Resuming your own work shouldn't cost a question every time. Default behavior:
 
-```
-Continue from here, restart from scratch, or show me the full checkpoint?
-```
+- **`status: in_progress` and not stale** → **continue automatically.** Just say
+  "Resuming from `next_actions[0]`: …" and proceed. The user can always redirect.
+- **`status: blocked` or `failed`, or the checkpoint is stale (>7d)** → stop and
+  ask: *"Continue from here, restart, or show the full checkpoint?"* These are the
+  cases where silently continuing is wrong.
 
 - **Continue** → Read `context_primer` and `next_actions`, load referenced
   `generated_files`, proceed.
@@ -246,18 +269,34 @@ updated["updated_at"] = now()
 write_json(updated)
 ```
 
-### Checkpoint Size Budget
+### Checkpoint Size
 
-Keep checkpoints under **4KB**. The entire point is that a new session can read this
-instead of re-reading the full project. If `context_primer.key_decisions` exceeds
-~20 items, consolidate older decisions into a summary paragraph and keep only the
-recent ones as individual items.
+There is **no hard byte cap** — these are session-state docs, and an honest one
+beats an artificially short one. (An earlier draft of this protocol said "under
+4KB"; real checkpoints run 5–16KB and that's fine. `.checkpoints/README.md` is the
+authority: *keep them readable, keep them honest.*)
+
+What actually matters is keeping the **resumable core** scannable and stopping
+append-only telemetry from growing without bound:
+
+- `progress_summary` is read on every resume — keep it to a few sentences. The
+  validator **warns** above ~1200 characters. Push detail into `progress_table`.
+- If `context_primer.key_decisions` exceeds ~20 items, consolidate older ones into
+  a summary paragraph and keep only the recent items individually.
+- Per-session telemetry in `skill_state` (merged-PR lists, reconciliation logs) is
+  the usual source of bloat *and* of merge conflicts. Rotate closed sessions into
+  `.checkpoints/history/<skill>.<date>.json` instead of letting `skill_state` grow.
+  The validator **warns** once a file passes ~32KB.
 
 ---
 
 ## Cross-Skill Reads
 
-Skills can read each other's checkpoints (read-only) for coordination:
+Skills can read each other's checkpoints (read-only) for coordination. The table
+below is illustrative — the **complete, maintained** upstream/downstream map lives
+in `orchestrator.md` § "Upstream/Downstream Map" (it covers every skill including
+security-auditor, api-dev, monitoring-ops, release-ops, and migration-ops). Treat
+that as the single source of truth; this table is just the common cases.
 
 | Reader | Reads | Why |
 |---|---|---|
@@ -277,54 +316,93 @@ Skills can read each other's checkpoints (read-only) for coordination:
 
 ## Tooling
 
-Three commands keep checkpoints honest. They live in `package.json` and
-shell out to `scripts/checkpoint.mjs` (zero deps, pure Node):
+All commands live in `package.json` and shell out to `scripts/checkpoint.mjs`
+(zero deps, pure Node). The canonical writer is that one file at the repo root —
+skills do **not** bundle their own writers.
+
+**Read / resume:**
 
 ```bash
-npm run checkpoint:status         # markdown summary — "where did I leave off?"
-npm run checkpoint:validate       # schema enforcement, runs in CI
-npm run checkpoint -- update <skill> --field=value [...]
-                                  # apply field updates, auto-stamp updated_at
+node scripts/checkpoint.mjs status            # "where did I leave off?" — full summary
+node scripts/checkpoint.mjs status --brief    # just the top skill + its next action + blockers
+node scripts/checkpoint.mjs status --since=2026-06-01T00:00:00Z   # momentum digest
+node scripts/checkpoint.mjs next              # the SINGLE highest-priority action (priority engine)
 ```
 
-`update` supports three operators:
+`status` leads with a `⛔ N decisions waiting on you` banner when any blocker
+`needs: user_decision`, and flags `⚠ stale (Nd)` on in_progress checkpoints older
+than 7 days. `next` encodes the priority hierarchy (blocked-on-decision > failed >
+in_progress-at-gate > in_progress > complete-with-queued-work > not-started) so you
+don't need the orchestrator's registry to answer "what now?".
+
+**Reconcile / verify (catch drift before it bites):**
+
+```bash
+node scripts/checkpoint.mjs doctor            # cross-check vs git history + filesystem
+node scripts/checkpoint.mjs doctor --online   # also compare deployed /api/health vs local HEAD
+```
+
+`doctor` flags: a `project_dir` that doesn't exist on this machine, stale
+in_progress checkpoints, `generated_files` that reference missing paths, and
+`next_actions` that point at PRs/tickets already merged (the "telling future-self
+to redo shipped work" failure that caused three manual reconciliations in this repo).
+
+**Write:**
+
+```bash
+npm run checkpoint:validate                   # schema gate — CI runs this (add --strict to fail on warnings)
+node scripts/checkpoint.mjs update <skill> --field=value [...]   # apply updates, auto-stamp updated_at
+node scripts/checkpoint.mjs done <skill>      # pop next_actions[0] → recently_done, restamp
+node scripts/checkpoint.mjs init              # scaffold .checkpoints/ on a fresh project
+```
+
+`update` supports three operators on dotted paths:
 
 - `--key=value`     — replace a scalar
 - `--key+=value`    — append to an array (creates if missing)
 - `--key:json=...`  — parse the value as JSON for objects/arrays/numbers
 
-Dotted paths work for nested fields (`--context_primer.key_decisions+="..."`).
-The validator runs after every `update` so you can't silently corrupt a file.
+The validator runs after every `update`/`done` so you can't silently corrupt a file.
 
-`npm run checkpoint:validate` is wired into CI as a gate. A failing
-checkpoint blocks merges — same posture as type-check or unit tests.
-
-The canonical writer is `scripts/checkpoint.mjs` at the repo root. Skills
-do not bundle their own writers — call the root .mjs from any skill that
-needs to update its checkpoint.
+> **Merge-driver caveat (read this).** `.gitattributes` registers a custom merge
+> driver (`scripts/merge-checkpoint.mjs`) that auto-resolves telemetry-only
+> conflicts. It runs on **local `git merge` only** — GitHub's server-side
+> "Update branch" / auto-merge buttons do **not** invoke it. A checkpoint that
+> conflicts there can produce invalid JSON and fail CI (this happened, 2026-05-15).
+> Mitigations: rotate volatile telemetry out of the CI-gated file (see
+> *Checkpoint Size*), and prefer resolving checkpoint conflicts with a local
+> `git merge` so the driver runs. `node scripts/checkpoint.mjs validate` after any
+> manual conflict resolution catches the broken-JSON case before you push.
 
 ---
 
 ## Scaffold Phase
 
-When this skill is invoked on a fresh project that has no
-`.checkpoints/` directory yet, drop these files:
+This protocol is **not invoked directly** (it has no commands of its own). A fresh
+project gets scaffolded one of two ways:
 
-1. `.checkpoints/README.md` — schema reference + tooling docs.
-2. `scripts/checkpoint.mjs` — the validator/status/update CLI.
-3. `package.json` scripts — `checkpoint`, `checkpoint:status`,
-   `checkpoint:validate`.
+- **Another skill** notices there's no `.checkpoints/` directory and runs
+  `node scripts/checkpoint.mjs init` before writing its first checkpoint.
+- **The orchestrator cold-start** (`/ops` on a project with no `.checkpoints/`)
+  runs the same `init` as step zero.
+
+`init` creates `.checkpoints/` and a starter `README.md` idempotently. To stand up
+the full protocol on a brand-new repo, drop these (the opchain.dev repo is the
+reference implementation — copying from there is faster than re-typing):
+
+1. `scripts/checkpoint.mjs` — the validator/status/next/doctor/update CLI.
+2. `.checkpoints/README.md` — schema reference + tooling docs (`init` writes a stub).
+3. `package.json` scripts — `checkpoint`, `checkpoint:status`, `checkpoint:validate`
+   (and optionally `checkpoint:next`, `checkpoint:doctor`).
 4. CI step — call `npm run checkpoint:validate` from your CI pipeline.
-5. `.github/workflows/checkpoint-after-merge.yml` (optional but
-   recommended) — auto-stamps the git-ops checkpoint on every merge to
-   `main` so the team doesn't have to remember.
+5. `.gitattributes` — register the `merge=opchain-checkpoint` driver (see the
+   merge-driver caveat under *Tooling*) plus `scripts/merge-checkpoint.mjs`.
+6. `.github/workflows/checkpoint-after-merge.yml` (optional but recommended) —
+   auto-stamps the git-ops checkpoint on every merge to `main`.
 
-**Do not** add `.checkpoints/` to `.gitignore`. Tracking the directory in
-git is what makes checkpoints survive across sessions and machines —
-including ephemeral runners like Claude Code on the web.
-
-The opchain.dev repo is the reference implementation; `cp` from there
-is faster than re-typing.
+**Do not** add `.checkpoints/` to `.gitignore`. Tracking the directory in git is
+what makes checkpoints survive across sessions and machines — including ephemeral
+runners like Claude Code on the web.
 
 ---
 
@@ -334,6 +412,8 @@ Any skill that adopts this protocol should recognize `/checkpoint` as a utility 
 
 ```
 /checkpoint         Show current checkpoint status for active project
+/checkpoint next    Show the single highest-priority next action (priority engine)
+/checkpoint doctor  Cross-check checkpoints against git + filesystem for drift
 /checkpoint show    Display full checkpoint contents
 /checkpoint reset   Archive current checkpoint and start fresh
 /checkpoint list    List all checkpoints in the project directory
@@ -373,11 +453,17 @@ The `.checkpoints/` directory is:
 
 ---
 
-## v1.2 schema additions: `pm_refs`
+## Optional extension: `pm_refs`
 
-v1.2 adds a top-level optional field to the checkpoint schema so
-every skill's checkpoint can carry the PM tickets it touched.
-Downstream skills read it to find context without re-asking.
+`pm_refs` is an **optional, additive field** (introduced in skill release 1.2)
+under on-disk schema `1.0` — checkpoints without it stay valid. It lets a skill's
+checkpoint carry the PM tickets it touched so downstream skills find context
+without re-asking.
+
+> **Status:** the field is fully specified and **validated when present** (see
+> *Validation* below), but in practice skills today still record PM refs ad-hoc in
+> `skill_state` (e.g. `linear_active_parents`). Prefer `pm_refs` for anything a
+> *sibling* skill needs to read; keep skill-private PM bookkeeping in `skill_state`.
 
 ### Field shape
 
@@ -436,9 +522,11 @@ This makes the cross-skill PM thread legible at session resume.
 
 ### Validation
 
-`npm run checkpoint:validate` accepts the new field as optional;
-existing v1.1 checkpoints validate unchanged. Schema migrations
-only happen on the next write — there is no batch migration.
+`npm run checkpoint:validate` treats `pm_refs` as optional, but when it **is**
+present it checks the shape: each entry needs a `provider` and `id`, and any `role`
+must be one of `source|child|deploy|incident|linked`. Checkpoints without the field
+validate unchanged. There is no batch migration — the field appears on a skill's
+next write.
 
 ### Privacy in regulated environments
 
