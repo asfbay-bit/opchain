@@ -1,22 +1,22 @@
 /**
  * Runtime pack-aware dispatch — v1.4 PR 3 (ADEV-330).
  *
- * Three skills consume stack-forge packs at runtime:
+ * Three skills consume oc-stack-forge packs at runtime:
  *
- *   - deploy-ops calls `getDispatchTarget(packId)` to decide which
+ *   - oc-deploy-ops calls `getDispatchTarget(packId)` to decide which
  *     provider-section of its SKILL.md applies (Render vs Heroku vs
  *     Cloudflare vs Fly.io vs Shuttle). Default is null while
  *     deploy-target packs are still pending — PR 7 (ADEV-337) lands
  *     the hosting adapters and wires the supportedPlatforms graph.
  *
- *   - stack-forge calls `dispatchMobile(packId)` to render a release
+ *   - oc-stack-forge calls `dispatchMobile(packId)` to render a release
  *     checklist instead of executing commands for kind=mobile packs.
  *     The iOS pack lands in PR 6 (ADEV-336); the dispatch logic +
  *     tests ride along here so PR 6 can stay narrow.
  *
- *   - api-dev consumes the BUILD-TIME codegen output in
+ *   - oc-api-dev consumes the BUILD-TIME codegen output in
  *     src/generated/api-dev-adapters.json — that file is the typed
- *     view of per-language scaffold metadata. api-dev does not need
+ *     view of per-language scaffold metadata. oc-api-dev does not need
  *     this runtime module; it imports the generated JSON directly.
  *
  * Design constraints:
@@ -67,7 +67,7 @@ export function getLanguagePack(id) {
 }
 
 /**
- * Resolve the deploy-target hint for a pack. deploy-ops calls this
+ * Resolve the deploy-target hint for a pack. oc-deploy-ops calls this
  * when choosing which provider-section of its SKILL.md applies.
  *
  * Returns:
@@ -90,7 +90,7 @@ export function getDispatchTarget(packId) {
 }
 
 /**
- * Dispatch for kind=mobile packs. stack-forge calls this to render
+ * Dispatch for kind=mobile packs. oc-stack-forge calls this to render
  * a release checklist instead of executing commands — mobile deploys
  * are App Store / Play Store / TestFlight reviews, not `git push`.
  *
@@ -102,7 +102,7 @@ export function getDispatchTarget(packId) {
  *   null when the pack does not exist.
  *
  * The releaseChecklist string is the user-facing dispatch envelope —
- * stack-forge's SKILL.md renders it verbatim so the agent doesn't
+ * oc-stack-forge's SKILL.md renders it verbatim so the agent doesn't
  * accidentally try to run a deploy command.
  */
 export function dispatchMobile(packId) {
@@ -118,7 +118,7 @@ export function dispatchMobile(packId) {
     mobileRef: pack.mobileRef ?? null,
     releaseChecklist:
       `${pack.displayName ?? pack.id} (${pack.mobilePlatform}) — checklist-driven, not automated. ` +
-      `stack-forge will render the release checklist from ${pack.mobileRef ?? "the pack's mobileRef"} ` +
+      `oc-stack-forge will render the release checklist from ${pack.mobileRef ?? "the pack's mobileRef"} ` +
       `rather than executing commands. App Store / Play Store review windows are the gate.`,
   };
 }

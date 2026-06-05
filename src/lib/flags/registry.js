@@ -16,7 +16,7 @@
  *   skills.registry.<id>.enabled Show / hide an individual skill in the catalog
  *   skills.capability.<name>     Cross-cutting capability (tri-agent, checkpoint)
  *   skills.command.<cmd>.enabled Individual slash command on/off
- *   skills.coverage.<id>.enabled Show / hide a stack-forge pack (language, framework, mobile)
+ *   skills.coverage.<id>.enabled Show / hide a oc-stack-forge pack (language, framework, mobile)
  *   skills.experiment.<id>.<f>   Experimental skill features
  *
  *   platform.observability.<sink>
@@ -235,8 +235,8 @@ const DEFINITIONS = [
     "/oc-threat-model", "/oc-uxe",
   ]),
 
-  // ── skills.coverage.<id>.enabled — one per stack-forge pack ──────────────
-  // Generated from skills/stack-forge/packs/<id>/pack.yml by
+  // ── skills.coverage.<id>.enabled — one per oc-stack-forge pack ──────────────
+  // Generated from skills/oc-stack-forge/packs/<id>/pack.yml by
   // scripts/gen-stack-packs.mjs (prebuild step 1). Only language, framework,
   // and mobile packs produce flags; deploy-target packs are sub-selections.
   // Flag default mirrors pack status: stable → true, anything else → false.
@@ -249,7 +249,7 @@ const DEFINITIONS = [
     default: false,
     category: "experiment",
     owner: "skills",
-    description: "Run app-architect design evaluators in parallel rather than sequentially.",
+    description: "Run oc-app-architect design evaluators in parallel rather than sequentially.",
   },
   {
     name: "skills.experiment.oc-code-auditor.deep-scan",
@@ -257,7 +257,7 @@ const DEFINITIONS = [
     default: false,
     category: "experiment",
     owner: "skills",
-    description: "Enable an extended ruleset in code-auditor.",
+    description: "Enable an extended ruleset in oc-code-auditor.",
   },
 
   // ── platform.observability ───────────────────────────────────────────────
@@ -338,8 +338,8 @@ function skillCoverageFlags(packs) {
     type: /** @type {FlagType} */ ("boolean"),
     default: p.status === "stable",
     category: /** @type {FlagCategory} */ ("release"),
-    owner: "stack-forge",
-    description: `Show ${p.displayName ?? p.id} (${p.kind}) as a stack-forge coverage option. Off → hidden from recommendations and scaffolds.`,
+    owner: "oc-stack-forge",
+    description: `Show ${p.displayName ?? p.id} (${p.kind}) as a oc-stack-forge coverage option. Off → hidden from recommendations and scaffolds.`,
   }));
 }
 
