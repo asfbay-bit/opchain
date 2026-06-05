@@ -2,7 +2,7 @@
 name: checkpoint-protocol
 displayName: Checkpoint Protocol
 version: 1.3.0
-shortDesc: Session persistence across skills — a JSON checkpoint contract plus status/next/doctor/validate tooling that survives across conversations and catches drift.
+shortDesc: Session persistence across skills — JSON checkpoint contract + status/next/doctor/validate tooling, catches drift.
 phases: [foundation]
 triAgent: false
 tryable: false
