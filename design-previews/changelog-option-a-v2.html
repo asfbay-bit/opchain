@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Option A v2 — Bidirectional takeover · opchain</title>
+<style>
+:root {
+  --bg:          #0e0e10;
+  --surface:     #16161a;
+  --card:        #1c1c22;
+  --raised:      #232329;
+  --border:      #2a2a32;
+  --text:        #ece6d8;
+  --muted:       #a8a298;
+  --subtle:      #6f6a62;
+  --accent:      #ff8a3d;
+  --accent-dim:  #3a1f0e;
+  --accent-hover:#ffa365;
+  --info:        #6ea0d3;
+  --info-dim:    #15212d;
+  --good:        #6fb27a;
+  --good-dim:    #1a2a1d;
+  --font-mono:   ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace;
+  --font-disp:   "InterDisplay", "Inter", system-ui, sans-serif;
+  --font-body:   "Inter", system-ui, sans-serif;
+  --r-xs: 4px; --r-sm: 6px; --r-md: 10px; --r-pill: 999px;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
+code { font-family: var(--font-mono); font-size: 11.5px; background: var(--surface); border: 0.5px solid var(--border); padding: 1px 5px; border-radius: var(--r-xs); }
+
+/* ── page header ──────────────────────────────────────── */
+.page-head { padding: 1.75rem 2rem 1.25rem; border-bottom: 0.5px solid var(--border); max-width: 1280px; margin: 0 auto; }
+.page-tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); border: 0.5px solid var(--accent); padding: 2px 8px; border-radius: var(--r-xs); }
+.page-head h1 { font-family: var(--font-disp); font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; margin: 0.5rem 0 0.25rem; }
+.page-head p { color: var(--muted); font-size: 13px; max-width: 68ch; }
+.how-it-works { display: flex; gap: 2rem; margin-top: 0.85rem; flex-wrap: wrap; }
+.hiw { display: flex; align-items: center; gap: 0.5rem; font-size: 12px; color: var(--muted); }
+.hiw-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.hiw-dot--history { background: var(--accent); }
+.hiw-dot--planned { background: var(--info); }
+
+/* ── split container ──────────────────────────────────── */
+.split-outer { max-width: 1280px; margin: 1.25rem auto 3rem; padding: 0 2rem; }
+
+.split-container {
+  display: flex;
+  height: 720px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  position: relative;
+}
+
+/* divider spine */
+.split-container::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0; bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, transparent 0%, var(--accent) 8%, var(--info) 55%, var(--subtle) 82%, transparent 100%);
+  pointer-events: none;
+  z-index: 6;
+  transition: opacity 0.3s;
+}
+.split-container.history-takeover::after,
+.split-container.planned-takeover::after { opacity: 0; }
+
+/* ── columns ──────────────────────────────────────────── */
+.col { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+
+.col-history {
+  flex: 0 0 50%;
+  transition: flex-basis 0.4s var(--ease),
+              opacity 0.26s var(--ease),
+              transform 0.4s var(--ease);
+}
+.col-planned {
+  flex: 0 0 50%;
+  transition: flex-basis 0.4s var(--ease),
+              opacity 0.26s var(--ease),
+              transform 0.4s var(--ease);
+}
+
+/* HISTORY TAKEOVER: history fills → planned slides right */
+.split-container.history-takeover .col-history { flex-basis: 100%; }
+.split-container.history-takeover .col-planned  { flex-basis: 0%; opacity: 0; transform: translateX(28px); pointer-events: none; }
+
+/* PLANNED TAKEOVER: planned fills → history slides left */
+.split-container.planned-takeover .col-planned  { flex-basis: 100%; }
+.split-container.planned-takeover .col-history  { flex-basis: 0%; opacity: 0; transform: translateX(-28px); pointer-events: none; }
+
+/* ── column head ──────────────────────────────────────── */
+.col-head {
+  padding: 0.8rem 1.2rem;
+  border-bottom: 0.5px solid var(--border);
+  display: flex; align-items: center; gap: 0.6rem;
+  flex-shrink: 0;
+  background: var(--bg);
+  position: sticky; top: 0; z-index: 5;
+}
+.col-eyebrow { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--subtle); }
+.col-title   { font-family: var(--font-disp); font-size: 14px; font-weight: 600; color: var(--text); }
+.col-meta    { margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: var(--subtle); }
+
+.col-body { overflow-y: auto; flex: 1; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.col-body::-webkit-scrollbar { width: 4px; }
+.col-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── shared detail atoms ──────────────────────────────── */
+.close-btn {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--muted); background: none; border: 0.5px solid var(--border); border-radius: var(--r-sm);
+  padding: 5px 11px; cursor: pointer; margin-bottom: 1rem;
+  transition: border-color 0.15s, color 0.15s;
+}
+.close-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.detail-h2 { font-family: var(--font-disp); font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; margin-bottom: 0.25rem; line-height: 1.2; }
+.detail-meta { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.detail-tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); background: var(--surface); border: 0.5px solid var(--border); padding: 1px 6px; border-radius: var(--r-pill); }
+.detail-tag--accent { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+.detail-tag--info   { color: var(--info);   border-color: var(--info);   background: var(--info-dim); }
+.detail-date { font-family: var(--font-mono); font-size: 10px; color: var(--subtle); }
+.detail-p { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 0.65rem; }
+.detail-h3 { font-family: var(--font-disp); font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; margin: 1.1rem 0 0.4rem; }
+.detail-h3:first-of-type { margin-top: 0; }
+.detail-ul { padding-left: 1.1rem; margin-bottom: 0.5rem; }
+.detail-ul li { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin-bottom: 0.35rem; }
+.detail-ul li strong { color: var(--text); font-weight: 600; }
+.compat-box { margin-top: 1.1rem; padding: 0.75rem 0.9rem; background: var(--good-dim); border: 0.5px solid var(--good); border-radius: var(--r-sm); font-size: 12.5px; color: var(--muted); }
+.compat-box strong { color: var(--good); }
+.planned-box { margin-top: 0.75rem; padding: 0.65rem 0.85rem; background: var(--surface); border: 0.5px dashed var(--border); border-radius: var(--r-sm); font-family: var(--font-mono); font-size: 10px; color: var(--subtle); letter-spacing: 0.04em; }
+.vote-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 1.25rem; padding-top: 0.85rem; border-top: 0.5px solid var(--border); }
+.vote-btn-full { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text); background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-md); padding: 7px 14px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.vote-btn-full:hover { border-color: var(--accent); background: var(--accent-dim); }
+.vote-label { font-size: 12px; color: var(--subtle); }
+
+/* ver pill */
+.ver-pill { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: var(--r-xs); }
+.ver-pill--current { color: var(--accent); border: 0.5px solid var(--accent); }
+.ver-pill--past    { color: var(--subtle); border: 0.5px solid var(--border); }
+.ver-pill--next    { color: var(--info);   border: 0.5px solid var(--info); }
+
+/* ════════════════════════════════════════════════════════
+   LEFT: Release History Cards
+   ════════════════════════════════════════════════════════ */
+.rel-card { border-bottom: 0.5px solid var(--border); cursor: pointer; transition: background 0.15s; position: relative; }
+.rel-card:last-child { border-bottom: none; }
+.rel-card:hover { background: color-mix(in srgb, var(--card) 55%, transparent); }
+.rel-card.is-open { background: var(--card); cursor: default; }
+.rel-card.is-open::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2.5px; background: var(--accent); }
+
+.rc-compact { padding: 0.95rem 1.2rem; }
+.rel-card.is-open .rc-compact { padding-bottom: 0.5rem; }
+
+.rc-head { display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 0.35rem; flex-wrap: wrap; }
+.rc-title { font-family: var(--font-disp); font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+.rc-date  { font-family: var(--font-mono); font-size: 10px; color: var(--subtle); }
+.rc-summary { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-bottom: 0.45rem; }
+.rc-hint { display: flex; align-items: center; gap: 0.3rem; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--accent); opacity: 0.65; transition: opacity 0.15s; }
+.rel-card:hover .rc-hint { opacity: 1; }
+.rel-card.is-open .rc-hint { display: none; }
+.rc-hint-arrow { display: inline-block; transition: transform 0.2s; }
+.rel-card:hover .rc-hint-arrow { transform: translateX(2px); }
+
+.rc-detail { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.42s var(--ease-out), opacity 0.3s; }
+.rel-card.is-open .rc-detail { max-height: 900px; opacity: 1; }
+.rc-detail-inner { padding: 0.75rem 1.2rem 1.4rem; border-top: 0.5px solid var(--border); }
+
+.kbd-hint { text-align: center; padding: 0.55rem; font-family: var(--font-mono); font-size: 10px; color: var(--subtle); letter-spacing: 0.05em; border-top: 0.5px solid var(--border); background: var(--surface); flex-shrink: 0; }
+
+/* ════════════════════════════════════════════════════════
+   RIGHT: Planned Release Cards
+   ════════════════════════════════════════════════════════ */
+.plan-card { border-bottom: 0.5px solid var(--border); cursor: pointer; transition: background 0.15s; position: relative; }
+.plan-card:last-child { border-bottom: none; }
+.plan-card:hover { background: color-mix(in srgb, var(--card) 55%, transparent); }
+.plan-card.is-open { background: var(--card); cursor: default; }
+.plan-card.is-open::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2.5px; background: var(--info); }
+
+.pc-compact { padding: 0.95rem 1.2rem; }
+.plan-card.is-open .pc-compact { padding-bottom: 0.5rem; }
+
+.pc-head { display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 0.35rem; flex-wrap: wrap; }
+.pc-title { font-family: var(--font-disp); font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+.pc-timing { font-family: var(--font-mono); font-size: 10px; color: var(--subtle); }
+.pc-summary { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-bottom: 0.45rem; }
+.pc-hint { display: flex; align-items: center; gap: 0.3rem; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--info); opacity: 0.65; transition: opacity 0.15s; }
+.plan-card:hover .pc-hint { opacity: 1; }
+.plan-card.is-open .pc-hint { display: none; }
+.pc-hint-arrow { display: inline-block; transition: transform 0.2s; }
+.plan-card:hover .pc-hint-arrow { transform: translateX(2px); }
+
+.pc-detail { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.42s var(--ease-out), opacity 0.3s; }
+.plan-card.is-open .pc-detail { max-height: 900px; opacity: 1; }
+.pc-detail-inner { padding: 0.75rem 1.2rem 1.4rem; border-top: 0.5px solid var(--border); }
+
+/* close button in planned col uses info color */
+.close-btn--info { color: var(--muted); }
+.close-btn--info:hover { border-color: var(--info); color: var(--info); }
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <span class="page-tag">Option A v2</span>
+  <h1>History | Planned — bidirectional takeover</h1>
+  <p>Both columns use the same mechanism. Click any release <em>or</em> any planned version → that column expands to fill both, the other slides away in its own direction. Full detail on both sides — release notes match planned-release writeups in depth.</p>
+  <div class="how-it-works">
+    <div class="hiw"><div class="hiw-dot hiw-dot--history"></div> Click a release (left) → planned slides <strong style="color:var(--text);margin-left:3px">right</strong>, history fills</div>
+    <div class="hiw"><div class="hiw-dot hiw-dot--planned"></div> Click a planned version (right) → history slides <strong style="color:var(--text);margin-left:3px">left</strong>, planned fills</div>
+    <div class="hiw"><span style="color:var(--subtle);font-size:12px;">Esc</span> or ← back collapses both</div>
+  </div>
+</div>
+
+<div class="split-outer">
+<div class="split-container" id="split">
+
+  <!-- ════ LEFT: Release History ════ -->
+  <div class="col col-history">
+    <div class="col-head">
+      <div><div class="col-eyebrow">release history</div><div class="col-title">What shipped</div></div>
+      <span class="col-meta">v1.0 – v1.4.2</span>
+    </div>
+    <div class="col-body">
+
+      <div class="rel-card" onclick="openHistory(this)">
+        <div class="rc-compact">
+          <div class="rc-head"><span class="ver-pill ver-pill--current">v1.4.2</span><span class="rc-title">Complete bundles, honest checkpoints</span><span class="rc-date">Jun 05, 2026</span></div>
+          <p class="rc-summary">Emergency patch: full skill trees in the bundle, <code>oc-</code> aliases, unified checkpoint schema, automated drift detection.</p>
+          <div class="rc-hint">Read full release notes <span class="rc-hint-arrow">→</span></div>
+        </div>
+        <div class="rc-detail"><div class="rc-detail-inner">
+          <button class="close-btn" onclick="closeAll(event)">← back to list</button>
+          <h2 class="detail-h2">v1.4.2 — Complete bundles, honest checkpoints</h2>
+          <div class="detail-meta"><span class="detail-date">Jun 05, 2026</span><span class="detail-tag">emergency patch</span><span class="detail-tag">18 skills</span><span class="detail-tag">back-compatible</span></div>
+          <p class="detail-p">An out-of-band emergency patch: one user-facing breakage and a long-overdue correctness pass, shipped ahead of v1.5. The breakage — the "download all" skill bundle was shipping only each skill's <code>SKILL.md</code>, silently dropping the <code>references/</code>, <code>scripts/</code>, and <code>examples/</code> that make a skill actually run.</p>
+          <div class="detail-h3">What's new</div>
+          <ul class="detail-ul">
+            <li><strong>"Download all" ships complete skills again.</strong> <code>opchain-skills.zip</code> now bundles full skill trees, matching the per-skill downloads on /skills.</li>
+            <li><strong><code>oc-</code> canonical skill names.</strong> Every skill gains an <code>oc-&lt;name&gt;</code> alias — <code>oc-app-architect</code>, <code>oc-git-ops</code>, <code>oc-deploy-ops</code> — so opchain skills are unambiguous next to same-named local skills. Bare names still resolve.</li>
+            <li><strong>The orchestrator stops misreporting itself.</strong> Persistence docs rewritten to the git-tracked <code>.checkpoints/orchestrator.checkpoint.json</code> it actually uses. The phantom <code>checkpoint.sh</code> is replaced by <code>scripts/checkpoint.mjs</code>.</li>
+            <li><strong>One checkpoint schema, actually enforced.</strong> Validator, spec, and README now agree on a single wire schema. <code>next_actions</code> required while in-progress. Timestamp-sanity and referential checks added to validator.</li>
+            <li><strong>Drift detection &amp; merge reliability.</strong> Orchestrator logged three manual reconciliations in three weeks. v1.4.2 adds automated drift detection; stale checkpoints can no longer tell future-you to redo shipped work.</li>
+          </ul>
+          <div class="detail-h3">New CLI commands</div>
+          <ul class="detail-ul">
+            <li><code>checkpoint:doctor</code> — cross-checks checkpoints against <code>git log</code> + live <code>/api/health</code>, flags drift</li>
+            <li><code>checkpoint:next</code> — registry-free "what should I do next" for the local project</li>
+            <li><code>checkpoint:status --brief</code> / <code>--since=&lt;date&gt;</code> — terse resume view + momentum digest with stale-age flag</li>
+            <li><code>checkpoint:init</code> — deterministic cold-start scaffold</li>
+            <li><code>checkpoint -- done &lt;skill&gt;</code> — pop top <code>next_action</code> into <code>recently_done</code> log</li>
+          </ul>
+          <div class="compat-box"><strong>Back-compatible with v1.4.</strong> The <code>oc-&lt;name&gt;</code> names are additive aliases. Checkpoint wire schema stays pinned at <code>protocol_version 1.0</code>. All 18 skills lockstep-bump to <code>1.4.2</code>.</div>
+        </div></div>
+      </div>
+
+      <div class="rel-card" onclick="openHistory(this)">
+        <div class="rc-compact">
+          <div class="rc-head"><span class="ver-pill ver-pill--past">v1.4</span><span class="rc-title">Coverage as a plugin registry</span><span class="rc-date">May 12, 2026</span></div>
+          <p class="rc-summary">32 packs across 13 languages, 9 frameworks, 4 mobile platforms, 6 deploy targets. One <code>pack.yml</code> per pack, validated on every build.</p>
+          <div class="rc-hint">Read full release notes <span class="rc-hint-arrow">→</span></div>
+        </div>
+        <div class="rc-detail"><div class="rc-detail-inner">
+          <button class="close-btn" onclick="closeAll(event)">← back to list</button>
+          <h2 class="detail-h2">v1.4 — Coverage as a plugin registry</h2>
+          <div class="detail-meta"><span class="detail-date">May 12, 2026</span><span class="detail-tag">pack registry</span><span class="detail-tag">32 packs</span><span class="detail-tag">5 skills bumped</span></div>
+          <p class="detail-p">opchain v1.4 turns <code>stack-forge</code>'s coverage from hardcoded prose into a versioned pack registry — one <code>pack.yml</code> per language, framework, mobile platform, or deploy target, validated on every build. Total coverage grows from 6 stacks in v1.3 to 32 packs in v1.4.</p>
+          <div class="detail-h3">What's new</div>
+          <ul class="detail-ul">
+            <li><strong>Pack registry architecture.</strong> <code>scripts/gen-stack-packs.mjs</code> validates every pack on every build. Coverage-flag emitted per language / framework / mobile pack.</li>
+            <li><strong>Hybrid dispatch.</strong> <code>deploy-ops</code> reads packs at runtime; <code>api-dev</code> reads packs at build time for typed scaffold metadata.</li>
+            <li><strong>kind:mobile dispatch.</strong> Mobile packs render ref docs as release checklists via <code>dispatchMobile()</code>, not executed commands.</li>
+            <li><strong>Modern web bulk.</strong> elixir / bun / deno; phoenix / remix / sveltekit / solid packs.</li>
+            <li><strong>Enterprise bulk.</strong> java / csharp / kotlin / php; spring / dotnet / laravel packs. Canonical lint commands: <code>mvn checkstyle:check</code>, <code>dotnet format --verify-no-changes</code>, <code>ktlint</code>, <code>phpcs</code>.</li>
+            <li><strong>Apple/iOS.</strong> swift + swiftui + ios-swiftui mobile pack + app-store deploy adapter. First production user of <code>dispatchMobile()</code>.</li>
+            <li><strong>Mobile bulk.</strong> kotlin-android / flutter / react-native-expo + play-store deploy adapter.</li>
+            <li><strong>Hosting adapters.</strong> railway / netlify / heroku / aws-amplify deploy-target packs.</li>
+          </ul>
+          <div class="detail-h3">The pipeline that shipped it</div>
+          <p class="detail-p">v1.4 went through opchain itself. PRs 4-7 ran in parallel from sibling worktrees on the same <code>origin/main</code> base, opened concurrently, merged sequentially with rebases. <code>release-ops</code> drafted this changelog entry from the merged PR summaries.</p>
+          <div class="compat-box"><strong>Back-compatible with v1.3.</strong> Five skills bump in lockstep: <code>stack-forge</code>, <code>api-dev</code>, <code>deploy-ops</code>, <code>app-architect</code>, <code>migration-ops</code>.</div>
+        </div></div>
+      </div>
+
+      <div class="rel-card" onclick="openHistory(this)">
+        <div class="rc-compact">
+          <div class="rc-head"><span class="ver-pill ver-pill--past">v1.3</span><span class="rc-title">Runtime PM, real platforms, automated releases</span><span class="rc-date">May 11, 2026</span></div>
+          <p class="rc-summary">PM-MCP loop becomes executable end-to-end. <code>release-ops</code> ships as the 18th skill. Platform menu expands to Django, Rails, Go, Rust.</p>
+          <div class="rc-hint">Read full release notes <span class="rc-hint-arrow">→</span></div>
+        </div>
+        <div class="rc-detail"><div class="rc-detail-inner">
+          <button class="close-btn" onclick="closeAll(event)">← back to list</button>
+          <h2 class="detail-h2">v1.3 — Runtime PM, real platforms, automated releases</h2>
+          <div class="detail-meta"><span class="detail-date">May 11, 2026</span><span class="detail-tag">release-ops</span><span class="detail-tag">18th skill</span><span class="detail-tag">PM-MCP live</span></div>
+          <p class="detail-p">opchain v1.3 makes the v1.2 PM-MCP prose executable end-to-end and ships <code>release-ops</code> — the 18th skill — to automate the "scope → /changelog → bump → ship" cadence opchain uses for itself.</p>
+          <div class="detail-h3">What's new</div>
+          <ul class="detail-ul">
+            <li><strong>The PM-MCP loop is real.</strong> Concrete tool-name registry, retry/backoff, idempotency markers, deferred-action queue — skills can crash-restart mid-flow without polluting Linear/Jira/GitHub Issues.</li>
+            <li><strong><code>release-ops</code> is the 18th skill.</strong> <code>/release plan|draft|bump|announce|ship</code>. Reads checkpoints to propose next semver, drafts changelog entry, bumps all skill versions atomically.</li>
+            <li><strong>Platform menu grew.</strong> Django + Postgres + Render, Rails + Postgres + Heroku, Go + Fly.io, Rust + Axum + Shuttle.rs.</li>
+            <li><strong>Build-time PM-MCP validator.</strong> Blocks the build on placeholder drift, missing protocol citations, or unknown tool names.</li>
+          </ul>
+          <div class="compat-box"><strong>Back-compatible with v1.2.</strong> All 18 skills lockstep at <code>1.3.0</code>.</div>
+        </div></div>
+      </div>
+
+      <div class="rel-card" onclick="openHistory(this)">
+        <div class="rc-compact">
+          <div class="rc-head"><span class="ver-pill ver-pill--past">v1.2</span><span class="rc-title">PM-tool MCP integration</span><span class="rc-date">May 05, 2026</span></div>
+          <p class="rc-summary">Linear, Jira, and GitHub Issues become first-class context for four skills. The ticket is the thread of execution.</p>
+          <div class="rc-hint">Read full release notes <span class="rc-hint-arrow">→</span></div>
+        </div>
+        <div class="rc-detail"><div class="rc-detail-inner">
+          <button class="close-btn" onclick="closeAll(event)">← back to list</button>
+          <h2 class="detail-h2">v1.2 — PM-tool MCP integration</h2>
+          <div class="detail-meta"><span class="detail-date">May 05, 2026</span><span class="detail-tag">PM-MCP</span><span class="detail-tag">Linear</span><span class="detail-tag">Jira</span><span class="detail-tag">GitHub Issues</span></div>
+          <p class="detail-p">The ticket is the thread of execution, not a side artefact. <code>app-architect</code>, <code>git-ops</code>, <code>deploy-ops</code>, and <code>monitoring-ops</code> all become PM-tool aware.</p>
+          <div class="detail-h3">What's new</div>
+          <ul class="detail-ul">
+            <li><strong>app-architect /discover</strong> accepts a ticket reference and pre-fills from ticket body + comments. <code>/roadmap</code> writes the sprint plan back as a structured comment.</li>
+            <li><strong>git-ops /git-sync TICKET-1234</strong> shapes branch/commit/PR from the ticket, transitions state on PR open and merge.</li>
+            <li><strong>deploy-ops</strong> auto-creates a deploy ticket per environment, parent-linked to every commit's tickets. Comments back on prod ship.</li>
+            <li><strong>monitoring-ops</strong> opens an incident ticket when alerts fire, parent-linked to the most recent deploy ticket.</li>
+          </ul>
+          <div class="compat-box"><strong>Back-compatible with v1.1.</strong> PM loop is enrichment, never a hard dependency. No <code>.opchain/pm.yaml</code> → operates as v1.1.</div>
+        </div></div>
+      </div>
+
+      <div class="rel-card" onclick="openHistory(this)">
+        <div class="rc-compact">
+          <div class="rc-head"><span class="ver-pill ver-pill--past">v1.1</span><span class="rc-title">Stable release</span><span class="rc-date">Apr 2026</span></div>
+          <p class="rc-summary">Tri-agent harness across <code>app-architect</code>, <code>code-auditor</code>, <code>integrations-engineer</code>. Full pipeline. checkpoint-protocol v1.0.</p>
+          <div class="rc-hint">Read full release notes <span class="rc-hint-arrow">→</span></div>
+        </div>
+        <div class="rc-detail"><div class="rc-detail-inner">
+          <button class="close-btn" onclick="closeAll(event)">← back to list</button>
+          <h2 class="detail-h2">v1.1 — Stable release</h2>
+          <div class="detail-meta"><span class="detail-date">Apr 2026</span><span class="detail-tag">tri-agent</span><span class="detail-tag">checkpoint v1.0</span></div>
+          <p class="detail-p">Tri-agent harness across <code>app-architect</code>, <code>code-auditor</code>, <code>integrations-engineer</code>; full-pipeline flow from <code>/discover</code> to <code>/deploy</code>; checkpoint-protocol v1.0 across every skill; static Astro site; first set of six in-action scenarios.</p>
+        </div></div>
+      </div>
+
+      <div class="rel-card" onclick="openHistory(this)">
+        <div class="rc-compact">
+          <div class="rc-head"><span class="ver-pill ver-pill--past">v1.0</span><span class="rc-title">Initial release</span><span class="rc-date">Feb 2026</span></div>
+          <p class="rc-summary">First public Markdown skill catalog for Claude Code. No site, no scenarios — just the skills.</p>
+          <div class="rc-hint">Read release notes <span class="rc-hint-arrow">→</span></div>
+        </div>
+        <div class="rc-detail"><div class="rc-detail-inner">
+          <button class="close-btn" onclick="closeAll(event)">← back to list</button>
+          <h2 class="detail-h2">v1.0 — Initial release</h2>
+          <div class="detail-meta"><span class="detail-date">Feb 2026</span><span class="detail-tag">initial</span></div>
+          <p class="detail-p">First public cut of the opchain skill catalog as a set of Markdown files installable into Claude Code. No site, no scenarios — just the skills. The foundation everything since has built on.</p>
+        </div></div>
+      </div>
+
+    </div>
+    <div class="kbd-hint">Click release → expands left · Esc closes</div>
+  </div><!-- /col-history -->
+
+
+  <!-- ════ RIGHT: Planned Releases ════ -->
+  <div class="col col-planned">
+    <div class="col-head">
+      <div><div class="col-eyebrow">what's coming</div><div class="col-title">Planned releases</div></div>
+      <span class="col-meta">v1.5 → v1.7</span>
+    </div>
+    <div class="col-body">
+
+      <!-- v1.5 -->
+      <div class="plan-card" onclick="openPlanned(this)">
+        <div class="pc-compact">
+          <div class="pc-head"><span class="ver-pill ver-pill--next">v1.5</span><span class="pc-title">Build the AI app</span><span class="pc-timing">built · awaiting release</span></div>
+          <p class="pc-summary">Four new AI-native skills — <code>claude-api</code>, <code>rag-forge</code>, <code>agent-forge</code>, <code>prompt-ops</code>. Catalog grows 18 → 22 skills at <code>1.5.0</code>.</p>
+          <div class="pc-hint">Read the full v1.5 plan <span class="pc-hint-arrow">→</span></div>
+        </div>
+        <div class="pc-detail"><div class="pc-detail-inner">
+          <button class="close-btn close-btn--info" onclick="closeAll(event)">← back to list</button>
+          <h2 class="detail-h2">v1.5 — Build the AI app</h2>
+          <div class="detail-meta"><span class="detail-date">built · awaiting release</span><span class="detail-tag detail-tag--info">in progress</span><span class="detail-tag">22 skills</span><span class="detail-tag">AI-native</span></div>
+          <p class="detail-p">v1.5 closes the biggest categorical gap in the catalog: nothing today owns <em>AI-feature</em> design. v1.5 adds four new AI-native skills wired through the existing pipeline. Markdown methodology turns out to be exactly the right shape for the things AI apps need most: source-controlled, diffable, version-pinned prompts and eval sets.</p>
+          <div class="detail-h3">New skills</div>
+          <ul class="detail-ul">
+            <li><strong><code>claude-api</code> — <code>/claude-api</code>.</strong> Model selection (Opus / Sonnet / Haiku routing), prompt caching as a default, batch vs. streaming, tool use, and <code>/claude-api migrate</code> playbooks for model-version bumps (4.6 → 4.7, retired-model replacement). Cache-audit checks hit rate; cost guardrails cap tokens per phase.</li>
+            <li><strong><code>rag-forge</code> — <code>/rag</code>.</strong> Tri-agent (Designer / Builder / Evaluator). Vector-DB decision tree, embedding-model choice, chunking strategy, hybrid search, and retrieval eval (<code>/rag eval</code>, <code>/rag bench</code>) with golden sets and recall@k / NDCG.</li>
+            <li><strong><code>agent-forge</code> — <code>/agent</code>.</strong> Tri-agent (Planner / Builder / Evaluator). Claude Agent SDK scaffold, subagent topology, tool-budget design, harness-loop shapes (chat / autonomous / human-in-the-loop), and eval harness over golden trajectories.</li>
+            <li><strong><code>prompt-ops</code> — <code>/prompt</code>.</strong> Prompts as first-class artifacts: file-shaped versioning, eval datasets, and regression detection. <code>/prompt regress</code> runs the golden set on PR-changed prompts and blocks on a drop.</li>
+          </ul>
+          <div class="detail-h3">Cross-skill ripples</div>
+          <ul class="detail-ul">
+            <li><strong><code>app-architect</code></strong> gains an "AI app?" branch in <code>/discover</code> that routes to the four new skills.</li>
+            <li><strong><code>stack-forge</code></strong> adds vector-DB packs (pgvector, Turbopuffer, Pinecone, Supabase Vectors) to the pack registry.</li>
+            <li><strong><code>code-auditor</code></strong> learns prompt-injection and tool-use safety rules.</li>
+          </ul>
+          <div class="detail-h3">Site &amp; GTM</div>
+          <p class="detail-p">New <code>/ai-recipes</code> walkthroughs, a "Build AI apps" row on <code>/compare</code>, an AI-app variant of <code>/pipeline-builder</code>, the <code>/blog</code> dev-log scaffold with launch posts, a <code>/for-agencies</code> page, and the newsletter flag wired. The <code>/demo</code> Worker is rewritten on <code>claude-api</code> patterns.</p>
+          <div class="compat-box"><strong>Back-compatible with v1.4.</strong> No migration required. All 22 skills version-bump to <code>1.5.0</code>. Four new skills ship gated behind their <code>skills.registry.&lt;id&gt;.enabled</code> flags.</div>
+          <div class="vote-row"><button class="vote-btn-full">▲ vote for v1.5</button><span class="vote-label">Shipping next — votes signal priority</span></div>
+        </div></div>
+      </div>
+
+      <!-- v1.6 -->
+      <div class="plan-card" onclick="openPlanned(this)">
+        <div class="pc-compact">
+          <div class="pc-head"><span class="ver-pill ver-pill--next">v1.6</span><span class="pc-title">The instrumented pipeline</span><span class="pc-timing">planned · est. Jul 2026</span></div>
+          <p class="pc-summary"><code>cost-ops</code> + <code>telemetry-ops</code> + checkpoint-protocol v1.3. Answers "what did this feature cost?" and "is my pipeline getting better?"</p>
+          <div class="pc-hint">Read the full v1.6 plan <span class="pc-hint-arrow">→</span></div>
+        </div>
+        <div class="pc-detail"><div class="pc-detail-inner">
+          <button class="close-btn close-btn--info" onclick="closeAll(event)">← back to list</button>
+          <h2 class="detail-h2">v1.6 — The instrumented pipeline</h2>
+          <div class="detail-meta"><span class="detail-date">planned · est. Jul 2026</span><span class="detail-tag detail-tag--info">planned</span><span class="detail-tag">2 new skills</span><span class="detail-tag">checkpoint v1.3</span></div>
+          <p class="detail-p">v1.5 introduces four AI-native skills; the predictable next question is <em>what did they cost, and is my pipeline actually getting better?</em> v1.6 answers both. It adds cost attribution and opt-in telemetry, turns every skill's pass/fail into a graded eval score, and ships the first <code>checkpoint-protocol</code> bump since v1.2.</p>
+          <div class="detail-h3">New skills</div>
+          <ul class="detail-ul">
+            <li><strong><code>cost-ops</code> — <code>/cost</code>.</strong> Attributes Anthropic spend to each skill phase, adds budget gates to checkpoints, and recommends model-tier routing — Haiku for cheap repetitive phases, Opus for spec and audit. Finally answers "what did this feature cost to ship?"</li>
+            <li><strong><code>telemetry-ops</code> — <code>/telemetry</code>.</strong> Opt-in, local-first usage metering written to <code>.checkpoints/usage.sqlite</code>. Aggregates anonymized "which skills people actually use" stats — the data behind the new public <code>/dashboard</code>. Nothing leaves your machine unless you opt in.</li>
+          </ul>
+          <div class="detail-h3">Cross-skill ripples</div>
+          <ul class="detail-ul">
+            <li><strong><code>bug-check</code> + <code>code-auditor</code></strong> stop emitting bare pass/fail and start scoring against a stable rubric.</li>
+            <li><strong><code>monitoring-ops</code></strong> gains an "AI-app" template covering token rate, eval drift, and hallucination flags.</li>
+            <li><strong><code>orchestrator</code>'s <code>/ops next</code></strong> factors cost and remaining budget into what it recommends.</li>
+          </ul>
+          <div class="detail-h3">Protocol bump</div>
+          <p class="detail-p"><code>checkpoint-protocol v1.3</code> — the first bump since v1.2 PM-MCP fields — adds <code>cost</code>, <code>eval_scores</code>, and <code>telemetry_handle</code>. <code>migration-ops</code> rolls it across every skill the same way the governance frontmatter rolled out in v1.4.</p>
+          <div class="compat-box"><strong>Back-compatible with v1.5.</strong> All 24 skills lockstep-bump to <code>1.6.0</code>.</div>
+          <div class="planned-box">Planned — scope may shift before release. Vote above to weigh in.</div>
+          <div class="vote-row"><button class="vote-btn-full">▲ vote for v1.6</button><span class="vote-label">Planned for Jul 2026</span></div>
+        </div></div>
+      </div>
+
+      <!-- v1.7 -->
+      <div class="plan-card" onclick="openPlanned(this)">
+        <div class="pc-compact">
+          <div class="pc-head"><span class="ver-pill ver-pill--next">v1.7</span><span class="pc-title">Pick one distribution play</span><span class="pc-timing">planned · lean: marketplace + templates</span></div>
+          <p class="pc-summary">By v1.6, opchain has 24 skills and AI coverage. The biggest remaining gap is distribution. v1.7 promotes one growth play into a flagship theme.</p>
+          <div class="pc-hint">Read the full v1.7 plan <span class="pc-hint-arrow">→</span></div>
+        </div>
+        <div class="pc-detail"><div class="pc-detail-inner">
+          <button class="close-btn close-btn--info" onclick="closeAll(event)">← back to list</button>
+          <h2 class="detail-h2">v1.7 — Pick one distribution play</h2>
+          <div class="detail-meta"><span class="detail-date">planned · lean: marketplace + templates</span><span class="detail-tag detail-tag--info">planned</span><span class="detail-tag">est. Sep 2026</span></div>
+          <p class="detail-p">By the time v1.6 ships, opchain has 24 skills, instrumented pipelines, and AI-native coverage. The biggest remaining gap isn't features — it's <strong>distribution</strong>. v1.7 deliberately promotes one growth play into a flagship theme instead of accreting more skills. The current lean is marketplace + templates.</p>
+          <div class="detail-h3">The lean plan</div>
+          <ul class="detail-ul">
+            <li><strong><code>marketplace</code>.</strong> A site surface for community-contributed skills and packs. Every contribution adds breadth at zero core-team cost — and opchain itself becomes the first entry in its own marketplace. Compounds: the natural follow-on once v1.6's telemetry exists to grade community contributions on real usage.</li>
+            <li><strong><code>template-ops</code> — <code>/template</code>.</strong> Opinionated project starters that pre-wire an entire pipeline — stack, skills, and checkpoints — so a new project is ready to run from the first commit.</li>
+          </ul>
+          <div class="detail-h3">Alternatives on the table</div>
+          <ul class="detail-ul">
+            <li><strong>Agency play.</strong> <code>monorepo-ops</code> for real multi-project checkpoint scoping, a <code>/for-agencies</code> expansion, and a client-handoff demo scenario.</li>
+            <li><strong>Pipeline depth.</strong> <code>discovery-ops</code> (JTBD / opportunity trees, upstream of <code>app-architect</code>) plus <code>qa-ops</code> splitting test-pyramid design out of <code>bug-check</code>.</li>
+          </ul>
+          <div class="detail-h3">GTM</div>
+          <p class="detail-p">A marketplace launch post, a <code>/case-studies</code> page with named (or pseudonymous) builds, and a <code>/community</code> hub.</p>
+          <div class="planned-box">Lean, not locked — the final v1.7 theme is chosen after the v1.5 / v1.6 retro.</div>
+          <div class="vote-row"><button class="vote-btn-full">▲ vote for v1.7 lean</button><span class="vote-label">Planned for Sep 2026</span></div>
+        </div></div>
+      </div>
+
+    </div>
+    <div class="kbd-hint">Click planned version → expands right · Esc closes</div>
+  </div><!-- /col-planned -->
+
+</div>
+</div>
+
+<script>
+const split = document.getElementById('split');
+
+function openHistory(cardEl) {
+  if (cardEl.classList.contains('is-open')) { closeAll(); return; }
+  clearAll();
+  cardEl.classList.add('is-open');
+  split.classList.add('history-takeover');
+  const body = cardEl.closest('.col-body');
+  body.scrollTo({ top: cardEl.offsetTop - 8, behavior: 'smooth' });
+}
+
+function openPlanned(cardEl) {
+  if (cardEl.classList.contains('is-open')) { closeAll(); return; }
+  clearAll();
+  cardEl.classList.add('is-open');
+  split.classList.add('planned-takeover');
+  const body = cardEl.closest('.col-body');
+  body.scrollTo({ top: cardEl.offsetTop - 8, behavior: 'smooth' });
+}
+
+function clearAll() {
+  document.querySelectorAll('.rel-card.is-open, .plan-card.is-open').forEach(c => c.classList.remove('is-open'));
+  split.classList.remove('history-takeover', 'planned-takeover');
+}
+
+function closeAll(event) {
+  if (event) event.stopPropagation();
+  clearAll();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') clearAll(); });
+</script>
+</body>
+</html>
