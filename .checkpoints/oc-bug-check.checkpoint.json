@@ -4,40 +4,40 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-08T15:39:19Z",
+  "updated_at": "2026-06-08T16:56:58Z",
   "phase": "gate",
-  "step": "roadmap-v18-tabled",
+  "step": "changelog-c-v3-preview",
   "status": "complete",
-  "progress_summary": "Gate for the roadmap v1.8 line — docs(roadmap): slot Codex/MCP support at v1.8 (tabled). Earlier this session the same branch shipped the opchain MCP server (PR #260, 32 new tests). PASS — vitest 345/345 on a clean re-run (one transient flake under container load re-ran green); the only changed file is markdown (roadmap/07), anti-pattern + secret scans clean. The MCP server work is tabled to a future v1.8 release per maintainer direction; PR #260 is parked as a draft.",
+  "progress_summary": "Gate for the revised Option C v2 changelog layout preview (design(changelog): Option C v2 revised — 2 tabs, auto-expanded series). PASS. The only changed file is design-previews/changelog-option-c-v3.html — a single self-contained static HTML preview that is outside the TS/build/test graph (design-previews/ is not referenced by any build script). Ran the applicable checks: secret scan clean, anti-pattern scan clean (no debugger/console.log/.only), HTML well-formed (133/133 div, 1/1 script, 1/1 style). type_safety/lint/tests/build/dependencies are N/A for a standalone preview file.",
   "blockers": [],
   "next_actions": [
-    "Revive the v1.8 Codex/MCP work (PR #260) when the v1.8 cycle comes up: mark ready-for-review, add the install-page Codex/MCP flow + platform-neutral site copy, then the lockstep bump + changelog at release time.",
-    "No action needed now — branch parked, PR watch stood down."
+    "Push design-previews/changelog-option-c-v3.html on claude/inspiring-bell-kf4QY and open a review PR.",
+    "On maintainer approval, port Option C v3 into site/src/pages/changelog.astro — fold the roadmap data out of RoadmapTimeline.astro into the 2-tab layout; that real implementation re-runs the full suite (tsc/vitest/astro build/e2e)."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-08T15:39:19Z",
+      "at": "2026-06-08T16:56:58Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
         "type_safety": "N/A",
         "lint": "N/A",
-        "tests": "PASS",
+        "tests": "N/A",
         "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "PASS",
-        "dependencies": "PASS"
+        "build": "N/A",
+        "dependencies": "N/A"
       },
-      "tests": "345 passed (clean re-run; 1 transient flake under load)",
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      { "at": "2026-06-08T16:56:58Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-08T15:39:19Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-05T22:01:00Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
-    "streak": { "passes": 2, "since": "2026-06-05T22:01:00Z" }
+    "streak": { "passes": 3, "since": "2026-06-05T22:01:00Z" }
   }
 }
