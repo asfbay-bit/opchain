@@ -19,6 +19,8 @@ import { bindLogger, newRequestId, EVENTS } from "./lib/request-id.js";
 import { evalFlag, evalFlags } from "./lib/flags/eval.js";
 import { ensureOcId } from "./lib/flags/identity.js";
 import { FLAG_NAMES, FLAGS, PUBLIC_FLAG_NAMES } from "./lib/flags/registry.js";
+import { createMcpServer } from "./lib/mcp/server.js";
+import mcpCatalog from "./generated/mcp-catalog.json" with { type: "json" };
 
 // Injected at build time by esbuild `define` (see build.mjs).
 // eslint-disable-next-line no-undef
@@ -600,11 +602,102 @@ const RENAMED_SKILL_IDS = new Set([
   "security-auditor", "stack-forge", "ux-engineer",
 ]);
 
+// ── MCP server (POST /mcp) ──────────────────────────────────────────────────
+//
+// Exposes the opchain skill catalog, intent routing, the shared orchestrator
+// protocol, and session checkpoints to Codex and any other MCP client over
+// streamable HTTP (JSON-RPC 2.0 on a single POST endpoint). Skill bodies stream
+// from the ASSETS binding (public/docs/<id>/SKILL.md, synced by sync-docs.sh);
+// checkpoints persist in the NOTIFY KV namespace, scoped per session. The
+// transport-agnostic core is src/lib/mcp/server.js (also wrapped over stdio by
+// mcp/local-server.mjs). Gated by the site.ops.api-mcp.kill switch in route().
+
+function mcpCheckpointStore(env) {
+  if (!env.NOTIFY) return null;
+  const key = (skill, session) => `mcp-checkpoint:${session}:${skill}`;
+  return {
+    async read(skill, session) {
+      const raw = await env.NOTIFY.get(key(skill, session));
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch { return null; }
+    },
+    async write(skill, session, data) {
+      await env.NOTIFY.put(key(skill, session), JSON.stringify(data));
+    },
+  };
+}
+
+async function handleMcp(request, env, ctx, origin, requestId) {
+  const headers = { ...corsHeaders(origin, requestId), "Cache-Control": "no-store" };
+
+  // Streamable HTTP: clients POST JSON-RPC. No standalone GET SSE stream is
+  // offered (the server is stateless request/response), so GET → 405.
+  if (request.method !== "POST") {
+    return new Response(
+      JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32600, message: "Use POST with a JSON-RPC body." } }),
+      { status: 405, headers: { ...headers, Allow: "POST, OPTIONS" } },
+    );
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return new Response(
+      JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } }),
+      { status: 400, headers },
+    );
+  }
+
+  const reqOrigin = new URL(request.url).origin;
+  const server = createMcpServer({
+    catalog: mcpCatalog,
+    serverVersion: VERSION,
+    checkpoints: mcpCheckpointStore(env),
+    // The server validates `id` against the catalog before calling this, so the
+    // path is always a known skill id — no traversal risk.
+    loadBody: async (id) => {
+      const res = await env.ASSETS.fetch(new Request(new URL(`/docs/${id}/SKILL.md`, reqOrigin)));
+      if (!res.ok) return null;
+      const text = await res.text();
+      return text && text.trim() ? text : null;
+    },
+  });
+
+  // Single message or JSON-RPC batch. Notifications (no id) get a 202 with no body.
+  if (Array.isArray(body)) {
+    if (body.length === 0) {
+      return new Response(
+        JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32600, message: "Invalid Request" } }),
+        { status: 400, headers },
+      );
+    }
+    const responses = (await Promise.all(body.map((m) => server.handle(m)))).filter((r) => r !== null);
+    if (responses.length === 0) return new Response(null, { status: 202, headers });
+    return new Response(JSON.stringify(responses), { status: 200, headers });
+  }
+
+  const response = await server.handle(body);
+  if (response === null) return new Response(null, { status: 202, headers });
+  return new Response(JSON.stringify(response), { status: 200, headers });
+}
+
 // ── Main Router ─────────────────────────────────────────────────────────────
 
 async function route(request, env, ctx, url, origin, requestId) {
-    if (request.method === "OPTIONS" && url.pathname.startsWith("/api/")) {
+    if (request.method === "OPTIONS" && (url.pathname.startsWith("/api/") || url.pathname === "/mcp")) {
       return new Response(null, { status: 204, headers: corsHeaders(origin, requestId) });
+    }
+
+    // opchain MCP server (Codex + any MCP client). JSON-RPC over a single POST.
+    if (url.pathname === "/mcp") {
+      if (await evalFlag("site.ops.api-mcp.kill", { env, ctx })) {
+        return new Response(
+          JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32000, message: "opchain MCP server is paused." } }),
+          { status: 503, headers: corsHeaders(origin, requestId) },
+        );
+      }
+      return handleMcp(request, env, ctx, origin, requestId);
     }
 
     if (url.pathname === "/api/health" && request.method === "GET") {

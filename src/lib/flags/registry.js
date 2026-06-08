@@ -164,6 +164,15 @@ const DEFINITIONS = [
     owner: "platform",
     description: "Include the flag-overrides summary block in /api/health responses.",
   },
+  {
+    name: "site.ops.api-mcp.kill",
+    type: "boolean",
+    default: false,
+    category: "ops",
+    owner: "platform",
+    description:
+      "Reject /mcp with 503. Use to pause the opchain MCP server (skill catalog + checkpoints over MCP, for Codex and other MCP clients) during incidents.",
+  },
 
   // ── site.consent ─────────────────────────────────────────────────────────
   {
