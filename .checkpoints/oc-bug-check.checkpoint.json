@@ -4,34 +4,35 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-08T17:23:41Z",
+  "updated_at": "2026-06-08T21:11:50Z",
   "phase": "gate",
-  "step": "changelog-c-v3-release-hero",
+  "step": "changelog-c-v3-live-port",
   "status": "complete",
-  "progress_summary": "Gate for the Option C v3 changelog preview, release-hero iteration (design(changelog): latest release mirrors the Coming Next hero — v1.4.2 now uses the v1.5 hero layout re-themed to the accent highlight). PASS. Only changed file is design-previews/changelog-option-c-v3.html — a self-contained static HTML preview outside the TS/build/test graph (design-previews/ is not referenced by any build script). Applicable checks: secret scan clean, anti-pattern scan clean (no debugger/console.log/.only), HTML well-formed (149/149 div, 1/1 script, 1/1 style). type_safety/lint/tests/build/dependencies N/A for a standalone preview file.",
+  "progress_summary": "Gate for the Option C v3 live port into site/src/pages/changelog.astro (2-tab layout; roadmap folded out of the now-deleted RoadmapTimeline.astro; real /api/votes wiring; deep-link + ARIA tabs). Changed: changelog.astro, RoadmapForm.astro (comment), changelog-and-scenarios.spec.ts (rewritten for the new DOM), RoadmapTimeline.astro (deleted). PASS — ran the real suite this time: `astro check` 0 errors, `astro build` 35 pages OK, `vitest run` 345/345 passing, anti-pattern + secret scan clean. The Playwright browser run is deferred to CI (chromium CDN blocked in this sandbox); the e2e specs were validated statically against the built dist/changelog/index.html — all asserted hooks present (2 tabs, panels, 6 data-vote-target ids OPC-150/160/161/162/170/171, #v1-4 /coverage link, hidden coming panel).",
   "blockers": [],
   "next_actions": [
-    "PR #265 is open with the Option C v3 preview (latest commit adds the release-hero mirror); awaiting maintainer approval of the design.",
-    "On maintainer approval, port Option C v3 into site/src/pages/changelog.astro — fold the roadmap data out of RoadmapTimeline.astro into the 2-tab layout; that real implementation re-runs the full suite (tsc/vitest/astro build/e2e)."
+    "PR #265 updated with the live changelog port; CI runs Playwright e2e + Lighthouse/Axe — watch for the changelog e2e + a11y budget.",
+    "On approval + merge to main, deploy is manual: npm run deploy:staging, eyeball staging.opchain.dev/changelog, then npm run deploy."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-08T17:23:41Z",
+      "at": "2026-06-08T21:11:50Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
-        "type_safety": "N/A",
+        "type_safety": "PASS",
         "lint": "N/A",
-        "tests": "N/A",
+        "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "N/A",
+        "build": "PASS",
         "dependencies": "N/A"
       },
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      { "at": "2026-06-08T21:11:50Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-08T17:23:41Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-08T16:56:58Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-08T15:39:19Z", "verdict": "PASS", "warnings": 0 },
@@ -39,6 +40,6 @@
     ],
     "bypasses": [],
     "carried_debt": 0,
-    "streak": { "passes": 4, "since": "2026-06-05T22:01:00Z" }
+    "streak": { "passes": 5, "since": "2026-06-05T22:01:00Z" }
   }
 }
