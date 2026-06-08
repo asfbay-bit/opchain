@@ -4,19 +4,19 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-08T21:11:50Z",
+  "updated_at": "2026-06-08T21:22:16Z",
   "phase": "gate",
-  "step": "changelog-c-v3-live-port",
+  "step": "changelog-c-v3-a11y-contrast-fix",
   "status": "complete",
-  "progress_summary": "Gate for the Option C v3 live port into site/src/pages/changelog.astro (2-tab layout; roadmap folded out of the now-deleted RoadmapTimeline.astro; real /api/votes wiring; deep-link + ARIA tabs). Changed: changelog.astro, RoadmapForm.astro (comment), changelog-and-scenarios.spec.ts (rewritten for the new DOM), RoadmapTimeline.astro (deleted). PASS — ran the real suite this time: `astro check` 0 errors, `astro build` 35 pages OK, `vitest run` 345/345 passing, anti-pattern + secret scan clean. The Playwright browser run is deferred to CI (chromium CDN blocked in this sandbox); the e2e specs were validated statically against the built dist/changelog/index.html — all asserted hooks present (2 tabs, panels, 6 data-vote-target ids OPC-150/160/161/162/170/171, #v1-4 /coverage link, hidden coming panel).",
+  "progress_summary": "Follow-up to the Option C v3 live port: CI Lighthouse flagged a color-contrast regression on the active tab-count pill (accent/info text on the faint *-dim tint failed AA at 9.5px; /changelog a11y dropped 1.00→0.97). Fix: the active count pill keeps the tint + coloured border but uses --text for the label (AA on any themed bg). Re-validated: `astro build` 35 pages OK, anti-pattern + secret scan clean on changelog.astro (CSS-only change; no TS touched, prior `astro check` was 0 errors). Browser e2e + Lighthouse re-check run in CI (chromium CDN blocked in this sandbox).",
   "blockers": [],
   "next_actions": [
-    "PR #265 updated with the live changelog port; CI runs Playwright e2e + Lighthouse/Axe — watch for the changelog e2e + a11y budget.",
-    "On approval + merge to main, deploy is manual: npm run deploy:staging, eyeball staging.opchain.dev/changelog, then npm run deploy."
+    "Auto-merge enabled on PR #265 — merges when CI is green (Playwright e2e + Lighthouse a11y back to 1.00). Watch the changelog e2e + a11y budget.",
+    "On merge to main, deploy is manual: npm run deploy:staging, eyeball staging.opchain.dev/changelog, then npm run deploy."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-08T21:11:50Z",
+      "at": "2026-06-08T21:22:16Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
@@ -32,6 +32,7 @@
       "errors": 0
     },
     "run_history": [
+      { "at": "2026-06-08T21:22:16Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-08T21:11:50Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-08T17:23:41Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-08T16:56:58Z", "verdict": "PASS", "warnings": 0 },
@@ -40,6 +41,6 @@
     ],
     "bypasses": [],
     "carried_debt": 0,
-    "streak": { "passes": 5, "since": "2026-06-05T22:01:00Z" }
+    "streak": { "passes": 6, "since": "2026-06-05T22:01:00Z" }
   }
 }

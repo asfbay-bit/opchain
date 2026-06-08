@@ -757,11 +757,15 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
     color: var(--subtle);
     transition: background var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast);
   }
+  /* Active count pill: warm/cool tint + coloured border as the active cue,
+     but `--text` for the label — accent/info text on the faint *-dim tint
+     fails AA at 9.5px (Lighthouse color-contrast), while --text is AA on
+     any themed background. */
   .tab-btn[aria-selected="true"] .tab-count {
-    background: var(--accent-dim); border-color: var(--accent); color: var(--accent);
+    background: var(--accent-dim); border-color: var(--accent); color: var(--text);
   }
   .tab-btn--next[aria-selected="true"] .tab-count {
-    background: var(--info-dim); border-color: var(--info); color: var(--info);
+    background: var(--info-dim); border-color: var(--info); color: var(--text);
   }
   .tab-indicator {
     position: absolute;
