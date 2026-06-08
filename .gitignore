@@ -34,6 +34,11 @@ src/generated/*
 # without a build-first dependency; the build overwrites it.
 !src/generated/packs-catalog.json
 
+# Baseline emitted by scripts/gen-mcp-catalog.mjs. Same pattern — tracked so
+# the Worker can import it for the /mcp endpoint before any prebuild has run;
+# the build overwrites it.
+!src/generated/mcp-catalog.json
+
 # Codegen — regenerated on every prebuild from src/lib/flags/registry.js
 site/src/lib/flags/registry.ts
 

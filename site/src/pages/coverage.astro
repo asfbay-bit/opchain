@@ -5,11 +5,11 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
 import packsCatalog from "../../../src/generated/packs-catalog.json";
 
 /**
- * /coverage — a build-time-rendered catalog of every stack-forge pack.
+ * /coverage — a build-time-rendered catalog of every oc-stack-forge pack.
  *
  * Source data is `src/generated/packs-catalog.json`, emitted by
  * `scripts/gen-packs-catalog.mjs` in prebuild from the pack.yml files
- * under `skills/stack-forge/packs/<id>/`. Grouped by kind:
+ * under `skills/oc-stack-forge/packs/<id>/`. Grouped by kind:
  *   - languages — top-level toolchains with testRunner/buildCmd/lintCmd
  *   - frameworks — application frameworks layered on a language pack
  *   - mobile — checklist-driven mobile platforms
@@ -49,7 +49,7 @@ const STATUS_LABEL: Record<PackData["status"], string> = {
   deprecated: "deprecated",
 };
 
-const REPO_TREE = "https://github.com/asfbay-bit/opchain/tree/main/skills/stack-forge/packs";
+const REPO_TREE = "https://github.com/asfbay-bit/opchain/tree/main/skills/oc-stack-forge/packs";
 const sourceUrl = (id: string) => `${REPO_TREE}/${id}`;
 
 const counts = {
@@ -63,7 +63,7 @@ const counts = {
 
 <Base
   title="Coverage · opchain"
-  description={`Every stack-forge pack opchain ships — ${counts.total} packs across ${counts.language} languages, ${counts.framework} frameworks, ${counts.mobile} mobile platforms, and ${counts.deployTarget} deploy targets.`}
+  description={`Every oc-stack-forge pack opchain ships — ${counts.total} packs across ${counts.language} languages, ${counts.framework} frameworks, ${counts.mobile} mobile platforms, and ${counts.deployTarget} deploy targets.`}
   active="/"
 >
   <main class="page coverage-page">
@@ -73,7 +73,7 @@ const counts = {
     </div>
 
     <p class="lede">
-      Every <a href={REPO_TREE}><code>stack-forge</code> pack</a> opchain
+      Every <a href={REPO_TREE}><code>oc-stack-forge</code> pack</a> opchain
       ships, grouped by what role it plays in the dispatch graph.
       <strong>Languages</strong> have a canonical test-runner / build /
       lint command. <strong>Frameworks</strong> attach to a language pack.
@@ -130,7 +130,7 @@ const counts = {
       <h2 id="cov-h-frameworks">Frameworks</h2>
       <p class="cov-sub">
         Application frameworks layered on a language pack. Inherit the
-        language's test / build / lint command set; stack-forge picks them
+        language's test / build / lint command set; oc-stack-forge picks them
         when the workload signal matches the framework profile.
       </p>
       <ul class="cov-grid">
@@ -153,7 +153,7 @@ const counts = {
     <section class="cov-section" aria-labelledby="cov-h-mobile">
       <h2 id="cov-h-mobile">Mobile</h2>
       <p class="cov-sub">
-        Mobile platforms. <code>stack-forge</code> dispatches these
+        Mobile platforms. <code>oc-stack-forge</code> dispatches these
         through the <code>dispatchMobile()</code> envelope &mdash; the
         ref doc is rendered as a release checklist (App Store review,
         Play Console rollout, EAS Submit) rather than executed as
@@ -184,7 +184,7 @@ const counts = {
         Hosting providers that language / framework / mobile packs can
         target. <strong>No coverage flag is emitted</strong> &mdash;
         deploy-targets are sub-selections under another offer, not
-        top-level coverage units. <code>deploy-ops</code> uses these to
+        top-level coverage units. <code>oc-deploy-ops</code> uses these to
         pick the right provider section of its <code>SKILL.md</code>.
       </p>
       <ul class="cov-grid">
@@ -207,7 +207,7 @@ const counts = {
       <h2>How to use</h2>
       <p>
         Every pack ships with a reference doc in
-        <a href={REPO_TREE} rel="noopener"><code>skills/stack-forge/packs/&lt;id&gt;/</code></a>
+        <a href={REPO_TREE} rel="noopener"><code>skills/oc-stack-forge/packs/&lt;id&gt;/</code></a>
         covering when to pick it, the canonical tooling, default deploy
         targets, and gotchas. Click any pack name above to jump to the
         source on GitHub.
@@ -217,7 +217,7 @@ const counts = {
         <a href={`${REPO_TREE}/CONTRIBUTING.md`} rel="noopener"><code>CONTRIBUTING.md</code></a>
         for the contract. The <code>scripts/gen-stack-packs.mjs</code>
         validator runs on every build, so accidental schema drift fails
-        CI rather than silently breaking <code>stack-forge</code>'s
+        CI rather than silently breaking <code>oc-stack-forge</code>'s
         recommendations.
       </p>
     </section>

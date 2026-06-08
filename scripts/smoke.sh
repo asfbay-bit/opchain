@@ -72,6 +72,20 @@ check_zip() {
   [ "$status" -lt 400 ] 2>/dev/null
 }
 
+check_skill_redirect() {
+  # Skills gained an `oc-` prefix; an old /skills/<id> URL must 301 to the
+  # prefixed path so inbound + bookmarked links survive the rename.
+  local loc
+  loc="$(curl -sS -o /dev/null -w '%{redirect_url}' "${URL}/skills/code-auditor" 2>/dev/null || echo "")"
+  case "$loc" in
+    *"/skills/oc-code-auditor"*) return 0 ;;
+    *)
+      echo "smoke: /skills/code-auditor did not 301 to /skills/oc-code-auditor (got '${loc}')"
+      return 1
+      ;;
+  esac
+}
+
 check_security_headers() {
   local hdrs
   hdrs="$(curl -fsS -D - -o /dev/null "${URL}/")"
@@ -87,6 +101,7 @@ note "target  = ${URL}"
 with_retry check_health           && note "health  OK" || err "health check failed — 200+{ok:true}+application/json"
 with_retry check_homepage         && note "home    OK" || err "homepage failed — 200+text/html"
 with_retry check_zip              && note "zip     OK" || err "zip download not reachable"
+with_retry check_skill_redirect   && note "redirect OK" || err "old /skills/<id> did not 301 to /skills/oc-<id>"
 with_retry check_security_headers && note "headers OK" || err "security headers missing on homepage"
 
 if [ "$fail" -ne 0 ]; then

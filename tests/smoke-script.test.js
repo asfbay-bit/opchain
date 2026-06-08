@@ -60,8 +60,10 @@ function runSmoke(url) {
         ...process.env,
         DEPLOY_URL: url,
         // Collapse the retry schedule so failing cases don't pay 15s per check.
-        // Production CI retains the 5×3s default (smoke.sh:22-23).
-        SMOKE_RETRIES: "1",
+        // 2 immediate retries (no sleep) absorb transient in-process-server
+        // timing blips without slowing the suite. Production CI retains the
+        // 5×3s default (smoke.sh:22-23).
+        SMOKE_RETRIES: "2",
         SMOKE_RETRY_SLEEP: "0",
       },
     });
@@ -91,6 +93,13 @@ function goodZip(_req, res) {
   res.end("PK\x03\x04");
 }
 
+function goodSkillRedirect(_req, res) {
+  // Old (pre-oc-) skill URL 301s to the prefixed path; relative Location is
+  // resolved by curl's %{redirect_url} against the request origin.
+  res.writeHead(301, { location: "/skills/oc-code-auditor" });
+  res.end();
+}
+
 let active;
 
 afterEach(async () => {
@@ -106,6 +115,7 @@ describe("scripts/smoke.sh", () => {
       "/": goodHomepage,
       "/api/health": goodHealth,
       "/opchain-skills.zip": goodZip,
+      "/skills/code-auditor": goodSkillRedirect,
     });
     const result = await runSmoke(active.url);
     expect(
@@ -126,6 +136,7 @@ describe("scripts/smoke.sh", () => {
       },
       "/api/health": goodHealth,
       "/opchain-skills.zip": goodZip,
+      "/skills/code-auditor": goodSkillRedirect,
     });
     const result = await runSmoke(active.url);
     expect(result.status).not.toBe(0);
@@ -140,6 +151,7 @@ describe("scripts/smoke.sh", () => {
         res.end('{"ok":true}');
       },
       "/opchain-skills.zip": goodZip,
+      "/skills/code-auditor": goodSkillRedirect,
     });
     const result = await runSmoke(active.url);
     expect(result.status).not.toBe(0);
@@ -154,6 +166,7 @@ describe("scripts/smoke.sh", () => {
       },
       "/api/health": goodHealth,
       "/opchain-skills.zip": goodZip,
+      "/skills/code-auditor": goodSkillRedirect,
     });
     const result = await runSmoke(active.url);
     expect(result.status).not.toBe(0);

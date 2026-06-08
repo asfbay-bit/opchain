@@ -72,16 +72,16 @@ opchain/
 │   ├── opchain-skills.zip  # Generated from skills/ by scripts/make-skills-zip.sh
 │   └── docs/               # Synced from skills/ by scripts/sync-docs.sh
 ├── skills/                 # Skill source definitions (the product)
-│   ├── app-architect/
-│   ├── checkpoint-protocol/
-│   ├── code-auditor/
-│   ├── deploy-ops/
-│   ├── git-ops/
-│   ├── integrations-engineer/
-│   ├── reverse-spec/
-│   ├── scale-ops/
-│   ├── stack-forge/
-│   ├── ux-engineer/
+│   ├── oc-app-architect/
+│   ├── oc-checkpoint-protocol/
+│   ├── oc-code-auditor/
+│   ├── oc-deploy-ops/
+│   ├── oc-git-ops/
+│   ├── oc-integrations-engineer/
+│   ├── oc-reverse-spec/
+│   ├── oc-scale-ops/
+│   ├── oc-stack-forge/
+│   ├── oc-ux-engineer/
 │   ├── orchestrator.md     # Shared orchestration rules
 │   └── README.md           # Installation instructions
 ├── site/                   # Astro 5 app. Scaffolded Sprint 0; content collection in Sprint 1; cutover Sprint 6.
@@ -168,7 +168,7 @@ CI deploy needs two GitHub Actions secrets at the repo level:
 - **Skill catalog validation runs on every build.** `scripts/gen-skills-catalog.mjs` reads `skills/<id>/SKILL.md` frontmatter and asserts required fields are present and the directory name matches `frontmatter.name`. The Astro site reads `skills/` directly via `site/src/content.config.ts`; there is no longer a separate codegen step.
 - **Skill docs** in `public/docs/` are synced from `skills/` via `sync-docs.sh`. Edit the source in `skills/`, the copy regenerates on build.
 - **styles.css** has all component styles inline — no CSS modules, no preprocessor.
-- **URL paths in HTML** use root-relative paths (e.g., `/styles.css`, `/docs/app-architect/SKILL.md`). These were previously `/opchain/styles.css` etc. when hosted under aidops.dev — they've been updated for standalone hosting.
+- **URL paths in HTML** use root-relative paths (e.g., `/styles.css`, `/docs/oc-app-architect/SKILL.md`). These were previously `/opchain/styles.css` etc. when hosted under aidops.dev — they've been updated for standalone hosting.
 
 ## Feature flags
 

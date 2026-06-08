@@ -15,6 +15,7 @@
     "sync-docs": "bash scripts/sync-docs.sh",
     "make-zip": "bash scripts/make-skills-zip.sh",
     "gen-catalog": "node scripts/gen-skills-catalog.mjs",
+    "gen-mcp-catalog": "node scripts/gen-mcp-catalog.mjs",
     "gen-flags": "node scripts/gen-flags.mjs",
     "gen-stack-packs": "node scripts/gen-stack-packs.mjs",
     "gen-api-dev-adapters": "node scripts/gen-api-dev-adapters.mjs",
@@ -25,8 +26,8 @@
     "sync-bundles": "node scripts/sync-skill-bundles.mjs",
     "sync-bundles:check": "node scripts/sync-skill-bundles.mjs --check",
     "build-site": "bash scripts/build-site.sh",
-    "prebuild": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run validate-pm-mcp && npm run sync-bundles:check && npm run sync-docs && npm run make-zip && npm run gen-og && npm run gen-roadmap && npm run build-site",
-    "pretest": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run validate-pm-mcp && npm run sync-bundles:check",
+    "prebuild": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check && npm run sync-docs && npm run make-zip && npm run gen-og && npm run gen-roadmap && npm run build-site",
+    "pretest": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check",
     "test": "vitest run",
     "test:watch": "vitest",
     "site:install": "cd site && npm install",
@@ -42,9 +43,9 @@
   "devDependencies": {
     "esbuild": "^0.28.0",
     "gray-matter": "^4.0.3",
-    "js-yaml": "^4.1.1",
-    "vitest": "^4.1.6",
-    "wrangler": "^4.95.0"
+    "js-yaml": "^4.2.0",
+    "vitest": "^4.1.8",
+    "wrangler": "^4.98.0"
   },
   "dependencies": {
     "zod": "^4.4.3"

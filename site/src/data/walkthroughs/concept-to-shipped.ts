@@ -1,10 +1,10 @@
 import type { Walkthrough } from "./types";
 
 /**
- * Scenario 1 — full app-architect pipeline.
- * Covers: app-architect hub, auto-invoke of stack-forge + ux-engineer,
+ * Scenario 1 — full oc-app-architect pipeline.
+ * Covers: oc-app-architect hub, auto-invoke of oc-stack-forge + oc-ux-engineer,
  * the Generator/Evaluator build loop, and the ship handoff through
- * git-ops → deploy-ops.
+ * oc-git-ops → oc-deploy-ops.
  */
 export const conceptToShipped: Walkthrough = {
   id: "concept-to-shipped",
@@ -13,7 +13,7 @@ export const conceptToShipped: Walkthrough = {
   summary:
     "A solo founder types an idea and walks out with a live app — nothing cherry-picked.",
   description:
-    "Heads Down is an idea in the founder's head at 10am. By 2pm it's a production Cloudflare Worker, six PRs merged, 94 passing tests, and a staging URL her co-founder can poke at. app-architect runs the full pipeline — discovery interview, spec, design, sprint plan, Generator/Evaluator build loop — auto-invoking stack-forge for the tech stack and ux-engineer for the style book, then handing off to git-ops and deploy-ops to ship. No API keys. No SaaS. Every phase has a checkpoint the founder can rewind to.",
+    "Heads Down is an idea in the founder's head at 10am. By 2pm it's a production Cloudflare Worker, six PRs merged, 94 passing tests, and a staging URL her co-founder can poke at. oc-app-architect runs the full pipeline — discovery interview, spec, design, sprint plan, Generator/Evaluator build loop — auto-invoking oc-stack-forge for the tech stack and oc-ux-engineer for the style book, then handing off to oc-git-ops and oc-deploy-ops to ship. No API keys. No SaaS. Every phase has a checkpoint the founder can rewind to.",
   inputs: [
     "One-sentence product idea",
     "No existing code · no stack decision · no design system",
@@ -28,7 +28,7 @@ export const conceptToShipped: Walkthrough = {
       body:
 `# Heads Down — Master Spec
 
-**Version** 1.0.0 · **Owner** app-architect checkpoint · **Status** Phase 7 complete · **Last updated** 2026-04-12
+**Version** 1.0.0 · **Owner** oc-app-architect checkpoint · **Status** Phase 7 complete · **Last updated** 2026-04-12
 
 > **Reading guide.** Sections 1–3 are the elevator pitch. Sections 4–7 cover product surface area (personas, flows, screens). Sections 8–11 cover engineering surface (data, APIs, permissions, push). Sections 12–17 cover the qualities the system must hold (a11y, perf, security, observability, telemetry, success). Sections 18–22 are the operational scaffolding (risks, non-goals, glossary, change log, checkpoints).
 
@@ -288,7 +288,7 @@ Lighthouse CI runs on every PR (mobile preset). Failing budget blocks merge.
 - Magic link tokens: 32-byte random, single-use, 15-minute TTL.
 - Session cookie: \`__Host-\` prefix, \`HttpOnly\`, \`Secure\`, \`SameSite=Strict\`.
 - CSRF: same-site cookie + same-origin check on every mutation; no separate token.
-- CSP: \`default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://api.*; img-src 'self' data:;\` enforced from day one (no report-only — we ship strict and fix any breakage in PR).
+- CSP: \`default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://oc-api.*; img-src 'self' data:;\` enforced from day one (no report-only — we ship strict and fix any breakage in PR).
 - HSTS: \`max-age=63072000; includeSubDomains; preload\`.
 - All third parties: zero in v1. No analytics SDK (we use Cloudflare Web Analytics, cookieless). No live-chat widget. No font CDN.
 - PII inventory: email, display name, team membership. **Not** stored: IP (only in CF logs, retained 14 days), location, device fingerprint.
@@ -382,15 +382,15 @@ Error budget = 1 − target. Burn-rate alerts: 14.4× over 1h burns 2% of monthl
 
 ## 23. Phase checkpoints
 
-\`.checkpoints/app-architect.checkpoint.json\` captures phase 1–7 outcomes + the approval gate log. Restoring from any checkpoint resumes the session without context loss. The checkpoint includes:
+\`.checkpoints/oc-app-architect.checkpoint.json\` captures phase 1–7 outcomes + the approval gate log. Restoring from any checkpoint resumes the session without context loss. The checkpoint includes:
 
 - Discovery answers (Phase 1)
 - Stack-forge output reference (Phase 2)
 - UX style book reference (Phase 3)
 - Sprint plan + scaffold commit SHA (Phase 4)
 - Per-sprint Generator/Evaluator scores (Phase 5)
-- git-ops PR list (Phase 6)
-- deploy-ops staging URL + production URL (Phase 7)
+- oc-git-ops PR list (Phase 6)
+- oc-deploy-ops staging URL + production URL (Phase 7)
 
 To rewind to a prior phase: \`/replay phase=3\`. The session resumes from the UX checkpoint with all later state cleared.`,
     },
@@ -401,7 +401,7 @@ To rewind to a prior phase: \`/replay phase=3\`. The session resumes from the UX
       body:
 `# Stack Decision — Heads Down
 
-**Produced by** stack-forge on behalf of app-architect, Phase 2 · **Decision date** 2026-04-09 · **Re-evaluation triggers** see §8.
+**Produced by** oc-stack-forge on behalf of oc-app-architect, Phase 2 · **Decision date** 2026-04-09 · **Re-evaluation triggers** see §8.
 
 ## 1. Decision criteria (defined before scoring)
 
@@ -502,7 +502,7 @@ web-push@3.6.x
 
 Cloudflare compat date: \`2026-04-01\` (latest stable).
 
-Checkpoint written to \`.checkpoints/stack-forge.checkpoint.json\`; app-architect reads it for Phase 3 design brief.`,
+Checkpoint written to \`.checkpoints/oc-stack-forge.checkpoint.json\`; oc-app-architect reads it for Phase 3 design brief.`,
     },
     {
       id: "sprint-ledger",
@@ -511,7 +511,7 @@ Checkpoint written to \`.checkpoints/stack-forge.checkpoint.json\`; app-architec
       body:
 `# Sprint Ledger — Heads Down
 
-Generator proposes, Evaluator grades, loop repeats until ≥ 85. Each sprint written to \`.checkpoints/app-architect.checkpoint.json\` on completion.
+Generator proposes, Evaluator grades, loop repeats until ≥ 85. Each sprint written to \`.checkpoints/oc-app-architect.checkpoint.json\` on completion.
 
 ## 1. Scoreboard
 
@@ -617,7 +617,7 @@ A sprint ships at ≥ 85; below that, Generator runs another pass with the deduc
 
 ## 7. Checkpoint
 
-Each sprint's pass-by-pass detail (file diffs, test list, Evaluator narrative, score breakdown) lives in \`.checkpoints/app-architect.checkpoint.json\` under \`phases.5.sprints[]\`. Replayable with \`/replay sprint=04 pass=1\`.`,
+Each sprint's pass-by-pass detail (file diffs, test list, Evaluator narrative, score breakdown) lives in \`.checkpoints/oc-app-architect.checkpoint.json\` under \`phases.5.sprints[]\`. Replayable with \`/replay sprint=04 pass=1\`.`,
     },
     {
       id: "pr-bundle",
@@ -626,7 +626,7 @@ Each sprint's pass-by-pass detail (file diffs, test list, Evaluator narrative, s
       body:
 `# Pull Request Bundle
 
-All six PRs opened in draft by **git-ops**; descriptions auto-written from the sprint ledger. Filterable on the repo under label \`opchain-sprint\`. Reviewer should merge in order — each PR depends on the prior schema/state.
+All six PRs opened in draft by **oc-git-ops**; descriptions auto-written from the sprint ledger. Filterable on the repo under label \`opchain-sprint\`. Reviewer should merge in order — each PR depends on the prior schema/state.
 
 ## Index
 
@@ -795,7 +795,7 @@ All PRs opened in \`draft\` mode so the human reviewer can approve in order with
       body:
 `# Heads Down — Deploy & Rollback Runbook
 
-**Owner** deploy-ops checkpoint · Produced after Phase 7 ship handoff · **Reviewed quarterly**.
+**Owner** oc-deploy-ops checkpoint · Produced after Phase 7 ship handoff · **Reviewed quarterly**.
 
 ## 1. Deploy procedure (normal)
 
@@ -928,22 +928,22 @@ Postmortems are blameless. Action items live in Linear under the \`incident\` la
 - **2026-04-19** — added Lighthouse smoke check (#12).
 - **2026-04-26** — added \`FLAG_BOARD_POLL\` after a hot-read storm test.
 
-Checkpoint: \`.checkpoints/deploy-ops.checkpoint.json\` — includes deploy history, rollback events, on-call schedule.`,
+Checkpoint: \`.checkpoints/oc-deploy-ops.checkpoint.json\` — includes deploy history, rollback events, on-call schedule.`,
     },
   ],
-  skills: ["app-architect", "stack-forge", "ux-engineer", "git-ops", "deploy-ops"],
+  skills: ["oc-app-architect", "oc-stack-forge", "oc-ux-engineer", "oc-git-ops", "oc-deploy-ops"],
   runtime: "≈ 22 exchanges",
   steps: [
-    { type: "beat", label: "01 · Discover", caption: "app-architect runs the interview", skills: ["app-architect"] },
+    { type: "beat", label: "01 · Discover", caption: "oc-app-architect runs the interview", skills: ["oc-app-architect"] },
 
     {
       type: "exchange", role: "user",
       content: "I want to build a Pomodoro app for remote teams. Team members start a focus block, others see who's heads-down, and the app nudges them to break together."
     },
     {
-      type: "exchange", role: "claude", skill: "app-architect",
+      type: "exchange", role: "claude", skill: "oc-app-architect",
       content:
-`Recognized a new-app brief — invoking **app-architect** and loading \`orchestrator.md\`. No prior checkpoint found, so I'll start at Phase 1 (Discovery).
+`Recognized a new-app brief — invoking **oc-app-architect** and loading \`oc-orchestrator.md\`. No prior checkpoint found, so I'll start at Phase 1 (Discovery).
 
 I'll run eight questions to lock the shape of the product. You can skip any by saying "skip" and we'll fill defaults from comparable apps.
 
@@ -961,7 +961,7 @@ I'll run eight questions to lock the shape of the product. You can skip any by s
       content: "Primary user is the IC. Real-time is nice but 30s refresh is fine for v1. Target: teams of 5–30. Self-serve signup. Mobile-first."
     },
     {
-      type: "exchange", role: "claude", skill: "app-architect",
+      type: "exchange", role: "claude", skill: "oc-app-architect",
       content:
 `Good — anchoring on the IC, polling rather than websockets, 5-30 person teams, mobile-first, self-serve. Continuing:
 
@@ -976,27 +976,27 @@ I'll run eight questions to lock the shape of the product. You can skip any by s
       content: "Invite links. User picks duration from {15, 25, 45, 60}. Nudges via browser push + Slack later. Free with a soft cap at 50 active teams. Timer must survive tab close — treat as server-side authoritative."
     },
     {
-      type: "exchange", role: "claude", skill: "app-architect",
+      type: "exchange", role: "claude", skill: "oc-app-architect",
       content:
-`Writing \`.checkpoints/app-architect.checkpoint.json\` — Phase 1 complete.
+`Writing \`.checkpoints/oc-app-architect.checkpoint.json\` — Phase 1 complete.
 
 **Product summary (will become the spec's TL;DR):**
 
 > **Heads Down** — a team pomodoro tracker. ICs start focus blocks of 15/25/45/60 minutes; teammates see who's heads-down on a shared board. Browser push nudges at block end. Server is the source of truth for timers; closing a tab doesn't stop a session. Free with a 50-team soft cap.
 
-I'll advance to **Phase 2 — Spec + Stack**. Auto-invoking \`stack-forge\` for the stack decision. Type \`/approve\` to advance, or push back on anything in the summary.`
+I'll advance to **Phase 2 — Spec + Stack**. Auto-invoking \`oc-stack-forge\` for the stack decision. Type \`/approve\` to advance, or push back on anything in the summary.`
     },
     {
       type: "exchange", role: "user",
       content: "/approve"
     },
 
-    { type: "beat", label: "02 · Spec + Stack", caption: "stack-forge picks the stack", skills: ["app-architect", "stack-forge"] },
+    { type: "beat", label: "02 · Spec + Stack", caption: "oc-stack-forge picks the stack", skills: ["oc-app-architect", "oc-stack-forge"] },
 
     {
-      type: "exchange", role: "claude", skill: "stack-forge",
+      type: "exchange", role: "claude", skill: "oc-stack-forge",
       content:
-`Invoked by app-architect with the Heads Down brief. I run three scorecards — frontend, backend, and infra — against the constraints (mobile-first, server-authoritative timers, 50-team soft cap, self-serve signup, Slack integration roadmap).
+`Invoked by oc-app-architect with the Heads Down brief. I run three scorecards — frontend, backend, and infra — against the constraints (mobile-first, server-authoritative timers, 50-team soft cap, self-serve signup, Slack integration roadmap).
 
 **Recommendation — v1 stack:**
 
@@ -1010,32 +1010,32 @@ I'll advance to **Phase 2 — Spec + Stack**. Auto-invoking \`stack-forge\` for 
 
 **Anti-picks:** Next.js (overkill), Supabase (stack lock-in this early), Firebase (cost risk at scale), Postgres on RDS (infra we don't need yet).
 
-Writing \`.checkpoints/stack-forge.checkpoint.json\`. Control returns to app-architect.`
+Writing \`.checkpoints/oc-stack-forge.checkpoint.json\`. Control returns to oc-app-architect.`
     },
     {
-      type: "exchange", role: "claude", skill: "app-architect",
+      type: "exchange", role: "claude", skill: "oc-app-architect",
       artifacts: ["master-spec", "stack-decision"],
       content:
-`Spec drafted against the stack-forge output — 11 screens, 4 data models, 3 API surfaces. Full doc is 18 pages; here's the TL;DR of what you'd see on \`/export-spec\`:
+`Spec drafted against the oc-stack-forge output — 11 screens, 4 data models, 3 API surfaces. Full doc is 18 pages; here's the TL;DR of what you'd see on \`/oc-export-spec\`:
 
 - **Screens:** team board · new session · session-in-progress · session ended · join-via-link · settings · billing stub · 3 admin views
 - **Models:** \`User\`, \`Team\`, \`Session\`, \`Membership\`
 - **APIs:** \`POST /sessions/start\` · \`POST /sessions/end\` · \`GET /teams/:id/board\` (cacheable, 30s TTL)
 - **Open questions:** (1) timezone display — team-local or user-local? (2) push permission UX — prompt on signup, on first session, or nudge card on the board?
 
-Phase 2 checkpoint written. Ready for **Phase 3 — Design** (auto-invokes \`ux-engineer\`). \`/approve\` to advance.`
+Phase 2 checkpoint written. Ready for **Phase 3 — Design** (auto-invokes \`oc-ux-engineer\`). \`/approve\` to advance.`
     },
     {
       type: "exchange", role: "user",
       content: "User-local for timezone. Push prompt on first session (not signup). /approve"
     },
 
-    { type: "beat", label: "03 · Design", caption: "ux-engineer builds the style book", skills: ["app-architect", "ux-engineer"] },
+    { type: "beat", label: "03 · Design", caption: "oc-ux-engineer builds the style book", skills: ["oc-app-architect", "oc-ux-engineer"] },
 
     {
-      type: "exchange", role: "claude", skill: "ux-engineer",
+      type: "exchange", role: "claude", skill: "oc-ux-engineer",
       content:
-`Invoked by app-architect for Phase 3. Since this is a consumer-ish timer app without dense tabular data, I stay solo — \`dash-forge\` not needed.
+`Invoked by oc-app-architect for Phase 3. Since this is a consumer-ish timer app without dense tabular data, I stay solo — \`oc-dash-forge\` not needed.
 
 **Design system — "Quiet Work":**
 - **Palette:** Ink \`#1b1d1f\` / Mist \`#e9e6df\` / Leaf \`#2f8a57\` (focus) / Clay \`#d96b3a\` (alert). High contrast for at-a-glance board scanning.
@@ -1045,17 +1045,17 @@ Phase 2 checkpoint written. Ready for **Phase 3 — Design** (auto-invokes \`ux-
 
 Delivered: style book (18 tokens), wireframes (11 screens), Figma-equivalent prompts for hi-fi mocks. Evaluator loop (Generator → Evaluator harness) passes with 88/100 — deductions for mobile nav contrast at 4.4:1 (target 4.5:1).
 
-Writing \`.checkpoints/ux-engineer.checkpoint.json\` with the style book. \`/approve\` to proceed to roadmap.`
+Writing \`.checkpoints/oc-ux-engineer.checkpoint.json\` with the style book. \`/approve\` to proceed to roadmap.`
     },
     {
       type: "exchange", role: "user",
       content: "/approve"
     },
 
-    { type: "beat", label: "04 · Roadmap + Scaffold", caption: "sprint plan and runnable skeleton", skills: ["app-architect"] },
+    { type: "beat", label: "04 · Roadmap + Scaffold", caption: "sprint plan and runnable skeleton", skills: ["oc-app-architect"] },
 
     {
-      type: "exchange", role: "claude", skill: "app-architect",
+      type: "exchange", role: "claude", skill: "oc-app-architect",
       content:
 `**Sprint plan — 6 sprints to v1:**
 
@@ -1075,10 +1075,10 @@ Scaffold generated: 47 files, passing \`pnpm dev\`, schema migrated, \`/auth/mag
       content: "/approve"
     },
 
-    { type: "beat", label: "05 · Build", caption: "Generator → Evaluator sprint loop", skills: ["app-architect"] },
+    { type: "beat", label: "05 · Build", caption: "Generator → Evaluator sprint loop", skills: ["oc-app-architect"] },
 
     {
-      type: "exchange", role: "claude", skill: "app-architect",
+      type: "exchange", role: "claude", skill: "oc-app-architect",
       content:
 `**Sprint 1 — Auth + team creation.** Running the Generator/Evaluator harness.
 
@@ -1087,14 +1087,14 @@ Scaffold generated: 47 files, passing \`pnpm dev\`, schema migrated, \`/auth/mag
 **Generator pass 2** — tightened validation, added KV-backed rate limit, fuzz test on team-slug.
 **Evaluator pass 2** — 94/100. Ship it.
 
-Writing checkpoint. Next sprint? Say \`/build\` to continue, \`/status\` for the scoreboard, or \`/approve\` to auto-run all remaining sprints back-to-back.`
+Writing checkpoint. Next sprint? Say \`/oc-build\` to continue, \`/status\` for the scoreboard, or \`/approve\` to auto-run all remaining sprints back-to-back.`
     },
     {
       type: "exchange", role: "user",
       content: "Run all remaining sprints. /approve"
     },
     {
-      type: "exchange", role: "claude", skill: "app-architect",
+      type: "exchange", role: "claude", skill: "oc-app-architect",
       artifacts: ["sprint-ledger"],
       content:
 `Running Sprints 2–6 end-to-end. Streaming the scoreboard:
@@ -1107,16 +1107,16 @@ Sprint 5 · Stripe Checkout + soft cap         passed · 90/100
 Sprint 6 · Empty states + /privacy + GA4      passed · 95/100
 \`\`\`
 
-All green. Invoking **git-ops** with the full sprint ledger.`
+All green. Invoking **oc-git-ops** with the full sprint ledger.`
     },
 
-    { type: "beat", label: "06 · Ship", caption: "git-ops → deploy-ops", skills: ["git-ops", "deploy-ops"] },
+    { type: "beat", label: "06 · Ship", caption: "oc-git-ops → oc-deploy-ops", skills: ["oc-git-ops", "oc-deploy-ops"] },
 
     {
-      type: "exchange", role: "claude", skill: "git-ops",
+      type: "exchange", role: "claude", skill: "oc-git-ops",
       artifacts: ["pr-bundle"],
       content:
-`Reading app-architect's checkpoint — 6 sprints, 94 passing tests, no outstanding blockers.
+`Reading oc-app-architect's checkpoint — 6 sprints, 94 passing tests, no outstanding blockers.
 
 Creating branches \`sprint/1-auth\` … \`sprint/6-polish\`, one PR per sprint, each with generated descriptions + test plan. Draft mode on all six so you can review.
 
@@ -1129,12 +1129,12 @@ Creating branches \`sprint/1-auth\` … \`sprint/6-polish\`, one PR per sprint, 
  #19  Sprint 6 · Polish                   draft · +196 −44  · 25 tests
 \`\`\`
 
-Handing off to **deploy-ops** for the preview + staging pipeline.`
+Handing off to **oc-deploy-ops** for the preview + staging pipeline.`
     },
     {
-      type: "exchange", role: "claude", skill: "deploy-ops",
+      type: "exchange", role: "claude", skill: "oc-deploy-ops",
       content:
-`Reading git-ops checkpoint. Building preview deployments for each PR, running the Cloudflare Workers + D1 migration dry-run, wiring the staging secrets.
+`Reading oc-git-ops checkpoint. Building preview deployments for each PR, running the Cloudflare Workers + D1 migration dry-run, wiring the staging secrets.
 
 \`\`\`
  heads-down-staging.workers.dev   deployed · 42 KB worker · TTFB 38ms
@@ -1143,15 +1143,15 @@ Handing off to **deploy-ops** for the preview + staging pipeline.`
  security headers                 CSP, HSTS, nosniff, Frame-Options all present
 \`\`\`
 
-Staging is live. Production deploy is one \`/launch\` away — but give it 24h soak first. Writing \`.checkpoints/deploy-ops.checkpoint.json\` with the staging URL + a rollback runbook.`,
+Staging is live. Production deploy is one \`/oc-launch\` away — but give it 24h soak first. Writing \`.checkpoints/oc-deploy-ops.checkpoint.json\` with the staging URL + a rollback runbook.`,
       artifacts: ["rollback-runbook"],
     },
     {
       type: "exchange", role: "user",
-      content: "Soaked fine overnight. /launch"
+      content: "Soaked fine overnight. /oc-launch"
     },
     {
-      type: "exchange", role: "claude", skill: "deploy-ops",
+      type: "exchange", role: "claude", skill: "oc-deploy-ops",
       content:
 `Promoting staging → production. DNS \`headsdown.app\` points at the prod worker. Post-deploy smoke: all green. Error budget: 0 requests 5xx'd in the first 60 minutes.
 
@@ -1159,7 +1159,7 @@ Staging is live. Production deploy is one \`/launch\` away — but give it 24h s
 - **Time elapsed:** 3h 41m of chat, mostly spent on design.
 - **Code shipped:** 2,627 lines across 6 PRs, 94 tests passing.
 - **Infra cost:** \`$0\` (Workers free tier fits the 50-team soft cap).
-- **Next natural phase:** \`scale-ops\` advisory when you hit ~30 teams; \`integrations-engineer\` whenever you're ready for the Slack bot.
+- **Next natural phase:** \`oc-scale-ops\` advisory when you hit ~30 teams; \`oc-integrations-engineer\` whenever you're ready for the Slack bot.
 
 Congrats — you shipped. 🚀`
     },

@@ -92,17 +92,17 @@ import RoadmapForm from "../components/RoadmapForm.astro";
       <h3>Cross-skill ripples</h3>
       <ul>
         <li>
-          <strong><code>app-architect</code></strong> gains an "AI app?"
-          branch in <code>/discover</code> that routes to the four new
+          <strong><code>oc-app-architect</code></strong> gains an "AI app?"
+          branch in <code>/oc-discover</code> that routes to the four new
           skills.
         </li>
         <li>
-          <strong><code>stack-forge</code></strong> adds vector-DB packs
+          <strong><code>oc-stack-forge</code></strong> adds vector-DB packs
           (pgvector, Turbopuffer, Pinecone, Supabase Vectors) to the v1.4
           pack registry &mdash; pure additive.
         </li>
         <li>
-          <strong><code>code-auditor</code></strong> learns
+          <strong><code>oc-code-auditor</code></strong> learns
           prompt-injection and tool-use safety rules.
         </li>
       </ul>
@@ -148,7 +148,7 @@ import RoadmapForm from "../components/RoadmapForm.astro";
         <em>what did they cost, and is my pipeline actually getting
         better?</em> v1.6 answers both. It adds cost attribution and opt-in
         telemetry, turns every skill's pass/fail into a graded eval score,
-        and ships the first <code>checkpoint-protocol</code> bump since
+        and ships the first <code>oc-checkpoint-protocol</code> bump since
         v1.2.
       </p>
 
@@ -174,12 +174,12 @@ import RoadmapForm from "../components/RoadmapForm.astro";
       <h3>Cross-skill ripples</h3>
       <ul>
         <li>
-          <strong><code>bug-check</code> + <code>code-auditor</code></strong>
+          <strong><code>oc-bug-check</code> + <code>oc-code-auditor</code></strong>
           stop emitting bare pass/fail and start scoring against a stable
           rubric.
         </li>
         <li>
-          <strong><code>monitoring-ops</code></strong> gains an "AI-app"
+          <strong><code>oc-monitoring-ops</code></strong> gains an "AI-app"
           template covering token rate, eval drift, and hallucination
           flags.
         </li>
@@ -189,7 +189,7 @@ import RoadmapForm from "../components/RoadmapForm.astro";
           <code>eval_score_trend</code>.
         </li>
         <li>
-          <strong><code>orchestrator</code></strong>'s <code>/ops next</code>
+          <strong><code>oc-orchestrator</code></strong>'s <code>/oc-ops next</code>
           factors cost and remaining budget into what it recommends you do
           next.
         </li>
@@ -197,10 +197,10 @@ import RoadmapForm from "../components/RoadmapForm.astro";
 
       <h3>Protocol bump</h3>
       <p>
-        <code>checkpoint-protocol v1.3</code> &mdash; the first bump since
+        <code>oc-checkpoint-protocol v1.3</code> &mdash; the first bump since
         the v1.2 PM-MCP fields &mdash; adds <code>cost</code>,
         <code>eval_scores</code>, and <code>telemetry_handle</code>.
-        <code>migration-ops</code> rolls it across every skill the same way
+        <code>oc-migration-ops</code> rolls it across every skill the same way
         the governance frontmatter rolled out in v1.4.
       </p>
 
@@ -265,9 +265,9 @@ import RoadmapForm from "../components/RoadmapForm.astro";
         </li>
         <li>
           <strong>Pipeline depth.</strong> <code>discovery-ops</code>
-          (JTBD / opportunity trees, upstream of <code>app-architect</code>)
+          (JTBD / opportunity trees, upstream of <code>oc-app-architect</code>)
           plus <code>qa-ops</code> splitting test-pyramid design out of
-          <code>bug-check</code>.
+          <code>oc-bug-check</code>.
         </li>
       </ul>
 
@@ -306,7 +306,7 @@ import RoadmapForm from "../components/RoadmapForm.astro";
         <code>examples/</code> that make a skill actually run, so a fresh
         catalog download was incomplete. Alongside the fix, every skill gains an
         <code>oc-</code>-prefixed alias, and a twelve-theme audit drags
-        <code>checkpoint-protocol</code> and the <code>orchestrator</code> back
+        <code>oc-checkpoint-protocol</code> and the <code>oc-orchestrator</code> back
         into line with reality.
       </p>
 
@@ -331,15 +331,15 @@ import RoadmapForm from "../components/RoadmapForm.astro";
           resolve, so nothing you have already wired up breaks.
         </li>
         <li>
-          <strong>The orchestrator stops misreporting itself.</strong> Its
+          <strong>The oc-orchestrator stops misreporting itself.</strong> Its
           persistence docs described an ephemeral <code>~/.opchain/</code> +
           <code>memory_user_edits</code> store that would not survive a web
           session; they are rewritten to the git-tracked
-          <code>.checkpoints/orchestrator.checkpoint.json</code> it actually
+          <code>.checkpoints/oc-orchestrator.checkpoint.json</code> it actually
           uses. The phantom <code>checkpoint.sh</code> &mdash; which
-          <code>/ops health</code> reported as present for a file that never
+          <code>/oc-ops health</code> reported as present for a file that never
           existed &mdash; is replaced by <code>scripts/checkpoint.mjs</code>,
-          and <code>/ops</code> verbs now read versions from frontmatter and are
+          and <code>/oc-ops</code> verbs now read versions from frontmatter and are
           labelled Implemented vs Illustrative.
         </li>
         <li>
@@ -355,7 +355,7 @@ import RoadmapForm from "../components/RoadmapForm.astro";
         </li>
         <li>
           <strong>Drift detection &amp; merge reliability.</strong> The
-          orchestrator logged three manual reconciliations in three weeks
+          oc-orchestrator logged three manual reconciliations in three weeks
           (&ldquo;shipped but says launch-pending&rdquo;, a missed merged PR, a
           broken-JSON CI break). v1.4.2 adds automated drift detection and
           resume-UX upgrades so a stale checkpoint cannot tell future-you to
@@ -416,7 +416,7 @@ import RoadmapForm from "../components/RoadmapForm.astro";
       </header>
 
       <p class="rel-summary">
-        opchain v1.4 turns <code>stack-forge</code>'s coverage from
+        opchain v1.4 turns <code>oc-stack-forge</code>'s coverage from
         hardcoded prose into a versioned <strong>pack registry</strong> &mdash;
         one <code>pack.yml</code> per language, framework, mobile
         platform, or deploy target, validated on every build. Total
@@ -431,7 +431,7 @@ import RoadmapForm from "../components/RoadmapForm.astro";
         <li>
           <strong>Pack registry architecture.</strong>
           <a href="/coverage">/coverage</a> is the user-visible catalog.
-          <code>skills/stack-forge/packs/&lt;id&gt;/pack.yml</code> is the
+          <code>skills/oc-stack-forge/packs/&lt;id&gt;/pack.yml</code> is the
           source of truth; <code>scripts/gen-stack-packs.mjs</code> validates
           every pack on every build (bidirectional <code>language</code> ↔
           <code>frameworks</code> invariants, ref-doc budgets, etc.) and
@@ -439,9 +439,9 @@ import RoadmapForm from "../components/RoadmapForm.astro";
           (deploy-targets are sub-selections, no flag).
         </li>
         <li>
-          <strong>Hybrid dispatch.</strong> <code>deploy-ops</code> reads
+          <strong>Hybrid dispatch.</strong> <code>oc-deploy-ops</code> reads
           packs at runtime via <code>src/lib/pack-dispatch.js</code> for
-          deploy-path lookup. <code>api-dev</code> reads packs at
+          deploy-path lookup. <code>oc-api-dev</code> reads packs at
           build time via <code>scripts/gen-api-dev-adapters.mjs</code> to
           codegen typed per-language scaffold metadata. Two halves of one
           model: small-and-current vs. richer-and-typed.
@@ -488,19 +488,19 @@ import RoadmapForm from "../components/RoadmapForm.astro";
           <strong>Hosting adapters (PR 7).</strong> railway / netlify /
           heroku / aws-amplify deploy-target packs. Sub-selections under
           existing language and framework packs; <code>getDispatchTarget()</code>
-          picks the right provider section of <code>deploy-ops</code>'s
+          picks the right provider section of <code>oc-deploy-ops</code>'s
           SKILL.md.
         </li>
       </ul>
 
       <h3>The pipeline that shipped it</h3>
       <p>
-        v1.4 went through opchain itself. <code>app-architect</code>
+        v1.4 went through opchain itself. <code>oc-app-architect</code>
         planned the eight-PR sequence. PRs 1-3 landed serially (architecture,
         backfill, dispatcher); PRs 4-7 ran in <em>parallel</em> from
         sibling worktrees on the same <code>origin/main</code> base,
         opened concurrently, and merged sequentially with rebases.
-        <code>release-ops</code> drafted this changelog entry from the
+        <code>oc-release-ops</code> drafted this changelog entry from the
         merged PR summaries and bumped the 5 changed skills' SKILL.md
         versions atomically.
       </p>
@@ -509,12 +509,12 @@ import RoadmapForm from "../components/RoadmapForm.astro";
       <p>
         Back-compatible with v1.3. No migration steps required. Five
         skills version-bump <code>1.3.0</code> → <code>1.4.0</code> in
-        lockstep: <code>stack-forge</code>, <code>api-dev</code>,
-        <code>deploy-ops</code>, <code>app-architect</code>,
-        <code>migration-ops</code>. The other thirteen skills stay on
+        lockstep: <code>oc-stack-forge</code>, <code>oc-api-dev</code>,
+        <code>oc-deploy-ops</code>, <code>oc-app-architect</code>,
+        <code>oc-migration-ops</code>. The other thirteen skills stay on
         <code>1.3.0</code>. <code>opchain-skills.zip</code> ships
         bundle-everything as before; the <code>skills.coverage.*</code>
-        flags filter what <code>stack-forge</code> offers, not what gets
+        flags filter what <code>oc-stack-forge</code> offers, not what gets
         downloaded.
       </p>
     </section>
@@ -529,7 +529,7 @@ import RoadmapForm from "../components/RoadmapForm.astro";
       <p class="rel-summary">
         opchain v1.3 makes the v1.2 PM-MCP prose executable end-to-end,
         expands the platform menu beyond JS / Cloudflare, and ships
-        <code>release-ops</code> — the 18th skill — to automate the
+        <code>oc-release-ops</code> — the 18th skill — to automate the
         "scope → /changelog → bump → ship" cadence opchain uses for itself.
       </p>
 
@@ -540,24 +540,24 @@ import RoadmapForm from "../components/RoadmapForm.astro";
           <em>describe</em> PM-tool calls; v1.3 actually invokes them. A
           concrete tool-name registry, retry / backoff, idempotency markers,
           and a deferred-action queue mean the four PM-aware skills
-          (<code>app-architect</code>, <code>git-ops</code>,
-          <code>deploy-ops</code>, <code>monitoring-ops</code>) can crash-restart
+          (<code>oc-app-architect</code>, <code>oc-git-ops</code>,
+          <code>oc-deploy-ops</code>, <code>oc-monitoring-ops</code>) can crash-restart
           mid-flow without polluting Linear / Jira / GitHub Issues.
         </li>
         <li>
-          <strong><code>release-ops</code> is the 18th skill.</strong> Verbs:
-          <code>/release plan|draft|bump|announce|ship</code>. Reads every
+          <strong><code>oc-release-ops</code> is the 18th skill.</strong> Verbs:
+          <code>/oc-release plan|draft|bump|announce|ship</code>. Reads every
           skill's checkpoint to propose the next semver, drafts the changelog
           entry from sprint outputs, atomically bumps all skill versions,
-          opens a release ticket via PM-MCP, hands off to <code>git-ops</code>
-          for the merge and <code>deploy-ops</code> for staging + prod.
+          opens a release ticket via PM-MCP, hands off to <code>oc-git-ops</code>
+          for the merge and <code>oc-deploy-ops</code> for staging + prod.
         </li>
         <li>
           <strong>Platform menu grew.</strong> Django + Postgres + Render,
           Rails + Postgres + Heroku, Go + Fly.io, and Rust + Axum +
-          Shuttle.rs are first-class in <code>stack-forge</code>'s decision
-          tree, <code>app-architect</code>'s scaffold recipes, and
-          <code>deploy-ops</code>'s provider sections.
+          Shuttle.rs are first-class in <code>oc-stack-forge</code>'s decision
+          tree, <code>oc-app-architect</code>'s scaffold recipes, and
+          <code>oc-deploy-ops</code>'s provider sections.
         </li>
         <li>
           <strong>Build-time PM-MCP validator.</strong>
@@ -576,7 +576,7 @@ import RoadmapForm from "../components/RoadmapForm.astro";
           queue handles cleanly.
         </li>
         <li>
-          <a href="/demo#release-ops-dogfood">release-ops ships its own release</a>
+          <a href="/demo#release-ops-dogfood">oc-release-ops ships its own release</a>
           — opchain v1.3.0 shipped via opchain v1.3.0. Meta proof that the
           new skill works for any opchain-managed project.
         </li>
@@ -631,33 +631,33 @@ import RoadmapForm from "../components/RoadmapForm.astro";
       <p class="rel-summary">
         opchain v1.2 wires the skills into the PM-tool MCPs Anthropic
         ships with Claude Code. Linear, Jira, and GitHub Issues become
-        first-class context for <code>app-architect</code>, <code>git-ops</code>,
-        <code>deploy-ops</code>, and <code>monitoring-ops</code> — the
+        first-class context for <code>oc-app-architect</code>, <code>oc-git-ops</code>,
+        <code>oc-deploy-ops</code>, and <code>oc-monitoring-ops</code> — the
         ticket is the thread of execution, not a side artefact.
       </p>
 
       <h3>What's new</h3>
       <ul>
         <li>
-          <strong>app-architect /discover</strong> accepts a ticket
+          <strong>oc-app-architect /oc-discover</strong> accepts a ticket
           reference and pre-fills the interview from the ticket body +
-          comments. <code>/roadmap</code> writes the sprint plan back as
+          comments. <code>/oc-roadmap</code> writes the sprint plan back as
           a structured comment and (optionally) creates a child ticket
           per sprint.
         </li>
         <li>
-          <strong>git-ops /git-sync TICKET-1234</strong> reads the
+          <strong>oc-git-ops /oc-git-sync TICKET-1234</strong> reads the
           ticket, shapes the branch / commit / PR from it, and
           transitions ticket state on PR open and merge. The PR body
           is generated from ticket description, diff summary, and
-          auditor + bug-check output.
+          auditor + oc-bug-check output.
         </li>
         <li>
-          <strong>code-auditor</strong> findings post back to the
+          <strong>oc-code-auditor</strong> findings post back to the
           linked PM ticket, not just the checkpoint.
         </li>
         <li>
-          <strong>deploy-ops</strong> auto-creates a deploy ticket per
+          <strong>oc-deploy-ops</strong> auto-creates a deploy ticket per
           environment, parent-linked to every commit's tickets.
           Transitions the deploy ticket through
           <em>in-progress → staging-verified → shipped</em>
@@ -665,13 +665,13 @@ import RoadmapForm from "../components/RoadmapForm.astro";
           ticket on prod ship.
         </li>
         <li>
-          <strong>monitoring-ops</strong> opens an incident ticket
+          <strong>oc-monitoring-ops</strong> opens an incident ticket
           when alerts fire, parent-linked to the most recent deploy
           ticket. Auto-creates remediation sub-tickets when the
           postmortem publishes.
         </li>
         <li>
-          <strong>integrations-engineer</strong> is the canonical
+          <strong>oc-integrations-engineer</strong> is the canonical
           owner of the PM-MCP integration patterns; its SKILL.md
           documents detection, scoping, and audit-pipeline
           expectations for regulated environments.
@@ -738,10 +738,10 @@ import RoadmapForm from "../components/RoadmapForm.astro";
         <span class="rel-date">2026-04</span>
       </header>
       <p class="rel-summary">
-        Tri-agent harness across <code>app-architect</code>,
-        <code>code-auditor</code>, <code>integrations-engineer</code>;
-        full-pipeline flow from <code>/discover</code> to
-        <code>/deploy</code>; checkpoint-protocol v1.0 across every
+        Tri-agent harness across <code>oc-app-architect</code>,
+        <code>oc-code-auditor</code>, <code>oc-integrations-engineer</code>;
+        full-pipeline flow from <code>/oc-discover</code> to
+        <code>/oc-deploy</code>; oc-checkpoint-protocol v1.0 across every
         skill; static Astro site; first set of six in-action
         scenarios.
       </p>

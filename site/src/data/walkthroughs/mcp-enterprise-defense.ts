@@ -3,10 +3,10 @@ import type { Walkthrough } from "./types";
 /**
  * Scenario 8 — Daedalus Aerospace, a defense prime, wants to adopt Claude
  * Code + MCP under CMMC 2.0 L3, FedRAMP High, IL5, ITAR, and partial-air-gap
- * conditions. security-auditor runs the threat model with cross-domain
- * dataflow lens; integrations-engineer designs an on-prem MCP fleet (no
- * SaaS); monitoring-ops consolidates audit across enclaves with one-way
- * high-watermark forwarding; deploy-ops handles the ATO modification
+ * conditions. oc-security-auditor runs the threat model with cross-domain
+ * dataflow lens; oc-integrations-engineer designs an on-prem MCP fleet (no
+ * SaaS); oc-monitoring-ops consolidates audit across enclaves with one-way
+ * high-watermark forwarding; oc-deploy-ops handles the ATO modification
  * package and STIG-hardened workstation profile. The shape: government /
  * regulated-industry MCP discipline — no SaaS dependence, smart-card auth,
  * cross-domain guards, RMF / NIST SP 800-171 mapping.
@@ -18,7 +18,7 @@ export const mcpEnterpriseDefense: Walkthrough = {
   summary:
     "Threat-model MCP under cross-domain rules, stand up an on-prem MCP fleet keyed to PIV/CAC, redact CUI at the protocol boundary, route every tool call through the program ESS, and ship an ATO modification package CMMC L3 + FedRAMP High clean.",
   description:
-    "Daedalus Aerospace — defense prime, ~480 software engineers across two programs (one CUI-only, one with Secret elements), CMMC 2.0 Level 3, FedRAMP High posture for the GovCloud side, IL5 for the GovCloud workload, ITAR / EAR-regulated source. The DoD CIO's AI-Use Policy memo just landed and program managers are asking when Claude Code is authorised. The Director of Software Engineering Security drives the assessment using the opchain skills — security-auditor sweeps the air-gap + MCP attack surface (cross-domain rules first, supply chain second), integrations-engineer designs an on-prem MCP fleet (no SaaS by policy), monitoring-ops wires audit consolidation across enclaves with strict one-way high-watermark forwarding, deploy-ops produces the ATO modification package + STIG-hardened workstation profile. The output: a CMMC L3 / FedRAMP High clean control bundle the Authorising Official can approve.",
+    "Daedalus Aerospace — defense prime, ~480 software engineers across two programs (one CUI-only, one with Secret elements), CMMC 2.0 Level 3, FedRAMP High posture for the GovCloud side, IL5 for the GovCloud workload, ITAR / EAR-regulated source. The DoD CIO's AI-Use Policy memo just landed and program managers are asking when Claude Code is authorised. The Director of Software Engineering Security drives the assessment using the opchain skills — oc-security-auditor sweeps the air-gap + MCP attack surface (cross-domain rules first, supply chain second), oc-integrations-engineer designs an on-prem MCP fleet (no SaaS by policy), oc-monitoring-ops wires audit consolidation across enclaves with strict one-way high-watermark forwarding, oc-deploy-ops produces the ATO modification package + STIG-hardened workstation profile. The output: a CMMC L3 / FedRAMP High clean control bundle the Authorising Official can approve.",
   inputs: [
     "Defense prime · ~480 software engineers · 2 programs (CUI-only + mixed CUI/Secret) · ITAR + EAR source",
     "CMMC 2.0 Level 3 · FedRAMP High posture (GovCloud) · IL5 workload boundary · NIST SP 800-171 + 800-172",
@@ -34,7 +34,7 @@ export const mcpEnterpriseDefense: Walkthrough = {
       body:
 `# MCP Protocol Threat Model — Daedalus Aerospace
 
-**Produced by** security-auditor Phase 1 (Threat Model) · **Method:** STRIDE per MCP boundary + DoD-specific cross-domain analysis · **Compliance lens:** NIST SP 800-171 r3, NIST SP 800-172, CMMC 2.0 L3, DoDI 8500.01, DoD CIO Memo 23-XXXX (AI-Use Policy), CNSSI 1253 · **Run-time:** 56 minutes
+**Produced by** oc-security-auditor Phase 1 (Threat Model) · **Method:** STRIDE per MCP boundary + DoD-specific cross-domain analysis · **Compliance lens:** NIST SP 800-171 r3, NIST SP 800-172, CMMC 2.0 L3, DoDI 8500.01, DoD CIO Memo 23-XXXX (AI-Use Policy), CNSSI 1253 · **Run-time:** 56 minutes
 
 ## 1. Scope
 
@@ -284,9 +284,9 @@ Each adopting program adds an SSP delta referencing \`SSP-2026-MCP-001\` (artifa
 
 ## 10. Recommendation
 
-D-1, D-2, D-3, D-5 are all CRITICAL. None can be left open through ATO modification. Chaining to **integrations-engineer** for the on-prem MCP fleet design (closes D-1, D-2), **monitoring-ops** for the audit pipeline (closes D-7), then **deploy-ops** for the ATO mod package + STIG profile (closes D-3, D-10).
+D-1, D-2, D-3, D-5 are all CRITICAL. None can be left open through ATO modification. Chaining to **oc-integrations-engineer** for the on-prem MCP fleet design (closes D-1, D-2), **oc-monitoring-ops** for the audit pipeline (closes D-7), then **oc-deploy-ops** for the ATO mod package + STIG profile (closes D-3, D-10).
 
-Checkpoint: \`.checkpoints/security-auditor.checkpoint.json\`.`,
+Checkpoint: \`.checkpoints/oc-security-auditor.checkpoint.json\`.`,
     },
     {
       id: "mcp-authorization-matrix",
@@ -447,7 +447,7 @@ Specifically for Anthropic API FedRAMP High pending:
 
 Until step 6 completes, no production engineering use of the Anthropic API on CUI work is authorised regardless of how green the MCP infrastructure is.
 
-Checkpoint: \`.checkpoints/integrations-engineer.checkpoint.json\` (Phase 2).`,
+Checkpoint: \`.checkpoints/oc-integrations-engineer.checkpoint.json\` (Phase 2).`,
     },
     {
       id: "air-gap-architecture",
@@ -456,7 +456,7 @@ Checkpoint: \`.checkpoints/integrations-engineer.checkpoint.json\` (Phase 2).`,
       body:
 `# On-prem MCP Fleet + Cross-Domain Architecture
 
-**Produced by** integrations-engineer (chained from security-auditor) · **Pattern:** all-on-prem, PIV/CAC-rooted, deny-by-default cross-domain · **No greenfield identity / audit / CDS components**
+**Produced by** oc-integrations-engineer (chained from oc-security-auditor) · **Pattern:** all-on-prem, PIV/CAC-rooted, deny-by-default cross-domain · **No greenfield identity / audit / CDS components**
 
 ## 1. Architecture (annotated for IL5 boundaries)
 
@@ -696,12 +696,12 @@ Total engineering: **~12 calendar weeks** with 4 engineers + ISSO + ISSM. Add an
 
 ## 7. Out of scope (chained to other artifacts)
 
-- ATO modification package (deploy-ops).
-- STIG-specific workstation checklist (deploy-ops).
-- Audit consolidation pipeline (monitoring-ops).
-- Cross-domain rule details (security-auditor + integrations-engineer joint, see \`cross-domain-rules\`).
+- ATO modification package (oc-deploy-ops).
+- STIG-specific workstation checklist (oc-deploy-ops).
+- Audit consolidation pipeline (oc-monitoring-ops).
+- Cross-domain rule details (oc-security-auditor + oc-integrations-engineer joint, see \`cross-domain-rules\`).
 
-Checkpoint: \`.checkpoints/integrations-engineer.checkpoint.json\`.`,
+Checkpoint: \`.checkpoints/oc-integrations-engineer.checkpoint.json\`.`,
     },
     {
       id: "cross-domain-rules",
@@ -710,7 +710,7 @@ Checkpoint: \`.checkpoints/integrations-engineer.checkpoint.json\`.`,
       body:
 `# Cross-Domain Rules — MCP-Specific
 
-**Joint output:** security-auditor (threat model lens) + integrations-engineer (Forcepoint rule design) · **Authority:** SSP modification, ISSM-signed, AO-approved · **Existing CDS unchanged** for non-MCP traffic
+**Joint output:** oc-security-auditor (threat model lens) + oc-integrations-engineer (Forcepoint rule design) · **Authority:** SSP modification, ISSM-signed, AO-approved · **Existing CDS unchanged** for non-MCP traffic
 
 ## 1. Premise
 
@@ -888,7 +888,7 @@ This rule set is signed by:
 
 Filed under SSP modification \`SSP-2026-MCP-001\`.
 
-Checkpoint: \`.checkpoints/security-auditor.checkpoint.json\` (Phase 2).`,
+Checkpoint: \`.checkpoints/oc-security-auditor.checkpoint.json\` (Phase 2).`,
     },
     {
       id: "cmmc-l3-mapping",
@@ -897,7 +897,7 @@ Checkpoint: \`.checkpoints/security-auditor.checkpoint.json\` (Phase 2).`,
       body:
 `# CMMC L3 Mapping + ATO Modification Package
 
-**Produced by** deploy-ops (chained from security-auditor) · **Targets:** SSP \`SSP-2026-MCP-001\`, RAR (Risk Assessment Report) addendum, POAM updates · **Outcome:** ATO modification approval
+**Produced by** oc-deploy-ops (chained from oc-security-auditor) · **Targets:** SSP \`SSP-2026-MCP-001\`, RAR (Risk Assessment Report) addendum, POAM updates · **Outcome:** ATO modification approval
 
 ## 1. SSP modification scope
 
@@ -957,7 +957,7 @@ POAM (Plan of Action & Milestones) entries for items not closed by the modificat
 
 ## 5. CCB sequence
 
-1. **Pre-CCB read-out** — security-auditor presents the threat model + control delta. ISSO + ISSM ask questions.
+1. **Pre-CCB read-out** — oc-security-auditor presents the threat model + control delta. ISSO + ISSM ask questions.
 2. **CCB motion** — ISSM moves to approve SSP modification \`SSP-2026-MCP-001\`. Vote.
 3. **AO designee review** — RAR addendum + POAM updates packaged for AO; review window 4-8 weeks.
 4. **AO approval** — modification signed; deployment authorised.
@@ -1041,7 +1041,7 @@ Quarterly review of POAM table vs actuals. If a target-close date slips by > 30 
 
 Slip is fine; unacknowledged slip is the SOC2 / CMMC observation.
 
-Checkpoint: \`.checkpoints/deploy-ops.checkpoint.json\`.`,
+Checkpoint: \`.checkpoints/oc-deploy-ops.checkpoint.json\`.`,
     },
     {
       id: "stig-checklist",
@@ -1244,13 +1244,13 @@ Eight baseline rules already apply but warrant explicit re-confirmation for MCP 
 
 Each is named in the SSP modification with rationale for inclusion.
 
-Checkpoint: \`.checkpoints/deploy-ops.checkpoint.json\` (workstation profile section).`,
+Checkpoint: \`.checkpoints/oc-deploy-ops.checkpoint.json\` (workstation profile section).`,
     },
   ],
-  skills: ["security-auditor", "integrations-engineer", "monitoring-ops", "deploy-ops"],
+  skills: ["oc-security-auditor", "oc-integrations-engineer", "oc-monitoring-ops", "oc-deploy-ops"],
   runtime: "≈ 11 exchanges",
   steps: [
-    { type: "beat", label: "01 · Threat model", caption: "security-auditor sweeps with cross-domain lens", skills: ["security-auditor"] },
+    { type: "beat", label: "01 · Threat model", caption: "oc-security-auditor sweeps with cross-domain lens", skills: ["oc-security-auditor"] },
 
     {
       type: "exchange", role: "user",
@@ -1262,15 +1262,15 @@ The DoD CIO AI memo just landed; PMO is asking when Claude Code is authorised. W
 Walk me through what authorising this looks like — including what we should explicitly not do.`
     },
     {
-      type: "exchange", role: "claude", skill: "security-auditor",
+      type: "exchange", role: "claude", skill: "oc-security-auditor",
       content:
-`Invoking **security-auditor** in MCP mode with the CMMC / FedRAMP High / IL5 lens active. Five-stage sweep:
+`Invoking **oc-security-auditor** in MCP mode with the CMMC / FedRAMP High / IL5 lens active. Five-stage sweep:
 
 1. **STRIDE per MCP boundary** with cross-domain emphasis.
 2. **Authorisation matrix** — what can run on-prem; what cannot exist in this environment at all.
 3. **Cross-domain rules** — Forcepoint Guard additions for MCP envelopes.
 4. **CMMC L3 control delta** mapped to AC, AU, IA, SC, SI families.
-5. **ATO modification + STIG workstation profile** (chained to deploy-ops).
+5. **ATO modification + STIG workstation profile** (chained to oc-deploy-ops).
 
 The first thing I'm going to tell you, before any technical detail: **no SaaS MCP can be authorised under your posture.** Linear, GitHub.com, Cloudflare DPs, Atlassian Cloud, Figma — all of them DENY at the allowlist level, full stop. Tool args carry CUI; tool args reaching a SaaS vendor is presumptively an ITAR / EAR violation regardless of TLS strength. That's the policy gate.
 
@@ -1283,7 +1283,7 @@ Need: copy of the existing SSP for the engineering platform, list of programs in
       content: `SSP is on file. Programs in scope iteration 1 = Iron CUI-only. Aegis is split — CUI side is in scope, Secret side is out. Forcepoint rule set is the standard 2024 baseline. STIG = RHEL 9 V1R6. AO designee email is on file.`
     },
     {
-      type: "exchange", role: "claude", skill: "security-auditor",
+      type: "exchange", role: "claude", skill: "oc-security-auditor",
       content:
 `Running STRIDE per boundary. Top findings (10 total; details in artifact):
 
@@ -1300,16 +1300,16 @@ Need: copy of the existing SSP for the engineering platform, list of programs in
 
 Mapping: AC-2, AC-3, AC-4, AC-6, AU-2, AU-3, AU-12, IA-2, IA-5, SC-7, SI-7 are all OPEN until the deltas land. ATO modification is required regardless of how clean the implementation is — adding new system components hits the SSP.
 
-Chaining to **integrations-engineer** for the on-prem fleet design and the cross-domain rules. **deploy-ops** picks up the ATO mod package + STIG workstation profile after.
+Chaining to **oc-integrations-engineer** for the on-prem fleet design and the cross-domain rules. **oc-deploy-ops** picks up the ATO mod package + STIG workstation profile after.
 
 Writing the threat model + authorisation matrix.`,
       artifacts: ["mcp-threat-model-defense", "mcp-authorization-matrix"],
     },
 
-    { type: "beat", label: "02 · On-prem fleet + cross-domain rules", caption: "integrations-engineer designs the in-enclave deployment", skills: ["integrations-engineer"] },
+    { type: "beat", label: "02 · On-prem fleet + cross-domain rules", caption: "oc-integrations-engineer designs the in-enclave deployment", skills: ["oc-integrations-engineer"] },
 
     {
-      type: "exchange", role: "claude", skill: "integrations-engineer",
+      type: "exchange", role: "claude", skill: "oc-integrations-engineer",
       content:
 `Picking up the design. Three workstreams in parallel:
 
@@ -1334,7 +1334,7 @@ Implementation: ~30 engineering weeks total, parallelisable across 4 engineers +
       content: `Tell me again why we can't use the cloud Anthropic Linear MCP. The vendor has a SOC2 Type II.`
     },
     {
-      type: "exchange", role: "claude", skill: "integrations-engineer",
+      type: "exchange", role: "claude", skill: "oc-integrations-engineer",
       content:
 `Three reasons, in order of bindingness:
 
@@ -1345,10 +1345,10 @@ Implementation: ~30 engineering weeks total, parallelisable across 4 engineers +
 The on-prem fleet is the only path that closes all three. It happens to also be the path that makes audit + cross-domain enforcement tractable, which is why the design starts there even before the policy reasons.`
     },
 
-    { type: "beat", label: "03 · Audit consolidation", caption: "monitoring-ops wires Splunk + ESS", skills: ["monitoring-ops"] },
+    { type: "beat", label: "03 · Audit consolidation", caption: "oc-monitoring-ops wires Splunk + ESS", skills: ["oc-monitoring-ops"] },
 
     {
-      type: "exchange", role: "claude", skill: "monitoring-ops",
+      type: "exchange", role: "claude", skill: "oc-monitoring-ops",
       content:
 `Audit pipeline design — same shape as the F500 plan with the on-prem-only constraint and three additions:
 
@@ -1368,10 +1368,10 @@ Retention: 7 years on-prem cold (existing Splunk Enterprise cold-volume policy).
 This closes D-7 + the AU-2 / AU-3 / AU-12 family findings.`,
     },
 
-    { type: "beat", label: "04 · ATO mod + STIG profile", caption: "deploy-ops produces the package", skills: ["deploy-ops"] },
+    { type: "beat", label: "04 · ATO mod + STIG profile", caption: "oc-deploy-ops produces the package", skills: ["oc-deploy-ops"] },
 
     {
-      type: "exchange", role: "claude", skill: "deploy-ops",
+      type: "exchange", role: "claude", skill: "oc-deploy-ops",
       content:
 `Picking up from the security + integrations + monitoring outputs. Producing the ATO modification package + STIG-hardened workstation profile.
 
@@ -1398,7 +1398,7 @@ This closes D-7 + the AU-2 / AU-3 / AU-12 family findings.`,
       content: `When can my engineers actually start using this?`
     },
     {
-      type: "exchange", role: "claude", skill: "deploy-ops",
+      type: "exchange", role: "claude", skill: "oc-deploy-ops",
       content:
 `Realistic timeline:
 
@@ -1414,7 +1414,7 @@ The dependency that can break this: Anthropic FedRAMP High. Until it lands, your
 
 Honest read: **first engineer on the keyboard with a real production MCP scope ≈ week 22-24** from the date the CCB packet is ready. If the AO is fast it's earlier; if Anthropic FedRAMP slips it's later.
 
-Checkpoint: \`.checkpoints/deploy-ops.checkpoint.json\`.`
+Checkpoint: \`.checkpoints/oc-deploy-ops.checkpoint.json\`.`
     },
   ],
 };

@@ -4,7 +4,7 @@
 # Stop hook: enforces that any opchain skill invoked this session has a
 # matching .checkpoints/<skill>.checkpoint.json file. Read-only sessions
 # (no opchain skill activity) pass silently. Built-in / non-opchain skills
-# (e.g. update-config, orchestrator, checkpoint-protocol) are not enforced.
+# (e.g. update-config, oc-orchestrator, oc-checkpoint-protocol) are not enforced.
 #
 # Reads stdin JSON: { session_id, transcript_path, cwd, ... }
 # Outputs JSON on block: { "decision": "block", "reason": "..." }
@@ -32,25 +32,25 @@ fi
 
 CHECKPOINT_DIR="$PROJECT_DIR/.checkpoints"
 
-# Skills expected to write checkpoints. orchestrator is excluded — its own
-# SKILL.md says it's read-only. checkpoint-protocol is excluded — it's the
+# Skills expected to write checkpoints. oc-orchestrator is excluded — its own
+# SKILL.md says it's read-only. oc-checkpoint-protocol is excluded — it's the
 # meta-protocol with no own state.
 ENFORCED_SKILLS=(
-  api-dev
-  app-architect
-  bug-check
-  code-auditor
-  dash-forge
-  deploy-ops
-  git-ops
-  integrations-engineer
-  migration-ops
-  monitoring-ops
-  reverse-spec
-  scale-ops
-  security-auditor
-  stack-forge
-  ux-engineer
+  oc-api-dev
+  oc-app-architect
+  oc-bug-check
+  oc-code-auditor
+  oc-dash-forge
+  oc-deploy-ops
+  oc-git-ops
+  oc-integrations-engineer
+  oc-migration-ops
+  oc-monitoring-ops
+  oc-reverse-spec
+  oc-scale-ops
+  oc-security-auditor
+  oc-stack-forge
+  oc-ux-engineer
 )
 
 # Find skills invoked in this session's transcript. Use jq to parse each
