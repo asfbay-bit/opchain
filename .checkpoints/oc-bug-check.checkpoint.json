@@ -4,19 +4,19 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-08T16:56:58Z",
+  "updated_at": "2026-06-08T17:23:41Z",
   "phase": "gate",
-  "step": "changelog-c-v3-preview",
+  "step": "changelog-c-v3-release-hero",
   "status": "complete",
-  "progress_summary": "Gate for the revised Option C v2 changelog layout preview (design(changelog): Option C v2 revised — 2 tabs, auto-expanded series). PASS. The only changed file is design-previews/changelog-option-c-v3.html — a single self-contained static HTML preview that is outside the TS/build/test graph (design-previews/ is not referenced by any build script). Ran the applicable checks: secret scan clean, anti-pattern scan clean (no debugger/console.log/.only), HTML well-formed (133/133 div, 1/1 script, 1/1 style). type_safety/lint/tests/build/dependencies are N/A for a standalone preview file.",
+  "progress_summary": "Gate for the Option C v3 changelog preview, release-hero iteration (design(changelog): latest release mirrors the Coming Next hero — v1.4.2 now uses the v1.5 hero layout re-themed to the accent highlight). PASS. Only changed file is design-previews/changelog-option-c-v3.html — a self-contained static HTML preview outside the TS/build/test graph (design-previews/ is not referenced by any build script). Applicable checks: secret scan clean, anti-pattern scan clean (no debugger/console.log/.only), HTML well-formed (149/149 div, 1/1 script, 1/1 style). type_safety/lint/tests/build/dependencies N/A for a standalone preview file.",
   "blockers": [],
   "next_actions": [
-    "Push design-previews/changelog-option-c-v3.html on claude/inspiring-bell-kf4QY and open a review PR.",
+    "PR #265 is open with the Option C v3 preview (latest commit adds the release-hero mirror); awaiting maintainer approval of the design.",
     "On maintainer approval, port Option C v3 into site/src/pages/changelog.astro — fold the roadmap data out of RoadmapTimeline.astro into the 2-tab layout; that real implementation re-runs the full suite (tsc/vitest/astro build/e2e)."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-08T16:56:58Z",
+      "at": "2026-06-08T17:23:41Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
@@ -32,12 +32,13 @@
       "errors": 0
     },
     "run_history": [
+      { "at": "2026-06-08T17:23:41Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-08T16:56:58Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-08T15:39:19Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-05T22:01:00Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
-    "streak": { "passes": 3, "since": "2026-06-05T22:01:00Z" }
+    "streak": { "passes": 4, "since": "2026-06-05T22:01:00Z" }
   }
 }

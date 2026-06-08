@@ -248,6 +248,18 @@ code { font-family: var(--font-mono); font-size: 11.5px; background: var(--surfa
 .hero-card.is-open .hero-body { max-height: 2400px; opacity: 1; }
 .hero-body-inner { padding: 0 1.5rem 1.4rem; border-top: 0.5px solid var(--border); padding-top: 1.1rem; }
 
+/* Released variant — identical hero layout, re-themed from the
+   "coming next" info-blue highlight to the shipped accent (orange).
+   Used for the most-recent release so it mirrors the v1.5 hero. */
+.hero-card--released::before { background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 35%, transparent)); }
+.hero-card--released:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+.hero-card--released.is-open { border-color: var(--accent); background: var(--card); }
+.hero-card--released .hero-badge { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+.hero-card--released.is-open .hero-card-toggle { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.hero-card--released .skill-tile:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent-dim) 60%, var(--surface)); }
+.hero-card--released .skill-tile-name { color: var(--accent); }
+.hero-card--released .ripple-list li::before { color: var(--accent); }
+
 .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; margin-bottom: 1.25rem; }
 .skill-tile { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-sm); padding: 0.75rem 0.9rem; transition: border-color 0.15s, background 0.15s; }
 .skill-tile:hover { border-color: var(--info); background: color-mix(in srgb, var(--info-dim) 60%, var(--surface)); }
@@ -272,7 +284,7 @@ code { font-family: var(--font-mono); font-size: 11.5px; background: var(--surfa
 <div class="page-head">
   <span class="page-tag">Option C v2 · revised</span>
   <h1>Changelog &amp; Roadmap — 2 tabs, auto-expanded</h1>
-  <p><b>Just Released</b> is the full release list with the newest entry (v1.4.2) open on load. <b>Coming Next</b> is now one series — v1.5 first (rich hero, open), then the v1.6 / v1.7 roadmap beneath it with v1.6 open. Cards are independent toggles, so several stay open at once. Tiered detail: v1.5 keeps its hero layout; release and roadmap cards use the lighter detail style.</p>
+  <p><b>Both tabs lead with a rich hero card sharing the exact same layout</b> — v1.4.2 (accent) opens <b>Just Released</b>, v1.5 (info) opens <b>Coming Next</b> — differing only in highlight colour. Below each, the older releases and the v1.6 / v1.7 roadmap stay compact and expand into the lighter detail style. The newest release, v1.5, and the first roadmap item (v1.6) are all open on load; cards are independent toggles, so several stay open at once.</p>
 </div>
 
 <div class="page-outer">
@@ -303,36 +315,55 @@ code { font-family: var(--font-mono); font-size: 11.5px; background: var(--surfa
         <span class="panel-subtitle">Newest is open by default · click any release for full notes</span>
       </div>
 
-      <!-- v1.4.2 — most recent, AUTO-OPEN -->
-      <div class="rel-card is-open">
-        <div class="rc-row" onclick="toggleCard(this)">
-          <div class="rc-toggle">▶</div>
-          <div class="rc-meta">
-            <div class="rc-head"><span class="ver-pill ver-pill--current">v1.4.2</span><span class="rc-title">Complete bundles, honest checkpoints</span><span class="rc-date">Jun 05, 2026</span></div>
-            <p class="rc-summary">Emergency patch: full skill trees, <code>oc-</code> aliases, unified checkpoint schema, automated drift detection.</p>
-          </div>
+      <!-- v1.4.2 — most recent, AUTO-OPEN; mirrors the v1.5 hero (accent highlight) -->
+      <div class="hero-card hero-card--released is-open" id="heroV142">
+        <div class="hero-card-header" onclick="toggleCard(this)">
+          <div class="hero-card-toggle">▶</div>
+          <div class="hero-badge">latest release</div>
+          <div class="hero-ver">v1.4.2 · shipped Jun 05, 2026</div>
+          <div class="hero-title">Complete bundles, honest checkpoints</div>
+          <p class="hero-desc">An out-of-band emergency patch: one user-facing breakage and a long-overdue correctness pass, shipped ahead of v1.5. The "download all" skill bundle was shipping only each skill's <code>SKILL.md</code>, silently dropping the <code>references/</code>, <code>scripts/</code>, and <code>examples/</code> that make a skill actually run.</p>
         </div>
-        <div class="rc-detail"><div class="rc-detail-inner">
-          <div class="detail-meta"><span class="tag tag--accent">emergency patch</span><span class="tag">18 skills</span><span class="tag">back-compatible</span></div>
-          <p class="detail-p">An out-of-band emergency patch: one user-facing breakage and a long-overdue correctness pass, shipped ahead of v1.5. The breakage — the "download all" skill bundle was shipping only each skill's <code>SKILL.md</code>, silently dropping the <code>references/</code>, <code>scripts/</code>, and <code>examples/</code> that make a skill actually run.</p>
-          <div class="detail-h3">What's new</div>
-          <ul class="detail-ul">
-            <li><strong>"Download all" ships complete skills again.</strong> <code>opchain-skills.zip</code> now bundles full skill trees, matching the per-skill downloads on /skills.</li>
-            <li><strong><code>oc-</code> canonical skill names.</strong> Every skill gains an <code>oc-&lt;name&gt;</code> alias so opchain skills are unambiguous next to same-named local skills.</li>
-            <li><strong>The orchestrator stops misreporting itself.</strong> Persistence docs rewritten to the git-tracked checkpoint it actually uses. The phantom <code>checkpoint.sh</code> is replaced by <code>scripts/checkpoint.mjs</code>.</li>
-            <li><strong>One checkpoint schema, actually enforced.</strong> Validator, spec, and README now agree on a single wire schema. Timestamp-sanity and referential checks added.</li>
-            <li><strong>Drift detection.</strong> Automated drift detection; stale checkpoints can no longer tell future-you to redo shipped work.</li>
-          </ul>
-          <div class="detail-h3">New CLI commands</div>
-          <ul class="detail-ul">
-            <li><code>checkpoint:doctor</code> — cross-checks checkpoints against <code>git log</code> + live <code>/api/health</code>, flags drift</li>
-            <li><code>checkpoint:next</code> — "what should I do next" for the local project</li>
-            <li><code>checkpoint:status --brief</code> / <code>--since=&lt;date&gt;</code></li>
-            <li><code>checkpoint:init</code> — deterministic cold-start scaffold</li>
-          </ul>
+        <div class="hero-body"><div class="hero-body-inner">
+          <div class="detail-h3" style="margin-top:0">What's new</div>
+          <div class="skills-grid">
+            <div class="skill-tile">
+              <div class="skill-tile-name">complete bundles</div>
+              <p class="skill-tile-desc">"Download all" ships full skill trees again — <code>opchain-skills.zip</code> now matches the per-skill downloads on /skills, references / scripts / examples included.</p>
+            </div>
+            <div class="skill-tile">
+              <div class="skill-tile-name">oc- canonical names</div>
+              <p class="skill-tile-desc">Every skill gains an <code>oc-&lt;name&gt;</code> alias so opchain skills are unambiguous next to same-named local skills. Bare names still resolve.</p>
+            </div>
+            <div class="skill-tile">
+              <div class="skill-tile-name">honest orchestrator</div>
+              <p class="skill-tile-desc">Persistence docs rewritten to the git-tracked checkpoint it actually uses; the phantom <code>checkpoint.sh</code> is replaced by <code>scripts/checkpoint.mjs</code>.</p>
+            </div>
+            <div class="skill-tile">
+              <div class="skill-tile-name">one checkpoint schema</div>
+              <p class="skill-tile-desc">Validator, spec, and README agree on a single wire schema, with timestamp-sanity and referential checks enforced.</p>
+            </div>
+            <div class="skill-tile">
+              <div class="skill-tile-name">drift detection</div>
+              <p class="skill-tile-desc">Automated drift detection so a stale checkpoint can no longer tell future-you to redo work that already shipped.</p>
+            </div>
+          </div>
+
+          <div class="ripple-section">
+            <div class="detail-h3">New CLI commands</div>
+            <ul class="ripple-list">
+              <li><strong>checkpoint:doctor</strong> — cross-checks checkpoints against <code>git log</code> + live <code>/api/health</code>, flags drift.</li>
+              <li><strong>checkpoint:next</strong> — "what should I do next" for the local project.</li>
+              <li><strong>checkpoint:status --brief / --since=&lt;date&gt;</strong> — terse resume view + a momentum digest.</li>
+              <li><strong>checkpoint:init</strong> — deterministic cold-start scaffold.</li>
+            </ul>
+          </div>
+
           <div class="compat-box"><strong>Back-compatible with v1.4.</strong> The <code>oc-</code> names are additive aliases. All 18 skills lockstep-bump to <code>1.4.2</code>.</div>
         </div></div>
       </div>
+
+      <div class="section-div"><div class="section-div-line"></div><div class="section-div-label">earlier releases</div><div class="section-div-line"></div></div>
 
       <!-- v1.4 -->
       <div class="rel-card">
