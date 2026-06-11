@@ -30,11 +30,18 @@ v1.1 tri-agent quality loop + Astro site
 v1.2 PM-MCP prose
 v1.3 PM-MCP runtime + platforms + release-ops (dogfooded)
 v1.4 pack registry + governance + multi-mobile           ← in flight
-v1.5 build the AI app                                    ← proposed below
-v1.6 the instrumented pipeline                           ← proposed below
-v1.7 pick ONE distribution play                          ← lean: marketplace
-v1.8 extend to Codex / any MCP agent         ← tabled (PR #260)
+v1.5 Opchain for Codex (MCP server)          ← promoted 2026-06-11 (PR #260)
+v1.6 build the AI app                                    ← proposed below (was v1.5)
+v1.7 the instrumented pipeline                           ← proposed below (was v1.6)
+v1.8 pick ONE distribution play                          ← lean: marketplace (was v1.7)
 ```
+
+> **Renumbered 2026-06-11.** The Codex / any-MCP-agent extension —
+> originally slated as a v1.4.3 patch, then tabled to v1.8 on 2026-06-05 —
+> is promoted to v1.5 and ships immediately (the MCP server is already
+> built and merged in PR #260). Every other release moves down one number;
+> themes, scope, and sequencing below are unchanged. Where this memo's body
+> says v1.5 / v1.6 / v1.7, read v1.6 / v1.7 / v1.8.
 
 ### Where opchain actually is (12 May 2026)
 
@@ -654,11 +661,20 @@ Before any candidate becomes a sprint plan, run each through these gates:
 
 ## Decision
 
-Adopt v1.5 = AI-native, v1.6 = instrumentation, v1.7 = (lean) marketplace.
+~~Adopt v1.5 = AI-native, v1.6 = instrumentation, v1.7 = (lean) marketplace.
 v1.8 = extend opchain to Codex / any MCP agent — tabled 2026-06-05; the MCP
 server (skill catalog + routing + checkpoints over MCP) is built in PR #260,
 parked as a draft awaiting the v1.8 cycle. It's a distribution play (reach
-beyond Claude Code), so it slots behind the v1.7 marketplace push.
+beyond Claude Code), so it slots behind the v1.7 marketplace push.~~
+
+**Amended 2026-06-11:** the Codex extension is un-tabled and promoted to
+**v1.5**, shipping immediately — the MCP server landed in PR #260 (merged),
+so the release is a version cut + changelog entry, not new build work.
+Originally it was slated as the v1.4.3 patch; it ships as a headline minor
+instead. The rest of the arc moves down one release:
+**v1.6 = AI-native ("Build the AI app", already built on its release
+branch), v1.7 = instrumentation, v1.8 = (lean) marketplace.** Theme content
+and sequencing are otherwise unchanged.
 
 Land roadmap doc + sprint plan + Linear tickets on
 `claude/plan-future-releases-SQeO8`. Start the GTM bundle (newsletter

@@ -1,5 +1,11 @@
 # v1.5 Sprint Plan — "Build the AI app"
 
+> **Renumbered 2026-06-11:** this release now ships as **v1.6**. The v1.5
+> slot went to "Opchain for Codex" (the MCP server, PR #260 — originally
+> slated v1.4.3, briefly tabled to v1.8), which ships immediately. Sprint
+> content below is unchanged; read v1.5 as v1.6 (lockstep bump `1.6.0`,
+> catalog tag `skills-v1.6.0`).
+
 > Companion to `roadmap/07-v15-v16-v17-roadmap.md` (strategy memo). This doc
 > sequences v1.5 into five sprints, each gated on an `app-architect`
 > Evaluator-style pass (criteria ≥ 6/10) and tracked under a single Linear

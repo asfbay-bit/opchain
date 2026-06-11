@@ -5,18 +5,19 @@
  * section expanded on load.
  *
  *   Just Released → v1.4.2 hero (accent) + compact release cards (v1.4 ↓).
- *   Coming Next   → v1.5 hero (info) + the v1.6 / v1.7 roadmap, then the
+ *   Coming Next   → v1.5 hero (info: Opchain for Codex, the MCP server)
+ *                   + the v1.6 / v1.7 / v1.8 roadmap, then the
  *                   feature-request form.
  *
  * Voting is real: vote buttons carry data-vote-target=<id> and the client
  * script batches GET /api/votes then POSTs /api/votes/<id> per click (the
  * Worker dedups per-IP/day in KV). The votable ids come from
- * roadmap-static.ts — OPC-150 (v1.5) and the per-feature OPC-16x / OPC-17x
- * items grouped by milestone below.
+ * roadmap-static.ts — OPC-143 (v1.5, Codex), OPC-150 (v1.6, AI app) and
+ * the per-feature OPC-16x / OPC-17x items grouped by milestone below.
  *
- * Deep links (#v1-5 / #v1-6 / #v1-7 from the skill pages and external
- * links, #v1-4 → /coverage) are handled client-side: the matching tab is
- * activated, the target card expanded, and scrolled into view.
+ * Deep links (#v1-5 / #v1-6 / #v1-7 / #v1-8 from the skill pages and
+ * external links, #v1-4 → /coverage) are handled client-side: the matching
+ * tab is activated, the target card expanded, and scrolled into view.
  *
  * Accessibility: tablist with roving tabindex + arrow/Home/End keys;
  * inactive panel is `hidden`; each card is a button[aria-expanded] that
@@ -28,7 +29,8 @@ import RoadmapForm from "../components/RoadmapForm.astro";
 import { staticRoadmap } from "../data/roadmap-static";
 import type { RoadmapItem } from "../data/roadmap-types";
 
-// v1.5 is the single in-progress milestone (built, shipping next).
+// v1.5 is the single in-progress milestone (Opchain for Codex — built in
+// PR #260, shipping next).
 const v15 =
   staticRoadmap.items["in-progress"].find((i) => i.milestone === "v1.5") ?? null;
 
@@ -42,6 +44,7 @@ for (const it of staticRoadmap.items.planned) {
 }
 const v16Items = plannedByMilestone.get("v1.6") ?? [];
 const v17Items = plannedByMilestone.get("v1.7") ?? [];
+const v18Items = plannedByMilestone.get("v1.8") ?? [];
 ---
 
 <Base
@@ -81,7 +84,7 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
           aria-selected="false"
           tabindex="-1"
         >
-          Coming Next <span class="tab-count">v1.5 → v1.7</span>
+          Coming Next <span class="tab-count">v1.5 → v1.8</span>
         </button>
       </div>
       <span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
@@ -319,7 +322,7 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
     >
       <div class="panel-head">
         <h2>What's coming</h2>
-        <span class="panel-sub">v1.5 ships next; v1.6 / v1.7 are the roadmap. Vote to signal priority.</span>
+        <span class="panel-sub">v1.5 ships next; v1.6 → v1.8 are the roadmap. Vote to signal priority.</span>
       </div>
 
       <!-- v1.5 — next release, AUTO-OPEN, rich hero (info-themed) -->
@@ -332,52 +335,53 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
-          <span class="hero-badge">building now</span>
+          <span class="hero-badge">built — shipping now</span>
           <span class="hero-ver">v1.5.0 · ships next</span>
-          <span class="hero-title">Build the AI app</span>
+          <span class="hero-title">Opchain for Codex</span>
           <span class="hero-desc">
-            v1.5 closes the biggest categorical gap in the catalog: nothing
-            today owns <em>AI-feature</em> design. Four new AI-native skills
-            ship wired through the existing pipeline — model routing, RAG,
-            agent harnesses, and prompts as first-class version-controlled
-            artifacts.
+            v1.5 takes opchain beyond Claude Code. The full pipeline — skill
+            catalog, command + intent routing, the orchestrator protocol, and
+            cross-session checkpoints — is exposed over the Model Context
+            Protocol, so Codex and any MCP-aware agent can run opchain.
+            Originally slated as the 1.4.3 patch; promoted to a headline
+            release.
           </span>
         </button>
         <div class="card-body" id="v1-5-body" data-disclosure-body>
           <div class="card-body-inner hero-body-inner">
-            <h3>Four new skills</h3>
+            <h3>What ships</h3>
             <div class="tile-grid">
               <div class="tile">
-                <span class="tile-name">claude-api · /claude-api</span>
-                <p class="tile-desc">Model routing (Opus/Sonnet/Haiku), prompt caching by default, streaming vs. batch, tool use, and migration playbooks for model-version bumps.</p>
+                <span class="tile-name">MCP server core</span>
+                <p class="tile-desc">Transport-agnostic JSON-RPC 2.0 server — tools, prompts, and resources, with no SDK dependency. Every <code>/oc-*</code> command re-exposed as an MCP prompt.</p>
               </div>
               <div class="tile">
-                <span class="tile-name">rag-forge · /rag</span>
-                <p class="tile-desc">Tri-agent. Vector-DB decision tree, embedding choice, chunking, hybrid search, and retrieval eval with golden sets and recall@k / NDCG.</p>
+                <span class="tile-name">skill routing</span>
+                <p class="tile-desc"><code>/oc-*</code> command and natural-language intent → skill routing, mirroring the orchestrator&rsquo;s Smart Routing table.</p>
               </div>
               <div class="tile">
-                <span class="tile-name">agent-forge · /agent</span>
-                <p class="tile-desc">Tri-agent. Claude Agent SDK scaffold, subagent topology, tool-budget design, harness-loop shapes, and eval over golden trajectories.</p>
+                <span class="tile-name">checkpoints over MCP</span>
+                <p class="tile-desc">The cross-session checkpoint protocol works from any MCP client — state persists in KV on the hosted server.</p>
               </div>
               <div class="tile">
-                <span class="tile-name">prompt-ops · /prompt</span>
-                <p class="tile-desc">Prompts as artifacts: file-shaped versioning, eval datasets, regression detection. <code>/prompt regress</code> blocks on a PR drop.</p>
+                <span class="tile-name">two transports</span>
+                <p class="tile-desc">Hosted streamable HTTP at <code>POST /mcp</code>, plus a local stdio server (<code>mcp/local-server.mjs</code>) for offline use. Install paths for Codex documented in <code>mcp/README.md</code>.</p>
               </div>
             </div>
 
             <div class="callout">
-              <h3>Cross-skill ripples</h3>
+              <h3>Why it matters</h3>
               <ul class="callout-list">
-                <li><strong>oc-app-architect</strong> gains an &ldquo;AI app?&rdquo; branch in <code>/oc-discover</code> that routes to the four new skills.</li>
-                <li><strong>oc-stack-forge</strong> adds vector-DB packs (pgvector, Turbopuffer, Pinecone, Supabase Vectors) to the pack registry.</li>
-                <li><strong>oc-code-auditor</strong> learns prompt-injection and tool-use safety rules.</li>
+                <li><strong>Codex (and any MCP agent)</strong> gets what Claude Code gets natively from skill auto-discovery — the catalog, routing, and the shared orchestrator protocol.</li>
+                <li><strong>Slash-command UX survives</strong> on clients that surface MCP prompts.</li>
+                <li><strong>Ops-gated</strong> behind <code>site.ops.api-mcp.kill</code> for graceful degradation.</li>
               </ul>
             </div>
 
             <div class="compat-box">
-              <strong>Back-compatible with v1.4.</strong> All 22 skills version-bump
-              to <code>1.5.0</code>; the four new skills ship gated behind their
-              <code>skills.registry.&lt;id&gt;.enabled</code> flags.
+              <strong>Back-compatible with v1.4.2.</strong> Purely additive — no
+              skill-content changes; all 18 skills lockstep-bump to
+              <code>1.5.0</code>.
             </div>
 
             {v15 && (
@@ -401,20 +405,20 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
 
       <div class="divider"><span class="divider-line"></span><span class="divider-label">on the roadmap</span><span class="divider-line"></span></div>
 
-      <!-- v1.6 — first roadmap item, AUTO-OPEN -->
+      <!-- v1.6 — first roadmap item (Build the AI app, ex-v1.5), AUTO-OPEN -->
       <article class="plan-card is-open" id="v1-6" data-card>
         <button class="pc-row" type="button" aria-expanded="true" aria-controls="v1-6-body" data-disclosure-toggle>
           <span class="pc-toggle" aria-hidden="true">▶</span>
           <span class="pc-meta">
-            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.6</span><span class="pc-title">The instrumented pipeline</span><span class="pc-timing">est. Jul 2026</span></span>
-            <span class="pc-summary">Cost attribution, opt-in telemetry, and the first oc-checkpoint-protocol bump since v1.2. Answers &ldquo;what did this feature cost?&rdquo;</span>
+            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.6</span><span class="pc-title">Build the AI app</span><span class="pc-timing">next after v1.5</span></span>
+            <span class="pc-summary">Four new AI-native skills — claude-api, rag-forge, agent-forge, prompt-ops — wired through the existing pipeline. Built; renumbered from v1.5.</span>
           </span>
         </button>
         <div class="card-body" id="v1-6-body" data-disclosure-body>
           <div class="card-body-inner">
-            <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">est. Jul 2026</span><span class="tag">2 new skills</span></div>
-            <p>v1.5 introduces four AI-native skills; the predictable next question is <em>what did they cost, and is my pipeline actually getting better?</em> v1.6 answers both — cost attribution and opt-in telemetry, plus the first <code>oc-checkpoint-protocol</code> bump since v1.2 (adds <code>cost</code>, <code>eval_scores</code>, <code>telemetry_handle</code>).</p>
-            <h3>What's planned — vote on what matters most</h3>
+            <div class="tag-row"><span class="tag tag--info">built, awaiting release</span><span class="tag">4 new skills</span></div>
+            <p>The biggest categorical gap in the catalog: nothing today owns <em>AI-feature</em> design. Four new AI-native skills ship wired through the existing pipeline — model routing (<code>claude-api</code>), RAG (<code>rag-forge</code>), agent harnesses (<code>agent-forge</code>), and prompts as first-class version-controlled artifacts (<code>prompt-ops</code>). <strong>oc-app-architect</strong> gains an &ldquo;AI app?&rdquo; branch in <code>/oc-discover</code>, <strong>oc-stack-forge</strong> adds vector-DB packs, and <strong>oc-code-auditor</strong> learns prompt-injection and tool-use safety rules.</p>
+            <h3>Vote to signal priority</h3>
             <ul class="vote-list">
               {v16Items.map((it) => (
                 <li class="vote-item">
@@ -435,27 +439,66 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
                 </li>
               ))}
             </ul>
-            <div class="planned-box">Planned — scope may shift before release. All 24 skills lockstep-bump to <code>1.6.0</code>.</div>
+            <div class="planned-box">Built and lockstep-bumped on its release branch; all 22 skills bump to <code>1.6.0</code> and the four new skills ship gated behind their <code>skills.registry.&lt;id&gt;.enabled</code> flags.</div>
           </div>
         </div>
       </article>
 
-      <!-- v1.7 — collapsed by default -->
+      <!-- v1.7 — the instrumented pipeline (ex-v1.6), collapsed by default -->
       <article class="plan-card" id="v1-7" data-card>
         <button class="pc-row" type="button" aria-expanded="false" aria-controls="v1-7-body" data-disclosure-toggle>
           <span class="pc-toggle" aria-hidden="true">▶</span>
           <span class="pc-meta">
-            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.7</span><span class="pc-title">Pick one distribution play</span><span class="pc-timing">lean: marketplace + templates</span></span>
-            <span class="pc-summary">By v1.6, opchain has 24 skills and AI coverage. The biggest remaining gap is distribution — v1.7 promotes one growth play into a flagship theme.</span>
+            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.7</span><span class="pc-title">The instrumented pipeline</span><span class="pc-timing">est. Jul 2026</span></span>
+            <span class="pc-summary">Cost attribution, opt-in telemetry, and the first oc-checkpoint-protocol bump since v1.2. Answers &ldquo;what did this feature cost?&rdquo;</span>
           </span>
         </button>
         <div class="card-body" id="v1-7-body" data-disclosure-body inert>
           <div class="card-body-inner">
-            <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">est. Sep 2026</span></div>
-            <p>By the time v1.6 ships, the biggest remaining gap isn't features — it's <strong>distribution</strong>. v1.7 deliberately promotes one growth play into a flagship theme instead of accreting more skills. The current lean is marketplace + templates.</p>
-            <h3>The lean plan — vote on what matters most</h3>
+            <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">est. Jul 2026</span><span class="tag">2 new skills</span></div>
+            <p>v1.6 introduces four AI-native skills; the predictable next question is <em>what did they cost, and is my pipeline actually getting better?</em> v1.7 answers both — cost attribution and opt-in telemetry, plus the first <code>oc-checkpoint-protocol</code> bump since v1.2 (adds <code>cost</code>, <code>eval_scores</code>, <code>telemetry_handle</code>).</p>
+            <h3>What's planned — vote on what matters most</h3>
             <ul class="vote-list">
               {v17Items.map((it) => (
+                <li class="vote-item">
+                  <div class="vote-item-meta">
+                    <span class="vote-item-title">{it.title}</span>
+                    <p class="vote-item-blurb">{it.blurb}</p>
+                  </div>
+                  <button
+                    class="vote-btn"
+                    type="button"
+                    data-vote-target={it.id}
+                    aria-label={`Vote for ${it.title}`}
+                  >
+                    <span class="v-arrow" aria-hidden="true">▲</span>
+                    <span class="v-count" data-vote-count>—</span>
+                    <span class="v-label" data-vote-label>vote</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div class="planned-box">Planned — scope may shift before release. All 24 skills lockstep-bump to <code>1.7.0</code>.</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.8 — pick one distribution play (ex-v1.7), collapsed by default -->
+      <article class="plan-card" id="v1-8" data-card>
+        <button class="pc-row" type="button" aria-expanded="false" aria-controls="v1-8-body" data-disclosure-toggle>
+          <span class="pc-toggle" aria-hidden="true">▶</span>
+          <span class="pc-meta">
+            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.8</span><span class="pc-title">Pick one distribution play</span><span class="pc-timing">lean: marketplace + templates</span></span>
+            <span class="pc-summary">By v1.7, opchain has 24 skills, AI coverage, and instrumentation. The biggest remaining gap is distribution — v1.8 promotes one growth play into a flagship theme.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-8-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">est. Sep 2026</span></div>
+            <p>By the time v1.7 ships, the biggest remaining gap isn't features — it's <strong>distribution</strong>. v1.8 deliberately promotes one growth play into a flagship theme instead of accreting more skills. The current lean is marketplace + templates, building on the reach the v1.5 MCP server opened up beyond Claude Code.</p>
+            <h3>The lean plan — vote on what matters most</h3>
+            <ul class="vote-list">
+              {v18Items.map((it) => (
                 <li class="vote-item">
                   <div class="vote-item-meta">
                     <span class="vote-item-title">{it.title}</span>
@@ -480,13 +523,13 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
               <strong>pipeline depth</strong> (<code>discovery-ops</code>,
               <code>qa-ops</code>).
             </p>
-            <div class="planned-box">Lean, not locked — the final v1.7 theme is chosen after the v1.5 / v1.6 retro.</div>
+            <div class="planned-box">Lean, not locked — the final v1.8 theme is chosen after the v1.6 / v1.7 retro.</div>
           </div>
         </div>
       </article>
 
       <div class="divider"><span class="divider-line"></span><span class="divider-label">backlog</span><span class="divider-line"></span></div>
-      <p class="backlog-note">Backlog is deliberately open until v1.5 and v1.6 ship and the retros are done. Use the form below to add to it.</p>
+      <p class="backlog-note">Backlog is deliberately open until v1.6 and v1.7 ship and the retros are done. Use the form below to add to it.</p>
 
       <RoadmapForm />
     </section>

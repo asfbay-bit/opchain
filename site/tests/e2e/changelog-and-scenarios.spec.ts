@@ -5,16 +5,17 @@ import { expect, test } from "@playwright/test";
  * release entries as opchain version-bumps.
  *
  * /changelog uses the Option C v3 layout: two ARIA tabs — "Just Released"
- * (the release history, newest first) and "Coming Next" (v1.5, then the
- * v1.6 / v1.7 roadmap). The newest release (v1.4.2) and v1.5 / v1.6 are
- * expanded on load; each card is a button[aria-expanded] disclosure.
- * Deep links (#v1-5 / #v1-6 / #v1-7) activate the Coming Next tab and open
- * the target card; #v1-4 still carries the /coverage link.
+ * (the release history, newest first) and "Coming Next" (v1.5 Opchain for
+ * Codex, then the v1.6 / v1.7 / v1.8 roadmap). The newest release (v1.4.2)
+ * and v1.5 / v1.6 are expanded on load; each card is a
+ * button[aria-expanded] disclosure. Deep links (#v1-5 / #v1-6 / #v1-7 /
+ * #v1-8) activate the Coming Next tab and open the target card; #v1-4
+ * still carries the /coverage link.
  *
  * Two specs:
  *   1. /changelog — two tabs; v1.4.2 is the open hero in Just Released;
  *      the v1.4 card still deep-links to /coverage; Coming Next lists
- *      v1.5 / v1.6 / v1.7 with >= 6 votable roadmap items.
+ *      v1.5 / v1.6 / v1.7 / v1.8 with >= 7 votable roadmap items.
  *
  *   2. /demo — the three v1.3 scenarios + the three v1.2 scenarios
  *      remain pickable on /demo. Neither v1.4 nor v1.4.2 ships new
@@ -69,22 +70,25 @@ test.describe("/changelog", () => {
       .toBeVisible();
   });
 
-  test("Coming Next lists v1.5 (next), then v1.6 / v1.7, all votable", async ({ page }) => {
+  test("Coming Next lists v1.5 (next), then v1.6 / v1.7 / v1.8, all votable", async ({ page }) => {
     await page.goto("/changelog");
     await page.locator("#tab-coming").click();
 
     await expect(page.locator("#panel-coming")).toBeVisible();
     await expect(page.locator("#v1-5.hero-card--next .hero-title")).toHaveText(
-      /build the ai app/i,
+      /opchain for codex/i,
     );
     await expect(page.locator("#v1-6 .pc-title")).toBeVisible();
     await expect(page.locator("#v1-7 .pc-title")).toBeVisible();
+    await expect(page.locator("#v1-8 .pc-title")).toBeVisible();
 
-    // Six votable roadmap items: OPC-150 (v1.5) + OPC-160/161/162 (v1.6) +
-    // OPC-170/171 (v1.7). The v1.5 vote lives in an open card, so it shows
-    // once the Coming Next tab is active.
+    // Seven votable roadmap items: OPC-143 (v1.5, Codex) + OPC-150 (v1.6,
+    // AI app) + OPC-160/161/162 (v1.7) + OPC-170/171 (v1.8). The v1.5 and
+    // v1.6 votes live in open cards, so they show once the Coming Next tab
+    // is active.
     const voteButtons = page.locator("[data-vote-target]");
-    expect(await voteButtons.count()).toBeGreaterThanOrEqual(6);
+    expect(await voteButtons.count()).toBeGreaterThanOrEqual(7);
+    await expect(page.locator('[data-vote-target="OPC-143"]')).toBeVisible();
     await expect(page.locator('[data-vote-target="OPC-150"]')).toBeVisible();
   });
 
