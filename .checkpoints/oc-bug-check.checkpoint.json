@@ -4,19 +4,19 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-11T21:19:08Z",
+  "updated_at": "2026-06-11T22:42:57Z",
   "phase": "gate",
-  "step": "install-codex-flow-rebased",
+  "step": "fix-worker-entry-exports",
   "status": "complete",
-  "progress_summary": "Gate for the install-page Codex/MCP flow (Codex port increment 2), rebased onto main after PR #260 (the MCP server) was squash-merged as 4cf0660. Changed vs main: site/src/pages/install.astro (flag-gated 'Codex / any MCP agent' flow — hosted opchain.dev/mcp endpoint + .codex/skills drop-in), src/lib/flags/registry.js (site.feature.codex-install flag, default false), skills/README.md (Codex install section). PASS — vitest 345/345 clean on the reconciled state, astro check 0 errors/0 warnings, site build green, worker build clean. Opening a fresh PR for this delta since #260 is merged/closed.",
+  "progress_summary": "Gate for the worker entry-export fix. workerd (wrangler 4.98+, bumped in via #261) rejected the Worker entry module at startup because it had non-handler named exports (NONCE_PLACEHOLDER string, LABEL_MAP/PRIORITY_MAP objects) — so `wrangler dev`/deploy couldn't boot it. Extracted the CORS/security-header/CSP-nonce helpers → src/lib/http.js and the Linear feedback config → src/lib/feedback-config.js; src/index.js now exports ONLY its default handler (0 named exports). Updated the two tests that imported those symbols (feedback, csp-nonce) to import from the new modules. PASS — vitest 345/345 clean, worker build clean, and `wrangler dev` now boots the worker (verified /api/health + POST /mcp initialize over real HTTP; it previously crashed with 'Incorrect type for map entry NONCE_PLACEHOLDER'). Same workerd module validation runs at deploy, so the next wrangler deploy is unblocked too.",
   "blockers": [],
   "next_actions": [
-    "Continue the Codex copy scrub on remaining single-platform surfaces: index hero, compare, glossary, security, uses, skills/[id], Header/SearchPalette.",
-    "At deploy time: flip site.feature.codex-install on + deploy the /mcp endpoint. The marketing-version lockstep bump + changelog stay deferred to the v1.8 release."
+    "Open a PR for this fix and land it before the next deploy (it unblocks wrangler deploy on main).",
+    "Still pending in the Codex effort: the platform-neutral copy scrub (index hero, compare, glossary, security, uses, skills/[id], Header/SearchPalette)."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-11T21:19:08Z",
+      "at": "2026-06-11T22:42:57Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
@@ -28,18 +28,18 @@
         "build": "PASS",
         "dependencies": "PASS"
       },
-      "tests": "345 passed (clean, reconciled onto main)",
-      "site": "astro check 0 errors / 0 warnings; build green",
+      "tests": "345 passed (clean)",
+      "runtime": "wrangler dev boots; /api/health + POST /mcp verified over HTTP",
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      { "at": "2026-06-11T22:42:57Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-11T21:19:08Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-06-08T15:39:19Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-06-05T22:01:00Z", "verdict": "PASS", "warnings": 0 }
+      { "at": "2026-06-08T15:39:19Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
-    "streak": { "passes": 4, "since": "2026-06-05T22:01:00Z" }
+    "streak": { "passes": 5, "since": "2026-06-05T22:01:00Z" }
   }
 }
