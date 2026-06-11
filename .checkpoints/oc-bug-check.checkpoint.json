@@ -4,19 +4,19 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-08T21:22:16Z",
+  "updated_at": "2026-06-11T21:19:08Z",
   "phase": "gate",
-  "step": "changelog-c-v3-a11y-contrast-fix",
+  "step": "install-codex-flow-rebased",
   "status": "complete",
-  "progress_summary": "Follow-up to the Option C v3 live port: CI Lighthouse flagged a color-contrast regression on the active tab-count pill (accent/info text on the faint *-dim tint failed AA at 9.5px; /changelog a11y dropped 1.00→0.97). Fix: the active count pill keeps the tint + coloured border but uses --text for the label (AA on any themed bg). Re-validated: `astro build` 35 pages OK, anti-pattern + secret scan clean on changelog.astro (CSS-only change; no TS touched, prior `astro check` was 0 errors). Browser e2e + Lighthouse re-check run in CI (chromium CDN blocked in this sandbox).",
+  "progress_summary": "Gate for the install-page Codex/MCP flow (Codex port increment 2), rebased onto main after PR #260 (the MCP server) was squash-merged as 4cf0660. Changed vs main: site/src/pages/install.astro (flag-gated 'Codex / any MCP agent' flow — hosted opchain.dev/mcp endpoint + .codex/skills drop-in), src/lib/flags/registry.js (site.feature.codex-install flag, default false), skills/README.md (Codex install section). PASS — vitest 345/345 clean on the reconciled state, astro check 0 errors/0 warnings, site build green, worker build clean. Opening a fresh PR for this delta since #260 is merged/closed.",
   "blockers": [],
   "next_actions": [
-    "Auto-merge enabled on PR #265 — merges when CI is green (Playwright e2e + Lighthouse a11y back to 1.00). Watch the changelog e2e + a11y budget.",
-    "On merge to main, deploy is manual: npm run deploy:staging, eyeball staging.opchain.dev/changelog, then npm run deploy."
+    "Continue the Codex copy scrub on remaining single-platform surfaces: index hero, compare, glossary, security, uses, skills/[id], Header/SearchPalette.",
+    "At deploy time: flip site.feature.codex-install on + deploy the /mcp endpoint. The marketing-version lockstep bump + changelog stay deferred to the v1.8 release."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-08T21:22:16Z",
+      "at": "2026-06-11T21:19:08Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
@@ -26,21 +26,20 @@
         "anti_patterns": "PASS",
         "secrets": "PASS",
         "build": "PASS",
-        "dependencies": "N/A"
+        "dependencies": "PASS"
       },
+      "tests": "345 passed (clean, reconciled onto main)",
+      "site": "astro check 0 errors / 0 warnings; build green",
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
-      { "at": "2026-06-08T21:22:16Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-06-08T21:11:50Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-06-08T17:23:41Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-06-08T16:56:58Z", "verdict": "PASS", "warnings": 0 },
+      { "at": "2026-06-11T21:19:08Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-08T15:39:19Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-05T22:01:00Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
-    "streak": { "passes": 6, "since": "2026-06-05T22:01:00Z" }
+    "streak": { "passes": 4, "since": "2026-06-05T22:01:00Z" }
   }
 }

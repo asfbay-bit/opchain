@@ -8,6 +8,11 @@ import CaptureModal from "../components/CaptureModal.astro";
 import { defaultFor } from "../lib/flags/build-defaults";
 
 const installZipEnabled = defaultFor("site.feature.install-zip-download") as boolean;
+const codexInstallEnabled = defaultFor("site.feature.codex-install") as boolean;
+
+const installDesc = codexInstallEnabled
+  ? "Install opchain in Claude Code, Claude.ai, Claude Desktop, or Codex / any MCP agent — drop-in SKILL.md files or a hosted MCP endpoint. No API keys required."
+  : "Install opchain in Claude Code, Claude.ai, or Claude Desktop. Three flows, one directory of SKILL.md files. No API keys required.";
 
 const cliCmd = `curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
 unzip opchain-skills.zip -d .claude/skills/
@@ -25,18 +30,26 @@ unzip opchain-skills.zip -d .claude/skills/
 rm opchain-skills.zip`;
 
 const versionCmd = `curl -sS https://opchain.dev/api/health | jq .version`;
+
+const codexMcpCmd = `# ~/.codex/config.toml
+[mcp_servers.opchain]
+url = "https://opchain.dev/mcp"`;
+
+const codexSkillsCmd = `curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
+unzip opchain-skills.zip -d .codex/skills/
+codex`;
 ---
 
 <Base
   title="Install · opchain"
-  description="Install opchain in Claude Code, Claude.ai, or Claude Desktop. Three flows, one directory of SKILL.md files. No API keys required."
+  description={installDesc}
   active="/install"
 >
   <main class="page">
     <div class="page-head">
       <div>
         <Eyebrow>install</Eyebrow>
-        <h1>Three flows.</h1>
+        <h1>{codexInstallEnabled ? "Four" : "Three"} flows.</h1>
       </div>
       {installZipEnabled && (
         <Button
@@ -125,6 +138,51 @@ const versionCmd = `curl -sS https://opchain.dev/api/health | jq .version`;
         </div>
       </div>
     </section>
+
+    <!-- ───────────── Flow 4 — Codex / any MCP agent ───────────── -->
+    {codexInstallEnabled && (
+      <section class="flow">
+        <div class="flow-num">04</div>
+        <div class="flow-body">
+          <h2><Icon name="terminal" /> Codex / any MCP agent</h2>
+          <p>
+            Codex — and any MCP-aware agent (Claude Desktop, Cursor, Windsurf) —
+            reaches opchain over the
+            <a href="https://modelcontextprotocol.io" rel="noopener">Model Context Protocol</a>.
+            Point your client at the hosted endpoint and you get the catalog,
+            intent routing, the orchestrator protocol, and checkpoints — the
+            same pipeline Claude Code auto-discovers.
+          </p>
+          <p class="flow-sub"><strong>Hosted MCP server</strong> — nothing to install:</p>
+          <div class="code-row">
+            <pre class="codeblock"><code>{codexMcpCmd}</code></pre>
+            <button class="copy" type="button" data-copy={codexMcpCmd} data-flow="codex-mcp" aria-label="Copy Codex MCP config">
+              <Icon name="copy" size={12} />
+              <span class="copy-label">copy</span>
+            </button>
+          </div>
+          <p class="flow-sub">
+            <strong>Or drop the skills in directly</strong> — Codex Agent Skills
+            use the same <code class="ic">SKILL.md</code> format:
+          </p>
+          <div class="code-row">
+            <pre class="codeblock"><code>{codexSkillsCmd}</code></pre>
+            <button class="copy" type="button" data-copy={codexSkillsCmd} data-flow="codex-skills" aria-label="Copy Codex skills install">
+              <Icon name="copy" size={12} />
+              <span class="copy-label">copy</span>
+            </button>
+          </div>
+          <p class="verify">
+            <strong>Verify it worked.</strong> Run <code class="ic">codex</code>
+            and ask "build me an app" — opchain's <code class="ic">route</code>
+            tool (or an implicit skill match) hands you to oc-app-architect's
+            discovery interview. With the MCP server, the
+            <code class="ic">/oc-*</code> commands also appear as prompts in the
+            slash menu.
+          </p>
+        </div>
+      </section>
+    )}
 
     <!-- ───────────── Upgrade ───────────── -->
     <section class="upgrade">
@@ -238,6 +296,18 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
           <div class="key"><code class="ic">orchestrator.md</code></div>
           <div class="val">Shared welcome protocol + pipeline map. Bundled with every skill.</div>
         </div>
+        {codexInstallEnabled && (
+          <>
+            <div class="kv">
+              <div class="key"><code class="ic">.codex/skills/</code></div>
+              <div class="val">Where Codex looks for drop-in skills — same SKILL.md format as Claude Code.</div>
+            </div>
+            <div class="kv">
+              <div class="key"><code class="ic">~/.codex/config.toml</code></div>
+              <div class="val">Register the hosted MCP server under <code class="ic">[mcp_servers.opchain]</code>.</div>
+            </div>
+          </>
+        )}
       </Card>
     </section>
 
@@ -407,6 +477,9 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
     gap: 0.45rem;
   }
   .flow-body p { color: var(--muted); margin: 0 0 0.85rem; }
+  .flow-body .flow-sub { margin: 0.9rem 0 0.4rem; font-size: var(--fs-sm); }
+  .flow-body .flow-sub strong { color: var(--text); }
+  .flow-body .flow-sub code { font-family: var(--font-mono); }
   .flow-body .verify {
     margin-top: 0.9rem;
     padding: 0.75rem 0.95rem;
