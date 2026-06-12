@@ -4,21 +4,21 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-12T15:42:43Z",
+  "updated_at": "2026-06-12T15:48:58Z",
   "phase": "gate",
-  "step": "release-v1.4.3",
+  "step": "release-v1.4.3-e2e-fix",
   "status": "complete",
-  "progress_summary": "Cut v1.4.3 — extend opchain to Codex, brought forward from the tabled v1.8 roadmap slot. Lockstep-bumped all 18 skills to 1.4.3 + regen'd mcp-catalog; styleguide badge → v1.4.3; added the v1.4.3 changelog hero ('opchain runs on Codex') and demoted v1.4.2 to a rel-card (tab count 6→7); flipped site.feature.codex-install default → true so the /install Codex flow ships; updated the roadmap line + Decision. Homepage pill stays v1.4 (major.minor — patches don't move it). PASS — vitest 345/345, astro check 0 errors/0 warnings, site build 35 pages, worker build clean. Activation is a manual deploy (deploy:staging → eyeball → deploy).",
+  "progress_summary": "Follow-up to the v1.4.3 release (PR #272): the Playwright e2e changelog-and-scenarios.spec.ts asserted the v1.4.2 hero (#v1-4-2.hero-card--released), which the release demoted to a rel-card — so the 'Site — Playwright e2e' job failed. Updated the spec to assert the new v1.4.3 hero (#v1-4-3, hero-ver v1.4.3, compat-box) + refreshed the docstring. vitest stays 345/345 (e2e is a separate Playwright job, not run locally — no browsers in this container — so CI re-run validates). No other e2e spec referenced the v1.4.2 hero.",
   "blockers": [],
   "next_actions": [
-    "Manual deploy to ship v1.4.3: npm run deploy:staging → curl staging /api/health + /mcp → npm run deploy. That lights up the /mcp endpoint and the install flow together.",
-    "Optional, post-launch: the platform-neutral marketing copy scrub (homepage hero, compare, glossary, security, uses, skills/[id], Header/SearchPalette)."
+    "CI re-runs on push; confirm the Playwright e2e job goes green.",
+    "Then v1.4.3 is ready to merge + manually deploy (deploy:staging → eyeball → deploy) to activate Codex."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-12T15:42:43Z",
+      "at": "2026-06-12T15:48:58Z",
       "verdict": "PASS",
-      "scope": "all",
+      "scope": "changed",
       "checks": {
         "type_safety": "PASS",
         "lint": "N/A",
@@ -28,18 +28,17 @@
         "build": "PASS",
         "dependencies": "PASS"
       },
-      "tests": "345 passed",
-      "site": "astro check 0/0; build 35 pages",
+      "tests": "vitest 345/345; e2e fix validated by CI (no local browsers)",
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      { "at": "2026-06-12T15:48:58Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-12T15:42:43Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-06-12T15:34:27Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-06-11T22:42:57Z", "verdict": "PASS", "warnings": 0 }
+      { "at": "2026-06-12T15:34:27Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
-    "streak": { "passes": 7, "since": "2026-06-05T22:01:00Z" }
+    "streak": { "passes": 8, "since": "2026-06-05T22:01:00Z" }
   }
 }
