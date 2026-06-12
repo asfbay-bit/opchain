@@ -111,11 +111,11 @@ const DEFINITIONS = [
   {
     name: "site.feature.codex-install",
     type: "boolean",
-    default: false,
+    default: true,
     category: "release",
     owner: "site",
     description:
-      "Show the Codex / any-MCP-agent install flow on /install (hosted opchain.dev/mcp endpoint + .codex/skills drop-in). Default off until the MCP server ships in v1.8; flip on once the /mcp endpoint is deployed.",
+      "Show the Codex / any-MCP-agent install flow on /install (hosted opchain.dev/mcp endpoint + .codex/skills drop-in). On as of v1.4.3.",
   },
   {
     name: "site.feature.replays-section",

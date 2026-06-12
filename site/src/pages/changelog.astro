@@ -71,7 +71,7 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">6 shipped</span>
+          Just Released <span class="tab-count">7 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -100,106 +100,115 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
         <span class="panel-sub">Newest is open; click any release for full notes.</span>
       </div>
 
-      <!-- v1.4.2 — newest, AUTO-OPEN; mirrors the v1.5 hero, accent-themed -->
-      <article class="hero-card hero-card--released is-open" id="v1-4-2" data-card>
+      <!-- v1.4.3 — newest, AUTO-OPEN; extend opchain to Codex -->
+      <article class="hero-card hero-card--released is-open" id="v1-4-3" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
-          aria-controls="v1-4-2-body"
+          aria-controls="v1-4-3-body"
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
-          <span class="hero-ver">v1.4.2 · shipped Jun 05, 2026</span>
-          <span class="hero-title">Complete bundles, honest checkpoints</span>
+          <span class="hero-ver">v1.4.3 · shipped Jun 12, 2026</span>
+          <span class="hero-title">opchain runs on Codex</span>
           <span class="hero-desc">
-            An out-of-band emergency patch: one user-facing breakage and a
-            long-overdue correctness pass, shipped ahead of v1.5. The
-            &ldquo;download all&rdquo; bundle was shipping only each skill's
-            <code>SKILL.md</code>, silently dropping the
-            <code>references/</code>, <code>scripts/</code>, and
-            <code>examples/</code> that make a skill actually run.
+            opchain now speaks the Model Context Protocol, so Codex — and any
+            MCP-aware agent (Claude Desktop, Cursor, Windsurf) — gets the same
+            concept-to-ship pipeline Claude Code auto-discovers: the skill
+            catalog, intent routing, the shared orchestrator protocol, and
+            cross-session checkpoints. Brought forward from the tabled v1.8 slot.
           </span>
         </button>
-        <div class="card-body" id="v1-4-2-body" data-disclosure-body>
+        <div class="card-body" id="v1-4-3-body" data-disclosure-body>
           <div class="card-body-inner hero-body-inner">
             <h3>What's new</h3>
             <div class="tile-grid">
               <div class="tile">
-                <span class="tile-name">complete bundles</span>
+                <span class="tile-name">MCP server</span>
                 <p class="tile-desc">
-                  &ldquo;Download all&rdquo; ships full skill trees again —
-                  <code>opchain-skills.zip</code> now matches the per-skill
-                  downloads on <a href="/skills">/skills</a>, references /
-                  scripts / examples included.
+                  A <code>POST /mcp</code> endpoint exposes the catalog, intent
+                  routing, the orchestrator protocol, and checkpoints as MCP
+                  tools, prompts, and resources — for Codex and any MCP client.
                 </p>
               </div>
               <div class="tile">
-                <span class="tile-name">oc- canonical names</span>
+                <span class="tile-name">two ways in</span>
                 <p class="tile-desc">
-                  Every skill gains an <code>oc-&lt;name&gt;</code> alias so
-                  opchain skills are unambiguous next to same-named local
-                  skills. Bare names still resolve.
+                  Point Codex at the hosted <code>opchain.dev/mcp</code>
+                  endpoint, or drop the skills into <code>.codex/skills/</code>
+                  — Codex Agent Skills use the same <code>SKILL.md</code> format.
                 </p>
               </div>
               <div class="tile">
-                <span class="tile-name">honest orchestrator</span>
+                <span class="tile-name">/oc-* survives</span>
                 <p class="tile-desc">
-                  Persistence docs rewritten to the git-tracked checkpoint it
-                  actually uses; the phantom <code>checkpoint.sh</code> is
-                  replaced by <code>scripts/checkpoint.mjs</code>.
+                  Every <code>/oc-*</code> command is re-exposed as an MCP
+                  prompt, so the slash-command flow carries over to clients that
+                  surface MCP prompts.
                 </p>
               </div>
               <div class="tile">
-                <span class="tile-name">one checkpoint schema</span>
+                <span class="tile-name">checkpoints anywhere</span>
                 <p class="tile-desc">
-                  Validator, spec, and README agree on a single wire schema,
-                  with timestamp-sanity and referential checks enforced.
-                </p>
-              </div>
-              <div class="tile">
-                <span class="tile-name">drift detection</span>
-                <p class="tile-desc">
-                  Automated drift detection so a stale checkpoint can no
-                  longer tell future-you to redo work that already shipped.
+                  Session state persists across MCP sessions, so you resume
+                  where you left off — the same contract Claude Code uses.
                 </p>
               </div>
             </div>
 
             <div class="callout">
-              <h3>New CLI commands</h3>
+              <h3>New on /install</h3>
               <ul class="callout-list">
                 <li>
-                  <strong>checkpoint:doctor</strong> — cross-checks checkpoints
-                  against <code>git log</code> + live <code>/api/health</code>,
-                  flags drift.
+                  <strong>Codex / any MCP agent</strong> — a fourth install flow
+                  with the <code>~/.codex/config.toml</code> snippet and the
+                  <code>.codex/skills</code> drop-in.
                 </li>
                 <li>
-                  <strong>checkpoint:next</strong> — &ldquo;what should I do
-                  next&rdquo; for the local project.
-                </li>
-                <li>
-                  <strong>checkpoint:status --brief / --since</strong> — terse
-                  resume view + a momentum digest.
-                </li>
-                <li>
-                  <strong>checkpoint:init</strong> — deterministic cold-start
-                  scaffold.
+                  <strong>local stdio server</strong> — an offline
+                  <code>mcp/local-server.mjs</code> for air-gapped setups.
                 </li>
               </ul>
             </div>
 
             <div class="compat-box">
-              <strong>Back-compatible with v1.4.</strong> The <code>oc-</code>
-              names are additive aliases. All 18 skills lockstep-bump to
-              <code>1.4.2</code>.
+              <strong>Back-compatible with v1.4.</strong> The skills are
+              unchanged — only their packaging — so Claude Code installs are
+              untouched. All 18 skills lockstep-bump to <code>1.4.3</code>.
             </div>
           </div>
         </div>
       </article>
 
       <div class="divider"><span class="divider-line"></span><span class="divider-label">earlier releases</span><span class="divider-line"></span></div>
+
+      <!-- v1.4.2 — past; demoted from hero to rel-card -->
+      <article class="rel-card" id="v1-4-2" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-4-2-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.4.2</span><span class="rc-title">Complete bundles, honest checkpoints</span><span class="rc-date">Jun 05, 2026</span></span>
+            <span class="rc-summary">An out-of-band emergency patch: the &ldquo;download all&rdquo; bundle ships full skill trees again, plus a correctness pass reconciling the checkpoint and orchestrator docs with what actually runs.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-4-2-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">complete bundles</span><span class="tag">oc- names</span><span class="tag">honest checkpoints</span><span class="tag">drift detection</span></div>
+            <p>
+              The &ldquo;download all&rdquo; bundle was dropping each skill's
+              <code>references/</code>, <code>scripts/</code>, and
+              <code>examples/</code>; it now ships full skill trees again. Every
+              skill also gained an <code>oc-&lt;name&gt;</code> alias, the
+              persistence docs were rewritten to the git-tracked checkpoint they
+              actually use, and the validator, spec, and README were reconciled
+              onto one checkpoint schema with drift detection. All 18 skills
+              lockstep-bumped to <code>1.4.2</code>.
+            </p>
+          </div>
+        </div>
+      </article>
 
       <!-- v1.4 — past; keeps id + /coverage deep-link -->
       <article class="rel-card" id="v1-4" data-card>
