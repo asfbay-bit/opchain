@@ -4,24 +4,72 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-05-31T14:39:00Z",
+  "updated_at": "2026-06-12T16:00:28.830Z",
   "phase": "post-merge-wave",
-  "step": "wave-merged-deploy-pending",
-  "status": "in_progress",
+  "step": "last-merge-#272",
+  "status": "complete",
   "progress_summary": "2026-05-31 PR-review wave: cleared 11 open PRs in one session. Feature: #239 (email-pipeline Step 5 nested-form fix, follow-up to #233) and #243 (link orphaned /coverage into nav, ⌘K palette, stack-forge skill page). Security: #227 (DOMPurify 3.4.5 XSS-bypass fix in the markdown group) and #209 (js-yaml v3→v4 with prototype-pollution patch — verified all callsites use only `yaml.load`, safe across the major). Dependency hygiene: #241 vitest 4.1.6, #211 tailwind 4.3, #210 astro group, #175 zod 4.4.3, #176 @axe-core/playwright 4.11.3, #242 @playwright/test 1.60, #173 wrangler 4.95 (Dependabot recreated to latest after lockfile conflict). All squash-merged with full CI green (Worker, Site, LHCI). #208 (chore(generated): restore stale coverage-flags + api-dev-adapters baselines) closed as obsolete — main now carries 26 coverage-flags and 13 api-dev-adapters via the v1.4 chain, vs. #208's 5/5 from the pre-v1.4 era. Held for user review: #232 (feat(compare): switch to Option C — groups + zebra + winner dots + mobile sticky labels), branch up-to-date with main, CI green, awaiting user signoff before merge. Production is now ~12 PRs behind staging.opchain.dev; deploy gap surfaced as the next blocker (deploy-ops hand-off). Required pre-flight: `wrangler secret put RESEND_API_KEY` on both staging and prod envs before the email-pipeline flag flips on.",
   "progress_table": [
-    { "id": "pr-183", "label": "PR #183 — v1.4 install upgrade flow + main-CI repairs", "status": "complete" },
-    { "id": "pr-184", "label": "PR #184 — demo-mobile test fix (closed, folded into #183)", "status": "complete" },
-    { "id": "pr-185", "label": "PR #185 — docs(roadmap): versioning + doc-governance decision",  "status": "complete" },
-    { "id": "pr-186", "label": "PR #186 — fix(demo): drop hardcoded \"scenarios · 6\" sidebar count", "status": "complete" },
-    { "id": "pr-187", "label": "PR #187 — checkpoint: v1.4 plan-approved (stack-forge added)",      "status": "complete" },
-    { "id": "pr-188", "label": "PR #188 — checkpoint(git-ops): record #183 merge + #184 close",    "status": "complete" },
-    { "id": "pr-189", "label": "PR #189 — checkpoint: orchestrator + bug-check refresh",            "status": "complete" },
-    { "id": "pr-213", "label": "PR #213 — feat(site): redesigned homepage + grouped header + ⌘K palette", "status": "complete" },
-    { "id": "pr-221", "label": "PR #221 — checkpoint(ux,git-ops): record PR #213 merge", "status": "complete" },
-    { "id": "pr-223", "label": "PR #223 — feat(changelog): roadmap timeline + Linear-connected feature-request form", "status": "complete" },
-    { "id": "pr-233", "label": "PR #233 — feat(email-pipeline): Resend-powered /api/email-pipeline + name field on Step 5", "status": "complete" },
-    { "id": "wave-2026-05-31", "label": "2026-05-31 PR-review wave — 11 merged (#239, #243, #241, #227, #211, #210, #175, #209, #176, #242, #173), 1 closed obsolete (#208), 1 held for review (#232)", "status": "complete" }
+    {
+      "id": "pr-183",
+      "label": "PR #183 — v1.4 install upgrade flow + main-CI repairs",
+      "status": "complete"
+    },
+    {
+      "id": "pr-184",
+      "label": "PR #184 — demo-mobile test fix (closed, folded into #183)",
+      "status": "complete"
+    },
+    {
+      "id": "pr-185",
+      "label": "PR #185 — docs(roadmap): versioning + doc-governance decision",
+      "status": "complete"
+    },
+    {
+      "id": "pr-186",
+      "label": "PR #186 — fix(demo): drop hardcoded \"scenarios · 6\" sidebar count",
+      "status": "complete"
+    },
+    {
+      "id": "pr-187",
+      "label": "PR #187 — checkpoint: v1.4 plan-approved (stack-forge added)",
+      "status": "complete"
+    },
+    {
+      "id": "pr-188",
+      "label": "PR #188 — checkpoint(git-ops): record #183 merge + #184 close",
+      "status": "complete"
+    },
+    {
+      "id": "pr-189",
+      "label": "PR #189 — checkpoint: orchestrator + bug-check refresh",
+      "status": "complete"
+    },
+    {
+      "id": "pr-213",
+      "label": "PR #213 — feat(site): redesigned homepage + grouped header + ⌘K palette",
+      "status": "complete"
+    },
+    {
+      "id": "pr-221",
+      "label": "PR #221 — checkpoint(ux,git-ops): record PR #213 merge",
+      "status": "complete"
+    },
+    {
+      "id": "pr-223",
+      "label": "PR #223 — feat(changelog): roadmap timeline + Linear-connected feature-request form",
+      "status": "complete"
+    },
+    {
+      "id": "pr-233",
+      "label": "PR #233 — feat(email-pipeline): Resend-powered /api/email-pipeline + name field on Step 5",
+      "status": "complete"
+    },
+    {
+      "id": "wave-2026-05-31",
+      "label": "2026-05-31 PR-review wave — 11 merged (#239, #243, #241, #227, #211, #210, #175, #209, #176, #242, #173), 1 closed obsolete (#208), 1 held for review (#232)",
+      "status": "complete"
+    }
   ],
   "context_primer": {
     "key_decisions": [
@@ -278,6 +326,13 @@
     ],
     "remote": "origin",
     "default_base": "main",
-    "depends_on": "app-architect for build state; ux-engineer for design rationale; checkpoint-protocol v1.0"
+    "depends_on": "app-architect for build state; ux-engineer for design rationale; checkpoint-protocol v1.0",
+    "merged_prs+": {
+      "number": 272,
+      "title": "release: v1.4.3 — extend opchain to Codex",
+      "merge_method": "squash",
+      "merge_sha": "a98d373",
+      "merged_at": "2026-06-12T16:00:28.795Z"
+    }
   }
 }
