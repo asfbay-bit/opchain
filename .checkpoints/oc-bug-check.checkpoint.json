@@ -4,19 +4,19 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-11T22:42:57Z",
+  "updated_at": "2026-06-12T15:34:27Z",
   "phase": "gate",
-  "step": "fix-worker-entry-exports",
+  "step": "harden-flaky-test",
   "status": "complete",
-  "progress_summary": "Gate for the worker entry-export fix. workerd (wrangler 4.98+, bumped in via #261) rejected the Worker entry module at startup because it had non-handler named exports (NONCE_PLACEHOLDER string, LABEL_MAP/PRIORITY_MAP objects) — so `wrangler dev`/deploy couldn't boot it. Extracted the CORS/security-header/CSP-nonce helpers → src/lib/http.js and the Linear feedback config → src/lib/feedback-config.js; src/index.js now exports ONLY its default handler (0 named exports). Updated the two tests that imported those symbols (feedback, csp-nonce) to import from the new modules. PASS — vitest 345/345 clean, worker build clean, and `wrangler dev` now boots the worker (verified /api/health + POST /mcp initialize over real HTTP; it previously crashed with 'Incorrect type for map entry NONCE_PLACEHOLDER'). Same workerd module validation runs at deploy, so the next wrangler deploy is unblocked too.",
+  "progress_summary": "Hardened tests/flags-skills.test.js — replaced the per-run recursive copy of the whole node_modules with a symlink. The copy was hundreds of MB / thousands of files and intermittently flaked or timed out under parallel test load (it surfaced as a spurious '1 failed' several times this session, always green in isolation). The spawned validator still resolves its deps through the symlink. Test now runs in ~1.1s (was ~3.7s) and passes 3/3 across repeated runs; full suite 345/345 in 3.5s (was ~6.8s). Next: cut the v1.4.3 Codex release.",
   "blockers": [],
   "next_actions": [
-    "Open a PR for this fix and land it before the next deploy (it unblocks wrangler deploy on main).",
-    "Still pending in the Codex effort: the platform-neutral copy scrub (index hero, compare, glossary, security, uses, skills/[id], Header/SearchPalette)."
+    "Cut v1.4.3 (extend opchain to Codex): bring the roadmap line forward from the tabled v1.8 slot, lockstep-bump all 18 skills to 1.4.3, styleguide badge + homepage pill, changelog hero entry, and flip site.feature.codex-install on so the install flow ships.",
+    "Hand off to a manual deploy (npm run deploy:staging → eyeball → npm run deploy) to actually activate Codex."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-11T22:42:57Z",
+      "at": "2026-06-12T15:34:27Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
@@ -28,18 +28,17 @@
         "build": "PASS",
         "dependencies": "PASS"
       },
-      "tests": "345 passed (clean)",
-      "runtime": "wrangler dev boots; /api/health + POST /mcp verified over HTTP",
+      "tests": "345 passed in 3.5s; flags-skills 3/3 reliably, ~1.1s",
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      { "at": "2026-06-12T15:34:27Z", "verdict": "PASS", "warnings": 0 },
       { "at": "2026-06-11T22:42:57Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-06-11T21:19:08Z", "verdict": "PASS", "warnings": 0 },
-      { "at": "2026-06-08T15:39:19Z", "verdict": "PASS", "warnings": 0 }
+      { "at": "2026-06-11T21:19:08Z", "verdict": "PASS", "warnings": 0 }
     ],
     "bypasses": [],
     "carried_debt": 0,
-    "streak": { "passes": 5, "since": "2026-06-05T22:01:00Z" }
+    "streak": { "passes": 6, "since": "2026-06-05T22:01:00Z" }
   }
 }
