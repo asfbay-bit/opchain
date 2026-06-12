@@ -6,20 +6,21 @@ import { expect, test } from "@playwright/test";
  *
  * /changelog uses the Option C v3 layout: two ARIA tabs — "Just Released"
  * (the release history, newest first) and "Coming Next" (v1.5, then the
- * v1.6 / v1.7 roadmap). The newest release (v1.4.2) and v1.5 / v1.6 are
+ * v1.6 / v1.7 roadmap). The newest release (v1.4.3) and v1.5 / v1.6 are
  * expanded on load; each card is a button[aria-expanded] disclosure.
  * Deep links (#v1-5 / #v1-6 / #v1-7) activate the Coming Next tab and open
  * the target card; #v1-4 still carries the /coverage link.
  *
  * Two specs:
- *   1. /changelog — two tabs; v1.4.2 is the open hero in Just Released;
+ *   1. /changelog — two tabs; v1.4.3 is the open hero in Just Released;
  *      the v1.4 card still deep-links to /coverage; Coming Next lists
  *      v1.5 / v1.6 / v1.7 with >= 6 votable roadmap items.
  *
  *   2. /demo — the three v1.3 scenarios + the three v1.2 scenarios
- *      remain pickable on /demo. Neither v1.4 nor v1.4.2 ships new
- *      scenarios — the release surfaces are /coverage and the bundle /
- *      checkpoint tooling, not workbench artifacts.
+ *      remain pickable on /demo. None of the v1.4.x patches (v1.4 / v1.4.2 /
+ *      v1.4.3) ship new scenarios — their surfaces are /coverage, the bundle /
+ *      checkpoint tooling, and the Codex / MCP install flow, not workbench
+ *      artifacts.
  */
 
 const v13_SCENARIOS = [
@@ -39,7 +40,7 @@ const v12_SCENARIOS = [
 const ALL_PICKABLE = [...v13_SCENARIOS, ...v12_SCENARIOS];
 
 test.describe("/changelog", () => {
-  test("two tabs; Just Released is active with the v1.4.2 hero open", async ({ page }) => {
+  test("two tabs; Just Released is active with the v1.4.3 hero open", async ({ page }) => {
     await page.goto("/changelog");
 
     // Two ARIA tabs; Just Released is selected by default and its panel is
@@ -49,11 +50,11 @@ test.describe("/changelog", () => {
     await expect(page.locator("#panel-released")).toBeVisible();
     await expect(page.locator("#panel-coming")).toBeHidden();
 
-    // The newest release (v1.4.2) is the accent hero, open on load, tagged
+    // The newest release (v1.4.3) is the accent hero, open on load, tagged
     // with its version + a non-empty compatibility note (changelog-recipe rule).
-    const hero = page.locator("#v1-4-2.hero-card--released");
+    const hero = page.locator("#v1-4-3.hero-card--released");
     await expect(hero).toBeVisible();
-    await expect(hero.locator(".hero-ver")).toContainText("v1.4.2");
+    await expect(hero.locator(".hero-ver")).toContainText("v1.4.3");
     await expect(hero.locator(".hero-head")).toHaveAttribute("aria-expanded", "true");
     await expect(hero.locator(".compat-box")).toBeVisible();
     await expect(hero.locator(".compat-box")).not.toBeEmpty();
