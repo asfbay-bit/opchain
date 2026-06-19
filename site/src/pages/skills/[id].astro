@@ -163,7 +163,7 @@ const consumers = isFoundational
         )}
         {(!isFoundational || !checkpointProtocolEnabled) && (
           <p class="quick-body">
-            Drop the bundle into <code class="ic">.claude/skills/</code> and Claude Code auto-discovers it on the next session.
+            Drop the bundle into <code class="ic">.claude/skills/</code> and Claude Code auto-discovers it on the next session — or point Codex / any MCP agent at the hosted <code class="ic">opchain.dev/mcp</code> endpoint.
           </p>
         )}
         {installZipEnabled && (
@@ -812,7 +812,8 @@ const consumers = isFoundational
       <h2>Use {skill.data.displayName} in your project</h2>
       <p>
         Drop the SKILL.md into <code class="ic">.claude/skills/</code> or
-        download the bundle.
+        <code class="ic">.codex/skills/</code>, download the bundle, or reach
+        it over the hosted MCP endpoint.
       </p>
       <div class="cta-row">
         <Button variant="primary" href="/install">
