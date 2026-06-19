@@ -2,26 +2,25 @@ import { expect, test } from "@playwright/test";
 
 /**
  * /changelog page + /demo scenario picker — kept in lockstep with the
- * release entries as opchain version-bumps. Current release is v1.4.2
- * (emergency patch — skill-bundle download fix, oc- skill-name aliases,
- * oc-checkpoint-protocol / oc-orchestrator hardening; no new scenarios). v1.4
- * (pack registry GA, /coverage page) sits one release back; v1.3
- * (runtime PM, real platforms, oc-release-ops) two back.
+ * release entries as opchain version-bumps.
  *
- * The page also carries an "Upcoming releases" section above the release
- * history: v1.5 (next — built, awaiting deploy) then v1.6 / v1.7 (planned).
- * Those use `section.release.release--next` and deep-link from the roadmap
- * timeline cards (#v1-5 / #v1-6 / #v1-7).
+ * /changelog uses the Option C v3 layout: two ARIA tabs — "Just Released"
+ * (the release history, newest first) and "Coming Next" (v1.5, then the
+ * v1.6 / v1.7 roadmap). The newest release (v1.4.3) and v1.5 / v1.6 are
+ * expanded on load; each card is a button[aria-expanded] disclosure.
+ * Deep links (#v1-5 / #v1-6 / #v1-7) activate the Coming Next tab and open
+ * the target card; #v1-4 still carries the /coverage link.
  *
  * Two specs:
- *   1. /changelog — current shipped entry is v1.4.2, v1.4 demoted to past;
- *      the v1.4 entry (section#v1-4) still deep-links to /coverage; the
- *      upcoming section lists v1.5 → v1.6 → v1.7.
+ *   1. /changelog — two tabs; v1.4.3 is the open hero in Just Released;
+ *      the v1.4 card still deep-links to /coverage; Coming Next lists
+ *      v1.5 / v1.6 / v1.7 with >= 6 votable roadmap items.
  *
  *   2. /demo — the three v1.3 scenarios + the three v1.2 scenarios
- *      remain pickable on /demo. Neither v1.4 nor v1.4.2 ships new
- *      scenarios — the release surfaces are /coverage and the bundle /
- *      checkpoint tooling, not workbench artifacts.
+ *      remain pickable on /demo. None of the v1.4.x patches (v1.4 / v1.4.2 /
+ *      v1.4.3) ship new scenarios — their surfaces are /coverage, the bundle /
+ *      checkpoint tooling, and the Codex / MCP install flow, not workbench
+ *      artifacts.
  */
 
 const v13_SCENARIOS = [
@@ -41,77 +40,62 @@ const v12_SCENARIOS = [
 const ALL_PICKABLE = [...v13_SCENARIOS, ...v12_SCENARIOS];
 
 test.describe("/changelog", () => {
-  test("v1.4.2 is the current release; v1.4 is demoted", async ({ page }) => {
+  test("two tabs; Just Released is active with the v1.4.3 hero open", async ({ page }) => {
     await page.goto("/changelog");
 
-    // Current release section exists and tags v1.4.2 (the emergency patch:
-    // bundle-download fix, oc- aliases, checkpoint/oc-orchestrator hardening).
-    const current = page.locator("section.release.release--current");
-    await expect(current).toBeVisible();
-    await expect(current.locator(".rel-tag").first()).toHaveText("v1.4.2");
+    // Two ARIA tabs; Just Released is selected by default and its panel is
+    // shown while Coming Next is hidden.
+    await expect(page.locator('[role="tab"]')).toHaveCount(2);
+    await expect(page.locator("#tab-released")).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#panel-released")).toBeVisible();
+    await expect(page.locator("#panel-coming")).toBeHidden();
 
-    // The v1.4 entry exists, demoted to past. Exclude the upcoming
-    // sections (.release--next) — they share the .release base class but
-    // are forward-looking (v1.5 next, v1.6/v1.7 planned), not past releases.
-    const past = page
-      .locator("section.release:not(.release--current):not(.release--next)")
-      .first();
-    await expect(past).toBeVisible();
-    await expect(past.locator(".rel-tag").first()).toHaveText("v1.4");
+    // The newest release (v1.4.3) is the accent hero, open on load, tagged
+    // with its version + a non-empty compatibility note (changelog-recipe rule).
+    const hero = page.locator("#v1-4-3.hero-card--released");
+    await expect(hero).toBeVisible();
+    await expect(hero.locator(".hero-ver")).toContainText("v1.4.3");
+    await expect(hero.locator(".hero-head")).toHaveAttribute("aria-expanded", "true");
+    await expect(hero.locator(".compat-box")).toBeVisible();
+    await expect(hero.locator(".compat-box")).not.toBeEmpty();
   });
 
   test("the v1.4 entry deep-links to /coverage (the pack catalog)", async ({ page }) => {
     await page.goto("/changelog");
-    // v1.4 is now a past release (demoted by v1.4.2), so target it by id
-    // rather than by .release--current — advertising /coverage is a
-    // property of the v1.4 entry, not of whatever release is current.
-    const link = page.locator(`section#v1-4 a[href="/coverage"]`).first();
+    // v1.4 is a collapsed past release; expand its disclosure, then the
+    // /coverage link becomes visible.
+    await page.locator("#v1-4 [data-disclosure-toggle]").click();
+    const link = page.locator(`#v1-4 a[href="/coverage"]`).first();
     await expect(link, "expected /changelog v1.4 entry to deep-link to /coverage")
       .toBeVisible();
   });
 
-  test("compatibility section is non-empty (changelog-recipe.md rule)", async ({ page }) => {
+  test("Coming Next lists v1.5 (next), then v1.6 / v1.7, all votable", async ({ page }) => {
     await page.goto("/changelog");
-    const compat = page
-      .locator("section.release--current h3", { hasText: /compatibility/i })
-      .first();
-    await expect(compat).toBeVisible();
-    // The paragraph immediately after the h3 must have content.
-    const next = compat.locator("xpath=following-sibling::p[1]");
-    await expect(next).not.toBeEmpty();
-  });
+    await page.locator("#tab-coming").click();
 
-  test("upcoming section lists v1.5 (next), then v1.6 / v1.7 (planned)", async ({ page }) => {
-    await page.goto("/changelog");
+    await expect(page.locator("#panel-coming")).toBeVisible();
+    await expect(page.locator("#v1-5.hero-card--next .hero-title")).toHaveText(
+      /build the ai app/i,
+    );
+    await expect(page.locator("#v1-6 .pc-title")).toBeVisible();
+    await expect(page.locator("#v1-7 .pc-title")).toBeVisible();
 
-    // The three upcoming releases render as .release--next in order.
-    const upcoming = page.locator("section.release.release--next");
-    await expect(upcoming).toHaveCount(3);
-    await expect(upcoming.nth(0).locator(".rel-tag").first()).toHaveText("v1.5");
-    await expect(upcoming.nth(1).locator(".rel-tag").first()).toHaveText("v1.6");
-    await expect(upcoming.nth(2).locator(".rel-tag").first()).toHaveText("v1.7");
-
-    // Each anchors an id the roadmap timeline cards deep-link to.
-    await expect(page.locator("section#v1-5.release--next")).toBeVisible();
-    await expect(page.locator("section#v1-6.release--next")).toBeVisible();
-    await expect(page.locator("section#v1-7.release--next")).toBeVisible();
-  });
-
-  test("roadmap timeline items are votable and deep-link to the plan", async ({ page }) => {
-    await page.goto("/changelog");
-
-    // v1.5/v1.6/v1.7 items are all votable (no shipped placeholder) and
-    // their cards deep-link into the matching upcoming detail block.
+    // Six votable roadmap items: OPC-150 (v1.5) + OPC-160/161/162 (v1.6) +
+    // OPC-170/171 (v1.7). The v1.5 vote lives in an open card, so it shows
+    // once the Coming Next tab is active.
     const voteButtons = page.locator("[data-vote-target]");
-    await expect(voteButtons.first()).toBeVisible();
     expect(await voteButtons.count()).toBeGreaterThanOrEqual(6);
+    await expect(page.locator('[data-vote-target="OPC-150"]')).toBeVisible();
+  });
 
+  test("deep-link #v1-6 opens the Coming Next tab and the v1.6 card", async ({ page }) => {
+    await page.goto("/changelog#v1-6");
+    await expect(page.locator("#tab-coming")).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#panel-coming")).toBeVisible();
     await expect(
-      page.locator('.item-linear[href="/changelog#v1-5"]').first(),
-    ).toBeVisible();
-    await expect(
-      page.locator('.item-linear[href="/changelog#v1-6"]').first(),
-    ).toBeVisible();
+      page.locator("#v1-6 [data-disclosure-toggle]"),
+    ).toHaveAttribute("aria-expanded", "true");
   });
 });
 

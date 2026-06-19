@@ -1,7 +1,7 @@
 ---
 name: oc-integrations-engineer
 displayName: OC · Integrations Engineer
-version: 1.3.0
+version: 1.4.3
 shortDesc: Third-party APIs, OAuth, webhooks. v1.2 adds PM-tool MCP integration patterns (Linear / Jira / GitHub Issues).
 phases: [build]
 triAgent: true

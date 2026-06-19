@@ -1,7 +1,8 @@
 # opchain dev skills ecosystem
 
-A full concept-to-ops software development pipeline for Claude — one skill per
-phase, a shared checkpoint protocol that carries context across sessions.
+A full concept-to-ops software development pipeline for Claude Code, Claude.ai,
+and Codex — one skill per phase, a shared checkpoint protocol that carries
+context across sessions.
 
 ## Installation (Claude.ai / Cowork)
 
@@ -13,6 +14,24 @@ phase, a shared checkpoint protocol that carries context across sessions.
 
 1. Unzip all skills into `.claude/skills/` in your repo
 2. Claude Code auto-discovers them at startup
+
+## Installation (Codex / any MCP agent)
+
+Codex Agent Skills use the same `SKILL.md` format as Claude Code, so two options:
+
+1. **Drop-in skills** — unzip into `.codex/skills/` (project) or `~/.codex/skills/`
+   (global). Codex auto-discovers them and triggers by description, the same way
+   Claude Code does.
+2. **MCP server** — point Codex (or any MCP client: Claude Desktop, Cursor,
+   Windsurf) at the hosted opchain endpoint for the full pipeline — catalog,
+   routing, the orchestrator protocol, and checkpoints. In `~/.codex/config.toml`:
+
+   ```toml
+   [mcp_servers.opchain]
+   url = "https://opchain.dev/mcp"
+   ```
+
+Full walkthrough (including a local stdio server): https://opchain.dev/install
 
 ## Skills
 

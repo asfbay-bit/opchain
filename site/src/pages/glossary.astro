@@ -15,7 +15,7 @@ const terms: Term[] = [
     id: "skill",
     term: "Skill",
     short: "A single Markdown file that teaches Claude how to do one job — discover a product, audit a diff, ship a deploy.",
-    long: "Lives at .claude/skills/<name>/SKILL.md. The frontmatter declares triggers, phase, and required flags; the body is the prompt Claude reads on invocation. Skills are inert by themselves — Claude Code (or Claude.ai with Skills enabled) loads them and routes to them by name or slash command.",
+    long: "Lives at .claude/skills/<name>/SKILL.md. The frontmatter declares triggers, phase, and required flags; the body is the prompt Claude reads on invocation. Skills are inert by themselves — a host loads them and routes to them by name or slash command. Claude Code (or Claude.ai with Skills enabled) discovers them natively; Codex and any other MCP client reach the same catalog through opchain's hosted MCP endpoint.",
     related: [{ label: "Skill Library", href: "/skills" }, { label: "Install", href: "/install" }],
   },
   {

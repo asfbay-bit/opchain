@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
-import worker, {
-  generateNonce,
-  buildCspHtml,
-  NONCE_PLACEHOLDER,
-} from "../src/index.js";
+import worker from "../src/index.js";
+import { generateNonce, buildCspHtml, NONCE_PLACEHOLDER } from "../src/lib/http.js";
 
 function makeEnv(htmlBody) {
   return {

@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import worker, { LABEL_MAP, PRIORITY_MAP, corsHeaders } from "../src/index.js";
+import worker from "../src/index.js";
+import { LABEL_MAP, PRIORITY_MAP } from "../src/lib/feedback-config.js";
+import { corsHeaders } from "../src/lib/http.js";
 
 function req(url, init) {
   return new Request(url, init);

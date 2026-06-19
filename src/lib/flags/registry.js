@@ -109,6 +109,15 @@ const DEFINITIONS = [
     description: "Allow downloading the combined opchain-skills.zip and per-skill zips.",
   },
   {
+    name: "site.feature.codex-install",
+    type: "boolean",
+    default: true,
+    category: "release",
+    owner: "site",
+    description:
+      "Show the Codex / any-MCP-agent install flow on /install (hosted opchain.dev/mcp endpoint + .codex/skills drop-in). On as of v1.4.3.",
+  },
+  {
     name: "site.feature.replays-section",
     type: "boolean",
     default: true,
