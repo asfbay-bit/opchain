@@ -62,7 +62,7 @@ const isStackForge = skill.data.name === "oc-stack-forge";
 const packCount = isStackForge ? (packsCatalog as unknown[]).length : 0;
 
 const triAgentEnabled = isCapabilityEnabled("tri-agent");
-const checkpointProtocolEnabled = isCapabilityEnabled("oc-checkpoint-protocol");
+const checkpointProtocolEnabled = isCapabilityEnabled("checkpoint-protocol");
 const installZipEnabled = defaultFor("site.feature.install-zip-download") as boolean;
 const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
 const visibleCommands = (skill.data.commands as string[]).filter(isCommandEnabled);
