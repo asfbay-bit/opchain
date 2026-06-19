@@ -29,10 +29,10 @@ const COLOR_CONTRAST_DISABLE = {
 const ROUTES: RouteSpec[] = [
   { path: "/",              h1: /opchain/i },
   { path: "/architecture",  h1: /opchain skills ecosystem/i,  disabledRules: [COLOR_CONTRAST_DISABLE] },
-  { path: "/install",       h1: /three flows/i,               disabledRules: [COLOR_CONTRAST_DISABLE] },
+  { path: "/install",       h1: /four flows/i,                disabledRules: [COLOR_CONTRAST_DISABLE] },
   { path: "/skills",        h1: /every skill, filterable/i,  disabledRules: [COLOR_CONTRAST_DISABLE] },
-  { path: "/skills/app-architect", h1: /app architect/i,      disabledRules: [COLOR_CONTRAST_DISABLE] },
-  { path: "/skills/code-auditor",  h1: /code auditor/i,       disabledRules: [COLOR_CONTRAST_DISABLE] },
+  { path: "/skills/oc-app-architect", h1: /app architect/i,      disabledRules: [COLOR_CONTRAST_DISABLE] },
+  { path: "/skills/oc-code-auditor",  h1: /code auditor/i,       disabledRules: [COLOR_CONTRAST_DISABLE] },
   {
     path: "/demo",
     // The page intro h1 is "Watch a finished run." after the magazine

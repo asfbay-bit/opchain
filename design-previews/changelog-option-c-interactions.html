@@ -1,0 +1,1223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Option C — Sticky sidebar (interactions) · opchain</title>
+<style>
+/* ── design tokens ──────────────────────────────────────────────── */
+:root {
+  --bg:          #0e0e10;
+  --surface:     #16161a;
+  --card:        #1c1c22;
+  --raised:      #232329;
+  --border:      #2a2a32;
+  --border-mid:  #3a3a44;
+  --text:        #ece6d8;
+  --muted:       #a8a298;
+  --subtle:      #6f6a62;
+  --accent:      #ff8a3d;
+  --accent-dim:  #3a1f0e;
+  --accent-hover:#ffa365;
+  --info:        #6ea0d3;
+  --info-dim:    #15212d;
+  --good:        #6fb27a;
+  --good-dim:    #1a2a1d;
+  --warn:        #d9a93a;
+  --warn-dim:    #2a2113;
+  --font-mono:   ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace;
+  --font-disp:   "InterDisplay", "Inter", system-ui, sans-serif;
+  --font-body:   "Inter", system-ui, sans-serif;
+  --r-xs: 4px; --r-sm: 6px; --r-md: 10px; --r-pill: 999px;
+  --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+}
+code {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  padding: 1px 5px;
+  border-radius: var(--r-xs);
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── page header ────────────────────────────────────────────────── */
+.page-head {
+  padding: 2rem 2rem 1.5rem;
+  border-bottom: 0.5px solid var(--border);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.page-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--info);
+  border: 0.5px solid var(--info);
+  padding: 2px 8px;
+  border-radius: var(--r-xs);
+}
+.page-head h1 {
+  font-family: var(--font-disp);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin: 0.5rem 0 0.3rem;
+}
+.page-head p {
+  color: var(--muted);
+  font-size: 13px;
+  max-width: 70ch;
+}
+.page-head .interaction-notes {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.85rem;
+  flex-wrap: wrap;
+}
+.in-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 12px;
+  color: var(--muted);
+}
+.in-item .in-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  flex-shrink: 0;
+}
+.in-badge--slide { background: var(--info-dim); color: var(--info); border: 0.5px solid var(--info); }
+.in-badge--expand { background: var(--accent-dim); color: var(--accent); border: 0.5px solid var(--accent); }
+.in-badge--scroll { background: var(--surface); color: var(--subtle); border: 0.5px solid var(--border); }
+
+/* ── outer layout ───────────────────────────────────────────────── */
+.layout-outer {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 6rem;
+  display: grid;
+  grid-template-columns: 1fr 348px;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   MAIN COLUMN — Release history (scrolling, expandable)
+   ════════════════════════════════════════════════════════════════ */
+.main-col {}
+
+.main-section-head {
+  margin-bottom: 1.1rem;
+}
+.main-section-head .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+.main-section-head h2 {
+  font-family: var(--font-disp);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin: 0.3rem 0 0;
+}
+
+/* release card in main col */
+.main-release {
+  border-top: 0.5px solid var(--border);
+  padding: 1.1rem 0;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding-left: 0;
+  position: relative;
+}
+.main-release:first-of-type { border-top: none; }
+.main-release.mr--current { border-top: 1.5px solid var(--accent); }
+.main-release.mr--current:first-of-type { border-top: 1.5px solid var(--accent); }
+
+/* left accent bar for expanded state */
+.main-release.is-open::before {
+  content: "";
+  position: absolute;
+  left: -1rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  border-radius: 0 1px 1px 0;
+}
+.main-release.mr--current.is-open::before { background: var(--accent); }
+
+.mr-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+.ver-pill {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--r-xs);
+}
+.ver-pill--current { color: var(--accent); border: 0.5px solid var(--accent); }
+.ver-pill--past    { color: var(--subtle); border: 0.5px solid var(--border); }
+.ver-pill--next    { color: var(--info);   border: 0.5px solid var(--info); }
+
+.mr-title {
+  font-family: var(--font-disp);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+}
+.mr-date {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--subtle);
+  letter-spacing: 0.04em;
+}
+
+.mr-summary {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin-bottom: 0.5rem;
+}
+
+/* toggle row */
+.mr-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.mr-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  user-select: none;
+}
+.mr-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
+.main-release.is-open .mr-toggle-btn { border-color: var(--accent); color: var(--accent); }
+
+.mr-chevron {
+  font-size: 11px;
+  transition: transform 0.25s var(--ease-std);
+  display: inline-block;
+}
+.main-release.is-open .mr-chevron { transform: rotate(180deg); }
+
+.mr-tags {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+.mr-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: var(--r-pill);
+  color: var(--subtle);
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+}
+
+/* expandable detail */
+.mr-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.45s var(--ease-out), opacity 0.3s;
+  opacity: 0;
+}
+.main-release.is-open .mr-detail {
+  max-height: 1200px;
+  opacity: 1;
+}
+
+.mr-detail-inner {
+  padding-top: 0.85rem;
+  border-top: 0.5px solid var(--border);
+  margin-top: 0.75rem;
+}
+.mr-detail-inner h4 {
+  font-family: var(--font-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0.9rem 0 0.35rem;
+  letter-spacing: -0.01em;
+}
+.mr-detail-inner h4:first-child { margin-top: 0; }
+.mr-detail-inner ul {
+  padding-left: 1.1rem;
+  margin-bottom: 0.4rem;
+}
+.mr-detail-inner li {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 0.35rem;
+}
+.mr-detail-inner li strong { color: var(--text); font-weight: 600; }
+.mr-detail-inner p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin-bottom: 0.5rem;
+}
+
+.compat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--good);
+  background: var(--good-dim);
+  border: 0.5px solid var(--good);
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  margin-top: 0.65rem;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SIDEBAR — Sticky roadmap with tab rotation
+   ════════════════════════════════════════════════════════════════ */
+.sidebar {
+  position: sticky;
+  top: 1.5rem;
+}
+
+.sidebar-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+/* sidebar header */
+.sb-card-head {
+  padding: 0.9rem 1rem 0.75rem;
+  border-bottom: 0.5px solid var(--border);
+}
+.sb-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--subtle);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+.sb-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.sb-title {
+  font-family: var(--font-disp);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.sb-vote-cta {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.8;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.sb-vote-cta:hover { opacity: 1; }
+
+/* ── Tab bar ──────────────────────────────────────────────────── */
+.sb-tabs {
+  display: flex;
+  border-bottom: 0.5px solid var(--border);
+  position: relative;
+}
+/* animated tab indicator */
+.sb-tab-indicator {
+  position: absolute;
+  bottom: -0.5px; /* sit on border */
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px 1px 0 0;
+  transition: left 0.3s var(--ease-std), width 0.3s var(--ease-std);
+  z-index: 2;
+}
+
+.sb-tab {
+  flex: 1;
+  padding: 0.55rem 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--subtle);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-right: 0.5px solid var(--border);
+  transition: color 0.2s, background 0.15s;
+  position: relative;
+  white-space: nowrap;
+}
+.sb-tab:last-child { border-right: none; }
+.sb-tab:hover:not(.is-active) { color: var(--text); background: color-mix(in srgb, var(--card) 50%, transparent); }
+.sb-tab.is-active { color: var(--accent); }
+
+/* ── Tab content viewport ────────────────────────────────────── */
+.sb-viewport {
+  overflow: hidden;
+  position: relative;
+}
+
+.sb-panels {
+  display: flex;
+  /* width = 3 × 100% so all panels sit in a row */
+  width: 300%;
+  transition: transform 0.32s var(--ease-std);
+}
+.sb-panels[data-active="0"] { transform: translateX(0); }
+.sb-panels[data-active="1"] { transform: translateX(-33.333%); }
+.sb-panels[data-active="2"] { transform: translateX(-66.666%); }
+
+.sb-panel {
+  width: 33.333%; /* 1/3 of the panels container = 100% of the sidebar */
+  flex-shrink: 0;
+  padding: 0.65rem 0;
+}
+
+/* ── Sidebar items ────────────────────────────────────────────── */
+.sb-item {
+  position: relative;
+  border-bottom: 0.5px solid var(--border);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.sb-item:last-child { border-bottom: none; }
+.sb-item:hover { background: color-mix(in srgb, var(--card) 70%, transparent); }
+.sb-item.is-open { background: var(--card); }
+.sb-item.is-open::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--info);
+  border-radius: 0 1px 1px 0;
+}
+
+.si-summary {
+  padding: 0.65rem 0.9rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.6rem;
+  align-items: start;
+  user-select: none;
+}
+
+.si-ms {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--info);
+  margin-bottom: 2px;
+  display: block;
+}
+.si-title {
+  font-family: var(--font-disp);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+.si-blurb {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.si-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.si-chevron {
+  color: var(--subtle);
+  font-size: 10px;
+  transition: transform 0.25s var(--ease-std), color 0.15s;
+}
+.sb-item.is-open .si-chevron {
+  transform: rotate(180deg);
+  color: var(--info);
+}
+
+.vote-mini {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 36px;
+  padding: 4px 5px;
+  background: var(--raised);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  font-size: 10px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.vote-mini:hover { border-color: var(--accent); background: var(--accent-dim); }
+.vote-mini .va { font-size: 10px; line-height: 1; }
+.vote-mini .vc { font-size: 10px; font-weight: 700; line-height: 1; }
+.vote-mini .vl { font-size: 7px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--subtle); }
+
+/* sidebar item detail accordion */
+.si-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.38s var(--ease-out);
+}
+.sb-item.is-open .si-detail {
+  max-height: 600px;
+}
+
+.si-detail-inner {
+  padding: 0 0.9rem 0.8rem;
+  border-top: 0.5px solid var(--border);
+  padding-top: 0.65rem;
+}
+.si-detail-inner p {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 0.4rem;
+}
+.si-detail-inner ul {
+  padding-left: 1rem;
+  margin: 0.3rem 0 0.4rem;
+}
+.si-detail-inner li {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-bottom: 0.25rem;
+}
+.si-detail-inner li strong { color: var(--text); font-weight: 600; }
+.si-detail-link {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--info);
+  display: inline-block;
+  margin-top: 0.35rem;
+  letter-spacing: 0.04em;
+}
+.si-detail-link:hover { color: var(--text); }
+.si-planned-note {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg);
+  border: 0.5px dashed var(--border);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--subtle);
+  letter-spacing: 0.04em;
+}
+
+/* shipped badge in sidebar */
+.si-shipped-badge {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: #0e0e10;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* backlog empty state */
+.sb-empty {
+  padding: 1.25rem 1rem;
+  text-align: center;
+}
+.sb-empty p {
+  font-size: 12px;
+  color: var(--subtle);
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+.sb-empty-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 0.5px solid var(--accent);
+  padding: 5px 12px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+  background: none;
+}
+.sb-empty-cta:hover { background: var(--accent-dim); }
+
+/* slide direction hint — visible briefly during transition */
+.sb-slide-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--subtle);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+  z-index: 10;
+}
+.sb-viewport.sliding .sb-slide-hint {
+  opacity: 0; /* keep off — the slide itself is the affordance */
+}
+
+/* ── sidebar footer ───────────────────────────────────────────── */
+.sb-footer {
+  padding: 0.6rem 1rem;
+  border-top: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg);
+}
+.sb-footer-text {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--subtle);
+  letter-spacing: 0.04em;
+  flex: 1;
+}
+.sb-suggest-btn {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: none;
+  border: 0.5px solid var(--accent);
+  border-radius: var(--r-sm);
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.sb-suggest-btn:hover { background: var(--accent-dim); }
+
+/* ── tab swipe gesture hint (mobile-style arrow) ──────────────── */
+.sb-nav-arrows {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  border-top: 0.5px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+}
+.sb-nav-arrow-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--r-sm);
+  transition: color 0.15s, background 0.15s;
+}
+.sb-nav-arrow-btn:hover { color: var(--text); background: var(--raised); }
+.sb-nav-arrow-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.sb-nav-arrow-btn:disabled:hover { background: none; color: var(--muted); }
+.sb-dot-indicators {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.sb-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--border-mid);
+  transition: background 0.2s, transform 0.2s;
+}
+.sb-dot.is-active {
+  background: var(--accent);
+  transform: scale(1.3);
+}
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <span class="page-tag">Option C — Expanded</span>
+  <h1>Sticky sidebar — tab rotation + expand/collapse</h1>
+  <p>Main column: full release history with expandable detail cards. Sticky sidebar: the roadmap in three tabs (In Progress / Planned / Backlog). Tab switching slides the content horizontally with directional awareness. Each sidebar item expands inline.</p>
+  <div class="interaction-notes">
+    <div class="in-item">
+      <span class="in-badge in-badge--slide">slide</span>
+      Clicking a tab slides content left or right based on direction
+    </div>
+    <div class="in-item">
+      <span class="in-badge in-badge--expand">expand</span>
+      Release cards and sidebar items both expand inline with a chevron
+    </div>
+    <div class="in-item">
+      <span class="in-badge in-badge--scroll">scroll</span>
+      Main col scrolls freely — sidebar stays locked in viewport
+    </div>
+  </div>
+</div>
+
+<div class="layout-outer">
+
+  <!-- ════ MAIN: Release history ════ -->
+  <div class="main-col">
+    <div class="main-section-head">
+      <div class="eyebrow">release history</div>
+      <h2>What shipped</h2>
+    </div>
+
+    <!-- v1.4.2 -->
+    <div class="main-release mr--current" onclick="toggleMainRelease(this)">
+      <div class="mr-header">
+        <span class="ver-pill ver-pill--current">v1.4.2</span>
+        <span class="mr-title">Complete bundles, honest checkpoints</span>
+        <span class="mr-date">Jun 05, 2026</span>
+      </div>
+      <p class="mr-summary">Emergency patch: the "download all" skill bundle was shipping only bare <code>SKILL.md</code> files, dropping the directories that make a skill run. Fixed, plus <code>oc-</code> aliases, unified checkpoint schema, drift detection.</p>
+      <div class="mr-toggle-row">
+        <button class="mr-toggle-btn" onclick="event.stopPropagation(); toggleMainRelease(this.closest('.main-release'))">
+          <span>Details</span>
+          <span class="mr-chevron">▼</span>
+        </button>
+        <div class="mr-tags">
+          <span class="mr-tag">patch</span>
+          <span class="mr-tag">oc- aliases</span>
+          <span class="mr-tag">18 skills</span>
+          <span class="mr-tag">checkpoint</span>
+        </div>
+      </div>
+      <div class="mr-detail">
+        <div class="mr-detail-inner">
+          <h4>What's new</h4>
+          <ul>
+            <li><strong>"Download all" ships complete skills again.</strong> <code>opchain-skills.zip</code> now bundles full skill trees, matching per-skill downloads.</li>
+            <li><strong><code>oc-</code> canonical aliases.</strong> Every skill gets an unambiguous <code>oc-&lt;name&gt;</code> form. Bare names still resolve.</li>
+            <li><strong>Orchestrator stops misreporting itself.</strong> Persistence docs rewritten to match git-tracked <code>.checkpoints/</code> reality.</li>
+            <li><strong>One checkpoint schema, enforced.</strong> Validator, spec, and README now agree on a single wire format. <code>next_actions</code> required while in-progress.</li>
+            <li><strong>Drift detection.</strong> <code>checkpoint:doctor</code> cross-checks against <code>git log</code> + live <code>/api/health</code>.</li>
+          </ul>
+          <h4>New CLI commands</h4>
+          <ul>
+            <li><code>checkpoint:doctor</code> — cross-checks checkpoints against git + health endpoint</li>
+            <li><code>checkpoint:next</code> — "what should I do next" without a registry</li>
+            <li><code>checkpoint:status --brief</code> / <code>--since=&lt;date&gt;</code> — terse resume + momentum digest</li>
+            <li><code>checkpoint:init</code> — deterministic cold-start scaffold</li>
+          </ul>
+          <span class="compat-pill">✓ back-compatible with v1.4 — no migration required</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.4 -->
+    <div class="main-release" onclick="toggleMainRelease(this)">
+      <div class="mr-header">
+        <span class="ver-pill ver-pill--past">v1.4</span>
+        <span class="mr-title">Coverage as a plugin registry</span>
+        <span class="mr-date">May 12, 2026</span>
+      </div>
+      <p class="mr-summary"><code>stack-forge</code> coverage becomes a versioned pack registry — 32 packs across 13 languages, 9 frameworks, 4 mobile platforms, 6 deploy targets. One <code>pack.yml</code> per pack.</p>
+      <div class="mr-toggle-row">
+        <button class="mr-toggle-btn" onclick="event.stopPropagation(); toggleMainRelease(this.closest('.main-release'))">
+          <span>Details</span>
+          <span class="mr-chevron">▼</span>
+        </button>
+        <div class="mr-tags">
+          <span class="mr-tag">pack registry</span>
+          <span class="mr-tag">32 packs</span>
+          <span class="mr-tag">mobile dispatch</span>
+        </div>
+      </div>
+      <div class="mr-detail">
+        <div class="mr-detail-inner">
+          <h4>Pack registry</h4>
+          <p>One <code>pack.yml</code> per language, framework, mobile platform, or deploy target. <code>scripts/gen-stack-packs.mjs</code> validates every pack on every build — bidirectional <code>language</code> ↔ <code>frameworks</code> invariants, ref-doc budgets, coverage-flag emission.</p>
+          <h4>What's covered now</h4>
+          <ul>
+            <li><strong>13 language packs:</strong> TypeScript, Python, Go, Rust, Java, C#, Kotlin, PHP, Ruby, Elixir, Bun, Deno, Swift</li>
+            <li><strong>9 framework packs:</strong> React/Next, SvelteKit, Remix, Solid, Phoenix, Spring, .NET, Spring Kotlin, Laravel</li>
+            <li><strong>4 mobile packs:</strong> iOS/SwiftUI, Kotlin/Android, Flutter, React Native/Expo</li>
+            <li><strong>6 deploy targets:</strong> Cloudflare, Fly.io, Render, Railway, Netlify, Heroku, AWS Amplify, App Store, Play Store</li>
+          </ul>
+          <span class="compat-pill">✓ back-compatible with v1.3 — 5 skills version-bumped</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.3 -->
+    <div class="main-release" onclick="toggleMainRelease(this)">
+      <div class="mr-header">
+        <span class="ver-pill ver-pill--past">v1.3</span>
+        <span class="mr-title">Runtime PM, real platforms, automated releases</span>
+        <span class="mr-date">May 11, 2026</span>
+      </div>
+      <p class="mr-summary">PM-MCP loop becomes executable end-to-end. <code>release-ops</code> ships as the 18th skill. Platform menu expands to Django, Rails, Go, Rust.</p>
+      <div class="mr-toggle-row">
+        <button class="mr-toggle-btn" onclick="event.stopPropagation(); toggleMainRelease(this.closest('.main-release'))">
+          <span>Details</span>
+          <span class="mr-chevron">▼</span>
+        </button>
+        <div class="mr-tags">
+          <span class="mr-tag">release-ops</span>
+          <span class="mr-tag">PM-MCP</span>
+          <span class="mr-tag">18 skills</span>
+        </div>
+      </div>
+      <div class="mr-detail">
+        <div class="mr-detail-inner">
+          <h4>What's new</h4>
+          <ul>
+            <li><strong>PM-MCP loop is real.</strong> Concrete tool-name registry, retry/backoff, idempotency markers, deferred-action queue.</li>
+            <li><strong><code>release-ops</code> (18th skill).</strong> <code>/release plan|draft|bump|announce|ship</code>. Reads checkpoints to propose next semver, drafts changelog entry from sprint outputs.</li>
+            <li><strong>Platform menu grew.</strong> Django + Render, Rails + Heroku, Go + Fly.io, Rust + Shuttle.rs — first-class in all three relevant skills.</li>
+            <li><strong>Build-time PM-MCP validator.</strong> Blocks builds on placeholder drift or unknown tool names.</li>
+          </ul>
+          <span class="compat-pill">✓ back-compatible with v1.2 — all 18 skills at 1.3.0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.2 -->
+    <div class="main-release" onclick="toggleMainRelease(this)">
+      <div class="mr-header">
+        <span class="ver-pill ver-pill--past">v1.2</span>
+        <span class="mr-title">PM-tool MCP integration</span>
+        <span class="mr-date">May 05, 2026</span>
+      </div>
+      <p class="mr-summary">Linear, Jira, and GitHub Issues become first-class context. The ticket is the thread of execution, not a side artefact.</p>
+      <div class="mr-toggle-row">
+        <button class="mr-toggle-btn" onclick="event.stopPropagation(); toggleMainRelease(this.closest('.main-release'))">
+          <span>Details</span>
+          <span class="mr-chevron">▼</span>
+        </button>
+        <div class="mr-tags">
+          <span class="mr-tag">PM-MCP</span>
+          <span class="mr-tag">Linear</span>
+          <span class="mr-tag">Jira</span>
+        </div>
+      </div>
+      <div class="mr-detail">
+        <div class="mr-detail-inner">
+          <h4>What's new</h4>
+          <ul>
+            <li><code>app-architect /discover</code> accepts ticket references, pre-fills from ticket body + comments</li>
+            <li><code>git-ops /git-sync TICKET-1234</code> shapes branch/commit/PR from the ticket, transitions state on merge</li>
+            <li><code>deploy-ops</code> auto-creates deploy tickets, comments on all linked tickets on prod ship</li>
+            <li><code>monitoring-ops</code> opens incident tickets, auto-creates remediation sub-tickets from postmortems</li>
+          </ul>
+          <span class="compat-pill">✓ back-compatible with v1.1 — PM loop is enrichment, not a dependency</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- v1.1 + v1.0 compact -->
+    <div class="main-release" onclick="toggleMainRelease(this)">
+      <div class="mr-header">
+        <span class="ver-pill ver-pill--past">v1.1</span>
+        <span class="mr-title">Stable release</span>
+        <span class="mr-date">Apr 2026</span>
+      </div>
+      <p class="mr-summary">Tri-agent harness across <code>app-architect</code>, <code>code-auditor</code>, <code>integrations-engineer</code>. Full-pipeline flow. checkpoint-protocol v1.0 across every skill.</p>
+      <div class="mr-toggle-row">
+        <button class="mr-toggle-btn" onclick="event.stopPropagation(); toggleMainRelease(this.closest('.main-release'))">
+          <span>Details</span>
+          <span class="mr-chevron">▼</span>
+        </button>
+        <div class="mr-tags"><span class="mr-tag">tri-agent</span><span class="mr-tag">checkpoint v1.0</span></div>
+      </div>
+      <div class="mr-detail">
+        <div class="mr-detail-inner">
+          <p>Tri-agent harness across <code>app-architect</code>, <code>code-auditor</code>, <code>integrations-engineer</code>. Full-pipeline flow from <code>/discover</code> to <code>/deploy</code>. First six in-action scenarios. Static Astro site. checkpoint-protocol v1.0 across all 17 skills.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-release" onclick="toggleMainRelease(this)">
+      <div class="mr-header">
+        <span class="ver-pill ver-pill--past">v1.0</span>
+        <span class="mr-title">Initial release</span>
+        <span class="mr-date">Feb 2026</span>
+      </div>
+      <p class="mr-summary">First public Markdown skill catalog for Claude Code. No site, no scenarios — just the skills.</p>
+      <div class="mr-toggle-row">
+        <button class="mr-toggle-btn" onclick="event.stopPropagation(); toggleMainRelease(this.closest('.main-release'))">
+          <span>Details</span>
+          <span class="mr-chevron">▼</span>
+        </button>
+      </div>
+      <div class="mr-detail">
+        <div class="mr-detail-inner">
+          <p>First public cut of the opchain skill catalog as a set of Markdown files installable into Claude Code. The foundation everything since has built on.</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-col -->
+
+
+  <!-- ════ SIDEBAR: Sticky roadmap ════ -->
+  <div class="sidebar">
+    <div class="sidebar-card">
+
+      <div class="sb-card-head">
+        <span class="sb-eyebrow">where we're going</span>
+        <div class="sb-title-row">
+          <span class="sb-title">Roadmap</span>
+          <span class="sb-vote-cta">vote ↑</span>
+        </div>
+      </div>
+
+      <!-- Tab bar -->
+      <div class="sb-tabs" id="sb-tabs">
+        <button class="sb-tab is-active" data-tab="0" onclick="switchSbTab(0, this)">In Progress</button>
+        <button class="sb-tab" data-tab="1" onclick="switchSbTab(1, this)">Planned</button>
+        <button class="sb-tab" data-tab="2" onclick="switchSbTab(2, this)">Backlog</button>
+        <div class="sb-tab-indicator" id="sb-indicator"></div>
+      </div>
+
+      <!-- Sliding panels viewport -->
+      <div class="sb-viewport" id="sb-viewport">
+        <div class="sb-panels" id="sb-panels" data-active="0">
+
+          <!-- Panel 0: In Progress -->
+          <div class="sb-panel" data-panel="0">
+            <div class="sb-item" onclick="toggleSbItem(this)">
+              <div class="si-summary">
+                <div>
+                  <span class="si-ms">v1.5 · built · awaiting release</span>
+                  <div class="si-title">v1.5 — Build the AI app</div>
+                  <div class="si-blurb">Four AI-native skills. Catalog 18 → 22. Not yet live.</div>
+                </div>
+                <div class="si-right">
+                  <span class="si-chevron">▼</span>
+                  <button class="vote-mini" onclick="event.stopPropagation()">
+                    <span class="va">▲</span>
+                    <span class="vc">—</span>
+                    <span class="vl">vote</span>
+                  </button>
+                </div>
+              </div>
+              <div class="si-detail">
+                <div class="si-detail-inner">
+                  <p>Four new AI-native skills: <code>claude-api</code>, <code>rag-forge</code>, <code>agent-forge</code>, <code>prompt-ops</code>. Wired through the existing pipeline. All 22 skills lockstep-bump to 1.5.0.</p>
+                  <ul>
+                    <li><strong>claude-api</strong> — model selection, caching, batch/streaming, migration playbooks</li>
+                    <li><strong>rag-forge</strong> — vector-DB decision tree, embedding choice, eval harness</li>
+                    <li><strong>agent-forge</strong> — Claude Agent SDK scaffold, subagent topology</li>
+                    <li><strong>prompt-ops</strong> — prompts as version-controlled artifacts, regression detection</li>
+                  </ul>
+                  <div class="si-planned-note">Built — not yet deployed</div>
+                  <a href="#" class="si-detail-link">Full v1.5 plan ↓</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 1: Planned -->
+          <div class="sb-panel" data-panel="1">
+            <div class="sb-item" onclick="toggleSbItem(this)">
+              <div class="si-summary">
+                <div>
+                  <span class="si-ms">v1.6 · est. Jul 2026</span>
+                  <div class="si-title">cost-ops — per-phase cost attribution</div>
+                  <div class="si-blurb">Attributes LLM spend to each skill phase.</div>
+                </div>
+                <div class="si-right">
+                  <span class="si-chevron">▼</span>
+                  <button class="vote-mini" onclick="event.stopPropagation()">
+                    <span class="va">▲</span><span class="vc">—</span><span class="vl">vote</span>
+                  </button>
+                </div>
+              </div>
+              <div class="si-detail">
+                <div class="si-detail-inner">
+                  <p>New <code>/cost</code> skill. Answers "what did this feature cost to ship?" Haiku for cheap phases, Opus for spec/audit. Budget gates in checkpoints.</p>
+                  <div class="si-planned-note">Planned · v1.6</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sb-item" onclick="toggleSbItem(this)">
+              <div class="si-summary">
+                <div>
+                  <span class="si-ms">v1.6 · est. Jul 2026</span>
+                  <div class="si-title">telemetry-ops — opt-in metering</div>
+                  <div class="si-blurb">Local-first usage stats, public dashboard.</div>
+                </div>
+                <div class="si-right">
+                  <span class="si-chevron">▼</span>
+                  <button class="vote-mini" onclick="event.stopPropagation()">
+                    <span class="va">▲</span><span class="vc">—</span><span class="vl">vote</span>
+                  </button>
+                </div>
+              </div>
+              <div class="si-detail">
+                <div class="si-detail-inner">
+                  <p>Opt-in, local-first usage metering to <code>.checkpoints/usage.sqlite</code>. Nothing leaves your machine unless you opt in. Powers a public <code>/dashboard</code> of aggregate anonymous stats.</p>
+                  <div class="si-planned-note">Planned · v1.6</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sb-item" onclick="toggleSbItem(this)">
+              <div class="si-summary">
+                <div>
+                  <span class="si-ms">v1.6 · est. Jul 2026</span>
+                  <div class="si-title">checkpoint-protocol v1.3</div>
+                  <div class="si-blurb">Adds cost, eval_scores, telemetry_handle fields.</div>
+                </div>
+                <div class="si-right">
+                  <span class="si-chevron">▼</span>
+                  <button class="vote-mini" onclick="event.stopPropagation()">
+                    <span class="va">▲</span><span class="vc">—</span><span class="vl">vote</span>
+                  </button>
+                </div>
+              </div>
+              <div class="si-detail">
+                <div class="si-detail-inner">
+                  <p>First protocol bump since v1.2. Adds <code>cost</code>, <code>eval_scores</code>, and <code>telemetry_handle</code>. <code>bug-check</code> and <code>code-auditor</code> emit scores, not just pass/fail.</p>
+                  <div class="si-planned-note">Planned · v1.6</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sb-item" onclick="toggleSbItem(this)">
+              <div class="si-summary">
+                <div>
+                  <span class="si-ms">v1.7 · est. Sep 2026</span>
+                  <div class="si-title">marketplace</div>
+                  <div class="si-blurb">Community-contributed skills. Zero core-team cost per contribution.</div>
+                </div>
+                <div class="si-right">
+                  <span class="si-chevron">▼</span>
+                  <button class="vote-mini" onclick="event.stopPropagation()">
+                    <span class="va">▲</span><span class="vc">—</span><span class="vl">vote</span>
+                  </button>
+                </div>
+              </div>
+              <div class="si-detail">
+                <div class="si-detail-inner">
+                  <p>A site surface for community skills. opchain itself is the first marketplace entry. Graded by v1.6 telemetry on real usage.</p>
+                  <div class="si-planned-note">Lean, not locked · v1.7</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sb-item" onclick="toggleSbItem(this)">
+              <div class="si-summary">
+                <div>
+                  <span class="si-ms">v1.7 · est. Sep 2026</span>
+                  <div class="si-title">template-ops</div>
+                  <div class="si-blurb">Pre-wired project starters — stack + skills + checkpoints.</div>
+                </div>
+                <div class="si-right">
+                  <span class="si-chevron">▼</span>
+                  <button class="vote-mini" onclick="event.stopPropagation()">
+                    <span class="va">▲</span><span class="vc">—</span><span class="vl">vote</span>
+                  </button>
+                </div>
+              </div>
+              <div class="si-detail">
+                <div class="si-detail-inner">
+                  <p>New <code>/template</code> skill. Pre-wire a whole pipeline so a new project lands ready to run from commit one. Companion to marketplace.</p>
+                  <div class="si-planned-note">Planned · v1.7</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 2: Backlog -->
+          <div class="sb-panel" data-panel="2">
+            <div class="sb-empty">
+              <p>No backlog items yet. Got a feature request? Send it below — the team triages quarterly and promotes top asks onto the roadmap.</p>
+              <button class="sb-empty-cta">+ suggest a feature</button>
+            </div>
+          </div>
+
+        </div><!-- /sb-panels -->
+      </div><!-- /sb-viewport -->
+
+      <!-- Prev/Next nav + dot indicators -->
+      <div class="sb-nav-arrows" id="sb-nav">
+        <button class="sb-nav-arrow-btn" id="sb-prev" onclick="switchSbTab(currentTab - 1)" disabled>← prev</button>
+        <div class="sb-dot-indicators" id="sb-dots">
+          <div class="sb-dot is-active"></div>
+          <div class="sb-dot"></div>
+          <div class="sb-dot"></div>
+        </div>
+        <button class="sb-nav-arrow-btn" id="sb-next" onclick="switchSbTab(currentTab + 1)">next →</button>
+      </div>
+
+      <div class="sb-footer">
+        <span class="sb-footer-text">Triaged quarterly · high votes get promoted</span>
+        <button class="sb-suggest-btn">+ suggest</button>
+      </div>
+
+    </div><!-- /sidebar-card -->
+  </div><!-- /sidebar -->
+
+</div><!-- /layout-outer -->
+
+<script>
+/* ── Main column: expandable releases ──────────────────────────── */
+function toggleMainRelease(releaseEl) {
+  const isOpen = releaseEl.classList.contains('is-open');
+  // Auto-close others for cleaner reading (optional — remove to allow multiple open)
+  document.querySelectorAll('.main-release.is-open').forEach(r => {
+    if (r !== releaseEl) r.classList.remove('is-open');
+  });
+  releaseEl.classList.toggle('is-open', !isOpen);
+}
+
+
+/* ── Sidebar: tab switching with directional slide ─────────────── */
+let currentTab = 0;
+const TABS = ['In Progress', 'Planned', 'Backlog'];
+
+function switchSbTab(newIndex, clickedBtn) {
+  if (newIndex === currentTab) return;
+  if (newIndex < 0 || newIndex >= TABS.length) return;
+
+  const panels = document.getElementById('sb-panels');
+  const tabBtns = document.querySelectorAll('.sb-tab');
+  const dots = document.querySelectorAll('.sb-dot');
+  const prevBtn = document.getElementById('sb-prev');
+  const nextBtn = document.getElementById('sb-next');
+
+  // Update active tab button
+  tabBtns.forEach((btn, i) => btn.classList.toggle('is-active', i === newIndex));
+
+  // Update the sliding indicator bar
+  updateTabIndicator(newIndex);
+
+  // Close any open sidebar items (so they don't overflow during slide)
+  document.querySelectorAll('.sb-item.is-open').forEach(i => i.classList.remove('is-open'));
+
+  // Slide panels: the CSS transition handles the animation
+  panels.setAttribute('data-active', newIndex);
+
+  // Update dot indicators
+  dots.forEach((dot, i) => dot.classList.toggle('is-active', i === newIndex));
+
+  // Update prev/next buttons
+  prevBtn.disabled = newIndex === 0;
+  nextBtn.disabled = newIndex === TABS.length - 1;
+
+  currentTab = newIndex;
+}
+
+function updateTabIndicator(activeIndex) {
+  const tabBtns = document.querySelectorAll('.sb-tab');
+  const indicator = document.getElementById('sb-indicator');
+  const activeBtn = tabBtns[activeIndex];
+  if (!activeBtn || !indicator) return;
+  indicator.style.left = activeBtn.offsetLeft + 'px';
+  indicator.style.width = activeBtn.offsetWidth + 'px';
+}
+
+// Initialize indicator position
+document.addEventListener('DOMContentLoaded', () => {
+  updateTabIndicator(0);
+});
+// Also set it on first paint (no DOMContentLoaded needed for inline scripts)
+setTimeout(() => updateTabIndicator(0), 0);
+
+// Keyboard navigation for sidebar tabs
+document.addEventListener('keydown', e => {
+  // Only when focus is in the sidebar (simplified: always active)
+  if (e.key === 'ArrowLeft' && currentTab > 0) switchSbTab(currentTab - 1);
+  if (e.key === 'ArrowRight' && currentTab < TABS.length - 1) switchSbTab(currentTab + 1);
+});
+
+
+/* ── Sidebar: item expand/collapse ─────────────────────────────── */
+function toggleSbItem(itemEl) {
+  const isOpen = itemEl.classList.contains('is-open');
+  // Close other items in same panel
+  const panel = itemEl.closest('.sb-panel');
+  panel.querySelectorAll('.sb-item.is-open').forEach(i => {
+    if (i !== itemEl) i.classList.remove('is-open');
+  });
+  itemEl.classList.toggle('is-open', !isOpen);
+}
+</script>
+
+</body>
+</html>

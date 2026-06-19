@@ -5,10 +5,10 @@ Living **session state docs** for opchain skills. One JSON file per skill:
 ```
 .checkpoints/
 ├── README.md                          ← you are here
-├── orchestrator.checkpoint.json
-├── ux-engineer.checkpoint.json
-├── app-architect.checkpoint.json
-└── git-ops.checkpoint.json
+├── oc-orchestrator.checkpoint.json
+├── oc-ux-engineer.checkpoint.json
+├── oc-app-architect.checkpoint.json
+└── oc-git-ops.checkpoint.json
 ```
 
 Each file is a snapshot of where that skill left off — what was decided,
@@ -16,7 +16,7 @@ what's pending, what would need to be redone if the session ended.
 
 ## Why tracked in git
 
-The original `checkpoint-protocol` spec said `.checkpoints/` should be
+The original `oc-checkpoint-protocol` spec said `.checkpoints/` should be
 gitignored — fine for a local dev box, broken for Claude Code on the web
 where the worker is ephemeral. Tracking them in git means:
 
@@ -27,15 +27,15 @@ where the worker is ephemeral. Tracking them in git means:
 These are docs, not strict protocol artifacts — keep them readable, keep
 them honest, don't sweat the byte budget.
 
-### Exception: bug-check
+### Exception: oc-bug-check
 
-`bug-check.checkpoint.json` is **gitignored, not tracked.** Bug-check
+`oc-bug-check.checkpoint.json` is **gitignored, not tracked.** Bug-check
 has no resumable state by design — its SKILL.md says it "always runs
-fresh — no continue/restart prompt." Every `/bugcheck` invocation
+fresh — no continue/restart prompt." Every `/oc-bugcheck` invocation
 rewrites `updated_at`, `step`, `progress_summary`, `last_run.*`,
 `run_history`, and `streak`, which used to generate 2-3 spurious merge
 conflicts per PR. The pre-commit hook reads the file locally and
-handles the missing-file case by prompting `/bugcheck run` before the
+handles the missing-file case by prompting `/oc-bugcheck run` before the
 first commit on a fresh clone.
 
 ## Schema (loose, validated in CI)
@@ -65,26 +65,55 @@ fields + the `status` enum + filename-skill consistency.
 ## Tooling
 
 ```bash
-# Print a human-readable summary of every checkpoint.
+# Where did I leave off? (full summary; --brief = just the top action + blockers)
 npm run checkpoint:status
+node scripts/checkpoint.mjs status --brief
 
-# Validate every .checkpoint.json against the schema.
-npm run checkpoint:validate
+# What should I do RIGHT NOW? (priority engine — no oc-orchestrator registry needed)
+node scripts/checkpoint.mjs next
 
-# Update a field on a checkpoint (creates the file if missing).
+# Is any checkpoint drifting from reality? (git history + filesystem cross-check)
+node scripts/checkpoint.mjs doctor          # add --online to compare /api/health vs HEAD
+
+# Validate every .checkpoint.json against the schema (CI runs this).
+npm run checkpoint:validate                 # --strict also fails on warnings
+
+# Update a field (creates the file if missing); done = complete the top next action.
 node scripts/checkpoint.mjs update <skill> --status=in_progress --step=...
+node scripts/checkpoint.mjs done <skill>
 ```
+
+### Status glyphs (canonical legend)
+
+One vocabulary, used by `checkpoint` output and the oc-orchestrator alike:
+
+| Glyph | Meaning |
+|---|---|
+| ✅ | complete |
+| 🔄 | in_progress |
+| ⏳ | not_started |
+| 🚫 | blocked (has an open blocker) |
+| ⛔ | a decision is waiting on **you** (`blockers[].needs: user_decision`) |
+| ⚠ | stale / drift (e.g. in_progress and untouched >7 days) |
 
 ## Merge driver
 
 `.gitattributes` maps every `<skill>.checkpoint.json` to a custom merge
 driver (`scripts/merge-checkpoint.mjs`) that auto-resolves telemetry-only
-conflicts. Two PRs that both ran `/bugcheck` will bump `updated_at` and
+conflicts. Two PRs that both ran `/oc-bugcheck` will bump `updated_at` and
 `skill_state.last_run.at` to different "now" values; the driver picks
 the side with the newer `updated_at` for those fields and only raises a
 real conflict on substantive content (`progress_summary`, `next_actions`,
 `progress_table`, etc.). The driver is registered per-clone by
 `npm prepare`, so `npm install` is the only setup step.
+
+> ⚠️ **The driver runs on local `git merge` only.** GitHub's server-side
+> "Update branch" / auto-merge buttons do **not** invoke it, so a checkpoint
+> conflict resolved there can ship invalid JSON and fail CI (this happened on
+> 2026-05-15). If two PRs both touch a checkpoint, resolve it with a local
+> `git merge` (driver runs), and always `npm run checkpoint:validate` before
+> pushing. Rotating volatile `skill_state` telemetry into
+> `.checkpoints/history/` keeps the conflict surface small in the first place.
 
 ## Resume protocol (informal)
 

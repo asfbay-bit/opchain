@@ -1,11 +1,11 @@
 import type { Walkthrough } from "./types";
 
 /**
- * Scenario 5 — migration-ops runs a D1 → Postgres cutover on a live
- * Cloudflare Workers app, with monitoring-ops watching the post-migration
+ * Scenario 5 — oc-migration-ops runs a D1 → Postgres cutover on a live
+ * Cloudflare Workers app, with oc-monitoring-ops watching the post-migration
  * error budget. Demonstrates the "change the engine mid-flight" side chain:
- * incremental migration plan with rollback points, deploy-ops executes the
- * cutover, monitoring-ops confirms the new engine is healthy before the
+ * incremental migration plan with rollback points, oc-deploy-ops executes the
+ * cutover, oc-monitoring-ops confirms the new engine is healthy before the
  * old one is retired.
  */
 export const postgresMigration: Walkthrough = {
@@ -13,9 +13,9 @@ export const postgresMigration: Walkthrough = {
   title: "Swap D1 for Postgres without downtime",
   tagline: "D1 → Postgres without the outage",
   summary:
-    "A live Workers app outgrew D1. migration-ops writes the cutover plan, deploy-ops runs it, monitoring-ops watches the error budget.",
+    "A live Workers app outgrew D1. oc-migration-ops writes the cutover plan, oc-deploy-ops runs it, oc-monitoring-ops watches the error budget.",
   description:
-    "A six-month-old task-tracking app on Cloudflare Workers + D1 started hitting D1's row limits on the biggest three tenants. The team picked Supabase Postgres as the destination and needs to cut over without downtime. migration-ops runs its assessment → plan → execute → verify loop, slicing the migration into five rollback-able phases: dual-write, backfill, read-cutover, write-cutover, D1-retire. deploy-ops runs each phase behind a feature flag. monitoring-ops watches p99 latency and error budgets through every phase — if anything drifts, the flag rolls back to the prior phase in under 30 seconds. The whole thing lands in a long Wednesday.",
+    "A six-month-old task-tracking app on Cloudflare Workers + D1 started hitting D1's row limits on the biggest three tenants. The team picked Supabase Postgres as the destination and needs to cut over without downtime. oc-migration-ops runs its assessment → plan → execute → verify loop, slicing the migration into five rollback-able phases: dual-write, backfill, read-cutover, write-cutover, D1-retire. oc-deploy-ops runs each phase behind a feature flag. oc-monitoring-ops watches p99 latency and error budgets through every phase — if anything drifts, the flag rolls back to the prior phase in under 30 seconds. The whole thing lands in a long Wednesday.",
   inputs: [
     "Live Cloudflare Worker + D1 (≈ 2.1M rows across 14 tables)",
     "Three tenants hit D1's per-database row limit last week",
@@ -30,7 +30,7 @@ export const postgresMigration: Walkthrough = {
       body:
 `# Migration Plan — D1 → Postgres (Supabase)
 
-**Produced by** migration-ops Phase 2 · **Approved by** user · **Target window** Wednesday · **Total wall-clock** 5 h 30 m + 7-day retire window
+**Produced by** oc-migration-ops Phase 2 · **Approved by** user · **Target window** Wednesday · **Total wall-clock** 5 h 30 m + 7-day retire window
 
 ## 1. Target end state
 
@@ -96,7 +96,7 @@ export const postgresMigration: Walkthrough = {
 - Reads routed via \`FLAG_PG_READ_PCT\` (0 → 10 → 50 → 100 over 30 min).
 - Every read still dual-executes in the background for **48 hours post-cutover**; discrepancy > 0 → alert + manual investigate.
 - Writes still go to both (Phase 2 behaviour). Postgres is now a read source of truth; D1 is a fallback.
-- **Per-ramp gate:** monitoring-ops verifies p99 latency, error rate, and discrepancy count before each ramp.
+- **Per-ramp gate:** oc-monitoring-ops verifies p99 latency, error rate, and discrepancy count before each ramp.
 - **Rollback:** \`FLAG_PG_READ_PCT=0\`. Reads return to D1 instantly (within one cache TTL).
 
 ### 4.5 Phase 5 — Write cutover + D1 retire (~20 min, then 7-day wait)
@@ -108,7 +108,7 @@ export const postgresMigration: Walkthrough = {
 - **Rollback window:** 7 days. After that, D1 is gone; only Postgres-era data survives.
 - **Schema migration freeze:** no schema migrations during the 7-day window (so a hypothetical rollback to D1 is straightforward).
 
-## 5. Verification gates (monitoring-ops runs these)
+## 5. Verification gates (oc-monitoring-ops runs these)
 
 - **Per phase:** p99 latency ≤ prior phase + 15%; error rate ≤ 0.1%; no new alerts firing for 15 min.
 - **Post-cutover (24h):** Postgres CPU < 70%, connection pool saturation < 80%.
@@ -163,16 +163,16 @@ If we have to roll back at any phase, comms are:
 2. Status page — only if user-visible impact (Phases 4 & 5 only).
 3. Postmortem within 5 business days.
 
-Checkpoint: \`.checkpoints/migration-ops.checkpoint.json\`.`,
+Checkpoint: \`.checkpoints/oc-migration-ops.checkpoint.json\`.`,
     },
     {
       id: "verification-report",
-      label: "monitoring-ops verification (through Phase 5)",
+      label: "oc-monitoring-ops verification (through Phase 5)",
       kind: "report.md",
       body:
 `# Migration Verification Report
 
-**Produced by** monitoring-ops after every migration-ops phase gate.
+**Produced by** oc-monitoring-ops after every oc-migration-ops phase gate.
 **Signals watched:** p99 latency · error rate · connection pool saturation · drift checker alerts · CPU · memory · query-plan regression.
 
 ## 1. Phase 1 — Schema mirror (10:00 → 10:30)
@@ -276,55 +276,55 @@ We're well-positioned for the 3-tenant capacity overflow that motivated this mig
 
 ## 9. Next
 
-- monitoring-ops writes a post-migration runbook to \`docs/runbooks/d1-to-postgres.md\`.
+- oc-monitoring-ops writes a post-migration runbook to \`docs/runbooks/d1-to-postgres.md\`.
 - App-architect's checkpoint gets updated with the new tech stack (\`01-tech-stack.md\`).
-- migration-ops hands control back to user; Phase 6 (D1 retire) auto-fires in 7 days via scheduled KV flag flip.
+- oc-migration-ops hands control back to user; Phase 6 (D1 retire) auto-fires in 7 days via scheduled KV flag flip.
 
-Checkpoint: \`.checkpoints/monitoring-ops.checkpoint.json\`.`,
+Checkpoint: \`.checkpoints/oc-monitoring-ops.checkpoint.json\`.`,
     },
     {
       id: "ops-status",
-      label: "orchestrator status (all projects)",
+      label: "oc-orchestrator status (all projects)",
       kind: "status.md",
       body:
-`# \`/ops status\` — mid-migration snapshot
+`# \`/oc-ops status\` — mid-migration snapshot
 
 \`\`\`
 OPCHAIN STATUS — All Projects
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ▶ taskflow                                  [active]
-  ✅ reverse-spec      complete     Specs backfilled 3 weeks ago
-  ✅ app-architect     complete     v1.2 shipped last month
-  🔄 migration-ops     in_progress  Phase 4/5 — read cutover at 50% PG
-  🔄 monitoring-ops    in_progress  verification gate for Phase 4
-  ✅ deploy-ops        complete     Last ship: flag ramp to 50%
-  ⏳ git-ops           queued       Post-cutover commit pending
-  → Next: wait for monitoring-ops Phase 4 gate, then trigger Phase 5
+  ✅ oc-reverse-spec      complete     Specs backfilled 3 weeks ago
+  ✅ oc-app-architect     complete     v1.2 shipped last month
+  🔄 oc-migration-ops     in_progress  Phase 4/5 — read cutover at 50% PG
+  🔄 oc-monitoring-ops    in_progress  verification gate for Phase 4
+  ✅ oc-deploy-ops        complete     Last ship: flag ramp to 50%
+  ⏳ oc-git-ops           queued       Post-cutover commit pending
+  → Next: wait for oc-monitoring-ops Phase 4 gate, then trigger Phase 5
 
 ▶ gtrackr
-  ✅ app-architect     complete     Sprint 4/4 passed evaluator
-  ⏳ deploy-ops        not started  Blocked on staging QA
-  → Next: /deploy staging once QA signs off
+  ✅ oc-app-architect     complete     Sprint 4/4 passed evaluator
+  ⏳ oc-deploy-ops        not started  Blocked on staging QA
+  → Next: /oc-deploy staging once QA signs off
 
 ▶ heads-down
   ✅ all skills        complete     v1 shipped last week
-  📊 monitoring-ops    watching     5xx 0.04%, push backlog 12, all green
+  📊 oc-monitoring-ops    watching     5xx 0.04%, push backlog 12, all green
   → Next: nothing actionable; revisit weekly
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   3 projects | 1 active pipeline | 0 blockers
 \`\`\`
 
-## 1. What \`/ops status\` is for
+## 1. What \`/oc-ops status\` is for
 
-Mid-migration, the user has checkpoints from four different skills active on the same project, plus other projects in different states. \`/ops\` reads all of them from \`.checkpoints/\` without the user having to invoke each skill in turn.
+Mid-migration, the user has checkpoints from four different skills active on the same project, plus other projects in different states. \`/oc-ops\` reads all of them from \`.checkpoints/\` without the user having to invoke each skill in turn.
 
-This artifact is a snapshot of orchestrator output during a Wednesday afternoon, mid-cutover.
+This artifact is a snapshot of oc-orchestrator output during a Wednesday afternoon, mid-cutover.
 
 ## 2. Where the data comes from
 
-orchestrator scans every \`.checkpoints/<skill>.checkpoint.json\` it can find under each registered project root. For each it reads:
+oc-orchestrator scans every \`.checkpoints/<skill>.checkpoint.json\` it can find under each registered project root. For each it reads:
 
 - \`status\` — pending, in_progress, complete, blocked
 - \`step\` — the most recent named step
@@ -333,7 +333,7 @@ orchestrator scans every \`.checkpoints/<skill>.checkpoint.json\` it can find un
 - \`blockers\` — array of named blockers
 - \`next_actions\` — what the skill thinks should happen next
 
-orchestrator never *writes* to other skills' checkpoints — it only reads.
+oc-orchestrator never *writes* to other skills' checkpoints — it only reads.
 
 ## 3. The "Next" line — how it's computed
 
@@ -347,34 +347,34 @@ Priority hierarchy for the \`→ Next\` recommendation:
 | 4 | Any pending action with no upstream dep | "Run <skill>: <action>" |
 | 5 | Nothing actionable | "Nothing actionable; revisit weekly" |
 
-For \`taskflow\` above, condition 3 fires (monitoring-ops is the gate-keeper for Phase 5).
+For \`taskflow\` above, condition 3 fires (oc-monitoring-ops is the gate-keeper for Phase 5).
 
 ## 4. Cross-project view
 
-Three projects are surfaced in this snapshot. The orchestrator's value compounds with the number of projects:
+Three projects are surfaced in this snapshot. The oc-orchestrator's value compounds with the number of projects:
 
 - **1 project:** status command is a "what's left here" reminder.
 - **3 projects:** status command becomes "where should I direct attention right now."
 - **10+ projects:** status becomes the only sane way to keep track without checkpoint sprawl.
 
-The orchestrator does not prescribe priorities across projects (that's a human decision); it just surfaces state.
+The oc-orchestrator does not prescribe priorities across projects (that's a human decision); it just surfaces state.
 
 ## 5. Filters + drill-down
 
-- \`/ops status --project taskflow\` — single project, more detail.
-- \`/ops status --since 24h\` — only show skills updated in the last 24 h.
-- \`/ops status --blockers\` — only show projects with blockers.
-- \`/ops history\` — timeline view of the last 30 days of skill activity.
-- \`/ops next\` — directly recommend the next action without showing the full status.
+- \`/oc-ops status --project taskflow\` — single project, more detail.
+- \`/oc-ops status --since 24h\` — only show skills updated in the last 24 h.
+- \`/oc-ops status --blockers\` — only show projects with blockers.
+- \`/oc-ops history\` — timeline view of the last 30 days of skill activity.
+- \`/oc-ops next\` — directly recommend the next action without showing the full status.
 
-## 6. Why the orchestrator never writes
+## 6. Why the oc-orchestrator never writes
 
-The orchestrator is intentionally read-only against other skills' checkpoints. Two reasons:
+The oc-orchestrator is intentionally read-only against other skills' checkpoints. Two reasons:
 
 1. **Single source of truth per skill.** Each skill owns its checkpoint; multiple writers create race conditions and confusion.
-2. **Cross-project safety.** A bug in the orchestrator should never corrupt a project's actual state; the worst it can do is misreport.
+2. **Cross-project safety.** A bug in the oc-orchestrator should never corrupt a project's actual state; the worst it can do is misreport.
 
-The orchestrator's own state — the project registry, session cache, history — lives in \`.checkpoints/orchestrator.checkpoint.json\`.
+The oc-orchestrator's own state — the project registry, session cache, history — lives in \`.checkpoints/oc-orchestrator.checkpoint.json\`.
 
 ## 7. Output format
 
@@ -384,13 +384,13 @@ The status block is plain ASCII (not Markdown) by default — works in any termi
 
 Run on demand. Output is a snapshot at the moment of the call; no caching. Reads against \`.checkpoints/\` are filesystem-cheap (typically < 50 ms total).
 
-Checkpoint: orchestrator state lives in memory (registry) + session cache; it reads but never writes the other skills' checkpoints.`,
+Checkpoint: oc-orchestrator state lives in memory (registry) + session cache; it reads but never writes the other skills' checkpoints.`,
     },
   ],
-  skills: ["migration-ops", "orchestrator", "deploy-ops", "monitoring-ops"],
+  skills: ["oc-migration-ops", "oc-orchestrator", "oc-deploy-ops", "oc-monitoring-ops"],
   runtime: "≈ 12 exchanges",
   steps: [
-    { type: "beat", label: "01 · Assess", caption: "migration-ops sizes the engine swap", skills: ["migration-ops"] },
+    { type: "beat", label: "01 · Assess", caption: "oc-migration-ops sizes the engine swap", skills: ["oc-migration-ops"] },
 
     {
       type: "exchange", role: "user",
@@ -400,9 +400,9 @@ Checkpoint: orchestrator state lives in memory (registry) + session cache; it re
 How do we not break this?`
     },
     {
-      type: "exchange", role: "claude", skill: "migration-ops",
+      type: "exchange", role: "claude", skill: "oc-migration-ops",
       content:
-`Invoking **migration-ops** in \`/migrate assess\` mode.
+`Invoking **oc-migration-ops** in \`/oc-migrate assess\` mode.
 
 Before writing a plan, I need four facts:
 
@@ -423,9 +423,9 @@ Also: is there a maintenance window option, or are we strictly zero-downtime?`
 5. Zero-downtime, no maintenance window.`
     },
     {
-      type: "exchange", role: "claude", skill: "migration-ops",
+      type: "exchange", role: "claude", skill: "oc-migration-ops",
       content:
-`Writing the migration plan. **Five phases, each with a named rollback gate.** No phase touches prod until the one before it passes monitoring-ops verification.
+`Writing the migration plan. **Five phases, each with a named rollback gate.** No phase touches prod until the one before it passes oc-monitoring-ops verification.
 
 1. **Schema mirror** — Postgres spun up empty, schema applied, tested out-of-band. Zero prod impact.
 2. **Dual-write** — every write hits D1 (authoritative) and PG (mirror). Drift checker runs every 5 min. Rollback: flag flip.
@@ -435,7 +435,7 @@ Also: is there a maintenance window option, or are we strictly zero-downtime?`
 
 Read-your-writes is satisfied at every phase: Phase 2 writes both before acknowledgement; Phase 4 reads from the same source just written; Phase 5 only flips write-first after Phase 4 has validated PG reads match D1 reads for 48 hours.
 
-Writing \`.checkpoints/migration-ops.checkpoint.json\` with the plan. \`/approve\` to proceed.`,
+Writing \`.checkpoints/oc-migration-ops.checkpoint.json\` with the plan. \`/approve\` to proceed.`,
       artifacts: ["migration-plan"],
     },
     {
@@ -443,19 +443,19 @@ Writing \`.checkpoints/migration-ops.checkpoint.json\` with the plan. \`/approve
       content: "/approve"
     },
 
-    { type: "beat", label: "02 · Execute + verify", caption: "migration-ops runs; monitoring-ops watches", skills: ["migration-ops", "monitoring-ops"] },
+    { type: "beat", label: "02 · Execute + verify", caption: "oc-migration-ops runs; oc-monitoring-ops watches", skills: ["oc-migration-ops", "oc-monitoring-ops"] },
 
     {
-      type: "exchange", role: "claude", skill: "migration-ops",
+      type: "exchange", role: "claude", skill: "oc-migration-ops",
       content:
 `**Phase 1 — Schema mirror.** Done. Supabase project provisioned; drizzle-kit applied 14 tables + 23 indexes; schema diff against D1 dump is empty.
 
 **Phase 2 — Dual-write.** Flag \`FLAG_PG_DUAL_WRITE=true\`, Workers picked it up within 8 s (KV cache TTL). Drift checker is running every 5 min.
 
-Handing off to **monitoring-ops** to watch the dual-write phase before I advance.`
+Handing off to **oc-monitoring-ops** to watch the dual-write phase before I advance.`
     },
     {
-      type: "exchange", role: "claude", skill: "monitoring-ops",
+      type: "exchange", role: "claude", skill: "oc-monitoring-ops",
       content:
 `Watching the Phase 2 gate. 30-minute window:
 
@@ -464,10 +464,10 @@ Handing off to **monitoring-ops** to watch the dual-write phase before I advance
 - Drift checker delta across 14 tables: **0.00%** at every 5-min interval.
 - No new alerts fired.
 
-**Phase 2 gate: PASS.** Signal sent to migration-ops — proceed to Phase 3.`
+**Phase 2 gate: PASS.** Signal sent to oc-migration-ops — proceed to Phase 3.`
     },
     {
-      type: "exchange", role: "claude", skill: "migration-ops",
+      type: "exchange", role: "claude", skill: "oc-migration-ops",
       content:
 `**Phase 3 — Backfill.** Snapshotting each D1 table to R2, streaming into PG inside a transaction per table.
 
@@ -480,10 +480,10 @@ users          →     2,891 rows  → ✓ hash match
 
 All 14 tables parity-verified. Backfill took 2h 4m; peak PG write throughput 4,200 rows/sec.
 
-**Phase 4 — Read cutover (staged).** Flipping \`FLAG_PG_READ_PCT\`: 0 → 10. Handing back to monitoring-ops for the ramp gate.`
+**Phase 4 — Read cutover (staged).** Flipping \`FLAG_PG_READ_PCT\`: 0 → 10. Handing back to oc-monitoring-ops for the ramp gate.`
     },
     {
-      type: "exchange", role: "claude", skill: "monitoring-ops",
+      type: "exchange", role: "claude", skill: "oc-monitoring-ops",
       content:
 `Phase 4 ramp monitor — watching dual-read shadow for discrepancy.
 
@@ -496,56 +496,56 @@ All 14 tables parity-verified. Backfill took 2h 4m; peak PG write throughput 4,2
 
 Zero discrepancies across ~350K shadow reads. Latency drift is well under the 15% budget.
 
-**Phase 4 gate: PASS.** migration-ops is clear to run Phase 5.`,
+**Phase 4 gate: PASS.** oc-migration-ops is clear to run Phase 5.`,
       artifacts: ["verification-report"],
     },
 
-    { type: "beat", label: "03 · Cross-project view", caption: "orchestrator summarizes state", skills: ["orchestrator"] },
+    { type: "beat", label: "03 · Cross-project view", caption: "oc-orchestrator summarizes state", skills: ["oc-orchestrator"] },
 
     {
       type: "exchange", role: "user",
-      content: "/ops status"
+      content: "/oc-ops status"
     },
     {
-      type: "exchange", role: "claude", skill: "orchestrator",
+      type: "exchange", role: "claude", skill: "oc-orchestrator",
       content:
 `Scanning \`.checkpoints/\` across registered projects.
 
 \`\`\`
 ▶ taskflow                                  [active]
-  ✅ reverse-spec      complete     Specs backfilled 3 weeks ago
-  ✅ app-architect     complete     v1.2 shipped last month
-  🔄 migration-ops     in_progress  Phase 4/5 verified; Phase 5 queued
-  🔄 monitoring-ops    in_progress  watching for Phase 5 gate
-  ✅ deploy-ops        complete     Last ship: read cutover 100%
-  ⏳ git-ops           queued       post-cutover commit pending
+  ✅ oc-reverse-spec      complete     Specs backfilled 3 weeks ago
+  ✅ oc-app-architect     complete     v1.2 shipped last month
+  🔄 oc-migration-ops     in_progress  Phase 4/5 verified; Phase 5 queued
+  🔄 oc-monitoring-ops    in_progress  watching for Phase 5 gate
+  ✅ oc-deploy-ops        complete     Last ship: read cutover 100%
+  ⏳ oc-git-ops           queued       post-cutover commit pending
 
 ▶ gtrackr
-  ✅ app-architect     complete     Sprint 4/4 passed evaluator
-  ⏳ deploy-ops        not started  blocked on QA
+  ✅ oc-app-architect     complete     Sprint 4/4 passed evaluator
+  ⏳ oc-deploy-ops        not started  blocked on QA
 \`\`\`
 
-**/ops next →** advance taskflow to Phase 5 (write cutover). The 48-hour dual-read shadow window closes at 15:00 — migration-ops is holding for that before flipping writes.
+**/oc-ops next →** advance taskflow to Phase 5 (write cutover). The 48-hour dual-read shadow window closes at 15:00 — oc-migration-ops is holding for that before flipping writes.
 
 \`gtrackr\` has a longer-running blocker (QA) but no gate action from opchain until they sign off.`,
       artifacts: ["ops-status"],
     },
 
-    { type: "beat", label: "04 · Cut over + retire", caption: "deploy-ops ships; monitoring-ops watches the 7-day window", skills: ["deploy-ops", "monitoring-ops"] },
+    { type: "beat", label: "04 · Cut over + retire", caption: "oc-deploy-ops ships; oc-monitoring-ops watches the 7-day window", skills: ["oc-deploy-ops", "oc-monitoring-ops"] },
 
     {
-      type: "exchange", role: "claude", skill: "migration-ops",
+      type: "exchange", role: "claude", skill: "oc-migration-ops",
       content:
 `**Phase 5 — Write cutover.** Flipping \`FLAG_PG_DUAL_WRITE=false\` + \`FLAG_D1_READONLY=true\`. Writes now PG-only; D1 is frozen as a rollback snapshot.
 
 Post-flip checks (15:08): write p99 = 24.1 ms (was 21.9 ms on dual-write; expected since PG is now the hot path). PG connection pool peaked at 38% saturation.
 
-monitoring-ops alerts now armed for the 7-day rollback window:
+oc-monitoring-ops alerts now armed for the 7-day rollback window:
 - \`pg_error_rate > 0.5%\` for 5 min → page
 - \`pg_connection_saturation > 80%\` for 10 min → Slack
 - \`any_request_to_d1\` → Slack (no code path should hit it)
 
-migration-ops hands control back. The scheduled job for D1 retire (7 days out) is registered in \`wrangler.jsonc\`'s \`crons\`.
+oc-migration-ops hands control back. The scheduled job for D1 retire (7 days out) is registered in \`wrangler.jsonc\`'s \`crons\`.
 
 Checkpoint closed. You're running on Postgres.`
     },

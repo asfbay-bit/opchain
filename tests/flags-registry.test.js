@@ -66,11 +66,11 @@ describe("flag registry", () => {
 
   it("includes a flag for every skill in the registry", () => {
     const expected = [
-      "api-dev", "app-architect", "bug-check", "checkpoint-protocol",
-      "code-auditor", "dash-forge", "deploy-ops", "git-ops",
-      "integrations-engineer", "migration-ops", "monitoring-ops",
-      "orchestrator", "reverse-spec", "scale-ops", "security-auditor",
-      "stack-forge", "ux-engineer",
+      "oc-api-dev", "oc-app-architect", "oc-bug-check", "oc-checkpoint-protocol",
+      "oc-code-auditor", "oc-dash-forge", "oc-deploy-ops", "oc-git-ops",
+      "oc-integrations-engineer", "oc-migration-ops", "oc-monitoring-ops",
+      "oc-orchestrator", "oc-reverse-spec", "oc-scale-ops", "oc-security-auditor",
+      "oc-stack-forge", "oc-ux-engineer",
     ];
     for (const id of expected) {
       expect(isKnown(`skills.registry.${id}.enabled`)).toBe(true);

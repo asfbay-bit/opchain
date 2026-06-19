@@ -129,7 +129,7 @@ a:hover { color: var(--accent-hover); }
    dark (no [data-theme] attribute set), so without this switch the
    code blocks render as light panels on the dark page — and the
    github-light theme uses #E36209 (orange) for markdown list markers,
-   which is ~3.54:1 on white (fails WCAG AA on /skills/app-architect).
+   which is ~3.54:1 on white (fails WCAG AA on /skills/oc-app-architect).
    The selector matches "not light" so the default-dark page and the
    explicit data-theme="dark" both flip to dark code. */
 :root:not([data-theme="light"]) .astro-code,

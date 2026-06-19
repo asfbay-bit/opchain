@@ -6,7 +6,7 @@
  */
 import { describe, it, expect } from "vitest";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync, cpSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, cpSync, symlinkSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,9 +21,11 @@ function runValidator(skillsDir) {
   try {
     cpSync(join(ROOT, "scripts"), join(work, "scripts"), { recursive: true });
     cpSync(join(ROOT, "src"),     join(work, "src"),     { recursive: true });
-    cpSync(join(ROOT, "node_modules"), join(work, "node_modules"), {
-      recursive: true, dereference: false, errorOnExist: false,
-    });
+    // Symlink node_modules rather than copy it. The recursive copy was hundreds
+    // of MB / thousands of files per run and intermittently failed or timed out
+    // under parallel test load; module resolution follows the symlink, so the
+    // spawned validator still resolves gray-matter and the registry import.
+    symlinkSync(join(ROOT, "node_modules"), join(work, "node_modules"), "dir");
     cpSync(join(ROOT, "package.json"), join(work, "package.json"));
     cpSync(skillsDir, join(work, "skills"), { recursive: true });
     return spawnSync("node", ["scripts/gen-skills-catalog.mjs"], {
@@ -37,13 +39,13 @@ function runValidator(skillsDir) {
 
 function makeFixture({ extraSkills = {} } = {}) {
   const dir = mkdtempSync(join(tmpdir(), "opchain-skills-fixture-"));
-  // checkpoint-protocol is required by the validator
-  mkdirSync(join(dir, "checkpoint-protocol"), { recursive: true });
+  // oc-checkpoint-protocol is required by the validator
+  mkdirSync(join(dir, "oc-checkpoint-protocol"), { recursive: true });
   writeFileSync(
-    join(dir, "checkpoint-protocol", "SKILL.md"),
+    join(dir, "oc-checkpoint-protocol", "SKILL.md"),
     [
       "---",
-      "name: checkpoint-protocol",
+      "name: oc-checkpoint-protocol",
       "displayName: Checkpoint Protocol",
       "version: 1.0.0",
       "shortDesc: Cross-skill protocol for session persistence.",
@@ -53,7 +55,7 @@ function makeFixture({ extraSkills = {} } = {}) {
       "description: Cross-skill protocol for session persistence.",
       "---",
       "",
-      "# checkpoint-protocol",
+      "# oc-checkpoint-protocol",
       "",
     ].join("\n"),
   );

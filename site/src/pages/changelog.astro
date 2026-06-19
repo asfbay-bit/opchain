@@ -1,690 +1,726 @@
 ---
+/**
+ * /changelog — Option C v3 layout: two ARIA tabs (Just Released · Coming
+ * Next), each led by a rich hero card, with the most relevant card in each
+ * section expanded on load.
+ *
+ *   Just Released → v1.4.2 hero (accent) + compact release cards (v1.4 ↓).
+ *   Coming Next   → v1.5 hero (info) + the v1.6 / v1.7 roadmap, then the
+ *                   feature-request form.
+ *
+ * Voting is real: vote buttons carry data-vote-target=<id> and the client
+ * script batches GET /api/votes then POSTs /api/votes/<id> per click (the
+ * Worker dedups per-IP/day in KV). The votable ids come from
+ * roadmap-static.ts — OPC-150 (v1.5) and the per-feature OPC-16x / OPC-17x
+ * items grouped by milestone below.
+ *
+ * Deep links (#v1-5 / #v1-6 / #v1-7 from the skill pages and external
+ * links, #v1-4 → /coverage) are handled client-side: the matching tab is
+ * activated, the target card expanded, and scrolled into view.
+ *
+ * Accessibility: tablist with roving tabindex + arrow/Home/End keys;
+ * inactive panel is `hidden`; each card is a button[aria-expanded] that
+ * controls its detail region (inert while collapsed so its links/votes
+ * aren't reachable by keyboard).
+ */
 import Base from "../layouts/Base.astro";
-import Eyebrow from "../components/ui/Eyebrow.astro";
-import RoadmapTimeline from "../components/RoadmapTimeline.astro";
 import RoadmapForm from "../components/RoadmapForm.astro";
+import { staticRoadmap } from "../data/roadmap-static";
+import type { RoadmapItem } from "../data/roadmap-types";
+
+// v1.5 is the single in-progress milestone (built, shipping next).
+const v15 =
+  staticRoadmap.items["in-progress"].find((i) => i.milestone === "v1.5") ?? null;
+
+// Group the planned items by milestone, preserving source order.
+const plannedByMilestone = new Map<string, RoadmapItem[]>();
+for (const it of staticRoadmap.items.planned) {
+  const key = it.milestone ?? "Later";
+  const arr = plannedByMilestone.get(key) ?? [];
+  arr.push(it);
+  plannedByMilestone.set(key, arr);
+}
+const v16Items = plannedByMilestone.get("v1.6") ?? [];
+const v17Items = plannedByMilestone.get("v1.7") ?? [];
 ---
 
 <Base
   title="Changelog · opchain"
-  description="Release notes for opchain — what shipped, when, and how to migrate. Plus the live roadmap + community feature requests."
+  description="Release notes for opchain — what shipped, when, and how to migrate. Plus what's shipping next and the live, votable roadmap."
   active="/changelog"
 >
   <main class="page">
     <div class="page-head">
-      <Eyebrow>changelog</Eyebrow>
+      <span class="eyebrow">changelog</span>
       <h1>Changelog.</h1>
+      <p class="lede">
+        What shipped, what's next, and what to do about it. Each skill's
+        <code>version</code> field is the source of truth — this page rolls
+        them up by release. Vote on what's coming to signal priority.
+      </p>
     </div>
 
-    <p class="lede">
-      What shipped, when, and what to do about it. The skills are
-      individual Markdown files; their <code>version</code> field is the
-      source of truth — this page summarises across the catalog.
-    </p>
-
-    <!-- Live roadmap from Linear (build-time pull, label-gated).
-         Sits above the release history so visitors see "what's coming"
-         before "what's shipped". -->
-    <RoadmapTimeline />
-
-    <!-- Expanded detail for the upcoming releases (v1.5 next, then v1.6 /
-         v1.7 planned). The roadmap cards above deep-link here (#v1-5 /
-         #v1-6 / #v1-7) so a one-line card opens into the full theme
-         writeup. Content tracks roadmap/07-v15-v16-v17. -->
-    <div class="upcoming-head">
-      <Eyebrow>what's coming</Eyebrow>
-      <h2 class="rhh">Upcoming releases</h2>
+    <!-- ══ TAB BAR ══════════════════════════════════════════ -->
+    <div class="tab-bar">
+      <div class="tab-list" role="tablist" aria-label="Changelog sections" data-changelog-tabs>
+        <button
+          class="tab-btn"
+          role="tab"
+          id="tab-released"
+          aria-controls="panel-released"
+          aria-selected="true"
+          tabindex="0"
+        >
+          Just Released <span class="tab-count">7 shipped</span>
+        </button>
+        <button
+          class="tab-btn tab-btn--next"
+          role="tab"
+          id="tab-coming"
+          aria-controls="panel-coming"
+          aria-selected="false"
+          tabindex="-1"
+        >
+          Coming Next <span class="tab-count">v1.5 → v1.7</span>
+        </button>
+      </div>
+      <span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
     </div>
 
-    <section class="release release--next" id="v1-5">
-      <header class="rel-head">
-        <span class="rel-tag rel-tag--next">v1.5</span>
-        <h2>Build the AI app</h2>
-        <span class="rel-date">next · built, awaiting release</span>
-      </header>
+    <!-- ══ PANEL 0 — JUST RELEASED ═══════════════════════════ -->
+    <section
+      class="tab-panel"
+      role="tabpanel"
+      id="panel-released"
+      aria-labelledby="tab-released"
+      tabindex="0"
+    >
+      <div class="panel-head">
+        <h2>What shipped</h2>
+        <span class="panel-sub">Newest is open; click any release for full notes.</span>
+      </div>
 
-      <p class="rel-summary">
-        v1.5 is opchain's next release &mdash; built and in the release
-        pipeline, not yet live. It closes the biggest categorical gap in
-        the catalog: nothing today owns <em>AI-feature</em> design. v1.5
-        adds <strong>four new AI-native skills</strong> &mdash;
-        <code>claude-api</code>, <code>rag-forge</code>,
-        <code>agent-forge</code>, <code>prompt-ops</code> &mdash; wired
-        through the existing pipeline, and lockstep-bumps the catalog from
-        18 to <strong>22 skills</strong> at <code>1.5.0</code>. Markdown
-        methodology turns out to be exactly the right shape for the things
-        AI apps need most: source-controlled, diffable, version-pinned
-        prompts and eval sets.
-      </p>
+      <!-- v1.4.3 — newest, AUTO-OPEN; extend opchain to Codex -->
+      <article class="hero-card hero-card--released is-open" id="v1-4-3" data-card>
+        <button
+          class="hero-head"
+          type="button"
+          aria-expanded="true"
+          aria-controls="v1-4-3-body"
+          data-disclosure-toggle
+        >
+          <span class="hero-chevron" aria-hidden="true">▶</span>
+          <span class="hero-badge">latest release</span>
+          <span class="hero-ver">v1.4.3 · shipped Jun 12, 2026</span>
+          <span class="hero-title">opchain runs on Codex</span>
+          <span class="hero-desc">
+            opchain now speaks the Model Context Protocol, so Codex — and any
+            MCP-aware agent (Claude Desktop, Cursor, Windsurf) — gets the same
+            concept-to-ship pipeline Claude Code auto-discovers: the skill
+            catalog, intent routing, the shared orchestrator protocol, and
+            cross-session checkpoints. Brought forward from the tabled v1.8 slot.
+          </span>
+        </button>
+        <div class="card-body" id="v1-4-3-body" data-disclosure-body>
+          <div class="card-body-inner hero-body-inner">
+            <h3>What's new</h3>
+            <div class="tile-grid">
+              <div class="tile">
+                <span class="tile-name">MCP server</span>
+                <p class="tile-desc">
+                  A <code>POST /mcp</code> endpoint exposes the catalog, intent
+                  routing, the orchestrator protocol, and checkpoints as MCP
+                  tools, prompts, and resources — for Codex and any MCP client.
+                </p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">two ways in</span>
+                <p class="tile-desc">
+                  Point Codex at the hosted <code>opchain.dev/mcp</code>
+                  endpoint, or drop the skills into <code>.codex/skills/</code>
+                  — Codex Agent Skills use the same <code>SKILL.md</code> format.
+                </p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">/oc-* survives</span>
+                <p class="tile-desc">
+                  Every <code>/oc-*</code> command is re-exposed as an MCP
+                  prompt, so the slash-command flow carries over to clients that
+                  surface MCP prompts.
+                </p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">checkpoints anywhere</span>
+                <p class="tile-desc">
+                  Session state persists across MCP sessions, so you resume
+                  where you left off — the same contract Claude Code uses.
+                </p>
+              </div>
+            </div>
 
-      <h3>What's coming</h3>
-      <ul>
-        <li>
-          <strong><code>claude-api</code> &mdash; <code>/claude-api</code>.</strong>
-          Model selection (Opus / Sonnet / Haiku routing), prompt caching
-          as a default, batch vs. streaming, tool use, and
-          <code>/claude-api migrate</code> playbooks for model-version
-          bumps (4.6 → 4.7, retired-model replacement). Cache-audit checks
-          hit rate; cost guardrails cap tokens per phase.
-        </li>
-        <li>
-          <strong><code>rag-forge</code> &mdash; <code>/rag</code>.</strong>
-          Tri-agent (Designer / Builder / Evaluator). Vector-DB decision
-          tree, embedding-model choice, chunking strategy, hybrid search,
-          and retrieval eval (<code>/rag eval</code>, <code>/rag bench</code>)
-          with golden sets and recall@k / NDCG.
-        </li>
-        <li>
-          <strong><code>agent-forge</code> &mdash; <code>/agent</code>.</strong>
-          Tri-agent (Planner / Builder / Evaluator). Claude Agent SDK
-          scaffold, subagent topology, tool-budget design, harness-loop
-          shapes (chat / autonomous / human-in-the-loop), and an eval
-          harness over golden trajectories.
-        </li>
-        <li>
-          <strong><code>prompt-ops</code> &mdash; <code>/prompt</code>.</strong>
-          Prompts as first-class artifacts: file-shaped versioning, eval
-          datasets, and regression detection. <code>/prompt regress</code>
-          runs the golden set on PR-changed prompts and blocks on a drop.
-        </li>
-      </ul>
+            <div class="callout">
+              <h3>New on /install</h3>
+              <ul class="callout-list">
+                <li>
+                  <strong>Codex / any MCP agent</strong> — a fourth install flow
+                  with the <code>~/.codex/config.toml</code> snippet and the
+                  <code>.codex/skills</code> drop-in.
+                </li>
+                <li>
+                  <strong>local stdio server</strong> — an offline
+                  <code>mcp/local-server.mjs</code> for air-gapped setups.
+                </li>
+              </ul>
+            </div>
 
-      <h3>Cross-skill ripples</h3>
-      <ul>
-        <li>
-          <strong><code>app-architect</code></strong> gains an "AI app?"
-          branch in <code>/discover</code> that routes to the four new
-          skills.
-        </li>
-        <li>
-          <strong><code>stack-forge</code></strong> adds vector-DB packs
-          (pgvector, Turbopuffer, Pinecone, Supabase Vectors) to the v1.4
-          pack registry &mdash; pure additive.
-        </li>
-        <li>
-          <strong><code>code-auditor</code></strong> learns
-          prompt-injection and tool-use safety rules.
-        </li>
-      </ul>
+            <div class="compat-box">
+              <strong>Back-compatible with v1.4.</strong> The skills are
+              unchanged — only their packaging — so Claude Code installs are
+              untouched. All 18 skills lockstep-bump to <code>1.4.3</code>.
+            </div>
+          </div>
+        </div>
+      </article>
 
-      <h3>Site &amp; GTM</h3>
-      <p>
-        New <a href="/ai-recipes">/ai-recipes</a> walkthroughs, a
-        "Build AI apps" row on <a href="/compare">/compare</a>, an AI-app
-        variant of <a href="/pipeline-builder">/pipeline-builder</a>, the
-        <a href="/blog">/blog</a> dev-log scaffold with launch posts, a
-        <a href="/for-agencies">/for-agencies</a> page, and the
-        newsletter flag wired (Buttondown). The <a href="/demo">/demo</a>
-        Worker is rewritten on <code>claude-api</code> patterns, and
-        opchain's own eval set ships under <code>prompt-ops</code> as the
-        dogfooding proof.
-      </p>
+      <div class="divider"><span class="divider-line"></span><span class="divider-label">earlier releases</span><span class="divider-line"></span></div>
 
-      <h3>Compatibility</h3>
-      <p>
-        Back-compatible with v1.4. No migration steps required. All 22
-        skills version-bump to <code>1.5.0</code> in lockstep (catalog tag
-        <code>skills-v1.5.0</code>); the four new skills ship gated behind
-        their <code>skills.registry.&lt;id&gt;.enabled</code> flags, so
-        existing installs are unchanged until you opt in.
-        <code>opchain-skills.zip</code> bundles everything as before.
-      </p>
+      <!-- v1.4.2 — past; demoted from hero to rel-card -->
+      <article class="rel-card" id="v1-4-2" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-4-2-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.4.2</span><span class="rc-title">Complete bundles, honest checkpoints</span><span class="rc-date">Jun 05, 2026</span></span>
+            <span class="rc-summary">An out-of-band emergency patch: the &ldquo;download all&rdquo; bundle ships full skill trees again, plus a correctness pass reconciling the checkpoint and orchestrator docs with what actually runs.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-4-2-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">complete bundles</span><span class="tag">oc- names</span><span class="tag">honest checkpoints</span><span class="tag">drift detection</span></div>
+            <p>
+              The &ldquo;download all&rdquo; bundle was dropping each skill's
+              <code>references/</code>, <code>scripts/</code>, and
+              <code>examples/</code>; it now ships full skill trees again. Every
+              skill also gained an <code>oc-&lt;name&gt;</code> alias, the
+              persistence docs were rewritten to the git-tracked checkpoint they
+              actually use, and the validator, spec, and README were reconciled
+              onto one checkpoint schema with drift detection. All 18 skills
+              lockstep-bumped to <code>1.4.2</code>.
+            </p>
+          </div>
+        </div>
+      </article>
 
-      <p class="planned-note">
-        Built &mdash; shipping next, not yet live.
-        <a href="#roadmap-vote">Vote on it above</a> to signal priority.
-      </p>
+      <!-- v1.4 — past; keeps id + /coverage deep-link -->
+      <article class="rel-card" id="v1-4" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-4-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.4</span><span class="rc-title">Coverage as a plugin registry</span><span class="rc-date">May 12, 2026</span></span>
+            <span class="rc-summary">32 packs across 13 languages, 9 frameworks, 4 mobile platforms, 6 deploy targets. One <code>pack.yml</code> per pack, validated on every build.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-4-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">pack registry</span><span class="tag">32 packs</span><span class="tag">5 skills bumped</span></div>
+            <p>
+              v1.4 turns <code>oc-stack-forge</code>'s coverage from hardcoded
+              prose into a versioned pack registry — one <code>pack.yml</code>
+              per language, framework, mobile platform, or deploy target,
+              validated on every build. <a href="/coverage">/coverage</a> is
+              the user-visible catalog; total coverage grows from 6 stacks in
+              v1.3 to 32 packs.
+            </p>
+            <h3>What's new</h3>
+            <ul>
+              <li><strong>Pack registry architecture.</strong> <code>scripts/gen-stack-packs.mjs</code> validates every pack on every build.</li>
+              <li><strong>Hybrid dispatch.</strong> <code>oc-deploy-ops</code> reads packs at runtime; <code>oc-api-dev</code> reads them at build time for typed scaffold metadata.</li>
+              <li><strong>Modern web + enterprise + mobile bulk.</strong> elixir / bun / deno / java / csharp / kotlin / php / swift packs; phoenix / remix / sveltekit / solid / spring / dotnet / laravel frameworks; iOS / Android / Flutter / React-Native mobile packs.</li>
+              <li><strong>Hosting adapters.</strong> railway / netlify / heroku / aws-amplify deploy-target packs.</li>
+            </ul>
+            <div class="compat-box"><strong>Back-compatible with v1.3.</strong> Five skills bump in lockstep to <code>1.4.0</code>.</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.3 -->
+      <article class="rel-card" id="v1-3" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-3-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.3</span><span class="rc-title">Runtime PM, real platforms, automated releases</span><span class="rc-date">May 11, 2026</span></span>
+            <span class="rc-summary">PM-MCP loop executable end-to-end. <code>oc-release-ops</code> ships as the 18th skill. Platform menu expands.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-3-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">oc-release-ops</span><span class="tag">18th skill</span><span class="tag">PM-MCP live</span></div>
+            <p>v1.3 makes the v1.2 PM-MCP prose executable end-to-end and ships <code>oc-release-ops</code> — the 18th skill — to automate the scope → /changelog → bump → ship cadence opchain uses for itself.</p>
+            <h3>What's new</h3>
+            <ul>
+              <li><strong>The PM-MCP loop is real.</strong> Concrete tool-name registry, retry/backoff, idempotency markers, deferred-action queue.</li>
+              <li><strong><code>oc-release-ops</code> is the 18th skill.</strong> <code>/oc-release plan|draft|bump|announce|ship</code>: reads checkpoints to propose the next semver, drafts the changelog entry, bumps all skill versions atomically.</li>
+              <li><strong>Platform menu grew.</strong> Django + Postgres + Render, Rails + Postgres + Heroku, Go + Fly.io, Rust + Axum + Shuttle.rs.</li>
+            </ul>
+            <div class="compat-box"><strong>Back-compatible with v1.2.</strong> All 18 skills lockstep at <code>1.3.0</code>.</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.2 -->
+      <article class="rel-card" id="v1-2" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-2-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.2</span><span class="rc-title">PM-tool MCP integration</span><span class="rc-date">May 05, 2026</span></span>
+            <span class="rc-summary">Linear, Jira, and GitHub Issues become first-class context for four skills.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-2-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">PM-MCP</span><span class="tag">Linear</span><span class="tag">Jira</span></div>
+            <p>The ticket becomes the thread of execution. <code>oc-app-architect</code>, <code>oc-git-ops</code>, <code>oc-deploy-ops</code>, and <code>oc-monitoring-ops</code> all become PM-tool aware.</p>
+            <div class="compat-box"><strong>Back-compatible with v1.1.</strong> The PM loop is enrichment, never a hard dependency.</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.1 -->
+      <article class="rel-card" id="v1-1" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-1-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.1</span><span class="rc-title">Stable release</span><span class="rc-date">Apr 2026</span></span>
+            <span class="rc-summary">Tri-agent harness, full pipeline, oc-checkpoint-protocol v1.0. Six in-action scenarios.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-1-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <p>Tri-agent harness across <code>oc-app-architect</code>, <code>oc-code-auditor</code>, <code>oc-integrations-engineer</code>; full-pipeline flow from <code>/oc-discover</code> to <code>/oc-deploy</code>; oc-checkpoint-protocol v1.0 across every skill; static Astro site; first set of six in-action scenarios.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.0 -->
+      <article class="rel-card" id="v1-0" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-0-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.0</span><span class="rc-title">Initial release</span><span class="rc-date">Feb 2026</span></span>
+            <span class="rc-summary">First public Markdown skill catalog for Claude Code. The foundation everything since has built on.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-0-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <p>First public cut of the opchain skill catalog as a set of Markdown files installable into Claude Code. No site, no scenarios — just the skills.</p>
+          </div>
+        </div>
+      </article>
     </section>
 
-    <section class="release release--next" id="v1-6">
-      <header class="rel-head">
-        <span class="rel-tag rel-tag--next">v1.6</span>
-        <h2>The instrumented pipeline</h2>
-        <span class="rel-date">planned · after v1.5 ships</span>
-      </header>
+    <!-- ══ PANEL 1 — COMING NEXT ═════════════════════════════ -->
+    <section
+      class="tab-panel"
+      role="tabpanel"
+      id="panel-coming"
+      aria-labelledby="tab-coming"
+      tabindex="0"
+      hidden
+    >
+      <div class="panel-head">
+        <h2>What's coming</h2>
+        <span class="panel-sub">v1.5 ships next; v1.6 / v1.7 are the roadmap. Vote to signal priority.</span>
+      </div>
 
-      <p class="rel-summary">
-        v1.5 introduces four AI-native skills; the predictable next question is
-        <em>what did they cost, and is my pipeline actually getting
-        better?</em> v1.6 answers both. It adds cost attribution and opt-in
-        telemetry, turns every skill's pass/fail into a graded eval score,
-        and ships the first <code>checkpoint-protocol</code> bump since
-        v1.2.
-      </p>
+      <!-- v1.5 — next release, AUTO-OPEN, rich hero (info-themed) -->
+      <article class="hero-card hero-card--next is-open" id="v1-5" data-card>
+        <button
+          class="hero-head"
+          type="button"
+          aria-expanded="true"
+          aria-controls="v1-5-body"
+          data-disclosure-toggle
+        >
+          <span class="hero-chevron" aria-hidden="true">▶</span>
+          <span class="hero-badge">building now</span>
+          <span class="hero-ver">v1.5.0 · ships next</span>
+          <span class="hero-title">Build the AI app</span>
+          <span class="hero-desc">
+            v1.5 closes the biggest categorical gap in the catalog: nothing
+            today owns <em>AI-feature</em> design. Four new AI-native skills
+            ship wired through the existing pipeline — model routing, RAG,
+            agent harnesses, and prompts as first-class version-controlled
+            artifacts.
+          </span>
+        </button>
+        <div class="card-body" id="v1-5-body" data-disclosure-body>
+          <div class="card-body-inner hero-body-inner">
+            <h3>Four new skills</h3>
+            <div class="tile-grid">
+              <div class="tile">
+                <span class="tile-name">claude-api · /claude-api</span>
+                <p class="tile-desc">Model routing (Opus/Sonnet/Haiku), prompt caching by default, streaming vs. batch, tool use, and migration playbooks for model-version bumps.</p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">rag-forge · /rag</span>
+                <p class="tile-desc">Tri-agent. Vector-DB decision tree, embedding choice, chunking, hybrid search, and retrieval eval with golden sets and recall@k / NDCG.</p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">agent-forge · /agent</span>
+                <p class="tile-desc">Tri-agent. Claude Agent SDK scaffold, subagent topology, tool-budget design, harness-loop shapes, and eval over golden trajectories.</p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">prompt-ops · /prompt</span>
+                <p class="tile-desc">Prompts as artifacts: file-shaped versioning, eval datasets, regression detection. <code>/prompt regress</code> blocks on a PR drop.</p>
+              </div>
+            </div>
 
-      <h3>New skills</h3>
-      <ul>
-        <li>
-          <strong><code>cost-ops</code> &mdash; <code>/cost</code>.</strong>
-          Attributes Anthropic spend to each skill phase, adds budget gates
-          to checkpoints, and recommends model-tier routing &mdash; Haiku
-          for cheap repetitive phases, Opus for spec and audit. Finally
-          answers "what did this feature cost to ship?"
-        </li>
-        <li>
-          <strong><code>telemetry-ops</code> &mdash; <code>/telemetry</code>.</strong>
-          Opt-in, local-first usage metering written to
-          <code>.checkpoints/usage.sqlite</code>. Aggregates anonymized
-          "which skills people actually use" stats &mdash; the data behind
-          the new public <code>/dashboard</code>. Nothing leaves your
-          machine unless you opt in.
-        </li>
-      </ul>
+            <div class="callout">
+              <h3>Cross-skill ripples</h3>
+              <ul class="callout-list">
+                <li><strong>oc-app-architect</strong> gains an &ldquo;AI app?&rdquo; branch in <code>/oc-discover</code> that routes to the four new skills.</li>
+                <li><strong>oc-stack-forge</strong> adds vector-DB packs (pgvector, Turbopuffer, Pinecone, Supabase Vectors) to the pack registry.</li>
+                <li><strong>oc-code-auditor</strong> learns prompt-injection and tool-use safety rules.</li>
+              </ul>
+            </div>
 
-      <h3>Cross-skill ripples</h3>
-      <ul>
-        <li>
-          <strong><code>bug-check</code> + <code>code-auditor</code></strong>
-          stop emitting bare pass/fail and start scoring against a stable
-          rubric.
-        </li>
-        <li>
-          <strong><code>monitoring-ops</code></strong> gains an "AI-app"
-          template covering token rate, eval drift, and hallucination
-          flags.
-        </li>
-        <li>
-          <strong><code>prompt-ops</code></strong> (from v1.5) begins
-          populating <code>cost_per_eval</code> and
-          <code>eval_score_trend</code>.
-        </li>
-        <li>
-          <strong><code>orchestrator</code></strong>'s <code>/ops next</code>
-          factors cost and remaining budget into what it recommends you do
-          next.
-        </li>
-      </ul>
+            <div class="compat-box">
+              <strong>Back-compatible with v1.4.</strong> All 22 skills version-bump
+              to <code>1.5.0</code>; the four new skills ship gated behind their
+              <code>skills.registry.&lt;id&gt;.enabled</code> flags.
+            </div>
 
-      <h3>Protocol bump</h3>
-      <p>
-        <code>checkpoint-protocol v1.3</code> &mdash; the first bump since
-        the v1.2 PM-MCP fields &mdash; adds <code>cost</code>,
-        <code>eval_scores</code>, and <code>telemetry_handle</code>.
-        <code>migration-ops</code> rolls it across every skill the same way
-        the governance frontmatter rolled out in v1.4.
-      </p>
+            {v15 && (
+              <div class="vote-row">
+                <button
+                  class="vote-btn"
+                  type="button"
+                  data-vote-target={v15.id}
+                  aria-label={`Vote for ${v15.title}`}
+                >
+                  <span class="v-arrow" aria-hidden="true">▲</span>
+                  <span class="v-count" data-vote-count>—</span>
+                  <span class="v-label" data-vote-label>vote</span>
+                </button>
+                <span class="vote-note">Shipping next — vote to signal priority.</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </article>
 
-      <h3>Site &amp; dogfood</h3>
-      <p>
-        A public <code>/dashboard</code> of anonymized aggregate usage, a
-        <code>/showcase</code> finally backed by real cost-per-shipped-feature
-        numbers from opchain's own pipeline, and a replays section with cost
-        overlays on real runs. All 24 skills lockstep-bump to
-        <code>1.6.0</code>.
-      </p>
+      <div class="divider"><span class="divider-line"></span><span class="divider-label">on the roadmap</span><span class="divider-line"></span></div>
 
-      <p class="planned-note">
-        Planned &mdash; scope may shift before release.
-        <a href="#roadmap-vote">Vote on the items above</a> to weigh in.
-      </p>
-    </section>
+      <!-- v1.6 — first roadmap item, AUTO-OPEN -->
+      <article class="plan-card is-open" id="v1-6" data-card>
+        <button class="pc-row" type="button" aria-expanded="true" aria-controls="v1-6-body" data-disclosure-toggle>
+          <span class="pc-toggle" aria-hidden="true">▶</span>
+          <span class="pc-meta">
+            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.6</span><span class="pc-title">The instrumented pipeline</span><span class="pc-timing">est. Jul 2026</span></span>
+            <span class="pc-summary">Cost attribution, opt-in telemetry, and the first oc-checkpoint-protocol bump since v1.2. Answers &ldquo;what did this feature cost?&rdquo;</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-6-body" data-disclosure-body>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">est. Jul 2026</span><span class="tag">2 new skills</span></div>
+            <p>v1.5 introduces four AI-native skills; the predictable next question is <em>what did they cost, and is my pipeline actually getting better?</em> v1.6 answers both — cost attribution and opt-in telemetry, plus the first <code>oc-checkpoint-protocol</code> bump since v1.2 (adds <code>cost</code>, <code>eval_scores</code>, <code>telemetry_handle</code>).</p>
+            <h3>What's planned — vote on what matters most</h3>
+            <ul class="vote-list">
+              {v16Items.map((it) => (
+                <li class="vote-item">
+                  <div class="vote-item-meta">
+                    <span class="vote-item-title">{it.title}</span>
+                    <p class="vote-item-blurb">{it.blurb}</p>
+                  </div>
+                  <button
+                    class="vote-btn"
+                    type="button"
+                    data-vote-target={it.id}
+                    aria-label={`Vote for ${it.title}`}
+                  >
+                    <span class="v-arrow" aria-hidden="true">▲</span>
+                    <span class="v-count" data-vote-count>—</span>
+                    <span class="v-label" data-vote-label>vote</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div class="planned-box">Planned — scope may shift before release. All 24 skills lockstep-bump to <code>1.6.0</code>.</div>
+          </div>
+        </div>
+      </article>
 
-    <section class="release release--next" id="v1-7">
-      <header class="rel-head">
-        <span class="rel-tag rel-tag--next">v1.7</span>
-        <h2>Pick one distribution play</h2>
-        <span class="rel-date">planned · lean: marketplace + templates</span>
-      </header>
+      <!-- v1.7 — collapsed by default -->
+      <article class="plan-card" id="v1-7" data-card>
+        <button class="pc-row" type="button" aria-expanded="false" aria-controls="v1-7-body" data-disclosure-toggle>
+          <span class="pc-toggle" aria-hidden="true">▶</span>
+          <span class="pc-meta">
+            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.7</span><span class="pc-title">Pick one distribution play</span><span class="pc-timing">lean: marketplace + templates</span></span>
+            <span class="pc-summary">By v1.6, opchain has 24 skills and AI coverage. The biggest remaining gap is distribution — v1.7 promotes one growth play into a flagship theme.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-7-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">est. Sep 2026</span></div>
+            <p>By the time v1.6 ships, the biggest remaining gap isn't features — it's <strong>distribution</strong>. v1.7 deliberately promotes one growth play into a flagship theme instead of accreting more skills. The current lean is marketplace + templates.</p>
+            <h3>The lean plan — vote on what matters most</h3>
+            <ul class="vote-list">
+              {v17Items.map((it) => (
+                <li class="vote-item">
+                  <div class="vote-item-meta">
+                    <span class="vote-item-title">{it.title}</span>
+                    <p class="vote-item-blurb">{it.blurb}</p>
+                  </div>
+                  <button
+                    class="vote-btn"
+                    type="button"
+                    data-vote-target={it.id}
+                    aria-label={`Vote for ${it.title}`}
+                  >
+                    <span class="v-arrow" aria-hidden="true">▲</span>
+                    <span class="v-count" data-vote-count>—</span>
+                    <span class="v-label" data-vote-label>vote</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <p class="alt-note">
+              Alternatives on the table: an <strong>agency play</strong>
+              (<code>monorepo-ops</code>, <code>/for-agencies</code>) and
+              <strong>pipeline depth</strong> (<code>discovery-ops</code>,
+              <code>qa-ops</code>).
+            </p>
+            <div class="planned-box">Lean, not locked — the final v1.7 theme is chosen after the v1.5 / v1.6 retro.</div>
+          </div>
+        </div>
+      </article>
 
-      <p class="rel-summary">
-        By the time v1.6 ships, opchain has 24 skills, instrumented
-        pipelines, and AI-native coverage. The biggest remaining gap isn't
-        features &mdash; it's <strong>distribution</strong>. v1.7
-        deliberately promotes one growth play into a flagship theme instead
-        of accreting more skills. The current lean is
-        <strong>marketplace + templates</strong>.
-      </p>
+      <div class="divider"><span class="divider-line"></span><span class="divider-label">backlog</span><span class="divider-line"></span></div>
+      <p class="backlog-note">Backlog is deliberately open until v1.5 and v1.6 ship and the retros are done. Use the form below to add to it.</p>
 
-      <h3>The lean plan</h3>
-      <ul>
-        <li>
-          <strong><code>marketplace</code>.</strong> A site surface for
-          community-contributed skills and packs. Every contribution adds
-          breadth at zero core-team cost &mdash; and opchain itself becomes
-          the first entry in its own marketplace.
-        </li>
-        <li>
-          <strong><code>template-ops</code> &mdash; <code>/template</code>.</strong>
-          Opinionated project starters that pre-wire an entire pipeline
-          &mdash; stack, skills, and checkpoints &mdash; so a new project is
-          ready to run from the first commit.
-        </li>
-      </ul>
-      <p>
-        Why this lean: it compounds, and it's the natural follow-on once
-        v1.6's telemetry exists to grade community contributions on real
-        usage.
-      </p>
-
-      <h3>Alternatives on the table</h3>
-      <ul>
-        <li>
-          <strong>Agency play.</strong> <code>monorepo-ops</code> for real
-          multi-project checkpoint scoping, a <code>/for-agencies</code>
-          expansion, and a client-handoff demo scenario.
-        </li>
-        <li>
-          <strong>Pipeline depth.</strong> <code>discovery-ops</code>
-          (JTBD / opportunity trees, upstream of <code>app-architect</code>)
-          plus <code>qa-ops</code> splitting test-pyramid design out of
-          <code>bug-check</code>.
-        </li>
-      </ul>
-
-      <h3>GTM</h3>
-      <p>
-        A marketplace launch post, a <code>/case-studies</code> page with
-        named (or pseudonymous) builds, and a <code>/community</code> hub.
-      </p>
-
-      <p class="planned-note">
-        Lean, not locked &mdash; the final v1.7 theme is chosen after the
-        v1.5 / v1.6 retro.
-      </p>
-    </section>
-
-    <RoadmapForm />
-
-    <div class="release-history-head">
-      <Eyebrow>release history</Eyebrow>
-      <h2 class="rhh">What's already shipped</h2>
-    </div>
-
-    <section class="release release--current" id="v1-4">
-      <header class="rel-head">
-        <span class="rel-tag">v1.4</span>
-        <h2>Coverage as a plugin registry</h2>
-        <span class="rel-date">2026-05-12</span>
-      </header>
-
-      <p class="rel-summary">
-        opchain v1.4 turns <code>stack-forge</code>'s coverage from
-        hardcoded prose into a versioned <strong>pack registry</strong> &mdash;
-        one <code>pack.yml</code> per language, framework, mobile
-        platform, or deploy target, validated on every build. Total
-        coverage grows from 6 stacks in v1.3 to <strong>32 packs</strong>
-        in v1.4: 13 languages, 9 frameworks, 4 mobile platforms, and 6
-        deploy targets. Pack additions ship as one PR each &mdash; no
-        more touching SKILL.md prose.
-      </p>
-
-      <h3>What's new</h3>
-      <ul>
-        <li>
-          <strong>Pack registry architecture.</strong>
-          <a href="/coverage">/coverage</a> is the user-visible catalog.
-          <code>skills/stack-forge/packs/&lt;id&gt;/pack.yml</code> is the
-          source of truth; <code>scripts/gen-stack-packs.mjs</code> validates
-          every pack on every build (bidirectional <code>language</code> ↔
-          <code>frameworks</code> invariants, ref-doc budgets, etc.) and
-          emits a coverage-flag per language / framework / mobile pack
-          (deploy-targets are sub-selections, no flag).
-        </li>
-        <li>
-          <strong>Hybrid dispatch.</strong> <code>deploy-ops</code> reads
-          packs at runtime via <code>src/lib/pack-dispatch.js</code> for
-          deploy-path lookup. <code>api-dev</code> reads packs at
-          build time via <code>scripts/gen-api-dev-adapters.mjs</code> to
-          codegen typed per-language scaffold metadata. Two halves of one
-          model: small-and-current vs. richer-and-typed.
-        </li>
-        <li>
-          <strong>kind:mobile dispatch.</strong> Mobile packs render the
-          ref doc as a <em>release checklist</em> via
-          <code>dispatchMobile()</code> instead of executing commands.
-          App Store + Play Store reviews are checklist-driven, not
-          automated; the dispatcher pins that contract so no agent
-          accidentally tries to <code>xcrun altool</code> its way to
-          production.
-        </li>
-        <li>
-          <strong>Modern web bulk (PR 4).</strong> elixir / bun / deno
-          language packs; phoenix / remix / sveltekit / solid framework
-          packs. Bun and Deno are modelled as language packs because the
-          toolchain diverges from Node's (
-          <code>bun test</code>, <code>deno task build</code>).
-        </li>
-        <li>
-          <strong>Enterprise bulk (PR 5).</strong> java / csharp / kotlin
-          / php language packs; spring-java / dotnet-aspnet / spring-kotlin
-          / laravel-php framework packs. <code>mvn checkstyle:check</code>,
-          <code>dotnet format --verify-no-changes</code>, <code>ktlint</code>,
-          <code>phpcs</code> wired as canonical lint commands.
-        </li>
-        <li>
-          <strong>Apple/iOS (PR 6).</strong> swift language pack + swiftui
-          framework pack + ios-swiftui mobile pack + app-store deploy
-          adapter. First production user of <code>dispatchMobile()</code>;
-          the <code>ios-swiftui/mobile.md</code> reads as a usable
-          App Store release checklist.
-        </li>
-        <li>
-          <strong>Mobile bulk (PR 6.5).</strong> kotlin-android / flutter /
-          react-native-expo mobile packs + play-store deploy adapter.
-          Flutter and React Native ship pinned to <code>play-store</code>
-          as the sole deploy target; a follow-up will append
-          <code>app-store</code> once the cross-platform supportedPlatforms
-          ADR settles.
-        </li>
-        <li>
-          <strong>Hosting adapters (PR 7).</strong> railway / netlify /
-          heroku / aws-amplify deploy-target packs. Sub-selections under
-          existing language and framework packs; <code>getDispatchTarget()</code>
-          picks the right provider section of <code>deploy-ops</code>'s
-          SKILL.md.
-        </li>
-      </ul>
-
-      <h3>The pipeline that shipped it</h3>
-      <p>
-        v1.4 went through opchain itself. <code>app-architect</code>
-        planned the eight-PR sequence. PRs 1-3 landed serially (architecture,
-        backfill, dispatcher); PRs 4-7 ran in <em>parallel</em> from
-        sibling worktrees on the same <code>origin/main</code> base,
-        opened concurrently, and merged sequentially with rebases.
-        <code>release-ops</code> drafted this changelog entry from the
-        merged PR summaries and bumped the 5 changed skills' SKILL.md
-        versions atomically.
-      </p>
-
-      <h3>Compatibility</h3>
-      <p>
-        Back-compatible with v1.3. No migration steps required. Five
-        skills version-bump <code>1.3.0</code> → <code>1.4.0</code> in
-        lockstep: <code>stack-forge</code>, <code>api-dev</code>,
-        <code>deploy-ops</code>, <code>app-architect</code>,
-        <code>migration-ops</code>. The other thirteen skills stay on
-        <code>1.3.0</code>. <code>opchain-skills.zip</code> ships
-        bundle-everything as before; the <code>skills.coverage.*</code>
-        flags filter what <code>stack-forge</code> offers, not what gets
-        downloaded.
-      </p>
-    </section>
-
-    <section class="release">
-      <header class="rel-head">
-        <span class="rel-tag rel-tag--past">v1.3</span>
-        <h2>Runtime PM, real platforms, automated releases</h2>
-        <span class="rel-date">2026-05-11</span>
-      </header>
-
-      <p class="rel-summary">
-        opchain v1.3 makes the v1.2 PM-MCP prose executable end-to-end,
-        expands the platform menu beyond JS / Cloudflare, and ships
-        <code>release-ops</code> — the 18th skill — to automate the
-        "scope → /changelog → bump → ship" cadence opchain uses for itself.
-      </p>
-
-      <h3>What's new</h3>
-      <ul>
-        <li>
-          <strong>The PM-MCP loop is real.</strong> v1.2 taught the skills to
-          <em>describe</em> PM-tool calls; v1.3 actually invokes them. A
-          concrete tool-name registry, retry / backoff, idempotency markers,
-          and a deferred-action queue mean the four PM-aware skills
-          (<code>app-architect</code>, <code>git-ops</code>,
-          <code>deploy-ops</code>, <code>monitoring-ops</code>) can crash-restart
-          mid-flow without polluting Linear / Jira / GitHub Issues.
-        </li>
-        <li>
-          <strong><code>release-ops</code> is the 18th skill.</strong> Verbs:
-          <code>/release plan|draft|bump|announce|ship</code>. Reads every
-          skill's checkpoint to propose the next semver, drafts the changelog
-          entry from sprint outputs, atomically bumps all skill versions,
-          opens a release ticket via PM-MCP, hands off to <code>git-ops</code>
-          for the merge and <code>deploy-ops</code> for staging + prod.
-        </li>
-        <li>
-          <strong>Platform menu grew.</strong> Django + Postgres + Render,
-          Rails + Postgres + Heroku, Go + Fly.io, and Rust + Axum +
-          Shuttle.rs are first-class in <code>stack-forge</code>'s decision
-          tree, <code>app-architect</code>'s scaffold recipes, and
-          <code>deploy-ops</code>'s provider sections.
-        </li>
-        <li>
-          <strong>Build-time PM-MCP validator.</strong>
-          <code>scripts/validate-pm-mcp.mjs</code> runs in <code>npm run prebuild</code>
-          and CI; blocks the build on placeholder drift, missing protocol
-          citations, or unknown tool names.
-        </li>
-      </ul>
-
-      <h3>Three new scenarios</h3>
-      <ul>
-        <li>
-          <a href="/demo#runtime-pm-loop">Ticket → ship → incident → postmortem on one Linear thread</a>
-          — the v1.3 hero. Six skills, one Linear thread, runtime PM-MCP
-          end-to-end with a transient 503 mid-deploy that the deferred-action
-          queue handles cleanly.
-        </li>
-        <li>
-          <a href="/demo#release-ops-dogfood">release-ops ships its own release</a>
-          — opchain v1.3.0 shipped via opchain v1.3.0. Meta proof that the
-          new skill works for any opchain-managed project.
-        </li>
-        <li>
-          <a href="/demo#django-render-shipped">Django + Postgres + Render, shipped by opchain</a>
-          — solo founder, GitHub Issues for tracking, Render Blueprint for
-          deploy. Same opchain pipeline, no Cloudflare in sight.
-        </li>
-      </ul>
-
-      <h3>Configuration</h3>
-      <p>
-        v1.3 adds <code>tool_overrides</code> to <code>.opchain/pm.yaml</code>
-        for brokered / regulated MCP environments and an
-        <code>extended</code> map under <code>states</code> for deploy /
-        incident workflow names. See the
-        <a href="/demo#runtime-pm-loop">runtime-pm-loop scenario</a> for the
-        full schema.
-      </p>
-
-      <h3>Compatibility</h3>
-      <p>
-        Back-compatible with v1.2. No migration steps required. The new
-        validator's first run will fail-closed if any of the five PM-aware
-        SKILL.md files still carry the legacy
-        <code>mcp.&lt;provider&gt;.&lt;verb&gt;</code> placeholder; if you
-        forked v1.2 prose, search-replace those before upgrading. Every skill
-        version is in lockstep at <code>1.3.0</code>.
-      </p>
-
-      <h3>Security posture</h3>
-      <p>
-        The runtime PM loop is enrichment, not load-bearing — every PM-aware
-        verb still completes its primary job (sprint plan / commit / deploy /
-        incident open) when the MCP server is unreachable. In regulated
-        environments (HIPAA / FedRAMP / CMMC), set <code>tool_overrides</code>
-        in <code>.opchain/pm.yaml</code> to point each operation at the
-        broker / redactor / audit-pipeline that fronts your Linear or Jira
-        tenant. The <a href="/demo#mcp-enterprise-f500">F500 healthcare</a>
-        and <a href="/demo#mcp-enterprise-defense">defense CMMC L3</a>
-        scenarios from v1.2 remain the reference architectures.
-      </p>
-    </section>
-
-    <section class="release">
-      <header class="rel-head">
-        <span class="rel-tag rel-tag--past">v1.2</span>
-        <h2>PM-tool MCP integration</h2>
-        <span class="rel-date">2026-05-05</span>
-      </header>
-
-      <p class="rel-summary">
-        opchain v1.2 wires the skills into the PM-tool MCPs Anthropic
-        ships with Claude Code. Linear, Jira, and GitHub Issues become
-        first-class context for <code>app-architect</code>, <code>git-ops</code>,
-        <code>deploy-ops</code>, and <code>monitoring-ops</code> — the
-        ticket is the thread of execution, not a side artefact.
-      </p>
-
-      <h3>What's new</h3>
-      <ul>
-        <li>
-          <strong>app-architect /discover</strong> accepts a ticket
-          reference and pre-fills the interview from the ticket body +
-          comments. <code>/roadmap</code> writes the sprint plan back as
-          a structured comment and (optionally) creates a child ticket
-          per sprint.
-        </li>
-        <li>
-          <strong>git-ops /git-sync TICKET-1234</strong> reads the
-          ticket, shapes the branch / commit / PR from it, and
-          transitions ticket state on PR open and merge. The PR body
-          is generated from ticket description, diff summary, and
-          auditor + bug-check output.
-        </li>
-        <li>
-          <strong>code-auditor</strong> findings post back to the
-          linked PM ticket, not just the checkpoint.
-        </li>
-        <li>
-          <strong>deploy-ops</strong> auto-creates a deploy ticket per
-          environment, parent-linked to every commit's tickets.
-          Transitions the deploy ticket through
-          <em>in-progress → staging-verified → shipped</em>
-          (or <em>rolled-back</em>); comments back on each linked
-          ticket on prod ship.
-        </li>
-        <li>
-          <strong>monitoring-ops</strong> opens an incident ticket
-          when alerts fire, parent-linked to the most recent deploy
-          ticket. Auto-creates remediation sub-tickets when the
-          postmortem publishes.
-        </li>
-        <li>
-          <strong>integrations-engineer</strong> is the canonical
-          owner of the PM-MCP integration patterns; its SKILL.md
-          documents detection, scoping, and audit-pipeline
-          expectations for regulated environments.
-        </li>
-      </ul>
-
-      <h3>Two new scenarios</h3>
-      <ul>
-        <li>
-          <a href="/demo#mcp-enterprise-f500">MCP at a Fortune-500 healthcare insurer</a>
-          — HIPAA + ISO 27001 + SOC2 + an internal AI-Use Policy;
-          custom PHI-redacting FHIR proxy MCP; SIEM-forwarded audit
-          log; phased rollout with abort criteria.
-        </li>
-        <li>
-          <a href="/demo#mcp-enterprise-defense">MCP at a CMMC L3 defense prime</a>
-          — FedRAMP High / IL5; on-prem MCP fleet; PIV/CAC-rooted
-          broker; cross-domain Guard signatures for the MCP envelope;
-          ATO modification package and STIG-hardened workstation
-          profile.
-        </li>
-        <li>
-          <a href="/demo#pm-pipeline-linear">v1.2 hero scenario — Linear-led pipeline</a>
-          — the full v1.2 flow on a real Linear ticket, ticket → ship
-          → first incident, with Jira and GitHub Issues called out
-          as one-line config swaps.
-        </li>
-      </ul>
-
-      <h3>Configuration</h3>
-      <p>
-        v1.2 adds <code>.opchain/pm.yaml</code> at the repo root.
-        Default mapping is Linear; Jira and GitHub Issues are drop-in
-        with provider-specific issue-type and state mappings. See the
-        <a href="/demo#pm-pipeline-linear">hero scenario</a> for the
-        full schema.
-      </p>
-
-      <h3>Compatibility</h3>
-      <p>
-        v1.2 is backward-compatible with v1.1. Without a
-        <code>.opchain/pm.yaml</code> file (or with an MCP server
-        unconfigured) every skill operates as it did in v1.1; the PM
-        loop is enrichment, never a hard dependency. Skills will
-        prompt once on first use to write the config, then proceed.
-      </p>
-
-      <h3>Security posture</h3>
-      <p>
-        Regulated environments should not adopt v1.2 by default. The
-        Fortune-500 and Defense scenarios document the broker /
-        redactor / audit-pipeline / cross-domain rules that must
-        precede any production deployment under HIPAA, FedRAMP,
-        CMMC, ITAR, or equivalent regimes. v1.2 is opt-in via
-        <code>.opchain/pm.yaml</code>; the regulated scenarios are
-        the reference architectures for adopting it safely.
-      </p>
-    </section>
-
-    <section class="release">
-      <header class="rel-head">
-        <span class="rel-tag rel-tag--past">v1.1</span>
-        <h2>Stable release</h2>
-        <span class="rel-date">2026-04</span>
-      </header>
-      <p class="rel-summary">
-        Tri-agent harness across <code>app-architect</code>,
-        <code>code-auditor</code>, <code>integrations-engineer</code>;
-        full-pipeline flow from <code>/discover</code> to
-        <code>/deploy</code>; checkpoint-protocol v1.0 across every
-        skill; static Astro site; first set of six in-action
-        scenarios.
-      </p>
-    </section>
-
-    <section class="release">
-      <header class="rel-head">
-        <span class="rel-tag rel-tag--past">v1.0</span>
-        <h2>Initial release</h2>
-        <span class="rel-date">2026-02</span>
-      </header>
-      <p class="rel-summary">
-        First public cut of the opchain skill catalog as a set of
-        Markdown files installable into Claude Code. No site, no
-        scenarios; just the skills.
-      </p>
+      <RoadmapForm />
     </section>
 
     <p class="footer-note">
       Skill versions are stamped in <code>skills/&lt;name&gt;/SKILL.md</code>
-      under <code>version:</code>; this page rolls them up by feature.
+      under <code>version:</code>; this page rolls them up by release.
     </p>
   </main>
 </Base>
 
+<script>
+  (() => {
+    // ===== Disclosure (cards) ==========================================
+    const cardSel = ".rel-card, .plan-card, .hero-card";
+    function setOpen(card: HTMLElement, open: boolean) {
+      const btn = card.querySelector<HTMLButtonElement>("[data-disclosure-toggle]");
+      const body = card.querySelector<HTMLElement>("[data-disclosure-body]");
+      card.classList.toggle("is-open", open);
+      if (btn) btn.setAttribute("aria-expanded", String(open));
+      if (body) {
+        if (open) body.removeAttribute("inert");
+        else body.setAttribute("inert", "");
+      }
+    }
+    document
+      .querySelectorAll<HTMLButtonElement>("[data-disclosure-toggle]")
+      .forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const card = btn.closest<HTMLElement>(cardSel);
+          if (card) setOpen(card, !card.classList.contains("is-open"));
+        });
+      });
+
+    // ===== Tabs (ARIA tablist, roving tabindex) ========================
+    const tablist = document.querySelector<HTMLElement>("[data-changelog-tabs]");
+    const tabs = tablist
+      ? Array.from(tablist.querySelectorAll<HTMLButtonElement>('[role="tab"]'))
+      : [];
+    const indicator = document.querySelector<HTMLElement>("[data-tab-indicator]");
+    const panelOf = (tab: HTMLButtonElement) =>
+      document.getElementById(tab.getAttribute("aria-controls") || "");
+
+    function moveIndicator(tab: HTMLButtonElement) {
+      if (!indicator) return;
+      indicator.style.left = `${tab.offsetLeft}px`;
+      indicator.style.width = `${tab.offsetWidth}px`;
+      indicator.dataset.active = String(tabs.indexOf(tab));
+    }
+    function activateTab(tab: HTMLButtonElement, focus = false) {
+      for (const t of tabs) {
+        const selected = t === tab;
+        t.setAttribute("aria-selected", String(selected));
+        t.tabIndex = selected ? 0 : -1;
+        const p = panelOf(t);
+        if (p) p.hidden = !selected;
+      }
+      moveIndicator(tab);
+      if (focus) tab.focus();
+    }
+    if (tablist) {
+      tablist.addEventListener("click", (e) => {
+        const tab = (e.target as HTMLElement).closest<HTMLButtonElement>('[role="tab"]');
+        if (tab) activateTab(tab);
+      });
+      tablist.addEventListener("keydown", (e) => {
+        const i = tabs.indexOf(document.activeElement as HTMLButtonElement);
+        if (i < 0) return;
+        let j = i;
+        switch (e.key) {
+          case "ArrowRight": j = (i + 1) % tabs.length; break;
+          case "ArrowLeft": j = (i - 1 + tabs.length) % tabs.length; break;
+          case "Home": j = 0; break;
+          case "End": j = tabs.length - 1; break;
+          default: return;
+        }
+        e.preventDefault();
+        activateTab(tabs[j], true);
+      });
+      window.addEventListener("resize", () => {
+        const sel = tabs.find((t) => t.getAttribute("aria-selected") === "true");
+        if (sel) moveIndicator(sel);
+      });
+      const sel0 = tabs.find((t) => t.getAttribute("aria-selected") === "true") ?? tabs[0];
+      if (sel0) moveIndicator(sel0);
+    }
+
+    // ===== Deep links (#v1-5 etc.) — open the right tab + card =========
+    function tabForCard(card: HTMLElement): HTMLButtonElement | null {
+      const panel = card.closest<HTMLElement>('[role="tabpanel"]');
+      if (!panel) return null;
+      return tabs.find((t) => t.getAttribute("aria-controls") === panel.id) ?? null;
+    }
+    function revealHash(hash: string) {
+      if (!hash || hash.length < 2) return;
+      let card: HTMLElement | null = null;
+      try {
+        card = document.querySelector<HTMLElement>(`${hash}[data-card]`);
+      } catch {
+        card = null;
+      }
+      if (!card) return;
+      const tab = tabForCard(card);
+      if (tab) activateTab(tab);
+      setOpen(card, true);
+      requestAnimationFrame(() =>
+        card?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
+    }
+    document.addEventListener("click", (e) => {
+      const a = (e.target as HTMLElement).closest<HTMLAnchorElement>("a");
+      if (!a) return;
+      const m = (a.getAttribute("href") || "").match(/#(v1-[0-9-]+)$/);
+      if (!m) return;
+      const url = new URL(a.href, location.href);
+      if (url.pathname !== location.pathname && url.pathname !== "/changelog") return;
+      const sel = `#${m[1]}`;
+      let card: HTMLElement | null = null;
+      try {
+        card = document.querySelector<HTMLElement>(`${sel}[data-card]`);
+      } catch {
+        card = null;
+      }
+      if (!card) return;
+      e.preventDefault();
+      history.replaceState(null, "", sel);
+      revealHash(sel);
+    });
+    window.addEventListener("hashchange", () => revealHash(location.hash));
+    if (location.hash) revealHash(location.hash);
+
+    // ===== Votes (batched GET + per-click POST; localStorage mirror) ===
+    const voteButtons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>("[data-vote-target]"),
+    );
+    if (voteButtons.length) {
+      const lsKey = (id: string) => `opchain-roadmap-voted:${id}`;
+      const setCount = (btn: HTMLButtonElement, n: number) => {
+        const el = btn.querySelector<HTMLElement>("[data-vote-count]");
+        if (el) el.textContent = String(n);
+      };
+      const setVoted = (btn: HTMLButtonElement, voted: boolean) => {
+        btn.classList.toggle("voted", voted);
+        const l = btn.querySelector<HTMLElement>("[data-vote-label]");
+        if (l) l.textContent = voted ? "voted" : "vote";
+      };
+      for (const btn of voteButtons) {
+        const id = btn.dataset.voteTarget;
+        if (id && localStorage.getItem(lsKey(id)) === "1") setVoted(btn, true);
+      }
+      const ids = voteButtons.map((b) => b.dataset.voteTarget ?? "").filter(Boolean);
+      (async () => {
+        try {
+          const res = await fetch(`/api/votes?ids=${encodeURIComponent(ids.join(","))}`, {
+            headers: { Accept: "application/json" },
+          });
+          if (res.ok) {
+            const data = (await res.json()) as { counts: Record<string, number> };
+            for (const btn of voteButtons) {
+              setCount(btn, data.counts[btn.dataset.voteTarget ?? ""] ?? 0);
+            }
+          } else {
+            for (const btn of voteButtons) setCount(btn, 0);
+          }
+        } catch {
+          for (const btn of voteButtons) setCount(btn, 0);
+        }
+      })();
+      for (const btn of voteButtons) {
+        btn.addEventListener("click", async () => {
+          const id = btn.dataset.voteTarget;
+          if (!id) return;
+          const countEl = btn.querySelector<HTMLElement>("[data-vote-count]");
+          const previous = parseInt(countEl?.textContent || "0", 10) || 0;
+          const optimistic = btn.classList.contains("voted") ? previous : previous + 1;
+          setCount(btn, optimistic);
+          setVoted(btn, true);
+          btn.disabled = true;
+          try {
+            const res = await fetch(`/api/votes/${encodeURIComponent(id)}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({}),
+            });
+            if (res.ok) {
+              const data = (await res.json()) as { ok: boolean; count: number };
+              setCount(btn, data.count);
+              localStorage.setItem(lsKey(id), "1");
+              setVoted(btn, true);
+            } else {
+              setCount(btn, previous);
+              setVoted(btn, localStorage.getItem(lsKey(id)) === "1");
+            }
+          } catch {
+            setCount(btn, previous);
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      }
+    }
+  })();
+</script>
+
 <style>
-  .page {
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 3rem 1.5rem 6rem;
+  .page { max-width: 820px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  .page-head { margin-bottom: 1.75rem; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    color: var(--subtle);
   }
-  .page-head { margin-bottom: 1.25rem; }
   .page-head h1 {
     font-family: var(--font-display);
     font-size: var(--fs-2xl);
     font-weight: 600;
     color: var(--text);
     letter-spacing: var(--ls-tight);
-    margin: 0.5rem 0 0;
+    margin: 0.5rem 0 0.75rem;
   }
-  .lede { color: var(--muted); margin: 0 0 1.5rem; max-width: 42rem; }
+  .lede { color: var(--muted); margin: 0; max-width: 60ch; line-height: var(--lh-snug); }
 
-  /* Separator between the roadmap section above and the release-history
-     list below. Mirrors the page-head treatment so the two sections read
-     as siblings, not nested. */
-  .release-history-head {
-    margin: 3rem 0 1.25rem;
-    padding-top: 2rem;
-    border-top: 0.5px solid var(--border);
-  }
-  .rhh {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: clamp(1.5rem, 3vw, 2rem);
-    letter-spacing: var(--ls-tight);
-    margin: 0.4rem 0 0;
-    color: var(--text);
-    line-height: 1.1;
-  }
-  .lede code,
-  .release code {
+  code {
     font-family: var(--font-mono);
     font-size: 12px;
     background: var(--surface);
@@ -694,96 +730,334 @@ import RoadmapForm from "../components/RoadmapForm.astro";
     color: var(--text);
   }
 
-  /* "What's coming" header — mirrors .release-history-head so the
-     upcoming-releases block reads as a sibling section, not nested. */
-  .upcoming-head {
-    margin: 3rem 0 1.25rem;
-    padding-top: 2rem;
-    border-top: 0.5px solid var(--border);
+  /* ── Tab bar ──────────────────────────────────────────── */
+  .tab-bar {
+    position: relative;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 1.75rem;
   }
-
-  .release {
-    margin-top: 2.25rem;
-    padding-top: 1.5rem;
-    border-top: 0.5px solid var(--border);
+  .tab-list { display: flex; align-items: center; gap: 0; }
+  .tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.1rem;
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--muted);
+    background: none;
+    border: 0;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+    transition: color var(--dur-fast) var(--ease-standard);
   }
-  .release--current { border-top: 1.5px solid var(--accent); }
-  /* Upcoming releases: slate (--info) top rule to read as "future, not
-     shipped" against the ember of the current release. */
-  .release--next { border-top: 1.5px solid var(--info); }
-  .rel-tag--next {
-    color: var(--info);
-    border-color: var(--info);
-  }
-  .planned-note {
-    margin-top: 1.25rem;
-    padding-top: 0.85rem;
-    border-top: 0.5px dashed var(--border);
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn[aria-selected="true"] { color: var(--text); }
+  .tab-count {
     font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    color: var(--subtle);
+    font-size: 9.5px;
     letter-spacing: var(--ls-wide);
-  }
-  .rel-head {
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-bottom: 0.75rem;
-  }
-  .rel-tag {
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    letter-spacing: var(--ls-widest);
-    text-transform: uppercase;
-    color: var(--accent);
-    border: 0.5px solid var(--accent);
-    padding: 2px 8px;
-    border-radius: var(--r-xs);
-  }
-  .rel-tag--past {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 6px;
+    border-radius: var(--r-pill);
     color: var(--subtle);
-    border-color: var(--border);
+    transition: background var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast);
   }
-  .rel-head h2 {
+  /* Active count pill: warm/cool tint + coloured border as the active cue,
+     but `--text` for the label — accent/info text on the faint *-dim tint
+     fails AA at 9.5px (Lighthouse color-contrast), while --text is AA on
+     any themed background. */
+  .tab-btn[aria-selected="true"] .tab-count {
+    background: var(--accent-dim); border-color: var(--accent); color: var(--text);
+  }
+  .tab-btn--next[aria-selected="true"] .tab-count {
+    background: var(--info-dim); border-color: var(--info); color: var(--text);
+  }
+  .tab-indicator {
+    position: absolute;
+    bottom: -0.5px;
+    height: 2px;
+    left: 0; width: 0;
+    background: var(--accent);
+    border-radius: 1px;
+    transition: left var(--dur-base) var(--ease-standard), width var(--dur-base) var(--ease-standard);
+  }
+  .tab-indicator[data-active="1"] { background: var(--info); }
+
+  /* ── Panels ───────────────────────────────────────────── */
+  .tab-panel[hidden] { display: none; }
+  .tab-panel:focus { outline: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    .tab-panel:not([hidden]) { animation: panel-in var(--dur-base) var(--ease-standard); }
+  }
+  @keyframes panel-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .panel-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap; margin-bottom: 1.1rem;
+  }
+  .panel-head h2 {
     font-family: var(--font-display);
     font-size: var(--fs-lg);
+    font-weight: 600;
     color: var(--text);
-    margin: 0;
     letter-spacing: var(--ls-tight);
-    flex: 1 1 auto;
+    margin: 0;
   }
-  .rel-date {
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    color: var(--subtle);
-    letter-spacing: var(--ls-wide);
+  .panel-sub { font-size: var(--fs-sm); color: var(--muted); }
+
+  /* ── Shared card detail typography ────────────────────── */
+  .card-body { overflow: hidden; }
+  .card-body[inert] { display: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    .card-body:not([inert]) .card-body-inner { animation: panel-in var(--dur-base) var(--ease-standard); }
   }
-  .release h3 {
+  .card-body-inner {
+    padding: 1rem 1.1rem 1.25rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .card-body-inner h3 {
     font-family: var(--font-display);
     font-size: var(--fs-base);
     color: var(--text);
-    margin: 1.25rem 0 0.4rem;
     letter-spacing: var(--ls-tight);
+    margin: 1.1rem 0 0.5rem;
   }
-  .release p,
-  .release li {
-    color: var(--muted);
-    font-size: var(--fs-sm);
-    line-height: var(--lh-base);
-  }
-  .release ul {
-    margin: 0.25rem 0 0 1.1rem;
-    padding: 0;
-  }
-  .release li { margin-bottom: 0.55rem; }
-  /* ADEV-342: `text-decoration: none` was previously here, overriding
-     the global :where(p, li, ...) underline rule (global.css:111) and
-     leaving in-prose links distinguishable only by colour — axe's
-     `link-in-text-block` rule (WCAG 1.4.1 Use of Color) flagged it.
-     With the override removed the global rule supplies the underline;
-     colour + a:hover come from the global `a` rules. */
+  .card-body-inner h3:first-child { margin-top: 0; }
+  .card-body-inner p { color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-base); margin: 0 0 0.65rem; }
+  .card-body-inner ul { margin: 0.25rem 0 0.5rem 1.1rem; padding: 0; }
+  .card-body-inner li { color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-snug); margin-bottom: 0.4rem; }
+  .card-body-inner li strong { color: var(--text); }
 
+  .tag-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.85rem; }
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: var(--ls-wider);
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: var(--r-pill);
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+    background: var(--surface);
+  }
+  .tag--info { color: var(--info); border-color: var(--info); background: var(--info-dim); }
+
+  .compat-box {
+    margin-top: 1rem;
+    padding: 0.7rem 0.9rem;
+    background: color-mix(in srgb, var(--success) 9%, transparent);
+    border: 0.5px solid color-mix(in srgb, var(--success) 55%, var(--border));
+    border-radius: var(--r-sm);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .compat-box strong { color: var(--success); }
+  .planned-box {
+    margin-top: 0.85rem;
+    padding: 0.6rem 0.85rem;
+    background: var(--surface);
+    border: 0.5px dashed var(--border);
+    border-radius: var(--r-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+    line-height: var(--lh-snug);
+  }
+  .alt-note { font-size: var(--fs-sm); color: var(--muted); }
+
+  /* ── Compact cards (rel-card / plan-card) ─────────────── */
+  .rel-card, .plan-card {
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    margin-bottom: 0.65rem;
+    overflow: hidden;
+    position: relative;
+    transition: border-color var(--dur-fast) var(--ease-standard);
+  }
+  .rel-card:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+  .plan-card:hover { border-color: color-mix(in srgb, var(--info) 35%, var(--border)); }
+  .rel-card.is-open { border-color: var(--accent); }
+  .plan-card.is-open { border-color: var(--info); }
+  .rel-card.is-open::before,
+  .plan-card.is-open::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  }
+  .rel-card.is-open::before { background: var(--accent); }
+  .plan-card.is-open::before { background: var(--info); }
+
+  .rc-row, .pc-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.85rem 1.1rem;
+    background: none;
+    border: 0;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+  }
+  .rc-toggle, .pc-toggle, .hero-chevron {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 0.5px solid var(--border); background: var(--surface);
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 9px; color: var(--subtle);
+    transition: transform var(--dur-fast) var(--ease-standard), background var(--dur-fast), border-color var(--dur-fast);
+  }
+  .rel-card.is-open .rc-toggle { transform: rotate(90deg); background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+  .plan-card.is-open .pc-toggle { transform: rotate(90deg); background: var(--info-dim); border-color: var(--info); color: var(--info); }
+
+  .rc-meta, .pc-meta { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 2px; }
+  .rc-head, .pc-head { display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; }
+  .rc-title, .pc-title { font-family: var(--font-display); font-size: var(--fs-base); font-weight: 600; color: var(--text); }
+  .rc-date, .pc-timing { font-family: var(--font-mono); font-size: 10px; color: var(--subtle); margin-left: auto; }
+  .rc-summary, .pc-summary { font-size: var(--fs-sm); color: var(--muted); line-height: var(--lh-snug); }
+
+  .ver-pill {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: var(--r-xs);
+  }
+  .ver-pill--past { color: var(--subtle); border: 0.5px solid var(--border); }
+  .ver-pill--next { color: var(--info); border: 0.5px solid var(--info); }
+
+  /* ── Hero cards ───────────────────────────────────────── */
+  .hero-card {
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    margin-bottom: 0.65rem;
+    overflow: hidden;
+    position: relative;
+    background: var(--card);
+    transition: border-color var(--dur-fast) var(--ease-standard);
+  }
+  .hero-card::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  }
+  .hero-card--next::before { background: linear-gradient(180deg, var(--info), color-mix(in srgb, var(--info) 35%, transparent)); }
+  .hero-card--released::before { background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 35%, transparent)); }
+  .hero-card--next:hover { border-color: color-mix(in srgb, var(--info) 35%, var(--border)); }
+  .hero-card--released:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+  .hero-card--next.is-open { border-color: var(--info); }
+  .hero-card--released.is-open { border-color: var(--accent); }
+
+  .hero-head {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    position: relative;
+    padding: 1.4rem 2.9rem 1.4rem 1.5rem;
+  }
+  .hero-chevron { position: absolute; top: 1.45rem; right: 1.3rem; }
+  .hero-card--next.is-open .hero-chevron { transform: rotate(90deg); background: var(--info-dim); border-color: var(--info); color: var(--info); }
+  .hero-card--released.is-open .hero-chevron { transform: rotate(90deg); background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-family: var(--font-mono); font-size: 9.5px; letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    padding: 2px 8px; border-radius: var(--r-pill);
+    margin-bottom: 0.6rem;
+  }
+  .hero-badge::before { content: "●"; font-size: 6px; }
+  .hero-card--next .hero-badge { color: var(--info); border: 0.5px solid var(--info); background: var(--info-dim); }
+  .hero-card--released .hero-badge { color: var(--accent); border: 0.5px solid var(--accent); background: var(--accent-dim); }
+  .hero-ver { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--subtle); margin-bottom: 0.3rem; }
+  .hero-title {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin-bottom: 0.5rem;
+  }
+  .hero-desc { display: block; font-size: var(--fs-sm); color: var(--muted); line-height: var(--lh-base); max-width: 64ch; }
+  .hero-body-inner { padding-top: 1.1rem; }
+
+  /* ── Tile grid (skills / highlights) ──────────────────── */
+  .tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; margin-bottom: 1.1rem; }
+  @media (max-width: 560px) { .tile-grid { grid-template-columns: 1fr; } }
+  .tile {
+    background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-sm);
+    padding: 0.75rem 0.9rem;
+    transition: border-color var(--dur-fast) var(--ease-standard);
+  }
+  .tile-name { display: block; font-family: var(--font-mono); font-size: 11px; margin-bottom: 0.25rem; }
+  .tile-desc { font-size: 12px; color: var(--muted); line-height: var(--lh-snug); margin: 0 !important; }
+  .hero-card--next .tile-name { color: var(--info); }
+  .hero-card--next .tile:hover { border-color: var(--info); }
+  .hero-card--released .tile-name { color: var(--accent); }
+  .hero-card--released .tile:hover { border-color: var(--accent); }
+
+  /* ── Callout box (ripples / CLI) ──────────────────────── */
+  .callout {
+    background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-sm);
+    padding: 0.9rem 1rem; margin-bottom: 0.5rem;
+  }
+  .callout h3 { margin-top: 0 !important; margin-bottom: 0.6rem !important; }
+  .callout-list { list-style: none; padding: 0 !important; margin: 0 !important; }
+  .callout-list li { display: flex; gap: 0.5rem; margin-bottom: 0.35rem; }
+  .callout-list li::before { content: "↳"; color: var(--subtle); flex-shrink: 0; font-family: var(--font-mono); }
+
+  /* ── Votable item rows (roadmap) ──────────────────────── */
+  .vote-list { list-style: none; padding: 0 !important; margin: 0.5rem 0 0 !important; display: grid; gap: 0.5rem; }
+  .vote-item {
+    display: flex; align-items: center; gap: 1rem;
+    background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-sm);
+    padding: 0.7rem 0.85rem;
+    margin: 0 !important;
+  }
+  .vote-item-meta { flex: 1; min-width: 0; }
+  .vote-item-title { display: block; font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .vote-item-blurb { font-size: 12px; color: var(--muted); line-height: var(--lh-snug); margin: 0 !important; }
+
+  .vote-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 1.1rem; padding-top: 0.85rem; border-top: 0.5px solid var(--border); flex-wrap: wrap; }
+  .vote-note { font-size: 12px; color: var(--subtle); }
+  .vote-btn {
+    display: inline-flex; flex-direction: column; align-items: center; gap: 1px;
+    min-width: 50px; min-height: 46px;
+    padding: 6px 10px;
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    color: var(--text);
+    font-family: var(--font-mono);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
+  }
+  .vote-btn:hover { border-color: var(--accent); background: var(--accent-dim); transform: translateY(-1px); }
+  .vote-btn[disabled] { opacity: 0.6; cursor: progress; }
+  .vote-btn.voted { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+  .vote-btn .v-arrow { font-size: 13px; line-height: 1; }
+  .vote-btn .v-count { font-size: 13px; font-weight: 700; line-height: 1.1; }
+  .vote-btn .v-label { font-size: 8.5px; letter-spacing: var(--ls-wider); text-transform: uppercase; color: var(--subtle); line-height: 1; }
+  .vote-btn.voted .v-label { color: var(--accent); }
+
+  /* ── Dividers + misc ──────────────────────────────────── */
+  .divider { display: flex; align-items: center; gap: 0.75rem; margin: 1.5rem 0 1rem; }
+  .divider-line { flex: 1; height: 0.5px; background: var(--border); }
+  .divider-label {
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: var(--ls-widest);
+    text-transform: uppercase; color: var(--subtle);
+  }
+  .backlog-note { font-size: var(--fs-sm); color: var(--muted); margin: 0 0 1rem; }
   .footer-note {
     margin-top: 3rem;
     color: var(--subtle);

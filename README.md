@@ -36,13 +36,13 @@ without manual handoffs.
 
 | phase | skill | trigger | what it does |
 |---|---|---|---|
-| discover | `app-architect` | `/discover` | Requirements interview → user stories, constraints, acceptance criteria |
-| spec | `app-architect` + `stack-forge` | `/spec` | API contract, data model, stack decision with rationale |
-| design | `ux-engineer` | `/uxe plan` | Formal design spec, component tree, style tokens |
-| build | `app-architect` | `/build` | Generator → Evaluator loop. Score ≥ 7/10 to advance. |
-| audit | `code-auditor` | `/audit full` | 5-layer sweep: security, performance, correctness, UX, config |
-| ship | `deploy-ops` + `git-ops` | `/deploy staging` | Audit gate, staging, smoke tests, production with rollback |
-| scale | `scale-ops` | `/scale audit` | Load tests, perf budgets, caching, capacity planning |
+| discover | `oc-app-architect` | `/oc-discover` | Requirements interview → user stories, constraints, acceptance criteria |
+| spec | `oc-app-architect` + `oc-stack-forge` | `/oc-spec` | API contract, data model, stack decision with rationale |
+| design | `oc-ux-engineer` | `/oc-uxe plan` | Formal design spec, component tree, style tokens |
+| build | `oc-app-architect` | `/oc-build` | Generator → Evaluator loop. Score ≥ 7/10 to advance. |
+| audit | `oc-code-auditor` | `/oc-audit full` | 5-layer sweep: security, performance, correctness, UX, config |
+| ship | `oc-deploy-ops` + `oc-git-ops` | `/oc-deploy staging` | Audit gate, staging, smoke tests, production with rollback |
+| scale | `oc-scale-ops` | `/oc-scale audit` | Load tests, perf budgets, caching, capacity planning |
 
 ---
 
@@ -52,41 +52,41 @@ without manual handoffs.
 
 | skill | what it does |
 |---|---|
-| `checkpoint-protocol` | JSON session persistence across skills and conversations |
+| `oc-checkpoint-protocol` | JSON session persistence across skills and conversations |
 
 ### plan
 
 | skill | trigger | what it does |
 |---|---|---|
-| `stack-forge` | `/stack-decide` | Stack advisor for CF, Vercel, AWS, Supabase, Rails, Django, Go, Rust |
-| `reverse-spec` | `/rev-full` | Reverse-engineer existing code into structured spec docs |
+| `oc-stack-forge` | `/oc-stack-decide` | Stack advisor for CF, Vercel, AWS, Supabase, Rails, Django, Go, Rust |
+| `oc-reverse-spec` | `/oc-rev-full` | Reverse-engineer existing code into structured spec docs |
 
 ### plan + build
 
 | skill | trigger | what it does |
 |---|---|---|
-| `app-architect` | `/discover` `/spec` `/build` `/launch` | Unified pipeline: discover → spec → design → sprint → build → launch |
+| `oc-app-architect` | `/oc-discover` `/oc-spec` `/oc-build` `/oc-launch` | Unified pipeline: discover → spec → design → sprint → build → launch |
 
 ### build
 
 | skill | trigger | what it does |
 |---|---|---|
-| `ux-engineer` | `/uxe plan` `/uxe build` `/uxe eval` | Design Planner → Generator → Evaluator tri-agent harness |
-| `integrations-engineer` | `/integrate plan` | Planner → Builder → Tester. Hits real API sandboxes, not mocks. |
+| `oc-ux-engineer` | `/oc-uxe plan` `/oc-uxe build` `/oc-uxe eval` | Design Planner → Generator → Evaluator tri-agent harness |
+| `oc-integrations-engineer` | `/oc-integrate plan` | Planner → Builder → Tester. Hits real API sandboxes, not mocks. |
 
 ### quality
 
 | skill | trigger | what it does |
 |---|---|---|
-| `code-auditor` | `/audit full` | Auditor → Fixer → Verifier. 5-layer sweep, pre-deploy gate. |
-| `scale-ops` | `/scale audit` | Load testing, perf budgets, caching strategy, capacity planning |
+| `oc-code-auditor` | `/oc-audit full` | Auditor → Fixer → Verifier. 5-layer sweep, pre-deploy gate. |
+| `oc-scale-ops` | `/oc-scale audit` | Load testing, perf budgets, caching strategy, capacity planning |
 
 ### ship
 
 | skill | trigger | what it does |
 |---|---|---|
-| `deploy-ops` | `/deploy staging` | Audit gate → staging → smoke tests → production → auto-rollback |
-| `git-ops` | `/git-commit` `/git-pr` | Conventional commits, sprint-scoped branches, checkpoint-enriched PRs |
+| `oc-deploy-ops` | `/oc-deploy staging` | Audit gate → staging → smoke tests → production → auto-rollback |
+| `oc-git-ops` | `/oc-git-commit` `/git-pr` | Conventional commits, sprint-scoped branches, checkpoint-enriched PRs |
 
 ---
 
@@ -105,7 +105,7 @@ without manual handoffs.
 mkdir -p .claude/skills
 cp ~/opchain/skills/*.md .claude/skills/
 claude
-> /discover
+> /oc-discover
 ```
 
 ### Team (check into git)
@@ -124,6 +124,6 @@ Every skill writes a JSON checkpoint to `.checkpoints/` in your
 project. Skills read each other's checkpoints to make informed
 decisions:
 
-- `deploy-ops` reads `code-auditor` — CRITICAL findings block deploy
-- Build evaluator reads `ux-engineer` — grades frontend against approved spec
-- `git-ops` reads `app-architect` — names branches by sprint
+- `oc-deploy-ops` reads `oc-code-auditor` — CRITICAL findings block deploy
+- Build evaluator reads `oc-ux-engineer` — grades frontend against approved spec
+- `oc-git-ops` reads `oc-app-architect` — names branches by sprint

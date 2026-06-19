@@ -581,61 +581,61 @@ import Icon from "../components/Icon.astro";
   // ── Skill recommendation table ────────────────────────────────
   // The Foundation set is always recommended. Everything else is
   // additive based on answers.
-  const FOUNDATION = ["app-architect", "orchestrator", "checkpoint-protocol", "code-auditor", "git-ops"];
+  const FOUNDATION = ["oc-app-architect", "oc-orchestrator", "oc-checkpoint-protocol", "oc-code-auditor", "oc-git-ops"];
 
   const KIND_SKILLS: Record<Kind, string[]> = {
-    "web-app":        ["stack-forge", "ux-engineer", "api-dev", "deploy-ops", "monitoring-ops"],
-    "api":            ["stack-forge", "api-dev", "integrations-engineer", "deploy-ops", "monitoring-ops", "scale-ops"],
-    "marketing-site": ["ux-engineer", "deploy-ops"],
-    "data":           ["dash-forge", "api-dev", "deploy-ops", "monitoring-ops"],
-    "cli":            ["stack-forge", "bug-check"],
-    "legacy":         ["reverse-spec", "migration-ops", "code-auditor", "security-auditor", "deploy-ops"],
+    "web-app":        ["oc-stack-forge", "oc-ux-engineer", "oc-api-dev", "oc-deploy-ops", "oc-monitoring-ops"],
+    "api":            ["oc-stack-forge", "oc-api-dev", "oc-integrations-engineer", "oc-deploy-ops", "oc-monitoring-ops", "oc-scale-ops"],
+    "marketing-site": ["oc-ux-engineer", "oc-deploy-ops"],
+    "data":           ["oc-dash-forge", "oc-api-dev", "oc-deploy-ops", "oc-monitoring-ops"],
+    "cli":            ["oc-stack-forge", "oc-bug-check"],
+    "legacy":         ["oc-reverse-spec", "oc-migration-ops", "oc-code-auditor", "oc-security-auditor", "oc-deploy-ops"],
   };
 
   const DEPLOY_NOTE: Record<Deploy, string> = {
-    "cloudflare":  "Cloudflare Workers — deploy-ops has a dedicated section for wrangler",
-    "vercel":      "Vercel — deploy-ops knows the `vercel deploy --prod` flow",
-    "aws":         "AWS — deploy-ops + scale-ops cover ECS / Lambda / RDS",
-    "fly":         "Fly.io — long-running containers, deploy-ops handles flyctl",
-    "render":      "Render / Railway — Blueprint-based provisioning via deploy-ops",
-    "self-hosted": "Self-hosted — deploy-ops + security-auditor for hardening, monitoring-ops for SLOs",
+    "cloudflare":  "Cloudflare Workers — oc-deploy-ops has a dedicated section for wrangler",
+    "vercel":      "Vercel — oc-deploy-ops knows the `vercel deploy --prod` flow",
+    "aws":         "AWS — oc-deploy-ops + oc-scale-ops cover ECS / Lambda / RDS",
+    "fly":         "Fly.io — long-running containers, oc-deploy-ops handles flyctl",
+    "render":      "Render / Railway — Blueprint-based provisioning via oc-deploy-ops",
+    "self-hosted": "Self-hosted — oc-deploy-ops + oc-security-auditor for hardening, oc-monitoring-ops for SLOs",
   };
 
   const SKILL_BLURB: Record<string, string> = {
-    "app-architect":        "Plans, builds, and evaluates with a Generator/Evaluator loop",
-    "orchestrator":         "Routes between skills; answers /ops queries",
-    "checkpoint-protocol":  "Survives across sessions — every skill reads / writes its checkpoint",
-    "code-auditor":         "Auditor / Fixer / Verifier — gates production",
-    "git-ops":              "Branches, commits, PRs — shapes them from the checkpoint",
-    "stack-forge":          "Picks the platform / framework / database for you",
-    "ux-engineer":          "Design system + screens + working prototype",
-    "api-dev":              "OpenAPI / GraphQL contract with parity to the implementation",
-    "integrations-engineer":"OAuth, webhooks, third-party API integrations",
-    "deploy-ops":           "Staging → prod → rollback with audit-gate enforcement",
-    "monitoring-ops":       "Uptime, errors, alerts, on-call, postmortems",
-    "scale-ops":            "Load testing, perf budgets, caching, capacity planning",
-    "reverse-spec":         "Reverse-engineers a spec from existing code",
-    "migration-ops":        "Live migrations with rollback at every step",
-    "security-auditor":     "Threat model, OWASP, runtime / infra hardening",
-    "dash-forge":           "Dense-info dashboards (Tufte density)",
-    "bug-check":            "Pre-commit type / lint / secrets / vulnerability scan",
+    "oc-app-architect":        "Plans, builds, and evaluates with a Generator/Evaluator loop",
+    "oc-orchestrator":         "Routes between skills; answers /oc-ops queries",
+    "oc-checkpoint-protocol":  "Survives across sessions — every skill reads / writes its checkpoint",
+    "oc-code-auditor":         "Auditor / Fixer / Verifier — gates production",
+    "oc-git-ops":              "Branches, commits, PRs — shapes them from the checkpoint",
+    "oc-stack-forge":          "Picks the platform / framework / database for you",
+    "oc-ux-engineer":          "Design system + screens + working prototype",
+    "oc-api-dev":              "OpenAPI / GraphQL contract with parity to the implementation",
+    "oc-integrations-engineer":"OAuth, webhooks, third-party API integrations",
+    "oc-deploy-ops":           "Staging → prod → rollback with audit-gate enforcement",
+    "oc-monitoring-ops":       "Uptime, errors, alerts, on-call, postmortems",
+    "oc-scale-ops":            "Load testing, perf budgets, caching, capacity planning",
+    "oc-reverse-spec":         "Reverse-engineers a spec from existing code",
+    "oc-migration-ops":        "Live migrations with rollback at every step",
+    "oc-security-auditor":     "Threat model, OWASP, runtime / infra hardening",
+    "oc-dash-forge":           "Dense-info dashboards (Tufte density)",
+    "oc-bug-check":            "Pre-commit type / lint / secrets / vulnerability scan",
   };
 
   function recommend(a: Answers): string[] {
     const set = new Set<string>(FOUNDATION);
     KIND_SKILLS[a.kind].forEach((s) => set.add(s));
 
-    // Team-size deltas: larger teams benefit from security-auditor and
-    // scale-ops on the default path.
+    // Team-size deltas: larger teams benefit from oc-security-auditor and
+    // oc-scale-ops on the default path.
     if (a.team === "medium" || a.team === "large") {
-      set.add("security-auditor");
-      set.add("scale-ops");
+      set.add("oc-security-auditor");
+      set.add("oc-scale-ops");
     }
 
-    // Self-hosted always wants security-auditor and monitoring-ops.
+    // Self-hosted always wants oc-security-auditor and oc-monitoring-ops.
     if (a.deploy === "self-hosted") {
-      set.add("security-auditor");
-      set.add("monitoring-ops");
+      set.add("oc-security-auditor");
+      set.add("oc-monitoring-ops");
     }
 
     return Array.from(set);
@@ -648,7 +648,7 @@ import Icon from "../components/Icon.astro";
         "# 1. Open https://opchain.dev/skills",
         "# 2. Download each recommended SKILL.md (or the full bundle)",
         "# 3. In Claude → Settings → Customize → Skills → Upload",
-        "# 4. Start a chat and type /discover",
+        "# 4. Start a chat and type /oc-discover",
       ].join("\n");
     }
     const lines = [
@@ -656,7 +656,7 @@ import Icon from "../components/Icon.astro";
       "curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip",
       "unzip opchain-skills.zip -d .claude/skills/",
       "claude",
-      "> /discover",
+      "> /oc-discover",
     ];
     if (a.surface === "both") {
       lines.push("");
@@ -693,10 +693,10 @@ ${skills.map((s) => `- ${s} — ${SKILL_BLURB[s] || ""}`).join("\n")}
 
 ## How to work in this repo
 
-- Start every session with \`/ops\` to read open checkpoints
-- For new work, trigger \`app-architect\` with "I have an app idea" or \`/discover\`
-- Code changes go through \`code-auditor\` before merge${a.team === "medium" || a.team === "large" || a.deploy === "self-hosted" ? " plus \`security-auditor\` on security-sensitive paths" : ""}
-- Ship via \`deploy-ops\` — staging first, then production
+- Start every session with \`/oc-ops\` to read open checkpoints
+- For new work, trigger \`oc-app-architect\` with "I have an app idea" or \`/oc-discover\`
+- Code changes go through \`oc-code-auditor\` before merge${a.team === "medium" || a.team === "large" || a.deploy === "self-hosted" ? " plus \`oc-security-auditor\` on security-sensitive paths" : ""}
+- Ship via \`oc-deploy-ops\` — staging first, then production
 - The orchestrator routes between skills; you don't need to name the next one
 
 ## Deploy target
@@ -705,7 +705,7 @@ ${DEPLOY_NOTE[a.deploy]}
 
 ## Conventions
 
-- Branch per feature; PRs reviewed by \`code-auditor\` before merge
+- Branch per feature; PRs reviewed by \`oc-code-auditor\` before merge
 - Checkpoints in \`.checkpoints/\` survive across sessions
 - Feature flags live in \`src/lib/flags/registry.ts\` (or your equivalent)
 `;
@@ -876,8 +876,8 @@ ${DEPLOY_NOTE[a.deploy]}
       "",
       "1. **Install the recommended skills** — run the install snippet above (or upload each SKILL.md via Claude.ai → Settings → Customize → Skills).",
       "2. **Add the CLAUDE.md scaffold** — copy the starter above into your repo root.",
-      "3. **Run /orchestrator in your first session** — type `/orchestrator` (or `/ops`) in Claude Code to confirm checkpoints are wired and the skills resolved correctly.",
-      "4. **Ship with deploy-ops** — when you're ready, deploy via `/deploy staging` then `/deploy prod`; the audit gate runs before either.",
+      "3. **Run /orchestrator in your first session** — type `/orchestrator` (or `/oc-ops`) in Claude Code to confirm checkpoints are wired and the skills resolved correctly.",
+      "4. **Ship with oc-deploy-ops** — when you're ready, deploy via `/oc-deploy staging` then `/oc-deploy prod`; the audit gate runs before either.",
       "",
       "— opchain.dev",
       "",

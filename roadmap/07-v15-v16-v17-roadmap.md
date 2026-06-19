@@ -33,6 +33,7 @@ v1.4 pack registry + governance + multi-mobile           ← in flight
 v1.5 build the AI app                                    ← proposed below
 v1.6 the instrumented pipeline                           ← proposed below
 v1.7 pick ONE distribution play                          ← lean: marketplace
+v1.4.3 extend to Codex / any MCP agent       ← shipping now (brought fwd from v1.8)
 ```
 
 ### Where opchain actually is (12 May 2026)
@@ -654,6 +655,13 @@ Before any candidate becomes a sprint plan, run each through these gates:
 ## Decision
 
 Adopt v1.5 = AI-native, v1.6 = instrumentation, v1.7 = (lean) marketplace.
+Codex / any-MCP-agent support shipped as **v1.4.3**, brought forward from the
+tabled v1.8 slot (2026-06-12). PRs #260 / #268 / #270 landed the MCP server,
+the install flow, and the workerd entry-export fix; v1.4.3 bumps the catalog
+and turns the install flow on. It's a distribution play (reach beyond Claude
+Code) and was small enough — the skills are unchanged, only their packaging —
+to ride a patch rather than wait for a minor.
+
 Land roadmap doc + sprint plan + Linear tickets on
 `claude/plan-future-releases-SQeO8`. Start the GTM bundle (newsletter
 flag, `/blog`, `/for-agencies`) inside v1.5 sprint 4 alongside skill

@@ -7,24 +7,24 @@ body:
     attributes:
       label: Which skill?
       options:
-        - api-dev
-        - app-architect
-        - bug-check
-        - checkpoint-protocol
-        - code-auditor
-        - dash-forge
-        - deploy-ops
-        - git-ops
-        - integrations-engineer
-        - migration-ops
-        - monitoring-ops
-        - orchestrator
-        - release-ops
-        - reverse-spec
-        - scale-ops
-        - security-auditor
-        - stack-forge
-        - ux-engineer
+        - oc-api-dev
+        - oc-app-architect
+        - oc-bug-check
+        - oc-checkpoint-protocol
+        - oc-code-auditor
+        - oc-dash-forge
+        - oc-deploy-ops
+        - oc-git-ops
+        - oc-integrations-engineer
+        - oc-migration-ops
+        - oc-monitoring-ops
+        - oc-orchestrator
+        - oc-release-ops
+        - oc-reverse-spec
+        - oc-scale-ops
+        - oc-security-auditor
+        - oc-stack-forge
+        - oc-ux-engineer
         - Not sure / multiple
     validations:
       required: true
@@ -32,7 +32,7 @@ body:
     id: what-happened
     attributes:
       label: What happened?
-      placeholder: "I ran `/audit full` and ..."
+      placeholder: "I ran `/oc-audit full` and ..."
     validations:
       required: true
   - type: textarea

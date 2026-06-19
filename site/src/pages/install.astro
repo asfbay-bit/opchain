@@ -8,11 +8,16 @@ import CaptureModal from "../components/CaptureModal.astro";
 import { defaultFor } from "../lib/flags/build-defaults";
 
 const installZipEnabled = defaultFor("site.feature.install-zip-download") as boolean;
+const codexInstallEnabled = defaultFor("site.feature.codex-install") as boolean;
+
+const installDesc = codexInstallEnabled
+  ? "Install opchain in Claude Code, Claude.ai, Claude Desktop, or Codex / any MCP agent — drop-in SKILL.md files or a hosted MCP endpoint. No API keys required."
+  : "Install opchain in Claude Code, Claude.ai, or Claude Desktop. Three flows, one directory of SKILL.md files. No API keys required.";
 
 const cliCmd = `curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
 unzip opchain-skills.zip -d .claude/skills/
 claude
-> /discover`;
+> /oc-discover`;
 
 const teamCmd = `git add .claude/skills/
 git commit -m "chore: add opchain skills"
@@ -25,18 +30,26 @@ unzip opchain-skills.zip -d .claude/skills/
 rm opchain-skills.zip`;
 
 const versionCmd = `curl -sS https://opchain.dev/api/health | jq .version`;
+
+const codexMcpCmd = `# ~/.codex/config.toml
+[mcp_servers.opchain]
+url = "https://opchain.dev/mcp"`;
+
+const codexSkillsCmd = `curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
+unzip opchain-skills.zip -d .codex/skills/
+codex`;
 ---
 
 <Base
   title="Install · opchain"
-  description="Install opchain in Claude Code, Claude.ai, or Claude Desktop. Three flows, one directory of SKILL.md files. No API keys required."
+  description={installDesc}
   active="/install"
 >
   <main class="page">
     <div class="page-head">
       <div>
         <Eyebrow>install</Eyebrow>
-        <h1>Three flows.</h1>
+        <h1>{codexInstallEnabled ? "Four" : "Three"} flows.</h1>
       </div>
       {installZipEnabled && (
         <Button
@@ -78,7 +91,7 @@ const versionCmd = `curl -sS https://opchain.dev/api/health | jq .version`;
         </div>
         <p class="verify">
           <strong>Verify it worked.</strong> In that session, type
-          <code class="ic">/discover</code>. If app-architect starts an
+          <code class="ic">/oc-discover</code>. If oc-app-architect starts an
           interview ("Who's the primary user? Sync or async? …"), you're
           set. If not, re-check that the files landed in
           <code class="ic">.claude/skills/&lt;name&gt;/SKILL.md</code>.
@@ -103,8 +116,8 @@ const versionCmd = `curl -sS https://opchain.dev/api/health | jq .version`;
           <li>Click <strong>Upload skill</strong> and pick the <code class="ic">.md</code> file.</li>
           <li>
             Start a new conversation and trigger by name
-            (<em>"I have an app idea"</em> auto-invokes app-architect) or by
-            slash command (<code class="ic">/discover</code>).
+            (<em>"I have an app idea"</em> auto-invokes oc-app-architect) or by
+            slash command (<code class="ic">/oc-discover</code>).
           </li>
         </ol>
       </div>
@@ -125,6 +138,51 @@ const versionCmd = `curl -sS https://opchain.dev/api/health | jq .version`;
         </div>
       </div>
     </section>
+
+    <!-- ───────────── Flow 4 — Codex / any MCP agent ───────────── -->
+    {codexInstallEnabled && (
+      <section class="flow">
+        <div class="flow-num">04</div>
+        <div class="flow-body">
+          <h2><Icon name="terminal" /> Codex / any MCP agent</h2>
+          <p>
+            Codex — and any MCP-aware agent (Claude Desktop, Cursor, Windsurf) —
+            reaches opchain over the
+            <a href="https://modelcontextprotocol.io" rel="noopener">Model Context Protocol</a>.
+            Point your client at the hosted endpoint and you get the catalog,
+            intent routing, the orchestrator protocol, and checkpoints — the
+            same pipeline Claude Code auto-discovers.
+          </p>
+          <p class="flow-sub"><strong>Hosted MCP server</strong> — nothing to install:</p>
+          <div class="code-row">
+            <pre class="codeblock"><code>{codexMcpCmd}</code></pre>
+            <button class="copy" type="button" data-copy={codexMcpCmd} data-flow="codex-mcp" aria-label="Copy Codex MCP config">
+              <Icon name="copy" size={12} />
+              <span class="copy-label">copy</span>
+            </button>
+          </div>
+          <p class="flow-sub">
+            <strong>Or drop the skills in directly</strong> — Codex Agent Skills
+            use the same <code class="ic">SKILL.md</code> format:
+          </p>
+          <div class="code-row">
+            <pre class="codeblock"><code>{codexSkillsCmd}</code></pre>
+            <button class="copy" type="button" data-copy={codexSkillsCmd} data-flow="codex-skills" aria-label="Copy Codex skills install">
+              <Icon name="copy" size={12} />
+              <span class="copy-label">copy</span>
+            </button>
+          </div>
+          <p class="verify">
+            <strong>Verify it worked.</strong> Run <code class="ic">codex</code>
+            and ask "build me an app" — opchain's <code class="ic">route</code>
+            tool (or an implicit skill match) hands you to oc-app-architect's
+            discovery interview. With the MCP server, the
+            <code class="ic">/oc-*</code> commands also appear as prompts in the
+            slash menu.
+          </p>
+        </div>
+      </section>
+    )}
 
     <!-- ───────────── Upgrade ───────────── -->
     <section class="upgrade">
@@ -157,7 +215,7 @@ const versionCmd = `curl -sS https://opchain.dev/api/health | jq .version`;
         <code class="ic">curl https://opchain.dev/api/health</code> (the
         <code class="ic">version</code> field is the build SHA), then
         start a new Claude Code session and run
-        <code class="ic">/ops</code> — the orchestrator should report your
+        <code class="ic">/oc-ops</code> — the orchestrator should report your
         existing checkpoints exactly where you left them.
       </p>
 
@@ -238,6 +296,18 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
           <div class="key"><code class="ic">orchestrator.md</code></div>
           <div class="val">Shared welcome protocol + pipeline map. Bundled with every skill.</div>
         </div>
+        {codexInstallEnabled && (
+          <>
+            <div class="kv">
+              <div class="key"><code class="ic">.codex/skills/</code></div>
+              <div class="val">Where Codex looks for drop-in skills — same SKILL.md format as Claude Code.</div>
+            </div>
+            <div class="kv">
+              <div class="key"><code class="ic">~/.codex/config.toml</code></div>
+              <div class="val">Register the hosted MCP server under <code class="ic">[mcp_servers.opchain]</code>.</div>
+            </div>
+          </>
+        )}
       </Card>
     </section>
 
@@ -273,11 +343,11 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
           </div>
           <p class="path-sub">No code yet · greenfield project</p>
           <ol class="path-steps">
-            <li>Trigger <code class="ic">/discover</code> — <a href="/skills/app-architect">app-architect</a> runs the spec interview</li>
-            <li>Let <a href="/skills/stack-forge">stack-forge</a> pick the platform; review and confirm</li>
-            <li><a href="/skills/ux-engineer">ux-engineer</a> generates a style book and screens</li>
+            <li>Trigger <code class="ic">/oc-discover</code> — <a href="/skills/oc-app-architect">oc-app-architect</a> runs the spec interview</li>
+            <li>Let <a href="/skills/oc-stack-forge">oc-stack-forge</a> pick the platform; review and confirm</li>
+            <li><a href="/skills/oc-ux-engineer">oc-ux-engineer</a> generates a style book and screens</li>
             <li>Sprint loop produces a working prototype</li>
-            <li><a href="/skills/git-ops">git-ops</a> + <a href="/skills/deploy-ops">deploy-ops</a> ship it</li>
+            <li><a href="/skills/oc-git-ops">oc-git-ops</a> + <a href="/skills/oc-deploy-ops">oc-deploy-ops</a> ship it</li>
           </ol>
         </article>
 
@@ -288,9 +358,9 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
           </div>
           <p class="path-sub">Code already on disk · no opchain history</p>
           <ol class="path-steps">
-            <li>Run <code class="ic">/rev-spec</code> — <a href="/skills/reverse-spec">reverse-spec</a> backfills a spec from the code</li>
-            <li>Type <code class="ic">/ops</code> for the orchestrator's read on what's open</li>
-            <li><a href="/skills/code-auditor">code-auditor</a> tells you the top-five concerns before your next commit</li>
+            <li>Run <code class="ic">/oc-rev-spec</code> — <a href="/skills/oc-reverse-spec">oc-reverse-spec</a> backfills a spec from the code</li>
+            <li>Type <code class="ic">/oc-ops</code> for the orchestrator's read on what's open</li>
+            <li><a href="/skills/oc-code-auditor">oc-code-auditor</a> tells you the top-five concerns before your next commit</li>
           </ol>
         </article>
 
@@ -301,10 +371,10 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
           </div>
           <p class="path-sub">Bug or feature already in progress</p>
           <ol class="path-steps">
-            <li><a href="/skills/bug-check">bug-check</a> on the diff — type / lint / secrets / vulns</li>
-            <li><a href="/skills/code-auditor">code-auditor</a> for an Auditor/Fixer/Verifier pass</li>
-            <li><a href="/skills/git-ops">git-ops</a> opens the PR with shape-aware title + body</li>
-            <li><a href="/skills/deploy-ops">deploy-ops</a> blocks prod until every audit gate is green</li>
+            <li><a href="/skills/oc-bug-check">oc-bug-check</a> on the diff — type / lint / secrets / vulns</li>
+            <li><a href="/skills/oc-code-auditor">oc-code-auditor</a> for an Auditor/Fixer/Verifier pass</li>
+            <li><a href="/skills/oc-git-ops">oc-git-ops</a> opens the PR with shape-aware title + body</li>
+            <li><a href="/skills/oc-deploy-ops">oc-deploy-ops</a> blocks prod until every audit gate is green</li>
           </ol>
         </article>
       </div>
@@ -407,6 +477,9 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
     gap: 0.45rem;
   }
   .flow-body p { color: var(--muted); margin: 0 0 0.85rem; }
+  .flow-body .flow-sub { margin: 0.9rem 0 0.4rem; font-size: var(--fs-sm); }
+  .flow-body .flow-sub strong { color: var(--text); }
+  .flow-body .flow-sub code { font-family: var(--font-mono); }
   .flow-body .verify {
     margin-top: 0.9rem;
     padding: 0.75rem 0.95rem;

@@ -85,13 +85,13 @@ const PLATFORMS: Record<string, Platform> = {
       "prompts":    { v: "Markdown files in .claude/skills/", note: "MIT, in your repo, plain text — diffable, reviewable" },
       "session":    { v: "JSON checkpoints in .checkpoints/", note: "Survive across chats; auto-resume next session" },
       "pipeline":   { v: "Yes — orchestrator routes between 18 skills", note: "Knows what phase you're in and what's next" },
-      "tri-agent":  { v: "5 skills (app-architect, code-auditor, integrations-engineer, api-dev, ux-engineer)", note: "Planner → Generator → Evaluator built in" },
-      "gates":      { v: "Three (bug-check, code-auditor, security-auditor)", note: "deploy-ops blocks prod if any gate fails" },
+      "tri-agent":  { v: "5 skills (oc-app-architect, oc-code-auditor, oc-integrations-engineer, oc-api-dev, oc-ux-engineer)", note: "Planner → Generator → Evaluator built in" },
+      "gates":      { v: "Three (oc-bug-check, oc-code-auditor, oc-security-auditor)", note: "oc-deploy-ops blocks prod if any gate fails" },
       "cost":       { v: "Free, MIT", note: "Pay only your Claude usage" },
       "lockin":     { v: "None — every skill is one Markdown file", note: "Fork, edit, fork again" },
-      "runs-on":    { v: "Claude Code · Claude.ai · Claude Desktop" },
-      "extend":     { v: "Write a SKILL.md, drop it in .claude/skills/", note: "reverse-spec backfills one from existing code" },
-      "multi-proj": { v: "/ops command shows every project's last checkpoint", note: "Cross-repo dashboard built in" },
+      "runs-on":    { v: "Claude Code · Claude.ai · Claude Desktop · Codex / any MCP agent", note: "Native in Claude Code; hosted MCP endpoint for Codex and other MCP clients (v1.4.3)" },
+      "extend":     { v: "Write a SKILL.md, drop it in .claude/skills/", note: "oc-reverse-spec backfills one from existing code" },
+      "multi-proj": { v: "/oc-ops command shows every project's last checkpoint", note: "Cross-repo dashboard built in" },
     },
   },
   claude: {
@@ -353,7 +353,7 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
         It's a set of <a href="/skills">skills</a> that turn Claude (in
         any of its surfaces) into a pipeline you can lean on for the
         slow work — discovery, spec, audits, deploys, postmortems — and
-        a <a href="/glossary#checkpoint-protocol">checkpoint protocol</a>
+        a <a href="/glossary#oc-checkpoint-protocol">checkpoint protocol</a>
         that survives the gap between chats.
       </p>
       <p>
@@ -379,7 +379,7 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
         <Card variant="surface" glow={false}>
           <div class="quick-head">From a single CLAUDE.md</div>
           <p>
-            Run <a href="/skills/reverse-spec"><code>reverse-spec</code></a>
+            Run <a href="/skills/oc-reverse-spec"><code>oc-reverse-spec</code></a>
             against your project — it'll backfill the spec opchain
             wants. Then unzip the bundle, commit it, and start invoking
             skills by name.
@@ -407,7 +407,7 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
     <section class="cta">
       <p>
         Want to test the claims above? <a href="/install">Install opchain</a>,
-        run <code>/discover</code>, and watch the orchestrator route
+        run <code>/oc-discover</code>, and watch the orchestrator route
         through five skills before lunch.
       </p>
     </section>

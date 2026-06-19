@@ -2,7 +2,7 @@
 # .claude/hooks/pre-commit-bugcheck.sh
 #
 # PreToolUse hook for the Bash tool. Blocks `git commit` calls unless
-# bug-check has run recently with a PASS verdict (or a logged bypass).
+# oc-bug-check has run recently with a PASS verdict (or a logged bypass).
 # The Stop hook (checkpoint-hygiene.sh) is post-hoc; this hook is the
 # real gate.
 #
@@ -12,12 +12,12 @@
 #
 # Allow rules:
 #   - command doesn't match `git commit` → allow
-#   - bug-check checkpoint exists, status=complete, last_run_verdict=PASS,
+#   - oc-bug-check checkpoint exists, status=complete, last_run_verdict=PASS,
 #     updated_at within 10 minutes → allow
-#   - bug-check checkpoint has skill_state.bypass=true and bypass is fresh
+#   - oc-bug-check checkpoint has skill_state.bypass=true and bypass is fresh
 #     (within 10 minutes) → allow
 #   - all other cases → block with a reason that tells the assistant
-#     to invoke bug-check first
+#     to invoke oc-bug-check first
 #
 # Dependencies: bash, jq, date, grep. `command -v` guards make a missing
 # dep a soft skip (allow), since we don't want a missing dep to silently
@@ -59,7 +59,7 @@ if grep -qE -- '--no-verify-bugcheck\b' <<<"$COMMAND"; then
   exit 0
 fi
 
-CHECKPOINT="$PROJECT_DIR/.checkpoints/bug-check.checkpoint.json"
+CHECKPOINT="$PROJECT_DIR/.checkpoints/oc-bug-check.checkpoint.json"
 
 block() {
   local reason="$1"
@@ -74,15 +74,15 @@ block() {
 }
 
 if [[ ! -f "$CHECKPOINT" ]]; then
-  block "Pre-commit gate: bug-check has not run in this project. Invoke the bug-check skill before committing:
+  block "Pre-commit gate: oc-bug-check has not run in this project. Invoke the oc-bug-check skill before committing:
 
-  Skill(skill=\"bug-check\", args=\"/bugcheck run\")
+  Skill(skill=\"oc-bug-check\", args=\"/oc-bugcheck run\")
 
-If bug-check returns PASS, retry the commit. If FAIL, fix the surfaced issues or run \`/bugcheck bypass\` (logged) before committing."
+If oc-bug-check returns PASS, retry the commit. If FAIL, fix the surfaced issues or run \`/oc-bugcheck bypass\` (logged) before committing."
 fi
 
 # Read verdict and timestamp from skill_state.last_run (canonical
-# bug-check schema, see skills/bug-check/SKILL.md "Checkpoint Schema").
+# oc-bug-check schema, see skills/oc-bug-check/SKILL.md "Checkpoint Schema").
 VERDICT="$(jq -r '.skill_state.last_run.verdict // empty' "$CHECKPOINT" 2>/dev/null || echo "")"
 LAST_AT="$(jq -r '.skill_state.last_run.at // .updated_at // empty' "$CHECKPOINT" 2>/dev/null || echo "")"
 
@@ -91,7 +91,7 @@ LAST_AT="$(jq -r '.skill_state.last_run.at // .updated_at // empty' "$CHECKPOINT
 BYPASS_AT="$(jq -r '(.skill_state.bypasses // []) | last | .at // empty' "$CHECKPOINT" 2>/dev/null || echo "")"
 
 if [[ -z "$LAST_AT" ]]; then
-  block "Pre-commit gate: bug-check checkpoint exists but skill_state.last_run.at is missing. Run /bugcheck before committing."
+  block "Pre-commit gate: oc-bug-check checkpoint exists but skill_state.last_run.at is missing. Run /oc-bugcheck before committing."
 fi
 
 # Compute age in seconds. GNU date and BSD date have different flags; try both.
@@ -105,7 +105,7 @@ parse_iso() {
 LAST_EPOCH="$(parse_iso "$LAST_AT")"
 
 if [[ "$LAST_EPOCH" == "0" ]]; then
-  block "Pre-commit gate: cannot parse bug-check last_run.at='$LAST_AT'. Re-run /bugcheck."
+  block "Pre-commit gate: cannot parse oc-bug-check last_run.at='$LAST_AT'. Re-run /oc-bugcheck."
 fi
 
 MAX_AGE=600  # 10 minutes
@@ -120,15 +120,15 @@ fi
 
 AGE=$((NOW_EPOCH - LAST_EPOCH))
 if [[ "$AGE" -gt "$MAX_AGE" ]]; then
-  block "Pre-commit gate: last bug-check run was $((AGE / 60)) minutes ago (max age 10min). Re-run:
+  block "Pre-commit gate: last oc-bug-check run was $((AGE / 60)) minutes ago (max age 10min). Re-run:
 
-  Skill(skill=\"bug-check\", args=\"/bugcheck run\")
+  Skill(skill=\"oc-bug-check\", args=\"/oc-bugcheck run\")
 
 before retrying the commit."
 fi
 
 if [[ "$VERDICT" != "PASS" ]]; then
-  block "Pre-commit gate: bug-check last verdict is '${VERDICT:-unknown}', not PASS. Fix the failing checks (or run \`/bugcheck bypass\` to override with a logged bypass) before committing."
+  block "Pre-commit gate: oc-bug-check last verdict is '${VERDICT:-unknown}', not PASS. Fix the failing checks (or run \`/oc-bugcheck bypass\` to override with a logged bypass) before committing."
 fi
 
 # Verdict=PASS, fresh, no bypass needed → allow the commit.

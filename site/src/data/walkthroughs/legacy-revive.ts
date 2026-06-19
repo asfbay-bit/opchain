@@ -1,7 +1,7 @@
 import type { Walkthrough } from "./types";
 
 /**
- * Scenario 3 — reverse-spec on a legacy codebase, then app-architect picks
+ * Scenario 3 — oc-reverse-spec on a legacy codebase, then oc-app-architect picks
  * up the generated spec as its Phase 2 baseline and plans the new feature
  * on top. Demonstrates the "entering from the middle" pattern.
  */
@@ -12,7 +12,7 @@ export const legacyRevive: Walkthrough = {
   summary:
     "3-year-old Rails monolith, no docs, one engineer leaving in 3 weeks. Ship the feature anyway.",
   description:
-    "Haulier is a 47k-line Rails monolith — a freight-broker SaaS that grew in someone's head. No docs, 58% test coverage, one engineer on their way out. The board wants a Carrier Scorecard feature before she goes. reverse-spec crawls the code and reconstructs a 142-page spec from models, controllers, and naming patterns. app-architect reads that spec as Phase-1 baseline, scopes the new feature with surgical precision, and ships it behind an extra-strict code-auditor gate on the load-bearing settlement model. Nothing fragile is touched.",
+    "Haulier is a 47k-line Rails monolith — a freight-broker SaaS that grew in someone's head. No docs, 58% test coverage, one engineer on their way out. The board wants a Carrier Scorecard feature before she goes. oc-reverse-spec crawls the code and reconstructs a 142-page spec from models, controllers, and naming patterns. oc-app-architect reads that spec as Phase-1 baseline, scopes the new feature with surgical precision, and ships it behind an extra-strict oc-code-auditor gate on the load-bearing settlement model. Nothing fragile is touched.",
   inputs: [
     "Existing Rails 6.1 app (47k LoC Ruby, 8k ERB)",
     "No documentation · 58% test coverage · 84 gems",
@@ -27,7 +27,7 @@ export const legacyRevive: Walkthrough = {
       body:
 `# Haulier — Reconstructed Spec
 
-**Version** 0.1 (auto-generated) · **Source** \`reverse-spec\` over commit \`a4f91e2\` · **Confidence** model-annotated per section · **Generated** 2026-04-15
+**Version** 0.1 (auto-generated) · **Source** \`oc-reverse-spec\` over commit \`a4f91e2\` · **Confidence** model-annotated per section · **Generated** 2026-04-15
 
 > **Reading guide.** This document is reverse-engineered from the codebase, not handwritten by the original author. Sections marked ★★★★★ are mechanically extracted (model graphs, routes, jobs) and high-confidence. Sections ★★★★ are inferred from naming + comments. Sections ★★★ are open questions where the model could not determine intent. Use the table of contents on the left to jump.
 
@@ -156,7 +156,7 @@ Shipper ──▶ Load ──▶ Bid ◀── Carrier
 | BrokerSettingsController | settings/* | wraps Setting singleton. |
 | ApiTokensController | resources | for Carrier API access. |
 | WebhooksController | resources | outbound webhook configuration. |
-| AuditLogController | GET /audit | search via Ransack. |
+| AuditLogController | GET /oc-audit | search via Ransack. |
 | NotificationsController | index, mark_read | |
 | FuelSurchargesController | index, current | |
 | ReportsController | various | mostly Ransack-backed CSV exports. |
@@ -277,7 +277,7 @@ Top 10 by row count:
 
 ## 13. Risk map — top 30 (★★★★)
 
-The original spec excerpt covered the top 10. The full reverse-spec found 30 load-bearing risks ranked by *fragility* × *blast radius*. This is the working backlog any successor team should triage first.
+The original spec excerpt covered the top 10. The full oc-reverse-spec found 30 load-bearing risks ranked by *fragility* × *blast radius*. This is the working backlog any successor team should triage first.
 
 1. **\`app/models/settlement.rb\`** — 812 lines, 6 callbacks, **0 tests**. Money flow. The single highest-risk file in the repo. 🚨
 2. **\`app/jobs/fuel_reindex.rb\`** — runs nightly, no failure alerting; silent failure → stale bid prices for 24h.
@@ -347,7 +347,7 @@ The original spec excerpt covered the top 10. The full reverse-spec found 30 loa
 5. Move \`config/sidekiq.yml\` to multi-queue with explicit priorities.
 6. Schedule the \`paperclip\` → ActiveStorage migration; \`paperclip\` is unmaintained and a CVE waiting to happen.
 
-Checkpoint: \`.checkpoints/reverse-spec.checkpoint.json\`. The full 142-page export lives at \`docs/spec/haulier-reconstructed.md\` in the repo.`,
+Checkpoint: \`.checkpoints/oc-reverse-spec.checkpoint.json\`. The full 142-page export lives at \`docs/spec/haulier-reconstructed.md\` in the repo.`,
     },
     {
       id: "feature-spec",
@@ -356,7 +356,7 @@ Checkpoint: \`.checkpoints/reverse-spec.checkpoint.json\`. The full 142-page exp
       body:
 `# Carrier Scorecard — Feature Spec
 
-**Owner** app-architect Phase 2 · **Baseline** reverse-spec checkpoint (142-page) · **Status** ready to build
+**Owner** oc-app-architect Phase 2 · **Baseline** oc-reverse-spec checkpoint (142-page) · **Status** ready to build
 
 ## 1. Why
 
@@ -556,7 +556,7 @@ Feature flag via existing \`Flipper\` gem; cohort by \`Dispatcher#id MOD 10\`.
 
 ## 12. Risk assessment
 
-\`settlement.rb\` (812-line, 0-test) sits two joins from Invoices. Any query path that touches Settlement without test coverage is a landmine. **Mitigation:** our query path never joins Settlement. code-auditor gates this sprint with an extra-strict pass confirming no new Settlement references — the "Settlement clean-diff stamp" (separate artifact).
+\`settlement.rb\` (812-line, 0-test) sits two joins from Invoices. Any query path that touches Settlement without test coverage is a landmine. **Mitigation:** our query path never joins Settlement. oc-code-auditor gates this sprint with an extra-strict pass confirming no new Settlement references — the "Settlement clean-diff stamp" (separate artifact).
 
 Other risks:
 
@@ -572,18 +572,18 @@ Other risks:
 - **Sprint 1** — Materialized view + backfill + unit tests (RSpec). 38 examples.
 - **Sprint 2** — Picker UI (Stimulus controller) + scorecard strip component + filter + telemetry.
 
-Each sprint runs through the standard Generator/Evaluator loop, then the **extra-strict** code-auditor pass before PR.
+Each sprint runs through the standard Generator/Evaluator loop, then the **extra-strict** oc-code-auditor pass before PR.
 
-Checkpoint: \`.checkpoints/app-architect.checkpoint.json\` Phase 2 branch.`,
+Checkpoint: \`.checkpoints/oc-app-architect.checkpoint.json\` Phase 2 branch.`,
     },
     {
       id: "audit-report",
-      label: "code-auditor report (extra-strict pass)",
+      label: "oc-code-auditor report (extra-strict pass)",
       kind: "audit.md",
       body:
 `# Audit Report — Carrier Scorecard
 
-**Scope** 612 lines, 14 files, 2 migrations · **Runner** \`/audit full\` + money-flow supplementary pass · **Gate** required before PR merge · **Auditor version** 1.2.0 · **Run at** 2026-04-18T10:42:13Z
+**Scope** 612 lines, 14 files, 2 migrations · **Runner** \`/oc-audit full\` + money-flow supplementary pass · **Gate** required before PR merge · **Auditor version** 1.2.0 · **Run at** 2026-04-18T10:42:13Z
 
 ## 1. Files inspected
 
@@ -713,14 +713,14 @@ Deductions:
 - −2 for missing a "low data" telemetry event (we know which metric is hidden, but not how often that hide is the only blocker between the dispatcher and a pick).
 - −1 for documentation: the runbook covers the happy path but skips "what if the materialized view is corrupted?" — added a TODO for v1.1.
 
-Writing \`.checkpoints/code-auditor.checkpoint.json\` with the explicit Settlement-clean-diff stamp. git-ops may open PR.
+Writing \`.checkpoints/oc-code-auditor.checkpoint.json\` with the explicit Settlement-clean-diff stamp. oc-git-ops may open PR.
 
 ## 11. Auditor sign-off
 
-- **Auditor:** code-auditor v1.2.0
-- **Mode:** \`/audit full\` + money-flow supplementary pass (Settlement clean-diff verification)
+- **Auditor:** oc-code-auditor v1.2.0
+- **Mode:** \`/oc-audit full\` + money-flow supplementary pass (Settlement clean-diff verification)
 - **Run-time:** 4 m 12 s end-to-end (RuboCop + Brakeman + RSpec + EXPLAIN benchmarks + grep gates).
-- **Gate verdict:** PASS — git-ops may open PR.
+- **Gate verdict:** PASS — oc-git-ops may open PR.
 - **Re-audit recommended:** before any future change touches the materialized view definition or adds a join from the picker to the Settlement table.`,
     },
     {
@@ -730,7 +730,7 @@ Writing \`.checkpoints/code-auditor.checkpoint.json\` with the explicit Settleme
       body:
 `# Settlement Clean-Diff Stamp
 
-Added to \`.checkpoints/code-auditor.checkpoint.json\` after the money-flow pass. This is a **machine-verifiable receipt** that the new feature did not touch any file in the Settlement scope.
+Added to \`.checkpoints/oc-code-auditor.checkpoint.json\` after the money-flow pass. This is a **machine-verifiable receipt** that the new feature did not touch any file in the Settlement scope.
 
 ## 1. The stamp
 
@@ -764,7 +764,7 @@ Added to \`.checkpoints/code-auditor.checkpoint.json\` after the money-flow pass
     "settlement_runner",
     "WeeklySettlementRun"
   ],
-  "verifier": "code-auditor",
+  "verifier": "oc-code-auditor",
   "verifier_version": "1.2.0",
   "timestamp": "2026-04-18T10:42:13Z",
   "gate_status": "pass",
@@ -780,7 +780,7 @@ Six months from now, if settlements break, the first question will be "what chan
 
 ## 3. What the verifier actually does
 
-The clean-diff verifier is a deterministic script (\`bin/audit/settlement-clean-diff.rb\`) that runs as part of \`/audit full\` on any diff:
+The clean-diff verifier is a deterministic script (\`bin/audit/settlement-clean-diff.rb\`) that runs as part of \`/oc-audit full\` on any diff:
 
 1. **\`git diff --name-only HEAD\`** intersected with the in-scope file list — must be empty.
 2. **Static grep** across the entire diff for the pattern list above. Each match is a hard fail.
@@ -794,11 +794,11 @@ A failure on any of these short-circuits the gate; the PR cannot be opened.
 
 ## 4. Where the stamp lives
 
-The stamp is one entry in \`.checkpoints/code-auditor.checkpoint.json\` under \`skill_state.supplementary_pass_stamps\`. The full checkpoint also stores the \`/audit full\` results, so a successor team can reconstruct the audit history without re-running.
+The stamp is one entry in \`.checkpoints/oc-code-auditor.checkpoint.json\` under \`skill_state.supplementary_pass_stamps\`. The full checkpoint also stores the \`/oc-audit full\` results, so a successor team can reconstruct the audit history without re-running.
 
 \`\`\`
 .checkpoints/
-└─ code-auditor.checkpoint.json
+└─ oc-code-auditor.checkpoint.json
    └─ skill_state.supplementary_pass_stamps[]
       ├─ {commit: "a4f91e2", verification: "settlement-untouched", ...}  ← this stamp
       ├─ {commit: "918aaee", verification: "invoice-callback-untouched", ...}
@@ -807,7 +807,7 @@ The stamp is one entry in \`.checkpoints/code-auditor.checkpoint.json\` under \`
 
 ## 5. Re-verification on every release
 
-The stamp is **regenerated on each code-auditor invocation**. If a future diff accidentally touches \`settlement.rb\`, the gate fails loudly before the PR can be merged. Specifically:
+The stamp is **regenerated on each oc-code-auditor invocation**. If a future diff accidentally touches \`settlement.rb\`, the gate fails loudly before the PR can be merged. Specifically:
 
 - A pre-commit hook (\`.husky/pre-commit\`) runs the verifier on the local diff.
 - A GitHub Actions workflow runs it on every PR push.
@@ -833,18 +833,18 @@ This is documented as a TODO; not blocking for v1.
 
 | Field | Value |
 |---|---|
-| Stamp produced by | code-auditor v1.2.0 |
-| Run mode | \`/audit full\` + money-flow supplementary pass |
+| Stamp produced by | oc-code-auditor v1.2.0 |
+| Run mode | \`/oc-audit full\` + money-flow supplementary pass |
 | Commit verified | \`a4f91e2\` |
 | Run duration | 4 m 12 s |
 | Gate verdict | PASS |
-| Stored at | \`.checkpoints/code-auditor.checkpoint.json\` |`,
+| Stored at | \`.checkpoints/oc-code-auditor.checkpoint.json\` |`,
     },
   ],
-  skills: ["reverse-spec", "app-architect", "code-auditor"],
+  skills: ["oc-reverse-spec", "oc-app-architect", "oc-code-auditor"],
   runtime: "≈ 14 exchanges",
   steps: [
-    { type: "beat", label: "01 · Survey", caption: "reverse-spec reads the code", skills: ["reverse-spec"] },
+    { type: "beat", label: "01 · Survey", caption: "oc-reverse-spec reads the code", skills: ["oc-reverse-spec"] },
 
     {
       type: "exchange", role: "user",
@@ -854,11 +854,11 @@ This is documented as a TODO; not blocking for v1.
 I'm scared to touch it. Where do I start?`
     },
     {
-      type: "exchange", role: "claude", skill: "reverse-spec",
+      type: "exchange", role: "claude", skill: "oc-reverse-spec",
       content:
-`The right entry point is **reverse-spec**, not app-architect — you don't know enough about the existing app to plan a new feature yet. I'll reconstruct the spec from the code so app-architect has a baseline to plan against.
+`The right entry point is **oc-reverse-spec**, not oc-app-architect — you don't know enough about the existing app to plan a new feature yet. I'll reconstruct the spec from the code so oc-app-architect has a baseline to plan against.
 
-Invoking **reverse-spec**. Running the 5-phase survey:
+Invoking **oc-reverse-spec**. Running the 5-phase survey:
 
 1. **Repo-shape scan** — languages, frameworks, monolith vs. service, dep health.
 2. **Model archaeology** — ActiveRecord models + associations + cardinality.
@@ -873,7 +873,7 @@ Point me at the repo and I'll go. \`/scan /path/to/haulier\` or paste the top-le
       content: "/scan ~/work/haulier"
     },
     {
-      type: "exchange", role: "claude", skill: "reverse-spec",
+      type: "exchange", role: "claude", skill: "oc-reverse-spec",
       content:
 `Scan complete in 8m 12s. Findings:
 
@@ -894,7 +894,7 @@ Point me at the repo and I'll go. \`/scan /path/to/haulier\` or paste the top-le
 - \`app/jobs/fuel_reindex.rb\` — runs nightly, no failure alerting.
 - \`app/controllers/api/v2/loads_controller.rb\` — 19 endpoints, long methods.
 
-Writing \`.checkpoints/reverse-spec.checkpoint.json\` — 142-page reconstructed spec included. Ready to hand off to **app-architect** for the new feature. Continue?`,
+Writing \`.checkpoints/oc-reverse-spec.checkpoint.json\` — 142-page reconstructed spec included. Ready to hand off to **oc-app-architect** for the new feature. Continue?`,
       artifacts: ["reconstructed-spec"],
     },
     {
@@ -902,12 +902,12 @@ Writing \`.checkpoints/reverse-spec.checkpoint.json\` — 142-page reconstructed
       content: "Yes. The feature is a Carrier scorecard — on-time rate, damage rate, invoice dispute rate — shown to dispatchers when they're picking a carrier for a new load."
     },
 
-    { type: "beat", label: "02 · Plan the new feature", caption: "app-architect reads the spec as baseline", skills: ["app-architect"] },
+    { type: "beat", label: "02 · Plan the new feature", caption: "oc-app-architect reads the spec as baseline", skills: ["oc-app-architect"] },
 
     {
-      type: "exchange", role: "claude", skill: "app-architect",
+      type: "exchange", role: "claude", skill: "oc-app-architect",
       content:
-`Invoked by reverse-spec with the 142-page baseline. Since the app already exists, I skip \`/discover\` and go straight to \`/spec\` for the new feature, treating the baseline as Phase-1 output.
+`Invoked by oc-reverse-spec with the 142-page baseline. Since the app already exists, I skip \`/oc-discover\` and go straight to \`/oc-spec\` for the new feature, treating the baseline as Phase-1 output.
 
 **Feature — Carrier scorecard:**
 
@@ -923,7 +923,7 @@ Three metrics, all computable from existing tables:
 
 **Data work:** no new tables. One materialized view \`carrier_scorecards_v1\` refreshed hourly. Query plan benchmarked at ~40ms on the current data volume.
 
-**Risk I'm flagging:** \`settlement.rb\` sits two joins away from \`invoices\`. Any query path that touches settlement without tests is a landmine. \`code-auditor\` will gate this sprint with an extra-strict pass on that model. Writing \`.checkpoints/app-architect.checkpoint.json\`. \`/approve\` to advance.`,
+**Risk I'm flagging:** \`settlement.rb\` sits two joins away from \`invoices\`. Any query path that touches settlement without tests is a landmine. \`oc-code-auditor\` will gate this sprint with an extra-strict pass on that model. Writing \`.checkpoints/oc-app-architect.checkpoint.json\`. \`/approve\` to advance.`,
       artifacts: ["feature-spec"],
     },
     {
@@ -931,7 +931,7 @@ Three metrics, all computable from existing tables:
       content: "/approve — but add one thing. Dispatchers want to filter the Carrier picker by scorecard. 'Hide carriers with < 80% on-time.'"
     },
     {
-      type: "exchange", role: "claude", skill: "app-architect",
+      type: "exchange", role: "claude", skill: "oc-app-architect",
       content:
 `Folded in. Adds one URL query param \`?min_on_time=80\` on the picker endpoint and a toggle in the UI. No backend migration — the materialized view already has the field.
 
@@ -942,17 +942,17 @@ Updated sprint plan — 2 sprints:
 | 1 | Materialized view + backfill + unit tests        | \`carrier_scorecards_v1\`, RSpec @ 95% cov.    |
 | 2 | Picker UI + filter + scorecard strip component   | Stimulus controller, component preview tests. |
 
-Kicking off Sprint 1 with the Generator/Evaluator harness. Pre-flight: \`code-auditor\` spot-check on touch-points. \`/approve\` to run.`
+Kicking off Sprint 1 with the Generator/Evaluator harness. Pre-flight: \`oc-code-auditor\` spot-check on touch-points. \`/approve\` to run.`
     },
     {
       type: "exchange", role: "user",
       content: "/approve"
     },
 
-    { type: "beat", label: "03 · Build", caption: "with an extra-strict audit gate", skills: ["app-architect", "code-auditor"] },
+    { type: "beat", label: "03 · Build", caption: "with an extra-strict audit gate", skills: ["oc-app-architect", "oc-code-auditor"] },
 
     {
-      type: "exchange", role: "claude", skill: "app-architect",
+      type: "exchange", role: "claude", skill: "oc-app-architect",
       content:
 `**Sprint 1 complete.**
 - Materialized view created + \`scenic\` gem added (Rails idiom for views).
@@ -966,12 +966,12 @@ Kicking off Sprint 1 with the Generator/Evaluator harness. Pre-flight: \`code-au
 - Stimulus controller for the toggle, 17 lines; keyboard-accessible.
 - Evaluator: 91/100.
 
-Invoking **code-auditor** for the gate before PR.`
+Invoking **oc-code-auditor** for the gate before PR.`
     },
     {
-      type: "exchange", role: "claude", skill: "code-auditor",
+      type: "exchange", role: "claude", skill: "oc-code-auditor",
       content:
-`Running \`/audit full\` on the diff — 612 lines across 14 files.
+`Running \`/oc-audit full\` on the diff — 612 lines across 14 files.
 
 \`\`\`
  security       ✓ no new user input surfaces; no SQL-interpolation paths
@@ -984,11 +984,11 @@ Invoking **code-auditor** for the gate before PR.`
  overall grade  A (94/100)
 \`\`\`
 
-The one amber signal was the new gem; confirmed it's maintained + on our allow-list. **Gate: PASS.** Handing back to git-ops for the PR.`,
+The one amber signal was the new gem; confirmed it's maintained + on our allow-list. **Gate: PASS.** Handing back to oc-git-ops for the PR.`,
       artifacts: ["audit-report", "settlement-clean-diff-stamp"],
     },
     {
-      type: "exchange", role: "claude", skill: "app-architect",
+      type: "exchange", role: "claude", skill: "oc-app-architect",
       content:
 `PR opened, description auto-written with the baseline spec excerpt + the two sprint summaries + the audit report. You can merge when your one remaining engineer signs off.
 

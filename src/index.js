@@ -19,126 +19,27 @@ import { bindLogger, newRequestId, EVENTS } from "./lib/request-id.js";
 import { evalFlag, evalFlags } from "./lib/flags/eval.js";
 import { ensureOcId } from "./lib/flags/identity.js";
 import { FLAG_NAMES, FLAGS, PUBLIC_FLAG_NAMES } from "./lib/flags/registry.js";
+import { createMcpServer } from "./lib/mcp/server.js";
+import mcpCatalog from "./generated/mcp-catalog.json" with { type: "json" };
+import {
+  corsHeaders,
+  applyBaselineHeaders,
+  generateNonce,
+  buildCspHtml,
+  NONCE_PLACEHOLDER,
+} from "./lib/http.js";
+import {
+  DEFAULT_TEAM_ID,
+  DEFAULT_PROJECT_ID,
+  LABEL_MAP,
+  PRIORITY_MAP,
+  SECURITY_PRIORITY,
+  LINEAR_MUTATION,
+} from "./lib/feedback-config.js";
 
 // Injected at build time by esbuild `define` (see build.mjs).
 // eslint-disable-next-line no-undef
 const VERSION = typeof __OPCHAIN_VERSION__ !== "undefined" ? __OPCHAIN_VERSION__ : "dev";
-
-// ── Linear Feedback Config ──────────────────────────────────────────────────
-// Defaults preserved so existing production deploys keep working if the env
-// vars aren't set — but env.LINEAR_TEAM_ID / LINEAR_PROJECT_ID override them.
-const DEFAULT_TEAM_ID = "7548a4f9-6ed3-42a6-9130-3b2b45db3c5c";
-const DEFAULT_PROJECT_ID = "7a8ea196-9a52-4efb-b997-003cb48a3f1a";
-
-export const LABEL_MAP = {
-  bug: "68403073-fd71-44aa-95bc-aea91ed7e4de",
-  feature: "a9f89cba-878b-4c2e-a9e4-871866a03592",
-  improvement: "e9956661-28ed-4ca2-8d54-8e5457bbb773",
-  general: "ec0403ab-31b9-4aa6-a097-e54e4bbff69c",
-  // Security disclosures: ops should create a dedicated "security"
-  // label in Linear and override this via env.LINEAR_SECURITY_LABEL_ID.
-  // Until then, fall back to the bug label so the issue still gets
-  // categorised — the [SECURITY] title prefix and forced P1 priority
-  // (see handleFeedback below) keep it visible regardless.
-  security: "68403073-fd71-44aa-95bc-aea91ed7e4de",
-};
-
-export const PRIORITY_MAP = { 0: 0, 1: 4, 2: 3, 3: 2, 4: 1 };
-
-// Linear's priority scale: 1=urgent, 2=high, 3=medium, 4=low, 0=none.
-// Security severity → Linear priority. Unconditional — the form's
-// "severity" field never lets a reporter downgrade past Linear high.
-const SECURITY_PRIORITY = {
-  critical: 1, // Urgent
-  high:     1, // Urgent (treat high-severity disclosures as urgent for triage)
-  medium:   2, // High
-  low:      3, // Medium
-};
-
-const ALLOWED_ORIGINS = [
-  "https://opchain.dev",
-  "https://www.opchain.dev",
-  "https://staging.opchain.dev",
-  "https://opchain-dev.4fstpkkw72.workers.dev",
-  "https://aidops.dev",
-  "https://www.aidops.dev",
-  "http://localhost:8787",
-  "http://localhost:3000",
-  "http://localhost:4321",
-];
-
-const LINEAR_MUTATION = `mutation IssueCreate($input: IssueCreateInput!) {
-  issueCreate(input: $input) {
-    success
-    issue { id identifier url }
-  }
-}`;
-
-// ── Helpers ─────────────────────────────────────────────────────────────────
-
-export function corsHeaders(origin, requestId) {
-  const headers = {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Opchain-Request-Id",
-    "Access-Control-Expose-Headers": "X-Opchain-Request-Id, X-Opchain-Version",
-    "Access-Control-Max-Age": "86400",
-  };
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
-    headers["Access-Control-Allow-Origin"] = origin;
-  }
-  if (requestId) headers["X-Opchain-Request-Id"] = requestId;
-  return headers;
-}
-
-// Baseline headers — safe for every response (HTML, JSON, binary).
-const BASELINE_SECURITY_HEADERS = {
-  "X-Content-Type-Options": "nosniff",
-  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-  "X-Frame-Options": "DENY",
-  "Referrer-Policy": "strict-origin-when-cross-origin",
-  "Permissions-Policy":
-    "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=()",
-};
-
-// Sprint 7c — CSP nonce. The placeholder `__OPCHAIN_NONCE__` is stamped onto
-// every <script> tag at build time by scripts/inject-nonce-placeholder.mjs.
-// On every HTML response we generate a fresh nonce, substitute the placeholder
-// in the body, and emit it in the CSP header. `'strict-dynamic'` lets a
-// nonce-blessed script load further scripts; the explicit hosts remain for
-// older browsers. `style-src` keeps `'unsafe-inline'` because Tailwind 4
-// emits inline `style=` attributes; converting that is backlog item B-08.
-export const NONCE_PLACEHOLDER = "__OPCHAIN_NONCE__";
-
-export function generateNonce() {
-  const bytes = new Uint8Array(16);
-  crypto.getRandomValues(bytes);
-  let bin = "";
-  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-  // base64url, no padding — safe inside CSP and HTML attributes.
-  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-export function buildCspHtml(nonce) {
-  return (
-    "default-src 'self'; " +
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://*.i.posthog.com https://static.cloudflareinsights.com; ` +
-    "connect-src 'self' https://*.i.posthog.com https://cloudflareinsights.com; " +
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-    "img-src 'self' data:; " +
-    "font-src 'self' https://fonts.gstatic.com; " +
-    "frame-ancestors 'none'; " +
-    "base-uri 'self'; " +
-    "form-action 'self'"
-  );
-}
-
-export function applyBaselineHeaders(res) {
-  for (const [k, v] of Object.entries(BASELINE_SECURITY_HEADERS)) {
-    res.headers.set(k, v);
-  }
-  return res;
-}
 
 async function applySecurityHeaders(response, { env, ctx } = {}) {
   const ct = response.headers.get("Content-Type") || "";
@@ -590,11 +491,112 @@ async function flagOverridesSummary(env, ctx) {
   return { count: Object.keys(overrides).length, overrides };
 }
 
+// Skill ids gained an `oc-` prefix (skills/oc-*). Map the old /skills/<id>
+// page URLs and /skills/<id>.zip bundle URLs to the prefixed path with a 301
+// so inbound + bookmarked links survive the rename.
+const RENAMED_SKILL_IDS = new Set([
+  "api-dev", "app-architect", "bug-check", "checkpoint-protocol", "code-auditor",
+  "dash-forge", "deploy-ops", "git-ops", "integrations-engineer", "migration-ops",
+  "monitoring-ops", "orchestrator", "release-ops", "reverse-spec", "scale-ops",
+  "security-auditor", "stack-forge", "ux-engineer",
+]);
+
+// ── MCP server (POST /mcp) ──────────────────────────────────────────────────
+//
+// Exposes the opchain skill catalog, intent routing, the shared orchestrator
+// protocol, and session checkpoints to Codex and any other MCP client over
+// streamable HTTP (JSON-RPC 2.0 on a single POST endpoint). Skill bodies stream
+// from the ASSETS binding (public/docs/<id>/SKILL.md, synced by sync-docs.sh);
+// checkpoints persist in the NOTIFY KV namespace, scoped per session. The
+// transport-agnostic core is src/lib/mcp/server.js (also wrapped over stdio by
+// mcp/local-server.mjs). Gated by the site.ops.api-mcp.kill switch in route().
+
+function mcpCheckpointStore(env) {
+  if (!env.NOTIFY) return null;
+  const key = (skill, session) => `mcp-checkpoint:${session}:${skill}`;
+  return {
+    async read(skill, session) {
+      const raw = await env.NOTIFY.get(key(skill, session));
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch { return null; }
+    },
+    async write(skill, session, data) {
+      await env.NOTIFY.put(key(skill, session), JSON.stringify(data));
+    },
+  };
+}
+
+async function handleMcp(request, env, ctx, origin, requestId) {
+  const headers = { ...corsHeaders(origin, requestId), "Cache-Control": "no-store" };
+
+  // Streamable HTTP: clients POST JSON-RPC. No standalone GET SSE stream is
+  // offered (the server is stateless request/response), so GET → 405.
+  if (request.method !== "POST") {
+    return new Response(
+      JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32600, message: "Use POST with a JSON-RPC body." } }),
+      { status: 405, headers: { ...headers, Allow: "POST, OPTIONS" } },
+    );
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return new Response(
+      JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } }),
+      { status: 400, headers },
+    );
+  }
+
+  const reqOrigin = new URL(request.url).origin;
+  const server = createMcpServer({
+    catalog: mcpCatalog,
+    serverVersion: VERSION,
+    checkpoints: mcpCheckpointStore(env),
+    // The server validates `id` against the catalog before calling this, so the
+    // path is always a known skill id — no traversal risk.
+    loadBody: async (id) => {
+      const res = await env.ASSETS.fetch(new Request(new URL(`/docs/${id}/SKILL.md`, reqOrigin)));
+      if (!res.ok) return null;
+      const text = await res.text();
+      return text && text.trim() ? text : null;
+    },
+  });
+
+  // Single message or JSON-RPC batch. Notifications (no id) get a 202 with no body.
+  if (Array.isArray(body)) {
+    if (body.length === 0) {
+      return new Response(
+        JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32600, message: "Invalid Request" } }),
+        { status: 400, headers },
+      );
+    }
+    const responses = (await Promise.all(body.map((m) => server.handle(m)))).filter((r) => r !== null);
+    if (responses.length === 0) return new Response(null, { status: 202, headers });
+    return new Response(JSON.stringify(responses), { status: 200, headers });
+  }
+
+  const response = await server.handle(body);
+  if (response === null) return new Response(null, { status: 202, headers });
+  return new Response(JSON.stringify(response), { status: 200, headers });
+}
+
 // ── Main Router ─────────────────────────────────────────────────────────────
 
 async function route(request, env, ctx, url, origin, requestId) {
-    if (request.method === "OPTIONS" && url.pathname.startsWith("/api/")) {
+    if (request.method === "OPTIONS" && (url.pathname.startsWith("/api/") || url.pathname === "/mcp")) {
       return new Response(null, { status: 204, headers: corsHeaders(origin, requestId) });
+    }
+
+    // opchain MCP server (Codex + any MCP client). JSON-RPC over a single POST.
+    if (url.pathname === "/mcp") {
+      if (await evalFlag("site.ops.api-mcp.kill", { env, ctx })) {
+        return new Response(
+          JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32000, message: "opchain MCP server is paused." } }),
+          { status: 503, headers: corsHeaders(origin, requestId) },
+        );
+      }
+      return handleMcp(request, env, ctx, origin, requestId);
     }
 
     if (url.pathname === "/api/health" && request.method === "GET") {
@@ -695,6 +697,18 @@ async function route(request, env, ctx, url, origin, requestId) {
       const target = demoRedirects[url.pathname];
       if (target) {
         return new Response(null, { status: 301, headers: { Location: buildRedirect(target) } });
+      }
+    }
+
+    // Old (pre-oc-) skill URLs 301 to the prefixed path. Matches both the
+    // page (`/skills/<id>` and `/skills/<id>/`) and the per-skill bundle
+    // (`/skills/<id>.zip`). Already-prefixed `/skills/oc-*` never matches the
+    // id set, so there's no redirect loop.
+    if (request.method === "GET") {
+      const skillPath = url.pathname.match(/^\/skills\/([a-z0-9][a-z0-9-]*?)(\.zip)?\/?$/);
+      if (skillPath && RENAMED_SKILL_IDS.has(skillPath[1])) {
+        const dest = `/skills/oc-${skillPath[1]}${skillPath[2] || ""}`;
+        return new Response(null, { status: 301, headers: { Location: buildRedirect(dest) } });
       }
     }
 
