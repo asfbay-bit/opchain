@@ -663,6 +663,11 @@ import Icon from "../components/Icon.astro";
       lines.push("# Then mirror the .claude/skills/ directory into Claude.ai");
       lines.push("# via Settings → Customize → Skills → Upload");
     }
+    // Codex / any MCP agent: same catalog over the hosted MCP endpoint —
+    // no unzip needed (new in v1.4.3).
+    lines.push("");
+    lines.push("# Prefer Codex or another MCP agent? Skip the download and add");
+    lines.push('# [mcp_servers.opchain] url = "https://opchain.dev/mcp" to ~/.codex/config.toml');
     return lines.join("\n");
   }
 

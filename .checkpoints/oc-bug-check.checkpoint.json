@@ -4,20 +4,20 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-19T10:55:19Z",
+  "updated_at": "2026-06-19T21:18:12Z",
   "phase": "gate",
-  "step": "codex-copy-scrub",
+  "step": "changelog-option-c-v2-and-codex-copy",
   "status": "complete",
-  "progress_summary": "Gate for the v1.4.3 Codex copy scrub on claude/funny-lovelace-cbd2qs (reset to main @680cee4 after #273 merged). Broadened the positioning copy that still defined opchain as Claude-Code-only: Base.astro default meta description, index.astro intro definition line, compare.astro 'runs-on' row (+Codex / any MCP agent, with note), and glossary.astro skill definition. Mirrors the canonical v1.4.3 phrasing already shipped on /install + /changelog. PASS \u2014 astro check 0 errors, vitest 345/345, worker build clean, no critical vulns, diff free of secrets/anti-patterns.",
+  "progress_summary": "Gate for the /changelog Option C v2 rebuild (3-tab Just Released / Coming Next / Planned) plus three v1.4.3 Codex copy stragglers, on branch claude/magical-ride-97ci4g. Changed: site/src/pages/changelog.astro, pipeline-builder.astro, skills/[id].astro, and the e2e spec. PASS with advisory warnings \u2014 astro check 0 errors, vitest 345/345, astro build 35 pages, no anti-patterns or secrets in the diff, no critical vulns (pre-existing high/moderate dep advisories are Dependabot-tracked, not introduced here).",
   "blockers": [],
   "next_actions": [
-    "Merge the copy-scrub PR.",
-    "Deploy from main (npm run deploy:staging -> eyeball -> npm run deploy) to push v1.4.3 + copy live.",
-    "Optional later: broaden remaining single-platform mentions on skills/[id] install hint and pipeline-builder surface selector if desired."
+    "Merge the Option C v2 changelog PR (branch claude/magical-ride-97ci4g) once CI is green.",
+    "DEPLOY from main on a laptop with wrangler login: npm run deploy:staging -> eyeball staging.opchain.dev/changelog -> npm run deploy. The entire v1.4.3 Codex release is merged but undeployed; staging/prod are stale.",
+    "Done in this pass: skills/[id] install hint + footer CTA and the pipeline-builder snippet now mention Codex / the hosted MCP endpoint."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-19T10:55:19Z",
+      "at": "2026-06-19T21:18:12Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
@@ -27,13 +27,18 @@
         "anti_patterns": "PASS",
         "secrets": "PASS",
         "build": "PASS",
-        "dependencies": "PASS"
+        "dependencies": "WARN"
       },
       "tests": "345 passed",
-      "warnings": 0,
+      "warnings": 1,
       "errors": 0
     },
     "run_history": [
+      {
+        "at": "2026-06-19T21:18:12Z",
+        "verdict": "PASS",
+        "warnings": 1
+      },
       {
         "at": "2026-06-19T10:55:19Z",
         "verdict": "PASS",
@@ -63,7 +68,7 @@
     "bypasses": [],
     "carried_debt": 0,
     "streak": {
-      "passes": 10,
+      "passes": 11,
       "since": "2026-06-05T22:01:00Z"
     }
   }

@@ -1,27 +1,28 @@
 ---
 /**
- * /changelog — Option C v3 layout: two ARIA tabs (Just Released · Coming
- * Next), each led by a rich hero card, with the most relevant card in each
- * section expanded on load.
+ * /changelog — Option C v2 layout: three full-width ARIA tabs, each with its
+ * own colour identity, every section led by a rich card expanded on load.
  *
- *   Just Released → v1.4.2 hero (accent) + compact release cards (v1.4 ↓).
- *   Coming Next   → v1.5 hero (info) + the v1.6 / v1.7 roadmap, then the
+ *   Just Released → v1.4.3 hero (accent) + compact release cards (v1.4.2 ↓).
+ *   Coming Next   → v1.5 hero (info) — the one release building now.
+ *   Planned       → v1.6 roadmap card, the v1.7 distribution-theme vote
+ *                   (live relative bar chart), the horizon backlog, then the
  *                   feature-request form.
  *
  * Voting is real: vote buttons carry data-vote-target=<id> and the client
  * script batches GET /api/votes then POSTs /api/votes/<id> per click (the
- * Worker dedups per-IP/day in KV). The votable ids come from
- * roadmap-static.ts — OPC-150 (v1.5) and the per-feature OPC-16x / OPC-17x
- * items grouped by milestone below.
+ * Worker dedups per-IP/day in KV). Votable ids: OPC-150 (v1.5), OPC-16x
+ * (v1.6 features), OPC-170/173/174 (v1.7 theme options — these also drive
+ * the bar chart), and OPC-18x (horizon backlog).
  *
- * Deep links (#v1-5 / #v1-6 / #v1-7 from the skill pages and external
- * links, #v1-4 → /coverage) are handled client-side: the matching tab is
- * activated, the target card expanded, and scrolled into view.
+ * Deep links (#v1-5 → Coming Next; #v1-6 / #v1-7 → Planned; #v1-4 →
+ * /coverage) are handled client-side: the matching tab is activated, the
+ * target card expanded, and scrolled into view.
  *
- * Accessibility: tablist with roving tabindex + arrow/Home/End keys;
- * inactive panel is `hidden`; each card is a button[aria-expanded] that
- * controls its detail region (inert while collapsed so its links/votes
- * aren't reachable by keyboard).
+ * Accessibility: tablist with roving tabindex + arrow/Home/End keys; the
+ * inactive panels are `hidden` (not a CSS slide — keeps the page Axe-clean);
+ * each card is a button[aria-expanded] controlling an `inert` detail region.
+ * The tab bar is deliberately NOT sticky — the global Header already is.
  */
 import Base from "../layouts/Base.astro";
 import RoadmapForm from "../components/RoadmapForm.astro";
@@ -41,7 +42,85 @@ for (const it of staticRoadmap.items.planned) {
   plannedByMilestone.set(key, arr);
 }
 const v16Items = plannedByMilestone.get("v1.6") ?? [];
-const v17Items = plannedByMilestone.get("v1.7") ?? [];
+
+// v1.7 is a single "pick the distribution theme" decision, rendered as a
+// relative bar chart — three competing options, each a real vote. OPC-170
+// carries over its existing count (was the standalone "marketplace" item);
+// the other two are fresh vote keys. Bars redistribute live as votes arrive.
+const v17Options = [
+  {
+    id: "OPC-170",
+    label: "Marketplace + templates",
+    blurb:
+      "A community skill/pack registry plus opinionated project starters. Every contribution adds breadth at zero core-team cost.",
+  },
+  {
+    id: "OPC-173",
+    label: "Agency play",
+    blurb:
+      "oc-monorepo-ops, multi-project checkpoint scoping, a /for-agencies expansion, and a client-handoff demo scenario.",
+  },
+  {
+    id: "OPC-174",
+    label: "Pipeline depth",
+    blurb:
+      "oc-discovery-ops (JTBD / opportunity trees, upstream of app-architect) and oc-qa-ops, splitting test-pyramid design out of oc-bug-check.",
+  },
+];
+
+// Horizon — unscoped backlog beyond v1.7. Votable to signal interest; these
+// graduate onto a milestone once the v1.6 / v1.7 retros are done. Fresh vote
+// keys (OPC-18x), independent of any Linear identifier.
+const horizon = [
+  {
+    id: "OPC-186",
+    title: "Claude.ai web skill install",
+    blurb:
+      "One-click skill install from the opchain site straight into Claude.ai Projects — no file management.",
+  },
+  {
+    id: "OPC-185",
+    title: "VS Code / Cursor extension",
+    blurb:
+      "A native sidebar showing checkpoint state, skill shortcuts, and pipeline progress without leaving the editor.",
+  },
+  {
+    id: "OPC-180",
+    title: "oc-discovery-ops",
+    blurb:
+      "A JTBD / opportunity-tree skill upstream of app-architect — maps user problems before any code is written.",
+  },
+  {
+    id: "OPC-181",
+    title: "oc-qa-ops",
+    blurb:
+      "A dedicated test-pyramid design skill: coverage strategy, contract testing, and load-test planning, split out of oc-bug-check.",
+  },
+  {
+    id: "OPC-182",
+    title: "oc-monorepo-ops",
+    blurb:
+      "Multi-project checkpoint scoping, shared skill config, and coordinated releases across repos in a monorepo.",
+  },
+  {
+    id: "OPC-183",
+    title: "oc-data-ops",
+    blurb:
+      "A data-pipeline design skill: ingestion patterns, transformation layers, dbt integration, and observable data contracts.",
+  },
+  {
+    id: "OPC-184",
+    title: "oc-compliance-ops",
+    blurb:
+      "SOC 2 / HIPAA / GDPR checklists wired into the pipeline, with audit-ready docs generated at deploy time.",
+  },
+  {
+    id: "OPC-187",
+    title: "oc-security-hardening",
+    blurb:
+      "A security-review skill running a full OWASP + threat-model pass before every deploy, separate from oc-code-auditor.",
+  },
+];
 ---
 
 <Base
@@ -81,7 +160,17 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
           aria-selected="false"
           tabindex="-1"
         >
-          Coming Next <span class="tab-count">v1.5 → v1.7</span>
+          Coming Next <span class="tab-count">v1.5</span>
+        </button>
+        <button
+          class="tab-btn tab-btn--planned"
+          role="tab"
+          id="tab-planned"
+          aria-controls="panel-planned"
+          aria-selected="false"
+          tabindex="-1"
+        >
+          Planned <span class="tab-count">v1.6 → v1.7</span>
         </button>
       </div>
       <span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
@@ -328,7 +417,7 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
     >
       <div class="panel-head">
         <h2>What's coming</h2>
-        <span class="panel-sub">v1.5 ships next; v1.6 / v1.7 are the roadmap. Vote to signal priority.</span>
+        <span class="panel-sub">The one release building right now. Vote to signal priority.</span>
       </div>
 
       <!-- v1.5 — next release, AUTO-OPEN, rich hero (info-themed) -->
@@ -407,8 +496,21 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
           </div>
         </div>
       </article>
+    </section>
 
-      <div class="divider"><span class="divider-line"></span><span class="divider-label">on the roadmap</span><span class="divider-line"></span></div>
+    <!-- ══ PANEL 2 — PLANNED ═════════════════════════════════ -->
+    <section
+      class="tab-panel"
+      role="tabpanel"
+      id="panel-planned"
+      aria-labelledby="tab-planned"
+      tabindex="0"
+      hidden
+    >
+      <div class="panel-head">
+        <h2>What's planned</h2>
+        <span class="panel-sub">v1.6 is the roadmap; v1.7 is yours to steer. Votes shape the order things ship.</span>
+      </div>
 
       <!-- v1.6 — first roadmap item, AUTO-OPEN -->
       <article class="plan-card is-open" id="v1-6" data-card>
@@ -449,32 +551,35 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
         </div>
       </article>
 
-      <!-- v1.7 — collapsed by default -->
+      <div class="divider"><span class="divider-line"></span><span class="divider-label">the v1.7 theme vote</span><span class="divider-line"></span></div>
+
+      <!-- v1.7 — the distribution-theme vote (live relative bar chart) -->
       <article class="plan-card" id="v1-7" data-card>
         <button class="pc-row" type="button" aria-expanded="false" aria-controls="v1-7-body" data-disclosure-toggle>
           <span class="pc-toggle" aria-hidden="true">▶</span>
           <span class="pc-meta">
-            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.7</span><span class="pc-title">Pick one distribution play</span><span class="pc-timing">lean: marketplace + templates</span></span>
-            <span class="pc-summary">By v1.6, opchain has 24 skills and AI coverage. The biggest remaining gap is distribution — v1.7 promotes one growth play into a flagship theme.</span>
+            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.7</span><span class="pc-title">Pick one distribution play</span><span class="pc-timing">theme vote open · est. Sep 2026</span></span>
+            <span class="pc-summary">By v1.6, opchain has 24 skills and AI coverage. The biggest remaining gap is distribution — v1.7 bets on one growth theme. Vote for the one you want; the bars redistribute live.</span>
           </span>
         </button>
         <div class="card-body" id="v1-7-body" data-disclosure-body inert>
           <div class="card-body-inner">
-            <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">est. Sep 2026</span></div>
-            <p>By the time v1.6 ships, the biggest remaining gap isn't features — it's <strong>distribution</strong>. v1.7 deliberately promotes one growth play into a flagship theme instead of accreting more skills. The current lean is marketplace + templates.</p>
-            <h3>The lean plan — vote on what matters most</h3>
-            <ul class="vote-list">
-              {v17Items.map((it) => (
-                <li class="vote-item">
-                  <div class="vote-item-meta">
-                    <span class="vote-item-title">{it.title}</span>
-                    <p class="vote-item-blurb">{it.blurb}</p>
+            <div class="tag-row"><span class="tag tag--info">theme vote open</span><span class="tag">est. Sep 2026</span></div>
+            <p>By the time v1.6 ships, the biggest remaining gap isn't features — it's <strong>distribution</strong>. v1.7 deliberately promotes one growth play into a flagship theme instead of accreting more skills. The three contenders are below — your votes go on record now and decide the order.</p>
+            <h3>Vote on the v1.7 theme</h3>
+            <ul class="theme-list">
+              {v17Options.map((opt) => (
+                <li class="theme-option">
+                  <div class="theme-meta">
+                    <span class="theme-label">{opt.label}</span>
+                    <p class="theme-blurb">{opt.blurb}</p>
+                    <span class="theme-bar-wrap"><span class="theme-bar" data-theme-bar={opt.id} style="width:0%"></span></span>
                   </div>
                   <button
                     class="vote-btn"
                     type="button"
-                    data-vote-target={it.id}
-                    aria-label={`Vote for ${it.title}`}
+                    data-vote-target={opt.id}
+                    aria-label={`Vote for the ${opt.label} theme`}
                   >
                     <span class="v-arrow" aria-hidden="true">▲</span>
                     <span class="v-count" data-vote-count>—</span>
@@ -483,19 +588,33 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
                 </li>
               ))}
             </ul>
-            <p class="alt-note">
-              Alternatives on the table: an <strong>agency play</strong>
-              (<code>monorepo-ops</code>, <code>/for-agencies</code>) and
-              <strong>pipeline depth</strong> (<code>discovery-ops</code>,
-              <code>qa-ops</code>).
-            </p>
             <div class="planned-box">Lean, not locked — the final v1.7 theme is chosen after the v1.5 / v1.6 retro.</div>
           </div>
         </div>
       </article>
 
-      <div class="divider"><span class="divider-line"></span><span class="divider-label">backlog</span><span class="divider-line"></span></div>
-      <p class="backlog-note">Backlog is deliberately open until v1.5 and v1.6 ship and the retros are done. Use the form below to add to it.</p>
+      <div class="divider"><span class="divider-line"></span><span class="divider-label">horizon · beyond v1.7</span><span class="divider-line"></span></div>
+      <p class="backlog-note">Not scoped yet — horizon items graduate onto a milestone once the v1.5 / v1.6 retros are done. Vote on what you'd most like worked on next.</p>
+      <ul class="horizon-list">
+        {horizon.map((h) => (
+          <li class="horizon-item">
+            <div class="horizon-meta">
+              <span class="horizon-title">{h.title}</span>
+              <p class="horizon-blurb">{h.blurb}</p>
+            </div>
+            <button
+              class="vote-btn"
+              type="button"
+              data-vote-target={h.id}
+              aria-label={`Vote for ${h.title}`}
+            >
+              <span class="v-arrow" aria-hidden="true">▲</span>
+              <span class="v-count" data-vote-count>—</span>
+              <span class="v-label" data-vote-label>vote</span>
+            </button>
+          </li>
+        ))}
+      </ul>
 
       <RoadmapForm />
     </section>
@@ -627,6 +746,29 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
     window.addEventListener("hashchange", () => revealHash(location.hash));
     if (location.hash) revealHash(location.hash);
 
+    // ===== v1.7 theme bar chart (relative widths from live vote counts) =
+    // Each bar reads the live count of its matching vote button and renders
+    // a percentage of the three-option total. Re-run after the batched load
+    // and after every successful vote so the bars redistribute.
+    function recomputeThemeBars() {
+      const bars = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-theme-bar]"),
+      );
+      if (!bars.length) return;
+      const counts = bars.map((bar) => {
+        const id = bar.getAttribute("data-theme-bar") || "";
+        const cnt = document.querySelector<HTMLElement>(
+          `[data-vote-target="${id}"] [data-vote-count]`,
+        );
+        const n = parseInt(cnt?.textContent || "0", 10);
+        return Number.isFinite(n) ? n : 0;
+      });
+      const total = counts.reduce((a, b) => a + b, 0);
+      bars.forEach((bar, i) => {
+        bar.style.width = `${total > 0 ? Math.round((counts[i] / total) * 100) : 0}%`;
+      });
+    }
+
     // ===== Votes (batched GET + per-click POST; localStorage mirror) ===
     const voteButtons = Array.from(
       document.querySelectorAll<HTMLButtonElement>("[data-vote-target]"),
@@ -663,6 +805,7 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
         } catch {
           for (const btn of voteButtons) setCount(btn, 0);
         }
+        recomputeThemeBars();
       })();
       for (const btn of voteButtons) {
         btn.addEventListener("click", async () => {
@@ -685,6 +828,7 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
               setCount(btn, data.count);
               localStorage.setItem(lsKey(id), "1");
               setVoted(btn, true);
+              recomputeThemeBars();
             } else {
               setCount(btn, previous);
               setVoted(btn, localStorage.getItem(lsKey(id)) === "1");
@@ -701,7 +845,18 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
 </script>
 
 <style>
-  .page { max-width: 820px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  .page {
+    max-width: 860px; margin: 0 auto; padding: 3rem 1.5rem 6rem;
+    /* Scoped violet identity for the Planned tab — the global theme has no
+       --purple. Defined on .page so it cascades to the tab pill, plan-cards,
+       and bars; overridden for the light theme below to stay AA. */
+    --cl-violet: #b29adf;
+    --cl-violet-dim: rgba(178, 154, 223, 0.14);
+  }
+  :global([data-theme="light"]) .page {
+    --cl-violet: #6d28d9;
+    --cl-violet-dim: rgba(109, 40, 217, 0.10);
+  }
   .page-head { margin-bottom: 1.75rem; }
   .eyebrow {
     font-family: var(--font-mono);
@@ -736,7 +891,8 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
     border-bottom: 0.5px solid var(--border);
     margin-bottom: 1.75rem;
   }
-  .tab-list { display: flex; align-items: center; gap: 0; }
+  .tab-list { display: flex; align-items: center; gap: 0; overflow-x: auto; scrollbar-width: none; }
+  .tab-list::-webkit-scrollbar { display: none; }
   .tab-btn {
     display: inline-flex;
     align-items: center;
@@ -776,6 +932,9 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
   .tab-btn--next[aria-selected="true"] .tab-count {
     background: var(--info-dim); border-color: var(--info); color: var(--text);
   }
+  .tab-btn--planned[aria-selected="true"] .tab-count {
+    background: var(--cl-violet-dim); border-color: var(--cl-violet); color: var(--text);
+  }
   .tab-indicator {
     position: absolute;
     bottom: -0.5px;
@@ -786,6 +945,7 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
     transition: left var(--dur-base) var(--ease-standard), width var(--dur-base) var(--ease-standard);
   }
   .tab-indicator[data-active="1"] { background: var(--info); }
+  .tab-indicator[data-active="2"] { background: var(--cl-violet); }
 
   /* ── Panels ───────────────────────────────────────────── */
   .tab-panel[hidden] { display: none; }
@@ -882,15 +1042,15 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
     transition: border-color var(--dur-fast) var(--ease-standard);
   }
   .rel-card:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
-  .plan-card:hover { border-color: color-mix(in srgb, var(--info) 35%, var(--border)); }
+  .plan-card:hover { border-color: color-mix(in srgb, var(--cl-violet) 35%, var(--border)); }
   .rel-card.is-open { border-color: var(--accent); }
-  .plan-card.is-open { border-color: var(--info); }
+  .plan-card.is-open { border-color: var(--cl-violet); }
   .rel-card.is-open::before,
   .plan-card.is-open::before {
     content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
   }
   .rel-card.is-open::before { background: var(--accent); }
-  .plan-card.is-open::before { background: var(--info); }
+  .plan-card.is-open::before { background: var(--cl-violet); }
 
   .rc-row, .pc-row {
     display: flex;
@@ -913,7 +1073,7 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
     transition: transform var(--dur-fast) var(--ease-standard), background var(--dur-fast), border-color var(--dur-fast);
   }
   .rel-card.is-open .rc-toggle { transform: rotate(90deg); background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
-  .plan-card.is-open .pc-toggle { transform: rotate(90deg); background: var(--info-dim); border-color: var(--info); color: var(--info); }
+  .plan-card.is-open .pc-toggle { transform: rotate(90deg); background: var(--cl-violet-dim); border-color: var(--cl-violet); color: var(--cl-violet); }
 
   .rc-meta, .pc-meta { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 2px; }
   .rc-head, .pc-head { display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; }
@@ -1065,4 +1225,36 @@ const v17Items = plannedByMilestone.get("v1.7") ?? [];
     font-family: var(--font-mono);
     letter-spacing: var(--ls-wide);
   }
+
+  /* ── v1.7 theme vote (relative bar chart) ─────────────── */
+  .theme-list { list-style: none; padding: 0 !important; margin: 0.5rem 0 0 !important; display: grid; gap: 0.5rem; }
+  .theme-option {
+    display: flex; align-items: center; gap: 1rem;
+    background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-sm);
+    padding: 0.7rem 0.85rem; margin: 0 !important;
+  }
+  .theme-meta { flex: 1; min-width: 0; }
+  .theme-label { display: block; font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .theme-blurb { font-size: 12px; color: var(--muted); line-height: var(--lh-snug); margin: 0 0 0.5rem !important; }
+  .theme-bar-wrap { display: block; height: 5px; background: var(--border); border-radius: var(--r-pill); overflow: hidden; }
+  .theme-bar { display: block; height: 100%; width: 0; background: var(--cl-violet); border-radius: var(--r-pill); transition: width var(--dur-base) var(--ease-standard); }
+  .theme-option .vote-btn:hover { border-color: var(--cl-violet); background: var(--cl-violet-dim); transform: translateY(-1px); }
+  .theme-option .vote-btn.voted { border-color: var(--cl-violet); background: var(--cl-violet-dim); color: var(--cl-violet); }
+  .theme-option .vote-btn.voted .v-label { color: var(--cl-violet); }
+
+  /* ── Horizon backlog rows ─────────────────────────────── */
+  .horizon-list { list-style: none; padding: 0 !important; margin: 0 0 1.5rem !important; display: grid; gap: 0.5rem; }
+  .horizon-item {
+    display: flex; align-items: center; gap: 1rem;
+    background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-sm);
+    padding: 0.7rem 0.85rem; margin: 0 !important;
+    transition: border-color var(--dur-fast) var(--ease-standard);
+  }
+  .horizon-item:hover { border-color: color-mix(in srgb, var(--cl-violet) 35%, var(--border)); }
+  .horizon-meta { flex: 1; min-width: 0; }
+  .horizon-title { display: block; font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .horizon-blurb { font-size: 12px; color: var(--muted); line-height: var(--lh-snug); margin: 0 !important; }
+  .horizon-item .vote-btn:hover { border-color: var(--cl-violet); background: var(--cl-violet-dim); transform: translateY(-1px); }
+  .horizon-item .vote-btn.voted { border-color: var(--cl-violet); background: var(--cl-violet-dim); color: var(--cl-violet); }
+  .horizon-item .vote-btn.voted .v-label { color: var(--cl-violet); }
 </style>
