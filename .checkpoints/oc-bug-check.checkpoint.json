@@ -4,20 +4,19 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-19T21:18:12Z",
+  "updated_at": "2026-06-20T00:32:48Z",
   "phase": "gate",
-  "step": "changelog-option-c-v2-and-codex-copy",
+  "step": "decouple-deploy-from-linear-roadmap-pull",
   "status": "complete",
-  "progress_summary": "Gate for the /changelog Option C v2 rebuild (3-tab Just Released / Coming Next / Planned) plus three v1.4.3 Codex copy stragglers, on branch claude/magical-ride-97ci4g. Changed: site/src/pages/changelog.astro, pipeline-builder.astro, skills/[id].astro, and the e2e spec. PASS with advisory warnings \u2014 astro check 0 errors, vitest 345/345, astro build 35 pages, no anti-patterns or secrets in the diff, no critical vulns (pre-existing high/moderate dep advisories are Dependabot-tracked, not introduced here).",
+  "progress_summary": "Gate for decoupling the deploy from the dead Linear roadmap pull. npm run deploy:staging was aborting because gen-roadmap.mjs couldn't reach Linear under OPCHAIN_REQUIRE_LINEAR=1 \u2014 but /changelog reads roadmap-static.ts now and roadmap.json/loadRoadmap() is consumed by nothing, so the gate was protecting dead data. Removed gen-roadmap from prebuild, stripped the LINEAR_API_KEY assertion + OPCHAIN_REQUIRE_LINEAR + abortMissing from scripts/deploy.mjs, updated CLAUDE.md. Config/docs-only \u2014 no site/worker compile targets touched, so prior astro check 0 / vitest 345 / build 35 still hold. node --check deploy.mjs OK, package.json valid JSON, no anti-patterns or secrets in the diff. PASS.",
   "blockers": [],
   "next_actions": [
-    "Merge the Option C v2 changelog PR (branch claude/magical-ride-97ci4g) once CI is green.",
-    "DEPLOY from main on a laptop with wrangler login: npm run deploy:staging -> eyeball staging.opchain.dev/changelog -> npm run deploy. The entire v1.4.3 Codex release is merged but undeployed; staging/prod are stale.",
-    "Done in this pass: skills/[id] install hint + footer CTA and the pipeline-builder snippet now mention Codex / the hosted MCP endpoint."
+    "Merge the deploy-decouple PR, then re-run npm run deploy:staging — it no longer needs Linear and won't abort if Linear is unreachable.",
+    "DEPLOY from main on a laptop with wrangler login: npm run deploy:staging -> eyeball staging.opchain.dev/changelog -> npm run deploy. Ships the Option C v2 changelog + the whole already-merged v1.4.3 Codex marketing backlog."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-19T21:18:12Z",
+      "at": "2026-06-20T00:32:48Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
@@ -34,6 +33,11 @@
       "errors": 0
     },
     "run_history": [
+      {
+        "at": "2026-06-20T00:32:48Z",
+        "verdict": "PASS",
+        "warnings": 1
+      },
       {
         "at": "2026-06-19T21:18:12Z",
         "verdict": "PASS",
@@ -68,7 +72,7 @@
     "bypasses": [],
     "carried_debt": 0,
     "streak": {
-      "passes": 11,
+      "passes": 12,
       "since": "2026-06-05T22:01:00Z"
     }
   }

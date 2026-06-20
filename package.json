@@ -26,7 +26,7 @@
     "sync-bundles": "node scripts/sync-skill-bundles.mjs",
     "sync-bundles:check": "node scripts/sync-skill-bundles.mjs --check",
     "build-site": "bash scripts/build-site.sh",
-    "prebuild": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check && npm run sync-docs && npm run make-zip && npm run gen-og && npm run gen-roadmap && npm run build-site",
+    "prebuild": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check && npm run sync-docs && npm run make-zip && npm run gen-og && npm run build-site",
     "pretest": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check",
     "test": "vitest run",
     "test:watch": "vitest",
