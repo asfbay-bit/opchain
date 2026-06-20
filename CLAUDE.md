@@ -37,8 +37,7 @@ feature branch ─► PR ─► CI green (tests only) ─► merge to main
 
 - `npm run deploy:staging` → `node scripts/deploy.mjs --staging` → `wrangler deploy --env staging`
 - `npm run deploy` → `node scripts/deploy.mjs` → `wrangler deploy` (production)
-- The wrapper loads `.dev.vars` and refuses to deploy without `LINEAR_API_KEY` set. This blocks the class of bug where `scripts/gen-roadmap.mjs` silently ships an empty `/changelog` roadmap because the build couldn't reach Linear.
-- It also sets `OPCHAIN_REQUIRE_LINEAR=1` so `gen-roadmap.mjs` fails loud even if someone bypasses the wrapper (e.g. running `npm run prebuild && wrangler deploy` by hand).
+- The wrapper loads `.dev.vars` into the build env and inlines the `PUBLIC_POSTHOG_*` analytics vars. It **no longer requires `LINEAR_API_KEY`**: the `/changelog` roadmap is hand-maintained in `site/src/data/roadmap-static.ts`, so the old build-time Linear pull (`scripts/gen-roadmap.mjs`) is no longer on the deploy path and Linear being unreachable can't block a deploy. `gen-roadmap` and `OPCHAIN_REQUIRE_LINEAR` were removed from the deploy/prebuild flow on 2026-06-19; the script is kept for a future re-wire to a live roadmap.
 - After each deploy, sanity-check by hand: `curl -sS https://staging.opchain.dev/api/health` and confirm `version` matches your local commit SHA.
 
 ### CI
