@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>opchain · v1.4.3 Codex release — standalone mockup</title>
+<style>
+  /* ============================================================
+     opchain v1.4.3 "Codex" release — fresh-redesigned mockup.
+     Fully self-contained: no external CSS/JS/fonts, no build step.
+     Brand: obsidian ground + ember accent, matching opchain.dev.
+     Tabs switch between the five surfaces touched by v1.4.3:
+       Home · Changelog · Install · What's Codex · Downloads
+     ============================================================ */
+  :root {
+    --obsidian: #0c0d10;
+    --panel:    #15171c;
+    --panel-2:  #1b1e25;
+    --line:     #272b34;
+    --line-2:   #343a46;
+    --text:     #e8e9ec;
+    --muted:    #9aa0ab;
+    --faint:    #6b717c;
+    --accent:   #e05c18;
+    --accent-2: #ff7a36;
+    --ember-glow: rgba(224, 92, 24, 0.40);
+    --info:     #5b7089;
+    --good:     #3fb27f;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--obsidian); color: var(--text);
+    font-family: var(--sans); line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre { font-family: var(--mono); }
+  .ic { background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px;
+        padding: 1px 6px; font-size: 0.85em; color: #ffd9c2; }
+
+  /* ---- preview chrome (not part of the site; frames the mockup) ---- */
+  .mock-note {
+    background: linear-gradient(90deg, rgba(224,92,24,0.14), rgba(224,92,24,0.02));
+    border-bottom: 1px solid var(--line);
+    font-size: 13px; color: var(--muted); padding: 10px 20px;
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+  .mock-note strong { color: var(--accent-2); }
+  .mock-pill { background: var(--accent); color: #fff; font-weight: 700;
+    border-radius: 999px; padding: 2px 10px; font-size: 11px; letter-spacing: .04em; }
+
+  /* ---- top nav ---- */
+  .topbar { position: sticky; top: 0; z-index: 50; background: rgba(12,13,16,0.86);
+    backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 18px; padding: 0 20px; height: 58px; }
+  .brand { font-weight: 800; letter-spacing: -0.02em; font-size: 18px; margin-right: 6px; }
+  .brand .dot { color: var(--accent); }
+  .ver-chip { font-family: var(--mono); font-size: 11px; color: #ffd9c2;
+    border: 1px solid var(--line-2); border-radius: 999px; padding: 2px 9px; }
+  .tabs { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; }
+  .tab { background: none; border: 1px solid transparent; color: var(--muted);
+    font: inherit; font-size: 14px; padding: 7px 13px; border-radius: 8px; cursor: pointer; }
+  .tab:hover { color: var(--text); background: var(--panel); }
+  .tab.active { color: #fff; background: var(--panel-2); border-color: var(--line-2); }
+  .tab .num { color: var(--faint); font-size: 11px; margin-right: 5px; }
+  .tab.active .num { color: var(--accent); }
+
+  /* ---- layout ---- */
+  .surface { display: none; max-width: 980px; margin: 0 auto; padding: 46px 22px 90px; }
+  .surface.active { display: block; animation: fade .25s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+  h1.title { font-size: 40px; line-height: 1.1; letter-spacing: -0.03em; margin: 0 0 8px; }
+  h2 { letter-spacing: -0.02em; }
+  .lede { color: var(--muted); font-size: 17px; max-width: 70ch; }
+
+  /* ---- buttons ---- */
+  .btn { display: inline-flex; align-items: center; gap: 8px; font: inherit; font-weight: 600;
+    border-radius: 9px; padding: 10px 16px; cursor: pointer; border: 1px solid var(--line-2);
+    background: var(--panel-2); color: var(--text); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-2); text-decoration: none; }
+  .btn-ghost:hover { border-color: var(--accent); text-decoration: none; }
+
+  /* ===================== HOME ===================== */
+  .intro-mark { font-size: 64px; font-weight: 800; letter-spacing: -0.04em; margin: 8px 0 0; }
+  .intro-claim { font-size: 26px; color: var(--accent-2); font-weight: 700; margin: 2px 0 18px; }
+  .intro-tag { color: var(--muted); font-size: 18px; max-width: 60ch; }
+  .intro-body p { color: var(--muted); max-width: 72ch; }
+  .intro-body strong { color: var(--text); }
+
+  /* dual release pill — UPDATED for v1.4.3 */
+  .release-bar { display: inline-flex; align-items: stretch; margin: 26px 0 8px;
+    border: 1px solid var(--line-2); border-radius: 14px; overflow: hidden;
+    background: var(--panel); cursor: pointer; text-decoration: none;
+    box-shadow: 0 0 0 1px rgba(224,92,24,0.16), 0 0 26px -8px var(--ember-glow);
+    animation: pulse 3.4s ease-in-out infinite; }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 1px rgba(224,92,24,0.16), 0 0 26px -10px var(--ember-glow); }
+    50%     { box-shadow: 0 0 0 1px rgba(224,92,24,0.30), 0 0 34px -6px var(--ember-glow); }
+  }
+  .release-bar:hover { transform: translateY(-1px); text-decoration: none; }
+  .rb-half { padding: 12px 18px; display: flex; flex-direction: column; gap: 3px; }
+  .rb-current { background: linear-gradient(180deg, rgba(224,92,24,0.16), rgba(224,92,24,0.04)); }
+  .rb-tag { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; font-weight: 700; color: var(--accent-2); }
+  .rb-tag-next { color: var(--info); }
+  .rb-text { font-size: 13.5px; color: var(--text); }
+  .rb-text-next { color: var(--muted); }
+  .rb-div { width: 1px; background: var(--line-2); }
+  .rb-arrow { display: flex; align-items: center; padding: 0 14px; color: var(--faint); font-size: 22px; }
+
+  .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin: 30px 0; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px; text-align: center; }
+  .stat .n { font-size: 24px; font-weight: 800; display: block; }
+  .stat .n.accent { color: var(--accent-2); }
+  .stat .l { font-size: 12px; color: var(--muted); }
+
+  /* ===================== CHANGELOG ===================== */
+  .clog-tabs { display: flex; gap: 8px; margin: 22px 0 26px; border-bottom: 1px solid var(--line); }
+  .clog-tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--muted);
+    font: inherit; padding: 10px 4px; cursor: pointer; margin-bottom: -1px; }
+  .clog-tab.active { color: #fff; border-color: var(--accent); }
+  .clog-tab .c { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: 6px; }
+
+  .hero-card { border: 1px solid var(--accent); border-radius: 16px; overflow: hidden;
+    background: linear-gradient(180deg, rgba(224,92,24,0.08), rgba(224,92,24,0.01)); margin-bottom: 16px; }
+  .hero-head { padding: 20px 22px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .hero-badge { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700;
+    letter-spacing: .05em; text-transform: uppercase; border-radius: 999px; padding: 3px 10px; }
+  .hero-ver { font-family: var(--mono); font-size: 13px; color: #ffd9c2; }
+  .hero-title { flex-basis: 100%; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-top: 4px; }
+  .hero-desc { flex-basis: 100%; color: var(--muted); max-width: 78ch; }
+  .hero-body { padding: 0 22px 22px; }
+  .tile-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin: 8px 0 18px; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 11px; padding: 14px 16px; }
+  .tile .tn { font-weight: 700; color: var(--accent-2); display: block; margin-bottom: 4px; }
+  .tile p { margin: 0; color: var(--muted); font-size: 14px; }
+  .callout { background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 10px; padding: 14px 18px; margin-bottom: 14px; }
+  .callout h4 { margin: 0 0 8px; }
+  .callout ul { margin: 0; padding-left: 18px; color: var(--muted); }
+  .compat { background: rgba(63,178,127,0.08); border: 1px solid rgba(63,178,127,0.3);
+    border-radius: 10px; padding: 12px 16px; font-size: 14px; color: #b9e8d2; }
+
+  .rel-card { border: 1px solid var(--line); border-radius: 12px; background: var(--panel);
+    padding: 14px 18px; margin-bottom: 10px; }
+  .rel-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+  .ver-pill { font-family: var(--mono); font-size: 11px; border: 1px solid var(--line-2);
+    border-radius: 999px; padding: 2px 9px; color: var(--muted); }
+  .rel-title { font-weight: 700; }
+  .rel-date { color: var(--faint); font-size: 13px; margin-left: auto; }
+  .rel-sum { color: var(--muted); font-size: 14px; margin: 6px 0 0; flex-basis: 100%; }
+
+  /* ===================== INSTALL ===================== */
+  .flow { display: flex; gap: 18px; padding: 22px 0; border-top: 1px solid var(--line); }
+  .flow:first-of-type { border-top: none; }
+  .flow-num { font-family: var(--mono); font-size: 13px; color: var(--accent);
+    border: 1px solid var(--line-2); border-radius: 8px; padding: 4px 9px; height: fit-content; }
+  .flow.codex { background: linear-gradient(90deg, rgba(224,92,24,0.07), transparent);
+    border-radius: 14px; padding: 22px; border: 1px solid var(--accent); }
+  .flow-body { flex: 1; }
+  .flow-body h3 { margin: 0 0 8px; font-size: 19px; }
+  .flow-body p { color: var(--muted); margin: 8px 0; }
+  .new-tag { background: var(--accent); color: #fff; font-size: 10px; font-weight: 700;
+    border-radius: 999px; padding: 2px 8px; letter-spacing: .05em; vertical-align: middle; margin-left: 8px; }
+  pre.code { background: #08090b; border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px; overflow-x: auto; font-size: 13px; color: #d6dae0; margin: 8px 0; }
+  pre.code .cm { color: var(--faint); }
+  pre.code .kw { color: var(--accent-2); }
+
+  /* ===================== CODEX / MARKETING ===================== */
+  .feature { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; margin: 28px 0; }
+  .fcard { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .fcard h3 { margin: 0 0 8px; color: var(--accent-2); }
+  .fcard p { color: var(--muted); margin: 0; font-size: 14.5px; }
+  .quote { border-left: 3px solid var(--accent); padding: 6px 18px; color: var(--text);
+    font-size: 19px; font-style: italic; margin: 24px 0; }
+  .matrix { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+  .matrix th, .matrix td { border: 1px solid var(--line); padding: 10px 12px; text-align: left; }
+  .matrix th { background: var(--panel-2); color: var(--muted); font-weight: 600; }
+  .matrix td:first-child { color: var(--text); font-weight: 600; }
+  .check { color: var(--good); font-weight: 700; }
+
+  /* ===================== DOWNLOADS ===================== */
+  .dl-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px; margin-bottom: 16px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  .dl-icon { font-size: 30px; }
+  .dl-body { flex: 1; min-width: 240px; }
+  .dl-body h3 { margin: 0 0 4px; }
+  .dl-body p { margin: 0; color: var(--muted); font-size: 14px; }
+  .dl-meta { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+
+  .footer { border-top: 1px solid var(--line); color: var(--faint); font-size: 13px;
+    text-align: center; padding: 26px; }
+  @media (max-width: 720px) {
+    .tile-grid, .feature, .stats { grid-template-columns: 1fr; }
+    .tabs { gap: 0; }
+    .tab { padding: 7px 9px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="mock-note">
+  <span class="mock-pill">MOCKUP</span>
+  <span><strong>Fresh-redesigned preview</strong> of opchain.dev <strong>after the v1.4.3 "Codex" release deploys.</strong>
+  Standalone — no build, no server. Content sourced from the merged v1.4.3 code; layout is a fresh design pass for your evaluation.</span>
+</div>
+
+<nav class="topbar">
+  <span class="brand">opchain<span class="dot">.</span></span>
+  <span class="ver-chip">v1.4.3</span>
+  <div class="tabs">
+    <button class="tab active" data-s="home"><span class="num">01</span>Home</button>
+    <button class="tab" data-s="changelog"><span class="num">02</span>Changelog</button>
+    <button class="tab" data-s="install"><span class="num">03</span>Install</button>
+    <button class="tab" data-s="codex"><span class="num">04</span>What's Codex</button>
+    <button class="tab" data-s="downloads"><span class="num">05</span>Downloads</button>
+  </div>
+</nav>
+
+<!-- ===================== HOME ===================== -->
+<section class="surface active" id="home">
+  <div class="eyebrow">concept → production → ops</div>
+  <div class="intro-mark">opchain</div>
+  <div class="intro-claim">skills that ship.</div>
+  <p class="intro-tag">a skillchain and checkpoint protocol designed to get you from concept to production to ops</p>
+
+  <div class="intro-body">
+    <p>If you've ever tried to build something real with Claude and watched it lose the plot between
+    chats — forgetting your spec, redesigning what it already designed, repeating questions it asked
+    an hour ago — opchain is what you've been looking for.</p>
+    <p>A set of skills plus a checkpoint protocol — <strong>native in Claude Code, and now in Codex
+    or any MCP agent via a hosted endpoint.</strong> Each skill specializes in one piece of the puzzle
+    (discovery, spec, design, build, audit, ship, monitor, migrate, scale). A central orchestrator
+    routes between them so you never have to think about which skill to call.</p>
+    <p>Install them, trigger by name, keep going. No API keys. No SaaS. No vendor lock-in — every
+    skill is a single Markdown file.</p>
+  </div>
+
+  <!-- UPDATED dual release pill: current half now reads v1.4.3 + leads with Codex -->
+  <a class="release-bar" onclick="go('changelog');return false;" href="#">
+    <span class="rb-half rb-current">
+      <span class="rb-tag">v1.4.3 · shipped</span>
+      <span class="rb-text">Codex &amp; any-MCP-agent support · hosted opchain.dev/mcp endpoint</span>
+    </span>
+    <span class="rb-div"></span>
+    <span class="rb-half rb-next">
+      <span class="rb-tag rb-tag-next">v1.5 · next</span>
+      <span class="rb-text rb-text-next">4 AI-native skills · RAG · agents · prompt-ops</span>
+    </span>
+    <span class="rb-arrow">›</span>
+  </a>
+
+  <section class="stats">
+    <div class="stat"><span class="n">18</span><span class="l">skills shipped</span></div>
+    <div class="stat"><span class="n accent">v1.4.3</span><span class="l">latest release</span></div>
+    <div class="stat"><span class="n">live</span><span class="l">system status</span></div>
+    <div class="stat"><span class="n">MIT</span><span class="l">open source</span></div>
+  </section>
+
+  <div class="callout">
+    <h4>🆕 New in v1.4.3 — opchain runs on Codex</h4>
+    <p style="color:var(--muted);margin:0">Point Codex (or Claude Desktop, Cursor, Windsurf — any MCP client)
+    at the hosted <code class="ic">opchain.dev/mcp</code> endpoint and get the same concept-to-ship
+    pipeline Claude Code auto-discovers. <a onclick="go('codex');return false;" href="#">See what changed →</a></p>
+  </div>
+</section>
+
+<!-- ===================== CHANGELOG ===================== -->
+<section class="surface" id="changelog">
+  <div class="eyebrow">changelog</div>
+  <h1 class="title">What shipped</h1>
+  <p class="lede">Newest is open; the release cadence runs Just Released → Coming Next → Planned.</p>
+
+  <div class="clog-tabs">
+    <button class="clog-tab active">Just Released <span class="c">3</span></button>
+    <button class="clog-tab">Coming Next <span class="c">v1.5</span></button>
+    <button class="clog-tab">Planned <span class="c">v1.6+</span></button>
+  </div>
+
+  <!-- v1.4.3 hero -->
+  <article class="hero-card">
+    <div class="hero-head">
+      <span class="hero-badge">latest release</span>
+      <span class="hero-ver">v1.4.3 · shipped Jun 12, 2026</span>
+      <span class="hero-title">opchain runs on Codex</span>
+      <span class="hero-desc">opchain now speaks the Model Context Protocol, so Codex — and any
+        MCP-aware agent (Claude Desktop, Cursor, Windsurf) — gets the same concept-to-ship pipeline
+        Claude Code auto-discovers: the skill catalog, intent routing, the shared orchestrator
+        protocol, and cross-session checkpoints. Brought forward from the tabled v1.8 slot.</span>
+    </div>
+    <div class="hero-body">
+      <h3>What's new</h3>
+      <div class="tile-grid">
+        <div class="tile"><span class="tn">MCP server</span><p>A <code class="ic">POST /mcp</code>
+          endpoint exposes the catalog, intent routing, the orchestrator protocol, and checkpoints as
+          MCP tools, prompts, and resources — for Codex and any MCP client.</p></div>
+        <div class="tile"><span class="tn">two ways in</span><p>Point Codex at the hosted
+          <code class="ic">opchain.dev/mcp</code> endpoint, or drop the skills into
+          <code class="ic">.codex/skills/</code> — Codex Agent Skills use the same SKILL.md format.</p></div>
+        <div class="tile"><span class="tn">/oc-* survives</span><p>Every <code class="ic">/oc-*</code>
+          command is re-exposed as an MCP prompt, so the slash-command flow carries over to clients
+          that surface MCP prompts.</p></div>
+        <div class="tile"><span class="tn">checkpoints anywhere</span><p>Session state persists across
+          MCP sessions, so you resume where you left off — the same contract Claude Code uses.</p></div>
+      </div>
+      <div class="callout">
+        <h4>New on /install</h4>
+        <ul>
+          <li><strong>Codex / any MCP agent</strong> — a fourth install flow with the
+            <code class="ic">~/.codex/config.toml</code> snippet and the <code class="ic">.codex/skills</code> drop-in.</li>
+          <li><strong>local stdio server</strong> — an offline <code class="ic">mcp/local-server.mjs</code> for air-gapped setups.</li>
+        </ul>
+      </div>
+      <div class="compat"><strong>Back-compatible with v1.4.</strong> The skills are unchanged — only
+        their packaging — so Claude Code installs are untouched. All 18 skills lockstep-bump to <code class="ic">1.4.3</code>.</div>
+    </div>
+  </article>
+
+  <article class="rel-card">
+    <div class="rel-row">
+      <span class="ver-pill">v1.4.2</span><span class="rel-title">Complete bundles, honest checkpoints</span>
+      <span class="rel-date">Jun 05, 2026</span>
+      <span class="rel-sum">An out-of-band emergency patch: the "download all" bundle ships full skill
+        trees again, plus a correctness pass reconciling the checkpoint and orchestrator docs with what actually runs.</span>
+    </div>
+  </article>
+  <article class="rel-card">
+    <div class="rel-row">
+      <span class="ver-pill">v1.4</span><span class="rel-title">Coverage as a plugin registry</span>
+      <span class="rel-date">May 12, 2026</span>
+      <span class="rel-sum">32 packs across 13 languages, 9 frameworks, 4 mobile platforms, 6 deploy
+        targets. One pack.yml per pack, validated on every build.</span>
+    </div>
+  </article>
+</section>
+
+<!-- ===================== INSTALL ===================== -->
+<section class="surface" id="install">
+  <div class="eyebrow">install</div>
+  <h1 class="title">Four flows.</h1>
+  <p class="lede">Every skill is a single <code class="ic">SKILL.md</code> file. Install the full set
+    or just the ones you want. No API keys, no package manager, no build step.</p>
+  <p style="margin-top:18px"><a class="btn btn-primary" onclick="go('downloads');return false;" href="#">⬇ download bundle</a></p>
+
+  <div style="margin-top:22px">
+    <div class="flow">
+      <span class="flow-num">01</span>
+      <div class="flow-body">
+        <h3>⌁ Claude Code CLI</h3>
+        <p>Drop the skills into <code class="ic">.claude/skills/</code>. Claude Code auto-discovers
+          them on the next session.</p>
+        <pre class="code"><span class="cm"># from your project root</span>
+curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
+unzip opchain-skills.zip -d .claude/skills/</pre>
+      </div>
+    </div>
+
+    <div class="flow">
+      <span class="flow-num">02</span>
+      <div class="flow-body">
+        <h3>▤ Claude.ai / Claude Desktop</h3>
+        <p>Download the bundle or individual <code class="ic">SKILL.md</code> files, then
+          <strong>Settings → Customize → Skills → Upload skill</strong>.</p>
+      </div>
+    </div>
+
+    <div class="flow">
+      <span class="flow-num">03</span>
+      <div class="flow-body">
+        <h3>⎇ Team (check into git)</h3>
+        <p>Commit the skills directory so every teammate uses the same prompt pipeline.</p>
+        <pre class="code">git add .claude/skills/ &amp;&amp; git commit -m "add opchain skills"</pre>
+      </div>
+    </div>
+
+    <!-- Flow 4 — NEW in v1.4.3 -->
+    <div class="flow codex">
+      <span class="flow-num">04</span>
+      <div class="flow-body">
+        <h3>⌁ Codex / any MCP agent <span class="new-tag">NEW · v1.4.3</span></h3>
+        <p>Codex — and any MCP-aware agent (Claude Desktop, Cursor, Windsurf) — reaches opchain over
+          the <a href="https://modelcontextprotocol.io">Model Context Protocol</a>. Point your client
+          at the hosted endpoint and you get the catalog, intent routing, the orchestrator protocol,
+          and checkpoints — the same pipeline Claude Code auto-discovers.</p>
+        <p style="color:var(--text)"><strong>Hosted MCP server</strong> — nothing to install:</p>
+        <pre class="code"><span class="cm"># ~/.codex/config.toml</span>
+<span class="kw">[mcp_servers.opchain]</span>
+url = "https://opchain.dev/mcp"</pre>
+        <p style="color:var(--text)"><strong>Or drop the skills in directly</strong> — Codex Agent
+          Skills use the same SKILL.md format:</p>
+        <pre class="code">curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
+unzip opchain-skills.zip -d .codex/skills/
+codex</pre>
+        <p><strong>Verify it worked.</strong> Run <code class="ic">codex</code> and ask "build me an
+          app" — opchain's <code class="ic">route</code> tool hands you to oc-app-architect's discovery
+          interview. With the MCP server, the <code class="ic">/oc-*</code> commands also appear as
+          prompts in the slash menu.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== WHAT'S CODEX (MARKETING) ===================== -->
+<section class="surface" id="codex">
+  <div class="eyebrow">v1.4.3 · the codex release</div>
+  <h1 class="title">One pipeline. Every agent.</h1>
+  <p class="lede">opchain was born in Claude Code. As of v1.4.3 the exact same concept-to-ship pipeline
+    runs anywhere the Model Context Protocol does — starting with OpenAI's Codex.</p>
+
+  <p class="quote">"The skills didn't change. Their reach did. Same 18-skill pipeline, now one
+    config line away from any MCP-aware agent."</p>
+
+  <div class="feature">
+    <div class="fcard"><h3>Hosted, zero-install</h3><p>One line in
+      <code class="ic">~/.codex/config.toml</code> points Codex at <code class="ic">opchain.dev/mcp</code>.
+      No package to vendor, no key to manage, no build step.</p></div>
+    <div class="fcard"><h3>Tools, prompts &amp; resources</h3><p>The MCP server exposes the skill
+      catalog and intent routing as <em>tools</em>, every <code class="ic">/oc-*</code> verb as a
+      <em>prompt</em>, and the orchestrator protocol + checkpoints as <em>resources</em>.</p></div>
+    <div class="fcard"><h3>Checkpoints cross sessions</h3><p>The same JSON checkpoint contract Claude
+      Code uses persists across MCP sessions — start in Claude Code, resume in Codex, never lose the plot.</p></div>
+    <div class="fcard"><h3>Or run it offline</h3><p>An air-gapped <code class="ic">mcp/local-server.mjs</code>
+      stdio server ships in the bundle — same catalog, no network.</p></div>
+  </div>
+
+  <h2>Where opchain runs now</h2>
+  <table class="matrix">
+    <tr><th>Surface</th><th>How</th><th>Since</th></tr>
+    <tr><td>Claude Code CLI</td><td>native skill auto-discovery in <code class="ic">.claude/skills/</code></td><td>v1.0</td></tr>
+    <tr><td>Claude.ai / Desktop</td><td>upload SKILL.md in Settings → Skills</td><td>v1.1</td></tr>
+    <tr><td>Codex</td><td><span class="check">✓</span> hosted MCP endpoint <em>or</em> <code class="ic">.codex/skills/</code></td><td><strong>v1.4.3</strong></td></tr>
+    <tr><td>Cursor / Windsurf / any MCP client</td><td><span class="check">✓</span> hosted MCP endpoint</td><td><strong>v1.4.3</strong></td></tr>
+    <tr><td>Air-gapped / offline</td><td><span class="check">✓</span> local stdio server</td><td><strong>v1.4.3</strong></td></tr>
+  </table>
+
+  <div class="compat" style="margin-top:18px"><strong>Nothing breaks.</strong> v1.4.3 changes how the
+    skills are <em>packaged and reached</em>, not the skills themselves. Existing Claude Code installs
+    keep working untouched. All 18 skills lockstep-bump to <code class="ic">1.4.3</code>.</div>
+</section>
+
+<!-- ===================== DOWNLOADS ===================== -->
+<section class="surface" id="downloads">
+  <div class="eyebrow">downloads</div>
+  <h1 class="title">Get the bundle</h1>
+  <p class="lede">Everything regenerates from <code class="ic">skills/</code> on build. As of v1.4.3
+    the bundle carries the MCP servers alongside the skills.</p>
+
+  <div style="margin-top:24px">
+    <div class="dl-card">
+      <span class="dl-icon">📦</span>
+      <div class="dl-body">
+        <h3>opchain-skills.zip <span class="new-tag">v1.4.3</span></h3>
+        <p>All 18 skills (full trees: <code class="ic">references/</code>, <code class="ic">scripts/</code>,
+          <code class="ic">examples/</code>) + the <code class="ic">.codex/skills</code> drop-in layout.</p>
+        <span class="dl-meta">opchain.dev/opchain-skills.zip · lockstep v1.4.3</span>
+      </div>
+      <a class="btn btn-primary" href="#">⬇ download</a>
+    </div>
+
+    <div class="dl-card">
+      <span class="dl-icon">🔌</span>
+      <div class="dl-body">
+        <h3>Hosted MCP endpoint <span class="new-tag">NEW</span></h3>
+        <p>No download — point any MCP client at the live endpoint.</p>
+        <span class="dl-meta">POST https://opchain.dev/mcp</span>
+      </div>
+      <a class="btn btn-ghost" onclick="go('install');return false;" href="#">setup →</a>
+    </div>
+
+    <div class="dl-card">
+      <span class="dl-icon">🖥️</span>
+      <div class="dl-body">
+        <h3>Local stdio server <span class="new-tag">NEW</span></h3>
+        <p>Offline / air-gapped MCP server. Ships in the bundle at <code class="ic">mcp/local-server.mjs</code>.</p>
+        <span class="dl-meta">node mcp/local-server.mjs</span>
+      </div>
+      <a class="btn btn-ghost" href="#">docs →</a>
+    </div>
+
+    <div class="dl-card">
+      <span class="dl-icon">📄</span>
+      <div class="dl-body">
+        <h3>Individual SKILL.md files</h3>
+        <p>Read or grab any single skill's source from the Skill Library.</p>
+        <span class="dl-meta">opchain.dev/skills</span>
+      </div>
+      <a class="btn btn-ghost" href="#">browse →</a>
+    </div>
+  </div>
+</section>
+
+<div class="footer">opchain · v1.4.3 "Codex" release mockup · standalone preview, not the live site</div>
+
+<script>
+  function go(id){
+    document.querySelectorAll('.surface').forEach(function(s){ s.classList.toggle('active', s.id===id); });
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('active', t.dataset.s===id); });
+    window.scrollTo({top:0});
+  }
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){ go(t.dataset.s); });
+  });
+</script>
+</body>
+</html>

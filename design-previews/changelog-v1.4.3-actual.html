@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>opchain · /changelog — actual merged UI (v1.4.3)</title>
+<!--
+  FAITHFUL standalone render of site/src/pages/changelog.astro as merged in PR #292.
+  Markup, <style>, and the tab/disclosure JS are copied verbatim from the real page.
+  The only additions are (a) the design tokens Base.astro normally injects, and
+  (b) static expansion of the Astro {map} loops for the Coming Next / Planned tabs.
+  The "Just Released" tab — including the v1.4.3 Codex hero — is byte-for-byte the
+  real page. Open this file in any browser; the v1.4.3 hero is auto-open on load.
+-->
+<style>
+  /* ── design tokens (provided by Base.astro / global styles on the live site) ── */
+  :root {
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    --fs-xs: 11px; --fs-sm: 13px; --fs-base: 15px; --fs-lg: 20px; --fs-xl: 26px; --fs-2xl: 38px;
+    --ls-tight: -0.02em; --ls-wide: 0.04em; --ls-wider: 0.08em; --ls-widest: 0.14em;
+    --lh-snug: 1.4; --lh-base: 1.6;
+    --r-xs: 4px; --r-sm: 7px; --r-md: 11px; --r-pill: 999px;
+    --dur-fast: 120ms; --dur-base: 240ms; --ease-standard: cubic-bezier(.2,.6,.2,1);
+
+    --bg: #0c0d10;
+    --surface: #16181d;
+    --card: #121317;
+    --border: #2a2f39;
+    --text: #e8e9ec;
+    --muted: #9aa0ab;
+    --subtle: #6b717c;
+    --accent: #e05c18;
+    --accent-dim: rgba(224, 92, 24, 0.14);
+    --info: #5b87c8;
+    --info-dim: rgba(91, 135, 200, 0.14);
+    --success: #3fb27f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-display);
+         -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent); }
+
+  /* lightweight standalone header in place of the global Header/Base shell */
+  .mock-bar { background: linear-gradient(90deg, rgba(224,92,24,0.14), transparent);
+    border-bottom: 0.5px solid var(--border); padding: 9px 18px; font-size: 12.5px; color: var(--muted); }
+  .mock-bar strong { color: var(--accent); }
+  .site-head { border-bottom: 0.5px solid var(--border); padding: 14px 22px; display: flex; gap: 14px; align-items: center; }
+  .site-head .logo { font-weight: 800; letter-spacing: -0.02em; }
+  .site-head .logo .d { color: var(--accent); }
+  .site-head nav { margin-left: auto; display: flex; gap: 16px; font-size: 14px; }
+  .site-head nav a { color: var(--muted); text-decoration: none; }
+  .site-head nav a.active { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="mock-bar"><strong>FAITHFUL RENDER</strong> · site/src/pages/changelog.astro (merged PR #292). The v1.4.3 "opchain runs on Codex" hero is auto-open below — exactly as it is in <code>main</code> and on the deployed worker.</div>
+
+<header class="site-head">
+  <span class="logo">opchain<span class="d">.</span></span>
+  <nav>
+    <a href="#">Skills</a><a href="#">Install</a><a href="#" class="active">Changelog</a><a href="#">Coverage</a>
+  </nav>
+</header>
+
+  <main class="page">
+    <div class="page-head">
+      <span class="eyebrow">changelog</span>
+      <h1>Changelog.</h1>
+      <p class="lede">
+        What shipped, what's next, and what to do about it. Each skill's
+        <code>version</code> field is the source of truth — this page rolls
+        them up by release. Vote on what's coming to signal priority.
+      </p>
+    </div>
+
+    <!-- ══ TAB BAR ══════════════════════════════════════════ -->
+    <div class="tab-bar">
+      <div class="tab-list" role="tablist" aria-label="Changelog sections" data-changelog-tabs>
+        <button class="tab-btn" role="tab" id="tab-released" aria-controls="panel-released" aria-selected="true" tabindex="0">
+          Just Released <span class="tab-count">7 shipped</span>
+        </button>
+        <button class="tab-btn tab-btn--next" role="tab" id="tab-coming" aria-controls="panel-coming" aria-selected="false" tabindex="-1">
+          Coming Next <span class="tab-count">v1.5</span>
+        </button>
+        <button class="tab-btn tab-btn--planned" role="tab" id="tab-planned" aria-controls="panel-planned" aria-selected="false" tabindex="-1">
+          Planned <span class="tab-count">v1.6 → v1.7</span>
+        </button>
+      </div>
+      <span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
+    </div>
+
+    <!-- ══ PANEL 0 — JUST RELEASED ═══════════════════════════ -->
+    <section class="tab-panel" role="tabpanel" id="panel-released" aria-labelledby="tab-released" tabindex="0">
+      <div class="panel-head">
+        <h2>What shipped</h2>
+        <span class="panel-sub">Newest is open; click any release for full notes.</span>
+      </div>
+
+      <!-- v1.4.3 — newest, AUTO-OPEN; extend opchain to Codex -->
+      <article class="hero-card hero-card--released is-open" id="v1-4-3" data-card>
+        <button class="hero-head" type="button" aria-expanded="true" aria-controls="v1-4-3-body" data-disclosure-toggle>
+          <span class="hero-chevron" aria-hidden="true">▶</span>
+          <span class="hero-badge">latest release</span>
+          <span class="hero-ver">v1.4.3 · shipped Jun 12, 2026</span>
+          <span class="hero-title">opchain runs on Codex</span>
+          <span class="hero-desc">
+            opchain now speaks the Model Context Protocol, so Codex — and any
+            MCP-aware agent (Claude Desktop, Cursor, Windsurf) — gets the same
+            concept-to-ship pipeline Claude Code auto-discovers: the skill
+            catalog, intent routing, the shared orchestrator protocol, and
+            cross-session checkpoints. Brought forward from the tabled v1.8 slot.
+          </span>
+        </button>
+        <div class="card-body" id="v1-4-3-body" data-disclosure-body>
+          <div class="card-body-inner hero-body-inner">
+            <h3>What's new</h3>
+            <div class="tile-grid">
+              <div class="tile">
+                <span class="tile-name">MCP server</span>
+                <p class="tile-desc">A <code>POST /mcp</code> endpoint exposes the catalog, intent routing, the orchestrator protocol, and checkpoints as MCP tools, prompts, and resources — for Codex and any MCP client.</p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">two ways in</span>
+                <p class="tile-desc">Point Codex at the hosted <code>opchain.dev/mcp</code> endpoint, or drop the skills into <code>.codex/skills/</code> — Codex Agent Skills use the same <code>SKILL.md</code> format.</p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">/oc-* survives</span>
+                <p class="tile-desc">Every <code>/oc-*</code> command is re-exposed as an MCP prompt, so the slash-command flow carries over to clients that surface MCP prompts.</p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">checkpoints anywhere</span>
+                <p class="tile-desc">Session state persists across MCP sessions, so you resume where you left off — the same contract Claude Code uses.</p>
+              </div>
+            </div>
+
+            <div class="callout">
+              <h3>New on /install</h3>
+              <ul class="callout-list">
+                <li><strong>Codex / any MCP agent</strong> — a fourth install flow with the <code>~/.codex/config.toml</code> snippet and the <code>.codex/skills</code> drop-in.</li>
+                <li><strong>local stdio server</strong> — an offline <code>mcp/local-server.mjs</code> for air-gapped setups.</li>
+              </ul>
+            </div>
+
+            <div class="compat-box">
+              <strong>Back-compatible with v1.4.</strong> The skills are unchanged — only their packaging — so Claude Code installs are untouched. All 18 skills lockstep-bump to <code>1.4.3</code>.
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <div class="divider"><span class="divider-line"></span><span class="divider-label">earlier releases</span><span class="divider-line"></span></div>
+
+      <article class="rel-card" id="v1-4-2" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-4-2-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.4.2</span><span class="rc-title">Complete bundles, honest checkpoints</span><span class="rc-date">Jun 05, 2026</span></span>
+            <span class="rc-summary">An out-of-band emergency patch: the &ldquo;download all&rdquo; bundle ships full skill trees again, plus a correctness pass reconciling the checkpoint and orchestrator docs with what actually runs.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-4-2-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">complete bundles</span><span class="tag">oc- names</span><span class="tag">honest checkpoints</span><span class="tag">drift detection</span></div>
+            <p>The &ldquo;download all&rdquo; bundle was dropping each skill's <code>references/</code>, <code>scripts/</code>, and <code>examples/</code>; it now ships full skill trees again. Every skill also gained an <code>oc-&lt;name&gt;</code> alias, the persistence docs were rewritten to the git-tracked checkpoint they actually use, and the validator, spec, and README were reconciled onto one checkpoint schema with drift detection. All 18 skills lockstep-bumped to <code>1.4.2</code>.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="rel-card" id="v1-4" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-4-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.4</span><span class="rc-title">Coverage as a plugin registry</span><span class="rc-date">May 12, 2026</span></span>
+            <span class="rc-summary">32 packs across 13 languages, 9 frameworks, 4 mobile platforms, 6 deploy targets. One <code>pack.yml</code> per pack, validated on every build.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-4-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">pack registry</span><span class="tag">32 packs</span><span class="tag">5 skills bumped</span></div>
+            <p>v1.4 turns <code>oc-stack-forge</code>'s coverage from hardcoded prose into a versioned pack registry — one <code>pack.yml</code> per language, framework, mobile platform, or deploy target, validated on every build. <a href="#">/coverage</a> is the user-visible catalog; total coverage grows from 6 stacks in v1.3 to 32 packs.</p>
+            <div class="compat-box"><strong>Back-compatible with v1.3.</strong> Five skills bump in lockstep to <code>1.4.0</code>.</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="rel-card" id="v1-3" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-3-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.3</span><span class="rc-title">Runtime PM, real platforms, automated releases</span><span class="rc-date">May 11, 2026</span></span>
+            <span class="rc-summary">PM-MCP loop executable end-to-end. <code>oc-release-ops</code> ships as the 18th skill. Platform menu expands.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-3-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">oc-release-ops</span><span class="tag">18th skill</span><span class="tag">PM-MCP live</span></div>
+            <p>v1.3 makes the v1.2 PM-MCP prose executable end-to-end and ships <code>oc-release-ops</code> — the 18th skill — to automate the scope → /changelog → bump → ship cadence opchain uses for itself.</p>
+            <div class="compat-box"><strong>Back-compatible with v1.2.</strong> All 18 skills lockstep at <code>1.3.0</code>.</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="rel-card" id="v1-2" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-2-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.2</span><span class="rc-title">PM-tool MCP integration</span><span class="rc-date">May 05, 2026</span></span>
+            <span class="rc-summary">Linear, Jira, and GitHub Issues become first-class context for four skills.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-2-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">PM-MCP</span><span class="tag">Linear</span><span class="tag">Jira</span></div>
+            <p>The ticket becomes the thread of execution. <code>oc-app-architect</code>, <code>oc-git-ops</code>, <code>oc-deploy-ops</code>, and <code>oc-monitoring-ops</code> all become PM-tool aware.</p>
+            <div class="compat-box"><strong>Back-compatible with v1.1.</strong> The PM loop is enrichment, never a hard dependency.</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="rel-card" id="v1-1" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-1-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.1</span><span class="rc-title">Stable release</span><span class="rc-date">Apr 2026</span></span>
+            <span class="rc-summary">Tri-agent harness, full pipeline, oc-checkpoint-protocol v1.0. Six in-action scenarios.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-1-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <p>Tri-agent harness across <code>oc-app-architect</code>, <code>oc-code-auditor</code>, <code>oc-integrations-engineer</code>; full-pipeline flow from <code>/oc-discover</code> to <code>/oc-deploy</code>; oc-checkpoint-protocol v1.0 across every skill; static Astro site; first set of six in-action scenarios.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="rel-card" id="v1-0" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-0-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.0</span><span class="rc-title">Initial release</span><span class="rc-date">Feb 2026</span></span>
+            <span class="rc-summary">First public Markdown skill catalog for Claude Code. The foundation everything since has built on.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-0-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <p>First public cut of the opchain skill catalog as a set of Markdown files installable into Claude Code. No site, no scenarios — just the skills.</p>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- ══ PANEL 1 — COMING NEXT ═════════════════════════════ -->
+    <section class="tab-panel" role="tabpanel" id="panel-coming" aria-labelledby="tab-coming" tabindex="0" hidden>
+      <div class="panel-head">
+        <h2>What's coming</h2>
+        <span class="panel-sub">The one release building right now. Vote to signal priority.</span>
+      </div>
+
+      <article class="hero-card hero-card--next is-open" id="v1-5" data-card>
+        <button class="hero-head" type="button" aria-expanded="true" aria-controls="v1-5-body" data-disclosure-toggle>
+          <span class="hero-chevron" aria-hidden="true">▶</span>
+          <span class="hero-badge">building now</span>
+          <span class="hero-ver">v1.5.0 · ships next</span>
+          <span class="hero-title">Build the AI app</span>
+          <span class="hero-desc">v1.5 closes the biggest categorical gap in the catalog: nothing today owns <em>AI-feature</em> design. Four new AI-native skills ship wired through the existing pipeline — model routing, RAG, agent harnesses, and prompts as first-class version-controlled artifacts.</span>
+        </button>
+        <div class="card-body" id="v1-5-body" data-disclosure-body>
+          <div class="card-body-inner hero-body-inner">
+            <h3>Four new skills</h3>
+            <div class="tile-grid">
+              <div class="tile"><span class="tile-name">claude-api · /claude-api</span><p class="tile-desc">Model routing (Opus/Sonnet/Haiku), prompt caching by default, streaming vs. batch, tool use, and migration playbooks for model-version bumps.</p></div>
+              <div class="tile"><span class="tile-name">rag-forge · /rag</span><p class="tile-desc">Tri-agent. Vector-DB decision tree, embedding choice, chunking, hybrid search, and retrieval eval with golden sets and recall@k / NDCG.</p></div>
+              <div class="tile"><span class="tile-name">agent-forge · /agent</span><p class="tile-desc">Tri-agent. Claude Agent SDK scaffold, subagent topology, tool-budget design, harness-loop shapes, and eval over golden trajectories.</p></div>
+              <div class="tile"><span class="tile-name">prompt-ops · /prompt</span><p class="tile-desc">Prompts as artifacts: file-shaped versioning, eval datasets, regression detection. <code>/prompt regress</code> blocks on a PR drop.</p></div>
+            </div>
+            <div class="callout">
+              <h3>Cross-skill ripples</h3>
+              <ul class="callout-list">
+                <li><strong>oc-app-architect</strong> gains an &ldquo;AI app?&rdquo; branch in <code>/oc-discover</code> that routes to the four new skills.</li>
+                <li><strong>oc-stack-forge</strong> adds vector-DB packs (pgvector, Turbopuffer, Pinecone, Supabase Vectors) to the pack registry.</li>
+                <li><strong>oc-code-auditor</strong> learns prompt-injection and tool-use safety rules.</li>
+              </ul>
+            </div>
+            <div class="compat-box"><strong>Back-compatible with v1.4.</strong> All 22 skills version-bump to <code>1.5.0</code>; the four new skills ship gated behind their <code>skills.registry.&lt;id&gt;.enabled</code> flags.</div>
+            <div class="vote-row">
+              <button class="vote-btn" type="button" aria-label="Vote for v1.5">
+                <span class="v-arrow" aria-hidden="true">▲</span><span class="v-count">—</span><span class="v-label">vote</span>
+              </button>
+              <span class="vote-note">Shipping next — vote to signal priority.</span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- ══ PANEL 2 — PLANNED ═════════════════════════════════ -->
+    <section class="tab-panel" role="tabpanel" id="panel-planned" aria-labelledby="tab-planned" tabindex="0" hidden>
+      <div class="panel-head">
+        <h2>What's planned</h2>
+        <span class="panel-sub">v1.6 is the roadmap; v1.7 is yours to steer. Votes shape the order things ship.</span>
+      </div>
+
+      <article class="plan-card is-open" id="v1-6" data-card>
+        <button class="pc-row" type="button" aria-expanded="true" aria-controls="v1-6-body" data-disclosure-toggle>
+          <span class="pc-toggle" aria-hidden="true">▶</span>
+          <span class="pc-meta">
+            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.6</span><span class="pc-title">The instrumented pipeline</span><span class="pc-timing">est. Jul 2026</span></span>
+            <span class="pc-summary">Cost attribution, opt-in telemetry, and the first oc-checkpoint-protocol bump since v1.2. Answers &ldquo;what did this feature cost?&rdquo;</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-6-body" data-disclosure-body>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">est. Jul 2026</span><span class="tag">2 new skills</span></div>
+            <p>v1.5 introduces four AI-native skills; the predictable next question is <em>what did they cost, and is my pipeline actually getting better?</em> v1.6 answers both — cost attribution and opt-in telemetry, plus the first <code>oc-checkpoint-protocol</code> bump since v1.2 (adds <code>cost</code>, <code>eval_scores</code>, <code>telemetry_handle</code>).</p>
+            <p class="alt-note"><em>(On the live page, the votable v1.6 item list renders here from <code>site/src/data/roadmap-static.ts</code>.)</em></p>
+            <div class="planned-box">Planned — scope may shift before release. All 24 skills lockstep-bump to <code>1.6.0</code>.</div>
+          </div>
+        </div>
+      </article>
+
+      <div class="divider"><span class="divider-line"></span><span class="divider-label">the v1.7 theme vote</span><span class="divider-line"></span></div>
+
+      <article class="plan-card" id="v1-7" data-card>
+        <button class="pc-row" type="button" aria-expanded="false" aria-controls="v1-7-body" data-disclosure-toggle>
+          <span class="pc-toggle" aria-hidden="true">▶</span>
+          <span class="pc-meta">
+            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.7</span><span class="pc-title">Pick one distribution play</span><span class="pc-timing">theme vote open · est. Sep 2026</span></span>
+            <span class="pc-summary">By v1.6, opchain has 24 skills and AI coverage. The biggest remaining gap is distribution — v1.7 bets on one growth theme. Vote for the one you want; the bars redistribute live.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-7-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag tag--info">theme vote open</span><span class="tag">est. Sep 2026</span></div>
+            <p>By the time v1.6 ships, the biggest remaining gap isn't features — it's <strong>distribution</strong>. v1.7 deliberately promotes one growth play into a flagship theme instead of accreting more skills. The three contenders are below — your votes go on record now and decide the order.</p>
+            <h3>Vote on the v1.7 theme</h3>
+            <ul class="theme-list">
+              <li class="theme-option"><div class="theme-meta"><span class="theme-label">Marketplace + templates</span><p class="theme-blurb">A community skill/pack registry plus opinionated project starters. Every contribution adds breadth at zero core-team cost.</p><span class="theme-bar-wrap"><span class="theme-bar" style="width:42%"></span></span></div><button class="vote-btn" type="button"><span class="v-arrow">▲</span><span class="v-count">—</span><span class="v-label">vote</span></button></li>
+              <li class="theme-option"><div class="theme-meta"><span class="theme-label">Agency play</span><p class="theme-blurb">oc-monorepo-ops, multi-project checkpoint scoping, a /for-agencies expansion, and a client-handoff demo scenario.</p><span class="theme-bar-wrap"><span class="theme-bar" style="width:33%"></span></span></div><button class="vote-btn" type="button"><span class="v-arrow">▲</span><span class="v-count">—</span><span class="v-label">vote</span></button></li>
+              <li class="theme-option"><div class="theme-meta"><span class="theme-label">Pipeline depth</span><p class="theme-blurb">oc-discovery-ops (JTBD / opportunity trees, upstream of app-architect) and oc-qa-ops, splitting test-pyramid design out of oc-bug-check.</p><span class="theme-bar-wrap"><span class="theme-bar" style="width:25%"></span></span></div><button class="vote-btn" type="button"><span class="v-arrow">▲</span><span class="v-count">—</span><span class="v-label">vote</span></button></li>
+            </ul>
+            <div class="planned-box">Lean, not locked — the final v1.7 theme is chosen after the v1.5 / v1.6 retro.</div>
+          </div>
+        </div>
+      </article>
+
+      <div class="divider"><span class="divider-line"></span><span class="divider-label">horizon · beyond v1.7</span><span class="divider-line"></span></div>
+      <p class="backlog-note">Not scoped yet — horizon items graduate onto a milestone once the v1.5 / v1.6 retros are done. Vote on what you'd most like worked on next.</p>
+      <ul class="horizon-list">
+        <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Claude.ai web skill install</span><p class="horizon-blurb">One-click skill install from the opchain site straight into Claude.ai Projects — no file management.</p></div><button class="vote-btn" type="button"><span class="v-arrow">▲</span><span class="v-count">—</span><span class="v-label">vote</span></button></li>
+        <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">VS Code / Cursor extension</span><p class="horizon-blurb">A native sidebar showing checkpoint state, skill shortcuts, and pipeline progress without leaving the editor.</p></div><button class="vote-btn" type="button"><span class="v-arrow">▲</span><span class="v-count">—</span><span class="v-label">vote</span></button></li>
+        <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">oc-discovery-ops</span><p class="horizon-blurb">A JTBD / opportunity-tree skill upstream of app-architect — maps user problems before any code is written.</p></div><button class="vote-btn" type="button"><span class="v-arrow">▲</span><span class="v-count">—</span><span class="v-label">vote</span></button></li>
+        <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">oc-qa-ops</span><p class="horizon-blurb">A dedicated test-pyramid design skill: coverage strategy, contract testing, and load-test planning, split out of oc-bug-check.</p></div><button class="vote-btn" type="button"><span class="v-arrow">▲</span><span class="v-count">—</span><span class="v-label">vote</span></button></li>
+      </ul>
+
+      <div class="planned-box" style="margin-top:1rem">On the live page the feature-request form (<code>RoadmapForm</code>) renders here.</div>
+    </section>
+
+    <p class="footer-note">
+      Skill versions are stamped in <code>skills/&lt;name&gt;/SKILL.md</code> under <code>version:</code>; this page rolls them up by release.
+    </p>
+  </main>
+
+<script>
+  (() => {
+    const cardSel = ".rel-card, .plan-card, .hero-card";
+    function setOpen(card, open) {
+      const btn = card.querySelector("[data-disclosure-toggle]");
+      const body = card.querySelector("[data-disclosure-body]");
+      card.classList.toggle("is-open", open);
+      if (btn) btn.setAttribute("aria-expanded", String(open));
+      if (body) { if (open) body.removeAttribute("inert"); else body.setAttribute("inert", ""); }
+    }
+    document.querySelectorAll("[data-disclosure-toggle]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const card = btn.closest(cardSel);
+        if (card) setOpen(card, !card.classList.contains("is-open"));
+      });
+    });
+    const tablist = document.querySelector("[data-changelog-tabs]");
+    const tabs = tablist ? Array.from(tablist.querySelectorAll('[role="tab"]')) : [];
+    const indicator = document.querySelector("[data-tab-indicator]");
+    const panelOf = (tab) => document.getElementById(tab.getAttribute("aria-controls") || "");
+    function moveIndicator(tab) {
+      if (!indicator) return;
+      indicator.style.left = tab.offsetLeft + "px";
+      indicator.style.width = tab.offsetWidth + "px";
+      indicator.dataset.active = String(tabs.indexOf(tab));
+    }
+    function activateTab(tab, focus) {
+      for (const t of tabs) {
+        const selected = t === tab;
+        t.setAttribute("aria-selected", String(selected));
+        t.tabIndex = selected ? 0 : -1;
+        const p = panelOf(t);
+        if (p) p.hidden = !selected;
+      }
+      moveIndicator(tab);
+      if (focus) tab.focus();
+    }
+    if (tablist) {
+      tablist.addEventListener("click", (e) => {
+        const tab = e.target.closest('[role="tab"]');
+        if (tab) activateTab(tab);
+      });
+      tablist.addEventListener("keydown", (e) => {
+        const i = tabs.indexOf(document.activeElement);
+        if (i < 0) return;
+        let j = i;
+        switch (e.key) {
+          case "ArrowRight": j = (i + 1) % tabs.length; break;
+          case "ArrowLeft": j = (i - 1 + tabs.length) % tabs.length; break;
+          case "Home": j = 0; break;
+          case "End": j = tabs.length - 1; break;
+          default: return;
+        }
+        e.preventDefault();
+        activateTab(tabs[j], true);
+      });
+      window.addEventListener("resize", () => {
+        const sel = tabs.find((t) => t.getAttribute("aria-selected") === "true");
+        if (sel) moveIndicator(sel);
+      });
+      const sel0 = tabs.find((t) => t.getAttribute("aria-selected") === "true") || tabs[0];
+      if (sel0) moveIndicator(sel0);
+    }
+  })();
+</script>
+
+<style>
+  /* ════ VERBATIM from changelog.astro <style> ════ */
+  .page {
+    max-width: 860px; margin: 0 auto; padding: 3rem 1.5rem 6rem;
+    --cl-violet: #b29adf;
+    --cl-violet-dim: rgba(178, 154, 223, 0.14);
+  }
+  .page-head { margin-bottom: 1.75rem; }
+  .eyebrow { font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: var(--ls-widest); text-transform: uppercase; color: var(--subtle); }
+  .page-head h1 { font-family: var(--font-display); font-size: var(--fs-2xl); font-weight: 600; color: var(--text); letter-spacing: var(--ls-tight); margin: 0.5rem 0 0.75rem; }
+  .lede { color: var(--muted); margin: 0; max-width: 60ch; line-height: var(--lh-snug); }
+  code { font-family: var(--font-mono); font-size: 12px; background: var(--surface); border: 0.5px solid var(--border); padding: 1px 5px; border-radius: var(--r-xs); color: var(--text); }
+  .tab-bar { position: relative; border-bottom: 0.5px solid var(--border); margin-bottom: 1.75rem; }
+  .tab-list { display: flex; align-items: center; gap: 0; overflow-x: auto; scrollbar-width: none; }
+  .tab-list::-webkit-scrollbar { display: none; }
+  .tab-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.7rem 1.1rem; font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 500; color: var(--muted); background: none; border: 0; cursor: pointer; position: relative; z-index: 2; transition: color var(--dur-fast) var(--ease-standard); }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn[aria-selected="true"] { color: var(--text); }
+  .tab-count { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: var(--ls-wide); background: var(--surface); border: 0.5px solid var(--border); padding: 1px 6px; border-radius: var(--r-pill); color: var(--subtle); transition: background var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast); }
+  .tab-btn[aria-selected="true"] .tab-count { background: var(--accent-dim); border-color: var(--accent); color: var(--text); }
+  .tab-btn--next[aria-selected="true"] .tab-count { background: var(--info-dim); border-color: var(--info); color: var(--text); }
+  .tab-btn--planned[aria-selected="true"] .tab-count { background: var(--cl-violet-dim); border-color: var(--cl-violet); color: var(--text); }
+  .tab-indicator { position: absolute; bottom: -0.5px; height: 2px; left: 0; width: 0; background: var(--accent); border-radius: 1px; transition: left var(--dur-base) var(--ease-standard), width var(--dur-base) var(--ease-standard); }
+  .tab-indicator[data-active="1"] { background: var(--info); }
+  .tab-indicator[data-active="2"] { background: var(--cl-violet); }
+  .tab-panel[hidden] { display: none; }
+  .tab-panel:focus { outline: none; }
+  @media (prefers-reduced-motion: no-preference) { .tab-panel:not([hidden]) { animation: panel-in var(--dur-base) var(--ease-standard); } }
+  @keyframes panel-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.1rem; }
+  .panel-head h2 { font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 600; color: var(--text); letter-spacing: var(--ls-tight); margin: 0; }
+  .panel-sub { font-size: var(--fs-sm); color: var(--muted); }
+  .card-body { overflow: hidden; }
+  .card-body[inert] { display: none; }
+  @media (prefers-reduced-motion: no-preference) { .card-body:not([inert]) .card-body-inner { animation: panel-in var(--dur-base) var(--ease-standard); } }
+  .card-body-inner { padding: 1rem 1.1rem 1.25rem; border-top: 0.5px solid var(--border); }
+  .card-body-inner h3 { font-family: var(--font-display); font-size: var(--fs-base); color: var(--text); letter-spacing: var(--ls-tight); margin: 1.1rem 0 0.5rem; }
+  .card-body-inner h3:first-child { margin-top: 0; }
+  .card-body-inner p { color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-base); margin: 0 0 0.65rem; }
+  .card-body-inner ul { margin: 0.25rem 0 0.5rem 1.1rem; padding: 0; }
+  .card-body-inner li { color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-snug); margin-bottom: 0.4rem; }
+  .card-body-inner li strong { color: var(--text); }
+  .tag-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.85rem; }
+  .tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: var(--ls-wider); text-transform: uppercase; padding: 2px 7px; border-radius: var(--r-pill); border: 0.5px solid var(--border); color: var(--muted); background: var(--surface); }
+  .tag--info { color: var(--info); border-color: var(--info); background: var(--info-dim); }
+  .compat-box { margin-top: 1rem; padding: 0.7rem 0.9rem; background: color-mix(in srgb, var(--success) 9%, transparent); border: 0.5px solid color-mix(in srgb, var(--success) 55%, var(--border)); border-radius: var(--r-sm); font-size: var(--fs-sm); color: var(--muted); }
+  .compat-box strong { color: var(--success); }
+  .planned-box { margin-top: 0.85rem; padding: 0.6rem 0.85rem; background: var(--surface); border: 0.5px dashed var(--border); border-radius: var(--r-sm); font-family: var(--font-mono); font-size: 10px; color: var(--subtle); letter-spacing: var(--ls-wide); line-height: var(--lh-snug); }
+  .alt-note { font-size: var(--fs-sm); color: var(--muted); }
+  .rel-card, .plan-card { border: 0.5px solid var(--border); border-radius: var(--r-md); margin-bottom: 0.65rem; overflow: hidden; position: relative; transition: border-color var(--dur-fast) var(--ease-standard); }
+  .rel-card:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+  .plan-card:hover { border-color: color-mix(in srgb, var(--cl-violet) 35%, var(--border)); }
+  .rel-card.is-open { border-color: var(--accent); }
+  .plan-card.is-open { border-color: var(--cl-violet); }
+  .rel-card.is-open::before, .plan-card.is-open::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+  .rel-card.is-open::before { background: var(--accent); }
+  .plan-card.is-open::before { background: var(--cl-violet); }
+  .rc-row, .pc-row { display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.85rem 1.1rem; background: none; border: 0; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+  .rc-toggle, .pc-toggle, .hero-chevron { width: 18px; height: 18px; border-radius: 50%; border: 0.5px solid var(--border); background: var(--surface); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 9px; color: var(--subtle); transition: transform var(--dur-fast) var(--ease-standard), background var(--dur-fast), border-color var(--dur-fast); }
+  .rel-card.is-open .rc-toggle { transform: rotate(90deg); background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+  .plan-card.is-open .pc-toggle { transform: rotate(90deg); background: var(--cl-violet-dim); border-color: var(--cl-violet); color: var(--cl-violet); }
+  .rc-meta, .pc-meta { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 2px; }
+  .rc-head, .pc-head { display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; }
+  .rc-title, .pc-title { font-family: var(--font-display); font-size: var(--fs-base); font-weight: 600; color: var(--text); }
+  .rc-date, .pc-timing { font-family: var(--font-mono); font-size: 10px; color: var(--subtle); margin-left: auto; }
+  .rc-summary, .pc-summary { font-size: var(--fs-sm); color: var(--muted); line-height: var(--lh-snug); }
+  .ver-pill { font-family: var(--font-mono); font-size: 10px; letter-spacing: var(--ls-wide); text-transform: uppercase; padding: 2px 8px; border-radius: var(--r-xs); }
+  .ver-pill--past { color: var(--subtle); border: 0.5px solid var(--border); }
+  .ver-pill--next { color: var(--info); border: 0.5px solid var(--info); }
+  .hero-card { border: 0.5px solid var(--border); border-radius: var(--r-md); margin-bottom: 0.65rem; overflow: hidden; position: relative; background: var(--card); transition: border-color var(--dur-fast) var(--ease-standard); }
+  .hero-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+  .hero-card--next::before { background: linear-gradient(180deg, var(--info), color-mix(in srgb, var(--info) 35%, transparent)); }
+  .hero-card--released::before { background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 35%, transparent)); }
+  .hero-card--next:hover { border-color: color-mix(in srgb, var(--info) 35%, var(--border)); }
+  .hero-card--released:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+  .hero-card--next.is-open { border-color: var(--info); }
+  .hero-card--released.is-open { border-color: var(--accent); }
+  .hero-head { display: block; width: 100%; text-align: left; background: none; border: 0; cursor: pointer; font: inherit; color: inherit; position: relative; padding: 1.4rem 2.9rem 1.4rem 1.5rem; }
+  .hero-chevron { position: absolute; top: 1.45rem; right: 1.3rem; }
+  .hero-card--next.is-open .hero-chevron { transform: rotate(90deg); background: var(--info-dim); border-color: var(--info); color: var(--info); }
+  .hero-card--released.is-open .hero-chevron { transform: rotate(90deg); background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+  .hero-badge { display: inline-flex; align-items: center; gap: 0.35rem; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: var(--ls-wide); text-transform: uppercase; padding: 2px 8px; border-radius: var(--r-pill); margin-bottom: 0.6rem; }
+  .hero-badge::before { content: "●"; font-size: 6px; }
+  .hero-card--next .hero-badge { color: var(--info); border: 0.5px solid var(--info); background: var(--info-dim); }
+  .hero-card--released .hero-badge { color: var(--accent); border: 0.5px solid var(--accent); background: var(--accent-dim); }
+  .hero-ver { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--subtle); margin-bottom: 0.3rem; }
+  .hero-title { display: block; font-family: var(--font-display); font-size: var(--fs-xl); font-weight: 600; color: var(--text); letter-spacing: var(--ls-tight); margin-bottom: 0.5rem; }
+  .hero-desc { display: block; font-size: var(--fs-sm); color: var(--muted); line-height: var(--lh-base); max-width: 64ch; }
+  .hero-body-inner { padding-top: 1.1rem; }
+  .tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; margin-bottom: 1.1rem; }
+  @media (max-width: 560px) { .tile-grid { grid-template-columns: 1fr; } }
+  .tile { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-sm); padding: 0.75rem 0.9rem; transition: border-color var(--dur-fast) var(--ease-standard); }
+  .tile-name { display: block; font-family: var(--font-mono); font-size: 11px; margin-bottom: 0.25rem; }
+  .tile-desc { font-size: 12px; color: var(--muted); line-height: var(--lh-snug); margin: 0 !important; }
+  .hero-card--next .tile-name { color: var(--info); }
+  .hero-card--next .tile:hover { border-color: var(--info); }
+  .hero-card--released .tile-name { color: var(--accent); }
+  .hero-card--released .tile:hover { border-color: var(--accent); }
+  .callout { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-sm); padding: 0.9rem 1rem; margin-bottom: 0.5rem; }
+  .callout h3 { margin-top: 0 !important; margin-bottom: 0.6rem !important; }
+  .callout-list { list-style: none; padding: 0 !important; margin: 0 !important; }
+  .callout-list li { display: flex; gap: 0.5rem; margin-bottom: 0.35rem; }
+  .callout-list li::before { content: "↳"; color: var(--subtle); flex-shrink: 0; font-family: var(--font-mono); }
+  .vote-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 1.1rem; padding-top: 0.85rem; border-top: 0.5px solid var(--border); flex-wrap: wrap; }
+  .vote-note { font-size: 12px; color: var(--subtle); }
+  .vote-btn { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; min-width: 50px; min-height: 46px; padding: 6px 10px; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--r-md); color: var(--text); font-family: var(--font-mono); cursor: pointer; flex-shrink: 0; transition: border-color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard); }
+  .vote-btn:hover { border-color: var(--accent); background: var(--accent-dim); transform: translateY(-1px); }
+  .vote-btn .v-arrow { font-size: 13px; line-height: 1; }
+  .vote-btn .v-count { font-size: 13px; font-weight: 700; line-height: 1.1; }
+  .vote-btn .v-label { font-size: 8.5px; letter-spacing: var(--ls-wider); text-transform: uppercase; color: var(--subtle); line-height: 1; }
+  .divider { display: flex; align-items: center; gap: 0.75rem; margin: 1.5rem 0 1rem; }
+  .divider-line { flex: 1; height: 0.5px; background: var(--border); }
+  .divider-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: var(--ls-widest); text-transform: uppercase; color: var(--subtle); }
+  .backlog-note { font-size: var(--fs-sm); color: var(--muted); margin: 0 0 1rem; }
+  .footer-note { margin-top: 3rem; color: var(--subtle); font-size: var(--fs-xs); font-family: var(--font-mono); letter-spacing: var(--ls-wide); }
+  .theme-list, .horizon-list { list-style: none; padding: 0 !important; margin: 0.5rem 0 0 !important; display: grid; gap: 0.5rem; }
+  .horizon-list { margin: 0 0 1.5rem !important; }
+  .theme-option, .horizon-item { display: flex; align-items: center; gap: 1rem; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-sm); padding: 0.7rem 0.85rem; margin: 0 !important; }
+  .theme-meta, .horizon-meta { flex: 1; min-width: 0; }
+  .theme-label, .horizon-title { display: block; font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .theme-blurb, .horizon-blurb { font-size: 12px; color: var(--muted); line-height: var(--lh-snug); margin: 0 0 0.5rem !important; }
+  .horizon-blurb { margin: 0 !important; }
+  .theme-bar-wrap { display: block; height: 5px; background: var(--border); border-radius: var(--r-pill); overflow: hidden; }
+  .theme-bar { display: block; height: 100%; background: var(--cl-violet); border-radius: var(--r-pill); transition: width var(--dur-base) var(--ease-standard); }
+  .theme-option .vote-btn:hover, .horizon-item .vote-btn:hover { border-color: var(--cl-violet); background: var(--cl-violet-dim); transform: translateY(-1px); }
+</style>
+</body>
+</html>
