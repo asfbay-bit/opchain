@@ -4,35 +4,42 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-20T00:32:48Z",
+  "updated_at": "2026-06-20T01:39:38Z",
   "phase": "gate",
-  "step": "decouple-deploy-from-linear-roadmap-pull",
+  "step": "stamp-v1.4.3-preview-artifacts",
   "status": "complete",
-  "progress_summary": "Gate for decoupling the deploy from the dead Linear roadmap pull. npm run deploy:staging was aborting because gen-roadmap.mjs couldn't reach Linear under OPCHAIN_REQUIRE_LINEAR=1 \u2014 but /changelog reads roadmap-static.ts now and roadmap.json/loadRoadmap() is consumed by nothing, so the gate was protecting dead data. Removed gen-roadmap from prebuild, stripped the LINEAR_API_KEY assertion + OPCHAIN_REQUIRE_LINEAR + abortMissing from scripts/deploy.mjs, updated CLAUDE.md. Config/docs-only \u2014 no site/worker compile targets touched, so prior astro check 0 / vitest 345 / build 35 still hold. node --check deploy.mjs OK, package.json valid JSON, no anti-patterns or secrets in the diff. PASS.",
+  "progress_summary": "Pre-commit gate for two standalone v1.4.3 Codex release preview artifacts under design-previews/ (changelog-v1.4.3-actual.html + v1.4.3-release-mockup.html). Static HTML only, outside src/ — no TS/JS/app source touched, so tsc/eslint/vitest/build are unaffected and were not runnable anyway (node_modules absent in this egress-blocked sandbox). Ran the meaningful checks: secret detection PASS (no keys/tokens), anti-pattern scan PASS (no debugger), HTML well-formed (balanced html/body). PASS.",
   "blockers": [],
   "next_actions": [
-    "Merge the deploy-decouple PR, then re-run npm run deploy:staging — it no longer needs Linear and won't abort if Linear is unreachable.",
-    "DEPLOY from main on a laptop with wrangler login: npm run deploy:staging -> eyeball staging.opchain.dev/changelog -> npm run deploy. Ships the Option C v2 changelog + the whole already-merged v1.4.3 Codex marketing backlog."
+    "ROOT CAUSE FOUND 2026-06-20: opchain.dev sits behind a Cloudflare MANAGED CHALLENGE ('Just a moment...' bot interstitial) at the edge, BEFORE the worker. Confirmed via deploy-lag canary job logs (run 27837669034): curl to /api/health returned challenge HTML with cType:'managed', cZone:'opchain.dev', /cdn-cgi/challenge-platform on all 3 retries; external fetch got 403. It intercepts ALL non-browser traffic: /api/health (so the deploy-lag canary silently skips every day -> zero drift issues = FALSE comfort) and critically POST /mcp (the entire v1.4.3 Codex endpoint returns a challenge page, not JSON-RPC). Deploys ALWAYS landed (opchain-dev worker modified 2026-06-20 00:45); the front door was bolted, not the code. The prior 'just deploy it / merged-but-undeployed' guidance was WRONG.",
+    "FIX (Cloudflare dashboard, user-only — no MCP tool exposes WAF/Bots/zone): Security -> WAF -> Custom rule -> Skip (tick Super Bot Fight Mode + Managed Challenge) for expression (http.host eq \"opchain.dev\" and (starts_with(http.request.uri.path,\"/api/\") or http.request.uri.path eq \"/mcp\")); repeat for staging.opchain.dev. OR Security -> Bots -> disable Bot Fight Mode / Super Bot Fight Mode. Then verify: curl -sS https://opchain.dev/api/health returns JSON with version; curl -sS -X POST https://opchain.dev/mcp -H 'content-type: application/json' -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}' returns JSON-RPC not HTML.",
+    "Patch .github/workflows/deploy-lag.yml so the canary detects the 'Just a moment...' challenge body and FAILS LOUDLY (or hits an exempted path) instead of the silent 'no false alarm' skip — it has been blind for days while prod drift went unreported.",
+    "After the challenge is lifted, redeploy from latest main (HEAD 892f80e, includes #292 changelog + #294 deploy-decouple) and confirm /api/health version matches git rev-parse --short HEAD."
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-20T00:32:48Z",
+      "at": "2026-06-20T01:39:38Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
-        "type_safety": "PASS",
+        "type_safety": "N/A",
         "lint": "N/A",
-        "tests": "PASS",
+        "tests": "N/A",
         "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "PASS",
-        "dependencies": "WARN"
+        "build": "N/A",
+        "dependencies": "N/A"
       },
-      "tests": "345 passed",
-      "warnings": 1,
+      "note": "changed set = 2 static HTML preview files under design-previews/; toolchain checks not applicable (no app source) and not runnable (deps absent).",
+      "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      {
+        "at": "2026-06-20T01:39:38Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
       {
         "at": "2026-06-20T00:32:48Z",
         "verdict": "PASS",
@@ -72,7 +79,7 @@
     "bypasses": [],
     "carried_debt": 0,
     "streak": {
-      "passes": 12,
+      "passes": 13,
       "since": "2026-06-05T22:01:00Z"
     }
   }
