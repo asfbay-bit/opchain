@@ -1,0 +1,70 @@
+---
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import Eyebrow from "../../components/ui/Eyebrow.astro";
+
+type BlogEntry = CollectionEntry<"blog">;
+
+export async function getStaticPaths() {
+  const posts = (await getCollection("blog")) as BlogEntry[];
+  return posts
+    .filter((post) => !post.data.draft)
+    .map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: BlogEntry };
+const { Content } = await render(post);
+
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+---
+
+<Base
+  title={`${post.data.title} · opchain blog`}
+  description={post.data.description}
+  active="/blog"
+  ogType="article"
+>
+  <main class="page blog-post">
+    <div class="page-head">
+      <Eyebrow>blog</Eyebrow>
+      <h1>{post.data.title}</h1>
+      <div class="post-meta">
+        <time datetime={post.data.date}>{fmtDate(post.data.date)}</time>
+        <span>·</span>
+        <span>{post.data.author ?? "opchain"}</span>
+        {(post.data.tags ?? []).length > 0 && <span>· {(post.data.tags ?? []).join(" · ")}</span>}
+      </div>
+    </div>
+
+    <article class="prose">
+      <Content />
+    </article>
+
+    <p class="back"><a href="/blog">← All posts</a></p>
+  </main>
+</Base>
+
+<style>
+  .blog-post { max-width: 46rem; }
+  .post-meta {
+    display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: baseline;
+    font-size: 0.85rem; color: var(--muted); margin-top: 0.6rem;
+  }
+
+  .prose { line-height: 1.7; color: var(--text); }
+  .prose :global(h2) { font-size: 1.5rem; margin: 2rem 0 0.75rem; }
+  .prose :global(h3) { font-size: 1.2rem; margin: 1.5rem 0 0.5rem; }
+  .prose :global(p) { margin: 0 0 1rem; }
+  .prose :global(ul), .prose :global(ol) { margin: 0 0 1rem 1.25rem; line-height: 1.6; }
+  .prose :global(li) { margin: 0.35rem 0; }
+  .prose :global(a) { color: var(--accent); }
+  .prose :global(code) {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 0.1em 0.35em; font-size: 0.9em;
+  }
+  .prose :global(strong) { color: var(--text); font-weight: 700; }
+
+  .back { margin-top: 2.5rem; }
+  .back a { color: var(--accent); }
+</style>

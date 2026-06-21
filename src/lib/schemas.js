@@ -62,6 +62,7 @@ export const NotifySchema = z.object({
     "skill-download",
     "bundle-download",
     "homepage",
+    "newsletter",
     "other",
   ]).optional().default("other"),
 });

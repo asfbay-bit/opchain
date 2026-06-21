@@ -4,6 +4,7 @@ import { defaultFor } from "../lib/flags/build-defaults";
 const year = new Date().getFullYear();
 const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
 const installZipEnabled = defaultFor("site.feature.install-zip-download") as boolean;
+const newsletterEnabled = defaultFor("site.ui.footer.newsletter") as boolean;
 ---
 
 <footer class="site-footer">
@@ -20,10 +21,13 @@ const installZipEnabled = defaultFor("site.feature.install-zip-download") as boo
       <a href="/install">Install</a>
       <a href="/changelog">Changelog</a>
       <a href="/compare">Compare</a>
+      <a href="/for-agencies">For agencies</a>
     </div>
     <div class="col">
       <div class="col-head">explore</div>
       <a href="/pipeline-builder">Pipeline Builder</a>
+      <a href="/ai-recipes">AI Recipes</a>
+      <a href="/blog">Blog</a>
       {demoEnabled && <a href="/demo">Walkthrough</a>}
       <a href="/showcase">Showcase</a>
       <a href="/glossary">Glossary</a>
@@ -43,6 +47,29 @@ const installZipEnabled = defaultFor("site.feature.install-zip-download") as boo
       <button type="button" id="opchain-privacy-reset" class="link-btn">Manage privacy</button>
     </div>
   </div>
+  {newsletterEnabled && (
+    <div class="site-footer-newsletter">
+      <div class="nl-copy">
+        <div class="nl-head">Ship-notes, occasionally.</div>
+        <p class="nl-sub">Release notes and the odd engineering write-up. No spam, unsubscribe anytime.</p>
+      </div>
+      <form id="opchain-newsletter" class="nl-form" novalidate>
+        <label class="nl-visually-hidden" for="opchain-newsletter-email">Email address</label>
+        <input
+          id="opchain-newsletter-email"
+          name="email"
+          type="email"
+          inputmode="email"
+          autocomplete="email"
+          placeholder="you@company.com"
+          required
+        />
+        <button type="submit">Subscribe</button>
+        <span class="nl-status" role="status" aria-live="polite"></span>
+      </form>
+    </div>
+  )}
+
   <div class="site-footer-meta">
     <span>&copy; {year} opchain</span>
     <span>open-source · MIT</span>
@@ -66,6 +93,47 @@ const installZipEnabled = defaultFor("site.feature.install-zip-download") as boo
     } catch { /* ignore */ }
     location.reload();
   });
+
+  // Newsletter sign-up → POST /api/notify (KV lead capture, source=newsletter).
+  const nlForm = document.getElementById("opchain-newsletter") as HTMLFormElement | null;
+  if (nlForm) {
+    const input = nlForm.querySelector<HTMLInputElement>("#opchain-newsletter-email");
+    const status = nlForm.querySelector<HTMLElement>(".nl-status");
+    const btn = nlForm.querySelector<HTMLButtonElement>("button[type=submit]");
+    const setStatus = (msg: string, kind: "ok" | "err" | "") => {
+      if (!status) return;
+      status.textContent = msg;
+      status.dataset.kind = kind;
+    };
+    nlForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = (input?.value || "").trim();
+      if (!email || !input?.checkValidity()) {
+        setStatus("Enter a valid email.", "err");
+        input?.focus();
+        return;
+      }
+      if (btn) btn.disabled = true;
+      setStatus("Subscribing…", "");
+      try {
+        const res = await fetch("/api/notify", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email, source: "newsletter" }),
+        });
+        if (res.ok) {
+          nlForm.reset();
+          setStatus("You're on the list. Thanks!", "ok");
+        } else {
+          setStatus("Something went wrong — try again.", "err");
+        }
+      } catch {
+        setStatus("Network error — try again.", "err");
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+  }
 </script>
 
 <style>
@@ -129,6 +197,78 @@ const installZipEnabled = defaultFor("site.feature.install-zip-download") as boo
     cursor: pointer;
     transition: color var(--dur-fast) var(--ease-standard);
   }
+  .site-footer-newsletter {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1.75rem 1.5rem;
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+  }
+  .nl-head {
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    color: var(--text);
+    font-weight: 600;
+  }
+  .nl-sub {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    margin: 0.25rem 0 0;
+    max-width: 42ch;
+  }
+  .nl-form {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .nl-form input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm, 6px);
+    padding: 0.55rem 0.75rem;
+    font: inherit;
+    font-size: var(--fs-sm);
+    color: var(--text);
+    min-width: 16rem;
+  }
+  .nl-form input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .nl-form button {
+    background: var(--accent);
+    color: var(--accent-contrast, #0a0a0a);
+    border: none;
+    border-radius: var(--radius-sm, 6px);
+    padding: 0.55rem 1rem;
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity var(--dur-fast) var(--ease-standard);
+  }
+  .nl-form button:hover { opacity: 0.9; }
+  .nl-form button:disabled { opacity: 0.6; cursor: default; }
+  .nl-status {
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    flex-basis: 100%;
+  }
+  .nl-status[data-kind="ok"] { color: var(--accent); }
+  .nl-status[data-kind="err"] { color: var(--danger, #e5484d); }
+  .nl-visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0);
+    white-space: nowrap; border: 0;
+  }
+
   .site-footer-meta {
     max-width: 960px;
     margin: 0 auto;

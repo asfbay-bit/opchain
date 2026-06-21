@@ -57,4 +57,28 @@ const skills = defineCollection({
   }),
 });
 
-export const collections = { skills };
+// Blog (v1.5 GTM). Markdown posts under site/src/blog/<slug>.md. Kept OUT of
+// the legacy src/content/ tree on purpose — a glob-loader collection whose base
+// sits under src/content/ collides with Astro 5's legacy-collection detection
+// and types as `never` (same reason the skills collection loads from ../skills).
+// Static — no CMS. Surfaced at /blog, /blog/<slug>, and /blog/rss.xml.
+const blog = defineCollection({
+  loader: glob({
+    pattern: "*.md",
+    base: "./src/blog",
+  }),
+  // Only the basic zod methods Astro's (deprecated) `z` re-export types
+  // cleanly — `z.coerce` / `.default()` degrade the whole collection's inferred
+  // type to `never`. Dates stay strings (ISO `YYYY-MM-DD`) and defaults are
+  // applied at the call site.
+  schema: z.object({
+    title: z.string().min(1).max(120),
+    description: z.string().min(1).max(200),
+    date: z.string(),
+    author: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    draft: z.boolean().optional(),
+  }),
+});
+
+export const collections = { skills, blog };

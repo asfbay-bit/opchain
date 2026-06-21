@@ -76,11 +76,11 @@ const DEFINITIONS = [
   {
     name: "site.ui.footer.newsletter",
     type: "boolean",
-    default: false,
+    default: true,
     category: "release",
     owner: "site",
     description:
-      "Reserved — show a newsletter sign-up panel in the footer. The form isn't built yet; flipping this flag does nothing today.",
+      "Show the newsletter sign-up panel in the footer (v1.5). The form posts an email to POST /api/notify with source=newsletter (KV lead capture); can be repointed to Buttondown later. Off → panel hidden.",
   },
 
   // ── site.feature ─────────────────────────────────────────────────────────

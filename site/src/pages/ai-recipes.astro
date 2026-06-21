@@ -1,0 +1,297 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Card from "../components/ui/Card.astro";
+import Badge from "../components/ui/Badge.astro";
+import Button from "../components/ui/Button.astro";
+
+interface Step {
+  /** Skill id — also the /skills/<id> link target. */
+  skill: string;
+  command: string;
+  does: string;
+}
+
+interface Recipe {
+  id: string;
+  title: string;
+  goal: string;
+  steps: Step[];
+  effort: string;
+  outcome: string;
+}
+
+const recipes: Recipe[] = [
+  {
+    id: "rag-app",
+    title: "Ship a RAG app in a week",
+    goal: "Go from an idea to a live, evaluated retrieval-augmented app with a goldset you can regress against.",
+    steps: [
+      {
+        skill: "oc-app-architect",
+        command: "/oc-discover",
+        does: "Scopes the app — who it's for, what it retrieves over, the one job it has to nail.",
+      },
+      {
+        skill: "oc-stack-forge",
+        command: "/oc-stack-decide",
+        does: "Picks the platform and a kind: vector-db pack — pgvector, Pinecone, Turbopuffer, or Supabase Vectors — against your scale and budget.",
+      },
+      {
+        skill: "oc-rag-forge",
+        command: "/oc-rag",
+        does: "Runs the Designer → Builder → Evaluator loop: chunking strategy, embedding model, retrieval pipeline, and a retrieval eval that scores recall before you wire generation.",
+      },
+      {
+        skill: "oc-claude-api",
+        command: "/oc-claude-api",
+        does: "Adds the generation model on top of retrieved context, with prompt caching on the system + retrieved chunks to cut cost and latency.",
+      },
+      {
+        skill: "oc-code-auditor",
+        command: "/oc-audit",
+        does: "Runs the \"Phase: AI app?\" sweep — prompt-injection surfaces and tool-use boundaries, not just generic lint.",
+      },
+      {
+        skill: "oc-deploy-ops",
+        command: "/oc-deploy",
+        does: "Gates on the audit, ships to staging, then production with a health check.",
+      },
+    ],
+    effort: "You answer the discovery questions and approve the stack pick. The skills write the chunking, eval harness, and deploy config.",
+    outcome: "An evaluated RAG app with a retrieval goldset, live in production.",
+  },
+  {
+    id: "agent-ships-prs",
+    title: "Build a Claude agent that ships PRs",
+    goal: "Stand up a Claude Agent SDK agent that opens real pull requests, gated on an eval harness and a tool budget.",
+    steps: [
+      {
+        skill: "oc-app-architect",
+        command: "/oc-discover",
+        does: "Scopes what the agent is for and where its PRs land before any topology is chosen.",
+      },
+      {
+        skill: "oc-agent-forge",
+        command: "/oc-agent",
+        does: "Planner picks the subagent topology, tool budget, and loop shape; the Evaluator gates the build on a task fixture suite so regressions surface before merge.",
+      },
+      {
+        skill: "oc-claude-api",
+        command: "/oc-claude-api",
+        does: "Sets model routing — a stronger model for the orchestrator, cheaper workers for the fan-out — with caching on shared context.",
+      },
+      {
+        skill: "oc-git-ops",
+        command: "/oc-git-sync",
+        does: "The agent's PRs go through the same commit gate as a human's — branch, audit, commit, push, open the PR.",
+      },
+    ],
+    effort: "You define the task fixtures and the tool budget ceiling. The skills build the harness, wire routing, and route every PR through the gate.",
+    outcome: "An agent with an eval harness and a capped tool budget, opening real PRs.",
+  },
+  {
+    id: "model-migration",
+    title: "Migrate Sonnet 4.6 → 4.7 without regressing",
+    goal: "Bump a model version and prove it didn't make anything worse before it reaches users.",
+    steps: [
+      {
+        skill: "oc-claude-api",
+        command: "/oc-claude-api migrate",
+        does: "Produces a model-version migration diff PR — the SDK call sites, params, and any retired-model swaps in one reviewable change.",
+      },
+      {
+        skill: "oc-prompt-ops",
+        command: "/oc-prompt regress",
+        does: "Re-runs the eval goldset on the new model and blocks if any score drops more than regression_epsilon.",
+      },
+      {
+        skill: "oc-release-ops",
+        command: "/oc-release",
+        does: "Cuts the release once the regression suite is green — bumps the version, drafts the changelog, hands off to ship.",
+      },
+    ],
+    effort: "You set regression_epsilon and review the diff. The skills run the goldset and refuse to ship a regression.",
+    outcome: "A model bump gated on eval scores, shipped safely.",
+  },
+];
+
+function skillHref(id: string) {
+  return `/skills/${id}`;
+}
+---
+
+<Base
+  title="AI Recipes · opchain"
+  description="Multi-skill walkthroughs — end-to-end opchain recipes that chain skills together: ship a RAG app, build an agent that ships PRs, migrate a model without regressing."
+  active="/ai-recipes"
+>
+  <main class="page">
+    <div class="page-head">
+      <Eyebrow>ai recipes</Eyebrow>
+      <h1>Multi-skill walkthroughs.</h1>
+    </div>
+
+    <p class="lede">
+      A single skill does one job well. The leverage comes from chaining them.
+      Each recipe below is an end-to-end run — one skill hands its checkpoint to
+      the next, so the pipeline carries scope, decisions, and eval results all
+      the way from idea to live. Pick the one closest to what you're building and
+      follow the chain.
+    </p>
+
+    {recipes.map((recipe) => (
+      <section class="recipe" id={recipe.id}>
+        <h2>{recipe.title}</h2>
+        <p class="goal">{recipe.goal}</p>
+
+        <Card variant="surface" glow={false}>
+          <ol class="chain">
+            {recipe.steps.map((step, i) => (
+              <li class="step">
+                <span class="step-num"><Badge variant="accent">{`0${i + 1}`}</Badge></span>
+                <div class="step-body">
+                  <div class="step-head">
+                    <a class="step-skill" href={skillHref(step.skill)}><code>{step.skill}</code></a>
+                    <code class="step-cmd">{step.command}</code>
+                  </div>
+                  <p class="step-does">{step.does}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </Card>
+
+        <div class="callouts">
+          <div class="callout">
+            <div class="callout-label">Your effort</div>
+            <p>{recipe.effort}</p>
+          </div>
+          <div class="callout">
+            <div class="callout-label">You end up with</div>
+            <p>{recipe.outcome}</p>
+          </div>
+        </div>
+      </section>
+    ))}
+
+    <section class="cta">
+      <h2>Run one of these.</h2>
+      <p>
+        Every skill in these recipes is in the library. Install the chain once
+        and the orchestrator routes you between them — you rarely have to name
+        the next step by hand.
+      </p>
+      <div class="cta-actions">
+        <Button href="/skills" variant="primary" size="lg">Browse the skills</Button>
+        <Button href="/install" variant="outline" size="lg">Install opchain</Button>
+      </div>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .page { max-width: 760px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  .page-head { margin-bottom: 1.25rem; }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
+  .lede { color: var(--muted); margin: 0 0 2.5rem; max-width: 42rem; line-height: var(--lh-base); }
+  .lede a { color: var(--accent); }
+
+  .recipe { margin: 0 0 3rem; scroll-margin-top: 80px; }
+  .recipe h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 0.4rem;
+    letter-spacing: var(--ls-tight);
+  }
+  .goal { color: var(--muted); margin: 0 0 1rem; line-height: var(--lh-base); }
+
+  .chain { list-style: none; margin: 0; padding: 0; }
+  .step {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+    padding: 0.85rem 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .step:first-child { padding-top: 0; }
+  .step:last-child { border-bottom: 0; padding-bottom: 0; }
+  .step-num { padding-top: 1px; }
+
+  .step-body { min-width: 0; }
+  .step-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+  }
+  .step-skill { text-decoration: none; }
+  .step-skill code {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--accent);
+  }
+  .step-skill:hover code { text-decoration: underline; }
+  .step-cmd {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    padding: 1px 6px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+  .step-does { color: var(--muted); margin: 0; font-size: var(--fs-sm); line-height: var(--lh-base); }
+
+  .callouts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .callout {
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 0.85rem 1rem;
+    background: var(--surface);
+  }
+  .callout-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+  .callout p { margin: 0; color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-base); }
+
+  .cta {
+    margin-top: 3.5rem;
+    padding-top: 2rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .cta h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 0.5rem;
+    letter-spacing: var(--ls-tight);
+  }
+  .cta p { color: var(--muted); margin: 0 0 1.25rem; max-width: 40rem; line-height: var(--lh-base); }
+  .cta-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+  @media (max-width: 540px) {
+    .callouts { grid-template-columns: 1fr; }
+  }
+</style>
