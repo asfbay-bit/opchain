@@ -1,0 +1,15 @@
+{"id": "route-001", "input": "build me a recipe app"}
+{"id": "route-002", "input": "document this existing codebase and backfill specs"}
+{"id": "route-003", "input": "what stack should I use for a realtime chat app?"}
+{"id": "route-004", "input": "review this code for security bugs before I ship"}
+{"id": "route-005", "input": "commit my changes and open a PR"}
+{"id": "route-006", "input": "deploy this to production"}
+{"id": "route-007", "input": "set up a RAG pipeline over our internal docs"}
+{"id": "route-008", "input": "migrate our prompts from Sonnet 4.6 to 4.7 without regressing"}
+{"id": "route-009", "input": "build a Claude agent that triages incoming GitHub issues"}
+{"id": "route-010", "input": "set up an eval dataset for our prompts and gate regressions"}
+{"id": "route-011", "input": "design a KPI dashboard for the ops team"}
+{"id": "route-012", "input": "what should I work on next across my projects?"}
+{"id": "route-013", "input": "can this API handle 10x the traffic?"}
+{"id": "route-014", "input": "connect our app to the Stripe API"}
+{"id": "route-015", "input": "run a quick check before I commit"}

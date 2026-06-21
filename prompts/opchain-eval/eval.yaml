@@ -1,0 +1,47 @@
+# opchain-eval — the dogfooding eval set for /oc-prompt eval.
+#
+# This is opchain evaluating itself: given a natural-language dev request,
+# does opchain route to the correct skill + entry command? It regression-tests
+# the skill `description:` frontmatter and the orchestrator routing table — the
+# two surfaces that decide which skill triggers. When a skill's trigger copy
+# drifts, a case here flips and /oc-prompt eval catches it before it ships.
+#
+# Format (the canonical oc-prompt-ops eval-dataset shape):
+#   inputs.jsonl    — one {id, input} per line (the request)
+#   expected.jsonl  — one {id, skill, command} per line (the correct route)
+#   eval.yaml       — this file: the rubric + grading config
+
+name: opchain-routing
+version: 1.0.0
+description: >
+  Routing/triage regression set. Each case asserts that a dev request routes to
+  the expected opchain skill and its canonical entry command. Owned by
+  oc-prompt-ops; dogfooded as the worked example for /oc-prompt eval.
+
+dataset:
+  inputs: inputs.jsonl
+  expected: expected.jsonl
+  join_on: id
+
+# Fields graded per case. `skill` is the primary signal; `command` is secondary
+# (a right-skill / wrong-command answer still scores partial credit).
+rubric:
+  - field: skill
+    grader: exact          # case-insensitive exact match on the skill id
+    weight: 0.7
+  - field: command
+    grader: exact          # exact match on the entry command (verb)
+    weight: 0.3
+
+# A case passes when its weighted score >= case_pass. The suite passes when the
+# mean weighted score across all cases >= suite_pass.
+scoring:
+  case_pass: 0.7
+  suite_pass: 0.9
+
+# Drift guardrail: oc-prompt-ops stores the last green mean score as the
+# baseline; a drop of more than `regression_delta` fails the gate even if the
+# absolute mean is still above suite_pass. (See references/drift-detection.md.)
+baseline:
+  metric: mean_weighted_score
+  regression_delta: 0.05

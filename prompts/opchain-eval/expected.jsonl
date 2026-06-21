@@ -1,0 +1,15 @@
+{"id": "route-001", "skill": "oc-app-architect", "command": "/oc-discover"}
+{"id": "route-002", "skill": "oc-reverse-spec", "command": "/oc-rev-full"}
+{"id": "route-003", "skill": "oc-stack-forge", "command": "/oc-stack-decide"}
+{"id": "route-004", "skill": "oc-code-auditor", "command": "/oc-audit"}
+{"id": "route-005", "skill": "oc-git-ops", "command": "/oc-git-sync"}
+{"id": "route-006", "skill": "oc-deploy-ops", "command": "/oc-deploy"}
+{"id": "route-007", "skill": "oc-rag-forge", "command": "/oc-rag"}
+{"id": "route-008", "skill": "oc-claude-api", "command": "/oc-claude-api"}
+{"id": "route-009", "skill": "oc-agent-forge", "command": "/oc-agent"}
+{"id": "route-010", "skill": "oc-prompt-ops", "command": "/oc-prompt"}
+{"id": "route-011", "skill": "oc-dash-forge", "command": "/oc-data-forge"}
+{"id": "route-012", "skill": "oc-orchestrator", "command": "/oc-ops"}
+{"id": "route-013", "skill": "oc-scale-ops", "command": "/oc-scale"}
+{"id": "route-014", "skill": "oc-integrations-engineer", "command": "/oc-integrate"}
+{"id": "route-015", "skill": "oc-bug-check", "command": "/oc-bugcheck"}

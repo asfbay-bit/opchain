@@ -173,6 +173,34 @@ Read `references/ux-audit-checklist.md` for the full checklist.
 | Hardcoded colors/spacing (not using tokens) | MEDIUM |
 | Non-responsive components | MEDIUM |
 
+#### 1f. AI-App Safety Sweep (only when an LLM is in the loop)
+
+**Phase: AI app?** Run this sweep when the codebase calls an LLM (Anthropic /
+OpenAI SDK, `messages.create`, a chat/agent loop) or exposes tools/MCP to a
+model. Skip it entirely for non-AI apps. Read
+`references/ai-safety-rules.md` for the full rule pack; the fast pre-screen
+tripwires live in `references/ai-safety-signatures.json`.
+
+Two surfaces, both keyed back to the rule pack:
+
+| Check | Rule | Severity |
+|---|---|---|
+| Untrusted content (user/RAG/tool output) concatenated into the system prompt | AI-INJ-001/002 | HIGH |
+| **Indirect injection** — tool/retrieval output flows into the next prompt turn unescaped | AI-INJ-005/006 | HIGH |
+| Persona/policy override reachable via untrusted text | AI-INJ-003/007 | HIGH |
+| System prompt / secrets exfiltratable through the model | AI-INJ-004 | HIGH–CRITICAL |
+| `eval`/`new Function` on model output | AI-TOOL-001 | CRITICAL |
+| Shell exec (`exec`/`spawn`/`child_process`/`subprocess`, `shell: true`) reachable from a tool | AI-TOOL-002/003 | CRITICAL |
+| Unbounded tool loop (no call ceiling / max-iterations) | AI-TOOL-004 | HIGH |
+| Destructive op (`DROP`/`DELETE`/`rm -rf`) built from tool/user input | AI-TOOL-005 | CRITICAL |
+| Tool allowlist drift / privilege escalation via chained calls | (LLM-reasoned) | HIGH |
+
+The pre-screen seeds findings; the Auditor then traces data flow the regexes
+can't see (where untrusted text enters the prompt, which capabilities a tool
+argument can reach). This sweep is the code-level complement to oc-agent-forge's
+tool budgets and oc-claude-api's tool-use contract — and to oc-security-auditor's
+threat model one level up.
+
 ### Cross-Cutting Analysis
 
 After individual sweeps:
