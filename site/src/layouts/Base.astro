@@ -24,6 +24,13 @@ interface Props {
    * `roadmap/05-post-sprint-7-backlog.md`.
    */
   ogImage?: string;
+  /**
+   * Page-specific schema.org JSON-LD node(s), merged into the site-wide
+   * `@graph` (Organization + WebSite). Pass a SoftwareApplication node on the
+   * home page, a per-skill node on skill pages, etc. Lets AI crawlers and
+   * search engines understand each page as structured data.
+   */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 const {
@@ -33,6 +40,7 @@ const {
   bare = false,
   ogType = "website",
   ogImage: ogImageProp,
+  jsonLd,
 } = Astro.props;
 
 // Route → OG image map. Per-page images lift social-share CTR over the
@@ -78,6 +86,38 @@ const ogImagePath =
   // Skill detail pages share the /skills card until each skill earns its own.
   (skillDetailMatch ? "/og/skills.png" : "/og-image.png");
 const ogImage = new URL(ogImagePath, Astro.site).toString();
+
+// schema.org JSON-LD. A site-wide Organization + WebSite graph (so every page
+// carries publisher identity), plus any page-specific node(s) passed via the
+// `jsonLd` prop. Helps AI crawlers + search engines parse the site as
+// structured data — the read/index half of agentic discovery, alongside the
+// /.well-known/ai-catalog.json (ARD) manifest the Worker serves.
+const orgId = new URL("/#org", Astro.site).toString();
+const websiteId = new URL("/#website", Astro.site).toString();
+const siteRootUrl = new URL("/", Astro.site).toString();
+const jsonLdGraph = [
+  {
+    "@type": "Organization",
+    "@id": orgId,
+    name: "opchain",
+    url: siteRootUrl,
+    logo: new URL("/favicon.svg", Astro.site).toString(),
+  },
+  {
+    "@type": "WebSite",
+    "@id": websiteId,
+    name: "opchain",
+    url: siteRootUrl,
+    publisher: { "@id": orgId },
+  },
+  ...(Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : []),
+];
+// Escape `<` so a description containing `</script>` can't break out of the
+// JSON-LD block (set:html does not escape).
+const jsonLdString = JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": jsonLdGraph,
+}).replace(/</g, "\\u003c");
 ---
 
 <!doctype html>
@@ -88,6 +128,16 @@ const ogImage = new URL(ogImagePath, Astro.site).toString();
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <!-- Agentic Resource Discovery (ARD): point agents/registries at the
+         ai-catalog manifest the Worker serves (it lists the hosted MCP
+         server). The /.well-known/ai-catalog.json well-known path is the
+         other discovery hook. (A robots.txt `Agentmap:` directive is the
+         third ARD method but Lighthouse's robots-txt SEO audit rejects
+         non-standard directives, so we rely on the well-known path + this
+         link tag.) -->
+    <link rel="ai-catalog" href="/.well-known/ai-catalog.json" />
+    <!-- schema.org structured data (Organization + WebSite + page node). -->
+    <script type="application/ld+json" is:inline set:html={jsonLdString}></script>
     <!-- Build-time public-flag snapshot. Read by site/src/lib/flags/client.ts
          to seed initial values; overridden at runtime once PostHog loads
          post-consent. Server-only flags are never emitted here. -->

@@ -6,9 +6,9 @@
   "created_at": "2026-06-05T22:01:00Z",
   "updated_at": "2026-06-21T17:58:52.618Z",
   "phase": "gate",
-  "step": "stamp-v1.4.3-preview-artifacts",
+  "step": "gate-fix-lhci-seo-robots-agentmap",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for two standalone v1.4.3 Codex release preview artifacts under design-previews/ (changelog-v1.4.3-actual.html + v1.4.3-release-mockup.html). Static HTML only, outside src/ — no TS/JS/app source touched, so tsc/eslint/vitest/build are unaffected and were not runnable anyway (node_modules absent in this egress-blocked sandbox). Ran the meaningful checks: secret detection PASS (no keys/tokens), anti-pattern scan PASS (no debugger), HTML well-formed (balanced html/body). PASS.",
+  "progress_summary": "Fix LHCI SEO failure on PR #305 (SEO 1.00 baseline -> 0.92, hard fail on /, /skills, /demo). Root cause: the new `Agentmap:` line in robots.txt is not on Lighthouse's robots-txt audit DIRECTIVE_SAFELIST (verifyDirective throws 'Unknown directive', site/node_modules/lighthouse/core/audits/seo/robots-txt.js:64-66), failing the scored robots-txt SEO audit site-wide. Fix: removed the Agentmap line; ARD discovery still wired via the well-known path (/.well-known/ai-catalog.json, the canonical hook registries crawl) + <link rel=ai-catalog>. Updated Base.astro comment + CLAUDE.md. Re-verify: robots.txt now all-safelisted directives, vitest 364/364 PASS, site build OK. Verdict PASS.",
   "blockers": [],
   "next_actions": [
     "ROOT CAUSE FOUND 2026-06-20: opchain.dev sits behind a Cloudflare MANAGED CHALLENGE ('Just a moment...' bot interstitial) at the edge, BEFORE the worker. Confirmed via deploy-lag canary job logs (run 27837669034): curl to /api/health returned challenge HTML with cType:'managed', cZone:'opchain.dev', /cdn-cgi/challenge-platform on all 3 retries; external fetch got 403. It intercepts ALL non-browser traffic: /api/health (so the deploy-lag canary silently skips every day -> zero drift issues = FALSE comfort) and critically POST /mcp (the entire v1.4.3 Codex endpoint returns a challenge page, not JSON-RPC). Deploys ALWAYS landed (opchain-dev worker modified 2026-06-20 00:45); the front door was bolted, not the code. The prior 'just deploy it / merged-but-undeployed' guidance was WRONG.",
