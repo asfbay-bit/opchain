@@ -23,8 +23,8 @@
     },
     "kind": {
       "type": "string",
-      "enum": ["language", "framework", "deploy-target", "mobile"],
-      "description": "Pack category. Drives required fields, adapter-graph relations, and whether a coverage flag is generated (language|framework|mobile yes; deploy-target no)."
+      "enum": ["language", "framework", "deploy-target", "mobile", "vector-db"],
+      "description": "Pack category. Drives required fields, adapter-graph relations, and whether a coverage flag is generated (language|framework|mobile|vector-db yes; deploy-target no). kind=vector-db packs (pgvector, pinecone, …) are leaf nodes selected by oc-rag-forge; they carry no adapter-graph edges."
     },
     "status": {
       "type": "string",
@@ -105,6 +105,11 @@
       "type": "string",
       "pattern": "^[a-zA-Z0-9_./-]+\\.md$",
       "description": "Relative path to a mobile-platform reference doc."
+    },
+    "vectorRef": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_./-]+\\.md$",
+      "description": "Relative path to a vector-DB reference doc (kind=vector-db). Soft cap 50KB, hard cap 100KB."
     },
 
     "deprecated": {
