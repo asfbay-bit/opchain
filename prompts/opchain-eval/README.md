@@ -13,8 +13,8 @@ as a failing case instead of a silent mis-route in production.
 | File | Shape |
 |---|---|
 | `inputs.jsonl` | one `{id, input}` per line — the request |
-| `expected.jsonl` | one `{id, skill, command}` per line — the correct route |
-| `eval.yaml` | rubric (graded fields + weights) and pass thresholds |
+| `expected.jsonl` | one `{id, expect:{mode:"contains", all:[<skill>, <command>]}}` per line — the route the answer must name |
+| `eval.yaml` | default grader (`contains`) + `pass_rate` / `regression_epsilon` thresholds |
 
 ## Run it
 
@@ -31,5 +31,5 @@ set parses and that every `expected.skill` is a real skill and every
 ## Extending
 
 Add a paired line to `inputs.jsonl` and `expected.jsonl` with a new unique `id`.
-Keep `skill` to a real `skills/<id>` directory and `command` to a registered
-`/verb`. Re-run the test to keep the set honest.
+In `expect.all`, name a real `skills/<id>` directory and a registered `/verb`.
+Re-run the test to keep the set honest.

@@ -168,38 +168,38 @@ score it on. That set — the **goldset** — is three files. (Full format and a
 small worked example in `references/eval-datasets.md`; the live instance is
 `prompts/opchain-eval/`.)
 
-**`inputs.jsonl`** — one JSON object per line, each an eval case with a stable `id`:
+**`inputs.jsonl`** — one JSON object per line, each an eval case with a stable
+`id` and the `input` the prompt runs on:
 
 ```jsonl
-{"id": "route-001", "input": {"task": "summarize a 40-page contract"}}
-{"id": "route-002", "input": {"task": "classify a support ticket sentiment"}}
+{"id": "route-001", "input": "build me a recipe app"}
+{"id": "route-007", "input": "set up a RAG pipeline over our internal docs"}
 ```
 
-**`expected.jsonl`** — the grading target for each `id` (exact string, substring
-set, or rubric reference):
+**`expected.jsonl`** — the grading target for each `id`. `mode` selects the
+grader; the rest of the object is that grader's config:
 
 ```jsonl
-{"id": "route-001", "expect": {"mode": "contains", "any": ["claude-opus-4-8", "claude-fable-5"]}}
-{"id": "route-002", "expect": {"mode": "contains", "all": ["claude-haiku-4-5"]}}
+{"id": "route-001", "expect": {"mode": "contains", "all": ["oc-app-architect", "/oc-discover"]}}
+{"id": "route-007", "expect": {"mode": "contains", "all": ["oc-rag-forge", "/oc-rag"]}}
 ```
 
-**`eval.yaml`** — the rubric: which grader runs, the pass thresholds, and the
-judge config when grading is model-based:
+**`eval.yaml`** — the suite config: the default grader, the judge config for
+`llm_judge` cases, and the pass/regression thresholds:
 
 ```yaml
-prompt: model-routing
-model: claude-opus-4-8        # the model the prompt-under-test runs on
+prompt: opchain-routing
+model: claude-opus-4-8         # the model the prompt-under-test runs on (from oc-claude-api)
 grading:
-  default_mode: contains       # exact | contains | llm_judge
+  default_mode: contains       # exact | contains | llm_judge (a case may override via its own mode)
   judge:
     model: claude-opus-4-8     # judge ≥ capability of the model under test
-    rubric: |
-      Score 1 if the routing recommendation names a model appropriate to the
-      task's difficulty and cites a reason; else 0.
-    output_format: json_schema # deterministic verdict via structured outputs
+    output_format: json_schema # force a {score, reason} verdict — not free text
 thresholds:
   pass_rate: 0.90              # ≥ 90% of cases must pass
-  regression_epsilon: 0.02     # a drop > 2pts vs baseline fails the gate
+  regression_epsilon: 0.05     # a pass_rate drop > this vs baseline fails the gate
+cost:
+  cost_per_eval: null          # populated by oc-cost-ops in v1.6
 ```
 
 ### Grading modes

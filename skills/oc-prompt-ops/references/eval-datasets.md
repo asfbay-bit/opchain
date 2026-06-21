@@ -20,48 +20,46 @@ reused) and the `input` the prompt runs on.
 
 ### `expected.jsonl` — the grading targets
 
-One object per `id` holding the correct value for each graded field. *Which*
-fields are graded and *how* is declared once in `eval.yaml`, so expected rows
-stay plain target values.
+One object per `id`. `mode` selects the grader; the rest of the object is that
+grader's config. The opchain-eval set uses `contains` with an `all` array — the
+routing answer must name the right skill **and** its command.
 
 ```jsonl
-{"id": "route-001", "skill": "oc-app-architect", "command": "/oc-discover"}
-{"id": "route-007", "skill": "oc-rag-forge",     "command": "/oc-rag"}
-{"id": "route-009", "skill": "oc-agent-forge",   "command": "/oc-agent"}
+{"id": "route-001", "expect": {"mode": "contains", "all": ["oc-app-architect", "/oc-discover"]}}
+{"id": "route-007", "expect": {"mode": "contains", "all": ["oc-rag-forge", "/oc-rag"]}}
+{"id": "route-009", "expect": {"mode": "contains", "all": ["oc-agent-forge", "/oc-agent"]}}
 ```
 
 ### `eval.yaml` — the rubric
 
-The suite config: which fields are graded, the grader for each (from the Grading
-modes below), each field's weight, and the pass/regression thresholds.
+The suite config: the default grader, the judge config for `llm_judge` cases, and
+the pass/regression thresholds. A case may override `default_mode` with its own
+`mode` in `expected.jsonl`.
 
 ```yaml
-name: opchain-routing
-dataset: { inputs: inputs.jsonl, expected: expected.jsonl, join_on: id }
-rubric:
-  - { field: skill,   grader: exact, weight: 0.7 }
-  - { field: command, grader: exact, weight: 0.3 }
-scoring:
-  case_pass: 0.7             # weighted score for a single case to pass
-  suite_pass: 0.9            # mean weighted score for the suite to pass
-baseline:
-  metric: mean_weighted_score
-  regression_delta: 0.05     # a drop > this vs the last green baseline fails the gate
-# For an llm_judge field, add a judge block here (judge model + rubrics):
-#   judge: { model: claude-opus-4-8, output_format: json_schema, rubrics: {...} }
+prompt: opchain-routing
+model: claude-opus-4-8          # the model the prompt-under-test runs on (from oc-claude-api)
+grading:
+  default_mode: contains         # used when a case omits its own mode
+  judge:
+    model: claude-opus-4-8       # judge ≥ capability of the model under test
+    output_format: json_schema   # force a {score, reason} verdict — not free text
+    rubrics:
+      long_horizon: |
+        Score 1 if the recommendation names a model suited to a long, autonomous
+        agentic run (claude-opus-4-8 or claude-fable-5) AND gives a one-line
+        reason tied to task difficulty. Otherwise score 0.
+thresholds:
+  pass_rate: 0.90                # ≥ 90% of cases must pass
+  regression_epsilon: 0.05       # aggregate pass_rate drop > this vs baseline fails the gate
 cost:
-  cost_per_eval: null        # populated by oc-cost-ops in v1.6
+  cost_per_eval: null            # populated by oc-cost-ops in v1.6
 ```
-
-The opchain-eval set is **uniform** — every case is graded the same way through
-the rubric. For a **heterogeneous** goldset where cases need different graders, a
-case may override the rubric with its own `expect: { mode, … }` block in
-`expected.jsonl` (the `mode` is one of the Grading modes below).
 
 ## Grading modes
 
-These are the values a `rubric[].grader` takes (uniform suite) or a per-case
-`expect.mode` takes (heterogeneous override).
+These are the values `grading.default_mode` (suite default) or a case's own
+`expect.mode` (per-case override) can take.
 
 | Mode | Use for | Mechanism |
 |---|---|---|

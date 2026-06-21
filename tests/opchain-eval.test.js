@@ -40,6 +40,19 @@ const skillDirs = new Set(
     .map((d) => d.name),
 );
 
+const VALID_MODES = new Set(["exact", "contains", "llm_judge"]);
+
+// The routing answer is graded `contains: all: [<skill>, <command>]`. Pull the
+// skill token (a real skills/<id>) and the command token (a "/verb") out of the
+// `all` array so we can assert both point at something real.
+function routeTargets(expectObj) {
+  const all = expectObj?.all ?? [];
+  return {
+    skill: all.find((t) => skillDirs.has(t)),
+    command: all.find((t) => typeof t === "string" && t.startsWith("/")),
+  };
+}
+
 describe("prompts/opchain-eval — dataset integrity", () => {
   it("has at least 10 cases (a meaningful regression set)", () => {
     expect(inputs.length).toBeGreaterThanOrEqual(10);
@@ -66,12 +79,13 @@ describe("prompts/opchain-eval — dataset integrity", () => {
 
 describe("prompts/opchain-eval — expected routes point at real skills + commands", () => {
   for (const row of expected) {
-    it(`${row.id} routes to a real skill and a registered command`, () => {
-      expect(skillDirs.has(row.skill), `unknown skill ${row.skill}`).toBe(true);
-      // command is "/verb" or "/verb subcommand" — the flag tracks the verb.
-      expect(typeof row.command).toBe("string");
-      expect(row.command.startsWith("/")).toBe(true);
-      const verb = row.command.replace(/^\//, "").split(/\s+/, 1)[0];
+    it(`${row.id} has a valid grader and routes to a real skill + registered command`, () => {
+      expect(row.expect, `${row.id} missing expect block`).toBeDefined();
+      expect(VALID_MODES.has(row.expect.mode), `${row.id} bad mode ${row.expect.mode}`).toBe(true);
+      const { skill, command } = routeTargets(row.expect);
+      expect(skill, `${row.id} expect.all names no real skill`).toBeDefined();
+      expect(command, `${row.id} expect.all names no /command`).toBeDefined();
+      const verb = command.replace(/^\//, "").split(/\s+/, 1)[0];
       expect(
         isKnown(`skills.command.${verb}.enabled`),
         `command /${verb} has no registry flag`,
@@ -80,30 +94,15 @@ describe("prompts/opchain-eval — expected routes point at real skills + comman
   }
 });
 
-describe("prompts/opchain-eval — eval.yaml rubric", () => {
-  it("parses and declares the expected dataset wiring", () => {
-    expect(config.name).toBe("opchain-routing");
-    expect(config.dataset.inputs).toBe("inputs.jsonl");
-    expect(config.dataset.expected).toBe("expected.jsonl");
-    expect(config.dataset.join_on).toBe("id");
+describe("prompts/opchain-eval — eval.yaml", () => {
+  it("parses and declares the canonical grading + thresholds", () => {
+    expect(config.prompt).toBe("opchain-routing");
+    expect(VALID_MODES.has(config.grading.default_mode)).toBe(true);
   });
 
-  it("rubric fields all exist on every expected record and weights sum to 1", () => {
-    const fields = config.rubric.map((r) => r.field);
-    for (const row of expected) {
-      for (const f of fields) {
-        expect(row[f], `expected.${row.id} missing rubric field ${f}`).toBeDefined();
-      }
-    }
-    const sum = config.rubric.reduce((a, r) => a + r.weight, 0);
-    expect(Math.abs(sum - 1)).toBeLessThan(1e-9);
-  });
-
-  it("declares sane pass thresholds and a drift baseline", () => {
-    expect(config.scoring.case_pass).toBeGreaterThan(0);
-    expect(config.scoring.case_pass).toBeLessThanOrEqual(1);
-    expect(config.scoring.suite_pass).toBeGreaterThan(0);
-    expect(config.scoring.suite_pass).toBeLessThanOrEqual(1);
-    expect(config.baseline.regression_delta).toBeGreaterThan(0);
+  it("declares sane pass + regression thresholds", () => {
+    expect(config.thresholds.pass_rate).toBeGreaterThan(0);
+    expect(config.thresholds.pass_rate).toBeLessThanOrEqual(1);
+    expect(config.thresholds.regression_epsilon).toBeGreaterThan(0);
   });
 });
