@@ -231,19 +231,32 @@ const EXPECTED_DEPLOY_TARGET_PACKS = [
   { id: "play-store",  displayName: "Google Play" },
 ];
 
+// Vector-DB packs (kind=vector-db) — added in v1.5 Sprint 2 (ADEV-346) as the
+// selection set for oc-rag-forge. Leaf nodes: no adapter-graph edges. kind=
+// vector-db DOES emit a coverage flag (in COVERAGE_KINDS). turbopuffer ships
+// beta (flag default off); the other three are stable (default on).
+const EXPECTED_VECTOR_DB_PACKS = [
+  { id: "pgvector",         displayName: "pgvector (Postgres)", status: "stable" },
+  { id: "pinecone",         displayName: "Pinecone",            status: "stable" },
+  { id: "turbopuffer",      displayName: "Turbopuffer",         status: "beta" },
+  { id: "supabase-vectors", displayName: "Supabase Vectors",    status: "stable" },
+];
+
 const EXPECTED_TOTAL_PACKS =
   EXPECTED_LANGUAGE_PACKS.length +
   EXPECTED_FRAMEWORK_PACKS.length +
   EXPECTED_MOBILE_PACKS.length +
-  EXPECTED_DEPLOY_TARGET_PACKS.length;
+  EXPECTED_DEPLOY_TARGET_PACKS.length +
+  EXPECTED_VECTOR_DB_PACKS.length;
 
-// kind=deploy-target packs do NOT emit a coverage flag. The other three
-// kinds (language / framework / mobile) do. Keep this formula explicit so
+// kind=deploy-target packs do NOT emit a coverage flag. The other kinds
+// (language / framework / mobile / vector-db) do. Keep this formula explicit so
 // future PRs adding deploy-targets don't accidentally bump the count.
 const EXPECTED_COVERAGE_FLAGS =
   EXPECTED_LANGUAGE_PACKS.length +
   EXPECTED_FRAMEWORK_PACKS.length +
-  EXPECTED_MOBILE_PACKS.length;
+  EXPECTED_MOBILE_PACKS.length +
+  EXPECTED_VECTOR_DB_PACKS.length;
 
 function loadPack(id) {
   const file = join(PACKS_DIR, id, "pack.yml");
@@ -433,9 +446,45 @@ describe("stack-forge packs — generator output", () => {
         displayName: expected.displayName,
       });
     }
+    for (const expected of EXPECTED_VECTOR_DB_PACKS) {
+      expect(byId[expected.id]).toEqual({
+        id: expected.id,
+        kind: "vector-db",
+        status: expected.status,
+        displayName: expected.displayName,
+      });
+    }
     // deploy-target packs MUST NOT appear in coverage flags.
     for (const expected of EXPECTED_DEPLOY_TARGET_PACKS) {
       expect(byId[expected.id]).toBeUndefined();
     }
   });
+});
+
+describe("stack-forge packs — vector-db pack equivalence (ADEV-346)", () => {
+  for (const expected of EXPECTED_VECTOR_DB_PACKS) {
+    describe(expected.id, () => {
+      it("pack.yml declares the expected canonical fields", () => {
+        const pack = loadPack(expected.id);
+        expect(pack.id).toBe(expected.id);
+        expect(pack.kind).toBe("vector-db");
+        expect(pack.status).toBe(expected.status);
+        expect(pack.since).toBe("1.5.0");
+        expect(pack.displayName).toBe(expected.displayName);
+        expect(pack.vectorRef).toBe("vector.md");
+        // vector-db packs are leaf nodes — no adapter-graph edges.
+        expect(pack.language).toBeUndefined();
+        expect(pack.frameworks).toBeUndefined();
+        expect(pack.supportedPlatforms).toBeUndefined();
+      });
+
+      it("vectorRef file exists and is under the 50KB soft cap", () => {
+        const refPath = join(PACKS_DIR, expected.id, "vector.md");
+        expect(existsSync(refPath)).toBe(true);
+        const size = statSync(refPath).size;
+        expect(size).toBeGreaterThan(0);
+        expect(size).toBeLessThanOrEqual(REF_SOFT_BYTES);
+      });
+    });
+  }
 });

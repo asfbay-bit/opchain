@@ -72,6 +72,12 @@
     "displayName": "Laravel"
   },
   {
+    "id": "pgvector",
+    "kind": "vector-db",
+    "status": "stable",
+    "displayName": "pgvector (Postgres)"
+  },
+  {
     "id": "phoenix",
     "kind": "framework",
     "status": "stable",
@@ -82,6 +88,12 @@
     "kind": "language",
     "status": "stable",
     "displayName": "PHP"
+  },
+  {
+    "id": "pinecone",
+    "kind": "vector-db",
+    "status": "stable",
+    "displayName": "Pinecone"
   },
   {
     "id": "python",
@@ -132,6 +144,12 @@
     "displayName": "Spring Boot (Kotlin)"
   },
   {
+    "id": "supabase-vectors",
+    "kind": "vector-db",
+    "status": "stable",
+    "displayName": "Supabase Vectors"
+  },
+  {
     "id": "sveltekit",
     "kind": "framework",
     "status": "stable",
@@ -148,6 +166,12 @@
     "kind": "framework",
     "status": "stable",
     "displayName": "SwiftUI"
+  },
+  {
+    "id": "turbopuffer",
+    "kind": "vector-db",
+    "status": "beta",
+    "displayName": "Turbopuffer"
   },
   {
     "id": "typescript",
