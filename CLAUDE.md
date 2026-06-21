@@ -164,9 +164,10 @@ staging). Builders live in `src/lib/discovery.js`; routes in `src/index.js`.
   manifest (`specVersion: "1.0"`). One entry: the MCP server, with every skill id
   as a `capability` and intent phrases as `representativeQueries`. `host.identifier`
   is `did:web:opchain.dev` (a signed `/.well-known/did.json` is the verification
-  follow-up). The three ARD discovery hooks are wired: this well-known path, an
-  `Agentmap:` line in `site/public/robots.txt`, and `<link rel="ai-catalog">` in
-  `Base.astro`.
+  follow-up). Two of the three ARD discovery hooks are wired: this well-known path
+  and `<link rel="ai-catalog">` in `Base.astro`. The third (an `Agentmap:` line in
+  `robots.txt`) is intentionally omitted — Lighthouse's `robots-txt` SEO audit
+  rejects non-standard directives and would drop the SEO score below budget.
 - **`/.well-known/mcp.json`** — the MCP server card the ARD entry's `url` points at
   (endpoint, transport, tool list pulled from a live server instance so it can't drift).
 - **`/llms.txt`** — Markdown index linking each skill's raw `/docs/<id>/SKILL.md`

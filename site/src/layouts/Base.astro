@@ -130,9 +130,11 @@ const jsonLdString = JSON.stringify({
     <link rel="canonical" href={canonical} />
     <!-- Agentic Resource Discovery (ARD): point agents/registries at the
          ai-catalog manifest the Worker serves (it lists the hosted MCP
-         server). The robots.txt `Agentmap:` directive and the
-         /.well-known/ai-catalog.json well-known path are the other two
-         discovery hooks. -->
+         server). The /.well-known/ai-catalog.json well-known path is the
+         other discovery hook. (A robots.txt `Agentmap:` directive is the
+         third ARD method but Lighthouse's robots-txt SEO audit rejects
+         non-standard directives, so we rely on the well-known path + this
+         link tag.) -->
     <link rel="ai-catalog" href="/.well-known/ai-catalog.json" />
     <!-- schema.org structured data (Organization + WebSite + page node). -->
     <script type="application/ld+json" is:inline set:html={jsonLdString}></script>
