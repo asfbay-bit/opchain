@@ -1,0 +1,29 @@
+# opchain-eval — the dogfooding eval set for /oc-prompt eval.
+#
+# This is opchain evaluating itself: given a natural-language dev request, does
+# opchain route to the correct skill + entry command? It regression-tests the
+# skill `description:` frontmatter and the orchestrator routing table — the two
+# surfaces that decide which skill triggers. When trigger copy drifts, a case
+# here flips and /oc-prompt eval catches it before it ships.
+#
+# Schema (the canonical oc-prompt-ops goldset shape — see
+# skills/oc-prompt-ops/references/eval-datasets.md):
+#   inputs.jsonl    — one {id, input} per line (the request)
+#   expected.jsonl  — one {id, expect:{mode, ...}} per line (the grader config)
+#   eval.yaml       — this file: default grader + thresholds
+
+prompt: opchain-routing
+model: claude-opus-4-8           # the model the routing prompt runs on (from oc-claude-api)
+
+grading:
+  default_mode: contains         # the routing answer must contain the expected skill + command
+  judge:
+    model: claude-opus-4-8       # only used if a case overrides mode to llm_judge
+    output_format: json_schema   # force a {score, reason} verdict
+
+thresholds:
+  pass_rate: 0.90                # >= 90% of cases must pass
+  regression_epsilon: 0.05       # a pass_rate drop > this vs the last green baseline fails the gate
+
+cost:
+  cost_per_eval: null            # populated by oc-cost-ops in v1.6
