@@ -1,0 +1,15 @@
+{"id": "route-001", "expect": {"mode": "contains", "all": ["oc-app-architect", "/oc-discover"]}}
+{"id": "route-002", "expect": {"mode": "contains", "all": ["oc-reverse-spec", "/oc-rev-full"]}}
+{"id": "route-003", "expect": {"mode": "contains", "all": ["oc-stack-forge", "/oc-stack-decide"]}}
+{"id": "route-004", "expect": {"mode": "contains", "all": ["oc-code-auditor", "/oc-audit"]}}
+{"id": "route-005", "expect": {"mode": "contains", "all": ["oc-git-ops", "/oc-git-sync"]}}
+{"id": "route-006", "expect": {"mode": "contains", "all": ["oc-deploy-ops", "/oc-deploy"]}}
+{"id": "route-007", "expect": {"mode": "contains", "all": ["oc-rag-forge", "/oc-rag"]}}
+{"id": "route-008", "expect": {"mode": "contains", "all": ["oc-claude-api", "/oc-claude-api"]}}
+{"id": "route-009", "expect": {"mode": "contains", "all": ["oc-agent-forge", "/oc-agent"]}}
+{"id": "route-010", "expect": {"mode": "contains", "all": ["oc-prompt-ops", "/oc-prompt"]}}
+{"id": "route-011", "expect": {"mode": "contains", "all": ["oc-dash-forge", "/oc-data-forge"]}}
+{"id": "route-012", "expect": {"mode": "contains", "all": ["oc-orchestrator", "/oc-ops"]}}
+{"id": "route-013", "expect": {"mode": "contains", "all": ["oc-scale-ops", "/oc-scale"]}}
+{"id": "route-014", "expect": {"mode": "contains", "all": ["oc-integrations-engineer", "/oc-integrate"]}}
+{"id": "route-015", "expect": {"mode": "contains", "all": ["oc-bug-check", "/oc-bugcheck"]}}
