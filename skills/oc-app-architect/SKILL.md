@@ -187,6 +187,40 @@ Before generating spec files, chain to oc-stack-forge per orchestrator.md §3 (A
 5. Stack-forge returns the recommendation; if the user already stated preferences during discovery, oc-stack-forge validates the choice rather than re-interviewing.
 6. Present recommendation → user confirms → stack informs all remaining spec files in this phase.
 
+### AI-App Branch (chains to the v1.5 AI-native skills)
+
+If discovery surfaced an **AI app** — the product's core value depends on an LLM
+in the loop (chatbot, agent, RAG/search-over-docs, summarizer/extractor,
+copilot, eval-driven prompt product) — Phase 2 takes an extra branch *after* the
+stack decision and *before* writing the spec docs. Detect it from discovery
+signals: "Claude", "GPT", "LLM", "AI", "agent", "chatbot", "RAG", "embeddings",
+"semantic search", "summarize/extract/classify with a model".
+
+Route per orchestrator.md §3 (Active Invocation), only to the skills the app
+actually needs:
+
+| Signal in discovery | Chain to | What it contributes to the spec |
+|---|---|---|
+| Any direct Claude/LLM API usage, model choice, caching, tool use | **oc-claude-api** | model-routing + prompt-caching defaults + tool-use contract → folds into `02-architecture.md` and a new `11-ai-architecture.md` |
+| "search our docs", "knowledge base", "RAG", "cite sources" | **oc-rag-forge** | vector-DB choice (via oc-stack-forge `kind: vector-db` packs), embedding model, chunking, retrieval-eval plan |
+| "agent", "multi-step", "tools", "autonomous", "does work for me" | **oc-agent-forge** | agent topology, tool budgets, harness loop shape (lands Sprint 3) |
+| "prompts as a product", "eval set", "regression", "prompt versioning" | **oc-prompt-ops** | eval-dataset + drift-detection plan (lands Sprint 3) |
+
+Rules:
+
+1. Run the AI-app branch **after** oc-stack-forge so the LLM/vector choices sit
+   on top of a chosen platform (e.g. rag-forge's vector-DB pack must be
+   compatible with the deploy target).
+2. oc-claude-api is the hub: oc-rag-forge and oc-agent-forge both pull model
+   routing from it rather than re-deciding. Invoke oc-claude-api first when more
+   than one AI skill applies.
+3. Each invoked skill writes its own checkpoint; app-architect reads them back
+   to assemble the AI sections of the spec. Add an `11-ai-architecture.md` spec
+   doc capturing model routing, caching strategy, retrieval design, agent
+   topology, and the eval plan — whichever apply.
+4. Not an AI app? Skip this branch entirely — no AI skill is invoked and the
+   spec set is unchanged.
+
 ### Spec Documents
 
 Generate each as a separate markdown file:

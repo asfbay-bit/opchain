@@ -169,6 +169,13 @@
     "since": "1.4.0"
   },
   {
+    "id": "pgvector",
+    "displayName": "pgvector (Postgres)",
+    "kind": "vector-db",
+    "status": "stable",
+    "since": "1.5.0"
+  },
+  {
     "id": "phoenix",
     "displayName": "Phoenix",
     "kind": "framework",
@@ -188,6 +195,13 @@
     "frameworks": [
       "laravel-php"
     ]
+  },
+  {
+    "id": "pinecone",
+    "displayName": "Pinecone",
+    "kind": "vector-db",
+    "status": "stable",
+    "since": "1.5.0"
   },
   {
     "id": "python",
@@ -271,6 +285,13 @@
     "language": "kotlin"
   },
   {
+    "id": "supabase-vectors",
+    "displayName": "Supabase Vectors",
+    "kind": "vector-db",
+    "status": "stable",
+    "since": "1.5.0"
+  },
+  {
     "id": "sveltekit",
     "displayName": "SvelteKit",
     "kind": "framework",
@@ -298,6 +319,13 @@
     "status": "stable",
     "since": "1.4.0",
     "language": "swift"
+  },
+  {
+    "id": "turbopuffer",
+    "displayName": "Turbopuffer",
+    "kind": "vector-db",
+    "status": "beta",
+    "since": "1.5.0"
   },
   {
     "id": "typescript",

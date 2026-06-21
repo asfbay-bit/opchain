@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import worker from "../src/index.js";
+import realCatalog from "../src/generated/mcp-catalog.json" with { type: "json" };
 import {
   DISCOVERY_PATHS,
   buildAiCatalog,
@@ -123,8 +124,9 @@ describe("discovery routes", () => {
     expect(res.headers.get("Cache-Control")).toMatch(/max-age/);
     const body = await res.json();
     expect(body.specVersion).toBe("1.0");
-    // Every shipped skill is advertised as a capability.
-    expect(body.entries[0].capabilities.length).toBe(18);
+    // Every shipped skill is advertised as a capability (count tracks the
+    // real catalog so adding skills doesn't break this test).
+    expect(body.entries[0].capabilities.length).toBe(realCatalog.skills.length);
   });
 
   it("GET /.well-known/mcp.json → server card with the real tool set", async () => {
@@ -136,11 +138,11 @@ describe("discovery routes", () => {
     expect(body.tools.map((t) => t.name)).toContain("route");
   });
 
-  it("GET /skills.json → full catalog of all 18 skills", async () => {
+  it("GET /skills.json → full catalog of every shipped skill", async () => {
     const res = await get(DISCOVERY_PATHS.skills);
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.count).toBe(18);
+    expect(body.count).toBe(realCatalog.skills.length);
     expect(body.skills.map((s) => s.id)).toContain("oc-release-ops");
   });
 

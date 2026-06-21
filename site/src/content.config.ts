@@ -9,7 +9,11 @@
 import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
 
-const PHASES = ["foundation", "plan", "build"] as const;
+// "ai-native" (v1.5) is a category-style phase for the AI-app skills
+// (oc-claude-api / oc-rag-forge / oc-agent-forge / oc-prompt-ops). They are
+// build-phase skills that also carry the ai-native tag so /skills can filter
+// them as a group.
+const PHASES = ["foundation", "plan", "build", "ai-native"] as const;
 
 // Optional `flags:` block in SKILL.md frontmatter. `required` lists flag
 // names that must evaluate to true for the skill page to render; `exposes`

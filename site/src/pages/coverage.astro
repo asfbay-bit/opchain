@@ -22,7 +22,7 @@ import packsCatalog from "../../../src/generated/packs-catalog.json";
 type PackData = {
   id: string;
   displayName: string;
-  kind: "language" | "framework" | "deploy-target" | "mobile";
+  kind: "language" | "framework" | "deploy-target" | "mobile" | "vector-db";
   status: "stable" | "beta" | "experimental" | "deprecated";
   since: string;
   language?: string;
@@ -41,6 +41,7 @@ const languages     = allPacks.filter((p) => p.kind === "language");
 const frameworks    = allPacks.filter((p) => p.kind === "framework");
 const mobile        = allPacks.filter((p) => p.kind === "mobile");
 const deployTargets = allPacks.filter((p) => p.kind === "deploy-target");
+const vectorDbs     = allPacks.filter((p) => p.kind === "vector-db");
 
 const STATUS_LABEL: Record<PackData["status"], string> = {
   stable: "stable",
@@ -58,12 +59,13 @@ const counts = {
   framework: frameworks.length,
   mobile: mobile.length,
   deployTarget: deployTargets.length,
+  vectorDb: vectorDbs.length,
 };
 ---
 
 <Base
   title="Coverage · opchain"
-  description={`Every oc-stack-forge pack opchain ships — ${counts.total} packs across ${counts.language} languages, ${counts.framework} frameworks, ${counts.mobile} mobile platforms, and ${counts.deployTarget} deploy targets.`}
+  description={`Every oc-stack-forge pack opchain ships — ${counts.total} packs across ${counts.language} languages, ${counts.framework} frameworks, ${counts.mobile} mobile platforms, ${counts.deployTarget} deploy targets, and ${counts.vectorDb} vector databases.`}
   active="/"
 >
   <main class="page coverage-page">
@@ -89,6 +91,7 @@ const counts = {
       <a class="cov-stat" href="#cov-h-frameworks"><span class="cov-num">{counts.framework}</span><span class="cov-label">frameworks</span></a>
       <a class="cov-stat" href="#cov-h-mobile"><span class="cov-num">{counts.mobile}</span><span class="cov-label">mobile</span></a>
       <a class="cov-stat" href="#cov-h-deploy"><span class="cov-num">{counts.deployTarget}</span><span class="cov-label">deploy targets</span></a>
+      <a class="cov-stat" href="#cov-h-vector"><span class="cov-num">{counts.vectorDb}</span><span class="cov-label">vector DBs</span></a>
     </nav>
 
     <section class="cov-section" aria-labelledby="cov-h-languages">
@@ -190,6 +193,31 @@ const counts = {
       <ul class="cov-grid">
         {deployTargets.map((p) => (
           <li class={`cov-card cov-card--deploy status-${p.status}`}>
+            <div class="cov-card-head">
+              <a class="cov-name" href={sourceUrl(p.id)} rel="noopener">{p.displayName}</a>
+              <span class={`cov-status status-${p.status}`}>{STATUS_LABEL[p.status]}</span>
+            </div>
+            <code class="cov-id">{p.id}</code>
+            <dl class="cov-meta">
+              <div><dt>since</dt><dd>v{p.since}</dd></div>
+            </dl>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="cov-section" aria-labelledby="cov-h-vector">
+      <h2 id="cov-h-vector">Vector databases</h2>
+      <p class="cov-sub">
+        Vector stores that <code>oc-rag-forge</code> picks from when designing a
+        RAG or semantic-search app. Each emits a
+        <code>skills.coverage.&lt;id&gt;.enabled</code> flag. They are leaves of
+        the dispatch graph &mdash; no language/framework edges &mdash; selected
+        by retrieval needs (scale, latency, ops, cost), not by toolchain.
+      </p>
+      <ul class="cov-grid">
+        {vectorDbs.map((p) => (
+          <li class={`cov-card cov-card--vector status-${p.status}`}>
             <div class="cov-card-head">
               <a class="cov-name" href={sourceUrl(p.id)} rel="noopener">{p.displayName}</a>
               <span class={`cov-status status-${p.status}`}>{STATUS_LABEL[p.status]}</span>
@@ -398,6 +426,7 @@ const counts = {
   .cov-card--framework { border-left-color: color-mix(in srgb, var(--accent) 70%, var(--surface)); }
   .cov-card--mobile    { border-left-color: color-mix(in srgb, var(--accent) 45%, var(--surface)); }
   .cov-card--deploy    { border-left-color: color-mix(in srgb, var(--accent) 25%, var(--surface)); }
+  .cov-card--vector    { border-left-color: color-mix(in srgb, var(--accent) 55%, var(--surface)); }
 
   .cov-card-head {
     display: flex;

@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-21T17:32:48Z",
+  "updated_at": "2026-06-21T17:42:01Z",
   "phase": "gate",
-  "step": "gate-agentic-discovery-surface",
+  "step": "gate-agentic-discovery-merge-main",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for the agentic-resource-discovery surface (src/lib/discovery.js + 4 worker routes in src/index.js; site rel=ai-catalog + JSON-LD in Base.astro/index.astro/skills/[id].astro; robots Agentmap; tests/discovery.test.js; CLAUDE.md). Full toolchain runnable this session (deps installed): vitest 356/356 PASS (incl. 11 new discovery tests), astro check 0 errors/0 warnings, worker esbuild exit 0, astro build complete. Anti-pattern + secret scans PASS on changed source. npm audit --audit-level=critical: 0 critical (4 high pre-existing, not introduced) -> WARN. Verdict PASS. NOTE: discovery only reaches agents if the Cloudflare bot challenge (see next_actions) is lifted or these paths exempted — /.well-known/*, /llms.txt, /skills.json must be fetchable by non-browser clients.",
+  "progress_summary": "Re-gate after merging origin/main (v1.5 Sprint 2: +4 skills → 22 total) into the agentic-discovery branch. Git merge was clean (no textual conflicts); the only semantic break was two hardcoded skill-count assertions (18) in tests/discovery.test.js — fixed to derive from the real catalog (realCatalog.skills.length). Full re-verify: vitest 364/364 PASS, gen-catalog 22 skills valid (no drift), worker esbuild exit 0, astro check 0 errors/0 warnings, astro build 39 pages (all 22 skill pages carry per-skill JSON-LD). Anti-pattern + secret scans PASS. npm audit critical: 0 (4 high pre-existing) -> WARN. Verdict PASS. NOTE: discovery only reaches agents if the Cloudflare bot challenge (see next_actions) is lifted or these paths exempted.",
   "blockers": [],
   "next_actions": [
     "ROOT CAUSE FOUND 2026-06-20: opchain.dev sits behind a Cloudflare MANAGED CHALLENGE ('Just a moment...' bot interstitial) at the edge, BEFORE the worker. Confirmed via deploy-lag canary job logs (run 27837669034): curl to /api/health returned challenge HTML with cType:'managed', cZone:'opchain.dev', /cdn-cgi/challenge-platform on all 3 retries; external fetch got 403. It intercepts ALL non-browser traffic: /api/health (so the deploy-lag canary silently skips every day -> zero drift issues = FALSE comfort) and critically POST /mcp (the entire v1.4.3 Codex endpoint returns a challenge page, not JSON-RPC). Deploys ALWAYS landed (opchain-dev worker modified 2026-06-20 00:45); the front door was bolted, not the code. The prior 'just deploy it / merged-but-undeployed' guidance was WRONG.",
@@ -18,7 +18,7 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-21T17:32:48Z",
+      "at": "2026-06-21T17:42:01Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
@@ -30,11 +30,16 @@
         "build": "PASS",
         "dependencies": "WARN"
       },
-      "note": "vitest 356/356 (11 new), astro check 0 errors, esbuild + astro build OK. No lint script in repo. npm audit: 0 critical, 4 high pre-existing -> WARN.",
+      "note": "post-merge re-gate: vitest 364/364, gen-catalog 22 skills, esbuild exit 0, astro check 0 errors, astro build 39 pages. npm audit: 0 critical, 4 high pre-existing -> WARN.",
       "warnings": 1,
       "errors": 0
     },
     "run_history": [
+      {
+        "at": "2026-06-21T17:42:01Z",
+        "verdict": "PASS",
+        "warnings": 1
+      },
       {
         "at": "2026-06-21T17:32:48Z",
         "verdict": "PASS",
@@ -84,7 +89,7 @@
     "bypasses": [],
     "carried_debt": 0,
     "streak": {
-      "passes": 14,
+      "passes": 15,
       "since": "2026-06-05T22:01:00Z"
     }
   }

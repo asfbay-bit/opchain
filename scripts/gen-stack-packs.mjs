@@ -14,8 +14,8 @@
  * editor autocomplete in pack.yml.
  *
  * Coverage-flag synthesis rules (must mirror src/lib/flags/registry.js):
- *   - kind ∈ {language, framework, mobile} → emit a flag
- *   - kind ∈ {deploy-target}              → no flag (sub-selection only)
+ *   - kind ∈ {language, framework, mobile, vector-db} → emit a flag
+ *   - kind ∈ {deploy-target}                          → no flag (sub-selection only)
  *   - flag default = (status === 'stable')
  */
 
@@ -32,16 +32,16 @@ const PACKS_DIR = process.env.OPCHAIN_PACKS_DIR ?? join(ROOT, "skills", "oc-stac
 const OUT_DIR = process.env.OPCHAIN_OUT_DIR ?? join(ROOT, "src", "generated");
 const OUT_FILE = join(OUT_DIR, "coverage-flags.json");
 
-const KINDS = new Set(["language", "framework", "deploy-target", "mobile"]);
+const KINDS = new Set(["language", "framework", "deploy-target", "mobile", "vector-db"]);
 const STATUSES = new Set(["stable", "beta", "experimental", "deprecated"]);
 const MOBILE_PLATFORMS = new Set(["ios", "android", "flutter", "react-native"]);
-const COVERAGE_KINDS = new Set(["language", "framework", "mobile"]);
+const COVERAGE_KINDS = new Set(["language", "framework", "mobile", "vector-db"]);
 
 const ID_RE = /^[a-z][a-z0-9-]*$/;
 const SEMVER_RE = /^\d+\.\d+\.\d+$/;
 const REF_PATH_RE = /^[a-zA-Z0-9_./-]+\.md$/;
 
-const REF_FIELDS = ["langRef", "frameworkRef", "deployRef", "testRef", "mobileRef"];
+const REF_FIELDS = ["langRef", "frameworkRef", "deployRef", "testRef", "mobileRef", "vectorRef"];
 const REF_SOFT_BYTES = 50 * 1024;
 const REF_HARD_BYTES = 100 * 1024;
 
@@ -49,7 +49,7 @@ const ALLOWED_FIELDS = new Set([
   "id", "displayName", "kind", "status", "since",
   "language", "frameworks", "testRunner", "buildCmd", "lintCmd",
   "defaultPlatform", "supportedPlatforms", "mobilePlatform",
-  "langRef", "frameworkRef", "deployRef", "testRef", "mobileRef",
+  "langRef", "frameworkRef", "deployRef", "testRef", "mobileRef", "vectorRef",
   "deprecated",
 ]);
 
