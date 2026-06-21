@@ -213,6 +213,11 @@ const DEFINITIONS = [
     "oc-security-auditor",
     "oc-stack-forge",
     "oc-ux-engineer",
+    // v1.5 "Build the AI app" — four AI-native skills (ADEV-344).
+    "oc-claude-api",
+    "oc-rag-forge",
+    "oc-agent-forge",
+    "oc-prompt-ops",
   ]),
 
   // ── skills.capability ────────────────────────────────────────────────────
@@ -251,6 +256,8 @@ const DEFINITIONS = [
     "/oc-rev-stack", "/oc-reverse-spec", "/oc-roadmap", "/oc-scaffold", "/oc-scale", "/oc-sec",
     "/oc-secaudit", "/oc-security", "/oc-spec", "/oc-stack", "/oc-stack-decide",
     "/oc-threat-model", "/oc-uxe",
+    // v1.5 AI-native verbs (ADEV-344). Subcommands inherit the parent verb.
+    "/oc-claude-api", "/oc-rag", "/oc-agent", "/oc-prompt",
   ]),
 
   // ── skills.coverage.<id>.enabled — one per oc-stack-forge pack ──────────────
