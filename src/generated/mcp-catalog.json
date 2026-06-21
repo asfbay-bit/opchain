@@ -1,6 +1,24 @@
 {
   "skills": [
     {
+      "id": "oc-agent-forge",
+      "name": "oc-agent-forge",
+      "displayName": "OC · Agent Forge",
+      "shortDesc": "Scaffold Claude Agent SDK apps — subagent topology, tool budgets, harness loops, agent eval. Tri-agent.",
+      "description": "Claude Agent SDK build harness with a Planner/Builder/Evaluator loop. Owns subagent topology, tool-budget design, harness loop shapes, and agent evaluation. Use for /oc-agent, \"Claude Agent SDK\", \"build an agent\", \"subagent\", \"tool budget\", \"agent loop\", \"harness\", \"multi-agent\", \"agent eval\", \"orchestrator-worker\". Model routing comes from oc-claude-api; agent-forge owns topology + harness shape. Trigger liberally on agent work.",
+      "phases": [
+        "build",
+        "ai-native"
+      ],
+      "triAgent": true,
+      "commands": [
+        "/oc-agent",
+        "/oc-agent eval",
+        "/oc-agent loop"
+      ],
+      "version": "1.5.0"
+    },
+    {
       "id": "oc-api-dev",
       "name": "oc-api-dev",
       "displayName": "OC · API Developer",
@@ -81,6 +99,26 @@
       "triAgent": false,
       "commands": [],
       "version": "1.4.3"
+    },
+    {
+      "id": "oc-claude-api",
+      "name": "oc-claude-api",
+      "displayName": "OC · Claude API",
+      "shortDesc": "Build, debug, and migrate Claude API apps — model routing, prompt caching, tool use, version-migration playbooks.",
+      "description": "Build, debug, and optimize Claude API / Anthropic SDK apps. Apps built with this skill include prompt caching by default. Also migrates existing Claude API code between model versions (4.6 → 4.7, retired-model replacements). Use for /oc-claude-api, \"Anthropic SDK\", \"prompt caching\", \"cache hit rate\", \"tool use\", \"model migration\", \"extended thinking\", \"batch API\", \"files API\", \"memory\", \"citations\". Trigger liberally on Claude API work.",
+      "phases": [
+        "build",
+        "ai-native"
+      ],
+      "triAgent": false,
+      "commands": [
+        "/oc-claude-api",
+        "/oc-claude-api migrate",
+        "/oc-claude-api cache-audit",
+        "/oc-claude-api tool-use",
+        "/oc-claude-api cost"
+      ],
+      "version": "1.5.0"
     },
     {
       "id": "oc-code-auditor",
@@ -261,6 +299,42 @@
         "/oc-ops recent"
       ],
       "version": "1.4.3"
+    },
+    {
+      "id": "oc-prompt-ops",
+      "name": "oc-prompt-ops",
+      "displayName": "OC · Prompt Ops",
+      "shortDesc": "Prompt-as-code — versioning, eval datasets, regression and drift detection for LLM prompts.",
+      "description": "Prompt operations harness — treat prompts as versioned, diffable, source-controlled code. Owns prompt versioning, eval datasets, regression detection, and drift tracking. Use for /oc-prompt, \"prompt versioning\", \"eval dataset\", \"prompt regression\", \"prompt drift\", \"golden set\", \"prompt diff\", \"LLM eval\", \"regression suite\". Trigger liberally on prompt-engineering / eval work.",
+      "phases": [
+        "build",
+        "ai-native"
+      ],
+      "triAgent": false,
+      "commands": [
+        "/oc-prompt",
+        "/oc-prompt eval",
+        "/oc-prompt diff"
+      ],
+      "version": "1.5.0"
+    },
+    {
+      "id": "oc-rag-forge",
+      "name": "oc-rag-forge",
+      "displayName": "OC · RAG Forge",
+      "shortDesc": "Design and build RAG systems — vector DB choice, embeddings, chunking, hybrid search, retrieval eval. Tri-agent.",
+      "description": "Retrieval-augmented generation harness with a Designer/Builder/Evaluator loop. Owns vector DB selection (pgvector, Turbopuffer, Pinecone, Supabase Vectors), embedding-model choice, chunking strategy, hybrid search, and retrieval evaluation. Use for /oc-rag, \"RAG\", \"vector database\", \"embeddings\", \"chunking\", \"semantic search\", \"hybrid search\", \"retrieval eval\", \"reranking\", \"knowledge base\". Trigger liberally on retrieval / RAG work.",
+      "phases": [
+        "build",
+        "ai-native"
+      ],
+      "triAgent": true,
+      "commands": [
+        "/oc-rag",
+        "/oc-rag eval",
+        "/oc-rag bench"
+      ],
+      "version": "1.5.0"
     },
     {
       "id": "oc-release-ops",

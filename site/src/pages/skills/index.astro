@@ -24,6 +24,7 @@ const phaseFilters = [
   { id: "plan",       label: "Plan" },
   { id: "plan-build", label: "Plan + build" },
   { id: "build",      label: "Build" },
+  { id: "ai-native",  label: "AI-native" },
 ];
 ---
 
@@ -165,6 +166,7 @@ const phaseFilters = [
       if (phase === "plan")       return hasPlan && !hasBuild;
       if (phase === "build")      return hasBuild && !hasPlan;
       if (phase === "plan-build") return hasPlan && hasBuild;
+      if (phase === "ai-native")  return phases.includes("ai-native");
       return true;
     }
 
