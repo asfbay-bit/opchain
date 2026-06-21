@@ -3,8 +3,8 @@
  * /changelog — Option C v2 layout: three full-width ARIA tabs, each with its
  * own colour identity, every section led by a rich card expanded on load.
  *
- *   Just Released → v1.4.3 hero (accent) + compact release cards (v1.4.2 ↓).
- *   Coming Next   → v1.5 hero (info) — the one release building now.
+ *   Just Released → v1.5 hero (accent) + compact release cards (v1.4.3 ↓).
+ *   Coming Next   → v1.6 pointer hero (info) — the release building now.
  *   Planned       → v1.6 roadmap card, the v1.7 distribution-theme vote
  *                   (live relative bar chart), the horizon backlog, then the
  *                   feature-request form.
@@ -15,7 +15,7 @@
  * (v1.6 features), OPC-170/173/174 (v1.7 theme options — these also drive
  * the bar chart), and OPC-18x (horizon backlog).
  *
- * Deep links (#v1-5 → Coming Next; #v1-6 / #v1-7 → Planned; #v1-4 →
+ * Deep links (#v1-5 → Just Released; #v1-6 / #v1-7 → Planned; #v1-4 →
  * /coverage) are handled client-side: the matching tab is activated, the
  * target card expanded, and scrolled into view.
  *
@@ -28,10 +28,6 @@ import Base from "../layouts/Base.astro";
 import RoadmapForm from "../components/RoadmapForm.astro";
 import { staticRoadmap } from "../data/roadmap-static";
 import type { RoadmapItem } from "../data/roadmap-types";
-
-// v1.5 is the single in-progress milestone (built, shipping next).
-const v15 =
-  staticRoadmap.items["in-progress"].find((i) => i.milestone === "v1.5") ?? null;
 
 // Group the planned items by milestone, preserving source order.
 const plannedByMilestone = new Map<string, RoadmapItem[]>();
@@ -150,7 +146,7 @@ const horizon = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">7 shipped</span>
+          Just Released <span class="tab-count">8 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -160,7 +156,7 @@ const horizon = [
           aria-selected="false"
           tabindex="-1"
         >
-          Coming Next <span class="tab-count">v1.5</span>
+          Coming Next <span class="tab-count">v1.6</span>
         </button>
         <button
           class="tab-btn tab-btn--planned"
@@ -189,17 +185,79 @@ const horizon = [
         <span class="panel-sub">Newest is open; click any release for full notes.</span>
       </div>
 
-      <!-- v1.4.3 — newest, AUTO-OPEN; extend opchain to Codex -->
-      <article class="hero-card hero-card--released is-open" id="v1-4-3" data-card>
+      <!-- v1.5 — newest, AUTO-OPEN; build the AI app -->
+      <article class="hero-card hero-card--released is-open" id="v1-5" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
-          aria-controls="v1-4-3-body"
+          aria-controls="v1-5-body"
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
+          <span class="hero-ver">v1.5.0 · shipped Jun 21, 2026</span>
+          <span class="hero-title">Build the AI app</span>
+          <span class="hero-desc">
+            v1.5 closes the biggest categorical gap in the catalog: nothing
+            previously owned <em>AI-feature</em> design. Four new AI-native
+            skills ship wired through the existing pipeline — model routing, RAG,
+            agent harnesses, and prompts as first-class version-controlled
+            artifacts.
+          </span>
+        </button>
+        <div class="card-body" id="v1-5-body" data-disclosure-body>
+          <div class="card-body-inner hero-body-inner">
+            <h3>Four new skills</h3>
+            <div class="tile-grid">
+              <div class="tile">
+                <span class="tile-name">oc-claude-api · /oc-claude-api</span>
+                <p class="tile-desc">Model routing (Opus/Sonnet/Haiku/Fable), prompt caching by default, streaming vs. batch, tool use, and migration playbooks for model-version bumps.</p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">oc-rag-forge · /oc-rag</span>
+                <p class="tile-desc">Tri-agent. Vector-DB decision tree, embedding choice, chunking, hybrid search, and retrieval eval with golden sets and recall@k / nDCG.</p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">oc-agent-forge · /oc-agent</span>
+                <p class="tile-desc">Tri-agent. Claude Agent SDK scaffold, subagent topology, tool-budget design, harness-loop shapes, and eval over task fixtures.</p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">oc-prompt-ops · /oc-prompt</span>
+                <p class="tile-desc">Prompts as artifacts: file-shaped versioning, eval datasets, regression detection. <code>/oc-prompt regress</code> blocks on a score drop.</p>
+              </div>
+            </div>
+
+            <div class="callout">
+              <h3>Cross-skill ripples</h3>
+              <ul class="callout-list">
+                <li><strong>oc-app-architect</strong> gained an &ldquo;AI app?&rdquo; branch in <code>/oc-discover</code> that routes to the four new skills.</li>
+                <li><strong>oc-stack-forge</strong> added vector-DB packs (pgvector, Turbopuffer, Pinecone, Supabase Vectors) to the pack registry.</li>
+                <li><strong>oc-code-auditor</strong> learned a prompt-injection + tool-use AI-safety sweep; opchain published its own dogfooding eval set under <code>oc-prompt-ops</code>.</li>
+                <li>New GTM surfaces: <a href="/ai-recipes">/ai-recipes</a>, <a href="/blog">/blog</a>, <a href="/for-agencies">/for-agencies</a>.</li>
+              </ul>
+            </div>
+
+            <div class="compat-box">
+              <strong>Back-compatible with v1.4.</strong> All 22 skills version-bump
+              to <code>1.5.0</code>; the four new skills ship gated behind their
+              <code>skills.registry.&lt;id&gt;.enabled</code> flags.
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.4.3 — previous release; demoted from auto-open -->
+      <article class="hero-card hero-card--released" id="v1-4-3" data-card>
+        <button
+          class="hero-head"
+          type="button"
+          aria-expanded="false"
+          aria-controls="v1-4-3-body"
+          data-disclosure-toggle
+        >
+          <span class="hero-chevron" aria-hidden="true">▶</span>
+          <span class="hero-badge">previous release</span>
           <span class="hero-ver">v1.4.3 · shipped Jun 12, 2026</span>
           <span class="hero-title">opchain runs on Codex</span>
           <span class="hero-desc">
@@ -210,7 +268,7 @@ const horizon = [
             cross-session checkpoints. Brought forward from the tabled v1.8 slot.
           </span>
         </button>
-        <div class="card-body" id="v1-4-3-body" data-disclosure-body>
+        <div class="card-body" id="v1-4-3-body" data-disclosure-body inert>
           <div class="card-body-inner hero-body-inner">
             <h3>What's new</h3>
             <div class="tile-grid">
@@ -420,79 +478,29 @@ const horizon = [
         <span class="panel-sub">The one release building right now. Vote to signal priority.</span>
       </div>
 
-      <!-- v1.5 — next release, AUTO-OPEN, rich hero (info-themed) -->
-      <article class="hero-card hero-card--next is-open" id="v1-5" data-card>
+      <!-- v1.6 — next release building toward; pointer card -->
+      <article class="hero-card hero-card--next is-open" id="v1-6" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
-          aria-controls="v1-5-body"
+          aria-controls="v1-6-body"
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
-          <span class="hero-badge">building now</span>
-          <span class="hero-ver">v1.5.0 · ships next</span>
-          <span class="hero-title">Build the AI app</span>
+          <span class="hero-badge">building next</span>
+          <span class="hero-ver">v1.6.0 · in planning</span>
+          <span class="hero-title">Cost &amp; telemetry</span>
           <span class="hero-desc">
-            v1.5 closes the biggest categorical gap in the catalog: nothing
-            today owns <em>AI-feature</em> design. Four new AI-native skills
-            ship wired through the existing pipeline — model routing, RAG,
-            agent harnesses, and prompts as first-class version-controlled
-            artifacts.
+            With four AI-native skills shipped in v1.5, the next question is
+            what they cost and whether the pipeline is measurably improving.
+            v1.6 adds cost attribution and opt-in telemetry, plus the first
+            <code>oc-checkpoint-protocol</code> bump since v1.2.
           </span>
         </button>
-        <div class="card-body" id="v1-5-body" data-disclosure-body>
+        <div class="card-body" id="v1-6-body" data-disclosure-body>
           <div class="card-body-inner hero-body-inner">
-            <h3>Four new skills</h3>
-            <div class="tile-grid">
-              <div class="tile">
-                <span class="tile-name">claude-api · /claude-api</span>
-                <p class="tile-desc">Model routing (Opus/Sonnet/Haiku), prompt caching by default, streaming vs. batch, tool use, and migration playbooks for model-version bumps.</p>
-              </div>
-              <div class="tile">
-                <span class="tile-name">rag-forge · /rag</span>
-                <p class="tile-desc">Tri-agent. Vector-DB decision tree, embedding choice, chunking, hybrid search, and retrieval eval with golden sets and recall@k / NDCG.</p>
-              </div>
-              <div class="tile">
-                <span class="tile-name">agent-forge · /agent</span>
-                <p class="tile-desc">Tri-agent. Claude Agent SDK scaffold, subagent topology, tool-budget design, harness-loop shapes, and eval over golden trajectories.</p>
-              </div>
-              <div class="tile">
-                <span class="tile-name">prompt-ops · /prompt</span>
-                <p class="tile-desc">Prompts as artifacts: file-shaped versioning, eval datasets, regression detection. <code>/prompt regress</code> blocks on a PR drop.</p>
-              </div>
-            </div>
-
-            <div class="callout">
-              <h3>Cross-skill ripples</h3>
-              <ul class="callout-list">
-                <li><strong>oc-app-architect</strong> gains an &ldquo;AI app?&rdquo; branch in <code>/oc-discover</code> that routes to the four new skills.</li>
-                <li><strong>oc-stack-forge</strong> adds vector-DB packs (pgvector, Turbopuffer, Pinecone, Supabase Vectors) to the pack registry.</li>
-                <li><strong>oc-code-auditor</strong> learns prompt-injection and tool-use safety rules.</li>
-              </ul>
-            </div>
-
-            <div class="compat-box">
-              <strong>Back-compatible with v1.4.</strong> All 22 skills version-bump
-              to <code>1.5.0</code>; the four new skills ship gated behind their
-              <code>skills.registry.&lt;id&gt;.enabled</code> flags.
-            </div>
-
-            {v15 && (
-              <div class="vote-row">
-                <button
-                  class="vote-btn"
-                  type="button"
-                  data-vote-target={v15.id}
-                  aria-label={`Vote for ${v15.title}`}
-                >
-                  <span class="v-arrow" aria-hidden="true">▲</span>
-                  <span class="v-count" data-vote-count>—</span>
-                  <span class="v-label" data-vote-label>vote</span>
-                </button>
-                <span class="vote-note">Shipping next — vote to signal priority.</span>
-              </div>
-            )}
+            <p>Full scope on the <a href="#panel-planned" data-tab-link="planned">Planned</a> tab. v1.5 just shipped — see it under <a href="#panel-released" data-tab-link="released">Just Released</a>.</p>
           </div>
         </div>
       </article>
