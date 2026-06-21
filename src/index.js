@@ -22,6 +22,13 @@ import { FLAG_NAMES, FLAGS, PUBLIC_FLAG_NAMES } from "./lib/flags/registry.js";
 import { createMcpServer } from "./lib/mcp/server.js";
 import mcpCatalog from "./generated/mcp-catalog.json" with { type: "json" };
 import {
+  DISCOVERY_PATHS,
+  buildAiCatalog,
+  buildMcpCard,
+  buildLlmsTxt,
+  buildSkillsJson,
+} from "./lib/discovery.js";
+import {
   corsHeaders,
   applyBaselineHeaders,
   generateNonce,
@@ -581,6 +588,18 @@ async function handleMcp(request, env, ctx, origin, requestId) {
   return new Response(JSON.stringify(response), { status: 200, headers });
 }
 
+// Agentic-discovery docs (ai-catalog.json, mcp.json, llms.txt, skills.json) are
+// public, uncredentialed metadata, so they get a wildcard CORS origin (any
+// registry/agent can fetch them) and a modest edge cache.
+function discoveryHeaders(contentType) {
+  return {
+    "Content-Type": contentType,
+    "Access-Control-Allow-Origin": "*",
+    "Cache-Control": "public, max-age=3600",
+    "X-Opchain-Version": VERSION,
+  };
+}
+
 // ── Main Router ─────────────────────────────────────────────────────────────
 
 async function route(request, env, ctx, url, origin, requestId) {
@@ -618,6 +637,38 @@ async function route(request, env, ctx, url, origin, requestId) {
 
     if (url.pathname === "/api/flags/public" && request.method === "GET") {
       return handlePublicFlags(request, env, ctx, origin, requestId);
+    }
+
+    // ── Agentic resource discovery ────────────────────────────────────────
+    // The "front door" that lets registries/agents find the MCP server above.
+    // All four are derived from the same mcpCatalog the MCP server serves and
+    // self-describe per request origin (staging advertises staging).
+    if (request.method === "GET" && url.pathname === DISCOVERY_PATHS.aiCatalog) {
+      const data = buildAiCatalog({ catalog: mcpCatalog, origin: url.origin, version: VERSION });
+      return new Response(JSON.stringify(data, null, 2) + "\n", {
+        headers: discoveryHeaders("application/json; charset=utf-8"),
+      });
+    }
+    if (request.method === "GET" && url.pathname === DISCOVERY_PATHS.mcpCard) {
+      // Tool list comes from a live server instance so the card never drifts
+      // from what POST /mcp actually exposes.
+      const { tools } = createMcpServer({ catalog: mcpCatalog, serverVersion: VERSION });
+      const data = buildMcpCard({ catalog: mcpCatalog, origin: url.origin, version: VERSION, tools });
+      return new Response(JSON.stringify(data, null, 2) + "\n", {
+        headers: discoveryHeaders("application/json; charset=utf-8"),
+      });
+    }
+    if (request.method === "GET" && url.pathname === DISCOVERY_PATHS.skills) {
+      const data = buildSkillsJson({ catalog: mcpCatalog, origin: url.origin, version: VERSION });
+      return new Response(JSON.stringify(data, null, 2) + "\n", {
+        headers: discoveryHeaders("application/json; charset=utf-8"),
+      });
+    }
+    if (request.method === "GET" && url.pathname === DISCOVERY_PATHS.llms) {
+      const text = buildLlmsTxt({ catalog: mcpCatalog, origin: url.origin });
+      return new Response(text, {
+        headers: discoveryHeaders("text/plain; charset=utf-8"),
+      });
     }
 
     if (url.pathname === "/api/feedback" && request.method === "POST") {

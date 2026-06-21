@@ -96,12 +96,30 @@ const consumers = isFoundational
       .map((s) => ({ name: s.data.name, role: getSkillRole(s.data.name) }))
       .slice(0, 8)
   : [];
+
+// Structured data: this skill as a SoftwareApplication, part of the opchain
+// suite (the /#software node emitted on the home page). Gives AI crawlers a
+// machine-readable "this is a tool that does X" signal per skill page.
+const skillLd = {
+  "@type": "SoftwareApplication",
+  "@id": new URL(`/skills/${skill.data.name}#software`, Astro.site).toString(),
+  name: skill.data.displayName,
+  applicationCategory: "DeveloperApplication",
+  description: skill.data.shortDesc || skill.data.description,
+  softwareVersion: String(skill.data.version),
+  url: new URL(`/skills/${skill.data.name}`, Astro.site).toString(),
+  isPartOf: { "@id": new URL("/#software", Astro.site).toString() },
+  publisher: { "@id": new URL("/#org", Astro.site).toString() },
+  isAccessibleForFree: true,
+  ...(updatedIso ? { dateModified: updatedIso } : {}),
+};
 ---
 
 <Base
   title={`${skill.data.displayName} · opchain skill`}
   description={description}
   active="/skills"
+  jsonLd={skillLd}
 >
   <main class="page">
     <a href="/skills" class="back">

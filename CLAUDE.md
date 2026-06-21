@@ -141,11 +141,42 @@ the JSON honest.
 | GET | `/api/flags/public` | Public-flag map for the browser; sets `oc_id` cookie |
 | POST | `/api/feedback` | Create Linear issue (bug/feature/improvement) |
 | POST | `/api/notify` | Lead capture (KV-backed) |
+| POST | `/mcp` | opchain MCP server (JSON-RPC; Codex / any MCP client) |
+| GET | `/.well-known/ai-catalog.json` | ARD discovery manifest (advertises the MCP server) |
+| GET | `/.well-known/mcp.json` | MCP server card the ARD entry resolves to |
+| GET | `/llms.txt` | llms.txt Markdown index of skills + docs |
+| GET | `/skills.json` | Machine-readable skill catalog (for non-MCP agents) |
 | GET | `/*` | Static assets from `public/` |
 
 The email-gated Try-It chat (`POST /api/try/start` + `POST /api/try/chat`)
 was removed in `claude/remove-try-it`. Old client requests now get a 410
 Gone response; legacy `/tryit` and `/tryit.html` paths 301 to `/demo`.
+
+## Agentic discovery
+
+So AI agents and registries can **find** the hosted MCP server (not just call it
+once they already know it), the Worker serves a small discovery surface, all
+derived at request time from `src/generated/mcp-catalog.json` — single source of
+truth, no build step, self-describing per request origin (staging advertises
+staging). Builders live in `src/lib/discovery.js`; routes in `src/index.js`.
+
+- **`/.well-known/ai-catalog.json`** — [Agentic Resource Discovery (ARD)](https://agenticresourcediscovery.org/spec/)
+  manifest (`specVersion: "1.0"`). One entry: the MCP server, with every skill id
+  as a `capability` and intent phrases as `representativeQueries`. `host.identifier`
+  is `did:web:opchain.dev` (a signed `/.well-known/did.json` is the verification
+  follow-up). The three ARD discovery hooks are wired: this well-known path, an
+  `Agentmap:` line in `site/public/robots.txt`, and `<link rel="ai-catalog">` in
+  `Base.astro`.
+- **`/.well-known/mcp.json`** — the MCP server card the ARD entry's `url` points at
+  (endpoint, transport, tool list pulled from a live server instance so it can't drift).
+- **`/llms.txt`** — Markdown index linking each skill's raw `/docs/<id>/SKILL.md`
+  plus the key human + machine entry points.
+- **`/skills.json`** — full JSON skill catalog (served at the root, not under
+  `/api/`, so it isn't blocked by `robots.txt Disallow: /api/`).
+- **JSON-LD** — `Base.astro` emits a site-wide `Organization` + `WebSite` graph
+  plus a page node (`SoftwareApplication` on `/`, a per-skill node on `/skills/<id>`).
+
+These are inert, public, CORS-open (`*`) read endpoints; not flag-gated today.
 
 ## Environment Variables
 

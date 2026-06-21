@@ -4,3 +4,4 @@ Disallow: /api/
 Disallow: /styleguide
 
 Sitemap: https://opchain.dev/sitemap-index.xml
+Agentmap: https://opchain.dev/.well-known/ai-catalog.json

@@ -25,12 +25,30 @@ const covers = walkthroughs.map((w, i) => ({
 }));
 const initialCover = covers[0];
 const coverCount = covers.length;
+
+// Structured data: the opchain skill suite as a SoftwareApplication. Merged
+// into Base's site-wide @graph. Per-skill SoftwareApplication nodes on the
+// /skills/<id> pages reference this via `isPartOf`.
+const softwareLd = {
+  "@type": "SoftwareApplication",
+  "@id": new URL("/#software", Astro.site).toString(),
+  name: "opchain",
+  applicationCategory: "DeveloperApplication",
+  description:
+    "A set of interconnected Claude Code / MCP skills forming a software-development pipeline: concept → spec → design → build → ship → operate.",
+  url: new URL("/", Astro.site).toString(),
+  softwareRequirements: "Claude Code, Claude Desktop, Codex, or any MCP client",
+  isAccessibleForFree: true,
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  publisher: { "@id": new URL("/#org", Astro.site).toString() },
+};
 ---
 
 <Base
   title="opchain — skills that ship"
   description="opchain is a skillchain and checkpoint protocol designed to get you from concept to production to ops."
   active="/"
+  jsonLd={softwareLd}
 >
   <main class="intro">
     <Eyebrow>skill ecosystem</Eyebrow>

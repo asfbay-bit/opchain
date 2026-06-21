@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-20T01:39:38Z",
+  "updated_at": "2026-06-21T17:32:48Z",
   "phase": "gate",
-  "step": "stamp-v1.4.3-preview-artifacts",
+  "step": "gate-agentic-discovery-surface",
   "status": "complete",
-  "progress_summary": "Pre-commit gate for two standalone v1.4.3 Codex release preview artifacts under design-previews/ (changelog-v1.4.3-actual.html + v1.4.3-release-mockup.html). Static HTML only, outside src/ — no TS/JS/app source touched, so tsc/eslint/vitest/build are unaffected and were not runnable anyway (node_modules absent in this egress-blocked sandbox). Ran the meaningful checks: secret detection PASS (no keys/tokens), anti-pattern scan PASS (no debugger), HTML well-formed (balanced html/body). PASS.",
+  "progress_summary": "Pre-commit gate for the agentic-resource-discovery surface (src/lib/discovery.js + 4 worker routes in src/index.js; site rel=ai-catalog + JSON-LD in Base.astro/index.astro/skills/[id].astro; robots Agentmap; tests/discovery.test.js; CLAUDE.md). Full toolchain runnable this session (deps installed): vitest 356/356 PASS (incl. 11 new discovery tests), astro check 0 errors/0 warnings, worker esbuild exit 0, astro build complete. Anti-pattern + secret scans PASS on changed source. npm audit --audit-level=critical: 0 critical (4 high pre-existing, not introduced) -> WARN. Verdict PASS. NOTE: discovery only reaches agents if the Cloudflare bot challenge (see next_actions) is lifted or these paths exempted — /.well-known/*, /llms.txt, /skills.json must be fetchable by non-browser clients.",
   "blockers": [],
   "next_actions": [
     "ROOT CAUSE FOUND 2026-06-20: opchain.dev sits behind a Cloudflare MANAGED CHALLENGE ('Just a moment...' bot interstitial) at the edge, BEFORE the worker. Confirmed via deploy-lag canary job logs (run 27837669034): curl to /api/health returned challenge HTML with cType:'managed', cZone:'opchain.dev', /cdn-cgi/challenge-platform on all 3 retries; external fetch got 403. It intercepts ALL non-browser traffic: /api/health (so the deploy-lag canary silently skips every day -> zero drift issues = FALSE comfort) and critically POST /mcp (the entire v1.4.3 Codex endpoint returns a challenge page, not JSON-RPC). Deploys ALWAYS landed (opchain-dev worker modified 2026-06-20 00:45); the front door was bolted, not the code. The prior 'just deploy it / merged-but-undeployed' guidance was WRONG.",
@@ -18,23 +18,28 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-20T01:39:38Z",
+      "at": "2026-06-21T17:32:48Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
-        "type_safety": "N/A",
+        "type_safety": "PASS",
         "lint": "N/A",
-        "tests": "N/A",
+        "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "N/A",
-        "dependencies": "N/A"
+        "build": "PASS",
+        "dependencies": "WARN"
       },
-      "note": "changed set = 2 static HTML preview files under design-previews/; toolchain checks not applicable (no app source) and not runnable (deps absent).",
-      "warnings": 0,
+      "note": "vitest 356/356 (11 new), astro check 0 errors, esbuild + astro build OK. No lint script in repo. npm audit: 0 critical, 4 high pre-existing -> WARN.",
+      "warnings": 1,
       "errors": 0
     },
     "run_history": [
+      {
+        "at": "2026-06-21T17:32:48Z",
+        "verdict": "PASS",
+        "warnings": 1
+      },
       {
         "at": "2026-06-20T01:39:38Z",
         "verdict": "PASS",
@@ -79,7 +84,7 @@
     "bypasses": [],
     "carried_debt": 0,
     "streak": {
-      "passes": 13,
+      "passes": 14,
       "since": "2026-06-05T22:01:00Z"
     }
   }
