@@ -4,12 +4,12 @@
   "project": "opchain.dev v1.4",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-08T05:40:00Z",
-  "updated_at": "2026-05-12T05:39:34Z",
+  "updated_at": "2026-06-21T00:00:00Z",
 
-  "phase": "in-flight",
-  "step": "pr-5-in-progress",
-  "status": "in_progress",
-  "progress_summary": "v1.4 PR 1 (ADEV-328 — pack registry architecture) shipped as #192 → 4cb0b09. v1.4 PR 2 (ADEV-329 — 5 language packs) shipped as #203 → 22c45cd. v1.4 PR 3 (ADEV-330 — pack-aware dispatch + api-dev adapters + kind:mobile branch) shipped as #207 → 29218da. v1.4 PR 4 (ADEV-334 — modern web bulk: 3 langs + 4 frameworks) shipped as #214 → 245ba47. v1.4 PR 5 (ADEV-335 — enterprise bulk) NOW IN FLIGHT on branch claude/adev-335-enterprise-bulk: 4 new language packs (java/csharp/kotlin/php) + 4 new framework packs (spring-java/dotnet-aspnet/spring-kotlin/laravel-php). java testRunner=mvn test buildCmd=mvn package lintCmd=mvn checkstyle:check frameworks=[spring-java]; csharp testRunner=dotnet test buildCmd=dotnet build lintCmd=dotnet format --verify-no-changes frameworks=[dotnet-aspnet]; kotlin testRunner=gradle test buildCmd=gradle build lintCmd=ktlint frameworks=[spring-kotlin]; php testRunner=phpunit buildCmd=composer install --no-dev lintCmd=phpcs frameworks=[laravel-php]. spring-java→java, dotnet-aspnet→csharp, spring-kotlin→kotlin, laravel-php→php. gen-stack-packs reports `20 pack(s), 20 coverage flag(s)` (was 12/12). gen-api-dev-adapters reports `12 language pack(s)` (was 8). Flag registry mirror grows to 112 flags (was 104). Equivalence tests in tests/stack-packs-real.test.js extended to cover all 12 languages + 8 frameworks (EXPECTED_TOTAL_PACKS auto-derives from array lengths). api-dev adapter test now asserts 12 entries + skip-frameworks for all 8 framework ids. pack-dispatch test extended to cover all 12 languages + all 8 frameworks return the parsed pack with kind=framework. Vitest 222/222 green. langRef docs each ~6KB; frameworkRef docs each ~5–6KB; all under the 50KB soft cap.",
+  "phase": "post-release",
+  "step": "v1.4-fully-shipped-stale-cp-refreshed-2026-06-21",
+  "status": "complete",
+  "progress_summary": "STALE-CHECKPOINT REFRESH 2026-06-21: this file had been frozen at 'PR 5 in progress' for 40 days, but the entire v1.4 PR chain (PRs 5/6/6.5/7/8 = ADEV-335/336/343/337/331) shipped weeks ago and v1.4.0 has been live since ~2026-05-12 (confirmed against orchestrator checkpoint, which marks all 8 PRs complete, and the live /coverage page + homepage v1.4 pill). The original in-flight narrative below is preserved for history but no longer reflects state. stack-forge's NEXT real work is v1.5 — scaffolding the four AI-native skills and giving stack-forge vector-DB packs — which has NOT started: skills/{claude-api,rag-forge,agent-forge,prompt-ops} do not exist on main despite Linear ADEV-344 being (wrongly) marked Done. ORIGINAL: v1.4 PR 1 (ADEV-328 — pack registry architecture) shipped as #192 → 4cb0b09. v1.4 PR 2 (ADEV-329 — 5 language packs) shipped as #203 → 22c45cd. v1.4 PR 3 (ADEV-330 — pack-aware dispatch + api-dev adapters + kind:mobile branch) shipped as #207 → 29218da. v1.4 PR 4 (ADEV-334 — modern web bulk: 3 langs + 4 frameworks) shipped as #214 → 245ba47. v1.4 PR 5 (ADEV-335 — enterprise bulk) NOW IN FLIGHT on branch claude/adev-335-enterprise-bulk: 4 new language packs (java/csharp/kotlin/php) + 4 new framework packs (spring-java/dotnet-aspnet/spring-kotlin/laravel-php). java testRunner=mvn test buildCmd=mvn package lintCmd=mvn checkstyle:check frameworks=[spring-java]; csharp testRunner=dotnet test buildCmd=dotnet build lintCmd=dotnet format --verify-no-changes frameworks=[dotnet-aspnet]; kotlin testRunner=gradle test buildCmd=gradle build lintCmd=ktlint frameworks=[spring-kotlin]; php testRunner=phpunit buildCmd=composer install --no-dev lintCmd=phpcs frameworks=[laravel-php]. spring-java→java, dotnet-aspnet→csharp, spring-kotlin→kotlin, laravel-php→php. gen-stack-packs reports `20 pack(s), 20 coverage flag(s)` (was 12/12). gen-api-dev-adapters reports `12 language pack(s)` (was 8). Flag registry mirror grows to 112 flags (was 104). Equivalence tests in tests/stack-packs-real.test.js extended to cover all 12 languages + 8 frameworks (EXPECTED_TOTAL_PACKS auto-derives from array lengths). api-dev adapter test now asserts 12 entries + skip-frameworks for all 8 framework ids. pack-dispatch test extended to cover all 12 languages + all 8 frameworks return the parsed pack with kind=framework. Vitest 222/222 green. langRef docs each ~6KB; frameworkRef docs each ~5–6KB; all under the 50KB soft cap.",
 
   "progress_table": [
     { "id": "scope",         "label": "Scope + 8-PR plan approved (incl. iOS pivot, distribution model)", "status": "complete" },
@@ -18,11 +18,11 @@
     { "id": "pr-2",          "label": "PR 2 — Backfill 5 existing stacks as language packs + equivalence fixtures (ADEV-329 / #203 / 22c45cd)", "status": "complete" },
     { "id": "pr-3",          "label": "PR 3 — deploy-ops dispatcher (runtime) + api-dev pack-read (codegen) + kind:mobile branch (ADEV-330 / #207 / 29218da)", "status": "complete" },
     { "id": "pr-4",          "label": "PR 4 — Modern web bulk: elixir+bun+deno language packs + phoenix/remix/sveltekit/solid framework packs (ADEV-334 / #214 / 245ba47)", "status": "complete" },
-    { "id": "pr-5",          "label": "PR 5 — Enterprise bulk: java/csharp/kotlin/php language packs + spring-java/dotnet-aspnet/spring-kotlin/laravel-php framework packs (ADEV-335)", "status": "in_progress" },
-    { "id": "pr-6",          "label": "PR 6 — Apple/iOS/Swift pack + app-store adapter, release-checklist dispatch (ADEV-336)", "status": "not_started" },
-    { "id": "pr-6-5",        "label": "PR 6.5 — Mobile bulk: kotlin-android + flutter + react-native-expo + play-store (ADEV-343)", "status": "not_started" },
-    { "id": "pr-7",          "label": "PR 7 — Hosting adapters: railway, netlify, heroku, aws-amplify (ADEV-337)", "status": "not_started" },
-    { "id": "pr-8",          "label": "PR 8 — Site /coverage page, v1.4 pill, 5 skill version bumps, release (ADEV-331)", "status": "not_started" }
+    { "id": "pr-5",          "label": "PR 5 — Enterprise bulk: java/csharp/kotlin/php language packs + spring-java/dotnet-aspnet/spring-kotlin/laravel-php framework packs (ADEV-335)", "status": "complete" },
+    { "id": "pr-6",          "label": "PR 6 — Apple/iOS/Swift pack + app-store adapter, release-checklist dispatch (ADEV-336 / #218)", "status": "complete" },
+    { "id": "pr-6-5",        "label": "PR 6.5 — Mobile bulk: kotlin-android + flutter + react-native-expo + play-store (ADEV-343 / #216)", "status": "complete" },
+    { "id": "pr-7",          "label": "PR 7 — Hosting adapters: railway, netlify, heroku, aws-amplify (ADEV-337)", "status": "complete" },
+    { "id": "pr-8",          "label": "PR 8 — Site /coverage page, v1.4 pill, 5 skill version bumps, release (ADEV-331)", "status": "complete" }
   ],
 
   "context_primer": {
@@ -75,11 +75,9 @@
   "blockers": [],
 
   "next_actions": [
-    "PR 5 (ADEV-335) is on branch claude/adev-335-enterprise-bulk and ready to commit + push + open. Diff: 8 new pack directories (4 language + 4 framework), extended tests in stack-packs-real / api-dev-adapters / pack-dispatch. Vitest 222/222. Open the PR; link ADEV-335; merge once CI green.",
-    "PR 6 (ADEV-336) Apple/iOS. New language pack `swift` + framework `swiftui` (kind=framework, language=swift) + mobile pack `ios-swiftui` (kind=mobile, mobilePlatform=ios) + deploy-target adapter `app-store`. iOS pack dispatches via the dispatchMobile() envelope shipped in PR 3.",
-    "PR 6.5 (ADEV-343) Android + Flutter + React Native: kotlin-android (kind=mobile, mobilePlatform=android), flutter (kind=mobile, mobilePlatform=flutter), react-native-expo (kind=mobile, mobilePlatform=react-native), play-store adapter.",
-    "PR 7 (ADEV-337) hosting adapters — deploy-target packs for railway/netlify/heroku/aws-amplify (no coverage flag emitted — deploy-targets are sub-selections). After this lands, getDispatchTarget on existing language/framework packs starts returning non-empty supportedPlatforms.",
-    "PR 8 (ADEV-331) the v1.4 release: /coverage page, v1.4 pill on homepage, version bump on the 5 changed skills (stack-forge, api-dev, deploy-ops, app-architect, migration-ops), CHANGELOG entry, prod deploy."
+    "v1.4 is fully shipped — no v1.4 PR work remains. stack-forge's next job is v1.5 Sprint 1/2 (roadmap/08): scaffold skills/{claude-api,rag-forge,agent-forge,prompt-ops} stubs (Sprint 1) and add vector-DB packs to the registry (Sprint 2). None of this exists on main yet despite Linear ADEV-344 being marked Done; ADEV-344 chain reopened 2026-06-21.",
+    "When v1.5 Sprint 2 starts: add vector-DB packs (e.g. pgvector / pinecone / turbopuffer) so rag-forge's stack choice flows through the existing pack-dispatch path; emit coverage flags the same way language/framework packs do.",
+    "Deferred-to-v16+ remain parked: python-ml, r, julia, tauri, electron."
   ],
 
   "skill_state": {

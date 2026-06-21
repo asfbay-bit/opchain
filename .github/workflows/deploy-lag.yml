@@ -57,8 +57,24 @@ jobs:
           # produce false alarms. Keep the request small; we only need
           # the JSON body.
           live=""
+          last_body=""
+          challenge=""
           for attempt in 1 2 3; do
             body="$(curl -sS -m 10 -H 'accept: application/json' https://opchain.dev/api/health 2>/dev/null || true)"
+            last_body="$body"
+            # Detect a Cloudflare bot-management interstitial. When Managed
+            # Challenge / Bot Fight Mode is on, the edge answers non-browser
+            # traffic with a "Just a moment..." HTML page *before* the Worker
+            # runs — so /api/health never returns JSON and this canary used to
+            # silently skip, hiding real drift for days. Treat it as a hard,
+            # loud failure, not a transient miss. (See CLAUDE.md and the
+            # oc-bug-check checkpoint root-cause, 2026-06-20.)
+            case "$body" in
+              *"Just a moment"*|*"challenge-platform"*|*"cf-mitigated"*|*"/cdn-cgi/challenge"*|*"__cf_chl"*)
+                challenge="yes"
+                break
+                ;;
+            esac
             live="$(printf '%s' "$body" | jq -r '.version // empty' 2>/dev/null || true)"
             if [ -n "$live" ]; then
               break
@@ -66,10 +82,16 @@ jobs:
             echo "attempt ${attempt}: empty version, body was: ${body}"
             sleep 5
           done
+
+          if [ -n "$challenge" ]; then
+            echo "::error::/api/health is behind a Cloudflare challenge — the edge is intercepting non-browser traffic before the Worker, so version drift can't be measured. Fix: WAF Skip rule (Managed Challenge + Super Bot Fight Mode) for http.host eq \"opchain.dev\" and (starts_with(http.request.uri.path,\"/api/\") or http.request.uri.path eq \"/mcp\"); repeat for staging. Then re-run this workflow."
+            echo "challenge body (truncated): $(printf '%s' "$last_body" | head -c 400)"
+            exit 1
+          fi
+
           if [ -z "$live" ]; then
-            echo "::warning::could not read live version after 3 attempts — skipping (no false alarm)"
-            echo "live=" >> "$GITHUB_OUTPUT"
-            exit 0
+            echo "::error::could not read live version from /api/health after 3 attempts. /api/health is unreachable or not returning JSON — prod drift cannot be measured, so this is a hard failure rather than a silent skip. Last body (truncated): $(printf '%s' "$last_body" | head -c 400)"
+            exit 1
           fi
           echo "live version: ${live}"
           echo "live=${live}" >> "$GITHUB_OUTPUT"
