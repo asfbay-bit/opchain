@@ -50,12 +50,15 @@ describe("POST /mcp", () => {
     expect(body.result.serverInfo.version).toBe("test"); // __OPCHAIN_VERSION__ define
   });
 
-  it("list_skills returns the full generated catalog (all 18 skills)", async () => {
+  it("list_skills returns the full generated catalog (all 22 skills)", async () => {
     const res = await post(rpc("tools/call", { name: "list_skills" }));
     const body = await res.json();
     const parsed = JSON.parse(body.result.content[0].text);
-    expect(parsed.skills.length).toBe(18);
+    // 18 v1.4-era skills + 4 v1.5 AI-native skills (oc-claude-api,
+    // oc-rag-forge, oc-agent-forge, oc-prompt-ops).
+    expect(parsed.skills.length).toBe(22);
     expect(parsed.skills.map((s) => s.id)).toContain("oc-release-ops");
+    expect(parsed.skills.map((s) => s.id)).toContain("oc-claude-api");
   });
 
   it("get_skill streams the SKILL.md from the ASSETS binding", async () => {
