@@ -1,0 +1,352 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Card from "../components/ui/Card.astro";
+import Button from "../components/ui/Button.astro";
+import Badge from "../components/ui/Badge.astro";
+
+interface Step {
+  cmd: string;
+  skill?: string;
+  what: string;
+}
+
+const pipeline: Step[] = [
+  { cmd: "/oc-discover", skill: "oc-app-architect", what: "Pin down scope, users, and success criteria with the client before a line of code." },
+  { cmd: "/oc-spec", skill: "oc-app-architect", what: "Produce the master spec doc — the contract everyone builds against." },
+  { cmd: "/oc-design", skill: "oc-ux-engineer", what: "Architecture and UI decisions, captured as a design doc rather than a senior dev's memory." },
+  { cmd: "/oc-build", skill: "oc-app-architect", what: "Generator writes, Evaluator critiques against the spec, work kicks back until it passes." },
+  { cmd: "/oc-audit", skill: "oc-code-auditor", what: "Code-quality gate with a graded audit report attached to the deliverable." },
+  { cmd: "/oc-security", skill: "oc-security-auditor", what: "Threat model + OWASP + infra-hardening gate before anything ships to the client." },
+  { cmd: "/oc-deploy", skill: "oc-deploy-ops", what: "Staged rollout, health checks, and a monitoring runbook handed over with the keys." },
+];
+
+interface Deliverable {
+  artifact: string;
+  from: string;
+  href: string;
+  detail: string;
+}
+
+const deliverables: Deliverable[] = [
+  {
+    artifact: "Master spec doc",
+    from: "oc-app-architect",
+    href: "/skills/oc-app-architect",
+    detail: "Scope, users, requirements, and acceptance criteria — the thing you got the client to sign off on.",
+  },
+  {
+    artifact: "Architecture doc",
+    from: "oc-ux-engineer",
+    href: "/skills/oc-ux-engineer",
+    detail: "Stack choices, component structure, and the design decisions behind them, written down.",
+  },
+  {
+    artifact: "Audit report + grade",
+    from: "oc-code-auditor",
+    href: "/skills/oc-code-auditor",
+    detail: "A graded pass over the codebase — findings, severities, and what was fixed. Defensible at handover.",
+  },
+  {
+    artifact: "Deploy + monitoring runbook",
+    from: "oc-deploy-ops",
+    href: "/skills/oc-deploy-ops",
+    detail: "How it ships, how it's watched, and how to roll back — so the client's team isn't flying blind.",
+  },
+];
+---
+
+<Base
+  title="For agencies · opchain"
+  description="opchain for agencies and consultancies: a repeatable, auditable idea→spec→design→build→ship pipeline you run per client project, with checkpointed state and clean handoffs."
+  active="/for-agencies"
+>
+  <main class="page">
+    <div class="page-head">
+      <Eyebrow>for agencies</Eyebrow>
+      <h1>A delivery pipeline you run per client.</h1>
+    </div>
+
+    <p class="lede">
+      Agencies and consultancies live or die on repeatable delivery and clean
+      handoffs. opchain gives every client project the same
+      idea&nbsp;→&nbsp;spec&nbsp;→&nbsp;design&nbsp;→&nbsp;build&nbsp;→&nbsp;ship
+      pipeline, with the work checkpointed and auditable. The process is the
+      same whether it's the first engagement or the fortieth — and it doesn't
+      live in one senior dev's head.
+    </p>
+
+    <section class="section">
+      <h2>Per-client checkpoint isolation</h2>
+      <p class="blurb">
+        Each client project gets its own <code>.checkpoints/</code> tracked in
+        git alongside its code. State — current phase, open blockers, decisions,
+        next actions — travels with the repo, not the person.
+        <a href="/skills/oc-orchestrator"><code>oc-orchestrator</code></a>
+        (<code>/oc-ops</code>) reads a multi-project registry that spans every
+        client engagement on the machine, so
+        <em>"where did we leave off on client X"</em> is one command, not a
+        Slack archaeology session.
+      </p>
+      <Card variant="surface" glow={false}>
+        <div class="kv-list">
+          <div class="kv">
+            <div class="key">Isolation</div>
+            <div class="val">One <code>.checkpoints/</code> per client repo — no cross-contamination between engagements.</div>
+          </div>
+          <div class="kv">
+            <div class="key">Registry</div>
+            <div class="val"><code>/oc-ops</code> rolls up status across all projects into one view: which client is in which phase, what's blocked, what's next.</div>
+          </div>
+          <div class="kv">
+            <div class="key">Resume</div>
+            <div class="val">Pick a project back up after two weeks on another client and read its last known state instead of re-deriving it.</div>
+          </div>
+        </div>
+      </Card>
+    </section>
+
+    <section class="section">
+      <h2>The same pipeline, every engagement</h2>
+      <p class="blurb">
+        The same skills run for every client, in the same order. Consistency
+        across a team — not one senior dev's habits, not whatever the junior on
+        the account remembered to do this time.
+      </p>
+      <ol class="pipeline">
+        {pipeline.map((s) => (
+          <li class="step">
+            <code class="step-cmd">{s.cmd}</code>
+            <div class="step-body">
+              <p class="step-what">{s.what}</p>
+              {s.skill && (
+                <a class="step-skill" href={`/skills/${s.skill}`}><code>{s.skill}</code></a>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p class="blurb note">
+        The <code>/oc-build</code> phase runs a Generator/Evaluator QA loop, and
+        <code>/oc-audit</code> + <code>/oc-security</code> are hard gates —
+        <a href="/skills/oc-deploy-ops"><code>oc-deploy-ops</code></a> won't ship
+        to the client until both pass (or the override is recorded).
+      </p>
+    </section>
+
+    <section class="section">
+      <h2>Deliverables, not just code</h2>
+      <p class="blurb">
+        Clients pay for outcomes they can hold. opchain produces the supporting
+        artifacts as a byproduct of the pipeline — they're generated from the
+        work, so they don't drift from what actually shipped.
+      </p>
+      <div class="deliverables">
+        {deliverables.map((d) => (
+          <Card variant="surface" glow={false}>
+            <div class="deliv-head">
+              <span class="deliv-name">{d.artifact}</span>
+              <Badge variant="accent">artifact</Badge>
+            </div>
+            <p class="deliv-detail">{d.detail}</p>
+            <a class="deliv-from" href={d.href}>from <code>{d.from}</code></a>
+          </Card>
+        ))}
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Clean handoff</h2>
+      <p class="blurb">
+        Because state lives in checkpoints and spec docs — not one person's head
+        — a project can move between team members, or to the client's own team,
+        without context loss. The next person reads the spec, the architecture
+        doc, and the latest checkpoint, and they're current. No "let me find the
+        one engineer who knows how this works."
+      </p>
+      <p class="blurb">
+        Inheriting a codebase with no docs — a legacy client app, or work from
+        another shop? <a href="/skills/oc-reverse-spec"><code>oc-reverse-spec</code></a>
+        (<code>/oc-rev-spec</code>) backfills specs from the existing code, so
+        you start the engagement with the same artifacts a fresh opchain build
+        would have produced.
+      </p>
+    </section>
+
+    <section class="section cta-section">
+      <h2>Run your next engagement on it</h2>
+      <p class="blurb">
+        Install once, then run the same pipeline for every client. Tune the
+        skill set to your stack with the pipeline builder.
+      </p>
+      <div class="cta-row">
+        <Button href="/install" variant="primary" size="lg">Install opchain</Button>
+        <Button href="/skills" variant="outline" size="lg">Browse the skills</Button>
+        <Button href="/pipeline-builder" variant="ghost" size="lg">Build a pipeline</Button>
+      </div>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .page { max-width: 760px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  .page-head { margin-bottom: 1.25rem; }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
+  .lede { color: var(--muted); margin: 0 0 2rem; max-width: 42rem; line-height: var(--lh-base); }
+  .lede em { color: var(--text); font-style: normal; }
+
+  .section { margin: 0 0 2.5rem; }
+  .section h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 0.5rem;
+    letter-spacing: var(--ls-tight);
+  }
+  .blurb {
+    color: var(--muted);
+    margin: 0 0 0.85rem;
+    line-height: var(--lh-base);
+  }
+  .blurb.note {
+    border-top: 0.5px dashed var(--border);
+    padding-top: 0.85rem;
+    margin-top: 1rem;
+    font-size: var(--fs-sm);
+  }
+  .blurb a, .lede a { color: var(--accent); }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    color: var(--text);
+  }
+
+  /* key/value list — matches uses.astro */
+  .kv-list { display: flex; flex-direction: column; }
+  .kv {
+    display: grid;
+    grid-template-columns: minmax(110px, 150px) 1fr;
+    gap: 1rem;
+    align-items: baseline;
+    padding: 0.6rem 0;
+    border-bottom: 0.5px solid var(--border);
+    font-size: var(--fs-sm);
+  }
+  .kv:last-child { border-bottom: 0; }
+  .key {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+  }
+  .val { color: var(--muted); }
+  .val code { font-size: 11px; }
+
+  /* numbered pipeline */
+  .pipeline {
+    list-style: none;
+    counter-reset: step;
+    margin: 0;
+    padding: 0;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    background: var(--surface);
+  }
+  .step {
+    display: grid;
+    grid-template-columns: minmax(120px, 140px) 1fr;
+    gap: 1rem;
+    align-items: baseline;
+    padding: 0.85rem 1rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .step:last-child { border-bottom: 0; }
+  .step-cmd {
+    color: var(--accent);
+    background: transparent;
+    border: 0;
+    padding: 0;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+  }
+  .step-body { display: flex; flex-direction: column; gap: 0.3rem; }
+  .step-what { margin: 0; color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-base); }
+  .step-skill { font-size: var(--fs-xs); text-decoration: none; }
+  .step-skill code {
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--card);
+  }
+  .step-skill:hover code { border-color: var(--accent); }
+
+  /* deliverable cards */
+  .deliverables {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.75rem;
+  }
+  .deliv-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .deliv-name {
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+  }
+  .deliv-detail {
+    margin: 0 0 0.7rem;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-base);
+  }
+  .deliv-from {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--subtle);
+    letter-spacing: var(--ls-wide);
+    text-decoration: none;
+  }
+  .deliv-from code {
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--card);
+  }
+  .deliv-from:hover code { border-color: var(--accent); }
+
+  /* CTA */
+  .cta-section {
+    border-top: 0.5px dashed var(--border);
+    padding-top: 1.75rem;
+    margin-top: 3rem;
+  }
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 540px) {
+    .kv, .step { grid-template-columns: 1fr; gap: 0.3rem; }
+  }
+</style>

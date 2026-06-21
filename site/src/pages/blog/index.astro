@@ -1,0 +1,78 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import Eyebrow from "../../components/ui/Eyebrow.astro";
+import Card from "../../components/ui/Card.astro";
+
+// Static blog index. Posts live in site/src/blog/<slug>.md, validated by the
+// `blog` collection schema in content.config.ts. Drafts are excluded.
+type BlogEntry = CollectionEntry<"blog">;
+const all = (await getCollection("blog")) as BlogEntry[];
+const posts = all
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf());
+
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+---
+
+<Base
+  title="Blog · opchain"
+  description="Notes on opchain — releases, engineering, and the discipline of building software (and AI features) that ships."
+  active="/blog"
+>
+  <main class="page blog-index">
+    <div class="page-head">
+      <Eyebrow>blog</Eyebrow>
+      <h1>Notes from the pipeline.</h1>
+    </div>
+
+    <p class="lede">
+      Releases, engineering write-ups, and the occasional honest note on what
+      worked and what didn't. <a href="/blog/rss.xml">RSS</a>.
+    </p>
+
+    <ul class="post-list">
+      {posts.map((post) => (
+        <li>
+          <Card variant="surface" glow={false}>
+            <a class="post-link" href={`/blog/${post.id}`}>
+              <div class="post-meta">
+                <time datetime={post.data.date}>{fmtDate(post.data.date)}</time>
+                {(post.data.tags ?? []).length > 0 && (
+                  <span class="post-tags">{(post.data.tags ?? []).join(" · ")}</span>
+                )}
+              </div>
+              <h2 class="post-title">{post.data.title}</h2>
+              <p class="post-desc">{post.data.description}</p>
+              <span class="post-more">Read →</span>
+            </a>
+          </Card>
+        </li>
+      ))}
+    </ul>
+
+    {posts.length === 0 && <p class="empty">No posts yet.</p>}
+  </main>
+</Base>
+
+<style>
+  .blog-index { max-width: 52rem; }
+  .lede { color: var(--muted); font-size: 1.05rem; line-height: 1.6; margin-bottom: 2rem; }
+  .lede a { color: var(--accent); }
+
+  .post-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem; }
+
+  .post-link { display: block; text-decoration: none; color: inherit; }
+  .post-meta {
+    display: flex; gap: 0.75rem; align-items: baseline;
+    font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;
+  }
+  .post-tags { color: var(--accent); }
+  .post-title { font-size: 1.35rem; line-height: 1.25; margin: 0 0 0.4rem; }
+  .post-desc { color: var(--muted); line-height: 1.55; margin: 0 0 0.6rem; }
+  .post-more { color: var(--accent); font-size: 0.9rem; font-weight: 600; }
+  .post-link:hover .post-title { color: var(--accent); }
+
+  .empty { color: var(--muted); }
+</style>

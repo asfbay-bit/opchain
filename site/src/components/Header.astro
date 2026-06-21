@@ -37,6 +37,7 @@ const groups: NavGroup[] = [
       { href: "/skills",       label: "Skills",       blurb: "Every skill, role-tagged, filterable." },
       { href: "/coverage",     label: "Coverage",     blurb: "Every supported language, framework, and deploy target." },
       { href: "/compare",      label: "Compare",      blurb: "opchain vs Cursor, Aider, plain Claude Code." },
+      { href: "/for-agencies", label: "For agencies", blurb: "Run opchain as a per-client delivery pipeline." },
       { href: "/changelog",    label: "Changelog",    blurb: "Release history.", badge: "new" },
     ],
   },
@@ -45,6 +46,7 @@ const groups: NavGroup[] = [
     label: "Pipeline",
     items: [
       { href: "/pipeline-builder", label: "Pipeline Builder", blurb: "Answer 4 questions, get a curated stack." },
+      { href: "/ai-recipes", label: "AI Recipes", blurb: "Multi-skill walkthroughs for AI features." },
       ...(demoEnabled ? [{ href: "/demo", label: "Demo", blurb: "Walkthroughs of opchain end-to-end." }] : []),
       { href: "/showcase", label: "Showcase", blurb: "Projects shipped with opchain." },
       { href: "/status",   label: "Status",   blurb: "Live API health from /api/health." },
@@ -54,6 +56,7 @@ const groups: NavGroup[] = [
     id: "resources",
     label: "Resources",
     items: [
+      { href: "/blog",     label: "Blog",            blurb: "Releases and engineering notes." },
       { href: "/glossary", label: "Glossary",        blurb: "Plain-English definitions for every opchain term." },
       { href: "/uses",     label: "How it's built",  blurb: "opchain.dev built with opchain — the recursion." },
       { href: "/security", label: "Security",        blurb: "Threat model, dependency posture, secrets." },
