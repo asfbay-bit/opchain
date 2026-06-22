@@ -56,7 +56,7 @@ import Card from "../components/ui/Card.astro";
       <ul>
         <li>
           <strong>API health.</strong> A <code>GET /api/health</code>
-          returning a 200 with <code>status: "ok"</code> means every
+          returning a 200 with <code>ok: true</code> means every
           edge-served route is reachable and the worker is running.
         </li>
         <li>
@@ -290,11 +290,15 @@ import Card from "../components/ui/Card.astro";
     try {
       const res = await fetch("/api/health", { cache: "no-store" });
       const elapsed = Math.round(performance.now() - start);
-      const ok = res.ok;
-      let json: { status?: string; version?: string } = {};
+      let json: { ok?: boolean; status?: string; version?: string } = {};
       try { json = await res.json(); } catch { /* tolerate non-JSON */ }
+      const healthyPayload = json.ok === true || json.status === "ok";
 
-      apiStatus.textContent = ok ? "Operational" : `HTTP ${res.status}`;
+      apiStatus.textContent = res.ok && healthyPayload
+        ? "Operational"
+        : res.ok
+        ? "Degraded"
+        : `HTTP ${res.status}`;
       apiLatency.textContent = `${elapsed} ms round-trip`;
 
       if (json.version) {
@@ -307,12 +311,13 @@ import Card from "../components/ui/Card.astro";
       const now = new Date();
       checkedVal.textContent = now.toLocaleTimeString();
 
-      if (!ok) {
+      if (!res.ok) {
         setState("down", "API not responding", `Got HTTP ${res.status} from /api/health`);
+      } else if (!healthyPayload) {
+        const detail = json.status ? `status: ${json.status}` : "health payload did not report ok";
+        setState("degraded", "API reports degraded", detail);
       } else if (elapsed > 2000) {
         setState("degraded", "Slow response", `Latency ${elapsed} ms — degraded`);
-      } else if (json.status && json.status !== "ok") {
-        setState("degraded", "API reports degraded", `status: ${json.status}`);
       } else {
         setState("ok", "All systems operational", `/api/health responded in ${elapsed} ms`);
       }

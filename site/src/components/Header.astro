@@ -12,6 +12,8 @@ interface Props {
 
 const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
 const { active = "/" } = Astro.props;
+const CURRENT_RELEASE = "v1.5";
+const CURRENT_RELEASE_HREF = "/changelog#v1-5";
 
 interface DropdownItem {
   href: string;
@@ -143,8 +145,16 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
         <kbd class="search-kbd">⌘K</kbd>
       </label>
 
-      <a class="version-chip" href="/changelog" title="opchain v1.4 · all systems normal">
-        <span class="vchip-tag">v1.4</span>
+      <a
+        class="version-chip"
+        href={CURRENT_RELEASE_HREF}
+        title={`${CURRENT_RELEASE} · checking live Worker health`}
+        aria-label={`${CURRENT_RELEASE} release; checking live Worker health`}
+        data-version-chip
+        data-state="loading"
+        data-release-version={CURRENT_RELEASE}
+      >
+        <span class="vchip-tag">{CURRENT_RELEASE}</span>
         <span class="vchip-dot" aria-hidden="true"></span>
       </a>
 
@@ -276,6 +286,54 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
       g.querySelector<HTMLButtonElement>(".nav-link")?.setAttribute("aria-expanded", "false");
     });
   });
+
+  // ── Live Worker version chip ─────────────────────────────────
+  const versionChip = document.querySelector<HTMLAnchorElement>("[data-version-chip]");
+  type HealthPayload = {
+    ok?: boolean;
+    status?: string;
+    version?: string;
+  };
+
+  function setVersionChip(state: "loading" | "ok" | "degraded" | "down", title: string) {
+    if (!versionChip) return;
+    versionChip.dataset.state = state;
+    versionChip.title = title;
+    versionChip.setAttribute("aria-label", title);
+  }
+
+  async function refreshVersionChip() {
+    if (!versionChip) return;
+    const releaseVersion = versionChip.dataset.releaseVersion || "current release";
+    setVersionChip("loading", `${releaseVersion} · checking live Worker health`);
+
+    try {
+      const res = await fetch("/api/health", { cache: "no-store" });
+      const contentType = res.headers.get("content-type") || "";
+      let body: HealthPayload = {};
+      if (contentType.includes("application/json")) {
+        try { body = await res.json(); } catch { body = {}; }
+      }
+
+      const reportsHealthy = body.ok === true || body.status === "ok";
+
+      if (res.ok && reportsHealthy) {
+        setVersionChip("ok", `${releaseVersion} · /api/health ok`);
+      } else if (res.ok) {
+        setVersionChip("degraded", `${releaseVersion} · health payload did not report ok`);
+      } else {
+        setVersionChip("down", `${releaseVersion} · /api/health returned HTTP ${res.status}`);
+      }
+    } catch {
+      const releaseVersion = versionChip.dataset.releaseVersion || "current release";
+      setVersionChip("down", `${releaseVersion} · /api/health could not be reached`);
+    }
+  }
+
+  refreshVersionChip();
+  window.setInterval(() => {
+    if (document.visibilityState === "visible") refreshVersionChip();
+  }, 60_000);
 
   // ── Mobile drawer (unchanged from previous Header) ─────────────
   const burger = document.getElementById("nav-burger") as HTMLButtonElement | null;
@@ -608,24 +666,42 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     border-radius: var(--r-sm);
     text-decoration: none;
     line-height: 1;
+    min-width: 78px;
+    justify-content: center;
     transition: border-color var(--dur-fast) var(--ease-standard);
   }
   .version-chip:hover { border-color: var(--accent); }
-  /* B-10: 10px bold ember on --surface is borderline (~5:1) and trips
-     axe in some renderers. Use --text for the version label; the
-     green pulsing dot below already carries the "live" signal. */
   .vchip-tag { color: var(--text); font-weight: 600; }
   .vchip-dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
+    background: var(--muted);
+    box-shadow: 0 0 0 0 transparent;
+    transition:
+      background var(--dur-fast) var(--ease-standard),
+      box-shadow var(--dur-fast) var(--ease-standard);
+  }
+  .version-chip[data-state="loading"] .vchip-dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+    animation: vchip-pulse 1.4s ease-in-out infinite;
+  }
+  .version-chip[data-state="ok"] .vchip-dot {
     background: var(--success);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
-    animation: vchip-pulse 2.4s ease-in-out infinite;
+    box-shadow: 0 0 0 3px var(--success-dim);
+  }
+  .version-chip[data-state="degraded"] .vchip-dot {
+    background: var(--warning);
+    box-shadow: 0 0 0 3px var(--warning-dim);
+  }
+  .version-chip[data-state="down"] .vchip-dot {
+    background: var(--danger);
+    box-shadow: 0 0 0 3px var(--danger-dim);
   }
   @keyframes vchip-pulse {
-    0%, 100% { box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
-    50%      { box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.25); }
+    0%, 100% { opacity: 0.45; }
+    50%      { opacity: 1; }
   }
   @media (prefers-reduced-motion: reduce) {
     .vchip-dot { animation: none; }
