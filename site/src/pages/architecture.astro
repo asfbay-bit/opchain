@@ -7,7 +7,7 @@ import packsCatalog from "../../../src/generated/packs-catalog.json";
 type PackData = {
   id: string;
   displayName: string;
-  kind: "language" | "framework" | "deploy-target" | "mobile";
+  kind: "language" | "framework" | "deploy-target" | "mobile" | "vector-db";
   status: string;
 };
 
@@ -16,18 +16,20 @@ const packLanguages    = allPacks.filter((p) => p.kind === "language").map((p) =
 const packFrameworks   = allPacks.filter((p) => p.kind === "framework").map((p) => p.id);
 const packMobile       = allPacks.filter((p) => p.kind === "mobile").map((p) => p.id);
 const packDeployTargets = allPacks.filter((p) => p.kind === "deploy-target").map((p) => p.id);
+const packVectorDb     = allPacks.filter((p) => p.kind === "vector-db").map((p) => p.id);
 const packCounts = {
   total: allPacks.length,
   language: packLanguages.length,
   framework: packFrameworks.length,
   mobile: packMobile.length,
   deploy: packDeployTargets.length,
+  vector: packVectorDb.length,
 };
 ---
 
 <Base
   title="Architecture · opchain"
-  description="Checkpoint-driven pipeline of 18 opchain skills across 5 phases — interactive diagram of how skills chain through .checkpoints/<skill>.json."
+  description="Checkpoint-driven pipeline of 22 opchain skills across 6 phases — interactive diagram of how skills chain through .checkpoints/<skill>.json."
   active="/architecture"
 >
   <!-- Mobile-only static architecture (≤767px). Hidden on desktop via the
@@ -100,9 +102,9 @@ const packCounts = {
 
     <div class="container">
       <div class="header">
-        <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2</div>
+        <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2 · RELEASE v1.5</div>
         <h1>opchain skills ecosystem</h1>
-        <p class="subtitle">Checkpoint-driven pipeline · 18 skills · 5 phases · 5 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.4 pack fabric ({packCounts.total})</span></p>
+        <p class="subtitle">Checkpoint-driven pipeline · 22 skills · 6 phases · 7 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span></p>
       </div>
 
       <div class="diagram-container">
@@ -231,7 +233,7 @@ const packCounts = {
           <!-- ── Orchestrator detail card with routing-decision animation ── -->
           <div class="orch-detail-expand" id="orch-detail-top">
             <div class="cpd-inner">
-              <p class="cpd-intro">The oc-orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/oc-ops</code> queries. Reads all 18 checkpoints; writes its own pipeline state.</p>
+              <p class="cpd-intro">The oc-orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/oc-ops</code> queries. Reads all 22 checkpoints; writes its own pipeline state.</p>
               <svg class="orch-route-svg" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orchestrator routing decision: oc-app-architect checkpoint update routed to oc-ux-engineer, oc-dash-forge, and oc-api-dev in parallel">
                 <defs>
                   <marker id="orch-rt-end" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
@@ -327,7 +329,7 @@ const packCounts = {
                       <div class="bd-meta-row"><span class="bd-meta-label">links</span><div class="bd-cross"><span class="bd-cross-tag" style="background:rgba(13,148,136,0.06);border:0.5px solid rgba(13,148,136,0.2);color:#0D9488">↓ handoff to plan</span></div></div>
                     </div>
                     <div class="bd-text">
-                      <div class="bd-badge" style="color:var(--sand)">Phase 1 of 5</div>
+                      <div class="bd-badge" style="color:var(--sand)">Phase 1 of 6</div>
                       <div class="bd-title">Discover</div>
                       <div class="bd-desc">Reverse-engineer existing codebases into structured spec documents. The output feeds <code style="color:#f59e0b">oc-app-architect</code> as a Phase 2 baseline so the oc-orchestrator never starts from a cold context. Optional — greenfield projects skip this band entirely.</div>
                     </div>
@@ -374,14 +376,15 @@ const packCounts = {
                 <rect x="127" y="77" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
                 <text x="138" y="86.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
 
-                <rect x="240" y="22" width="280" height="106" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1.2" filter="url(#glow-yellow)" opacity="0.97"><title>oc-app-architect — tri-agent oc-orchestrator: Generator / Evaluator loop; idea → spec → design → build → launch</title></rect>
-                <rect x="240" y="22" width="280" height="106" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
+                <rect x="240" y="22" width="280" height="122" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1.2" filter="url(#glow-yellow)" opacity="0.97"><title>oc-app-architect — tri-agent oc-orchestrator: Generator / Evaluator loop; idea → spec → design → build → launch. v1.5: /oc-discover routes AI apps to the AI phase.</title></rect>
+                <rect x="240" y="22" width="280" height="122" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
                 <text x="380" y="44" fill="#e8dfd0" font-size="9" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-app-architect</text>
                 <text x="380" y="58" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · Orchestrator</text>
                 <text x="380" y="74" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Generator / Evaluator · QA loop ≥ 7/10</text>
                 <text x="380" y="92" fill="#f59e0b" font-size="7.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-app · /oc-discover · /oc-spec</text>
                 <text x="380" y="104" fill="#f59e0b" font-size="7.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-design · /oc-build · /oc-launch</text>
-                <text x="380" y="120" fill="#e05c18" font-size="6.8" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">auto-invokes: oc-stack-forge · oc-ux-engineer · oc-api-dev · oc-dash-forge</text>
+                <text x="380" y="118" fill="#e05c18" font-size="6.8" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">auto-invokes: oc-stack-forge · oc-ux-engineer · oc-api-dev · oc-dash-forge</text>
+                <text x="380" y="134" fill="#a78bfa" font-size="6.8" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">“AI app?” /oc-discover → claude-api · rag-forge · agent-forge · prompt-ops</text>
                 <rect x="483" y="14" width="22" height="13" rx="3" fill="#1c1710"/>
                 <rect x="483" y="14" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5" filter="url(#glow-ember)"/>
                 <text x="494" y="23.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
@@ -435,7 +438,7 @@ const packCounts = {
                       </div></div>
                     </div>
                     <div class="bd-text">
-                      <div class="bd-badge" style="color:var(--ember)">Phase 2 of 5</div>
+                      <div class="bd-badge" style="color:var(--ember)">Phase 2 of 6</div>
                       <div class="bd-title">Plan</div>
                       <div class="bd-desc">oc-app-architect anchors the spine, auto-invoking oc-stack-forge for platform decisions, taking advisory input from oc-scale-ops on capacity, and routing oc-migration-ops when a live system needs a schema, framework, or platform change. The plan checkpoint is the master record downstream skills consume.</div>
                     </div>
@@ -448,9 +451,10 @@ const packCounts = {
           <div class="band-arrow" id="ba-1" data-from="plan" data-to="build"
                ></div>
 
-          <!-- ══ PACK FABRIC (cross-cutting, v1.4) ══
+          <!-- ══ PACK FABRIC (cross-cutting, v1.5) ══
                Not a phase; sits between Plan and Build as a foundation-style
-               strip. oc-stack-forge owns the registry; 5 skills consume it. -->
+               strip. oc-stack-forge owns the registry; 6 skills consume it.
+               v1.5 added the vector-db pack kind (consumed by oc-rag-forge). -->
           <div class="band pack-fabric" id="band-packs" data-phase="packs">
             <div class="band-label">
               <div class="band-label-bar" style="background:var(--ember)"></div>
@@ -460,13 +464,13 @@ const packCounts = {
               <div class="pack-fabric-band">
                 <div class="pf-head">
                   <div>
-                    <div class="pf-eyebrow">v1.4 · cross-cutting · oc-stack-forge owns</div>
-                    <div class="pf-title">Pack fabric — language · framework · mobile · deploy</div>
-                    <p class="pf-sub">Declared in <code>skills/oc-stack-forge/packs/&lt;id&gt;/pack.yml</code> · drives <code>skills.coverage.&lt;id&gt;.enabled</code> · consumed by <b>oc-stack-forge</b> · <b>oc-app-architect</b> · <b>oc-migration-ops</b> · <b>oc-api-dev</b> · <b>oc-deploy-ops</b></p>
+                    <div class="pf-eyebrow">v1.5 · cross-cutting · oc-stack-forge owns</div>
+                    <div class="pf-title">Pack fabric — language · framework · mobile · deploy · vector-db</div>
+                    <p class="pf-sub">Declared in <code>skills/oc-stack-forge/packs/&lt;id&gt;/pack.yml</code> · drives <code>skills.coverage.&lt;id&gt;.enabled</code> · consumed by <b>oc-stack-forge</b> · <b>oc-app-architect</b> · <b>oc-migration-ops</b> · <b>oc-api-dev</b> · <b>oc-deploy-ops</b> · <b>oc-rag-forge</b></p>
                   </div>
                   <a class="pf-badge" href="/coverage" aria-label="View all packs on /coverage">
                     <span class="pf-badge-dot"></span>
-                    <span>v1.4 · {packCounts.total} packs</span>
+                    <span>v1.5 · {packCounts.total} packs</span>
                     <span class="pf-badge-arrow">→</span>
                   </a>
                 </div>
@@ -507,15 +511,124 @@ const packCounts = {
                       {packDeployTargets.map((id) => <span class="pf-chip">{id}</span>)}
                     </div>
                   </div>
+                  <div class="pf-cell pf-vec">
+                    <div class="pf-cell-head">
+                      <span class="pf-cell-kind">VECTOR-DB</span>
+                      <span class="pf-cell-count">{packCounts.vector}</span>
+                    </div>
+                    <div class="pf-chips">
+                      {packVectorDb.map((id) => <span class="pf-chip">{id}</span>)}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="band-arrow" id="ba-1b" data-from="packs" data-to="build"
+          <div class="band-arrow" id="ba-1b" data-from="packs" data-to="ai"
                ></div>
 
-          <!-- ══ BAND 3: BUILD ══ -->
+          <!-- ══ BAND 3: AI (v1.5) ══
+               New AI-native phase. The four skills auto-invoke off
+               oc-app-architect's "AI app?" branch in /oc-discover and return
+               checkpoints — they are not on the primary spine (same pattern as
+               Build). Violet accent (--ai) distinguishes the v1.5 phase. -->
+          <div class="band" id="band-ai" data-phase="ai"
+               tabindex="0"
+               >
+            <div class="band-label">
+              <div class="band-label-bar" style="background:var(--ai)"></div>
+              <span class="band-label-text" style="color:var(--ai)">AI</span>
+            </div>
+            <div class="band-content">
+              <svg viewBox="0 0 760 120" role="img" aria-label="AI phase (v1.5): oc-claude-api, oc-rag-forge, oc-agent-forge, oc-prompt-ops — auto-invoked by oc-app-architect">
+                <rect x="14" y="22" width="170" height="76" rx="5" fill="#1c1710" stroke="#a78bfa" stroke-width="1" opacity="0.97"><title>oc-claude-api — specialist/advisor (NEW v1.5, flag-gated); model routing, prompt caching, tool use, version-migration playbooks</title></rect>
+                <rect x="14" y="22" width="170" height="76" rx="5" fill="rgba(167,139,250,0.06)" stroke="#a78bfa" stroke-width="0.5"/>
+                <text x="99" y="40" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-claude-api</text>
+                <text x="99" y="52" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Advisor</text>
+                <text x="99" y="64" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">routing · caching · tool use</text>
+                <text x="99" y="78" fill="#a78bfa" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-claude-api</text>
+                <text x="99" y="91" fill="#a78bfa" font-size="6" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">NEW · v1.5 · gated</text>
+                <rect x="147" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="147" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="158" y="24.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="173" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="173" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="184" y="24.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+
+                <rect x="206" y="22" width="160" height="76" rx="5" fill="#1c1710" stroke="#a78bfa" stroke-width="1" opacity="0.97"><title>oc-rag-forge — tri-agent: Designer / Builder / Evaluator (NEW v1.5, flag-gated); vector-DB choice, embeddings, chunking, hybrid search, retrieval eval</title></rect>
+                <rect x="206" y="22" width="160" height="76" rx="5" fill="rgba(167,139,250,0.06)" stroke="#a78bfa" stroke-width="0.5"/>
+                <text x="286" y="40" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-rag-forge</text>
+                <text x="286" y="52" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent</text>
+                <text x="286" y="64" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Designer · Builder · Eval</text>
+                <text x="286" y="78" fill="#a78bfa" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-rag · vector DB</text>
+                <text x="286" y="91" fill="#a78bfa" font-size="6" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">NEW · v1.5 · gated</text>
+                <rect x="329" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="329" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="340" y="24.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="355" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="355" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="366" y="24.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+
+                <rect x="388" y="22" width="170" height="76" rx="5" fill="#1c1710" stroke="#a78bfa" stroke-width="1" opacity="0.97"><title>oc-agent-forge — tri-agent: Planner / Builder / Evaluator (NEW v1.5, flag-gated); Claude Agent SDK scaffold, subagent topology, tool-budget design, harness loops, agent eval</title></rect>
+                <rect x="388" y="22" width="170" height="76" rx="5" fill="rgba(167,139,250,0.06)" stroke="#a78bfa" stroke-width="0.5"/>
+                <text x="473" y="40" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-agent-forge</text>
+                <text x="473" y="52" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent</text>
+                <text x="473" y="64" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Planner · Builder · Eval</text>
+                <text x="473" y="78" fill="#a78bfa" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-agent · Agent SDK</text>
+                <text x="473" y="91" fill="#a78bfa" font-size="6" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">NEW · v1.5 · gated</text>
+                <rect x="521" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="521" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="532" y="24.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="547" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="547" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="558" y="24.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+
+                <rect x="580" y="22" width="160" height="76" rx="5" fill="#1c1710" stroke="#a78bfa" stroke-width="1" opacity="0.97"><title>oc-prompt-ops — specialist (NEW v1.5, flag-gated); prompts as versioned, diffable artifacts — eval datasets, regression and drift detection</title></rect>
+                <rect x="580" y="22" width="160" height="76" rx="5" fill="rgba(167,139,250,0.06)" stroke="#a78bfa" stroke-width="0.5"/>
+                <text x="660" y="40" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-prompt-ops</text>
+                <text x="660" y="52" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist</text>
+                <text x="660" y="64" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">prompt-as-code · eval</text>
+                <text x="660" y="78" fill="#a78bfa" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-prompt</text>
+                <text x="660" y="91" fill="#a78bfa" font-size="6" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">NEW · v1.5 · gated</text>
+                <rect x="703" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="703" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="714" y="24.5" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="729" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="729" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="740" y="24.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+              </svg>
+              <div class="band-detail">
+                <div class="bd-inner" style="background:rgba(167,139,250,0.05);border:0.5px solid rgba(167,139,250,0.25)">
+                  <div class="bd-left">
+                    <div class="bd-meta">
+                      <div class="bd-meta-row"><span class="bd-meta-label">skills</span><div class="bd-tags">
+                        <span class="bd-tag" style="background:rgba(167,139,250,0.1);border:0.5px solid rgba(167,139,250,0.4);color:#a78bfa">oc-claude-api</span>
+                        <span class="bd-tag" style="background:rgba(167,139,250,0.1);border:0.5px solid rgba(167,139,250,0.4);color:#a78bfa">oc-rag-forge</span>
+                        <span class="bd-tag" style="background:rgba(167,139,250,0.1);border:0.5px solid rgba(167,139,250,0.4);color:#a78bfa">oc-agent-forge</span>
+                        <span class="bd-tag" style="background:rgba(167,139,250,0.1);border:0.5px solid rgba(167,139,250,0.4);color:#a78bfa">oc-prompt-ops</span>
+                      </div></div>
+                      <div class="bd-meta-row"><span class="bd-meta-label">checkpt</span><div class="bd-cp"><span class="bd-cp-badge">CP</span> phase · model_routing · retrieval · agent_topology · prompt_versions</div></div>
+                      <div class="bd-meta-row"><span class="bd-meta-label">links</span><div class="bd-cross">
+                        <span class="bd-cross-tag" style="background:rgba(245,158,11,0.06);border:0.5px solid rgba(245,158,11,0.2);color:#f59e0b">↑ auto-invoked by oc-app-architect · “AI app?” branch</span>
+                        <span class="bd-cross-tag" style="background:rgba(167,139,250,0.06);border:0.5px solid rgba(167,139,250,0.25);color:#a78bfa">↓ checkpoints back to oc-app-architect</span>
+                      </div></div>
+                    </div>
+                    <div class="bd-text">
+                      <div class="bd-badge" style="color:var(--ai)">Phase 3 of 6 · NEW v1.5</div>
+                      <div class="bd-title">AI</div>
+                      <div class="bd-desc">v1.5 adds an AI-native phase. When <code style="color:#a78bfa">/oc-discover</code> detects an AI app, oc-app-architect routes to four new skills: <code style="color:#a78bfa">oc-claude-api</code> (model routing, prompt caching, tool use, version migration), the tri-agent pair <code style="color:#a78bfa">oc-rag-forge</code> (vector-DB choice, embeddings, hybrid search, retrieval eval) and <code style="color:#a78bfa">oc-agent-forge</code> (Agent SDK, subagent topology, tool budgets, agent eval), and <code style="color:#a78bfa">oc-prompt-ops</code> (prompts as versioned, eval-gated artifacts). All four ship gated behind <code>skills.registry.&lt;id&gt;.enabled</code> and feed checkpoints back to oc-app-architect; <code style="color:#a78bfa">oc-rag-forge</code> consumes the vector-db packs.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="band-arrow" id="ba-1c" data-from="ai" data-to="build"
+               ></div>
+
+          <!-- ══ BAND 4: BUILD ══ -->
           <div class="band" id="band-build" data-phase="build"
                tabindex="0"
                >
@@ -597,7 +710,7 @@ const packCounts = {
                       </div></div>
                     </div>
                     <div class="bd-text">
-                      <div class="bd-badge" style="color:var(--warning)">Phase 3 of 5</div>
+                      <div class="bd-badge" style="color:var(--warning)">Phase 4 of 6</div>
                       <div class="bd-title">Build</div>
                       <div class="bd-desc">Three tri-agent loops (oc-ux-engineer · oc-api-dev · oc-integrations-engineer) plus the dense-UI specialist (oc-dash-forge) work in parallel. oc-ux-engineer hands data-heavy screens to oc-dash-forge; oc-api-dev produces an OpenAPI/GraphQL contract that the deploy-time drift gate later enforces. All four feed checkpoints back to oc-app-architect.</div>
                     </div>
@@ -610,7 +723,7 @@ const packCounts = {
           <div class="band-arrow" id="ba-2" data-from="build" data-to="ship"
                ></div>
 
-          <!-- ══ BAND 4: SHIP ══ -->
+          <!-- ══ BAND 5: SHIP ══ -->
           <div class="band" id="band-ship" data-phase="ship"
                tabindex="0"
                >
@@ -633,12 +746,10 @@ const packCounts = {
                 <text x="160" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
                 <g class="spine-chip"><rect x="60" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="60" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="90" y="17" fill="#0D9488" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑2·3·↓4</text></g>
 
-                <rect x="200" y="14" width="170" height="64" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" filter="url(#glow-mint)" opacity="0.97"><title>oc-release-ops — specialist · workflow; plan/draft/bump/announce/ship a versioned release. Sits between oc-git-ops and oc-deploy-ops at release boundaries. (18th skill)</title></rect>
+                <rect x="200" y="14" width="170" height="64" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" filter="url(#glow-mint)" opacity="0.97"><title>oc-release-ops — specialist · workflow; plan/draft/bump/announce/ship a versioned release. Sits between oc-git-ops and oc-deploy-ops — activates at release boundaries only.</title></rect>
                 <rect x="200" y="14" width="170" height="64" rx="5" fill="rgba(13,148,136,0.10)" stroke="#0D9488" stroke-width="0.5"/>
                 <text x="285" y="26" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-release-ops</text>
-                <text x="285" y="36" fill="#c4b89e" font-size="6" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Workflow · NEW</text>
-                <circle cx="361" cy="22" r="6" fill="#0D9488" opacity="0.9"><title>18th skill in the opchain pipeline</title></circle>
-                <text x="361" y="24.5" fill="#0a0807" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">18</text>
+                <text x="285" y="36" fill="#c4b89e" font-size="6" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Workflow · release-boundary only</text>
                 <rect x="208" y="50" width="28" height="11" rx="2" fill="rgba(13,148,136,0.18)" stroke="#0D9488" stroke-width="0.6"/>
                 <text x="222" y="58" fill="#0D9488" font-size="5.5" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">plan</text>
                 <line x1="237" y1="55.5" x2="240" y2="55.5" stroke="#0D9488" stroke-width="0.7" marker-end="url(#ah-success-sm)"/>
@@ -690,7 +801,7 @@ const packCounts = {
                 <text x="325" y="120" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-code-auditor</text>
                 <text x="325" y="132" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · gates prod</text>
                 <text x="325" y="146" fill="#c4b89e" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Auditor · Fixer · Verifier</text>
-                <text x="325" y="158" fill="#f59e0b" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-audit · score ≥ 7/10</text>
+                <text x="325" y="158" fill="#f59e0b" font-size="7.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-audit · ≥7/10 · AI-safety</text>
                 <g class="branch-tag"><rect x="276" y="163" width="98" height="11" rx="2" fill="rgba(13,148,136,.12)" stroke="#0D9488" stroke-width="0.5"/><text x="325.0" y="171" fill="#0D9488" font-size="7" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">→ oc-security-auditor</text></g>
                 <rect x="373" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
                 <rect x="373" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
@@ -741,9 +852,9 @@ const packCounts = {
                       </div></div>
                     </div>
                     <div class="bd-text">
-                      <div class="bd-badge" style="color:var(--ember)">Phase 4 of 5</div>
+                      <div class="bd-badge" style="color:var(--ember)">Phase 5 of 6</div>
                       <div class="bd-title">Ship</div>
-                      <div class="bd-desc">Three audit gates (oc-bug-check pre-commit, oc-code-auditor for code-level findings, oc-security-auditor for STRIDE/OWASP/infra) all must pass before oc-deploy-ops will run the production sequence. At release boundaries the spine threads oc-git-ops → <strong style="color:#0D9488">oc-release-ops</strong> → oc-deploy-ops; oc-release-ops produces changelog · version bump · release ticket · announcement, then hands off (it is <em>not</em> itself a deployer). The gate cluster sits below and writes blocker status into shared checkpoints.</div>
+                      <div class="bd-desc">Three audit gates (oc-bug-check pre-commit, oc-code-auditor for code-level findings, oc-security-auditor for STRIDE/OWASP/infra) all must pass before oc-deploy-ops will run the production sequence. At release boundaries the spine threads oc-git-ops → <strong style="color:#0D9488">oc-release-ops</strong> → oc-deploy-ops; oc-release-ops produces changelog · version bump · release ticket · announcement, then hands off (it is <em>not</em> itself a deployer). The gate cluster sits below and writes blocker status into shared checkpoints. <strong style="color:#a78bfa">v1.5</strong> taught oc-code-auditor prompt-injection and tool-use safety rules for AI apps.</div>
                     </div>
                   </div>
                 </div>
@@ -754,7 +865,7 @@ const packCounts = {
           <div class="band-arrow" id="ba-3" data-from="ship" data-to="monitor"
                ></div>
 
-          <!-- ══ BAND 5: MONITOR ══ -->
+          <!-- ══ BAND 6: MONITOR ══ -->
           <div class="band" id="band-monitor" data-phase="monitor"
                tabindex="0"
                >
@@ -791,7 +902,7 @@ const packCounts = {
                       </div></div>
                     </div>
                     <div class="bd-text">
-                      <div class="bd-badge" style="color:var(--success)">Phase 5 of 5</div>
+                      <div class="bd-badge" style="color:var(--success)">Phase 6 of 6</div>
                       <div class="bd-title">Monitor</div>
                       <div class="bd-desc">oc-deploy-ops hands off to oc-monitoring-ops once production is green. oc-monitoring-ops also receives oc-api-dev's SLO + drift manifest so contract violations alert the same way uptime errors do. Incident response runbooks and postmortems live here.</div>
                     </div>
@@ -811,7 +922,7 @@ const packCounts = {
               <span>spine ordinal</span>
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title">Spine Ordinal</div>
-                The 5 primary-spine skills wear numbered ember chips showing handoff position. Each chip carries <code>↑prev·↓next</code> indicators. Replaces the green handoff lines that previously connected them. Branch handoffs use inline mint <code>→ target</code> pills inside source rects.
+                The 6 primary-spine skills wear numbered ember chips showing handoff position. Each chip carries <code>↑prev·↓next</code> indicators. Replaces the green handoff lines that previously connected them. Branch handoffs use inline mint <code>→ target</code> pills inside source rects.
                 <div class="legend-card-examples">1 rev-spec → 2 app-arch → 3 oc-git-ops → 4 oc-release-ops → 5 oc-deploy-ops → 6 oc-monitoring-ops</div>
               </div>
             </span>
@@ -851,7 +962,7 @@ const packCounts = {
               <span>CP · checkpoint</span>
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title">Checkpoint Protocol</div>
-                Every skill writes JSON to <code>.checkpoints/</code> after each state change. Single source of truth — any skill can read any other's checkpoint to rebuild context after a reset. CP badge sits centered on the top edge of each skill, paired just to the left of ORC. Hover the CP zone toggle top-left of the diagram to see all 17 connected.
+                Every skill writes JSON to <code>.checkpoints/</code> after each state change. Single source of truth — any skill can read any other's checkpoint to rebuild context after a reset. CP badge sits centered on the top edge of each skill, paired just to the left of ORC. Hover the CP zone toggle top-left of the diagram to see all 22 connected.
                 <div class="legend-card-examples">.checkpoints/oc-app-architect.json · phase · progress_table · blockers · next_actions</div>
               </div>
             </span>
@@ -876,7 +987,7 @@ const packCounts = {
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title" style="color:#f59e0b">Tri-agent</div>
                 Skills running an internal Planner / Generator / Evaluator loop. The Evaluator scores output (≥ 7/10 to advance); failure triggers Generator retry until threshold or max iterations.
-                <div class="legend-card-examples">oc-app-architect · oc-ux-engineer · oc-api-dev · oc-integrations-engineer · oc-code-auditor</div>
+                <div class="legend-card-examples">oc-app-architect · oc-ux-engineer · oc-api-dev · oc-integrations-engineer · oc-code-auditor · oc-rag-forge · oc-agent-forge</div>
               </div>
             </span>
             <span class="legend-item" tabindex="0" role="button"
@@ -919,6 +1030,16 @@ const packCounts = {
                 <div class="legend-card-examples">oc-bug-check · oc-code-auditor · oc-security-auditor</div>
               </div>
             </span>
+            <span class="legend-item" tabindex="0" role="button"
+                  >
+              <div class="li-swatch" style="background:rgba(167,139,250,.08);border:1px solid #a78bfa;box-shadow:0 0 6px rgba(167,139,250,.4)"></div>
+              <span>AI-native · v1.5</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title" style="color:#a78bfa">AI-native phase (v1.5)</div>
+                The four AI skills added in v1.5, auto-invoked by oc-app-architect's <code>"AI app?"</code> branch in <code>/oc-discover</code> and gated behind <code>skills.registry.&lt;id&gt;.enabled</code>. Two are tri-agent (oc-rag-forge, oc-agent-forge).
+                <div class="legend-card-examples">oc-claude-api · oc-rag-forge · oc-agent-forge · oc-prompt-ops</div>
+              </div>
+            </span>
           </div>
         </div>
       </div>
@@ -930,7 +1051,7 @@ const packCounts = {
             <h2>Spine Ordinals</h2>
           </div>
           <ul>
-            <li>· Ember chips on the 5 spine skills mark the handoff sequence</li>
+            <li>· Ember chips on the 6 spine skills mark the handoff sequence</li>
             <li>· <strong style="color:var(--success)">1</strong> oc-reverse-spec → <strong style="color:var(--success)">2</strong> oc-app-architect → <strong style="color:var(--success)">3</strong> oc-git-ops → <strong style="color:var(--success)">4</strong> oc-release-ops → <strong style="color:var(--success)">5</strong> oc-deploy-ops → <strong style="color:var(--success)">6</strong> oc-monitoring-ops</li>
             <li>· Each chip carries <code>↑prev·↓next</code> for direction</li>
             <li>· Branch handoffs as inline mint pills inside source rects:</li>
@@ -942,7 +1063,7 @@ const packCounts = {
         <div class="card">
           <div class="card-header">
             <div class="card-dot" style="background:var(--warning)"></div>
-            <h2>Tri-Agent Patterns (5)</h2>
+            <h2>Tri-Agent Patterns (7)</h2>
           </div>
           <ul>
             <li>· oc-app-architect: Generator / Evaluator</li>
@@ -950,6 +1071,8 @@ const packCounts = {
             <li>· oc-api-dev: Planner / Generator / Evaluator</li>
             <li>· oc-integrations-engineer: Planner / Builder / Tester</li>
             <li>· oc-code-auditor: Auditor / Fixer / Verifier</li>
+            <li>· <span style="color:#a78bfa">oc-rag-forge: Designer / Builder / Evaluator</span></li>
+            <li>· <span style="color:#a78bfa">oc-agent-forge: Planner / Builder / Evaluator</span></li>
           </ul>
         </div>
         <div class="card">
@@ -966,13 +1089,27 @@ const packCounts = {
         </div>
         <div class="card">
           <div class="card-header">
+            <div class="card-dot" style="background:var(--ai)"></div>
+            <h2>AI Phase (v1.5)</h2>
+          </div>
+          <ul>
+            <li>· Phase 3 of 6 — auto-invoked via oc-app-architect's "AI app?" branch</li>
+            <li>· oc-claude-api — model routing · prompt caching · tool use · migration</li>
+            <li>· oc-rag-forge — tri-agent; vector DB · embeddings · retrieval eval</li>
+            <li>· oc-agent-forge — tri-agent; Agent SDK · subagents · tool budgets</li>
+            <li>· oc-prompt-ops — prompt versioning · eval datasets · regression</li>
+            <li>· All four gated behind <code>skills.registry.&lt;id&gt;.enabled</code></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-header">
             <div class="card-dot" style="background:var(--ember)"></div>
             <h2>Checkpoint Protocol</h2>
           </div>
           <ul>
             <li>· JSON files at .checkpoints/&lt;skill&gt;.json</li>
             <li>· Keys: phase · progress_table · context_primer · blockers · next_actions</li>
-            <li>· All 18 skills read all 18 checkpoints (no ACL)</li>
+            <li>· All 22 skills read all 22 checkpoints (no ACL)</li>
             <li>· Resume: own → upstream → novice mode</li>
             <li>· Framework-agnostic — no platform lock-in</li>
           </ul>
@@ -994,14 +1131,14 @@ const packCounts = {
         </div>
       </div>
 
-      <p class="footer">opchain skills ecosystem v2 · asfbay-bit/opchain · 18 skills · 5 phases · 5 tri-agent · 3 audit gates · spine ordinals · checkpoint-driven</p>
+      <p class="footer">opchain skills ecosystem v2 · asfbay-bit/opchain · 22 skills · 6 phases · 7 tri-agent · 3 audit gates · spine ordinals · v1.5 · checkpoint-driven</p>
     </div>
   </main>
 
   <script is:inline>
     /* ══ Architecture v2 — interactive diagram ══ */
-    const PHASES = ['discover','plan','build','ship','monitor'];
-    const ARROWS = ['ba-0','ba-1','ba-2','ba-3'];
+    const PHASES = ['discover','plan','ai','build','ship','monitor'];
+    const ARROWS = ['ba-0','ba-1','ba-1b','ba-1c','ba-2','ba-3'];
     let activePhase = null, leaveTimeout = null;
     let cpActive = false, cpLeaveTimeout = null;
     let orchActive = false, orchLeaveTimeout = null;
@@ -1012,8 +1149,12 @@ const packCounts = {
       'oc-reverse-spec':          { band: 'discover', x: 298, y: 14,  w: 165, h: 52,  vbW: 760, vbH: 80  },
       'oc-scale-ops':             { band: 'plan',     x: 20,  y: 14,  w: 118, h: 48,  vbW: 760, vbH: 150 },
       'oc-stack-forge':           { band: 'plan',     x: 20,  y: 84,  w: 118, h: 48,  vbW: 760, vbH: 150 },
-      'oc-app-architect':         { band: 'plan',     x: 240, y: 22,  w: 280, h: 106, vbW: 760, vbH: 150 },
+      'oc-app-architect':         { band: 'plan',     x: 240, y: 22,  w: 280, h: 122, vbW: 760, vbH: 150 },
       'oc-migration-ops':         { band: 'plan',     x: 610, y: 50,  w: 130, h: 50,  vbW: 760, vbH: 150 },
+      'oc-claude-api':            { band: 'ai',       x: 14,  y: 22,  w: 170, h: 76,  vbW: 760, vbH: 120 },
+      'oc-rag-forge':             { band: 'ai',       x: 206, y: 22,  w: 160, h: 76,  vbW: 760, vbH: 120 },
+      'oc-agent-forge':           { band: 'ai',       x: 388, y: 22,  w: 170, h: 76,  vbW: 760, vbH: 120 },
+      'oc-prompt-ops':            { band: 'ai',       x: 580, y: 22,  w: 160, h: 76,  vbW: 760, vbH: 120 },
       'oc-ux-engineer':           { band: 'build',    x: 14,  y: 22,  w: 170, h: 76,  vbW: 760, vbH: 120 },
       'oc-dash-forge':            { band: 'build',    x: 206, y: 22,  w: 160, h: 76,  vbW: 760, vbH: 120 },
       'oc-api-dev':               { band: 'build',    x: 388, y: 22,  w: 170, h: 76,  vbW: 760, vbH: 120 },
@@ -1213,7 +1354,7 @@ const packCounts = {
       const SUCC = '#0D9488', EMB = '#e05c18', SAND = '#c4b89e';
 
       const mY_dp = arrowMidY('ba-0');
-      const mY_pb = arrowMidY('ba-1');
+      const mY_pb = arrowMidY('ba-1c');
       const mY_bs = arrowMidY('ba-2');
       const mY_sm = arrowMidY('ba-3');
 
@@ -1520,6 +1661,7 @@ const packCounts = {
     --error:      #ef4444;
     --advisor:    #0EA5E9;
     --auditor:    #F43F5E;
+    --ai:         #a78bfa;   /* v1.5 AI-native phase accent */
 
     /* Spacing */
     --s-1: .25rem; --s-2: .5rem; --s-3: .75rem;
@@ -1855,7 +1997,7 @@ const packCounts = {
 
   .arch-v2 .pack-fabric-band .pf-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 10px;
   }
   .arch-v2 .pack-fabric-band .pf-cell {
@@ -1906,7 +2048,16 @@ const packCounts = {
   .arch-v2 .pack-fabric-band .pf-cell.pf-dep .pf-chip {
     background: rgba(20,184,166,.10); border-color: rgba(20,184,166,.35); color: #14B8A6;
   }
-  /* On narrower viewports, stack the cells 2x2 then 1x4. */
+  /* VECTOR-DB — v1.5 pack category. Pink (#EC4899): distinct from the existing
+     four cell colours (mobile already owns violet #A78BFA in this grid). */
+  .arch-v2 .pack-fabric-band .pf-cell.pf-vec .pf-cell-count { color: #EC4899; }
+  .arch-v2 .pack-fabric-band .pf-cell.pf-vec .pf-chip {
+    background: rgba(236,72,153,.10); border-color: rgba(236,72,153,.35); color: #EC4899;
+  }
+  /* On narrower viewports, stack the cells: 3-up, then 2-up, then 1-up. */
+  @media (max-width: 1100px) {
+    .arch-v2 .pack-fabric-band .pf-grid { grid-template-columns: repeat(3, 1fr); }
+  }
   @media (max-width: 920px) {
     .arch-v2 .pack-fabric-band .pf-grid { grid-template-columns: repeat(2, 1fr); }
   }
