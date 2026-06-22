@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-22T13:56:55Z",
+  "updated_at": "2026-06-22T14:05:13Z",
   "phase": "gate",
   "step": "gate-fix-mcp-publish-step-order",
   "status": "complete",
@@ -18,25 +18,25 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-22T13:56:55Z",
+      "at": "2026-06-22T14:05:13Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
-        "type_safety": "N/A",
+        "type_safety": "PASS",
         "lint": "N/A",
-        "tests": "N/A",
+        "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "N/A",
+        "build": "PASS",
         "dependencies": "N/A"
       },
-      "note": "Workflow-only fix: reordered publish-mcp-registry.yml so OIDC login runs before the dry-run validate (mcp-publisher 1.7.9 needs auth for --dry-run). YAML parses; step order = Install -> Sync -> Authenticate -> Validate -> Publish. No app source touched.",
+      "note": "Merge origin/main into the diagram-refresh branch (no conflicts in the two diagram files; main's non-overlapping changes merged cleanly). Architecture refresh already verified: astro check 0 errors, build 44 pages, vitest 391/391.",
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
       {
-        "at": "2026-06-22T13:56:55Z",
+        "at": "2026-06-22T04:45:58Z",
         "verdict": "PASS",
         "warnings": 0
       },
@@ -84,17 +84,12 @@
         "at": "2026-06-12T15:42:43Z",
         "verdict": "PASS",
         "warnings": 0
-      },
-      {
-        "at": "2026-06-12T15:34:27Z",
-        "verdict": "PASS",
-        "warnings": 0
       }
     ],
     "bypasses": [],
     "carried_debt": 0,
     "streak": {
-      "passes": 14,
+      "passes": 15,
       "since": "2026-06-05T22:01:00Z"
     }
   }
