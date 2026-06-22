@@ -478,13 +478,15 @@ const horizon = [
         <span class="panel-sub">The one release building right now. Vote to signal priority.</span>
       </div>
 
-      <!-- v1.6 — next release building toward; pointer card -->
-      <article class="hero-card hero-card--next is-open" id="v1-6" data-card>
+      <!-- v1.6 — next release building toward; pointer card. Uses the
+           coming-v1-6 id; the canonical, deep-linkable v1.6 card (the v1-6 id)
+           lives in the Planned tab. -->
+      <article class="hero-card hero-card--next is-open" id="coming-v1-6" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
-          aria-controls="v1-6-body"
+          aria-controls="coming-v1-6-body"
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
@@ -498,7 +500,7 @@ const horizon = [
             <code>oc-checkpoint-protocol</code> bump since v1.2.
           </span>
         </button>
-        <div class="card-body" id="v1-6-body" data-disclosure-body>
+        <div class="card-body" id="coming-v1-6-body" data-disclosure-body>
           <div class="card-body-inner hero-body-inner">
             <p>Full scope on the <a href="#panel-planned" data-tab-link="planned">Planned</a> tab. v1.5 just shipped — see it under <a href="#panel-released" data-tab-link="released">Just Released</a>.</p>
           </div>
