@@ -4,9 +4,9 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-22T01:40:35.464Z",
+  "updated_at": "2026-06-22T04:45:58Z",
   "phase": "gate",
-  "step": "gate-mcp-registry-publish",
+  "step": "gate-mcp-registry-merge-v1.5",
   "status": "complete",
   "progress_summary": "Pre-commit gate for the MCP-registry-publish follow-up (new branch claude/mcp-registry-publish off merged main): server.json (official MCP Registry listing, remote streamable-http → opchain.dev/mcp, namespace io.github.asfbay-bit/opchain-skills) + .github/workflows/publish-mcp-registry.yml (publishes on v* tag via GitHub OIDC, no secrets) + CLAUDE.md note. Config/docs only — no app source touched, so tsc/lint/vitest/build are N/A. Meaningful checks ran: server.json valid JSON (node parse OK), workflow YAML parses (python yaml, perms id-token:write), secret scan PASS (OIDC = zero secrets), anti-pattern scan PASS. Verdict PASS.",
   "blockers": [],
@@ -18,23 +18,28 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-22T01:40:35Z",
+      "at": "2026-06-22T04:45:58Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
         "type_safety": "N/A",
         "lint": "N/A",
-        "tests": "N/A",
+        "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
         "build": "N/A",
         "dependencies": "N/A"
       },
-      "note": "Merge of origin/main into the mockups branch. Authored changes are 2 inert HTML mockups under design-previews/ (secrets and anti-patterns PASS); the merge also brings in already-CI-green source from main, no new app code authored here.",
+      "note": "Merged origin/main (v1.5.0 release) into the registry-publish branch — clean, no textual conflicts. Authored change: bumped server.json version 1.4.3 -> 1.5.0 to match the release. Re-verified merged tree: vitest 391/391 PASS, server.json valid JSON. Verdict PASS.",
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      {
+        "at": "2026-06-22T04:45:58Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
       {
         "at": "2026-06-22T00:07:39Z",
         "verdict": "PASS",
