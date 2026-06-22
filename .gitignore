@@ -78,7 +78,12 @@ site/src/data/roadmap.json
 # gate run, which generates 2-3 false merge conflicts per PR. The
 # pre-commit hook reads the file locally and handles the missing-file
 # case (it just prompts you to run /bugcheck first).
-.checkpoints/bug-check.checkpoint.json
+#
+# NOTE: this pattern previously read `.checkpoints/bug-check.checkpoint.json`
+# (missing the `oc-` prefix), so the real file `oc-bug-check.checkpoint.json`
+# was never actually ignored — it stayed tracked and kept producing the very
+# merge conflicts this exception exists to prevent. Fixed to the correct name.
+.checkpoints/oc-bug-check.checkpoint.json
 
 # Playwright (Sprint 7a)
 site/test-results/
