@@ -86,10 +86,10 @@ const transcripts = walkthroughs.map((w) => ({
 
     <!-- Activity rail -->
     {search ? (
-      <nav class="ide-activity" aria-label="Workbench views" role="tablist">
-        <button class="act is-active" type="button" data-ocs-mode="scenarios" role="tab" aria-selected="true" title="Scenarios" aria-label="Scenarios">▦</button>
-        <button class="act" type="button" data-ocs-mode="search" role="tab" aria-selected="false" title="Search transcripts" aria-label="Search transcripts">⌕</button>
-        <button class="act" type="button" data-ocs-mode="facets" role="tab" aria-selected="false" title="Filter by skill, role, kind, phase" aria-label="Filter">●</button>
+      <nav class="ide-activity" aria-label="Workbench views">
+        <button class="act is-active" type="button" data-ocs-mode="scenarios" aria-pressed="true" title="Scenarios" aria-label="Show scenarios">▦</button>
+        <button class="act" type="button" data-ocs-mode="search" aria-pressed="false" title="Search transcripts" aria-label="Search transcripts">⌕</button>
+        <button class="act" type="button" data-ocs-mode="facets" aria-pressed="false" title="Filter by skill, role, kind, phase" aria-label="Filter scenarios">●</button>
         <div class="act" title="Help">?</div>
       </nav>
     ) : (

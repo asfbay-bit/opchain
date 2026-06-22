@@ -182,7 +182,7 @@ declare global {
     $$("[data-ocs-mode]").forEach((b) => {
       const on = b.getAttribute("data-ocs-mode") === mode;
       b.classList.toggle("is-active", on);
-      b.setAttribute("aria-selected", on ? "true" : "false");
+      b.setAttribute("aria-pressed", on ? "true" : "false");
     });
     $$("[data-ocs-mode-panel]").forEach((p) => {
       p.classList.toggle("is-active", p.getAttribute("data-ocs-mode-panel") === mode);

@@ -53,7 +53,10 @@ test.describe("demo search & filter", () => {
 
     // scenario count reflects a narrowed set (≤ 12)
     await expect(page.locator(".dw-desktop [data-ocs-scn-count]")).toContainText("/ 12");
-    // an active pill now shows in the search panel's pill row
+
+    // the active filter surfaces as a removable pill — in the SEARCH panel,
+    // which the rail swaps in (pills don't live on the Facets panel).
+    await page.locator('.dw-desktop [data-ocs-mode="search"]').click();
     await expect(page.locator(".dw-desktop [data-ocs-pills] .ocs-pill").first()).toBeVisible();
   });
 
