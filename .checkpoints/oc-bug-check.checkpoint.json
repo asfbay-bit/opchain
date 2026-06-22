@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-22T01:59:46Z",
+  "updated_at": "2026-06-22T14:05:13Z",
   "phase": "gate",
-  "step": "gate-fix-lhci-seo-robots-agentmap",
+  "step": "gate-mcp-registry-merge-v1.5",
   "status": "complete",
-  "progress_summary": "Fix LHCI SEO failure on PR #305 (SEO 1.00 baseline -> 0.92, hard fail on /, /skills, /demo). Root cause: the new `Agentmap:` line in robots.txt is not on Lighthouse's robots-txt audit DIRECTIVE_SAFELIST (verifyDirective throws 'Unknown directive', site/node_modules/lighthouse/core/audits/seo/robots-txt.js:64-66), failing the scored robots-txt SEO audit site-wide. Fix: removed the Agentmap line; ARD discovery still wired via the well-known path (/.well-known/ai-catalog.json, the canonical hook registries crawl) + <link rel=ai-catalog>. Updated Base.astro comment + CLAUDE.md. Re-verify: robots.txt now all-safelisted directives, vitest 364/364 PASS, site build OK. Verdict PASS.",
+  "progress_summary": "Pre-commit gate for the MCP-registry-publish follow-up (new branch claude/mcp-registry-publish off merged main): server.json (official MCP Registry listing, remote streamable-http → opchain.dev/mcp, namespace io.github.asfbay-bit/opchain-skills) + .github/workflows/publish-mcp-registry.yml (publishes on v* tag via GitHub OIDC, no secrets) + CLAUDE.md note. Config/docs only — no app source touched, so tsc/lint/vitest/build are N/A. Meaningful checks ran: server.json valid JSON (node parse OK), workflow YAML parses (python yaml, perms id-token:write), secret scan PASS (OIDC = zero secrets), anti-pattern scan PASS. Verdict PASS.",
   "blockers": [],
   "next_actions": [
     "ROOT CAUSE FOUND 2026-06-20: opchain.dev sits behind a Cloudflare MANAGED CHALLENGE ('Just a moment...' bot interstitial) at the edge, BEFORE the worker. Confirmed via deploy-lag canary job logs (run 27837669034): curl to /api/health returned challenge HTML with cType:'managed', cZone:'opchain.dev', /cdn-cgi/challenge-platform on all 3 retries; external fetch got 403. It intercepts ALL non-browser traffic: /api/health (so the deploy-lag canary silently skips every day -> zero drift issues = FALSE comfort) and critically POST /mcp (the entire v1.4.3 Codex endpoint returns a challenge page, not JSON-RPC). Deploys ALWAYS landed (opchain-dev worker modified 2026-06-20 00:45); the front door was bolted, not the code. The prior 'just deploy it / merged-but-undeployed' guidance was WRONG.",
@@ -18,7 +18,7 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-22T01:59:46Z",
+      "at": "2026-06-22T14:05:13Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
@@ -30,13 +30,18 @@
         "build": "PASS",
         "dependencies": "N/A"
       },
-      "note": "Architecture diagram refresh (architecture.astro + MobileArchitecture.astro). astro check: 0 errors; astro build: 44 pages OK; vitest: 391/391 passed; catalog validates 22 skills. secrets/anti-patterns clean.",
+      "note": "Merge origin/main into the diagram-refresh branch (no conflicts in the two diagram files; main's non-overlapping changes merged cleanly). Architecture refresh already verified: astro check 0 errors, build 44 pages, vitest 391/391.",
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
       {
-        "at": "2026-06-22T01:12:16Z",
+        "at": "2026-06-22T04:45:58Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
+      {
+        "at": "2026-06-22T04:45:58Z",
         "verdict": "PASS",
         "warnings": 0
       },
@@ -77,11 +82,6 @@
       },
       {
         "at": "2026-06-12T15:42:43Z",
-        "verdict": "PASS",
-        "warnings": 0
-      },
-      {
-        "at": "2026-06-12T15:34:27Z",
         "verdict": "PASS",
         "warnings": 0
       }

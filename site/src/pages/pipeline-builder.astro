@@ -163,6 +163,31 @@ import Icon from "../components/Icon.astro";
             <span class="opt-sub">team flexibility</span>
           </label>
         </div>
+
+        <h2 class="step-q2">Is an LLM in the product itself?</h2>
+        <p class="step-hint">If your app calls Claude — a chatbot, RAG, or an agent — opchain adds its AI-native skills.</p>
+        <div class="grid grid-2">
+          <label class="opt-card">
+            <input type="radio" name="aiapp" value="none" checked />
+            <span class="opt-title">No LLM in the product</span>
+            <span class="opt-sub">a regular app</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="aiapp" value="feature" />
+            <span class="opt-title">AI feature / chatbot</span>
+            <span class="opt-sub">Claude in the loop</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="aiapp" value="rag" />
+            <span class="opt-title">RAG / search over docs</span>
+            <span class="opt-sub">retrieval-augmented</span>
+          </label>
+          <label class="opt-card">
+            <input type="radio" name="aiapp" value="agent" />
+            <span class="opt-title">Agent</span>
+            <span class="opt-sub">multi-step, tools</span>
+          </label>
+        </div>
         <div class="step-foot">
           <button type="button" class="back" data-back><Icon name="arrow-left" size={12} /> back</button>
           <button type="button" class="next" data-next>see my pipeline <Icon name="arrow-right" size={12} /></button>
@@ -303,6 +328,13 @@ import Icon from "../components/Icon.astro";
     letter-spacing: var(--ls-tight);
   }
 
+  .step-q2 { margin-top: 1.75rem; }
+  .step-hint {
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin: 0.35rem 0 0.85rem;
+  }
   .grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -570,12 +602,14 @@ import Icon from "../components/Icon.astro";
   type Team = "solo" | "small" | "medium" | "large";
   type Deploy = "cloudflare" | "vercel" | "aws" | "fly" | "render" | "self-hosted";
   type Surface = "claude-code" | "claude-ai" | "both";
+  type AiApp = "none" | "feature" | "rag" | "agent";
 
   interface Answers {
     kind: Kind;
     team: Team;
     deploy: Deploy;
     surface: Surface;
+    aiApp: AiApp;
   }
 
   // ── Skill recommendation table ────────────────────────────────
@@ -619,6 +653,10 @@ import Icon from "../components/Icon.astro";
     "oc-security-auditor":     "Threat model, OWASP, runtime / infra hardening",
     "oc-dash-forge":           "Dense-info dashboards (Tufte density)",
     "oc-bug-check":            "Pre-commit type / lint / secrets / vulnerability scan",
+    "oc-claude-api":           "Model routing, prompt caching, tool use, migration playbooks",
+    "oc-rag-forge":            "Vector DB / embeddings / chunking / retrieval eval (tri-agent)",
+    "oc-agent-forge":          "Agent SDK topology, tool budgets, harness loops, agent eval",
+    "oc-prompt-ops":           "Prompts as code — versioned, eval-gated, drift-detected",
   };
 
   function recommend(a: Answers): string[] {
@@ -636,6 +674,17 @@ import Icon from "../components/Icon.astro";
     if (a.deploy === "self-hosted") {
       set.add("oc-security-auditor");
       set.add("oc-monitoring-ops");
+    }
+
+    // AI-app branch (v1.5): an LLM in the product pulls in the AI-native
+    // skills. claude-api + prompt-ops for any AI app; rag-forge / agent-forge
+    // by sub-type. code-auditor (already in Foundation) runs its AI-safety
+    // sweep on these.
+    if (a.aiApp !== "none") {
+      set.add("oc-claude-api");
+      set.add("oc-prompt-ops");
+      if (a.aiApp === "rag") set.add("oc-rag-forge");
+      if (a.aiApp === "agent") set.add("oc-agent-forge");
     }
 
     return Array.from(set);
@@ -743,6 +792,7 @@ ${DEPLOY_NOTE[a.deploy]}
       team: (fd.get("team") || "solo") as Team,
       deploy: (fd.get("deploy") || "cloudflare") as Deploy,
       surface: (fd.get("surface") || "claude-code") as Surface,
+      aiApp: (fd.get("aiapp") || "none") as AiApp,
     };
   }
 
@@ -750,7 +800,9 @@ ${DEPLOY_NOTE[a.deploy]}
     const a = readAnswers();
     const skills = recommend(a);
     const subEl = document.getElementById("result-sub")!;
-    subEl.textContent = `${a.kind.replace("-", " ")} · team ${a.team} · ${a.deploy} · ${a.surface}`;
+    subEl.textContent =
+      `${a.kind.replace("-", " ")} · team ${a.team} · ${a.deploy} · ${a.surface}` +
+      (a.aiApp !== "none" ? ` · AI: ${a.aiApp}` : "");
 
     const list = document.getElementById("rec-skills")!;
     list.innerHTML = "";
