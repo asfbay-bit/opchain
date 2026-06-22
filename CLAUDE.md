@@ -163,8 +163,9 @@ staging). Builders live in `src/lib/discovery.js`; routes in `src/index.js`.
 - **`/.well-known/ai-catalog.json`** — [Agentic Resource Discovery (ARD)](https://agenticresourcediscovery.org/spec/)
   manifest (`specVersion: "1.0"`). One entry: the MCP server, with every skill id
   as a `capability` and intent phrases as `representativeQueries`. `host.identifier`
-  is `did:web:opchain.dev` (a signed `/.well-known/did.json` is the verification
-  follow-up). Two of the three ARD discovery hooks are wired: this well-known path
+  is `did:web:opchain.dev` (resolve it with a DID document at `/.well-known/did.json` —
+  see *Publisher verification* below; `scripts/gen-did.mjs` mints it). Two of the three
+  ARD discovery hooks are wired: this well-known path
   and `<link rel="ai-catalog">` in `Base.astro`. The third (an `Agentmap:` line in
   `robots.txt`) is intentionally omitted — Lighthouse's `robots-txt` SEO audit
   rejects non-standard directives and would drop the SEO score below budget.
@@ -190,6 +191,21 @@ workflow runs in an `asfbay-bit`-owned repo. Bump `version` in lockstep with rel
 (the workflow auto-syncs it from the tag). Publishing only updates the registry
 *pointer*; the server itself ships via `npm run deploy`. Directory sites (PulseMCP,
 mcp.so, Glama, Smithery) crawl the registry — claim the listing there to control copy.
+
+### Publisher verification (did:web)
+
+The ai-catalog advertises `host.identifier: "did:web:opchain.dev"`. For a registry/agent
+to *verify* that identity (not just read it), `did:web:opchain.dev` must resolve to a DID
+document at `https://opchain.dev/.well-known/did.json` — did:web's trust anchor is domain
+control, so serving that doc over opchain.dev HTTPS is the proof.
+
+`scripts/gen-did.mjs` mints the material **locally** (the key must be yours, never CI/sandbox):
+it writes `site/public/.well-known/did.json` (PUBLIC Ed25519 key — commit + deploy, served
+statically like `security.txt`) and `.secrets/opchain-did-ed25519.jwk` (PRIVATE key —
+gitignored; move to a password manager / Cloudflare secret, then delete). The resolvable
+did.json alone makes the identity verifiable; the private key is only needed later to *sign*
+assertions (e.g. an ARD `trustManifest`). Rotate with `--force`. The did.json path is in the
+recommended WAF bot-challenge skip list (`/.well-known/*`), so agents can fetch it.
 
 ## Environment Variables
 
