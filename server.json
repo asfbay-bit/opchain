@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.asfbay-bit/opchain-skills",
   "title": "opchain",
-  "description": "Interconnected Claude Code / MCP skills that form a software-development pipeline: concept → spec → design → build → ship → operate. Exposes skill discovery, intent routing, the shared orchestrator protocol, and per-session checkpoints over MCP.",
+  "description": "Claude Code / MCP skills for the dev pipeline: discover, spec, design, build, ship, operate.",
   "version": "1.5.0",
   "websiteUrl": "https://opchain.dev",
   "repository": {
