@@ -68,7 +68,8 @@ test.describe("demo search & filter", () => {
     await chips.nth(1).click();
     await expect(chips.nth(0)).toHaveAttribute("aria-pressed", "true");
     await expect(chips.nth(1)).toHaveAttribute("aria-pressed", "true");
-    expect(page.url()).toContain("skill=");
+    // URL writes are debounced (~250ms); poll rather than read synchronously.
+    await expect.poll(() => page.url()).toContain("skill=");
   });
 
   test("clicking a result jumps into the transcript at that step", async ({ page }) => {
@@ -86,7 +87,7 @@ test.describe("demo search & filter", () => {
     const pane = page.locator(`.dw-desktop [data-scenario-pane="${scenario}"]`);
     await expect(pane.locator('[data-view="transcript"]')).toBeVisible();
     await expect(pane.locator(`[data-step-id="${step}"]`)).toBeVisible();
-    expect(page.url()).toContain(`#${scenario}:${step}`);
+    await expect.poll(() => page.url()).toContain(`#${scenario}:${step}`);
   });
 
   test("cold deep-link lands in transcript mode on the target step", async ({ page }) => {
