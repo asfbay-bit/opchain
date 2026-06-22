@@ -4,9 +4,9 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-22T13:56:55Z",
+  "updated_at": "2026-06-22T14:07:04Z",
   "phase": "gate",
-  "step": "gate-fix-mcp-publish-step-order",
+  "step": "gate-fix-server-json-description-length",
   "status": "complete",
   "progress_summary": "Fix the Publish-to-MCP-Registry workflow (first manual run failed). Root cause: mcp-publisher 1.7.9 requires auth even for `publish --dry-run`, but the workflow ran the Validate (dry-run) step BEFORE the Authenticate (login github-oidc) step → 'Error: not authenticated'. Fix: reordered steps to Install → Sync version → Authenticate (OIDC) → Validate (dry-run) → Publish. Workflow-only change; YAML parses, step order confirmed. Verdict PASS.",
   "blockers": [],
@@ -18,7 +18,7 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-22T13:56:55Z",
+      "at": "2026-06-22T14:07:04Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
@@ -30,11 +30,16 @@
         "build": "N/A",
         "dependencies": "N/A"
       },
-      "note": "Workflow-only fix: reordered publish-mcp-registry.yml so OIDC login runs before the dry-run validate (mcp-publisher 1.7.9 needs auth for --dry-run). YAML parses; step order = Install -> Sync -> Authenticate -> Validate -> Publish. No app source touched.",
+      "note": "After the OIDC fix merged, the publish dry-run reached the registry and 422'd: server.json description was 245 chars (registry max 100). Shortened to 92 chars. server.json valid JSON, length verified <= 100. No app source touched.",
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      {
+        "at": "2026-06-22T14:07:04Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
       {
         "at": "2026-06-22T13:56:55Z",
         "verdict": "PASS",
