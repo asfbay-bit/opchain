@@ -4,33 +4,98 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-01T16:42:00Z",
-  "updated_at": "2026-06-19T21:16:00Z",
-
+  "updated_at": "2026-06-22T16:35:00Z",
   "phase": "design-iteration",
-  "step": "round-6-changelog-option-c-v2-pr-open",
-  "status": "in_progress",
-  "progress_summary": "Round 6 (PR open, deploy pending): reworked /changelog from the Option C v3 two-tab layout into Option C v2 — three full-width ARIA tabs (Just Released / Coming Next / Planned) with per-tab colour identity (accent / slate-info / a scoped violet token defined light+dark for AA). Coming Next now leads with just the v1.5 hero; v1.6 roadmap, the v1.7 distribution-theme vote (a live relative bar chart wired to real votes OPC-170/173/174), and an 8-item horizon backlog (OPC-18x) moved into the new Planned tab. Kept the real /api/votes wiring (batched GET + per-click POST + localStorage), the a11y tablist with hidden panels (NOT the preview's CSS slide), 46px vote targets (the preview's tiny backlog buttons would fail WCAG 2.5.8), and deep links (#v1-5 → Coming Next, #v1-6/#v1-7 → Planned, #v1-4 → /coverage). Tab bar deliberately non-sticky — the global Header already is. e2e spec rewritten for the 3-tab DOM; astro check 0 errors, astro build 35 pages, vitest 345/345. Also closed three v1.4.3 single-platform copy stragglers (skills/[id] quick hint + footer CTA, pipeline-builder generated snippet) to mention Codex / the hosted MCP endpoint. Five rounds of UI work merged. Round 1: 5 mobile-demo direction previews → Direction A picked → production MobileWorkbench. Round 2: mobile architecture diagram (vertical stack, no JS, dark default). Round 3: replaced page-summary + OnboardingTour with one-step WelcomePopup, full-bleed workbench, top-right feedback pill, skill detail TOC restyle. Round 4 (PR #213): navigation overhaul — homepage redesign (release double-pill, cinema banner with 12-dot rotator, 4-up resources strip with new Skills tile, phase grid removed), Header restructure into grouped Product/Pipeline/Resources dropdowns, install primary-CTA pill, right-cluster (search input + version chip + feedback text-label + theme), new global ⌘K SearchPalette component. Round 5 (PR #223): /changelog roadmap timeline (vertical Shipped → In progress → Planned → Backlog) backed by a build-time Linear pull (gen-roadmap.mjs filters issues by `roadmap-visible` label), per-item vote buttons (WCAG 2.5.8 compliant 52×48 click targets) with optimistic-update + localStorage mirror, and a Linear-connected feature-request form (title + category + optional email + description) that POSTs to /api/feedback with category to flip the worker into community-submission mode.",
-
+  "step": "v1.5-gtm-surfaces-shipped-and-live",
+  "status": "complete",
+  "progress_summary": "v1.5.0 shipped + live (2026-06-22). The v1.5 GTM/site surfaces all landed and deployed: /ai-recipes (3 multi-skill walkthroughs), /for-agencies, /blog (content collection + index + post route + hand-rolled RSS + 2 launch posts), the footer newsletter panel (→ /api/notify, flag on), the /compare 'Build AI apps' row, /pipeline-builder 'AI app?' branch, and per-skill OG cards for the four AI-native skills (Sprints 4 + deferred tail, PRs #309/#316). Round 6 (the /changelog Option C v2 3-tab layout) also shipped, then was promoted in the v1.5 release cut (PR #311): v1.5 moved to 'Just Released', v1.4.3 demoted, 'Coming Next' → a v1.6 pointer; the e2e spec was updated for the shipped layout. HISTORY: Round 6 (PR open, deploy pending): reworked /changelog from the Option C v3 two-tab layout into Option C v2 — three full-width ARIA tabs (Just Released / Coming Next / Planned) with per-tab colour identity (accent / slate-info / a scoped violet token defined light+dark for AA). Coming Next now leads with just the v1.5 hero; v1.6 roadmap, the v1.7 distribution-theme vote (a live relative bar chart wired to real votes OPC-170/173/174), and an 8-item horizon backlog (OPC-18x) moved into the new Planned tab. Kept the real /api/votes wiring (batched GET + per-click POST + localStorage), the a11y tablist with hidden panels (NOT the preview's CSS slide), 46px vote targets (the preview's tiny backlog buttons would fail WCAG 2.5.8), and deep links (#v1-5 → Coming Next, #v1-6/#v1-7 → Planned, #v1-4 → /coverage). Tab bar deliberately non-sticky — the global Header already is. e2e spec rewritten for the 3-tab DOM; astro check 0 errors, astro build 35 pages, vitest 345/345. Also closed three v1.4.3 single-platform copy stragglers (skills/[id] quick hint + footer CTA, pipeline-builder generated snippet) to mention Codex / the hosted MCP endpoint. Five rounds of UI work merged. Round 1: 5 mobile-demo direction previews → Direction A picked → production MobileWorkbench. Round 2: mobile architecture diagram (vertical stack, no JS, dark default). Round 3: replaced page-summary + OnboardingTour with one-step WelcomePopup, full-bleed workbench, top-right feedback pill, skill detail TOC restyle. Round 4 (PR #213): navigation overhaul — homepage redesign (release double-pill, cinema banner with 12-dot rotator, 4-up resources strip with new Skills tile, phase grid removed), Header restructure into grouped Product/Pipeline/Resources dropdowns, install primary-CTA pill, right-cluster (search input + version chip + feedback text-label + theme), new global ⌘K SearchPalette component. Round 5 (PR #223): /changelog roadmap timeline (vertical Shipped → In progress → Planned → Backlog) backed by a build-time Linear pull (gen-roadmap.mjs filters issues by `roadmap-visible` label), per-item vote buttons (WCAG 2.5.8 compliant 52×48 click targets) with optimistic-update + localStorage mirror, and a Linear-connected feature-request form (title + category + optional email + description) that POSTs to /api/feedback with category to flip the worker into community-submission mode.",
   "progress_table": [
-    { "id": "previews",          "label": "5 mobile-demo direction previews (PR #140)",                "status": "complete" },
-    { "id": "evaluate",          "label": "User selected Direction A",                                  "status": "complete" },
-    { "id": "production",        "label": "MobileWorkbench production build (PR #143)",                 "status": "complete" },
-    { "id": "arch-mob",          "label": "MobileArchitecture diagram (PR #146)",                       "status": "complete" },
-    { "id": "popup",             "label": "WelcomePopup replaces banner + tour (PR #148)",              "status": "complete" },
-    { "id": "fullbleed",         "label": "Drop page-summary; workbench full-bleed",                    "status": "complete" },
-    { "id": "feedback",          "label": "Move desktop feedback pill to top-right",                    "status": "complete" },
-    { "id": "toc",               "label": "Skill TOC fade/region-hover/link-hover/flash",               "status": "complete" },
-    { "id": "nav-proposal",      "label": "41-change nav proposal in previews/PROPOSAL.md",             "status": "complete" },
-    { "id": "nav-iteration",     "label": "Single-file preview iteration (banner placement A/B/C, menu alt 1/2/3, glow bar, dot indicator variants)", "status": "complete" },
-    { "id": "nav-homepage",      "label": "Homepage redesign live in index.astro (PR #213, 2218590)",   "status": "complete" },
-    { "id": "nav-header",        "label": "Header dropdowns + right-cluster + ⌘K palette (PR #213, 25d96ba)", "status": "complete" },
-    { "id": "nav-axe-fixes",     "label": "WCAG fixes: target-size (.dot pseudo-element), color-contrast (.rb-tag + .vchip-tag), aria-required-children (dot-row)", "status": "complete" },
-    { "id": "roadmap-data",      "label": "Linear → roadmap.json build-time pull (PR #223, 488cada)",   "status": "complete" },
-    { "id": "roadmap-worker",    "label": "/api/votes (POST + GET, per-IP/day KV dedup) + /api/feedback category (PR #223, 2091b4a)", "status": "complete" },
-    { "id": "roadmap-ui",        "label": "RoadmapTimeline + RoadmapForm on /changelog (PR #223, e9a1dd9)", "status": "complete" },
-    { "id": "changelog-c-v2",    "label": "Round 6: /changelog → Option C v2 3-tab (Just Released / Coming Next / Planned), v1.7 bar-chart vote + horizon backlog; copy stragglers scrubbed for Codex/MCP", "status": "in_progress" }
+    {
+      "id": "previews",
+      "label": "5 mobile-demo direction previews (PR #140)",
+      "status": "complete"
+    },
+    {
+      "id": "evaluate",
+      "label": "User selected Direction A",
+      "status": "complete"
+    },
+    {
+      "id": "production",
+      "label": "MobileWorkbench production build (PR #143)",
+      "status": "complete"
+    },
+    {
+      "id": "arch-mob",
+      "label": "MobileArchitecture diagram (PR #146)",
+      "status": "complete"
+    },
+    {
+      "id": "popup",
+      "label": "WelcomePopup replaces banner + tour (PR #148)",
+      "status": "complete"
+    },
+    {
+      "id": "fullbleed",
+      "label": "Drop page-summary; workbench full-bleed",
+      "status": "complete"
+    },
+    {
+      "id": "feedback",
+      "label": "Move desktop feedback pill to top-right",
+      "status": "complete"
+    },
+    {
+      "id": "toc",
+      "label": "Skill TOC fade/region-hover/link-hover/flash",
+      "status": "complete"
+    },
+    {
+      "id": "nav-proposal",
+      "label": "41-change nav proposal in previews/PROPOSAL.md",
+      "status": "complete"
+    },
+    {
+      "id": "nav-iteration",
+      "label": "Single-file preview iteration (banner placement A/B/C, menu alt 1/2/3, glow bar, dot indicator variants)",
+      "status": "complete"
+    },
+    {
+      "id": "nav-homepage",
+      "label": "Homepage redesign live in index.astro (PR #213, 2218590)",
+      "status": "complete"
+    },
+    {
+      "id": "nav-header",
+      "label": "Header dropdowns + right-cluster + ⌘K palette (PR #213, 25d96ba)",
+      "status": "complete"
+    },
+    {
+      "id": "nav-axe-fixes",
+      "label": "WCAG fixes: target-size (.dot pseudo-element), color-contrast (.rb-tag + .vchip-tag), aria-required-children (dot-row)",
+      "status": "complete"
+    },
+    {
+      "id": "roadmap-data",
+      "label": "Linear → roadmap.json build-time pull (PR #223, 488cada)",
+      "status": "complete"
+    },
+    {
+      "id": "roadmap-worker",
+      "label": "/api/votes (POST + GET, per-IP/day KV dedup) + /api/feedback category (PR #223, 2091b4a)",
+      "status": "complete"
+    },
+    {
+      "id": "roadmap-ui",
+      "label": "RoadmapTimeline + RoadmapForm on /changelog (PR #223, e9a1dd9)",
+      "status": "complete"
+    },
+    {
+      "id": "changelog-c-v2",
+      "label": "Round 6: /changelog → Option C v2 3-tab (Just Released / Coming Next / Planned), v1.7 bar-chart vote + horizon backlog; copy stragglers scrubbed for Codex/MCP",
+      "status": "in_progress"
+    }
   ],
-
   "context_primer": {
     "key_decisions": [
       "Direction A (Bottom-Tab IDE) selected from 5 previews — preserves IDE metaphor, learnable, all info reachable.",
@@ -82,19 +147,19 @@
       "Round 4: prefers iterating live on the PR branch over local-test-per-commit cadence. Treats LHCI as informational; merges as soon as required checks (build/e2e/worker) clear."
     ]
   },
-
   "blockers": [],
-
   "next_actions": [
-    "Merge the Round 6 PR (changelog Option C v2 + v1.4.3 copy scrub) on branch claude/magical-ride-97ci4g once CI is green.",
-    "DEPLOY — this is the blocker behind 'no updated marketing on staging': from main on a laptop with wrangler login, run `npm run deploy:staging` → eyeball staging.opchain.dev/changelog (3 tabs, v1.4.3 Codex hero) → `npm run deploy`. The whole v1.4.3 Codex release is merged but undeployed; staging/prod are stale.",
-    "Operational (in Linear, one-time): create a `roadmap-visible` label; optionally a `community-submitted` label + set LINEAR_COMMUNITY_LABEL_ID in the Worker env.",
-    "Wire version chip status dot to live /api/health (currently static green pulse).",
-    "Add /sitemap route — the Resources dropdown intentionally omits a sitemap entry until the page exists."
+    "No ux-engineer work pending — all v1.5 GTM/site surfaces shipped + live (/ai-recipes, /blog +RSS, /for-agencies, newsletter, /compare AI row, /pipeline-builder AI branch, per-skill OG cards) and the /changelog Option C v2 layout shipped + promoted in the v1.5 release cut.",
+    "Open polish backlog (non-blocking): wire the header version chip status-dot to live /api/health; add a /sitemap route (Resources dropdown omits it until it exists)."
   ],
-
   "skill_state": {
-    "directions_shipped_for_evaluation": ["A", "B", "C", "D", "E"],
+    "directions_shipped_for_evaluation": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E"
+    ],
     "winner": "A",
     "tweak_rounds_complete": 5,
     "components_owned": [
@@ -123,7 +188,11 @@
       "title": "feat(changelog): roadmap timeline + Linear-connected feature-request form",
       "merged_at": "2026-05-12T13:09:00Z",
       "ci_final": "build ✅ · e2e ✅ · worker ✅ · LHCI 1.00 a11y/best/seo on every route; perf 0.89–1.00; /changelog 0.97 perf with the new components",
-      "commits": ["488cada (data)", "2091b4a (worker)", "e9a1dd9 (ui)"],
+      "commits": [
+        "488cada (data)",
+        "2091b4a (worker)",
+        "e9a1dd9 (ui)"
+      ],
       "ops_followup": "Linear: add `roadmap-visible` label to issues that should surface publicly; optionally add `community-submitted` label + set LINEAR_COMMUNITY_LABEL_ID in Worker env."
     },
     "depends_on": "checkpoint-protocol v1.0"
