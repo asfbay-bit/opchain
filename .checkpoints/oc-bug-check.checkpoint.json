@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-22T01:12:16Z",
+  "updated_at": "2026-06-22T01:59:46Z",
   "phase": "gate",
   "step": "gate-fix-lhci-seo-robots-agentmap",
   "status": "complete",
@@ -18,23 +18,28 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-22T01:12:16Z",
+      "at": "2026-06-22T01:59:46Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
-        "type_safety": "N/A",
+        "type_safety": "PASS",
         "lint": "N/A",
-        "tests": "N/A",
+        "tests": "PASS",
         "anti_patterns": "PASS",
         "secrets": "PASS",
-        "build": "N/A",
+        "build": "PASS",
         "dependencies": "N/A"
       },
-      "note": "Merge of origin/main into the mockups branch. Authored changes are 2 inert HTML mockups under design-previews/ (secrets and anti-patterns PASS); the merge also brings in already-CI-green source from main, no new app code authored here.",
+      "note": "Architecture diagram refresh (architecture.astro + MobileArchitecture.astro). astro check: 0 errors; astro build: 44 pages OK; vitest: 391/391 passed; catalog validates 22 skills. secrets/anti-patterns clean.",
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      {
+        "at": "2026-06-22T01:12:16Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
       {
         "at": "2026-06-22T00:07:39Z",
         "verdict": "PASS",
@@ -84,7 +89,7 @@
     "bypasses": [],
     "carried_debt": 0,
     "streak": {
-      "passes": 14,
+      "passes": 15,
       "since": "2026-06-05T22:01:00Z"
     }
   }
