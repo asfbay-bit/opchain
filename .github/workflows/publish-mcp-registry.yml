@@ -1,0 +1,65 @@
+# Publish the opchain MCP server to the official MCP Registry
+# (registry.modelcontextprotocol.io) so registries/agents can discover it.
+#
+# Auth is GitHub OIDC — no secrets. The `id-token: write` permission lets the
+# job mint a short-lived OIDC token; the registry authorizes the
+# `io.github.asfbay-bit/*` namespace because this workflow runs in a repo owned
+# by `asfbay-bit` (the `repository_owner` OIDC claim). That's why server.json's
+# `name` is `io.github.asfbay-bit/opchain-skills`.
+#
+# The hosted server itself (https://opchain.dev/mcp) is deployed separately via
+# `npm run deploy`; this only (re)publishes the registry *listing* that points
+# at it. Run on a `v*` tag, or manually via the Actions tab to test/backfill.
+name: Publish to MCP Registry
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (semver, no leading v). Defaults to the file's version."
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write # required for GitHub OIDC — the only auth this needs
+
+jobs:
+  publish:
+    name: mcp-publisher
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install mcp-publisher
+        run: |
+          set -euo pipefail
+          os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+          arch="$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_${os}_${arch}.tar.gz" \
+            | tar xz mcp-publisher
+          ./mcp-publisher --version || true
+
+      - name: Sync version into server.json
+        run: |
+          set -euo pipefail
+          ver="${{ inputs.version }}"
+          if [ -z "$ver" ] && [ "${{ github.ref_type }}" = "tag" ]; then
+            ver="${GITHUB_REF_NAME#v}"
+          fi
+          if [ -n "$ver" ]; then
+            tmp="$(mktemp)"
+            jq --arg v "$ver" '.version = $v' server.json > "$tmp" && mv "$tmp" server.json
+          fi
+          echo "Publishing version $(jq -r .version server.json) of $(jq -r .name server.json)"
+
+      - name: Validate
+        run: ./mcp-publisher publish --dry-run
+
+      - name: Authenticate (GitHub OIDC)
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish
+        run: ./mcp-publisher publish
