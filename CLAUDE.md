@@ -179,6 +179,18 @@ staging). Builders live in `src/lib/discovery.js`; routes in `src/index.js`.
 
 These are inert, public, CORS-open (`*`) read endpoints; not flag-gated today.
 
+### MCP registry listing
+
+`server.json` (repo root) is the official [MCP Registry](https://registry.modelcontextprotocol.io)
+listing for the hosted server. It's a *remote* entry (`remotes: streamable-http →
+https://opchain.dev/mcp`) under the `io.github.asfbay-bit/opchain-skills` namespace.
+`.github/workflows/publish-mcp-registry.yml` publishes it on every `v*` tag (or manual
+dispatch) via **GitHub OIDC — no secrets**; the namespace is authorized because the
+workflow runs in an `asfbay-bit`-owned repo. Bump `version` in lockstep with releases
+(the workflow auto-syncs it from the tag). Publishing only updates the registry
+*pointer*; the server itself ships via `npm run deploy`. Directory sites (PulseMCP,
+mcp.so, Glama, Smithery) crawl the registry — claim the listing there to control copy.
+
 ## Environment Variables
 
 Template lives in `.env.example`. Copy to `.dev.vars` for local dev; set in the Cloudflare dashboard (or via `wrangler secret put`) for staging + production.
