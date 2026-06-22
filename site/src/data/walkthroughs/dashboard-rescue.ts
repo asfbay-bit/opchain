@@ -499,7 +499,7 @@ Checkpoint: \`.checkpoints/oc-app-architect.checkpoint.json\` — new sprint que
   skills: ["oc-ux-engineer", "oc-dash-forge"],
   runtime: "≈ 12 exchanges",
   steps: [
-    { type: "beat", label: "01 · Triage", caption: "oc-ux-engineer reads the screen", skills: ["oc-ux-engineer"] },
+    { type: "beat", phase: "design", label: "01 · Triage", caption: "oc-ux-engineer reads the screen", skills: ["oc-ux-engineer"] },
 
     {
       type: "exchange", role: "user",
@@ -544,7 +544,7 @@ Primary user: founders + team leads, weekly check-in, mobile 30% of the time.`
 Writing \`.checkpoints/oc-ux-engineer.checkpoint.json\` with the brief + handing off.`
     },
 
-    { type: "beat", label: "02 · oc-dash-forge", caption: "density specialist takes over", skills: ["oc-dash-forge"] },
+    { type: "beat", phase: "design", label: "02 · oc-dash-forge", caption: "density specialist takes over", skills: ["oc-dash-forge"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-dash-forge",
@@ -595,7 +595,7 @@ Three bullets. No chart. Reads like a newsletter. Updating the wireframes, re-ru
 **Evaluator:** 94/100 (deduction: small-multiples baseline alignment off by 2px at 390w; trivial fix).`
     },
 
-    { type: "beat", label: "03 · Handback", caption: "oc-ux-engineer integrates + grades", skills: ["oc-ux-engineer"] },
+    { type: "beat", phase: "design", label: "03 · Handback", caption: "oc-ux-engineer integrates + grades", skills: ["oc-ux-engineer"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-ux-engineer",

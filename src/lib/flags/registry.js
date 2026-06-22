@@ -101,6 +101,15 @@ const DEFINITIONS = [
     description: "Expose /demo. When false the route 404s and home-page links hide.",
   },
   {
+    name: "site.feature.demo-search",
+    type: "boolean",
+    default: true,
+    category: "release",
+    owner: "site",
+    description:
+      "Enable the /demo workbench Search & Filter layer (deep full-text search + skill/role/kind/phase facets + jump-to-exchange deep links). When false, /demo renders the classic workbench with no search UI and no inlined index.",
+  },
+  {
     name: "site.feature.install-zip-download",
     type: "boolean",
     default: true,

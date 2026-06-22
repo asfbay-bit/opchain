@@ -5,9 +5,16 @@ import MobileWorkbench from "../components/MobileWorkbench.astro";
 import WelcomePopup from "../components/WelcomePopup.astro";
 import { walkthroughs } from "../data/walkthroughs";
 import { renderSafeMarkdown } from "../lib/markdown";
+import { buildSearchIndex } from "../lib/demo-search/index-build";
 import { defaultFor } from "../lib/flags/build-defaults";
 
 const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
+const searchEnabled = demoEnabled && (defaultFor("site.feature.demo-search") as boolean);
+
+// Build-time search index, inlined into the page below as a JSON <script>.
+// `<` is escaped so the JSON can't break out of the <script> element.
+const searchIndex = searchEnabled ? buildSearchIndex(walkthroughs) : null;
+const searchIndexJson = searchIndex ? JSON.stringify(searchIndex).replace(/</g, "\\u003c") : "";
 
 /**
  * Demo — full-bleed workbench with a one-step welcome popup.
@@ -56,9 +63,13 @@ const artifacts = walkthroughs.flatMap((w) =>
   {demoEnabled && (
     <>
       <h1 class="visually-hidden">Watch a finished run.</h1>
-      <div class="dw-desktop"><DesktopWorkbench /></div>
-      <div class="dw-mobile"><MobileWorkbench /></div>
+      <div class="dw-desktop"><DesktopWorkbench search={searchEnabled} /></div>
+      <div class="dw-mobile"><MobileWorkbench search={searchEnabled} /></div>
       <WelcomePopup />
+
+      {searchIndex && (
+        <script type="application/json" id="demo-search-index" is:inline set:html={searchIndexJson} />
+      )}
 
       <div class="artifact-store" aria-hidden="true" hidden>
         {artifacts.map((a) => (
@@ -404,6 +415,146 @@ const artifacts = walkthroughs.flatMap((w) =>
   }
 </style>
 
+<!-- ── Search & Filter (demo-search) — GLOBAL styles.
+     The client injects result rows + facet chips as innerHTML; those nodes
+     don't carry Astro's scoped data-cid, so every .ocs-* paint rule must be
+     global. Class names are uniquely `ocs-` / `mw-find-` prefixed → no clash.
+     Desktop sidebar shells vs. the mobile Find overlay are disambiguated by
+     `.ide-sidebar` / `.mw-find` ancestors where their box model differs. ── -->
+<style is:global>
+  /* shared search-row shell (desktop sidebar) */
+  .ide-sidebar .ocs-search-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 0.5px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--ribbon);
+    z-index: 1;
+  }
+  .ide-sidebar .ocs-search-row svg { width: 13px; height: 13px; color: var(--subtle); flex: 0 0 auto; }
+  .ide-sidebar .ocs-input {
+    flex: 1; min-width: 0;
+    background: transparent; border: 0;
+    color: var(--text); font-family: var(--font-mono); font-size: 12px; outline: none;
+  }
+  .ide-sidebar .ocs-input::placeholder { color: var(--subtle); }
+  .ide-sidebar .ocs-x {
+    appearance: none; background: transparent;
+    border: 0.5px solid var(--border); color: var(--muted);
+    width: 20px; height: 20px; border-radius: var(--r-xs);
+    cursor: pointer; font-size: 11px; line-height: 1; flex: 0 0 auto;
+  }
+  .ide-sidebar .ocs-x:hover { color: var(--text); border-color: var(--text); }
+  .ide-sidebar .ocs-x:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+  /* count + pills (shared; horizontal padding only in the desktop sidebar) */
+  .ocs-count {
+    color: var(--subtle); font-size: 10px; text-transform: uppercase;
+    letter-spacing: var(--ls-wide); padding: 8px 0 2px;
+  }
+  .ide-sidebar .ocs-count { padding: 8px 12px 2px; }
+  .ocs-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .ide-sidebar .ocs-pills { padding: 0 12px; }
+  .ide-sidebar .ocs-pills:not(:empty) { padding-top: 6px; padding-bottom: 4px; }
+  .ocs-pill {
+    appearance: none; display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--font-mono); font-size: 10px;
+    background: var(--ember-dim); border: 0.5px solid var(--accent); color: var(--accent);
+    border-radius: var(--r-pill); padding: 2px 8px; cursor: pointer;
+  }
+  .ocs-pill:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+  /* results */
+  .ide-sidebar .ocs-results { padding: 4px 0 12px; }
+  .ocs-res-group {
+    padding: 8px 12px 3px; color: #f5894d; font-family: var(--font-mono);
+    font-size: 10px; text-transform: uppercase; letter-spacing: var(--ls-wide);
+  }
+  [data-theme="light"] .ocs-res-group { color: #993505; }
+  .ocs-res {
+    appearance: none; display: block; width: 100%; text-align: left;
+    background: transparent; border: 0; border-left: 2px solid transparent;
+    color: var(--muted); font: inherit; padding: 6px 12px; cursor: pointer;
+    transition: color 120ms, background 120ms, border-color 120ms;
+  }
+  .ocs-res:hover, .ocs-res:focus-visible {
+    background: var(--card); border-left-color: var(--accent); color: var(--text); outline: none;
+  }
+  .ocs-snip { display: block; font-size: 11.5px; line-height: 1.45; color: inherit; }
+  .ocs-snip mark { background: var(--ember-dim); color: var(--text); border-radius: 2px; padding: 0 1px; }
+  .ocs-res-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: 10px; color: var(--subtle); }
+  .ocs-chip-mini { font-family: var(--font-mono); font-size: 9.5px; border: 0.5px solid var(--border); border-radius: 3px; padding: 0 5px; }
+  .ocs-chip-mini.role-workflow     { color: var(--workflow); }
+  .ocs-chip-mini.role-tri-agent    { color: var(--tri-agent); }
+  .ocs-chip-mini.role-audit-gate   { color: var(--rose, var(--audit-gate)); }
+  .ocs-chip-mini.role-specialist   { color: var(--teal, var(--specialist)); }
+  .ocs-chip-mini.role-advisor      { color: var(--advisor); }
+  .ocs-chip-mini.role-orchestrator { color: var(--orchestrator); }
+  .ocs-chip-mini.role-success      { color: var(--success); }
+  .ocs-phase { text-transform: uppercase; letter-spacing: var(--ls-wide); }
+  .ocs-step-id { margin-left: auto; font-family: var(--font-mono); }
+
+  .ocs-empty { padding: 20px 14px; color: var(--muted); font-size: 12px; line-height: 1.5; text-align: center; }
+  .ocs-empty strong { color: var(--accent); }
+  .ocs-link {
+    appearance: none; background: transparent; border: 0.5px solid var(--border);
+    color: var(--muted); border-radius: var(--r-xs); padding: 1px 7px; cursor: pointer; font: inherit;
+  }
+  .ocs-link:hover { color: var(--text); border-color: var(--text); }
+
+  /* facets */
+  .ocs-facet-group { padding: 8px 12px 4px; }
+  .ocs-facet-group h4 {
+    margin: 0 0 6px; color: #f5894d; font-family: var(--font-mono);
+    font-size: 10px; text-transform: uppercase; letter-spacing: var(--ls-wide); font-weight: 600;
+  }
+  [data-theme="light"] .ocs-facet-group h4 { color: #993505; }
+  .ocs-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .ocs-chip {
+    appearance: none; font-family: var(--font-mono); font-size: 10px;
+    background: rgba(255, 255, 255, 0.02); border: 0.5px solid var(--border);
+    color: var(--muted); border-radius: var(--r-pill); padding: 3px 8px; cursor: pointer;
+    transition: color 120ms, border-color 120ms, background 120ms;
+  }
+  .ocs-chip .ocs-ct { color: var(--subtle); margin-left: 4px; }
+  .ocs-chip[aria-pressed="true"] { background: var(--ember-dim); border-color: var(--accent); color: var(--accent); }
+  .ocs-chip[aria-pressed="true"].role-workflow     { border-color: var(--workflow);     color: var(--workflow); }
+  .ocs-chip[aria-pressed="true"].role-tri-agent    { border-color: var(--tri-agent);    color: var(--tri-agent); }
+  .ocs-chip[aria-pressed="true"].role-audit-gate   { border-color: var(--rose, var(--audit-gate)); color: var(--rose, var(--audit-gate)); }
+  .ocs-chip[aria-pressed="true"].role-specialist   { border-color: var(--teal, var(--specialist)); color: var(--teal, var(--specialist)); }
+  .ocs-chip[aria-pressed="true"].role-advisor      { border-color: var(--advisor);      color: var(--advisor); }
+  .ocs-chip[aria-pressed="true"].role-orchestrator { border-color: var(--orchestrator); color: var(--orchestrator); }
+  .ocs-chip[aria-pressed="true"].role-success      { border-color: var(--success);      color: var(--success); }
+  .ocs-chip:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .ocs-chip[disabled] { opacity: 0.35; cursor: not-allowed; }
+  .ocs-clearall {
+    appearance: none; margin: 10px 12px; background: transparent;
+    border: 0.5px solid var(--border); color: var(--muted); border-radius: var(--r-sm);
+    padding: 5px 10px; cursor: pointer; font-family: var(--font-mono); font-size: 11px;
+  }
+  .ocs-clearall:hover { color: var(--text); border-color: var(--text); }
+  .ocs-clearall:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+  /* mobile Find overlay: head already pads 12px, so neutralize the desktop
+     sidebar paddings and re-indent rows/results. */
+  .mw-find .ocs-count, .mw-find .ocs-pills, .mw-find .ocs-facet-group, .mw-find .ocs-facets { padding-left: 0; padding-right: 0; }
+  .mw-find .ocs-res, .mw-find .ocs-res-group { padding-left: 12px; padding-right: 12px; }
+  .mw-find .ocs-clearall { margin-left: 0; margin-right: 0; }
+
+  /* deep-link landing flash on the target exchange (desktop + mobile) */
+  @keyframes ocs-flash {
+    0%   { background-color: var(--ember-glow); box-shadow: 0 0 0 6px var(--ember-dim); }
+    100% { background-color: transparent;       box-shadow: 0 0 0 6px transparent; }
+  }
+  .ocs-flash { animation: ocs-flash 3.4s ease-out forwards; border-radius: 4px; }
+  @media (prefers-reduced-motion: reduce) {
+    .ocs-flash { animation: none; background-color: var(--ember-dim); border-radius: 4px; }
+  }
+</style>
+
 <script is:inline>
   /* Output modal lightbox — event delegation.
      Single document listener catches clicks from any .output-row in
@@ -610,4 +761,11 @@ const artifacts = walkthroughs.flatMap((w) =>
 
     modal.addEventListener('close', teardownToc);
   })();
+</script>
+
+<!-- Search & Filter controller. Bundled module; self-bails when the
+     #demo-search-index JSON is absent (feature flag off), so it's safe to
+     mount unconditionally. -->
+<script>
+  import "../lib/demo-search/demo-search.client";
 </script>

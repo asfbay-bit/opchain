@@ -1503,6 +1503,7 @@ Checkpoint: \`.checkpoints/oc-deploy-ops.checkpoint.json\` (Quill — first depl
   steps: [
     {
       type: "beat",
+      phase: "discover",
       label: "Day 1 — Priya files inv-org/quill#1",
       caption: "She types the idea into a GH issue and runs `/oc-discover --ticket inv-org/quill#1`. opchain pulls the issue body via mcp__mcp-server-github__issue_read.",
       skills: ["oc-app-architect"],
@@ -1585,6 +1586,7 @@ OK to keep Postgres? If yes I'll let oc-stack-forge finish; if you want the SQLi
     },
     {
       type: "beat",
+      phase: "spec",
       label: "Day 1 — oc-stack-forge picks Django/Render automatically",
       caption: "v1.3's Platform Matrix decision tree resolves cleanly. Six scorecards run; anti-picks recorded.",
       skills: ["oc-stack-forge"],
@@ -1621,6 +1623,7 @@ re-evaluation trigger.`,
     },
     {
       type: "beat",
+      phase: "plan",
       label: "Day 1 — /oc-scaffold writes the project",
       caption: "Per scaffold-guide.md § Django. Settings split, render.yaml Blueprint, pytest, Django admin all wired. 41 files written; 18 tests pass; runserver boots.",
       skills: ["oc-app-architect"],
@@ -1709,6 +1712,7 @@ this again.`,
     },
     {
       type: "beat",
+      phase: "ship",
       label: "Day 8 — first PR opens, linked back to issue #5",
       caption: "oc-git-ops uses GitHub Issues exactly like it uses Linear. Same protocol, different tool names.",
       skills: ["oc-git-ops"],
@@ -1745,6 +1749,7 @@ PR #1 opened with 14 new tests, audit gate green, performance benchmarks documen
     },
     {
       type: "beat",
+      phase: "ship",
       label: "Day 9 — first staging deploy via Render Blueprint",
       caption: "oc-deploy-ops detects render.yaml, walks the audit gate, ships. First deploy provisions Postgres + web service in one push.",
       skills: ["oc-deploy-ops"],
@@ -1812,6 +1817,7 @@ instrument from day 1.`,
     },
     {
       type: "beat",
+      phase: "ship",
       label: "Day 14 — Sarah's firm signs",
       caption: "Production deploy. Quill is live at https://quill.priyabuilds.com. Two weeks ideation → first paying customer.",
     },

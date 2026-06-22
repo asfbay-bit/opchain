@@ -1250,7 +1250,7 @@ Checkpoint: \`.checkpoints/oc-deploy-ops.checkpoint.json\` (workstation profile 
   skills: ["oc-security-auditor", "oc-integrations-engineer", "oc-monitoring-ops", "oc-deploy-ops"],
   runtime: "≈ 11 exchanges",
   steps: [
-    { type: "beat", label: "01 · Threat model", caption: "oc-security-auditor sweeps with cross-domain lens", skills: ["oc-security-auditor"] },
+    { type: "beat", phase: "audit", label: "01 · Threat model", caption: "oc-security-auditor sweeps with cross-domain lens", skills: ["oc-security-auditor"] },
 
     {
       type: "exchange", role: "user",
@@ -1306,7 +1306,7 @@ Writing the threat model + authorisation matrix.`,
       artifacts: ["mcp-threat-model-defense", "mcp-authorization-matrix"],
     },
 
-    { type: "beat", label: "02 · On-prem fleet + cross-domain rules", caption: "oc-integrations-engineer designs the in-enclave deployment", skills: ["oc-integrations-engineer"] },
+    { type: "beat", phase: "operate", label: "02 · On-prem fleet + cross-domain rules", caption: "oc-integrations-engineer designs the in-enclave deployment", skills: ["oc-integrations-engineer"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-integrations-engineer",
@@ -1345,7 +1345,7 @@ Implementation: ~30 engineering weeks total, parallelisable across 4 engineers +
 The on-prem fleet is the only path that closes all three. It happens to also be the path that makes audit + cross-domain enforcement tractable, which is why the design starts there even before the policy reasons.`
     },
 
-    { type: "beat", label: "03 · Audit consolidation", caption: "oc-monitoring-ops wires Splunk + ESS", skills: ["oc-monitoring-ops"] },
+    { type: "beat", phase: "monitor", label: "03 · Audit consolidation", caption: "oc-monitoring-ops wires Splunk + ESS", skills: ["oc-monitoring-ops"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-monitoring-ops",
@@ -1368,7 +1368,7 @@ Retention: 7 years on-prem cold (existing Splunk Enterprise cold-volume policy).
 This closes D-7 + the AU-2 / AU-3 / AU-12 family findings.`,
     },
 
-    { type: "beat", label: "04 · ATO mod + STIG profile", caption: "oc-deploy-ops produces the package", skills: ["oc-deploy-ops"] },
+    { type: "beat", phase: "ship", label: "04 · ATO mod + STIG profile", caption: "oc-deploy-ops produces the package", skills: ["oc-deploy-ops"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-deploy-ops",

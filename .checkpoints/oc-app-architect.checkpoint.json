@@ -4,92 +4,68 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-06-22T16:35:00Z",
-  "phase": "post-release",
-  "step": "v1.5-shipped-and-live",
-  "status": "complete",
-  "progress_summary": "v1.5.0 'Build the AI app' SHIPPED + LIVE (2026-06-22). app-architect's v1.5 contribution — the 'AI app?' branch in Phase 2 /oc-discover that routes to the four AI-native skills (oc-claude-api hub, oc-rag-forge, oc-agent-forge, oc-prompt-ops) and feeds an 11-ai-architecture.md spec doc — shipped in Sprint 2 (PR #303). No app-architect action pending; v1.6 ('Cost & telemetry') is the next theme, no tickets cut yet. HISTORY: v1.3 shipped 2026-05-08 (526a9a2). v1.4 fully shipped since then via stack-forge's ADEV-328 → ADEV-337 chain — PRs 1-8 all merged: pack registry architecture (PR 1, ADEV-328), 5-pack backfill (PR 2, ADEV-329), deploy-ops dispatcher + api-dev pack-read flow (PR 3, ADEV-330), modern web bulk (PR 4, ADEV-334), enterprise bulk (PR 5, ADEV-335), Apple/iOS (PR 6, ADEV-336), mobile bulk Android/Flutter/RN (PR 6.5, ADEV-343), hosting adapters (PR 7, ADEV-337), site surfaces + version cut (PR 8, ADEV-331). v1.4.0 is live. app-architect held the orchestration role through v1.3 and handed off cleanly; the v1.4 cycle was stack-forge-led with no app-architect intervention required. v1.5 (\"Build the AI app\") is now in the planning phase — ADEV-344 parent + 5 sprint children (ADEV-345/346/347/348/349) — adds 4 AI-native skills (claude-api, rag-forge, agent-forge, prompt-ops). Per the roadmap docs at roadmap/07 + roadmap/08. app-architect picks up active orchestration for v1.5 only if Sprint 2+ runs into cross-skill coordination questions that stack-forge can't resolve alone.",
+  "updated_at": "2026-06-22T18:05:00Z",
+  "phase": "build",
+  "step": "search-and-filter-implemented-tests-green-pending-pr-ci",
+  "status": "in_progress",
+  "progress_summary": "NEW FEATURE CYCLE (post-v1.5): /demo workbench Search & Filter — IMPLEMENTED on branch claude/relaxed-cannon-ut762y, all local gates green, PR/CI pending. User approved spec gate as-is, then said 'implement the design' (design gate approved by instruction; formal punch-list/sprint-plan gates folded into one build since spec+design were complete). DELIVERED: (1) data model — `Phase` union + required `phase` on Beat (types.ts), all 49 beats tagged across 12 scenarios via a one-shot script; (2) pure lib site/src/lib/demo-search/ — kinds.ts (normalizeKind, full corpus coverage), phases.ts, model.ts, strip.ts, index-build.ts (buildSearchIndex), engine.ts (filter/rank/facet-counts, OR-within/AND-across), url-state.ts; role map extracted to pure lib/roles.ts (skills.ts re-exports); (3) UI — demo-search.client.ts wires DesktopWorkbench (rail tabs ⌕/● + sidebar search/facet panels) + MobileWorkbench (topbar ⌕ → full-screen Find overlay), jump-to-exchange with ember-flash, shareable URL state; flag site.feature.demo-search (default true) gates it; index inlined in demo.astro (55KB gz, budget 120KB). TESTS: 32 new Vitest unit tests (kinds/index/engine/url) + index-size budget guard — full suite 423/423 green; astro check 0 errors; site build OK; 8 Playwright e2e specs written (run in CI — browser download blocked in sandbox). PRIOR (last release): v1.5.0 'Build the AI app' SHIPPED + LIVE (2026-06-22). v1.4 via stack-forge ADEV-328→337. v1.3 shipped 2026-05-08 (526a9a2). v1.6 'Cost & telemetry' (roadmap/07) is the next release theme; this demo-search feature is a standalone site enhancement.",
   "progress_table": [
-    {
-      "id": "scope",
-      "label": "Scope + sprint plan approval",
-      "status": "complete"
-    },
-    {
-      "id": "sprint-1",
-      "label": "Sprint 1: Runtime PM-MCP made real",
-      "status": "complete"
-    },
-    {
-      "id": "sprint-2",
-      "label": "Sprint 2: New skill release-ops (the 18th)",
-      "status": "complete"
-    },
-    {
-      "id": "sprint-3",
-      "label": "Sprint 3: Platform expansion (Django / Rails / Go / Rust)",
-      "status": "complete"
-    },
-    {
-      "id": "sprint-4",
-      "label": "Sprint 4: Scenarios + carry-over + /changelog + ship",
-      "status": "complete"
-    },
-    {
-      "id": "deploy",
-      "label": "Manual deploy: staging eyeball → prod (live at 526a9a2)",
-      "status": "complete"
-    }
+    { "id": "discovery",   "label": "Discovery interview",                       "status": "complete" },
+    { "id": "spec",        "label": "Feature spec (00/01/02/06/08)",             "status": "complete" },
+    { "id": "spec-gate",   "label": "★ Spec approval",                           "status": "complete" },
+    { "id": "design",      "label": "Design — search/facet UI + mockup",         "status": "complete" },
+    { "id": "design-gate", "label": "★ Design approval (by 'implement' instr.)", "status": "complete" },
+    { "id": "punch-list",  "label": "Punch list (folded into spec+design)",      "status": "complete" },
+    { "id": "sprint-plan", "label": "Sprint plan (single build)",                "status": "complete" },
+    { "id": "build",       "label": "Build — lib + UI + 32 unit + 8 e2e",        "status": "in_progress" },
+    { "id": "pr",          "label": "PR + CI green",                             "status": "not_started" },
+    { "id": "launch",      "label": "Launch — audit → manual deploy",            "status": "not_started" }
   ],
   "context_primer": {
     "key_decisions": [
-      "Theme: A (Runtime PM-MCP) primary, E (platform expansion) secondary, B (release-ops 18th skill) tertiary.",
-      "Ship Monday 2026-05-11 (Thursday 2026-05-07 + 4 days).",
-      "Hero scenario: ticket→ship→incident→postmortem on a single Linear thread (closes the v1.2 prose-vs-runtime gap visibly).",
-      "Three new scenarios match v1.2 cadence: runtime-pm-loop (hero) + release-ops-dogfood + django-render-shipped.",
-      "Add 18th skill: release-ops. Sits between git-ops and deploy-ops at release boundaries.",
-      "Carry-over from v1.2: Playwright e2e for /changelog + the three v1.2 scenarios; LHCI warn assertions on new pages.",
-      "All 18 skill versions bump 1.2.0 → 1.3.0; styleguide badge v1.2.0 → v1.3.0; homepage pill v1.2 → v1.3.",
-      "Backwards-compatible release; no flag changes, no auth changes, no platform migration."
+      "Surface: /demo workbench (DesktopWorkbench + MobileWorkbench). Substantial new capability, full pipeline (discover→spec→design→roadmap→build).",
+      "Capability: workbench-scoped Search & Filter — NOT merged into the global ⌘K palette (which only indexes pages/skills/actions).",
+      "Search depth: DEEP full-text — index every exchange, beat label, and artifact body across all 12 scenarios.",
+      "Facets (all four): skill · role (7-role taxonomy from lib/skills.ts) · artifact-kind (needs build-time normalization to a controlled vocab) · pipeline-phase (needs explicit data).",
+      "Result behavior: jump-to-exchange + shareable URL state. Deep link opens transcript mode, reveals steps up to/through the target, scrolls + ember-flashes it (reuse existing flash pattern).",
+      "Phase data: EXPLICIT `phase` tags added to beats in the walkthrough model; exchanges inherit nearest-preceding beat's phase. Touches all 12 data files.",
+      "Mobile: FULL parity — MobileWorkbench gets search + facets + deep-link adapted to the bottom-tab layout.",
+      "Stack: inherited/validated (Astro 5 static SSG + Cloudflare Worker ASSETS). No platform/db/auth decision. Build-time index JSON + client filter; zero new runtime deps (hand-rolled, like SearchPalette). MiniSearch noted as fallback only if quality is insufficient."
     ],
+    "generated_files": [],
     "user_preferences": [
       "Picks options when given clear choices; comfortable with 'go with defaults'.",
-      "Prefers sharp scoping questions, then approves big plans in one pass (re-confirmed for v1.3).",
-      "Wants a hero scenario per release; comfortable with bigger 4-sprint releases when scope is well-defined.",
-      "Manual deploy from wrangler-logged-in laptop is the rule; CI is verification-only."
+      "Prefers sharp scoping questions, then approves big plans in one pass.",
+      "Answers structured AskUserQuestion rounds quickly and decisively.",
+      "Manual deploy from a wrangler-logged-in laptop is the rule; CI is verification-only."
     ]
   },
   "blockers": [],
   "next_actions": [
-    "No app-architect work pending — v1.5 'Build the AI app' shipped + live (the AI-app /oc-discover branch landed in PR #303).",
-    "Next theme is v1.6 'Cost & telemetry' (roadmap/07). app-architect picks up if a future app build hits a cross-skill coordination question the leaf skills can't resolve."
+    "Push branch claude/relaxed-cannon-ut762y + open PR; let CI run (Vitest, astro check, site build, Playwright e2e, LHCI).",
+    "On green: Phase 7 launch — /oc-audit pre-deploy then manual wrangler deploy:staging (eyeball /demo search) → prod, per CLAUDE.md deploy flow.",
+    "Optional follow-ups: cross-link /skills/<id> → /demo?skill=<id>; a 'copy link to this exchange' affordance in the output lightbox (noted stretch in 02-architecture §5)."
   ],
   "skill_state": {
-    "release_target": "2026-05-11",
-    "release_shipped_at": "2026-05-08",
-    "release_sha": "526a9a2",
-    "themes": {
-      "primary": "A: runtime PM-MCP",
-      "secondary": "E: platform expansion",
-      "tertiary": "B: release-ops"
+    "feature": {
+      "id": "demo-search",
+      "title": "Demo Workbench Search & Filter",
+      "surface": "/demo (DesktopWorkbench + MobileWorkbench)",
+      "spec_dir": "specs/features/demo-search/",
+      "search_depth": "deep-full-text",
+      "facets": ["skill", "role", "artifact-kind", "pipeline-phase"],
+      "result_behavior": "jump-to-exchange + shareable URL state",
+      "phase_data": "explicit phase tags on beats; exchanges inherit nearest-preceding beat",
+      "mobile": "full-parity",
+      "approach": "build-time index + client-side filter; zero new runtime deps",
+      "wires_activity_rail": ["search (⌕)", "skills (●)"]
     },
-    "scenarios_planned": [
-      "runtime-pm-loop",
-      "release-ops-dogfood",
-      "django-render-shipped"
-    ],
-    "new_skill": "release-ops",
-    "skills_to_bump": "all 18 (17 existing + release-ops new) → 1.3.0",
-    "carry_over_from_v12": [
-      "playwright e2e for /changelog and v1.2 scenarios",
-      "LHCI warn assertions"
-    ],
-    "deploy_method": "manual wrangler from laptop",
-    "depends_on": "v1.2 release shipped; .opchain/pm.yaml exists with provider=linear team=ADEV",
-    "next_release": {
-      "version": "1.4.0",
-      "parent_ticket": "ADEV-327",
-      "first_pr_ticket": "ADEV-328"
+    "prior_release": {
+      "version": "1.5.0",
+      "theme": "Build the AI app",
+      "shipped_at": "2026-06-22",
+      "status": "live",
+      "next_theme": "v1.6 Cost & telemetry (roadmap/07)"
     }
   }
 }
