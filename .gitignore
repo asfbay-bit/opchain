@@ -1,3 +1,7 @@
+# Secrets — never commit. `scripts/gen-did.mjs` writes the did:web PRIVATE key
+# under .secrets/; move it to a password manager / Cloudflare secret and delete it.
+.secrets/
+
 # Dependencies
 node_modules/
 
