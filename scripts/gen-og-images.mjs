@@ -46,6 +46,27 @@ const ROUTES = [
     headline: "privacy.",
     tagline: "opchain.dev data practices.",
   },
+  // Per-skill cards for the v1.5 AI-native skills (B-03 backlog).
+  {
+    file: "skills-oc-claude-api.png",
+    headline: "claude-api.",
+    tagline: "Model routing, prompt caching, tool use, migration playbooks.",
+  },
+  {
+    file: "skills-oc-rag-forge.png",
+    headline: "rag-forge.",
+    tagline: "Vector DB, embeddings, chunking, retrieval eval — tri-agent.",
+  },
+  {
+    file: "skills-oc-agent-forge.png",
+    headline: "agent-forge.",
+    tagline: "Agent SDK topology, tool budgets, harness loops, agent eval.",
+  },
+  {
+    file: "skills-oc-prompt-ops.png",
+    headline: "prompt-ops.",
+    tagline: "Prompts as code — versioned, eval-gated, drift-detected.",
+  },
 ];
 
 // Chosen to balance large-text legibility with line-length for the longest

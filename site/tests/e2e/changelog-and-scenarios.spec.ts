@@ -6,16 +6,17 @@ import { expect, test } from "@playwright/test";
  *
  * /changelog uses the Option C v2 layout: three full-width ARIA tabs —
  * "Just Released" (release history, newest first), "Coming Next" (the one
- * release building now, v1.5), and "Planned" (the v1.6 roadmap, the v1.7
+ * release building now, v1.6), and "Planned" (the v1.6 roadmap, the v1.7
  * distribution-theme vote, and the horizon backlog). The newest release
- * (v1.4.3) and v1.5 / v1.6 are expanded on load; each card is a
- * button[aria-expanded] disclosure. Deep links: #v1-5 → Coming Next;
- * #v1-6 / #v1-7 → Planned; #v1-4 still carries the /coverage link.
+ * (v1.5, shipped) is the open hero in Just Released; each card is a
+ * button[aria-expanded] disclosure. Deep links: #v1-5 → Just Released;
+ * #v1-6 / #v1-7 → Planned (the canonical v1.6 card; the Coming Next pointer
+ * uses id="coming-v1-6"); #v1-4 still carries the /coverage link.
  *
  * Two specs:
- *   1. /changelog — three tabs; v1.4.3 is the open hero in Just Released;
+ *   1. /changelog — three tabs; v1.5 is the open hero in Just Released;
  *      the v1.4 card still deep-links to /coverage; Coming Next leads with
- *      the v1.5 hero; Planned lists v1.6 / v1.7 with the votable roadmap
+ *      the v1.6 pointer; Planned lists v1.6 / v1.7 with the votable roadmap
  *      (>= 6 votable items across the page).
  *
  *   2. /demo — the three v1.3 scenarios + the three v1.2 scenarios
@@ -42,7 +43,7 @@ const v12_SCENARIOS = [
 const ALL_PICKABLE = [...v13_SCENARIOS, ...v12_SCENARIOS];
 
 test.describe("/changelog", () => {
-  test("three tabs; Just Released is active with the v1.4.3 hero open", async ({ page }) => {
+  test("three tabs; Just Released is active with the v1.5 hero open", async ({ page }) => {
     await page.goto("/changelog");
 
     // Three ARIA tabs; Just Released is selected by default and its panel is
@@ -53,11 +54,11 @@ test.describe("/changelog", () => {
     await expect(page.locator("#panel-coming")).toBeHidden();
     await expect(page.locator("#panel-planned")).toBeHidden();
 
-    // The newest release (v1.4.3) is the accent hero, open on load, tagged
+    // The newest release (v1.5) is the accent hero, open on load, tagged
     // with its version + a non-empty compatibility note (changelog-recipe rule).
-    const hero = page.locator("#v1-4-3.hero-card--released");
+    const hero = page.locator("#v1-5.hero-card--released");
     await expect(hero).toBeVisible();
-    await expect(hero.locator(".hero-ver")).toContainText("v1.4.3");
+    await expect(hero.locator(".hero-ver")).toContainText("v1.5.0");
     await expect(hero.locator(".hero-head")).toHaveAttribute("aria-expanded", "true");
     await expect(hero.locator(".compat-box")).toBeVisible();
     await expect(hero.locator(".compat-box")).not.toBeEmpty();
@@ -73,17 +74,17 @@ test.describe("/changelog", () => {
       .toBeVisible();
   });
 
-  test("Coming Next leads with the v1.5 hero and its vote", async ({ page }) => {
+  test("Coming Next leads with the v1.6 pointer", async ({ page }) => {
     await page.goto("/changelog");
     await page.locator("#tab-coming").click();
 
     await expect(page.locator("#panel-coming")).toBeVisible();
-    await expect(page.locator("#v1-5.hero-card--next .hero-title")).toHaveText(
-      /build the ai app/i,
+    // v1.5 shipped, so Coming Next now leads with the v1.6 pointer hero
+    // (the canonical, deep-linkable v1.6 card lives in the Planned tab).
+    await expect(page.locator("#coming-v1-6.hero-card--next .hero-title")).toHaveText(
+      /cost & telemetry/i,
     );
-    // v1.5's vote (OPC-150) lives in the open hero, so it shows once Coming
-    // Next is active.
-    await expect(page.locator('[data-vote-target="OPC-150"]')).toBeVisible();
+    await expect(page.locator("#coming-v1-6 .hero-ver")).toContainText("v1.6");
   });
 
   test("Planned lists v1.6 / v1.7 and the page has >= 6 votable items", async ({ page }) => {
