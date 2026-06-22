@@ -4,20 +4,21 @@
  * own colour identity, every section led by a rich card expanded on load.
  *
  *   Just Released → v1.5 hero (accent) + compact release cards (v1.4.3 ↓).
- *   Coming Next   → v1.6 pointer hero (info) — the release building now.
- *   Planned       → v1.6 roadmap card, the v1.7 distribution-theme vote
- *                   (live relative bar chart), the horizon backlog, then the
- *                   feature-request form.
+ *   Coming Next   → v1.6 roadmap card (info) — the release building now.
+ *   Planned       → v1.7 distribution-theme vote (live relative bar chart),
+ *                   v1.8/v1.9 grouped roadmap cards, then the feature-request
+ *                   form.
  *
  * Voting is real: vote buttons carry data-vote-target=<id> and the client
  * script batches GET /api/votes then POSTs /api/votes/<id> per click (the
- * Worker dedups per-IP/day in KV). Votable ids: OPC-150 (v1.5), OPC-16x
- * (v1.6 features), OPC-170/173/174 (v1.7 theme options — these also drive
- * the bar chart), and OPC-18x (horizon backlog).
+ * Worker dedups per-IP/day in KV). Votable ids: OPC-16x (v1.6 features),
+ * OPC-170/173/174 (v1.7 theme options — these also drive the bar chart),
+ * and OPC-18x (v1.8/v1.9 planned items).
  *
- * Deep links (#v1-5 → Just Released; #v1-6 / #v1-7 → Planned; #v1-4 →
- * /coverage) are handled client-side: the matching tab is activated, the
- * target card expanded, and scrolled into view.
+ * Deep links (#v1-5 → Just Released; #v1-6 → Coming Next;
+ * #v1-7/#v1-8/#v1-9 → Planned; #v1-4 → /coverage) are handled client-side:
+ * the matching tab is activated, the target card expanded, and scrolled into
+ * view.
  *
  * Accessibility: tablist with roving tabindex + arrow/Home/End keys; the
  * inactive panels are `hidden` (not a CSS slide — keeps the page Axe-clean);
@@ -49,72 +50,106 @@ const v17Options = [
     label: "Marketplace + templates",
     blurb:
       "A community skill/pack registry plus opinionated project starters. Every contribution adds breadth at zero core-team cost.",
+    deliverables: [
+      "Public skill and pack listings with install paths, compatibility notes, and maintainer metadata.",
+      "Starter templates that pair a stack-forge pack with the right skill bundle and checkpoint defaults.",
+      "Contribution docs and intake forms that make external submissions reviewable before they appear on opchain.dev.",
+    ],
   },
   {
     id: "OPC-173",
     label: "Agency play",
     blurb:
       "oc-monorepo-ops, multi-project checkpoint scoping, a /for-agencies expansion, and a client-handoff demo scenario.",
+    deliverables: [
+      "A /for-agencies page aimed at studios that run many client builds in parallel.",
+      "Multi-project checkpoint scoping so work can roll up by client, repo, and release train.",
+      "A client handoff demo showing specs, audit trail, deploy state, and what changed since the last review.",
+    ],
   },
   {
     id: "OPC-174",
     label: "Pipeline depth",
     blurb:
       "oc-discovery-ops (JTBD / opportunity trees, upstream of app-architect) and oc-qa-ops, splitting test-pyramid design out of oc-bug-check.",
+    deliverables: [
+      "oc-discovery-ops upstream of app-architect for JTBD, opportunity trees, and problem framing.",
+      "oc-qa-ops for test-pyramid design, contract testing, regression strategy, and release readiness.",
+      "Deeper evaluator rubrics so generated plans include stronger evidence before build and deploy.",
+    ],
   },
 ];
 
-// Horizon — unscoped backlog beyond v1.7. Votable to signal interest; these
-// graduate onto a milestone once the v1.6 / v1.7 retros are done. Fresh vote
+// Planned release groups beyond v1.7. Votable to signal priority; fresh vote
 // keys (OPC-18x), independent of any Linear identifier.
-const horizon = [
+const futureReleaseGroups = [
   {
-    id: "OPC-186",
-    title: "Claude.ai web skill install",
-    blurb:
-      "One-click skill install from the opchain site straight into Claude.ai Projects — no file management.",
+    version: "v1.8",
+    id: "v1-8",
+    title: "Install and operate anywhere",
+    timing: "planned after v1.7",
+    summary:
+      "Make opchain easier to adopt in the places people already work: Claude.ai, editors, discovery, and multi-repo programs.",
+    items: [
+      {
+        id: "OPC-186",
+        title: "Claude.ai web skill install",
+        blurb:
+          "One-click skill install from the opchain site straight into Claude.ai Projects — no file management.",
+      },
+      {
+        id: "OPC-185",
+        title: "VS Code / Cursor extension",
+        blurb:
+          "A native sidebar showing checkpoint state, skill shortcuts, and pipeline progress without leaving the editor.",
+      },
+      {
+        id: "OPC-180",
+        title: "oc-discovery-ops",
+        blurb:
+          "A JTBD / opportunity-tree skill upstream of app-architect — maps user problems before any code is written.",
+      },
+      {
+        id: "OPC-182",
+        title: "oc-monorepo-ops",
+        blurb:
+          "Multi-project checkpoint scoping, shared skill config, and coordinated releases across repos in a monorepo.",
+      },
+    ],
   },
   {
-    id: "OPC-185",
-    title: "VS Code / Cursor extension",
-    blurb:
-      "A native sidebar showing checkpoint state, skill shortcuts, and pipeline progress without leaving the editor.",
-  },
-  {
-    id: "OPC-180",
-    title: "oc-discovery-ops",
-    blurb:
-      "A JTBD / opportunity-tree skill upstream of app-architect — maps user problems before any code is written.",
-  },
-  {
-    id: "OPC-181",
-    title: "oc-qa-ops",
-    blurb:
-      "A dedicated test-pyramid design skill: coverage strategy, contract testing, and load-test planning, split out of oc-bug-check.",
-  },
-  {
-    id: "OPC-182",
-    title: "oc-monorepo-ops",
-    blurb:
-      "Multi-project checkpoint scoping, shared skill config, and coordinated releases across repos in a monorepo.",
-  },
-  {
-    id: "OPC-183",
-    title: "oc-data-ops",
-    blurb:
-      "A data-pipeline design skill: ingestion patterns, transformation layers, dbt integration, and observable data contracts.",
-  },
-  {
-    id: "OPC-184",
-    title: "oc-compliance-ops",
-    blurb:
-      "SOC 2 / HIPAA / GDPR checklists wired into the pipeline, with audit-ready docs generated at deploy time.",
-  },
-  {
-    id: "OPC-187",
-    title: "oc-security-hardening",
-    blurb:
-      "A security-review skill running a full OWASP + threat-model pass before every deploy, separate from oc-code-auditor.",
+    version: "v1.9",
+    id: "v1-9",
+    title: "Assurance and governed delivery",
+    timing: "planned after v1.8",
+    summary:
+      "Deepen the quality, data, compliance, and security layers that larger teams need before they trust the pipeline for serious delivery.",
+    items: [
+      {
+        id: "OPC-181",
+        title: "oc-qa-ops",
+        blurb:
+          "A dedicated test-pyramid design skill: coverage strategy, contract testing, and load-test planning, split out of oc-bug-check.",
+      },
+      {
+        id: "OPC-183",
+        title: "oc-data-ops",
+        blurb:
+          "A data-pipeline design skill: ingestion patterns, transformation layers, dbt integration, and observable data contracts.",
+      },
+      {
+        id: "OPC-184",
+        title: "oc-compliance-ops",
+        blurb:
+          "SOC 2 / HIPAA / GDPR checklists wired into the pipeline, with audit-ready docs generated at deploy time.",
+      },
+      {
+        id: "OPC-187",
+        title: "oc-security-hardening",
+        blurb:
+          "A security-review skill running a full OWASP + threat-model pass before every deploy, separate from oc-code-auditor.",
+      },
+    ],
   },
 ];
 ---
@@ -166,7 +201,7 @@ const horizon = [
           aria-selected="false"
           tabindex="-1"
         >
-          Planned <span class="tab-count">v1.6 → v1.7</span>
+          Planned <span class="tab-count">v1.7 → v1.9</span>
         </button>
       </div>
       <span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
@@ -478,15 +513,13 @@ const horizon = [
         <span class="panel-sub">The one release building right now. Vote to signal priority.</span>
       </div>
 
-      <!-- v1.6 — next release building toward; pointer card. Uses the
-           coming-v1-6 id; the canonical, deep-linkable v1.6 card (the v1-6 id)
-           lives in the Planned tab. -->
-      <article class="hero-card hero-card--next is-open" id="coming-v1-6" data-card>
+      <!-- v1.6 — next release building toward; deep-linkable from #v1-6. -->
+      <article class="hero-card hero-card--next is-open" id="v1-6" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
-          aria-controls="coming-v1-6-body"
+          aria-controls="v1-6-body"
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
@@ -500,42 +533,11 @@ const horizon = [
             <code>oc-checkpoint-protocol</code> bump since v1.2.
           </span>
         </button>
-        <div class="card-body" id="coming-v1-6-body" data-disclosure-body>
-          <div class="card-body-inner hero-body-inner">
-            <p>Full scope on the <a href="#panel-planned" data-tab-link="planned">Planned</a> tab. v1.5 just shipped — see it under <a href="#panel-released" data-tab-link="released">Just Released</a>.</p>
-          </div>
-        </div>
-      </article>
-    </section>
-
-    <!-- ══ PANEL 2 — PLANNED ═════════════════════════════════ -->
-    <section
-      class="tab-panel"
-      role="tabpanel"
-      id="panel-planned"
-      aria-labelledby="tab-planned"
-      tabindex="0"
-      hidden
-    >
-      <div class="panel-head">
-        <h2>What's planned</h2>
-        <span class="panel-sub">v1.6 is the roadmap; v1.7 is yours to steer. Votes shape the order things ship.</span>
-      </div>
-
-      <!-- v1.6 — first roadmap item, AUTO-OPEN -->
-      <article class="plan-card is-open" id="v1-6" data-card>
-        <button class="pc-row" type="button" aria-expanded="true" aria-controls="v1-6-body" data-disclosure-toggle>
-          <span class="pc-toggle" aria-hidden="true">▶</span>
-          <span class="pc-meta">
-            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.6</span><span class="pc-title">The instrumented pipeline</span><span class="pc-timing">est. Jul 2026</span></span>
-            <span class="pc-summary">Cost attribution, opt-in telemetry, and the first oc-checkpoint-protocol bump since v1.2. Answers &ldquo;what did this feature cost?&rdquo;</span>
-          </span>
-        </button>
         <div class="card-body" id="v1-6-body" data-disclosure-body>
-          <div class="card-body-inner">
-            <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">est. Jul 2026</span><span class="tag">2 new skills</span></div>
-            <p>v1.5 introduces four AI-native skills; the predictable next question is <em>what did they cost, and is my pipeline actually getting better?</em> v1.6 answers both — cost attribution and opt-in telemetry, plus the first <code>oc-checkpoint-protocol</code> bump since v1.2 (adds <code>cost</code>, <code>eval_scores</code>, <code>telemetry_handle</code>).</p>
-            <h3>What's planned — vote on what matters most</h3>
+          <div class="card-body-inner hero-body-inner">
+            <div class="tag-row"><span class="tag tag--info">est. Jul 2026</span><span class="tag">2 new skills</span><span class="tag">protocol bump</span></div>
+            <p>v1.6 turns the new AI pipeline from powerful into measurable: per-phase LLM cost attribution, opt-in local usage telemetry, and checkpoint fields for cost, eval scores, and telemetry handles.</p>
+            <h3>What's in scope — vote on what matters most</h3>
             <ul class="vote-list">
               {v16Items.map((it) => (
                 <li class="vote-item">
@@ -556,33 +558,51 @@ const horizon = [
                 </li>
               ))}
             </ul>
-            <div class="planned-box">Planned — scope may shift before release. All 24 skills lockstep-bump to <code>1.6.0</code>.</div>
+            <div class="planned-box">Building next — scope may shift before release. All 24 skills lockstep-bump to <code>1.6.0</code>.</div>
           </div>
         </div>
       </article>
+    </section>
 
-      <div class="divider"><span class="divider-line"></span><span class="divider-label">the v1.7 theme vote</span><span class="divider-line"></span></div>
+    <!-- ══ PANEL 2 — PLANNED ═════════════════════════════════ -->
+    <section
+      class="tab-panel"
+      role="tabpanel"
+      id="panel-planned"
+      aria-labelledby="tab-planned"
+      tabindex="0"
+      hidden
+    >
+      <div class="panel-head">
+        <h2>What's planned</h2>
+        <span class="panel-sub">v1.7 is yours to steer; v1.8 and v1.9 group the longer-range work.</span>
+      </div>
 
       <!-- v1.7 — the distribution-theme vote (live relative bar chart) -->
-      <article class="plan-card" id="v1-7" data-card>
-        <button class="pc-row" type="button" aria-expanded="false" aria-controls="v1-7-body" data-disclosure-toggle>
+      <article class="plan-card is-open" id="v1-7" data-card>
+        <button class="pc-row" type="button" aria-expanded="true" aria-controls="v1-7-body" data-disclosure-toggle>
           <span class="pc-toggle" aria-hidden="true">▶</span>
           <span class="pc-meta">
-            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.7</span><span class="pc-title">Pick one distribution play</span><span class="pc-timing">theme vote open · est. Sep 2026</span></span>
-            <span class="pc-summary">By v1.6, opchain has 24 skills and AI coverage. The biggest remaining gap is distribution — v1.7 bets on one growth theme. Vote for the one you want; the bars redistribute live.</span>
+            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.7</span><span class="pc-title">The distribution play</span><span class="pc-timing">theme vote open · est. Sep 2026</span></span>
+            <span class="pc-summary">After v1.6 measures the pipeline, v1.7 chooses how opchain reaches more users: marketplace, agency workflows, or deeper pipeline coverage.</span>
           </span>
         </button>
-        <div class="card-body" id="v1-7-body" data-disclosure-body inert>
+        <div class="card-body" id="v1-7-body" data-disclosure-body>
           <div class="card-body-inner">
-            <div class="tag-row"><span class="tag tag--info">theme vote open</span><span class="tag">est. Sep 2026</span></div>
-            <p>By the time v1.6 ships, the biggest remaining gap isn't features — it's <strong>distribution</strong>. v1.7 deliberately promotes one growth play into a flagship theme instead of accreting more skills. The three contenders are below — your votes go on record now and decide the order.</p>
-            <h3>Vote on the v1.7 theme</h3>
+            <div class="tag-row"><span class="tag tag--info">theme vote open</span><span class="tag">est. Sep 2026</span><span class="tag">1 flagship theme</span></div>
+            <p>By the time v1.6 ships, the biggest remaining gap is distribution. v1.7 deliberately promotes one growth play into a flagship theme instead of accreting more skills. The three contenders are below; your vote goes on record now and helps decide the order.</p>
+            <h3>Choose the v1.7 theme</h3>
             <ul class="theme-list">
               {v17Options.map((opt) => (
                 <li class="theme-option">
                   <div class="theme-meta">
                     <span class="theme-label">{opt.label}</span>
                     <p class="theme-blurb">{opt.blurb}</p>
+                    <ul class="theme-deliverables">
+                      {opt.deliverables.map((item) => (
+                        <li>{item}</li>
+                      ))}
+                    </ul>
                     <span class="theme-bar-wrap"><span class="theme-bar" data-theme-bar={opt.id} style="width:0%"></span></span>
                   </div>
                   <button
@@ -603,28 +623,45 @@ const horizon = [
         </div>
       </article>
 
-      <div class="divider"><span class="divider-line"></span><span class="divider-label">horizon · beyond v1.7</span><span class="divider-line"></span></div>
-      <p class="backlog-note">Not scoped yet — horizon items graduate onto a milestone once the v1.5 / v1.6 retros are done. Vote on what you'd most like worked on next.</p>
-      <ul class="horizon-list">
-        {horizon.map((h) => (
-          <li class="horizon-item">
-            <div class="horizon-meta">
-              <span class="horizon-title">{h.title}</span>
-              <p class="horizon-blurb">{h.blurb}</p>
+      <div class="divider"><span class="divider-line"></span><span class="divider-label">later planned releases</span><span class="divider-line"></span></div>
+      {futureReleaseGroups.map((group) => (
+        <article class="plan-card" id={group.id} data-card>
+          <button class="pc-row" type="button" aria-expanded="false" aria-controls={`${group.id}-body`} data-disclosure-toggle>
+            <span class="pc-toggle" aria-hidden="true">▶</span>
+            <span class="pc-meta">
+              <span class="pc-head"><span class="ver-pill ver-pill--next">{group.version}</span><span class="pc-title">{group.title}</span><span class="pc-timing">{group.timing}</span></span>
+              <span class="pc-summary">{group.summary}</span>
+            </span>
+          </button>
+          <div class="card-body" id={`${group.id}-body`} data-disclosure-body inert>
+            <div class="card-body-inner">
+              <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">{group.items.length} items</span></div>
+              <p>{group.summary}</p>
+              <ul class="horizon-list">
+                {group.items.map((h) => (
+                  <li class="horizon-item">
+                    <div class="horizon-meta">
+                      <span class="horizon-title">{h.title}</span>
+                      <p class="horizon-blurb">{h.blurb}</p>
+                    </div>
+                    <button
+                      class="vote-btn"
+                      type="button"
+                      data-vote-target={h.id}
+                      aria-label={`Vote for ${h.title}`}
+                    >
+                      <span class="v-arrow" aria-hidden="true">▲</span>
+                      <span class="v-count" data-vote-count>—</span>
+                      <span class="v-label" data-vote-label>vote</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <div class="planned-box">Planned — order and scope may shift after the v1.7 theme is chosen.</div>
             </div>
-            <button
-              class="vote-btn"
-              type="button"
-              data-vote-target={h.id}
-              aria-label={`Vote for ${h.title}`}
-            >
-              <span class="v-arrow" aria-hidden="true">▲</span>
-              <span class="v-count" data-vote-count>—</span>
-              <span class="v-label" data-vote-label>vote</span>
-            </button>
-          </li>
-        ))}
-      </ul>
+          </div>
+        </article>
+      ))}
 
       <RoadmapForm />
     </section>
@@ -1239,20 +1276,40 @@ const horizon = [
   /* ── v1.7 theme vote (relative bar chart) ─────────────── */
   .theme-list { list-style: none; padding: 0 !important; margin: 0.5rem 0 0 !important; display: grid; gap: 0.5rem; }
   .theme-option {
-    display: flex; align-items: center; gap: 1rem;
+    display: flex; align-items: flex-start; gap: 1rem;
     background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-sm);
     padding: 0.7rem 0.85rem; margin: 0 !important;
   }
   .theme-meta { flex: 1; min-width: 0; }
   .theme-label { display: block; font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 600; color: var(--text); margin-bottom: 2px; }
   .theme-blurb { font-size: 12px; color: var(--muted); line-height: var(--lh-snug); margin: 0 0 0.5rem !important; }
+  .theme-deliverables { list-style: none; padding: 0 !important; margin: 0 0 0.65rem !important; display: grid; gap: 0.25rem; }
+  .theme-deliverables li {
+    position: relative;
+    padding-left: 0.9rem;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: var(--lh-snug);
+    margin: 0 !important;
+  }
+  .theme-deliverables li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--cl-violet);
+  }
   .theme-bar-wrap { display: block; height: 5px; background: var(--border); border-radius: var(--r-pill); overflow: hidden; }
   .theme-bar { display: block; height: 100%; width: 0; background: var(--cl-violet); border-radius: var(--r-pill); transition: width var(--dur-base) var(--ease-standard); }
+  .theme-option .vote-btn { margin-top: 0.15rem; }
   .theme-option .vote-btn:hover { border-color: var(--cl-violet); background: var(--cl-violet-dim); transform: translateY(-1px); }
   .theme-option .vote-btn.voted { border-color: var(--cl-violet); background: var(--cl-violet-dim); color: var(--cl-violet); }
   .theme-option .vote-btn.voted .v-label { color: var(--cl-violet); }
 
-  /* ── Horizon backlog rows ─────────────────────────────── */
+  /* ── Future release rows ──────────────────────────────── */
   .horizon-list { list-style: none; padding: 0 !important; margin: 0 0 1.5rem !important; display: grid; gap: 0.5rem; }
   .horizon-item {
     display: flex; align-items: center; gap: 1rem;
