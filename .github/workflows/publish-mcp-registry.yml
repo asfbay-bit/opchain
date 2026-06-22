@@ -55,11 +55,11 @@ jobs:
           fi
           echo "Publishing version $(jq -r .version server.json) of $(jq -r .name server.json)"
 
-      - name: Validate
-        run: ./mcp-publisher publish --dry-run
-
       - name: Authenticate (GitHub OIDC)
         run: ./mcp-publisher login github-oidc
+
+      - name: Validate
+        run: ./mcp-publisher publish --dry-run
 
       - name: Publish
         run: ./mcp-publisher publish
