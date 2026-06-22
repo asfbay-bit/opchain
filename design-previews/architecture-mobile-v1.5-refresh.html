@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Architecture refresh · MOBILE · v1.4.3 + v1.5 · mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --obsidian:#1c1710; --slag:#5a5040; --sand:#c4b89e; --linen:#e8dfd0; --parchment:#f6f0e8;
+    --ember:#e05c18; --ember-dim:rgba(224,92,24,.10);
+    --success:#0D9488; --warning:#f59e0b; --error:#ef4444; --advisor:#0EA5E9; --auditor:#F43F5E;
+    --ai:#a78bfa; --ai-dim:rgba(167,139,250,.12);
+    --bg:#100c09; --panel:#16110d; --border:rgba(196,184,158,.16);
+    --mono:'JetBrains Mono',ui-monospace,monospace; --disp:'Outfit',system-ui,sans-serif;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--linen);font-family:var(--mono);line-height:1.45;padding:40px 20px 100px;}
+  .wrap{max-width:1080px;margin:0 auto;}
+
+  .doc-eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ember);display:flex;align-items:center;gap:.5em;}
+  .doc-eyebrow::before{content:'—';color:var(--ember);font-size:18px;}
+  h1.doc{font-family:var(--disp);font-size:28px;font-weight:700;letter-spacing:-.02em;margin:.35em 0 .2em;color:var(--parchment);}
+  .doc-sub{color:var(--sand);font-size:13px;max-width:78ch;}
+  .decisions{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px;}
+  .dchip{font-size:11px;background:var(--panel);border:.5px solid var(--border);border-radius:999px;padding:5px 11px;color:var(--linen);}
+  .dchip b{color:var(--ai);font-weight:700;}
+
+  .metrics{width:100%;border-collapse:collapse;margin:22px 0 8px;font-size:12.5px;}
+  .metrics th,.metrics td{border:.5px solid var(--border);padding:8px 12px;text-align:left;}
+  .metrics th{background:var(--panel);color:var(--sand);font-weight:500;letter-spacing:.04em;text-transform:uppercase;font-size:10.5px;}
+  .metrics .was{color:var(--slag);text-decoration:line-through;}
+  .metrics .now{color:var(--success);font-weight:700;}
+  .metrics .now.ai{color:var(--ai);}
+
+  .rule{height:.5px;background:var(--border);margin:46px 0 30px;border:0;}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;}
+  .sec-head h2{font-family:var(--disp);font-size:21px;font-weight:600;color:var(--parchment);letter-spacing:-.01em;}
+  .sec-head .tag{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--slag);}
+  .sec-intro{color:var(--sand);font-size:12.5px;margin-bottom:22px;max-width:84ch;}
+
+  .chg{border:.5px solid var(--border);border-radius:10px;background:var(--panel);padding:18px 20px 20px;margin:16px 0;}
+  .chg-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:6px;}
+  .chg-num{flex:none;width:30px;height:30px;border-radius:8px;background:var(--ai-dim);border:1px solid var(--ai);color:var(--ai);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;}
+  .chg-title{font-family:var(--disp);font-size:16px;font-weight:600;color:var(--parchment);}
+  .chg-where{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--slag);margin-top:3px;}
+  .chg-why{color:var(--sand);font-size:12.5px;margin:8px 0 16px;max-width:90ch;}
+  .chg-why b{color:var(--linen);}
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:780px){.ba{grid-template-columns:1fr;}}
+  .pane{border:.5px solid var(--border);border-radius:8px;padding:14px;background:var(--obsidian);display:flex;flex-direction:column;align-items:center;}
+  .pane.full{grid-column:1/-1;}
+  .pane-lab{align-self:flex-start;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:11px;display:flex;align-items:center;gap:6px;}
+  .pane.before .pane-lab{color:var(--slag);} .pane.after .pane-lab{color:var(--success);}
+  .pane.before .pane-lab::before{content:'●';color:var(--slag);font-size:7px;}
+  .pane.after .pane-lab::before{content:'●';color:var(--success);font-size:7px;}
+
+  code{color:var(--parchment);background:var(--obsidian);border:.5px solid var(--border);border-radius:3px;padding:0 4px;}
+  del{color:var(--slag);} ins{color:var(--success);text-decoration:none;font-weight:600;} ins.ai{color:var(--ai);}
+  .mini{font-size:11.5px;color:var(--sand);align-self:flex-start;}
+  .stamp{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--ai);border:.6px solid var(--ai);border-radius:3px;padding:1px 6px;}
+
+  /* ── phone frame (390pt) ── */
+  .phone{width:390px;max-width:100%;margin:0 auto;border:1px solid var(--border);border-radius:26px;
+       padding:14px 12px 22px;background:linear-gradient(180deg,#13100c,#0d0a07);}
+  .phone .notch{width:120px;height:5px;border-radius:3px;background:var(--slag);margin:2px auto 14px;opacity:.6;}
+  .mh-eyebrow{font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ember);}
+  .mh-title{font-family:var(--disp);font-size:18px;font-weight:600;color:var(--parchment);margin:3px 0;}
+  .mh-sub{font-size:9.5px;color:var(--sand);line-height:1.5;}
+
+  /* collapsible band (rendered open) */
+  .mband{border:.5px solid var(--border);border-radius:10px;margin:10px 0;overflow:hidden;background:rgba(255,255,255,.012);}
+  .mband.ai{background:var(--ai-dim);border-color:color-mix(in srgb,var(--ai) 40%,var(--border));}
+  .mb-head{display:flex;align-items:center;gap:9px;padding:11px 12px;border-bottom:.5px solid var(--border);}
+  .mb-num{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;
+       font-size:11px;font-weight:700;background:var(--bar-dim,rgba(90,80,64,.2));border:1px solid var(--bar,var(--slag));color:var(--bar,var(--sand));}
+  .mb-title{font-family:var(--disp);font-weight:600;font-size:14px;color:var(--linen);flex:1;}
+  .mb-of{font-size:9px;color:var(--slag);}
+  .mb-body{padding:12px;display:flex;flex-direction:column;gap:9px;}
+
+  .mskill{position:relative;background:var(--obsidian);border:1px solid var(--c,var(--success));border-radius:7px;
+       padding:13px 12px 11px;box-shadow:0 0 16px -7px var(--c,var(--success));}
+  .mskill .dot{position:absolute;top:8px;right:9px;width:6px;height:6px;border-radius:50%;background:var(--ember);box-shadow:8px 0 0 -1px rgba(224,92,24,.5);}
+  .mskill .mn{font-family:var(--disp);font-weight:600;color:var(--linen);font-size:15px;text-align:center;}
+  .mskill .mr{color:var(--sand);font-size:11px;text-align:center;margin-top:3px;}
+  .mskill .mc{color:var(--c,var(--success));font-size:11px;text-align:center;margin-top:4px;}
+  .mskill .mnote{color:var(--slag);font-size:10px;font-style:italic;text-align:center;margin-top:4px;}
+  .mskill .mspine{display:block;text-align:center;margin-top:7px;font-size:10px;font-weight:700;color:var(--success);}
+  .mnew{display:block;text-align:center;margin-top:7px;font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--ai);}
+  .mflow{text-align:center;font-size:10px;color:var(--success);margin:3px 0;}
+  .mflow.ai{color:var(--ai);}
+  .mgate{text-align:center;font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--auditor);margin:7px 0;
+       border:.5px dashed var(--auditor);border-radius:5px;padding:5px;}
+
+  /* foundation pill mobile */
+  .mfound{border:.5px solid rgba(224,92,24,.5);border-radius:9px;padding:11px;margin:9px 0;background:var(--obsidian);}
+  .mfound .ft{font-size:8.5px;letter-spacing:.12em;color:var(--ember);font-weight:700;}
+  .mfound .fn{font-family:var(--disp);font-weight:600;font-size:13px;color:var(--linen);margin:2px 0;}
+  .mfound .fd{font-size:10px;color:var(--sand);}
+
+  /* pack fabric mobile (2-col cells) */
+  .mpf{border:.5px solid color-mix(in srgb,var(--ember) 30%,var(--border));border-radius:10px;margin:10px 0;background:rgba(224,92,24,.03);}
+  .mpf-head{display:flex;align-items:center;gap:8px;padding:11px 12px;border-bottom:.5px solid var(--border);}
+  .mpf-star{color:var(--ember);font-size:13px;}
+  .mpf-title{font-family:var(--disp);font-weight:600;font-size:13px;color:var(--linen);flex:1;}
+  .mpf-badge{font-size:9px;color:var(--ember);background:var(--ember-dim);border:.5px solid var(--ember);border-radius:999px;padding:2px 8px;}
+  .mpf-body{padding:11px;}
+  .mpf-cells{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .mpf-cell{background:var(--obsidian);border:.5px solid var(--border);border-radius:6px;padding:8px;}
+  .mpf-cell.vec{border-color:var(--ai);box-shadow:0 0 12px -6px var(--ai);}
+  .mpf-cell.full{grid-column:1/-1;}
+  .mpf-k{display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:var(--sand);margin-bottom:6px;}
+  .mpf-cell.vec .mpf-k{color:var(--ai);}
+  .mchips{display:flex;flex-wrap:wrap;gap:3px;}
+  .mchip{font-size:8px;color:var(--sand);background:rgba(196,184,158,.06);border:.5px solid var(--border);border-radius:3px;padding:1px 4px;}
+  .mpf-cell.vec .mchip{color:var(--ai);border-color:color-mix(in srgb,var(--ai) 45%,transparent);background:var(--ai-dim);}
+  .mpf-foot{font-size:9px;color:var(--sand);margin-top:8px;}
+  .mpf-foot .added{color:var(--ai);font-weight:700;}
+
+  .mappendix{border:.5px solid var(--border);border-radius:9px;padding:11px;margin:9px 0;background:var(--panel);}
+  .mappendix .ae{font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--slag);}
+  .mappendix .at{font-family:var(--disp);font-weight:600;font-size:12px;color:var(--linen);margin:2px 0 6px;}
+  .mappendix p{font-size:10px;color:var(--sand);}
+  .mfoot{font-size:9px;color:var(--slag);text-align:center;margin-top:14px;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ════════ PROPOSAL HEADER ════════ -->
+  <div class="doc-eyebrow">opchain · architecture diagram · MOBILE refresh</div>
+  <h1 class="doc">Architecture refresh — after v1.4.3 &amp; v1.5</h1>
+  <p class="doc-sub">The mobile companion (<code>MobileArchitecture.astro</code>, 390pt stacked bands), refreshed in lockstep
+     with the desktop. Same change set, tuned for the narrow column. Numbered changes first, full phone-width final cut
+     at the bottom.</p>
+
+  <div class="decisions">
+    <span class="dchip">AI skills → <b>new dedicated phase</b></span>
+    <span class="dchip">MCP / Codex → out of scope</span>
+    <span class="dchip">Vector-DB → 5th cell</span>
+    <span class="dchip">Lockstep w/ desktop</span>
+    <span class="dchip">v1.5 stamp</span>
+    <span class="dchip">NEW · gated badges</span>
+    <span class="dchip">Fix inconsistencies</span>
+  </div>
+
+  <table class="metrics">
+    <thead><tr><th>Metric</th><th>Was (live)</th><th>Now</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Skills (subtitle)</td><td class="was">18</td><td class="now">22</td><td>code comment even said “17-skill”</td></tr>
+      <tr><td>Phases</td><td class="was">5</td><td class="now ai">6</td><td>new AI band</td></tr>
+      <tr><td>Tri-agent</td><td class="was">5</td><td class="now">7</td><td>+ rag-forge, agent-forge</td></tr>
+      <tr><td>Pack fabric</td><td class="was">v1.4 · 4 cells</td><td class="now ai">v1.5 · 5 cells</td><td>vector-db cell</td></tr>
+      <tr><td>Appendix “all 18”</td><td class="was">18</td><td class="now">22</td><td>3 references reconciled</td></tr>
+      <tr><td>oc-release-ops badge</td><td class="was">“18” / “NEW”</td><td class="now">release-boundary</td><td>stale labels removed</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="rule" />
+
+  <!-- ════════ NUMBERED CHANGES ════════ -->
+  <div class="sec-head"><h2>Numbered changes</h2><span class="tag">8 · each with rationale</span></div>
+  <p class="sec-intro">Previews are rendered at mobile proportions. <span style="color:var(--ai)">Violet</span> = v1.5 AI
+     additions; <span style="color:var(--success)">teal</span> = corrected values.</p>
+
+  <!-- CHANGE 1 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">1</div>
+      <div><div class="chg-title">New “AI” band — Phase 3 of 6</div>
+        <div class="chg-where">new &lt;details&gt; band · after Pack Fabric, before Build</div></div></div>
+    <p class="chg-why">A new collapsible band holding the four v1.5 AI skills, stacked vertically like every other mobile
+       band. They branch off oc-app-architect’s “AI app?” decision and return checkpoints — <b>not</b> on the numbered
+       spine. rag-forge &amp; agent-forge are tri-agent.</p>
+    <div class="ba">
+      <div class="pane before"><div class="pane-lab">before — absent</div>
+        <p class="mini">No AI skills anywhere in the mobile stack.</p></div>
+      <div class="pane after"><div class="pane-lab">after — new AI band</div>
+        <div class="mband ai" style="width:330px;max-width:100%">
+          <div class="mb-head"><div class="mb-num" style="--bar:var(--ai);--bar-dim:var(--ai-dim)">✦</div>
+            <div class="mb-title" style="color:var(--ai)">AI</div><div class="mb-of">Phase 3 of 6 · NEW</div></div>
+          <div class="mb-body">
+            <div class="mflow ai">↑ “AI app?” branch off oc-app-architect</div>
+            <div class="mskill" style="--c:var(--success)"><div class="dot"></div><div class="mn">oc-claude-api</div><div class="mr">Specialist · Advisor</div><div class="mc">/oc-claude-api</div><span class="mnew">NEW · v1.5 · gated</span></div>
+            <div class="mskill" style="--c:var(--warning)"><div class="dot"></div><div class="mn">oc-rag-forge</div><div class="mr">Tri-agent · vector DB · eval</div><div class="mc">/oc-rag</div><span class="mnew">NEW · v1.5 · gated</span></div>
+            <div class="mskill" style="--c:var(--warning)"><div class="dot"></div><div class="mn">oc-agent-forge</div><div class="mr">Tri-agent · Agent SDK</div><div class="mc">/oc-agent</div><span class="mnew">NEW · v1.5 · gated</span></div>
+            <div class="mskill" style="--c:var(--success)"><div class="dot"></div><div class="mn">oc-prompt-ops</div><div class="mr">Specialist · prompt-as-code</div><div class="mc">/oc-prompt</div><span class="mnew">NEW · v1.5 · gated</span></div>
+            <div class="mflow ai">↓ checkpoints back to oc-app-architect</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE 2 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">2</div>
+      <div><div class="chg-title">Subtitle metrics</div><div class="chg-where">ma-subtitle · line ~101</div></div></div>
+    <p class="chg-why">Bring the one-liner current.</p>
+    <div class="ba">
+      <div class="pane before"><div class="pane-lab">before</div>
+        <p class="mini">Checkpoint-driven pipeline · <del>18 skills</del> · <del>5 phases</del> · <del>5 tri-agent</del> · 3 audit gates · spine ordinals</p></div>
+      <div class="pane after"><div class="pane-lab">after</div>
+        <p class="mini">Checkpoint-driven pipeline · <ins>22 skills</ins> · <ins>6 phases</ins> · <ins>7 tri-agent</ins> · 3 audit gates · spine ordinals</p></div>
+    </div>
+  </div>
+
+  <!-- CHANGE 3 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">3</div>
+      <div><div class="chg-title">Pack Fabric — add VECTOR-DB cell</div><div class="chg-where">ma-pack-fabric · cells + badge</div></div></div>
+    <p class="chg-why">Add a 5th cell (full-width in the 2-col mobile grid), relabel <b>v1.4 → v1.5</b>, badge reads 36
+       honestly, add oc-rag-forge to consumers.</p>
+    <div class="ba">
+      <div class="pane before"><div class="pane-lab">before — 4 cells, badge v1.4·36</div>
+        <div class="mpf" style="width:300px;max-width:100%;margin:0">
+          <div class="mpf-head"><span class="mpf-star" style="color:var(--slag)">✦</span><span class="mpf-title">Pack fabric</span>
+            <span class="mpf-badge" style="color:var(--slag);border-color:var(--slag);background:transparent">v1.4 · 36</span></div>
+          <div class="mpf-body"><div class="mpf-cells">
+            <div class="mpf-cell"><div class="mpf-k"><span>LANGUAGES</span><span>13</span></div></div>
+            <div class="mpf-cell"><div class="mpf-k"><span>FRAMEWORKS</span><span>9</span></div></div>
+            <div class="mpf-cell"><div class="mpf-k"><span>MOBILE</span><span>4</span></div></div>
+            <div class="mpf-cell"><div class="mpf-k"><span>DEPLOY</span><span>6</span></div></div>
+          </div><div class="mpf-foot" style="color:var(--auditor)">badge 36 but only 32 shown</div></div>
+        </div>
+      </div>
+      <div class="pane after"><div class="pane-lab">after — 5 cells, v1.5·36</div>
+        <div class="mpf" style="width:300px;max-width:100%;margin:0">
+          <div class="mpf-head"><span class="mpf-star">✦</span><span class="mpf-title">Pack fabric</span>
+            <span class="mpf-badge">v1.5 · 36</span></div>
+          <div class="mpf-body"><div class="mpf-cells">
+            <div class="mpf-cell"><div class="mpf-k"><span>LANGUAGES</span><span>13</span></div></div>
+            <div class="mpf-cell"><div class="mpf-k"><span>FRAMEWORKS</span><span>9</span></div></div>
+            <div class="mpf-cell"><div class="mpf-k"><span>MOBILE</span><span>4</span></div></div>
+            <div class="mpf-cell"><div class="mpf-k"><span>DEPLOY</span><span>6</span></div></div>
+            <div class="mpf-cell vec full"><div class="mpf-k"><span>VECTOR-DB</span><span>4</span></div>
+              <div class="mchips"><span class="mchip">pgvector</span><span class="mchip">pinecone</span><span class="mchip">supabase-vectors</span><span class="mchip">turbopuffer</span></div></div>
+          </div><div class="mpf-foot">+ <span class="added">oc-rag-forge</span> consumer</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE 4 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">4</div>
+      <div><div class="chg-title">oc-app-architect — “AI app?” branch line</div><div class="chg-where">Plan band caption + card</div></div></div>
+    <p class="chg-why">The auto-invoke italic line gains the AI routing.</p>
+    <div class="ba">
+      <div class="pane before"><div class="pane-lab">before</div>
+        <div class="mskill" style="--c:var(--warning);width:280px;max-width:100%"><div class="dot"></div><div class="mn">oc-app-architect</div><div class="mr">Tri-agent · Orchestrator</div><div class="mnote">auto-invokes: oc-stack-forge · oc-ux-engineer</div></div>
+      </div>
+      <div class="pane after"><div class="pane-lab">after</div>
+        <div class="mskill" style="--c:var(--warning);width:280px;max-width:100%"><div class="dot"></div><div class="mn">oc-app-architect</div><div class="mr">Tri-agent · Orchestrator</div><div class="mnote">auto-invokes: oc-stack-forge · oc-ux-engineer</div><div class="mnote" style="color:var(--ai)">“AI app?” → claude-api · rag-forge · agent-forge · prompt-ops</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE 5 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">5</div>
+      <div><div class="chg-title">oc-code-auditor — AI-safety note</div><div class="chg-where">Ship band · code-auditor card</div></div></div>
+    <p class="chg-why">Surface the v1.5 prompt-injection / tool-use rules.</p>
+    <div class="ba">
+      <div class="pane before"><div class="pane-lab">before</div>
+        <div class="mskill" style="--c:var(--warning);width:260px;max-width:100%"><div class="dot"></div><div class="mn">oc-code-auditor</div><div class="mr">Tri-agent · gates prod</div><div class="mc">/oc-audit · ≥ 7/10</div></div>
+      </div>
+      <div class="pane after"><div class="pane-lab">after</div>
+        <div class="mskill" style="--c:var(--warning);width:260px;max-width:100%"><div class="dot"></div><div class="mn">oc-code-auditor</div><div class="mr">Tri-agent · gates prod</div><div class="mc">/oc-audit · ≥ 7/10</div><div class="mnote" style="color:var(--ai)">+ prompt-injection · tool-use safety (v1.5)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE 6 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">6</div>
+      <div><div class="chg-title">“NEW · v1.5 · gated” badges</div><div class="chg-where">AI band · 4 cards</div></div></div>
+    <p class="chg-why">Mark the four skills new and flag-gated (<code>skills.registry.&lt;id&gt;.enabled</code>).</p>
+    <div class="ba">
+      <div class="pane after full"><div class="pane-lab">badge treatment</div>
+        <div style="display:flex;gap:9px;flex-wrap:wrap;justify-content:center">
+          <div class="mskill" style="--c:var(--success);width:150px"><div class="mn">oc-claude-api</div><span class="mnew">NEW · v1.5 · gated</span></div>
+          <div class="mskill" style="--c:var(--warning);width:150px"><div class="mn">oc-rag-forge</div><span class="mnew">NEW · v1.5 · gated</span></div>
+          <div class="mskill" style="--c:var(--warning);width:150px"><div class="mn">oc-agent-forge</div><span class="mnew">NEW · v1.5 · gated</span></div>
+          <div class="mskill" style="--c:var(--success);width:150px"><div class="mn">oc-prompt-ops</div><span class="mnew">NEW · v1.5 · gated</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE 7 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">7</div>
+      <div><div class="chg-title">v1.5 release stamp</div><div class="chg-where">ma-header-eyebrow + ma footer</div></div></div>
+    <p class="chg-why">Self-identify the release.</p>
+    <div class="ba">
+      <div class="pane before"><div class="pane-lab">before</div>
+        <p class="mini" style="letter-spacing:.12em;text-transform:uppercase;color:var(--slag)">SKILLS · ARCHITECTURE · v2 · MOBILE</p></div>
+      <div class="pane after"><div class="pane-lab">after</div>
+        <p class="mini" style="letter-spacing:.12em;text-transform:uppercase;color:var(--ember)">SKILLS · ARCHITECTURE · v2 · MOBILE · <span class="stamp">v1.5</span></p></div>
+    </div>
+  </div>
+
+  <!-- CHANGE 8 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">8</div>
+      <div><div class="chg-title">Inconsistency fixes (mobile)</div><div class="chg-where">code comment · appendices · release-ops</div></div></div>
+    <p class="chg-why">Reconcile mobile-specific stray numbers.</p>
+    <div class="ba">
+      <div class="pane before"><div class="pane-lab">before</div>
+        <ul style="list-style:none;font-size:11.5px;color:var(--sand);align-self:flex-start">
+          <li>· file comment: “5-phase / <del>17-skill</del> pipeline”</li>
+          <li>· appendix A: “Every skill (all <del>18</del>)…”</li>
+          <li>· appendix: “All <del>18</del> skills carry CP / ORC”</li>
+          <li>· legend: “read all <del>18</del> checkpoints”</li>
+          <li>· oc-release-ops: <del>“18” circle · “NEW”</del></li>
+        </ul></div>
+      <div class="pane after"><div class="pane-lab">after</div>
+        <ul style="list-style:none;font-size:11.5px;color:var(--sand);align-self:flex-start">
+          <li>· file comment: “<ins>6-phase / 22-skill</ins> pipeline”</li>
+          <li>· appendix A: “Every skill (all <ins>22</ins>)…”</li>
+          <li>· appendix: “All <ins>22</ins> skills carry CP / ORC”</li>
+          <li>· legend: “read all <ins>22</ins> checkpoints”</li>
+          <li>· oc-release-ops: <ins>“release-boundary only”</ins></li>
+        </ul></div>
+    </div>
+  </div>
+
+  <hr class="rule" />
+
+  <!-- ════════ FULL FINAL CUT (PHONE) ════════ -->
+  <div class="sec-head"><h2>Full final cut — mobile</h2><span class="tag">390pt · stacked</span></div>
+  <p class="sec-intro">The complete refreshed mobile diagram. Bands shown expanded; in production each is a collapsible
+     <code>&lt;details&gt;</code>.</p>
+
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="mh-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE · <span class="stamp">v1.5</span></div>
+    <div class="mh-title">opchain skills ecosystem</div>
+    <div class="mh-sub">Checkpoint-driven pipeline · 22 skills · 6 phases · 7 tri-agent · 3 audit gates · spine ordinals</div>
+
+    <!-- foundation -->
+    <div class="mfound"><div class="ft">PROTOCOL</div><div class="fn">oc-checkpoint-protocol</div><div class="fd">JSON · phase · progress · blockers · next_actions</div></div>
+    <div class="mfound"><div class="ft">ORCH</div><div class="fn">oc-orchestrator</div><div class="fd">/oc-ops · routing · status · gate enforcement</div></div>
+
+    <!-- DISCOVER -->
+    <div class="mband">
+      <div class="mb-head"><div class="mb-num" style="--bar:var(--slag)">1</div><div class="mb-title">Discover</div><div class="mb-of">1 of 6</div></div>
+      <div class="mb-body">
+        <div class="mskill" style="--c:var(--success)"><div class="dot"></div><div class="mn">oc-reverse-spec</div><div class="mr">Specialist · Workflow</div><div class="mc">/oc-rev-spec · /oc-rev-full</div><span class="mspine">spine 1 ↓ 2</span></div>
+      </div>
+    </div>
+
+    <!-- PLAN -->
+    <div class="mband">
+      <div class="mb-head"><div class="mb-num" style="--bar:var(--ember)">2</div><div class="mb-title">Plan</div><div class="mb-of">2 of 6</div></div>
+      <div class="mb-body">
+        <div class="mskill" style="--c:var(--advisor)"><div class="dot"></div><div class="mn">oc-scale-ops</div><div class="mr">Advisor</div><div class="mc">/oc-scale · perf · capacity</div></div>
+        <div class="mflow">↓ auto-invoke ↑ advisory</div>
+        <div class="mskill" style="--c:var(--advisor)"><div class="dot"></div><div class="mn">oc-stack-forge</div><div class="mr">Advisor</div><div class="mc">/oc-stack · /oc-stack-decide</div></div>
+        <div class="mflow">↓ auto-invoke ↑ advisory</div>
+        <div class="mskill" style="--c:var(--warning)"><div class="dot"></div><div class="mn">oc-app-architect</div><div class="mr">Tri-agent · Orchestrator · QA ≥ 7/10</div><div class="mc">/oc-app · /oc-discover · /oc-build · /oc-launch</div><div class="mnote">auto-invokes: stack-forge · ux-engineer</div><div class="mnote" style="color:var(--ai)">“AI app?” → claude-api · rag-forge · agent-forge · prompt-ops</div><span class="mspine">spine 2 ↓ 3</span></div>
+        <div class="mskill" style="--c:var(--success)"><div class="dot"></div><div class="mn">oc-migration-ops</div><div class="mr">Specialist</div><div class="mc">/oc-migrate · schema · platform</div></div>
+      </div>
+    </div>
+
+    <!-- PACK FABRIC -->
+    <div class="mpf">
+      <div class="mpf-head"><span class="mpf-star">✦</span><span class="mpf-title">Pack fabric</span><span class="mpf-badge">v1.5 · 36</span></div>
+      <div class="mpf-body">
+        <p style="font-size:9.5px;color:var(--sand);margin-bottom:9px"><code>oc-stack-forge</code> owns the registry; 6 skills consume it.</p>
+        <div class="mpf-cells">
+          <div class="mpf-cell"><div class="mpf-k"><span>LANGUAGES</span><span>13</span></div><div class="mchips"><span class="mchip">go</span><span class="mchip">python</span><span class="mchip">rust</span><span class="mchip">ruby</span><span class="mchip">typescript</span><span class="mchip">+8</span></div></div>
+          <div class="mpf-cell"><div class="mpf-k"><span>FRAMEWORKS</span><span>9</span></div><div class="mchips"><span class="mchip">phoenix</span><span class="mchip">remix</span><span class="mchip">sveltekit</span><span class="mchip">+6</span></div></div>
+          <div class="mpf-cell"><div class="mpf-k"><span>MOBILE</span><span>4</span></div><div class="mchips"><span class="mchip">flutter</span><span class="mchip">ios-swiftui</span><span class="mchip">+2</span></div></div>
+          <div class="mpf-cell"><div class="mpf-k"><span>DEPLOY</span><span>6</span></div><div class="mchips"><span class="mchip">netlify</span><span class="mchip">railway</span><span class="mchip">+4</span></div></div>
+          <div class="mpf-cell vec full"><div class="mpf-k"><span>VECTOR-DB · NEW v1.5</span><span>4</span></div><div class="mchips"><span class="mchip">pgvector</span><span class="mchip">pinecone</span><span class="mchip">supabase-vectors</span><span class="mchip">turbopuffer</span></div></div>
+        </div>
+        <div class="mpf-foot">consumed by stack-forge · app-architect · migration-ops · api-dev · deploy-ops · <span class="added">rag-forge</span></div>
+      </div>
+    </div>
+
+    <!-- AI (NEW) -->
+    <div class="mband ai">
+      <div class="mb-head"><div class="mb-num" style="--bar:var(--ai);--bar-dim:var(--ai-dim)">3</div><div class="mb-title" style="color:var(--ai)">AI</div><div class="mb-of">3 of 6 · NEW</div></div>
+      <div class="mb-body">
+        <div class="mflow ai">↑ “AI app?” branch off oc-app-architect</div>
+        <div class="mskill" style="--c:var(--success)"><div class="dot"></div><div class="mn">oc-claude-api</div><div class="mr">Specialist · Advisor</div><div class="mc">/oc-claude-api</div><div class="mnote">model routing · caching · tool use · migration</div><span class="mnew">NEW · v1.5 · gated</span></div>
+        <div class="mskill" style="--c:var(--warning)"><div class="dot"></div><div class="mn">oc-rag-forge</div><div class="mr">Tri-agent · Designer/Builder/Eval</div><div class="mc">/oc-rag</div><div class="mnote">vector DB · embeddings · hybrid · eval</div><span class="mnew">NEW · v1.5 · gated</span></div>
+        <div class="mskill" style="--c:var(--warning)"><div class="dot"></div><div class="mn">oc-agent-forge</div><div class="mr">Tri-agent · Planner/Builder/Eval</div><div class="mc">/oc-agent</div><div class="mnote">Agent SDK · subagents · tool budgets</div><span class="mnew">NEW · v1.5 · gated</span></div>
+        <div class="mskill" style="--c:var(--success)"><div class="dot"></div><div class="mn">oc-prompt-ops</div><div class="mr">Specialist · prompt-as-code</div><div class="mc">/oc-prompt</div><div class="mnote">versioning · eval sets · regression · drift</div><span class="mnew">NEW · v1.5 · gated</span></div>
+        <div class="mflow ai">↓ checkpoints back to oc-app-architect</div>
+      </div>
+    </div>
+
+    <!-- BUILD -->
+    <div class="mband">
+      <div class="mb-head"><div class="mb-num" style="--bar:var(--warning)">4</div><div class="mb-title">Build</div><div class="mb-of">4 of 6</div></div>
+      <div class="mb-body">
+        <div class="mskill" style="--c:var(--warning)"><div class="dot"></div><div class="mn">oc-ux-engineer</div><div class="mr">Tri-agent · Planner/Generator/Eval</div><div class="mc">/oc-uxe · /oc-design</div><div class="mnote">→ oc-dash-forge</div></div>
+        <div class="mskill" style="--c:var(--success)"><div class="dot"></div><div class="mn">oc-dash-forge</div><div class="mr">Specialist · Tufte-density UI</div><div class="mc">/oc-data-forge · /dashboard</div></div>
+        <div class="mflow">— parallel · API + integrations —</div>
+        <div class="mskill" style="--c:var(--warning)"><div class="dot"></div><div class="mn">oc-api-dev</div><div class="mr">Tri-agent · OpenAPI / GraphQL</div><div class="mc">first-party API surface</div><div class="mnote">→ oc-code-auditor</div></div>
+        <div class="mskill" style="--c:var(--warning)"><div class="dot"></div><div class="mn">oc-integrations-engineer</div><div class="mr">Tri-agent · Planner/Builder/Tester</div><div class="mc">/oc-integrate · OAuth · webhooks</div><div class="mnote">→ oc-code-auditor</div></div>
+        <div class="mflow">↑ all 4 return checkpoints to oc-app-architect</div>
+      </div>
+    </div>
+
+    <!-- SHIP -->
+    <div class="mband">
+      <div class="mb-head"><div class="mb-num" style="--bar:var(--ember)">5</div><div class="mb-title">Ship</div><div class="mb-of">5 of 6</div></div>
+      <div class="mb-body">
+        <div class="mskill" style="--c:var(--auditor)"><div class="dot"></div><div class="mn">oc-bug-check</div><div class="mr">Audit gate · pre-commit</div><div class="mc">type · lint · secrets · vuln</div></div>
+        <div class="mskill" style="--c:var(--success)"><div class="dot"></div><div class="mn">oc-git-ops</div><div class="mr">Specialist · Workflow</div><div class="mc">/oc-git · /oc-commit · /oc-pr · /oc-push</div><span class="mspine">spine 3 ↓ 4</span></div>
+        <div class="mgate">↓ MUST PASS BEFORE PROD</div>
+        <div class="mskill" style="--c:var(--warning)"><div class="dot"></div><div class="mn">oc-code-auditor</div><div class="mr">Tri-agent · gates prod · Auditor/Fixer/Verifier</div><div class="mc">/oc-audit · score ≥ 7/10</div><div class="mnote" style="color:var(--ai)">+ prompt-injection · tool-use safety (v1.5)</div><div class="mnote">→ oc-security-auditor</div></div>
+        <div class="mskill" style="--c:var(--auditor)"><div class="dot"></div><div class="mn">oc-security-auditor</div><div class="mr">Audit gate · posture · 3rd of 3</div><div class="mc">/oc-security · STRIDE · OWASP · TLS · CSP</div></div>
+        <div class="mgate" style="border-style:solid;color:var(--success);border-color:var(--success)">3 GATES PASSED → RELEASE</div>
+        <div class="mskill" style="--c:var(--success)"><div class="dot"></div><div class="mn">oc-release-ops</div><div class="mr">Specialist · Workflow</div><div class="mc">plan → draft → bump → announce → ship</div><div class="mnote">release-boundary only · not a deployer</div><span class="mspine">spine 4 ↓ 5</span></div>
+        <div class="mskill" style="--c:var(--ember)"><div class="dot"></div><div class="mn">oc-deploy-ops</div><div class="mr">Orchestrator · Workflow</div><div class="mc">/oc-deploy · gates → prod → rollback</div><div class="mnote">enforces all 3 audit gates</div><span class="mspine">spine 5 ↓ 6</span></div>
+      </div>
+    </div>
+
+    <!-- MONITOR -->
+    <div class="mband">
+      <div class="mb-head"><div class="mb-num" style="--bar:var(--success)">6</div><div class="mb-title">Monitor</div><div class="mb-of">6 of 6</div></div>
+      <div class="mb-body">
+        <div class="mskill" style="--c:var(--success)"><div class="dot"></div><div class="mn">oc-monitoring-ops</div><div class="mr">Specialist · observability</div><div class="mc">/oc-monitor · uptime · SLO · incidents</div><div class="mnote">+ oc-api-dev SLO / drift manifest</div><span class="mspine">spine 6</span></div>
+      </div>
+    </div>
+
+    <!-- appendix -->
+    <div class="mappendix"><div class="ae">Appendix A · cross-cutting</div><div class="at">Checkpoint protocol — sync topology</div>
+      <p>Every skill (all <b style="color:var(--linen)">22</b>) writes a JSON checkpoint after each state change. The
+         oc-orchestrator reads from and writes to each — bidirectional sync across all 22 skills.</p></div>
+
+    <div class="mfoot">opchain skills ecosystem v2 · 22 skills · 6 phases · 7 tri-agent · 3 audit gates · v1.5 · checkpoint-driven<br/>All 22 skills carry CP + ORC · read all 22 checkpoints (no ACL)</div>
+  </div>
+
+</div>
+</body>
+</html>
