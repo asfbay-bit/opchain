@@ -4,12 +4,12 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-01T16:50:00Z",
-  "updated_at": "2026-06-21T00:00:00Z",
+  "updated_at": "2026-06-22T16:35:00Z",
 
   "phase": "post-release",
-  "step": "v1.4-shipped-v1.4.3-merged-undeployed-v1.5-NOT-built-despite-linear-done",
-  "status": "in_progress",
-  "progress_summary": "v1.4 complete. All 8 PRs in the ADEV-328 → ADEV-337 chain merged (per Linear status=Done): PR 1 #192 (ADEV-328 pack registry architecture), PR 2 #203 (ADEV-329 backfill 5 packs), PR 3 #207 (ADEV-330 dispatcher + api-dev pack-read + kind:mobile), PR 4 (ADEV-334 modern web bulk — elixir/bun/deno + phoenix/remix/sveltekit/solid), PR 5 (ADEV-335 enterprise bulk — java/csharp/kotlin/php + spring/dotnet-aspnet/laravel), PR 6 #218 (ADEV-336 Apple/iOS — swift + swiftui + ios + app-store adapter), PR 6.5 #216 (ADEV-343 mobile bulk — kotlin-android + flutter + react-native-expo + play-store), PR 7 (ADEV-337 hosting adapters — railway/netlify/heroku/aws-amplify), PR 8 (ADEV-331 site surfaces + v1.4 release). Post-v1.4: PRs #213/#221/#223/#225/#231 shipped the navigation overhaul + /changelog roadmap timeline + Linear-connected feature-request form. PR #233 (email-pipeline) and follow-up #239 (Step-5 nested-form fix) shipped. 2026-05-31 PR-review wave cleared 11 PRs in one session: 2 feature (#239 email-pipeline fix, #243 link /coverage into nav), 2 security (#227 DOMPurify XSS-bypass, #209 js-yaml prototype-pollution), 7 dep hygiene (#241 vitest, #211 tailwind, #210 astro, #175 zod, #176 axe-core, #242 playwright, #173 wrangler 4.95 via Dependabot recreate). #208 closed as obsolete (superseded by v1.4 bulk pack PRs — main now has 26 coverage-flags + 13 api-dev-adapters vs. #208's 5/5). PR #232 (compare Option C feature redesign) held for user review — green and ready. Production is now ~12 PRs behind main; the deploy gap surfaced as the next blocker — hand-off to deploy-ops queued, with two security patches making it time-sensitive. 2026-06-21 RECONCILIATION: surfaced a hard PM↔code drift. Linear marked the whole v1.5 tree Done in a single batch at 2026-05-26T01:19:01Z (ADEV-344 parent + ADEV-346/347/349 children; ADEV-348 correctly Duplicate), BUT the four AI-native skills do NOT exist on origin/main or any branch — no skills/claude-api, skills/rag-forge, skills/agent-forge, skills/prompt-ops; no /ai-recipes, /blog, /for-agencies. The repo still carries exactly the 18 v1.4-era oc-* skills. v1.5 is therefore NOT built/merged/shipped — the tickets were closed without the deliverables landing. The ADEV-347/348 duplicate flagged in prior next_actions is already resolved (348 = Duplicate). What is actually in flight is the v1.4.3 Codex/MCP release (changelog Option C v2, deploy-decouple, Codex copy): merged to main (HEAD abfcafb) but UNDEPLOYED. Root cause (oc-bug-check, 2026-06-20): a Cloudflare Managed Challenge intercepts /api/health and POST /mcp before the Worker, so deploys land but the MCP endpoint serves a challenge page and the deploy-lag canary went silently blind. Action this session: reopened ADEV-344 chain, patched deploy-lag.yml to fail loudly on the challenge body, refreshed this + stack-forge checkpoints.",
+  "step": "v1.5.0-shipped-and-live",
+  "status": "complete",
+  "progress_summary": "v1.5.0 'Build the AI app' is SHIPPED and LIVE on opchain.dev (2026-06-22). The session that started 2026-06-21 from a hard PM↔code drift — Linear had batch-closed the v1.5 tree Done on 2026-05-26 while NONE of it existed in code — is fully resolved end to end. Built and merged across 7 PRs, all CI-green: #299 reconciliation + deploy-lag canary hardening; #300 Sprint 1 (four AI-native skill scaffolds + ai-native phase + flag registry); #303 Sprint 2 (oc-claude-api + oc-rag-forge bodies + 4 oc-stack-forge vector-db packs pgvector/pinecone/turbopuffer/supabase-vectors + app-architect AI-app /discover branch); #306 Sprint 3 (oc-agent-forge + oc-prompt-ops bodies + oc-code-auditor AI-safety rule pack/signatures/'Phase: AI app?' sweep + prompts/opchain-eval dogfooding eval set); #309 Sprint 4 (GTM surfaces /ai-recipes, /blog +RSS +2 posts, /for-agencies, footer newsletter→/api/notify, /compare 'Build AI apps' row); #311 Sprint 5 release cut (lockstep all 22 skills→1.5.0, styleguide badge, homepage pill, /changelog v1.5 promoted to Just Released); #316 deferred tail (pipeline-builder AI-app branch + per-skill OG cards). Linear: ADEV-344 + children + ADEV-364 (release) all Done. DEPLOY: the Cloudflare Managed-Challenge that had blocked /api/health + /mcp (and blinded the deploy-lag canary) was cleared by the user; v1.4.3 Codex/MCP + all of v1.5 are now serving in prod. deploy-lag canary patched to fail loudly on the challenge body. No deploy-lag tracking issue outstanding.",
 
   "progress_table": [
     { "id": "intake-1.4",     "label": "Intake: 1.4 scope expansion (5 langs → 11+ langs + iOS)",     "status": "complete" },
@@ -70,11 +70,9 @@
   "blockers": [],
 
   "next_actions": [
-    "UNBLOCK DEPLOY (user-only, Cloudflare dashboard): add a WAF Skip rule (Managed Challenge + Super Bot Fight Mode) for `http.host eq \"opchain.dev\" and (starts_with(http.request.uri.path,\"/api/\") or http.request.uri.path eq \"/mcp\")`, repeat for staging.opchain.dev. Then redeploy v1.4.3 from main (HEAD abfcafb) and verify `curl -sS https://opchain.dev/api/health` returns JSON version + `curl -sS -X POST https://opchain.dev/mcp -d '{...tools/list...}'` returns JSON-RPC. Production is ~12+ PRs behind and two security patches (DOMPurify XSS, js-yaml prototype pollution) make it time-sensitive.",
-    "v1.5 is NOT actually built despite Linear closure — kick off Sprint 1 for real: scaffold skills/{claude-api,rag-forge,agent-forge,prompt-ops} with final frontmatter + stub bodies, flag-registry entries, and Astro content schema per roadmap/08-v15-sprint-plan.md § Sprint 1. ADEV-344 chain reopened 2026-06-21.",
-    "Pre-flight before email-pipeline flag flips on: verify opchain.dev sending domain in Resend dashboard → `wrangler secret put RESEND_API_KEY` on both staging and prod envs.",
-    "User decision on PR #232 (feat(compare): switch to Option C). Branch up-to-date with main, CI green — approve squash-merge or close.",
-    "Schedule code-auditor pre-deploy sweep before v1.5 Sprint 2-3 land — agent-forge + claude-api + rag-forge introduce prompt-injection / tool-use surfaces that code-auditor needs new rules for. Also a hygiene pass on the v1.4 dispatcher refactor (ADEV-330) — entire v1.4 cycle shipped without a sweep."
+    "v1.5 is DONE and live — no v1.5 work remains. Next theme is v1.6 'Cost & telemetry' per roadmap/07-v15-v16-v17-roadmap.md: cost attribution + opt-in telemetry, and the first oc-checkpoint-protocol bump since v1.2 (adds cost, eval_scores, telemetry_handle). No tickets cut yet; create the ADEV v1.6 parent + sprint children when kicking off.",
+    "Housekeeping: the other skill checkpoints were refreshed in this same reconciliation (app-architect, stack-forge, code-auditor, git-ops, ux-engineer) to read 'v1.5 shipped'. oc-code-auditor should run a real post-release sweep at some point — the v1.4 dispatcher refactor (ADEV-330) and the v1.5 cycle shipped without a full code-auditor pass (only the AI-safety rule pack was added, not run).",
+    "Optional: verify opchain.dev sending domain in Resend + `wrangler secret put RESEND_API_KEY` before flipping the email-pipeline flag on (still gated off)."
   ],
 
   "skill_state": {
@@ -167,6 +165,13 @@
         "Refreshed this checkpoint + stack-forge.checkpoint.json (was 40d stale on a v1.4 PR-5 in-flight state that long since merged)."
       ],
       "stale_when_found": "orchestrator 21d (this file), stack-forge 40d, app-architect 37d"
+    },
+    "reconciliation_2026_06_22": {
+      "trigger": "User confirmed v1.5.0 deployed + live; ran a post-release checkpoint reconciliation so /oc-ops reads true.",
+      "outcome": "v1.5.0 SHIPPED + LIVE. All 7 PRs (#299/#300/#303/#306/#309/#311/#316) merged; ADEV-344 chain + ADEV-364 release ticket all Done; Cloudflare WAF challenge cleared by user; v1.4.3 + v1.5 serving in prod.",
+      "checkpoints_refreshed": ["oc-orchestrator (this file)", "oc-app-architect", "oc-stack-forge", "oc-code-auditor", "oc-git-ops", "oc-ux-engineer"],
+      "stale_when_found": "app-architect 38d (v1.4-shipped-v1.5-planning), code-auditor 38d (v1.3-sweep), git-ops 3d (last-merge-#263), ux-engineer 2d (round-6 PR-open), stack-forge 1d (v1.5-not-started), orchestrator 1d (v1.5-NOT-built-undeployed)",
+      "next_theme": "v1.6 'Cost & telemetry' (roadmap/07) — no tickets cut yet"
     }
   }
 }
