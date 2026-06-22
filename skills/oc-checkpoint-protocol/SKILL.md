@@ -288,6 +288,19 @@ append-only telemetry from growing without bound:
   `.checkpoints/history/<skill>.<date>.json` instead of letting `skill_state` grow.
   The validator **warns** once a file passes ~32KB.
 
+> **Anti-pattern (worked example): don't auto-stamp `merged_prs` per merge.**
+> opchain.dev once ran a `.github/workflows/checkpoint-after-merge.yml` that, on
+> every merge to `main`, appended the merged PR to `skill_state.merged_prs` and
+> opened a `bot/checkpoint-stamp-<PR>` PR. It was **removed 2026-06-22** after two
+> compounding failures: (1) under branch protection the bot's `gh pr merge --auto`
+> could never satisfy required review, so each merge left a **permanent open PR**
+> (two dozen piled up); and (2) every stamp PR appended to the *same* array, so they
+> **mutually conflicted** — merging one staled the rest, and GitHub's server-side
+> resolution bypasses the merge driver (see *Tooling*). `merged_prs` is fully
+> reconstructable from `git log`; it is not worth a CI-gated PR per merge. Restamp
+> oc-git-ops at inflection points by hand (the assistant does this — e.g. a single
+> reconciliation PR), and rotate the array into `.checkpoints/history/`.
+
 ---
 
 ## Cross-Skill Reads
@@ -397,8 +410,12 @@ reference implementation — copying from there is faster than re-typing):
 4. CI step — call `npm run checkpoint:validate` from your CI pipeline.
 5. `.gitattributes` — register the `merge=opchain-checkpoint` driver (see the
    merge-driver caveat under *Tooling*) plus `scripts/merge-checkpoint.mjs`.
-6. `.github/workflows/checkpoint-after-merge.yml` (optional but recommended) —
-   auto-stamps the oc-git-ops checkpoint on every merge to `main`.
+6. **Do _not_ wire a per-merge auto-stamp workflow.** Earlier guidance here
+   recommended a `.github/workflows/checkpoint-after-merge.yml` that opened a stamp
+   PR on every merge to `main`. opchain.dev shipped it and **removed it 2026-06-22**
+   because it was net-negative under branch protection — see *Anti-pattern: don't
+   auto-stamp `merged_prs` per merge* under *Write Protocol → Checkpoint Size*. Let
+   the assistant restamp oc-git-ops at inflection points instead.
 
 **Do not** add `.checkpoints/` to `.gitignore`. Tracking the directory in git is
 what makes checkpoints survive across sessions and machines — including ephemeral

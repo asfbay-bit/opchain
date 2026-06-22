@@ -370,30 +370,28 @@ project-specific, oc-git-ops defaults are generic.
 | PR created | PR URL, PR number |
 | **PR merged** | Append `{ number, title, merge_method, merge_sha, merged_at }` to `skill_state.merged_prs`. Re-stamp `updated_at`. |
 
-### Post-Merge Auto-Update
+### Post-Merge Update
 
-Don't write this by hand on every merge — wire it up once and forget.
-The reference implementation lives at
-`.github/workflows/checkpoint-after-merge.yml` in the opchain.dev repo.
-On `pull_request: closed` with `merged == true`, it runs:
+Restamp `merged_prs` at sensible inflection points — after a review wave, when a
+release ships, or when a session ends — not once per merge. The single update is:
 
 ```bash
 node scripts/checkpoint.mjs update oc-git-ops \
   "--skill_state.merged_prs+:json={...}" \
   "--step=last-merge-#${PR_NUM}" \
-  "--status=in_progress"
-
-git add .checkpoints/oc-git-ops.checkpoint.json
-git commit -m "chore(checkpoint): stamp oc-git-ops after #N merge [skip ci]"
-git push origin main
+  "--status=complete"
 ```
 
-When scaffolding a new project that uses oc-git-ops, drop that workflow
-file. It needs `permissions: contents: write` and the
-`[skip ci]` trailer so it doesn't loop. Other skills' checkpoints
-(oc-orchestrator, oc-app-architect, oc-ux-engineer, etc.) stay assistant-driven
-because their content is contextual — only `oc-git-ops` has a fully
-deterministic post-merge update worth automating.
+> **Do not automate this per-merge.** opchain.dev once ran a
+> `.github/workflows/checkpoint-after-merge.yml` that opened a
+> `bot/checkpoint-stamp-<PR>` PR on every merge to `main`. It was removed
+> 2026-06-22: under branch protection the bot's auto-merge could never satisfy
+> required review, so each merge left a permanent open PR, and because every PR
+> appended to the same `merged_prs` array they mutually conflicted. The data is
+> reconstructable from `git log`, so a CI-gated PR per merge is pure cost. See
+> *Anti-pattern: don't auto-stamp `merged_prs` per merge* in the checkpoint
+> protocol. Other skills' checkpoints (oc-orchestrator, oc-app-architect,
+> oc-ux-engineer, etc.) stay assistant-driven because their content is contextual.
 
 ### context_primer Template
 

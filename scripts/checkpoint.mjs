@@ -30,8 +30,8 @@
  *   - `doctor` exists because checkpoints drift from reality (shipped-but-says-
  *     pending, stale next_actions, wrong project_dir). It catches that drift
  *     deterministically instead of waiting for a human to notice.
- *   - `update` preserves its exact CLI contract — checkpoint-after-merge.yml and
- *     several skills shell out to `update <skill> --field=value`.
+ *   - `update` preserves its exact CLI contract — several skills shell out to
+ *     `update <skill> --field=value`.
  *
  * Schema version vs skill release version:
  *   `protocol_version` is the ON-DISK schema version. It is "1.0" and changes
