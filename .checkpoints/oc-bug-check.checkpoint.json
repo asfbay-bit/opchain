@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-06-05T22:01:00Z",
-  "updated_at": "2026-06-22T00:07:39.302Z",
+  "updated_at": "2026-06-22T01:12:16Z",
   "phase": "gate",
   "step": "gate-fix-lhci-seo-robots-agentmap",
   "status": "complete",
@@ -18,7 +18,7 @@
   ],
   "skill_state": {
     "last_run": {
-      "at": "2026-06-22T00:07:39Z",
+      "at": "2026-06-22T01:12:16Z",
       "verdict": "PASS",
       "scope": "changed",
       "checks": {
@@ -30,11 +30,16 @@
         "build": "N/A",
         "dependencies": "N/A"
       },
-      "note": "changed set = 2 static HTML preview files under design-previews/; toolchain checks not applicable (no app source) and not runnable (deps absent).",
+      "note": "Merge of origin/main into the mockups branch. Authored changes are 2 inert HTML mockups under design-previews/ (secrets and anti-patterns PASS); the merge also brings in already-CI-green source from main, no new app code authored here.",
       "warnings": 0,
       "errors": 0
     },
     "run_history": [
+      {
+        "at": "2026-06-22T00:07:39Z",
+        "verdict": "PASS",
+        "warnings": 0
+      },
       {
         "at": "2026-06-20T01:39:38Z",
         "verdict": "PASS",
@@ -79,7 +84,7 @@
     "bypasses": [],
     "carried_debt": 0,
     "streak": {
-      "passes": 13,
+      "passes": 14,
       "since": "2026-06-05T22:01:00Z"
     }
   }

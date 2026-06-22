@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Architecture refresh · DESKTOP · v1.4.3 + v1.5 · mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --obsidian:#1c1710; --forge:#2a2218; --slag:#5a5040; --sand:#c4b89e;
+    --linen:#e8dfd0; --parchment:#f6f0e8;
+    --ember:#e05c18; --char:#b84510; --ember-dim:rgba(224,92,24,.10);
+    --success:#0D9488; --warning:#f59e0b; --error:#ef4444; --advisor:#0EA5E9; --auditor:#F43F5E;
+    --ai:#a78bfa; --ai-dim:rgba(167,139,250,.12);   /* NEW: v1.5 AI-phase accent */
+    --bg:#100c09; --panel:#16110d; --border:rgba(196,184,158,.16);
+    --mono:'JetBrains Mono',ui-monospace,monospace; --disp:'Outfit',system-ui,sans-serif;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--linen);font-family:var(--mono);line-height:1.45;
+       padding:40px 28px 100px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  /* ── proposal chrome ── */
+  .doc-eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ember);
+       display:flex;align-items:center;gap:.5em;}
+  .doc-eyebrow::before{content:'—';color:var(--ember);font-size:18px;}
+  h1.doc{font-family:var(--disp);font-size:30px;font-weight:700;letter-spacing:-.02em;margin:.35em 0 .2em;color:var(--parchment);}
+  .doc-sub{color:var(--sand);font-size:13.5px;max-width:80ch;}
+  .decisions{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px;}
+  .dchip{font-size:11px;background:var(--panel);border:.5px solid var(--border);border-radius:999px;
+       padding:5px 11px;color:var(--linen);}
+  .dchip b{color:var(--ai);font-weight:700;}
+  .legend-note{font-size:11.5px;color:var(--slag);margin-top:8px;}
+
+  .metrics{width:100%;border-collapse:collapse;margin:22px 0 8px;font-size:12.5px;}
+  .metrics th,.metrics td{border:.5px solid var(--border);padding:8px 12px;text-align:left;}
+  .metrics th{background:var(--panel);color:var(--sand);font-weight:500;letter-spacing:.04em;text-transform:uppercase;font-size:10.5px;}
+  .metrics .was{color:var(--slag);text-decoration:line-through;}
+  .metrics .now{color:var(--success);font-weight:700;}
+  .metrics .now.ai{color:var(--ai);}
+
+  .rule{height:.5px;background:var(--border);margin:46px 0 30px;border:0;}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;}
+  .sec-head h2{font-family:var(--disp);font-size:21px;font-weight:600;color:var(--parchment);letter-spacing:-.01em;}
+  .sec-head .tag{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--slag);}
+  .sec-intro{color:var(--sand);font-size:12.5px;margin-bottom:22px;max-width:84ch;}
+
+  /* ── change blocks ── */
+  .chg{border:.5px solid var(--border);border-radius:10px;background:var(--panel);
+       padding:18px 20px 20px;margin:16px 0;}
+  .chg-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:6px;}
+  .chg-num{flex:none;width:30px;height:30px;border-radius:8px;background:var(--ai-dim);
+       border:1px solid var(--ai);color:var(--ai);font-weight:700;font-size:14px;
+       display:flex;align-items:center;justify-content:center;}
+  .chg-title{font-family:var(--disp);font-size:16px;font-weight:600;color:var(--parchment);}
+  .chg-where{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--slag);margin-top:3px;}
+  .chg-why{color:var(--sand);font-size:12.5px;margin:8px 0 16px;max-width:90ch;}
+  .chg-why b{color:var(--linen);}
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:780px){.ba{grid-template-columns:1fr;}}
+  .pane{border:.5px solid var(--border);border-radius:8px;padding:14px;background:var(--obsidian);}
+  .pane.full{grid-column:1/-1;}
+  .pane-lab{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:11px;display:flex;align-items:center;gap:6px;}
+  .pane.before .pane-lab{color:var(--slag);}
+  .pane.after .pane-lab{color:var(--success);}
+  .pane.before .pane-lab::before{content:'●';color:var(--slag);font-size:7px;}
+  .pane.after .pane-lab::before{content:'●';color:var(--success);font-size:7px;}
+  .pane.before{opacity:.92;}
+
+  /* ── skill cards (HTML rendition of the SVG cards) ── */
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:stretch;}
+  .skill{position:relative;background:var(--obsidian);border:1px solid var(--c,var(--success));
+       border-radius:6px;padding:15px 13px 12px;min-width:158px;flex:1 1 158px;
+       box-shadow:0 0 0 .5px color-mix(in srgb,var(--c,var(--success)) 22%,transparent),
+                  0 0 16px -6px var(--c,var(--success));}
+  .skill.lg{flex:2 1 260px;min-width:240px;}
+  .skill .nm{font-family:var(--disp);font-weight:600;color:var(--linen);font-size:13px;}
+  .skill .rl{color:var(--sand);font-size:10.5px;margin-top:3px;}
+  .skill .cm{color:var(--c,var(--success));font-size:10.5px;margin-top:5px;word-break:break-word;}
+  .skill .note{color:var(--slag);font-size:9.5px;font-style:italic;margin-top:5px;}
+  .badges{position:absolute;top:-9px;right:11px;display:flex;gap:4px;}
+  .b{font-family:var(--mono);font-size:8px;font-weight:700;color:var(--ember);background:var(--obsidian);
+     border:.5px solid rgba(224,92,24,.6);border-radius:3px;padding:1px 4px;box-shadow:0 0 6px rgba(224,92,24,.35);}
+  .spine{position:absolute;top:-9px;left:11px;font-family:var(--mono);font-size:9px;font-weight:700;
+     color:var(--success);background:var(--obsidian);border:.8px solid var(--success);border-radius:3px;
+     padding:1px 6px;box-shadow:0 0 6px rgba(13,148,136,.4);}
+  .branch{display:inline-block;margin-top:7px;font-size:8.5px;color:var(--success);
+     background:rgba(13,148,136,.12);border:.5px solid rgba(13,148,136,.5);border-radius:3px;padding:1px 6px;}
+  .new{position:absolute;bottom:-9px;left:11px;font-size:8px;font-weight:700;letter-spacing:.05em;
+     color:var(--ai);background:var(--obsidian);border:.6px solid var(--ai);border-radius:3px;
+     padding:1px 6px;box-shadow:0 0 7px rgba(167,139,250,.4);}
+
+  /* ── phase band ── */
+  .band{display:grid;grid-template-columns:138px 1fr;gap:18px;align-items:start;
+       border:.5px solid var(--border);border-radius:10px;padding:16px;margin:12px 0;background:rgba(255,255,255,.012);}
+  .band-label{position:relative;padding-left:14px;}
+  .band-label::before{content:'';position:absolute;left:0;top:2px;bottom:2px;width:4px;border-radius:2px;background:var(--bar,var(--slag));}
+  .band-label .pn{font-family:var(--disp);font-weight:700;font-size:15px;color:var(--linen);text-transform:uppercase;letter-spacing:.04em;}
+  .band-label .po{font-size:10px;color:var(--slag);margin-top:3px;}
+  .band.ai{background:var(--ai-dim);border-color:color-mix(in srgb,var(--ai) 40%,var(--border));}
+
+  /* ── foundation ── */
+  .foundation{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;}
+  .fpill{background:var(--obsidian);border:.5px solid rgba(224,92,24,.5);border-radius:8px;padding:13px 15px;
+       box-shadow:0 0 16px -7px var(--ember);}
+  .fpill .ft{font-size:9px;letter-spacing:.14em;color:var(--ember);font-weight:700;}
+  .fpill .fn{font-family:var(--disp);font-weight:600;color:var(--linen);font-size:14px;margin:3px 0;}
+  .fpill .fd{font-size:10.5px;color:var(--sand);}
+
+  /* ── pack fabric ── */
+  .pf{border:.5px solid color-mix(in srgb,var(--ember) 30%,var(--border));border-radius:10px;padding:16px;margin:12px 0;
+      background:rgba(224,92,24,.03);}
+  .pf-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:13px;}
+  .pf-eyebrow{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ember);}
+  .pf-title{font-family:var(--disp);font-weight:600;font-size:14px;color:var(--linen);margin:3px 0;}
+  .pf-sub{font-size:10.5px;color:var(--sand);max-width:78ch;}
+  .pf-sub code{color:var(--parchment);background:var(--obsidian);border:.5px solid var(--border);border-radius:3px;padding:0 4px;}
+  .pf-badge{font-size:10.5px;color:var(--ember);background:var(--ember-dim);border:.5px solid var(--ember);
+       border-radius:999px;padding:4px 11px;white-space:nowrap;}
+  .pf-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+  @media (max-width:900px){.pf-grid{grid-template-columns:repeat(2,1fr);}}
+  .pf-cell{background:var(--obsidian);border:.5px solid var(--border);border-radius:7px;padding:10px;}
+  .pf-cell.vec{border-color:var(--ai);box-shadow:0 0 14px -6px var(--ai);}
+  .pf-ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .pf-kind{font-size:9px;letter-spacing:.1em;color:var(--sand);font-weight:700;}
+  .pf-cell.vec .pf-kind{color:var(--ai);}
+  .pf-count{font-size:13px;font-weight:700;color:var(--linen);}
+  .pf-chips{display:flex;flex-wrap:wrap;gap:4px;}
+  .chip{font-size:8.5px;color:var(--sand);background:rgba(196,184,158,.06);border:.5px solid var(--border);
+       border-radius:3px;padding:1px 5px;}
+  .pf-cell.vec .chip{color:var(--ai);border-color:color-mix(in srgb,var(--ai) 45%,transparent);background:var(--ai-dim);}
+  .pf-foot{margin-top:11px;font-size:10px;color:var(--sand);}
+  .pf-foot b{color:var(--linen);}
+  .pf-foot .added{color:var(--ai);font-weight:700;}
+
+  /* ── arrows / flow text ── */
+  .flow{text-align:center;color:var(--success);font-size:11px;margin:4px 0;letter-spacing:.04em;}
+  .flow.ai{color:var(--ai);}
+  .gateflow{text-align:center;color:var(--auditor);font-size:10px;letter-spacing:.1em;margin:8px 0;font-weight:700;}
+
+  /* ── legend / cards ── */
+  .legend{display:flex;flex-wrap:wrap;gap:10px 22px;border:.5px solid var(--border);border-radius:10px;
+       padding:16px;margin:14px 0;background:var(--panel);}
+  .li{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--linen);}
+  .sw{width:22px;height:13px;border-radius:3px;}
+  .summary-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:14px 0;}
+  .scard{border:.5px solid var(--border);border-radius:9px;padding:14px;background:var(--panel);}
+  .scard h3{font-family:var(--disp);font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px;color:var(--parchment);}
+  .scard .dot{width:8px;height:8px;border-radius:50%;}
+  .scard li{list-style:none;font-size:11px;color:var(--sand);margin-bottom:4px;}
+  .scard li b{color:var(--linen);}
+
+  .footer{margin-top:20px;font-size:10.5px;color:var(--slag);letter-spacing:.04em;text-align:center;}
+  .stamp{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--ai);
+       border:.6px solid var(--ai);border-radius:3px;padding:1px 6px;}
+  del{color:var(--slag);}
+  ins{color:var(--success);text-decoration:none;font-weight:600;}
+  ins.ai{color:var(--ai);}
+  .mini{font-size:11.5px;color:var(--sand);}
+  .mini code{color:var(--parchment);background:var(--obsidian);border:.5px solid var(--border);border-radius:3px;padding:0 4px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ════════ PROPOSAL HEADER ════════ -->
+  <div class="doc-eyebrow">opchain · architecture diagram · DESKTOP refresh</div>
+  <h1 class="doc">Architecture refresh — after v1.4.3 &amp; v1.5</h1>
+  <p class="doc-sub">A comprehensive refresh of the <code>/architecture</code> desktop diagram. The live diagram is frozen at the
+     v1.4.x / 18-skill picture; this proposal brings it current with the four v1.5 AI skills, the new vector-db pack
+     category, and the updated headline metrics. Each change is previewed before/after with rationale, and the full
+     final cut sits at the bottom of this page.</p>
+
+  <div class="decisions">
+    <span class="dchip">AI skills → <b>new dedicated phase</b></span>
+    <span class="dchip">MCP / Codex → out of scope here</span>
+    <span class="dchip">Vector-DB → 5th Pack-Fabric cell</span>
+    <span class="dchip">Desktop + mobile in lockstep</span>
+    <span class="dchip">v1.5 release stamp</span>
+    <span class="dchip">NEW · flag-gated badges</span>
+    <span class="dchip">Fix pre-existing inconsistencies</span>
+  </div>
+
+  <table class="metrics">
+    <thead><tr><th>Headline metric</th><th>Was (live)</th><th>Now (refresh)</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Skills</td><td class="was">18</td><td class="now">22</td><td>4 new v1.5 AI skills on disk at <code>1.5.0</code></td></tr>
+      <tr><td>Phases</td><td class="was">5</td><td class="now ai">6</td><td>New AI phase between Plan and Build</td></tr>
+      <tr><td>Tri-agent</td><td class="was">5</td><td class="now">7</td><td>+ oc-rag-forge, oc-agent-forge</td></tr>
+      <tr><td>Audit gates</td><td class="was">3</td><td class="now">3</td><td>unchanged</td></tr>
+      <tr><td>Spine ordinals</td><td class="was">5 (mislabelled)</td><td class="now">6</td><td>6 skills carry chips 1–6; legend said 5</td></tr>
+      <tr><td>Pack fabric</td><td class="was">v1.4 · 4 cells (32 shown / 36 badge)</td><td class="now ai">v1.5 · 5 cells (36)</td><td>vector-db category was invisible</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="rule" />
+
+  <!-- ════════ NUMBERED CHANGES ════════ -->
+  <div class="sec-head"><h2>Numbered changes</h2><span class="tag">8 · each with rationale</span></div>
+  <p class="sec-intro">Previews render the actual proposed fragment. <span style="color:var(--ai)">Violet</span> marks the
+     v1.5 AI additions; <span style="color:var(--success)">teal</span> marks corrected values.</p>
+
+  <!-- CHANGE 1 -->
+  <div class="chg">
+    <div class="chg-head">
+      <div class="chg-num">1</div>
+      <div><div class="chg-title">New “AI” phase — Phase 3 of 6</div>
+        <div class="chg-where">new band · inserted between Plan and Build</div></div>
+    </div>
+    <p class="chg-why">v1.5 (“Build the AI app”) shipped four AI-native skills that own model routing, retrieval, agents,
+       and prompts. They declare <code>phases:&nbsp;[build,&nbsp;ai-native]</code> in their own frontmatter, so they earn a
+       dedicated phase rather than being crammed into Build. They are <b>auto-invoked branches off oc-app-architect’s
+       “AI app?” decision in <code>/oc-discover</code></b> — the same branch pattern Build skills already use — so they
+       return checkpoints to oc-app-architect and do <b>not</b> take primary-spine ordinals.</p>
+    <div class="ba">
+      <div class="pane before"><div class="pane-lab">before — no AI representation</div>
+        <p class="mini">None of <code>oc-claude-api</code>, <code>oc-rag-forge</code>, <code>oc-agent-forge</code>,
+           <code>oc-prompt-ops</code> appear anywhere in the diagram.</p>
+      </div>
+      <div class="pane after"><div class="pane-lab">after — new AI band</div>
+        <div class="band ai" style="grid-template-columns:120px 1fr;">
+          <div class="band-label" style="--bar:var(--ai)"><div class="pn" style="color:var(--ai)">AI</div><div class="po">Phase 3 of 6</div></div>
+          <div>
+            <div class="flow ai">↑ branches off oc-app-architect · “AI app?” in /oc-discover</div>
+            <div class="row">
+              <div class="skill" style="--c:var(--success)">
+                <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+                <div class="nm">oc-claude-api</div><div class="rl">Specialist · Advisor</div>
+                <div class="cm">/oc-claude-api</div><div class="note">model routing · caching · tool use · migration</div>
+                <span class="new">NEW · v1.5 · gated</span></div>
+              <div class="skill" style="--c:var(--warning)">
+                <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+                <div class="nm">oc-rag-forge</div><div class="rl">Tri-agent · Designer/Builder/Eval</div>
+                <div class="cm">/oc-rag</div><div class="note">vector DB · embeddings · hybrid search</div>
+                <span class="new">NEW · v1.5 · gated</span></div>
+              <div class="skill" style="--c:var(--warning)">
+                <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+                <div class="nm">oc-agent-forge</div><div class="rl">Tri-agent · Planner/Builder/Eval</div>
+                <div class="cm">/oc-agent</div><div class="note">subagent topology · tool budgets · loops</div>
+                <span class="new">NEW · v1.5 · gated</span></div>
+              <div class="skill" style="--c:var(--success)">
+                <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+                <div class="nm">oc-prompt-ops</div><div class="rl">Specialist · prompt-as-code</div>
+                <div class="cm">/oc-prompt</div><div class="note">versioning · eval sets · regression</div>
+                <span class="new">NEW · v1.5 · gated</span></div>
+            </div>
+            <div class="flow ai">↓ feed checkpoints back to oc-app-architect → Build (Phase 4)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE 2 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">2</div>
+      <div><div class="chg-title">Headline metrics in the subtitle</div>
+        <div class="chg-where">header subtitle · line ~105</div></div></div>
+    <p class="chg-why">Reconcile the one-line summary with reality: <b>22 skills</b>, <b>6 phases</b>, <b>7 tri-agent</b>,
+       and a <b>v1.5</b> pack fabric.</p>
+    <div class="ba">
+      <div class="pane before"><div class="pane-lab">before</div>
+        <p class="mini">Checkpoint-driven pipeline · <del>18 skills</del> · <del>5 phases</del> · <del>5 tri-agent</del> · 3 audit gates · spine ordinals · <del>v1.4 pack fabric (36)</del></p>
+      </div>
+      <div class="pane after"><div class="pane-lab">after</div>
+        <p class="mini">Checkpoint-driven pipeline · <ins>22 skills</ins> · <ins>6 phases</ins> · <ins>7 tri-agent</ins> · 3 audit gates · spine ordinals · <ins class="ai">v1.5 pack fabric (36)</ins></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE 3 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">3</div>
+      <div><div class="chg-title">Pack Fabric — add 5th VECTOR-DB cell</div>
+        <div class="chg-where">pack-fabric band · cells + badge + consumers</div></div></div>
+    <p class="chg-why">v1.5 added a <code>vector-db</code> pack kind (4 packs) that the components don’t render — so the live
+       badge prints <b>36</b> while only <b>32</b> chips show. Adding the cell makes the count honest, relabels the band
+       <b>v1.4 → v1.5</b>, and adds <b>oc-rag-forge</b> to the consumers list.</p>
+    <div class="ba">
+      <div class="pane before"><div class="pane-lab">before — 4 cells, 36-vs-32 mismatch</div>
+        <div class="pf" style="margin:0;background:transparent;border-color:var(--border);">
+          <div class="pf-head"><div><div class="pf-eyebrow" style="color:var(--slag)">v1.4 · oc-stack-forge owns</div></div>
+            <span class="pf-badge" style="color:var(--slag);border-color:var(--slag);background:transparent">v1.4 · 36 packs</span></div>
+          <div class="pf-grid" style="grid-template-columns:repeat(4,1fr)">
+            <div class="pf-cell"><div class="pf-ch"><span class="pf-kind">LANGUAGES</span><span class="pf-count">13</span></div></div>
+            <div class="pf-cell"><div class="pf-ch"><span class="pf-kind">FRAMEWORKS</span><span class="pf-count">9</span></div></div>
+            <div class="pf-cell"><div class="pf-ch"><span class="pf-kind">MOBILE</span><span class="pf-count">4</span></div></div>
+            <div class="pf-cell"><div class="pf-ch"><span class="pf-kind">DEPLOY</span><span class="pf-count">6</span></div></div>
+          </div>
+          <div class="pf-foot">Σ shown = 32 · badge = 36 — <span style="color:var(--auditor)">vector-db packs invisible</span></div>
+        </div>
+      </div>
+      <div class="pane after"><div class="pane-lab">after — 5 cells, honest 36</div>
+        <div class="pf" style="margin:0;">
+          <div class="pf-head"><div><div class="pf-eyebrow">v1.5 · oc-stack-forge owns</div></div>
+            <span class="pf-badge">v1.5 · 36 packs</span></div>
+          <div class="pf-grid">
+            <div class="pf-cell"><div class="pf-ch"><span class="pf-kind">LANGUAGES</span><span class="pf-count">13</span></div></div>
+            <div class="pf-cell"><div class="pf-ch"><span class="pf-kind">FRAMEWORKS</span><span class="pf-count">9</span></div></div>
+            <div class="pf-cell"><div class="pf-ch"><span class="pf-kind">MOBILE</span><span class="pf-count">4</span></div></div>
+            <div class="pf-cell"><div class="pf-ch"><span class="pf-kind">DEPLOY</span><span class="pf-count">6</span></div></div>
+            <div class="pf-cell vec"><div class="pf-ch"><span class="pf-kind">VECTOR-DB</span><span class="pf-count">4</span></div>
+              <div class="pf-chips"><span class="chip">pgvector</span><span class="chip">pinecone</span><span class="chip">supabase-vectors</span><span class="chip">turbopuffer</span></div></div>
+          </div>
+          <div class="pf-foot">consumed by <b>oc-stack-forge</b> · <b>oc-app-architect</b> · <b>oc-migration-ops</b> · <b>oc-api-dev</b> · <b>oc-deploy-ops</b> · <span class="added">oc-rag-forge</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE 4 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">4</div>
+      <div><div class="chg-title">oc-app-architect — “AI app?” branch + auto-invoke list</div>
+        <div class="chg-where">Plan band · oc-app-architect card</div></div></div>
+    <p class="chg-why">v1.5 gave <code>/oc-discover</code> an “AI app?” branch that routes to the four AI skills.
+       The orchestrator card’s auto-invoke line should name them.</p>
+    <div class="ba">
+      <div class="pane before"><div class="pane-lab">before</div>
+        <div class="skill lg" style="--c:var(--warning);max-width:420px">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <span class="spine">↑1·2·↓3</span>
+          <div class="nm">oc-app-architect</div><div class="rl">Tri-agent · Orchestrator · QA ≥ 7/10</div>
+          <div class="cm">/oc-app · /oc-discover · /oc-spec · /oc-design · /oc-build · /oc-launch</div>
+          <div class="note">auto-invokes: oc-stack-forge · oc-ux-engineer · oc-api-dev · oc-dash-forge</div>
+        </div>
+      </div>
+      <div class="pane after"><div class="pane-lab">after</div>
+        <div class="skill lg" style="--c:var(--warning);max-width:420px">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <span class="spine">↑1·2·↓3</span>
+          <div class="nm">oc-app-architect</div><div class="rl">Tri-agent · Orchestrator · QA ≥ 7/10</div>
+          <div class="cm">/oc-app · /oc-discover · /oc-spec · /oc-design · /oc-build · /oc-launch</div>
+          <div class="note">auto-invokes: oc-stack-forge · oc-ux-engineer · oc-api-dev · oc-dash-forge</div>
+          <div class="note" style="color:var(--ai)">“AI app?” → oc-claude-api · oc-rag-forge · oc-agent-forge · oc-prompt-ops</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE 5 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">5</div>
+      <div><div class="chg-title">oc-code-auditor — prompt-injection / tool-use rules</div>
+        <div class="chg-where">Ship band · oc-code-auditor card</div></div></div>
+    <p class="chg-why">v1.5 taught the code auditor prompt-injection and tool-use safety rules. A one-line note keeps the
+       gate honest about its new AI-safety coverage.</p>
+    <div class="ba">
+      <div class="pane before"><div class="pane-lab">before</div>
+        <div class="skill" style="--c:var(--warning);max-width:280px">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <div class="nm">oc-code-auditor</div><div class="rl">Tri-agent · gates prod</div>
+          <div class="cm">/oc-audit · score ≥ 7/10</div>
+          <span class="branch">→ oc-security-auditor</span>
+        </div>
+      </div>
+      <div class="pane after"><div class="pane-lab">after</div>
+        <div class="skill" style="--c:var(--warning);max-width:280px">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <div class="nm">oc-code-auditor</div><div class="rl">Tri-agent · gates prod</div>
+          <div class="cm">/oc-audit · score ≥ 7/10</div>
+          <div class="note" style="color:var(--ai)">+ prompt-injection · tool-use safety (v1.5)</div>
+          <span class="branch">→ oc-security-auditor</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE 6 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">6</div>
+      <div><div class="chg-title">“NEW · v1.5 · gated” badges on the four AI skills</div>
+        <div class="chg-where">AI band · all four cards</div></div></div>
+    <p class="chg-why">The four skills ship gated behind <code>skills.registry.&lt;id&gt;.enabled</code> flags. A violet
+       badge marks them as new <i>and</i> signals the flag-gated rollout, so the diagram doesn’t over-promise
+       always-on availability.</p>
+    <div class="ba">
+      <div class="pane after full"><div class="pane-lab">badge treatment</div>
+        <div class="row">
+          <div class="skill" style="--c:var(--success);max-width:200px"><div class="nm">oc-claude-api</div><div class="rl">Specialist</div><span class="new">NEW · v1.5 · gated</span></div>
+          <div class="skill" style="--c:var(--warning);max-width:200px"><div class="nm">oc-rag-forge</div><div class="rl">Tri-agent</div><span class="new">NEW · v1.5 · gated</span></div>
+          <div class="skill" style="--c:var(--warning);max-width:200px"><div class="nm">oc-agent-forge</div><div class="rl">Tri-agent</div><span class="new">NEW · v1.5 · gated</span></div>
+          <div class="skill" style="--c:var(--success);max-width:200px"><div class="nm">oc-prompt-ops</div><div class="rl">Specialist</div><span class="new">NEW · v1.5 · gated</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE 7 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">7</div>
+      <div><div class="chg-title">v1.5 release stamp — eyebrow &amp; footer</div>
+        <div class="chg-where">header eyebrow + page footer</div></div></div>
+    <p class="chg-why">The diagram should self-identify its release so a stale copy is obvious at a glance.</p>
+    <div class="ba">
+      <div class="pane before"><div class="pane-lab">before</div>
+        <p class="mini" style="letter-spacing:.14em;text-transform:uppercase;color:var(--slag)">SKILLS · ARCHITECTURE · v2</p>
+        <p class="mini" style="margin-top:8px">…opchain skills ecosystem v2 · 18 skills · 5 phases · 5 tri-agent…</p>
+      </div>
+      <div class="pane after"><div class="pane-lab">after</div>
+        <p class="mini" style="letter-spacing:.14em;text-transform:uppercase;color:var(--ember)">SKILLS · ARCHITECTURE · v2 · <span class="stamp">RELEASE v1.5</span></p>
+        <p class="mini" style="margin-top:8px">…opchain skills ecosystem v2 · <ins>22 skills · 6 phases · 7 tri-agent</ins> · <ins class="ai">v1.5</ins>…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE 8 -->
+  <div class="chg">
+    <div class="chg-head"><div class="chg-num">8</div>
+      <div><div class="chg-title">Pre-existing inconsistency fixes</div>
+        <div class="chg-where">legend cards · summary cards · release-ops badge</div></div></div>
+    <p class="chg-why">Reconcile stray numbers that disagree with each other today, independent of the v1.5 work.</p>
+    <div class="ba">
+      <div class="pane before"><div class="pane-lab">before</div>
+        <ul style="list-style:none;font-size:11.5px;color:var(--sand)">
+          <li>· legend: “see all <del>17</del> connected”</li>
+          <li>· spine card: “the <del>5</del> primary-spine skills”</li>
+          <li>· tri-agent card: “Tri-Agent Patterns <del>(5)</del>”</li>
+          <li>· checkpoint card: “All <del>18</del> skills read all <del>18</del> checkpoints”</li>
+          <li>· oc-release-ops carries a stale <del>“18” / “NEW”</del> badge</li>
+        </ul>
+      </div>
+      <div class="pane after"><div class="pane-lab">after</div>
+        <ul style="list-style:none;font-size:11.5px;color:var(--sand)">
+          <li>· legend: “see all <ins>22</ins> connected”</li>
+          <li>· spine card: “the <ins>6</ins> primary-spine skills”</li>
+          <li>· tri-agent card: “Tri-Agent Patterns <ins>(7)</ins>” + oc-rag-forge, oc-agent-forge</li>
+          <li>· checkpoint card: “All <ins>22</ins> skills read all <ins>22</ins> checkpoints”</li>
+          <li>· oc-release-ops: drop “18/NEW”; keep <ins>“release-boundary only”</ins> note</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule" />
+
+  <!-- ════════ FULL FINAL CUT ════════ -->
+  <div class="sec-head"><h2>Full final cut — desktop</h2><span class="tag">assembled diagram</span></div>
+  <p class="sec-intro">Every change above, composed into the complete refreshed diagram.</p>
+
+  <!-- header -->
+  <div style="margin:18px 0 6px">
+    <div class="doc-eyebrow" style="color:var(--ember)">SKILLS · ARCHITECTURE · v2 · <span class="stamp">RELEASE v1.5</span></div>
+    <h1 class="doc" style="font-size:24px;margin:.3em 0 .15em">opchain skills ecosystem</h1>
+    <p class="doc-sub" style="color:var(--sand);font-size:12.5px">Checkpoint-driven pipeline · <b style="color:var(--linen)">22 skills</b> · <b style="color:var(--ai)">6 phases</b> · <b style="color:var(--linen)">7 tri-agent</b> · 3 audit gates · spine ordinals · <span style="color:var(--ember)">v1.5 pack fabric (36)</span></p>
+  </div>
+
+  <!-- foundation -->
+  <div class="foundation">
+    <div class="fpill"><div class="ft">PROTOCOL</div><div class="fn">oc-checkpoint-protocol</div><div class="fd">JSON schema · phase · progress · blockers · next_actions</div></div>
+    <div class="fpill"><div class="ft">ORCH</div><div class="fn">oc-orchestrator</div><div class="fd">/oc-ops · routing · cross-project status · gate enforcement</div></div>
+  </div>
+
+  <!-- DISCOVER -->
+  <div class="band">
+    <div class="band-label" style="--bar:var(--slag)"><div class="pn">Discover</div><div class="po">Phase 1 of 6</div></div>
+    <div class="row">
+      <div class="skill" style="--c:var(--success);max-width:300px">
+        <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div><span class="spine">1·↓2</span>
+        <div class="nm">oc-reverse-spec</div><div class="rl">Specialist · Workflow</div>
+        <div class="cm">/oc-rev-spec · /oc-rev-full</div><div class="note">optional · greenfield skips this band</div></div>
+    </div>
+  </div>
+  <div class="flow">↓ spine 1 → 2</div>
+
+  <!-- PLAN -->
+  <div class="band">
+    <div class="band-label" style="--bar:var(--ember)"><div class="pn">Plan</div><div class="po">Phase 2 of 6</div></div>
+    <div class="row">
+      <div class="skill" style="--c:var(--advisor)">
+        <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+        <div class="nm">oc-scale-ops</div><div class="rl">Advisor</div><div class="cm">/oc-scale · perf · capacity</div></div>
+      <div class="skill" style="--c:var(--advisor)">
+        <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+        <div class="nm">oc-stack-forge</div><div class="rl">Advisor</div><div class="cm">/oc-stack · /oc-stack-decide</div></div>
+      <div class="skill lg" style="--c:var(--warning)">
+        <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div><span class="spine">↑1·2·↓3</span>
+        <div class="nm">oc-app-architect</div><div class="rl">Tri-agent · Orchestrator · Generator/Evaluator · QA ≥ 7/10</div>
+        <div class="cm">/oc-app · /oc-discover · /oc-spec · /oc-design · /oc-build · /oc-launch</div>
+        <div class="note">auto-invokes: oc-stack-forge · oc-ux-engineer · oc-api-dev · oc-dash-forge</div>
+        <div class="note" style="color:var(--ai)">“AI app?” → oc-claude-api · oc-rag-forge · oc-agent-forge · oc-prompt-ops</div></div>
+      <div class="skill" style="--c:var(--success)">
+        <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+        <div class="nm">oc-migration-ops</div><div class="rl">Specialist</div><div class="cm">/oc-migrate · schema · platform</div></div>
+    </div>
+  </div>
+
+  <!-- PACK FABRIC -->
+  <div class="pf">
+    <div class="pf-head">
+      <div><div class="pf-eyebrow">v1.5 · cross-cutting · oc-stack-forge owns</div>
+        <div class="pf-title">Pack fabric — language · framework · mobile · deploy · vector-db</div>
+        <div class="pf-sub">Declared in <code>skills/oc-stack-forge/packs/&lt;id&gt;/pack.yml</code> · drives <code>skills.coverage.&lt;id&gt;.enabled</code></div></div>
+      <span class="pf-badge">v1.5 · 36 packs</span>
+    </div>
+    <div class="pf-grid">
+      <div class="pf-cell"><div class="pf-ch"><span class="pf-kind">LANGUAGES</span><span class="pf-count">13</span></div>
+        <div class="pf-chips"><span class="chip">bun</span><span class="chip">csharp</span><span class="chip">deno</span><span class="chip">elixir</span><span class="chip">go</span><span class="chip">java</span><span class="chip">kotlin</span><span class="chip">php</span><span class="chip">python</span><span class="chip">ruby</span><span class="chip">rust</span><span class="chip">swift</span><span class="chip">typescript</span></div></div>
+      <div class="pf-cell"><div class="pf-ch"><span class="pf-kind">FRAMEWORKS</span><span class="pf-count">9</span></div>
+        <div class="pf-chips"><span class="chip">dotnet-aspnet</span><span class="chip">laravel-php</span><span class="chip">phoenix</span><span class="chip">remix</span><span class="chip">solid</span><span class="chip">spring-java</span><span class="chip">spring-kotlin</span><span class="chip">sveltekit</span><span class="chip">swiftui</span></div></div>
+      <div class="pf-cell"><div class="pf-ch"><span class="pf-kind">MOBILE</span><span class="pf-count">4</span></div>
+        <div class="pf-chips"><span class="chip">kotlin-android</span><span class="chip">flutter</span><span class="chip">ios-swiftui</span><span class="chip">react-native-expo</span></div></div>
+      <div class="pf-cell"><div class="pf-ch"><span class="pf-kind">DEPLOY</span><span class="pf-count">6</span></div>
+        <div class="pf-chips"><span class="chip">app-store</span><span class="chip">aws-amplify</span><span class="chip">play-store</span><span class="chip">heroku</span><span class="chip">netlify</span><span class="chip">railway</span></div></div>
+      <div class="pf-cell vec"><div class="pf-ch"><span class="pf-kind">VECTOR-DB</span><span class="pf-count">4</span></div>
+        <div class="pf-chips"><span class="chip">pgvector</span><span class="chip">pinecone</span><span class="chip">supabase-vectors</span><span class="chip">turbopuffer</span></div></div>
+    </div>
+    <div class="pf-foot">consumed by <b>oc-stack-forge</b> · <b>oc-app-architect</b> · <b>oc-migration-ops</b> · <b>oc-api-dev</b> · <b>oc-deploy-ops</b> · <span class="added">oc-rag-forge</span></div>
+  </div>
+
+  <!-- AI (NEW) -->
+  <div class="band ai">
+    <div class="band-label" style="--bar:var(--ai)"><div class="pn" style="color:var(--ai)">AI</div><div class="po">Phase 3 of 6 · NEW v1.5</div></div>
+    <div>
+      <div class="flow ai">↑ branches off oc-app-architect · “AI app?” in /oc-discover</div>
+      <div class="row">
+        <div class="skill" style="--c:var(--success)">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <div class="nm">oc-claude-api</div><div class="rl">Specialist · Advisor</div>
+          <div class="cm">/oc-claude-api</div><div class="note">model routing · prompt caching · tool use · migration</div>
+          <span class="new">NEW · v1.5 · gated</span></div>
+        <div class="skill" style="--c:var(--warning)">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <div class="nm">oc-rag-forge</div><div class="rl">Tri-agent · Designer/Builder/Eval</div>
+          <div class="cm">/oc-rag</div><div class="note">vector DB · embeddings · chunking · hybrid · eval</div>
+          <span class="new">NEW · v1.5 · gated</span></div>
+        <div class="skill" style="--c:var(--warning)">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <div class="nm">oc-agent-forge</div><div class="rl">Tri-agent · Planner/Builder/Eval</div>
+          <div class="cm">/oc-agent</div><div class="note">Agent SDK · subagents · tool budgets · loops</div>
+          <span class="new">NEW · v1.5 · gated</span></div>
+        <div class="skill" style="--c:var(--success)">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <div class="nm">oc-prompt-ops</div><div class="rl">Specialist · prompt-as-code</div>
+          <div class="cm">/oc-prompt</div><div class="note">versioning · eval datasets · regression · drift</div>
+          <span class="new">NEW · v1.5 · gated</span></div>
+      </div>
+      <div class="flow ai">↓ feed checkpoints back to oc-app-architect → Build</div>
+    </div>
+  </div>
+
+  <!-- BUILD -->
+  <div class="band">
+    <div class="band-label" style="--bar:var(--warning)"><div class="pn">Build</div><div class="po">Phase 4 of 6</div></div>
+    <div>
+      <div class="row">
+        <div class="skill" style="--c:var(--warning)">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <div class="nm">oc-ux-engineer</div><div class="rl">Tri-agent · Planner/Generator/Eval</div>
+          <div class="cm">/oc-uxe · /oc-design</div><span class="branch">→ oc-dash-forge</span></div>
+        <div class="skill" style="--c:var(--success)">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <div class="nm">oc-dash-forge</div><div class="rl">Specialist · Tufte-density UI</div>
+          <div class="cm">/oc-data-forge · /dashboard</div></div>
+        <div class="skill" style="--c:var(--warning)">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <div class="nm">oc-api-dev</div><div class="rl">Tri-agent · OpenAPI/GraphQL</div>
+          <div class="cm">first-party API surface</div><span class="branch">→ oc-code-auditor</span></div>
+        <div class="skill" style="--c:var(--warning)">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <div class="nm">oc-integrations-engineer</div><div class="rl">Tri-agent · Planner/Builder/Tester</div>
+          <div class="cm">/oc-integrate · OAuth · webhooks</div><span class="branch">→ oc-code-auditor</span></div>
+      </div>
+      <div class="flow">↑ all auto-invoked by oc-app-architect · return checkpoints</div>
+    </div>
+  </div>
+
+  <!-- SHIP -->
+  <div class="band">
+    <div class="band-label" style="--bar:var(--ember)"><div class="pn">Ship</div><div class="po">Phase 5 of 6</div></div>
+    <div>
+      <div class="row">
+        <div class="skill" style="--c:var(--success)">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div><span class="spine">↑2·3·↓4</span>
+          <div class="nm">oc-git-ops</div><div class="rl">Specialist · Workflow</div>
+          <div class="cm">/oc-git · /oc-commit · /oc-pr · /oc-push</div></div>
+        <div class="skill" style="--c:var(--success)">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div><span class="spine">↑3·4·↓5</span>
+          <div class="nm">oc-release-ops</div><div class="rl">Specialist · Workflow</div>
+          <div class="cm">/oc-release · plan→draft→bump→announce→ship</div>
+          <div class="note">release-boundary only · not a deployer</div></div>
+        <div class="skill" style="--c:var(--ember)">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div><span class="spine">↑4·5·↓6</span>
+          <div class="nm">oc-deploy-ops</div><div class="rl">Orchestrator · Workflow</div>
+          <div class="cm">/oc-deploy · gates → prod → rollback</div>
+          <div class="note">enforces all 3 audit gates</div></div>
+      </div>
+      <div class="gateflow">↓ 3 AUDIT GATES — must pass before prod</div>
+      <div class="row">
+        <div class="skill" style="--c:var(--auditor)">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <div class="nm">oc-bug-check</div><div class="rl">Audit gate · pre-commit</div>
+          <div class="cm">type · lint · secrets · vuln · /oc-bugcheck</div></div>
+        <div class="skill" style="--c:var(--warning)">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <div class="nm">oc-code-auditor</div><div class="rl">Tri-agent · gates prod · Auditor/Fixer/Verifier</div>
+          <div class="cm">/oc-audit · score ≥ 7/10</div>
+          <div class="note" style="color:var(--ai)">+ prompt-injection · tool-use safety (v1.5)</div>
+          <span class="branch">→ oc-security-auditor</span></div>
+        <div class="skill" style="--c:var(--auditor)">
+          <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div>
+          <div class="nm">oc-security-auditor</div><div class="rl">Audit gate · posture review</div>
+          <div class="cm">/oc-security · /oc-threat-model · STRIDE · OWASP</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MONITOR -->
+  <div class="band">
+    <div class="band-label" style="--bar:var(--success)"><div class="pn">Monitor</div><div class="po">Phase 6 of 6</div></div>
+    <div class="row">
+      <div class="skill" style="--c:var(--success);max-width:340px">
+        <div class="badges"><span class="b">CP</span><span class="b">ORC</span></div><span class="spine">↑5·6</span>
+        <div class="nm">oc-monitoring-ops</div><div class="rl">Specialist · observability</div>
+        <div class="cm">/oc-monitor · uptime · SLO · incidents</div>
+        <div class="note">+ oc-api-dev SLO / drift manifest</div></div>
+    </div>
+  </div>
+
+  <!-- legend -->
+  <div class="legend">
+    <div class="li"><span class="sw" style="background:rgba(245,158,11,.1);border:1px solid var(--warning)"></span>tri-agent (7)</div>
+    <div class="li"><span class="sw" style="background:rgba(14,165,233,.1);border:1px solid var(--advisor)"></span>advisor</div>
+    <div class="li"><span class="sw" style="background:rgba(13,148,136,.1);border:1px solid var(--success)"></span>specialist</div>
+    <div class="li"><span class="sw" style="background:var(--ember-dim);border:1px solid var(--ember)"></span>workflow / orchestrator</div>
+    <div class="li"><span class="sw" style="background:rgba(244,63,94,.1);border:1px solid var(--auditor)"></span>audit gate (3)</div>
+    <div class="li"><span class="sw" style="background:var(--ai-dim);border:1px solid var(--ai)"></span>AI-native · v1.5 (4, gated)</div>
+    <div class="li"><span class="sw" style="background:var(--obsidian);border:.8px solid var(--success)"></span>spine ordinal (6)</div>
+  </div>
+
+  <!-- summary cards -->
+  <div class="summary-cards">
+    <div class="scard"><h3><span class="dot" style="background:var(--success)"></span>Spine ordinals (6)</h3>
+      <li><b>1</b> oc-reverse-spec → <b>2</b> oc-app-architect → <b>3</b> oc-git-ops → <b>4</b> oc-release-ops → <b>5</b> oc-deploy-ops → <b>6</b> oc-monitoring-ops</li>
+      <li>AI &amp; Build skills branch off oc-app-architect — no primary ordinal</li></div>
+    <div class="scard"><h3><span class="dot" style="background:var(--warning)"></span>Tri-agent patterns (7)</h3>
+      <li>oc-app-architect · oc-ux-engineer · oc-api-dev</li>
+      <li>oc-integrations-engineer · oc-code-auditor</li>
+      <li style="color:var(--ai)">oc-rag-forge · oc-agent-forge (v1.5)</li></div>
+    <div class="scard"><h3><span class="dot" style="background:var(--ai)"></span>AI-native phase (v1.5)</h3>
+      <li>oc-claude-api · oc-rag-forge · oc-agent-forge · oc-prompt-ops</li>
+      <li>gated behind <b>skills.registry.&lt;id&gt;.enabled</b></li>
+      <li>rag-forge consumes the vector-db packs</li></div>
+    <div class="scard"><h3><span class="dot" style="background:var(--ember)"></span>Checkpoint protocol</h3>
+      <li>JSON at <b>.checkpoints/&lt;skill&gt;.json</b></li>
+      <li>All <b>22</b> skills read all <b>22</b> checkpoints (no ACL)</li>
+      <li>Framework-agnostic — no platform lock-in</li></div>
+  </div>
+
+  <p class="footer">opchain skills ecosystem v2 · asfbay-bit/opchain · 22 skills · 6 phases · 7 tri-agent · 3 audit gates · spine ordinals · v1.5 · checkpoint-driven</p>
+
+</div>
+</body>
+</html>
