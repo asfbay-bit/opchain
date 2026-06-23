@@ -1,0 +1,30 @@
+{
+  "protocol_version": "1.0",
+  "skill": "bug-check",
+  "project": "opchain.dev",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "created_at": "2026-05-15T02:41:36.750Z",
+  "updated_at": "2026-06-22T16:48:27Z",
+  "phase": "gate",
+  "step": "changelog-roadmap-groups-precommit",
+  "status": "complete",
+  "progress_summary": "Ran /bugcheck on staged changelog roadmap changes. Astro build passed, focused Playwright changelog/demo e2e passed 14/14, astro check passed with 0 errors and existing unrelated hints only. Staged anti-pattern scan found no console.log/debugger/.only/TODO/FIXME/HACK. Secret scan found no token/key/private-key patterns. Net verdict: PASS.",
+  "skill_state": {
+    "last_run": {
+      "verdict": "PASS",
+      "at": "2026-06-22T16:48:27Z",
+      "checks": {
+        "type_safety": "PASS",
+        "lint": "SKIPPED",
+        "tests": "PASS",
+        "anti_patterns": "PASS",
+        "secrets": "PASS",
+        "dependencies": "SKIPPED",
+        "build": "PASS"
+      },
+      "warnings": 0,
+      "errors": 0,
+      "scope": "staged-changelog-roadmap-groups"
+    }
+  }
+}
