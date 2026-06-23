@@ -324,11 +324,12 @@ const futureReleaseGroups = [
                 </p>
               </div>
               <div class="tile">
-                <span class="tile-name">/oc-* survives</span>
+                <span class="tile-name">/oc-* as prompts</span>
                 <p class="tile-desc">
                   Every <code>/oc-*</code> command is re-exposed as an MCP
-                  prompt, so the slash-command flow carries over to clients that
-                  surface MCP prompts.
+                  prompt for clients that surface them (e.g. Claude Desktop).
+                  Codex doesn't consume MCP prompts — there you trigger skills
+                  by description, or use the <code>.codex/skills</code> drop-in.
                 </p>
               </div>
               <div class="tile">

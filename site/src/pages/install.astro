@@ -147,23 +147,17 @@ codex`;
           <h2><Icon name="terminal" /> Codex / any MCP agent</h2>
           <p>
             Codex — and any MCP-aware agent (Claude Desktop, Cursor, Windsurf) —
-            reaches opchain over the
-            <a href="https://modelcontextprotocol.io" rel="noopener">Model Context Protocol</a>.
-            Point your client at the hosted endpoint and you get the catalog,
-            intent routing, the orchestrator protocol, and checkpoints — the
-            same pipeline Claude Code auto-discovers.
+            reaches opchain two ways, over the
+            <a href="https://modelcontextprotocol.io" rel="noopener">Model Context Protocol</a>
+            or as drop-in skills. The drop-in path is the closest match to Claude
+            Code: Codex Agent Skills auto-trigger by description, so the pipeline
+            fires on its own. The hosted MCP endpoint needs no install, but relies
+            on the model choosing to call opchain's tools.
           </p>
-          <p class="flow-sub"><strong>Hosted MCP server</strong> — nothing to install:</p>
-          <div class="code-row">
-            <pre class="codeblock"><code>{codexMcpCmd}</code></pre>
-            <button class="copy" type="button" data-copy={codexMcpCmd} data-flow="codex-mcp" aria-label="Copy Codex MCP config">
-              <Icon name="copy" size={12} />
-              <span class="copy-label">copy</span>
-            </button>
-          </div>
           <p class="flow-sub">
-            <strong>Or drop the skills in directly</strong> — Codex Agent Skills
-            use the same <code class="ic">SKILL.md</code> format:
+            <strong>Drop the skills in (recommended)</strong> — Codex Agent Skills
+            use the same <code class="ic">SKILL.md</code> format and auto-trigger by
+            description, the same way Claude Code does:
           </p>
           <div class="code-row">
             <pre class="codeblock"><code>{codexSkillsCmd}</code></pre>
@@ -172,13 +166,25 @@ codex`;
               <span class="copy-label">copy</span>
             </button>
           </div>
+          <p class="flow-sub">
+            <strong>Or point Codex at the hosted MCP server</strong> — nothing to
+            install; works for any MCP client:
+          </p>
+          <div class="code-row">
+            <pre class="codeblock"><code>{codexMcpCmd}</code></pre>
+            <button class="copy" type="button" data-copy={codexMcpCmd} data-flow="codex-mcp" aria-label="Copy Codex MCP config">
+              <Icon name="copy" size={12} />
+              <span class="copy-label">copy</span>
+            </button>
+          </div>
           <p class="verify">
             <strong>Verify it worked.</strong> Run <code class="ic">codex</code>
-            and ask "build me an app" — opchain's <code class="ic">route</code>
-            tool (or an implicit skill match) hands you to oc-app-architect's
-            discovery interview. With the MCP server, the
-            <code class="ic">/oc-*</code> commands also appear as prompts in the
-            slash menu.
+            and ask "build me an app" — a drop-in skill match (or, over the hosted
+            server, opchain's <code class="ic">route</code> tool) hands you to
+            oc-app-architect's discovery interview. Note: Codex doesn't surface MCP
+            prompts, so opchain's <code class="ic">/oc-*</code> verbs aren't slash
+            commands in Codex — just describe what you want ("build me an app",
+            "audit this") and the matching skill triggers.
           </p>
         </div>
       </section>
