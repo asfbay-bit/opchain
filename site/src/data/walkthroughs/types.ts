@@ -7,6 +7,23 @@
  * markdown (rendered through site/src/lib/markdown.ts).
  */
 
+/**
+ * Pipeline phase a chapter belongs to. Controlled vocabulary in pipeline
+ * order — powers the /demo workbench phase facet and the transcript chapter
+ * labels. Beats are tagged explicitly; exchanges inherit the nearest
+ * preceding beat's phase at search-index build time.
+ */
+export type Phase =
+  | "discover" // idea → requirements (oc-discover, reverse-spec intake)
+  | "spec" // spec + stack + architecture
+  | "design" // UX, wireframes, dashboards
+  | "plan" // roadmap / sprint decomposition / scaffold
+  | "build" // generator → evaluator implementation
+  | "audit" // code-auditor / security-auditor / bug-check gates
+  | "ship" // git-ops + release-ops + deploy-ops
+  | "monitor" // monitoring-ops, incident, post-deploy
+  | "operate"; // migration, scale, integrations, day-2 ops
+
 export type Beat = {
   type: "beat";
   /** Short label for the chapter divider. */
@@ -15,6 +32,8 @@ export type Beat = {
   caption?: string;
   /** Skill badge(s) for this chapter. */
   skills?: string[];
+  /** Pipeline phase this chapter belongs to (required — see {@link Phase}). */
+  phase: Phase;
 };
 
 export type Exchange = {

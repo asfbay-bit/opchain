@@ -10,57 +10,15 @@ import { getCollection, type CollectionEntry } from "astro:content";
 import { defaultFor } from "./flags/build-defaults";
 import type { FlagName } from "./flags/registry";
 import { isKnown as isKnownFlag } from "./flags/registry";
+// Role mapping lives in a pure module (no astro:content) so the /demo search
+// index builder + its Node-environment unit tests can import it. Re-exported
+// here to preserve the existing `from "../lib/skills"` import surface.
+import { getSkillRole, getRoleLabel, type Role } from "./roles";
+
+export { getSkillRole, getRoleLabel };
+export type { Role };
 
 export type SkillEntry = CollectionEntry<"skills">;
-
-export type Role =
-  | "workflow"
-  | "tri-agent"
-  | "audit-gate"
-  | "specialist"
-  | "advisor"
-  | "orchestrator"
-  | "success";
-
-// Skill → role mapping. Source of truth for the colored role pills shown
-// on the homepage and in the Skill Library. Adjust here, both UIs follow.
-const ROLE_BY_NAME: Record<string, Role> = {
-  "oc-api-dev":              "tri-agent",
-  "oc-app-architect":        "workflow",
-  "oc-bug-check":            "audit-gate",
-  "oc-checkpoint-protocol":  "success",
-  "oc-code-auditor":         "audit-gate",
-  "oc-dash-forge":           "specialist",
-  "oc-deploy-ops":           "orchestrator",
-  "oc-git-ops":              "specialist",
-  "oc-integrations-engineer":"tri-agent",
-  "oc-migration-ops":        "specialist",
-  "oc-monitoring-ops":       "specialist",
-  "oc-orchestrator":         "orchestrator",
-  "oc-reverse-spec":         "specialist",
-  "oc-scale-ops":            "advisor",
-  "oc-security-auditor":     "audit-gate",
-  "oc-stack-forge":          "advisor",
-  "oc-ux-engineer":          "tri-agent",
-};
-
-const ROLE_LABEL: Record<Role, string> = {
-  "workflow":     "Workflow",
-  "tri-agent":    "Tri-agent",
-  "audit-gate":   "Audit gate",
-  "specialist":   "Standalone specialist",
-  "advisor":      "Advisor",
-  "orchestrator": "Orchestrator",
-  "success":      "Protocol",
-};
-
-export function getSkillRole(name: string): Role {
-  return ROLE_BY_NAME[name] ?? "specialist";
-}
-
-export function getRoleLabel(role: Role): string {
-  return ROLE_LABEL[role];
-}
 
 // "plan" + "build" → "plan + build". Keeps the original ordering otherwise.
 export function phaseLabel(phases: readonly string[]): string {

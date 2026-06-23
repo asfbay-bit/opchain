@@ -765,7 +765,7 @@ Checkpoint: \`.checkpoints/oc-integrations-engineer.checkpoint.json\` closes wit
   skills: ["oc-integrations-engineer", "oc-code-auditor"],
   runtime: "≈ 13 exchanges",
   steps: [
-    { type: "beat", label: "01 · Brief", caption: "oc-integrations-engineer sizes the job", skills: ["oc-integrations-engineer"] },
+    { type: "beat", phase: "discover", label: "01 · Brief", caption: "oc-integrations-engineer sizes the job", skills: ["oc-integrations-engineer"] },
 
     {
       type: "exchange", role: "user",
@@ -830,7 +830,7 @@ Writing \`.checkpoints/oc-integrations-engineer.checkpoint.json\` with the contr
       content: "/approve"
     },
 
-    { type: "beat", label: "02 · Scaffold + wire", caption: "boundary layer first, live keys last", skills: ["oc-integrations-engineer"] },
+    { type: "beat", phase: "build", label: "02 · Scaffold + wire", caption: "boundary layer first, live keys last", skills: ["oc-integrations-engineer"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-integrations-engineer",
@@ -864,7 +864,7 @@ Contract tests: 22 passing. Every handler has an idempotency test (replay the sa
       artifacts: ["boundary-layer"],
     },
 
-    { type: "beat", label: "03 · Audit gate", caption: "oc-code-auditor before merge", skills: ["oc-code-auditor"] },
+    { type: "beat", phase: "audit", label: "03 · Audit gate", caption: "oc-code-auditor before merge", skills: ["oc-code-auditor"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-code-auditor",
@@ -931,7 +931,7 @@ Ship it.`,
       artifacts: ["audit-report"],
     },
 
-    { type: "beat", label: "04 · Go-live", caption: "feature flag flipped", skills: ["oc-integrations-engineer"] },
+    { type: "beat", phase: "ship", label: "04 · Go-live", caption: "feature flag flipped", skills: ["oc-integrations-engineer"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-integrations-engineer",

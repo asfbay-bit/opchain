@@ -3,6 +3,12 @@ import { walkthroughs } from "../data/walkthroughs";
 import { getSkillRole } from "../lib/skills";
 import { renderSafeMarkdown } from "../lib/markdown";
 
+interface Props {
+  /** When true, render the Find (search + filter) overlay + topbar trigger. */
+  search?: boolean;
+}
+const { search = false } = Astro.props;
+
 /**
  * Mobile workbench — Direction A: Bottom-Tab IDE.
  *
@@ -64,6 +70,11 @@ const transcripts = walkthroughs.map((w) => ({
   <header class="mw-topbar">
     <span class="mw-brand">opchain</span>
     <span class="mw-scn-label" data-mw-active-label>scenarios</span>
+    {search && (
+      <button class="mw-find-btn" type="button" data-ocs-open aria-label="Search and filter scenarios">
+        <span aria-hidden="true">⌕</span>
+      </button>
+    )}
   </header>
 
   <div class="mw-panels">
@@ -120,10 +131,10 @@ const transcripts = walkthroughs.map((w) => ({
           </header>
 
           <div class="mw-cc-stream">
-            {w.steps.map((step) => {
+            {w.steps.map((step, si) => {
               if (step.kind === "beat") {
                 return (
-                  <div class="mw-beat">
+                  <div class="mw-beat" data-step-id={`s${si}`}>
                     <div class="mw-beat-label">{step.label}</div>
                     {step.caption && <div class="mw-beat-caption">{step.caption}</div>}
                     {step.skills.length > 0 && (
@@ -138,14 +149,14 @@ const transcripts = walkthroughs.map((w) => ({
               }
               if (step.kind === "user") {
                 return (
-                  <div class="mw-user">
+                  <div class="mw-user" data-step-id={`s${si}`}>
                     <span class="mw-user-mark" aria-hidden="true">&gt;</span>
                     <span class="mw-user-text">{step.content}</span>
                   </div>
                 );
               }
               return (
-                <div class="mw-claude">
+                <div class="mw-claude" data-step-id={`s${si}`}>
                   <div class="mw-claude-head">
                     <span class="mw-claude-bullet" aria-hidden="true">●</span>
                     <span class="mw-claude-name">claude</span>
@@ -291,6 +302,26 @@ const transcripts = walkthroughs.map((w) => ({
       <span class="mw-tab-label">Inspector</span>
     </button>
   </nav>
+
+  {search && (
+    <div class="mw-find" data-ocs-overlay hidden role="dialog" aria-modal="true" aria-label="Search and filter">
+      <div class="mw-find-head">
+        <div class="mw-find-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input class="mw-find-input" type="text" data-ocs-input placeholder="Search transcripts…" aria-label="Search demo transcripts" autocomplete="off" spellcheck="false" />
+          <button class="mw-find-done" type="button" data-ocs-overlay-close>Done</button>
+        </div>
+        <div class="ocs-count" data-ocs-count></div>
+        <div class="ocs-pills" data-ocs-pills></div>
+        <details class="mw-find-filters">
+          <summary>Filters <span class="mw-find-scn" data-ocs-scn-count></span></summary>
+          <div class="ocs-facets" data-ocs-facets></div>
+          <button class="ocs-clearall" type="button" data-ocs-clear>clear all filters</button>
+        </details>
+      </div>
+      <div class="ocs-results mw-find-results" data-ocs-results aria-label="Search results" aria-live="polite"></div>
+    </div>
+  )}
 </section>
 
 <style>
@@ -890,6 +921,93 @@ const transcripts = walkthroughs.map((w) => ({
   }
   .mw-tab-ico  { font-size: 16px; line-height: 1; }
   .mw-tab-label { line-height: 1; }
+
+  /* ── Find overlay trigger + sheet (demo-search). Shell only; the injected
+        result/chip markup is styled by the global .ocs-* rules in demo.astro. */
+  .mw-find-btn {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    font-size: 16px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+  }
+  .mw-find-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .mw-find-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+  .mw-find {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+  .mw-find[hidden] { display: none; }
+  .mw-find-head {
+    background: var(--ribbon);
+    border-bottom: 0.5px solid var(--border);
+    padding: 10px 12px 8px;
+    padding-top: calc(10px + env(safe-area-inset-top));
+    flex: 0 0 auto;
+  }
+  .mw-find-row { display: flex; align-items: center; gap: 8px; }
+  .mw-find-row svg { width: 15px; height: 15px; color: var(--subtle); flex: 0 0 auto; }
+  .mw-find-input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 15px;
+    outline: none;
+    min-height: 40px;
+  }
+  .mw-find-input::placeholder { color: var(--subtle); }
+  .mw-find-done {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    color: var(--accent);
+    border-radius: var(--r-sm);
+    padding: 8px 12px;
+    min-height: 40px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    flex: 0 0 auto;
+  }
+  .mw-find-done:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .mw-find-filters { margin-top: 8px; }
+  .mw-find-filters > summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    list-style: none;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mw-find-filters > summary::-webkit-details-marker { display: none; }
+  .mw-find-scn { color: var(--subtle); text-transform: none; }
+  .mw-find-results {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 6px 0 calc(24px + env(safe-area-inset-bottom));
+    -webkit-overflow-scrolling: touch;
+  }
 </style>
 
 <script is:inline>
@@ -946,5 +1064,32 @@ const transcripts = walkthroughs.map((w) => ({
     }));
 
     show('scenarios');
+
+    /* Deep-link API for the search client (mobile): select a scenario, switch
+       to the Stream tab, then scroll + flash a specific exchange. */
+    function flashStep(el) {
+      el.classList.remove('ocs-flash');
+      void el.offsetWidth;
+      el.classList.add('ocs-flash');
+      const clear = () => el.classList.remove('ocs-flash');
+      el.addEventListener('animationend', clear, { once: true });
+      window.setTimeout(clear, 3600);
+    }
+
+    function openStep(scenarioId, stepId) {
+      selectScenario(scenarioId);
+      show('stream');
+      const stream = root.querySelector(`[data-mw-stream="${CSS.escape(scenarioId)}"]`);
+      if (!stream) return;
+      const target = stream.querySelector(`[data-step-id="${CSS.escape(stepId)}"]`);
+      if (target) {
+        window.requestAnimationFrame(() => {
+          target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          flashStep(target);
+        });
+      }
+    }
+
+    window.__ocDemoMobile = { openStep };
   })();
 </script>

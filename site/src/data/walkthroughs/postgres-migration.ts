@@ -390,7 +390,7 @@ Checkpoint: oc-orchestrator state lives in memory (registry) + session cache; it
   skills: ["oc-migration-ops", "oc-orchestrator", "oc-deploy-ops", "oc-monitoring-ops"],
   runtime: "≈ 12 exchanges",
   steps: [
-    { type: "beat", label: "01 · Assess", caption: "oc-migration-ops sizes the engine swap", skills: ["oc-migration-ops"] },
+    { type: "beat", phase: "operate", label: "01 · Assess", caption: "oc-migration-ops sizes the engine swap", skills: ["oc-migration-ops"] },
 
     {
       type: "exchange", role: "user",
@@ -443,7 +443,7 @@ Writing \`.checkpoints/oc-migration-ops.checkpoint.json\` with the plan. \`/appr
       content: "/approve"
     },
 
-    { type: "beat", label: "02 · Execute + verify", caption: "oc-migration-ops runs; oc-monitoring-ops watches", skills: ["oc-migration-ops", "oc-monitoring-ops"] },
+    { type: "beat", phase: "operate", label: "02 · Execute + verify", caption: "oc-migration-ops runs; oc-monitoring-ops watches", skills: ["oc-migration-ops", "oc-monitoring-ops"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-migration-ops",
@@ -500,7 +500,7 @@ Zero discrepancies across ~350K shadow reads. Latency drift is well under the 15
       artifacts: ["verification-report"],
     },
 
-    { type: "beat", label: "03 · Cross-project view", caption: "oc-orchestrator summarizes state", skills: ["oc-orchestrator"] },
+    { type: "beat", phase: "operate", label: "03 · Cross-project view", caption: "oc-orchestrator summarizes state", skills: ["oc-orchestrator"] },
 
     {
       type: "exchange", role: "user",
@@ -531,7 +531,7 @@ Zero discrepancies across ~350K shadow reads. Latency drift is well under the 15
       artifacts: ["ops-status"],
     },
 
-    { type: "beat", label: "04 · Cut over + retire", caption: "oc-deploy-ops ships; oc-monitoring-ops watches the 7-day window", skills: ["oc-deploy-ops", "oc-monitoring-ops"] },
+    { type: "beat", phase: "ship", label: "04 · Cut over + retire", caption: "oc-deploy-ops ships; oc-monitoring-ops watches the 7-day window", skills: ["oc-deploy-ops", "oc-monitoring-ops"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-migration-ops",

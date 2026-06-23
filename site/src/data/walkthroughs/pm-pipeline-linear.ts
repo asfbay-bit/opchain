@@ -1097,7 +1097,7 @@ Checkpoint: \`.checkpoints/oc-integrations-engineer.checkpoint.json\` (v1.2 prot
   skills: ["oc-app-architect", "oc-git-ops", "oc-deploy-ops", "oc-monitoring-ops", "oc-code-auditor", "oc-integrations-engineer"],
   runtime: "≈ 12 exchanges",
   steps: [
-    { type: "beat", label: "01 · Read the ticket", caption: "oc-app-architect /oc-discover pre-fills from Linear", skills: ["oc-app-architect"] },
+    { type: "beat", phase: "discover", label: "01 · Read the ticket", caption: "oc-app-architect /oc-discover pre-fills from Linear", skills: ["oc-app-architect"] },
 
     {
       type: "exchange", role: "user",
@@ -1205,7 +1205,7 @@ mcp.linear.create_issue(
 Sprint plan approved? \`/oc-build\` will start the Generator → Evaluator loop. Or \`/contract\` to negotiate the sprint-1 contract first.`,
     },
 
-    { type: "beat", label: "02 · Build → benchmark → audit", caption: "Generator/Evaluator loop, then verify heap before /oc-git-sync", skills: ["oc-app-architect", "oc-code-auditor"] },
+    { type: "beat", phase: "build", label: "02 · Build → benchmark → audit", caption: "Generator/Evaluator loop, then verify heap before /oc-git-sync", skills: ["oc-app-architect", "oc-code-auditor"] },
 
     {
       type: "exchange", role: "user",
@@ -1329,7 +1329,7 @@ mcp.linear.add_comment("PLAT-4471",
 Bug-check returned PASS (1.4s). The PR is mergeable; oc-deploy-ops can take over.`
     },
 
-    { type: "beat", label: "03 · Deploy", caption: "oc-deploy-ops creates the deploy ticket and threads through environments", skills: ["oc-deploy-ops"] },
+    { type: "beat", phase: "ship", label: "03 · Deploy", caption: "oc-deploy-ops creates the deploy ticket and threads through environments", skills: ["oc-deploy-ops"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-deploy-ops",
@@ -1417,7 +1417,7 @@ mcp.linear.add_comment("PLAT-4485",
 Sentinel clean. PLAT-4485 stays Shipped.`,
     },
 
-    { type: "beat", label: "04 · Incident the next morning", caption: "oc-monitoring-ops opens an incident ticket linked to the deploy", skills: ["oc-monitoring-ops"] },
+    { type: "beat", phase: "monitor", label: "04 · Incident the next morning", caption: "oc-monitoring-ops opens an incident ticket linked to the deploy", skills: ["oc-monitoring-ops"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-monitoring-ops",

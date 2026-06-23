@@ -16,6 +16,12 @@ import { renderSafeMarkdown } from "../lib/markdown";
  * so the modal handler is workbench-agnostic.
  */
 
+interface Props {
+  /** When true, render the Search & Filter UI (rail tabs + sidebar panels). */
+  search?: boolean;
+}
+const { search = false } = Astro.props;
+
 const sidebar = walkthroughs.map((w, i) => ({
   num: String(i + 1).padStart(2, "0"),
   id: w.id,
@@ -79,40 +85,72 @@ const transcripts = walkthroughs.map((w) => ({
     </div>
 
     <!-- Activity rail -->
-    <nav class="ide-activity" aria-label="Activity">
-      <div class="act is-active" title="Scenarios">▦</div>
-      <div class="act" title="Search">⌕</div>
-      <div class="act" title="Inputs / Outputs">⊞</div>
-      <div class="act" title="Skills">●</div>
-      <div class="act" title="Help">?</div>
-    </nav>
+    {search ? (
+      <nav class="ide-activity" aria-label="Workbench views">
+        <button class="act is-active" type="button" data-ocs-mode="scenarios" aria-pressed="true" title="Scenarios" aria-label="Show scenarios">▦</button>
+        <button class="act" type="button" data-ocs-mode="search" aria-pressed="false" title="Search transcripts" aria-label="Search transcripts">⌕</button>
+        <button class="act" type="button" data-ocs-mode="facets" aria-pressed="false" title="Filter by skill, role, kind, phase" aria-label="Filter scenarios">●</button>
+        <div class="act" title="Help">?</div>
+      </nav>
+    ) : (
+      <nav class="ide-activity" aria-label="Activity">
+        <div class="act is-active" title="Scenarios">▦</div>
+        <div class="act" title="Search">⌕</div>
+        <div class="act" title="Inputs / Outputs">⊞</div>
+        <div class="act" title="Skills">●</div>
+        <div class="act" title="Help">?</div>
+      </nav>
+    )}
 
-    <!-- Sidebar — scenario tree -->
+    <!-- Sidebar — scenario tree, plus search + facet panels when enabled -->
     <div class="ide-sidebar" role="region" aria-label="Scenarios">
-      <div class="side-head">scenarios · {sidebar.length}</div>
-      {sidebar.map((s) => (
-        <div class="tree-group">
-          <button
-            type="button"
-            class="tree-folder"
-            data-scenario={s.id}
-            aria-expanded="false"
-          >
-            <span class="tree-arrow">▸</span>
-            <span class="tree-num">{s.num}</span>
-            <span class="tree-name">{s.id}</span>
-            <span class="tree-count">{s.skills.length}</span>
-          </button>
-          <div class="tree-children">
-            {s.skills.map((sk) => (
-              <div class="tree-skill">
-                <span class:list={["role-dot", `role-${sk.role}`]}></span>
-                {sk.id}
-              </div>
-            ))}
+      <div class="ocs-mode-panel is-active" data-ocs-mode-panel="scenarios">
+        <div class="side-head">scenarios · {sidebar.length}</div>
+        {sidebar.map((s) => (
+          <div class="tree-group">
+            <button
+              type="button"
+              class="tree-folder"
+              data-scenario={s.id}
+              aria-expanded="false"
+            >
+              <span class="tree-arrow">▸</span>
+              <span class="tree-num">{s.num}</span>
+              <span class="tree-name">{s.id}</span>
+              <span class="tree-count">{s.skills.length}</span>
+            </button>
+            <div class="tree-children">
+              {s.skills.map((sk) => (
+                <div class="tree-skill">
+                  <span class:list={["role-dot", `role-${sk.role}`]}></span>
+                  {sk.id}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
+
+      {search && (
+        <>
+          <div class="ocs-mode-panel ocs-search" data-ocs-mode-panel="search">
+            <div class="ocs-search-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+              <input class="ocs-input" type="text" data-ocs-input placeholder="Search transcripts…" aria-label="Search demo transcripts" autocomplete="off" spellcheck="false" />
+              <button class="ocs-x" type="button" data-ocs-x aria-label="Clear search">✕</button>
+            </div>
+            <div class="ocs-count" data-ocs-count></div>
+            <div class="ocs-pills" data-ocs-pills></div>
+            <div class="ocs-results" data-ocs-results aria-label="Search results" aria-live="polite"></div>
+          </div>
+
+          <div class="ocs-mode-panel ocs-facetwrap" data-ocs-mode-panel="facets">
+            <div class="side-head" data-ocs-scn-count>showing {sidebar.length} / {sidebar.length}</div>
+            <div class="ocs-facets" data-ocs-facets></div>
+            <button class="ocs-clearall" type="button" data-ocs-clear>clear all filters</button>
+          </div>
+        </>
+      )}
     </div>
 
     <!-- Editor — per-scenario summary panes with two modes. -->
@@ -239,7 +277,7 @@ const transcripts = walkthroughs.map((w) => ({
               {t.steps.map((step, si) => {
                 if (step.kind === "beat") {
                   return (
-                    <div class="cc-beat" data-step-index={si}>
+                    <div class="cc-beat" data-step-index={si} data-step-id={`s${si}`}>
                       <div class="cc-beat-rule" aria-hidden="true"></div>
                       <div class="cc-beat-body">
                         <span class="cc-beat-label">{step.label}</span>
@@ -259,14 +297,14 @@ const transcripts = walkthroughs.map((w) => ({
                 }
                 if (step.kind === "user") {
                   return (
-                    <div class="cc-user" data-step-index={si}>
+                    <div class="cc-user" data-step-index={si} data-step-id={`s${si}`}>
                       <span class="cc-user-mark" aria-hidden="true">&gt;</span>
                       <span class="cc-user-text">{step.content}</span>
                     </div>
                   );
                 }
                 return (
-                  <div class="cc-assistant" data-step-index={si}>
+                  <div class="cc-assistant" data-step-index={si} data-step-id={`s${si}`}>
                     <div class="cc-assistant-head">
                       <span class="cc-bullet cc-bullet--tool" aria-hidden="true">●</span>
                       <span class="cc-name">claude</span>
@@ -459,15 +497,25 @@ const transcripts = walkthroughs.map((w) => ({
     place-items: center;
     color: var(--subtle);
     cursor: pointer;
+    /* border:0 then re-add the left rail indicator so <button.act> drops its
+       UA border but keeps the active-tab marker. */
+    border: 0;
     border-left: 2px solid transparent;
     margin-left: -2px;
     font-size: 14px;
+    appearance: none;
+    background: transparent;
+    font-family: inherit;
     transition: color 120ms, border-color 120ms;
   }
   .act:hover { color: var(--text); }
   .act.is-active {
     color: var(--text);
     border-left-color: var(--accent);
+  }
+  .act:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring-inset);
   }
 
   /* Sidebar — scenario tree */
@@ -1144,6 +1192,14 @@ const transcripts = walkthroughs.map((w) => ({
   .workbench.is-fullscreen .ide-dot:nth-child(1) {
     cursor: pointer;
   }
+
+  /* Search & Filter visuals live in a global stylesheet in demo.astro
+     (client-injected result/chip markup can't carry Astro's scoped attribute,
+     so all .ocs-* paint rules are global). The one exception is sidebar-panel
+     visibility, scoped here because the scenarios wrapper is always present —
+     even when the feature flag is off — and must show without the global block. */
+  .ocs-mode-panel { display: none; }
+  .ocs-mode-panel.is-active { display: block; }
 </style>
 
 <script is:inline>
@@ -1240,6 +1296,49 @@ const transcripts = walkthroughs.map((w) => ({
         syncInspector(id);
       });
     });
+
+    /* Deep-link API for the search client: open a scenario in transcript mode
+       and scroll + flash a specific exchange. Exposed on window so
+       demo-search.client.ts can drive it without reaching into this scope. */
+    function flashStep(el) {
+      el.classList.remove('ocs-flash');
+      void el.offsetWidth; // restart the animation if re-triggered
+      el.classList.add('ocs-flash');
+      const clear = () => el.classList.remove('ocs-flash');
+      el.addEventListener('animationend', clear, { once: true });
+      window.setTimeout(clear, 3600);
+    }
+
+    function openStep(scenarioId, stepId) {
+      const folder = document.querySelector(`.tree-folder[data-scenario="${CSS.escape(scenarioId)}"]`);
+      folders.forEach(closeFolder);
+      if (folder) {
+        folder.classList.add('is-open');
+        folder.setAttribute('aria-expanded', 'true');
+        const arrow = folder.querySelector('.tree-arrow');
+        if (arrow) arrow.textContent = '▾';
+      }
+      showEditor(scenarioId);
+      const pane = document.querySelector(`[data-scenario-pane="${CSS.escape(scenarioId)}"]`);
+      if (!pane) return;
+      setPaneMode(pane, 'transcript');
+      syncInspector(scenarioId);
+      // Reveal any steps a prior playback session left hidden, so the target
+      // and its lead-in are visible (deep-link bypasses step-by-step playback).
+      const transcript = pane.querySelector('.pane-view[data-view="transcript"]');
+      if (transcript) {
+        transcript.querySelectorAll('[data-step-id]').forEach((el) => el.removeAttribute('hidden'));
+      }
+      const target = pane.querySelector(`[data-step-id="${CSS.escape(stepId)}"]`);
+      if (target) {
+        window.requestAnimationFrame(() => {
+          target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          flashStep(target);
+        });
+      }
+    }
+
+    window.__ocDemoDesktop = { openStep };
   })();
 
   /* Fullscreen workbench. */

@@ -1460,7 +1460,7 @@ Checkpoint: \`.checkpoints/oc-security-auditor.checkpoint.json\` (Phase 4 — ve
   skills: ["oc-security-auditor", "oc-integrations-engineer", "oc-monitoring-ops", "oc-app-architect"],
   runtime: "≈ 12 exchanges",
   steps: [
-    { type: "beat", label: "01 · Threat model", caption: "oc-security-auditor sweeps the MCP attack surface", skills: ["oc-security-auditor"] },
+    { type: "beat", phase: "audit", label: "01 · Threat model", caption: "oc-security-auditor sweeps the MCP attack surface", skills: ["oc-security-auditor"] },
 
     {
       type: "exchange", role: "user",
@@ -1514,7 +1514,7 @@ Writing the threat model to \`.checkpoints/oc-security-auditor.checkpoint.json\`
       artifacts: ["mcp-threat-model"],
     },
 
-    { type: "beat", label: "02 · Allowlist + broker", caption: "oc-integrations-engineer designs the controlled deployment", skills: ["oc-integrations-engineer"] },
+    { type: "beat", phase: "operate", label: "02 · Allowlist + broker", caption: "oc-integrations-engineer designs the controlled deployment", skills: ["oc-integrations-engineer"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-integrations-engineer",
@@ -1555,7 +1555,7 @@ A laptop seizure or off-network device sees: no resolution, no Zscaler routing, 
 Local stdio-only MCPs (e.g. a hypothetical local-filesystem MCP — we don't enable it for this rollout) bypass the network entirely. We mitigate that surface (M-3, supply-chain) by allowlisting the binaries that \`mcptl\` distributes through our internal Homebrew tap; no random \`npm install\` of an MCP package on corp laptops.`
     },
 
-    { type: "beat", label: "03 · Audit pipeline", caption: "oc-monitoring-ops wires the SIEM forwarder", skills: ["oc-monitoring-ops"] },
+    { type: "beat", phase: "monitor", label: "03 · Audit pipeline", caption: "oc-monitoring-ops wires the SIEM forwarder", skills: ["oc-monitoring-ops"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-monitoring-ops",
@@ -1594,7 +1594,7 @@ If they ask "show me what engineer X actually saw" (the bodies, not the hashes),
 For a "did MCP cause this?" lookup the regulator would actually do: Splunk gives them the answer cold.`
     },
 
-    { type: "beat", label: "04 · RBAC + rollout", caption: "oc-app-architect runs the wave plan", skills: ["oc-app-architect"] },
+    { type: "beat", phase: "ship", label: "04 · RBAC + rollout", caption: "oc-app-architect runs the wave plan", skills: ["oc-app-architect"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-app-architect",
@@ -1620,7 +1620,7 @@ GA at W15+ with allowlist changes via PR + 2-of-3 sign-off, quarterly RBAC revie
       artifacts: ["rbac-matrix", "rollout-plan"],
     },
 
-    { type: "beat", label: "05 · Compliance attestation", caption: "oc-security-auditor closes with the crosswalk", skills: ["oc-security-auditor"] },
+    { type: "beat", phase: "audit", label: "05 · Compliance attestation", caption: "oc-security-auditor closes with the crosswalk", skills: ["oc-security-auditor"] },
 
     {
       type: "exchange", role: "user",

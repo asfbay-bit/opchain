@@ -844,7 +844,7 @@ This is documented as a TODO; not blocking for v1.
   skills: ["oc-reverse-spec", "oc-app-architect", "oc-code-auditor"],
   runtime: "≈ 14 exchanges",
   steps: [
-    { type: "beat", label: "01 · Survey", caption: "oc-reverse-spec reads the code", skills: ["oc-reverse-spec"] },
+    { type: "beat", phase: "discover", label: "01 · Survey", caption: "oc-reverse-spec reads the code", skills: ["oc-reverse-spec"] },
 
     {
       type: "exchange", role: "user",
@@ -902,7 +902,7 @@ Writing \`.checkpoints/oc-reverse-spec.checkpoint.json\` — 142-page reconstruc
       content: "Yes. The feature is a Carrier scorecard — on-time rate, damage rate, invoice dispute rate — shown to dispatchers when they're picking a carrier for a new load."
     },
 
-    { type: "beat", label: "02 · Plan the new feature", caption: "oc-app-architect reads the spec as baseline", skills: ["oc-app-architect"] },
+    { type: "beat", phase: "plan", label: "02 · Plan the new feature", caption: "oc-app-architect reads the spec as baseline", skills: ["oc-app-architect"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-app-architect",
@@ -949,7 +949,7 @@ Kicking off Sprint 1 with the Generator/Evaluator harness. Pre-flight: \`oc-code
       content: "/approve"
     },
 
-    { type: "beat", label: "03 · Build", caption: "with an extra-strict audit gate", skills: ["oc-app-architect", "oc-code-auditor"] },
+    { type: "beat", phase: "build", label: "03 · Build", caption: "with an extra-strict audit gate", skills: ["oc-app-architect", "oc-code-auditor"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-app-architect",

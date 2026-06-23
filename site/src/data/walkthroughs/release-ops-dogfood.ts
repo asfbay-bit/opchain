@@ -723,6 +723,7 @@ Checkpoint: \`.checkpoints/oc-release-ops.checkpoint.json\` (Phase 5 — shipped
   steps: [
     {
       type: "beat",
+      phase: "ship",
       label: "Sprint 4 just passed evaluator",
       caption: "Three scenarios written, /changelog drafted, version-bump pending. Time to actually ship.",
     },
@@ -857,6 +858,7 @@ Full handoff trace in the artifact.`,
     },
     {
       type: "beat",
+      phase: "ship",
       label: "11:31Z — opchain v1.3.0 shipped (by opchain v1.3.0)",
       caption: "ADEV-306 transitions to Shipped. oc-release-ops checkpoint records the v1.3.0 entry in history[]. The skill ate its own dogfood.",
     },

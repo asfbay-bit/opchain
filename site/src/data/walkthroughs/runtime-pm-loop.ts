@@ -1186,6 +1186,7 @@ Checkpoint: \`.checkpoints/oc-monitoring-ops.checkpoint.json\` → \`audit_pipel
   steps: [
     {
       type: "beat",
+      phase: "monitor",
       label: "09:14Z — alert paged Maya, she filed PLAT-5102",
       caption: "p99 climbed 120ms → 3.4s on /api/customers. The opchain pipeline takes the ticket from here.",
       skills: [],
@@ -1313,6 +1314,7 @@ Bug-check returned PASS (1.1s). PR is mergeable; oc-deploy-ops can take over.`
     },
     {
       type: "beat",
+      phase: "ship",
       label: "10:08Z — staging deploy",
       caption: "Audit gate green. oc-deploy-ops creates PLAT-5103 (deploy ticket) parent-linked to PLAT-5102.",
       skills: ["oc-deploy-ops"],
@@ -1452,6 +1454,7 @@ In the F500 / regulated environments (where the broker is between us and Linear)
     },
     {
       type: "beat",
+      phase: "monitor",
       label: "10:12Z — unrelated incident fires",
       caption: "oc-monitoring-ops opens PLAT-5104 against PLAT-5103 (parent link), demonstrates marker-based dedupe on the burst.",
       skills: ["oc-monitoring-ops"],
@@ -1474,6 +1477,7 @@ Auto-resolves at 10:31:29Z (queue drained; upstream partner-x recovered). Postmo
     },
     {
       type: "beat",
+      phase: "ship",
       label: "11:20Z — release recap",
       caption: "Six skills wrote on this thread. Every comment carries a marker; every retry resolved cleanly.",
     },

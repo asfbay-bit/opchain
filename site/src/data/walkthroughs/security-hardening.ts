@@ -868,7 +868,7 @@ Checkpoint: \`.checkpoints/oc-security-auditor.checkpoint.json\`.`,
   skills: ["oc-security-auditor", "oc-code-auditor", "oc-deploy-ops"],
   runtime: "≈ 11 exchanges",
   steps: [
-    { type: "beat", label: "01 · Threat model", caption: "oc-security-auditor runs STRIDE + OWASP", skills: ["oc-security-auditor"] },
+    { type: "beat", phase: "audit", label: "01 · Threat model", caption: "oc-security-auditor runs STRIDE + OWASP", skills: ["oc-security-auditor"] },
 
     {
       type: "exchange", role: "user",
@@ -922,7 +922,7 @@ Writing \`.checkpoints/oc-security-auditor.checkpoint.json\`.`,
       artifacts: ["threat-model"],
     },
 
-    { type: "beat", label: "02 · Code-level chain", caption: "oc-code-auditor sweeps underneath", skills: ["oc-code-auditor"] },
+    { type: "beat", phase: "audit", label: "02 · Code-level chain", caption: "oc-code-auditor sweeps underneath", skills: ["oc-code-auditor"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-code-auditor",
@@ -948,7 +948,7 @@ CI will fail on any new service-role use from a request handler. The 23 existing
 Chaining back to oc-security-auditor to fold this into the remediation backlog.`
     },
 
-    { type: "beat", label: "03 · Hardening plan", caption: "oc-security-auditor writes the infra playbook", skills: ["oc-security-auditor"] },
+    { type: "beat", phase: "audit", label: "03 · Hardening plan", caption: "oc-security-auditor writes the infra playbook", skills: ["oc-security-auditor"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-security-auditor",
@@ -978,7 +978,7 @@ Writing the hardening plan.`,
       artifacts: ["hardening-plan"],
     },
 
-    { type: "beat", label: "04 · Remediation backlog + deploy gate", caption: "oc-security-auditor hands off to the build pipeline", skills: ["oc-security-auditor", "oc-deploy-ops"] },
+    { type: "beat", phase: "ship", label: "04 · Remediation backlog + deploy gate", caption: "oc-security-auditor hands off to the build pipeline", skills: ["oc-security-auditor", "oc-deploy-ops"] },
 
     {
       type: "exchange", role: "user",

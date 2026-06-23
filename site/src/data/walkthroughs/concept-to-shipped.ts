@@ -934,7 +934,7 @@ Checkpoint: \`.checkpoints/oc-deploy-ops.checkpoint.json\` — includes deploy h
   skills: ["oc-app-architect", "oc-stack-forge", "oc-ux-engineer", "oc-git-ops", "oc-deploy-ops"],
   runtime: "≈ 22 exchanges",
   steps: [
-    { type: "beat", label: "01 · Discover", caption: "oc-app-architect runs the interview", skills: ["oc-app-architect"] },
+    { type: "beat", phase: "discover", label: "01 · Discover", caption: "oc-app-architect runs the interview", skills: ["oc-app-architect"] },
 
     {
       type: "exchange", role: "user",
@@ -991,7 +991,7 @@ I'll advance to **Phase 2 — Spec + Stack**. Auto-invoking \`oc-stack-forge\` f
       content: "/approve"
     },
 
-    { type: "beat", label: "02 · Spec + Stack", caption: "oc-stack-forge picks the stack", skills: ["oc-app-architect", "oc-stack-forge"] },
+    { type: "beat", phase: "spec", label: "02 · Spec + Stack", caption: "oc-stack-forge picks the stack", skills: ["oc-app-architect", "oc-stack-forge"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-stack-forge",
@@ -1030,7 +1030,7 @@ Phase 2 checkpoint written. Ready for **Phase 3 — Design** (auto-invokes \`oc-
       content: "User-local for timezone. Push prompt on first session (not signup). /approve"
     },
 
-    { type: "beat", label: "03 · Design", caption: "oc-ux-engineer builds the style book", skills: ["oc-app-architect", "oc-ux-engineer"] },
+    { type: "beat", phase: "design", label: "03 · Design", caption: "oc-ux-engineer builds the style book", skills: ["oc-app-architect", "oc-ux-engineer"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-ux-engineer",
@@ -1052,7 +1052,7 @@ Writing \`.checkpoints/oc-ux-engineer.checkpoint.json\` with the style book. \`/
       content: "/approve"
     },
 
-    { type: "beat", label: "04 · Roadmap + Scaffold", caption: "sprint plan and runnable skeleton", skills: ["oc-app-architect"] },
+    { type: "beat", phase: "plan", label: "04 · Roadmap + Scaffold", caption: "sprint plan and runnable skeleton", skills: ["oc-app-architect"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-app-architect",
@@ -1075,7 +1075,7 @@ Scaffold generated: 47 files, passing \`pnpm dev\`, schema migrated, \`/auth/mag
       content: "/approve"
     },
 
-    { type: "beat", label: "05 · Build", caption: "Generator → Evaluator sprint loop", skills: ["oc-app-architect"] },
+    { type: "beat", phase: "build", label: "05 · Build", caption: "Generator → Evaluator sprint loop", skills: ["oc-app-architect"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-app-architect",
@@ -1110,7 +1110,7 @@ Sprint 6 · Empty states + /privacy + GA4      passed · 95/100
 All green. Invoking **oc-git-ops** with the full sprint ledger.`
     },
 
-    { type: "beat", label: "06 · Ship", caption: "oc-git-ops → oc-deploy-ops", skills: ["oc-git-ops", "oc-deploy-ops"] },
+    { type: "beat", phase: "ship", label: "06 · Ship", caption: "oc-git-ops → oc-deploy-ops", skills: ["oc-git-ops", "oc-deploy-ops"] },
 
     {
       type: "exchange", role: "claude", skill: "oc-git-ops",
