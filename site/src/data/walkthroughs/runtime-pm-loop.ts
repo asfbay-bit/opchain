@@ -15,15 +15,15 @@ import type { Walkthrough } from "./types";
 export const runtimePmLoop: Walkthrough = {
   id: "runtime-pm-loop",
   title: "Ticket → ship → incident → postmortem on one Linear thread",
-  tagline: "v1.3 hero · runtime PM-MCP loop",
+  tagline: "Runtime PM-MCP loop, audit-ready",
   summary:
-    "v1.3 hero scenario: a real Linear ticket (PLAT-5102) rides the full pipeline. Every MCP call carries an idempotency marker; retries short-circuit; a transient 503 mid-deploy lands a deferred action that flushes cleanly. Six skills, one thread, audit-ready.",
+    "A real Linear ticket (PLAT-5102) rides the full pipeline. Every MCP call carries an idempotency marker; retries short-circuit; a transient 503 mid-deploy lands a deferred action that flushes cleanly. Six skills, one thread, audit-ready.",
   description:
     "OnRamp's customer-list endpoint started timing out at 09:11. PagerDuty paged Maya at 09:13; she filed PLAT-5102 at 09:14 with the alert payload pasted in. By 11:02 the fix is live in prod, the incident ticket is resolved, and the postmortem is published — every step recorded as comments on the Linear thread by the appropriate skill, with idempotency markers so the agent can crash-restart any time without polluting the ticket history. v1.3 swapped v1.2's `mcp.<provider>.<verb>` placeholders for concrete tool names like `mcp__claude_ai_Linear__save_comment` and added a deferred-action queue: when Linear returned a 503 during /oc-deploy prod, the comment was queued in `oc-deploy-ops.checkpoint.json` and flushed two minutes later when Linear came back. The artifact set is the complete Linear timeline (parent ticket + deploy ticket + incident ticket + remediation sub-tickets) plus the four checkpoint files showing how state crossed the skill boundaries.",
   inputs: [
     "Series B SaaS · OnRamp Inc · ~30 engineers · Linear (team PLAT) as system-of-record",
     "On-call engineer Maya files PLAT-5102 from a PagerDuty alert at 09:14",
-    "v1.3 opchain installed · all 18 skills at 1.3.0 · `.opchain/pm.yaml` configured for Linear",
+    "opchain installed · `.opchain/pm.yaml` configured for Linear",
     "Linear MCP server reachable through Claude Code's `mcp.json`",
   ],
   outputs: [
@@ -1182,7 +1182,7 @@ Checkpoint: \`.checkpoints/oc-monitoring-ops.checkpoint.json\` → \`audit_pipel
     "oc-monitoring-ops",
     "oc-integrations-engineer",
   ],
-  runtime: "~12 minutes",
+  runtime: "≈ 14 exchanges",
   steps: [
     {
       type: "beat",
