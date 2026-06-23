@@ -1010,8 +1010,8 @@ Checkpoint reference for this run: \`.checkpoints/oc-deploy-ops.checkpoint.json\
 
 OnRamp is not regulated, so this trace is illustrative — it shows
 what an audit-pipeline forwarder would record if PLAT-5102 had
-ridden through a brokered MCP environment (e.g. the
-mcp-enterprise-f500 scenario). The log is structured per-call with
+ridden through a brokered MCP environment (the kind a HIPAA- or
+FedRAMP-bound deployment runs). The log is structured per-call with
 the protocol §1 \`tool_overrides\` paths in place.
 
 ## Records
@@ -1136,8 +1136,8 @@ Action: investigate; this either means the marker check is failing
   a historical event against the policy in force at the time.
 - **\`args_hash\`** allows "did agent X and agent Y see the same input?"
   forensic correlation without storing the args body in the SIEM.
-  (For PHI / CUI environments, args body is held in a 7-day encrypted
-  trace at the broker — see \`mcp-enterprise-f500\` audit-log artifact.)
+  (For PHI / CUI environments, the args body is held in a 7-day
+  encrypted trace at the broker, decryptable only under dual control.)
 
 ## How this scales to brokered environments
 
@@ -1150,8 +1150,8 @@ when it does:
 - Detection rules run on the hot index.
 - Forensic decrypt (body trace) needs Privacy Officer + IR Lead 2-of-2.
 
-See the F500 scenario's \`audit-log\` artifact for the production-grade
-pipeline this trace illustrates.
+In a regulated deployment this is the production-grade pipeline the
+trace illustrates — the same shape, with the broker and SIEM made real.
 
 Checkpoint: \`.checkpoints/oc-monitoring-ops.checkpoint.json\` → \`audit_pipeline_traces\`.
 `,

@@ -19,28 +19,29 @@ import { expect, test } from "@playwright/test";
  *      the full v1.6 roadmap; Planned leads with v1.7, v1.8, and v1.9
  *      (>= 6 votable items across the page).
  *
- *   2. /demo — the three v1.3 scenarios + the three v1.2 scenarios
- *      remain pickable on /demo. None of the v1.4.x patches (v1.4 / v1.4.2 /
- *      v1.4.3) ship new scenarios — their surfaces are /coverage, the bundle /
- *      checkpoint tooling, and the Codex / MCP install flow, not workbench
- *      artifacts.
+ *   2. /demo — every curated scenario remains pickable on /demo. v1.5
+ *      ("Build the AI app") added the four AI-native scenarios (RAG, agent,
+ *      model migration, AI-safety gate) and retired the two enterprise-MCP
+ *      scenarios + the superseded v1.2 PM scenario + the release dogfood;
+ *      the set holds at twelve.
  */
 
-const v13_SCENARIOS = [
+// Every scenario folder that must remain pickable on /demo — the full set of
+// twelve, kept in lockstep with site/src/data/walkthroughs/index.ts.
+const ALL_PICKABLE = [
+  "concept-to-shipped",
+  "rag-answer-bot",
+  "agent-triage",
+  "model-migration",
+  "ai-safety-gate",
+  "dashboard-rescue",
+  "legacy-revive",
+  "stripe-ship",
+  "postgres-migration",
+  "security-hardening",
   "runtime-pm-loop",
-  "release-ops-dogfood",
   "django-render-shipped",
 ];
-
-const v12_SCENARIOS = [
-  "mcp-enterprise-f500",
-  "mcp-enterprise-defense",
-  "pm-pipeline-linear",
-];
-
-// All scenario folders that must remain pickable on /demo. v1.4 ships
-// no new scenarios; v1.3 and v1.2 stay accessible.
-const ALL_PICKABLE = [...v13_SCENARIOS, ...v12_SCENARIOS];
 
 test.describe("/changelog", () => {
   test("three tabs; Just Released is active with the v1.5 hero open", async ({ page }) => {
@@ -144,7 +145,7 @@ test.describe("/changelog", () => {
   });
 });
 
-test.describe("/demo — v1.3 + v1.2 scenarios pickable", () => {
+test.describe("/demo — all curated scenarios pickable", () => {
   // Mirror demo-workbench.spec.ts: pre-set the welcome popup as seen so
   // its scrim doesn't intercept clicks.
   test.beforeEach(async ({ page }) => {
