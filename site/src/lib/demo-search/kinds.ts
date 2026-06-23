@@ -73,15 +73,15 @@ const EXPLICIT: Record<string, ArtifactKind> = {
 // resilient to new "*.md" docs without a code change for every variant.
 const HEURISTICS: Array<[RegExp, ArtifactKind]> = [
   [/pull-request|(^|[.\/])pr\b|github\.pr|\bpr\.md/, "pull-request"],
-  [/runbook/, "runbook"],
+  [/runbook|playbook/, "runbook"],
   [/threat|audit|compliance|stig|\bato\b|eval|trace|hardening|posture/, "audit"],
-  [/changelog|announce|status|release-note/, "report"],
+  [/changelog|announce|status|release/, "report"],
   [/\.ya?ml$|(^|[.\/])config|csp|\.toml$|\.ini$|render\./, "config"],
   [/\.diff$|\bdiff\b|code\.|\.patch$/, "code"],
-  [/\.log$|ledger|\btree\b|\.csv$|\.json$/, "data"],
+  [/\.log$|ledger|\btree\b|\.csv$|\.jsonl?$|goldset/, "data"],
   [/\bia\b|wireframe|design|mock/, "design"],
   [
-    /spec|architecture|decision|contract|plan|sprint|handoff|rbac|auth|rollout|backlog|allowlist|rules|broker|matrix|overview|tech-stack/,
+    /spec|architecture|decision|contract|plan|sprint|handoff|rbac|auth|rollout|backlog|allowlist|rules|broker|matrix|overview|tech-stack|routing/,
     "spec",
   ],
 ];
