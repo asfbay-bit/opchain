@@ -1,8 +1,8 @@
 # Blog overhaul plan
 
-> Status: **in progress** — page + schema + first content wave shipping in
-> `claude/nice-einstein-3j9lnx`. The editorial backlog below is the durable
-> part; work through it across future sessions.
+> Status: **Wave 1 + Wave 2 shipped.** Page, schema, infra, per-post OG
+> automation, and all 11 flagship posts (#1–#11) are live. Remaining: ongoing
+> cadence (§9 S5) and the v1.6 release narrative (#12) when v1.6 lands.
 >
 > Owner: opchain. Authored via `/oc-app-architect`. Last updated 2026-06-24.
 
@@ -90,16 +90,21 @@ words). The first wave (★) ships with this overhaul.
 | 4 | **v1.5 — Build the AI app** (rewrite of existing) | release | Four AI-native skills, why now, what each closes. Tightened, with the "evaluated artifact" through-line. | "claude code ai skills" |
 | 5 | **Dogfooding has a stopping point** (rewrite of existing rag-forge note) | engineering | Where eating your own cooking is a quality signal vs. theater. Part of the "Dogfooding opchain" series. | "dogfooding software", "rag when not to use vector db" |
 
-### Wave 2 — next
+### Wave 2 — shipped ★
 
-| # | Working title | Pillar | Angle |
+| # | Title (as shipped) | Pillar | Angle |
 |---|---|---|---|
-| 6 | **The skillchain: why 18 small skills beat one big agent** | opinion | Composable, single-responsibility skills vs. monolithic prompts. Unix philosophy for AI dev. |
+| 6 | **Why 22 small skills beat one big agent** | opinion | Composable, single-responsibility skills vs. monolithic prompts. Unix philosophy for AI dev. (Title uses the real skill count, 22 — the plan's "18" was stale.) |
 | 7 | **Migrating a model version without breaking prod** | playbook | oc-claude-api's migration playbook as a narrated, real upgrade with a diff PR. |
 | 8 | **What a checkpoint actually contains** | engineering | Anatomy of `.checkpoint.json` — the schema, why each field exists, how resume works. |
 | 9 | **Vibe coding is fine until it isn't** | opinion | The honest boundary between exploratory vibe coding and shippable engineering. |
-| 10 | **From Django monolith to shipped in an afternoon** | playbook | legacy-revive → reverse-spec → app-architect on a real-ish codebase. |
-| 11 | **How opchain.dev is built with opchain** | engineering | The recursion in full — expand `/uses` into a narrative build log. |
+| 10 | **From Django monolith to shipped in an afternoon** | playbook | reverse-spec → app-architect → deploy on a legacy codebase; migration-ops on the write path. |
+| 11 | **How opchain.dev is built with opchain** | engineering | The recursion in full. Part 3 of the "Dogfooding opchain" series. |
+
+### Wave 3 — backlog
+
+| # | Working title | Pillar | Angle |
+|---|---|---|---|
 | 12 | **v1.6 release narrative** | release | (When v1.6 lands.) |
 
 Each backlog row is a future `/oc-app /oc-build` unit: pick it up, draft, run the
@@ -143,12 +148,16 @@ content surface it didn't have yet.
 - **Reading experience.** Existing `.prose` styles, slightly widened measure for
   long-form, drop-cap-free, generous heading rhythm.
 
-### 6c. Social / OG cards
+### 6c. Social / OG cards — shipped
 
-Schema gains an `image` field. Short term: a shared `/og/blog.png` fallback wired
-through Base for every post. Roadmap: per-post auto-generated OG cards (title +
-pillar on the brand gradient) via a build-time Satori/`@vercel/og` step — tracked
-as a follow-on, not blocking this overhaul.
+Schema gains an `image` field. **Per-post auto-generated OG cards are live**
+(Wave 2): `scripts/gen-og-images.mjs` reads each post's frontmatter and emits a
+branded `/og/blog/<slug>.png` (title word-wrapped, pillar as an accent eyebrow,
+same ember/obsidian template as the route cards). Built with the existing
+SVG→`sharp` pipeline rather than adding a Satori/`@vercel/og` dependency.
+`[slug].astro` defaults `ogImage` to the per-post card; the shared `/og/blog.png`
+remains the index card and the fallback. Cards regenerate every build, so a title
+edit can't drift from its share image.
 
 ## 7. Infra / schema changes
 
@@ -210,11 +219,12 @@ loop's Evaluator:
 
 | Sprint | Scope | Status |
 |---|---|---|
-| **S1 — Foundation** | Schema additions, authors registry, `lib/blog.ts`, RSS enrichment. | shipping now |
-| **S2 — Page redesign** | Index (featured + filter + rich cards) and post template (byline, TOC, series, related, prev/next, bio, JSON-LD). | shipping now |
-| **S3 — First content wave** | Rewrite 2 existing posts + 3 new flagship posts (slate #1–#5), all passing §8. | shipping now |
-| **S4 — OG automation** | Build-time per-post OG card generation (Satori). | backlog |
-| **S5 — Cadence** | Work the Wave-2 backlog (§5); ~2 posts/month, credibility-weighted. | ongoing |
+| **S1 — Foundation** | Schema additions, authors registry, `lib/blog.ts`, RSS enrichment. | ✅ shipped |
+| **S2 — Page redesign** | Index (featured + filter + rich cards) and post template (byline, TOC, series, related, prev/next, bio, JSON-LD). | ✅ shipped |
+| **S3 — First content wave** | Rewrite 2 existing posts + 3 new flagship posts (slate #1–#5), all passing §8. | ✅ shipped |
+| **S4 — OG automation** | Build-time per-post OG card generation (SVG→sharp, not Satori — reuses the existing pipeline). | ✅ shipped |
+| **S5 — Wave-2 content** | Slate #6–#11: 2 opinion, 2 playbook, 2 engineering (one extends the "Dogfooding opchain" series to 3 parts). All passing §8. | ✅ shipped |
+| **S6 — Cadence** | Wave-3 backlog (#12+); ~2 posts/month, credibility-weighted. | ongoing |
 
 ## 10. Success metrics
 
