@@ -256,9 +256,13 @@ export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion 
           capabilities: { tools: {}, prompts: {}, resources: {} },
           serverInfo: { name: "opchain", version: serverVersion },
           instructions:
-            "opchain is a concept→spec→design→build→ship skill pipeline. Call get_orchestrator once, " +
-            "then list_skills or route to pick a skill, then get_skill to load and follow it. " +
-            "Checkpoints persist progress across sessions.",
+            "opchain is a concept→spec→design→build→ship pipeline of skills. " +
+            "On any /oc-* command, or any request to build, spec, design, audit, deploy, or ship " +
+            "software, FIRST call route (or get_skill) to pick the skill, read get_orchestrator once " +
+            "per session, then load the skill's SKILL.md with get_skill and follow it verbatim. " +
+            "Use read_checkpoint/write_checkpoint to resume and persist progress across sessions. " +
+            "Note: /oc-* commands are also exposed as MCP prompts for clients that support them; " +
+            "clients that don't (e.g. Codex) should drive everything through these tools.",
         });
 
       case "ping":
