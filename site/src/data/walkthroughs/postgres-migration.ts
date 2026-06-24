@@ -294,22 +294,22 @@ OPCHAIN STATUS — All Projects
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ▶ taskflow                                  [active]
-  ✅ oc-reverse-spec      complete     Specs backfilled 3 weeks ago
-  ✅ oc-app-architect     complete     v1.2 shipped last month
-  🔄 oc-migration-ops     in_progress  Phase 4/5 — read cutover at 50% PG
-  🔄 oc-monitoring-ops    in_progress  verification gate for Phase 4
-  ✅ oc-deploy-ops        complete     Last ship: flag ramp to 50%
-  ⏳ oc-git-ops           queued       Post-cutover commit pending
+  OK    oc-reverse-spec      complete     Specs backfilled 3 weeks ago
+  OK    oc-app-architect     complete     v1.2 shipped last month
+  RUN   oc-migration-ops     in_progress  Phase 4/5 — read cutover at 50% PG
+  RUN   oc-monitoring-ops    in_progress  verification gate for Phase 4
+  OK    oc-deploy-ops        complete     Last ship: flag ramp to 50%
+  WAIT  oc-git-ops           queued       Post-cutover commit pending
   → Next: wait for oc-monitoring-ops Phase 4 gate, then trigger Phase 5
 
 ▶ gtrackr
-  ✅ oc-app-architect     complete     Sprint 4/4 passed evaluator
-  ⏳ oc-deploy-ops        not started  Blocked on staging QA
+  OK    oc-app-architect     complete     Sprint 4/4 passed evaluator
+  WAIT  oc-deploy-ops        not started  Blocked on staging QA
   → Next: /oc-deploy staging once QA signs off
 
 ▶ heads-down
-  ✅ all skills        complete     v1 shipped last week
-  📊 oc-monitoring-ops    watching     5xx 0.04%, push backlog 12, all green
+  OK    all skills        complete     v1 shipped last week
+  OBS   oc-monitoring-ops    watching     5xx 0.04%, push backlog 12, all green
   → Next: nothing actionable; revisit weekly
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -378,7 +378,7 @@ The oc-orchestrator's own state — the project registry, session cache, history
 
 ## 7. Output format
 
-The status block is plain ASCII (not Markdown) by default — works in any terminal width, copy-pastes into Slack, doesn't require a renderer. The \`✅ 🔄 ⏳ 📊 🚨\` glyphs are unicode emoji that degrade gracefully to text in screen-reader output via \`aria-label\`s.
+The status block is plain ASCII (not Markdown) by default — works in any terminal width, copy-pastes into Slack, and doesn't require a renderer. The \`OK\`, \`RUN\`, \`WAIT\`, \`OBS\`, and \`CRITICAL\` prefixes are plain-text status labels.
 
 ## 8. Refresh cadence
 
@@ -513,16 +513,16 @@ Zero discrepancies across ~350K shadow reads. Latency drift is well under the 15
 
 \`\`\`
 ▶ taskflow                                  [active]
-  ✅ oc-reverse-spec      complete     Specs backfilled 3 weeks ago
-  ✅ oc-app-architect     complete     v1.2 shipped last month
-  🔄 oc-migration-ops     in_progress  Phase 4/5 verified; Phase 5 queued
-  🔄 oc-monitoring-ops    in_progress  watching for Phase 5 gate
-  ✅ oc-deploy-ops        complete     Last ship: read cutover 100%
-  ⏳ oc-git-ops           queued       post-cutover commit pending
+  OK    oc-reverse-spec      complete     Specs backfilled 3 weeks ago
+  OK    oc-app-architect     complete     v1.2 shipped last month
+  RUN   oc-migration-ops     in_progress  Phase 4/5 verified; Phase 5 queued
+  RUN   oc-monitoring-ops    in_progress  watching for Phase 5 gate
+  OK    oc-deploy-ops        complete     Last ship: read cutover 100%
+  WAIT  oc-git-ops           queued       post-cutover commit pending
 
 ▶ gtrackr
-  ✅ oc-app-architect     complete     Sprint 4/4 passed evaluator
-  ⏳ oc-deploy-ops        not started  blocked on QA
+  OK    oc-app-architect     complete     Sprint 4/4 passed evaluator
+  WAIT  oc-deploy-ops        not started  blocked on QA
 \`\`\`
 
 **/oc-ops next →** advance taskflow to Phase 5 (write cutover). The 48-hour dual-read shadow window closes at 15:00 — oc-migration-ops is holding for that before flipping writes.

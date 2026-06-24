@@ -133,7 +133,10 @@ const softwareLd = {
         <p class="stage-sub" data-cover-tagline>{initialCover.tagline}</p>
         <div class="stage-actions">
           {demoEnabled && (
-            <a class="btn btn-primary" href="/demo#workbench">▶ open the workbench</a>
+            <a class="btn btn-primary" href="/demo#workbench">
+              <Icon name="play" size={12} />
+              open the workbench
+            </a>
           )}
           <a class="btn btn-ghost" href="/install">install opchain</a>
         </div>
@@ -166,25 +169,25 @@ const softwareLd = {
       <p class="resources-sub">References and trust signals you'd otherwise have to scroll all the way to the footer to find.</p>
       <div class="res-grid">
         <a class="res-card" href="/skills">
-          <span class="res-icon" aria-hidden="true">⛬</span>
+          <span class="res-icon" aria-hidden="true"><Icon name="puzzle" size={18} /></span>
           <h3>Skills</h3>
           <p>Read the source. Every skill is a single Markdown file you can audit, fork, and rewire.</p>
           <span class="read">read the files ›</span>
         </a>
         <a class="res-card" href="/glossary">
-          <span class="res-icon" aria-hidden="true">📖</span>
+          <span class="res-icon" aria-hidden="true"><Icon name="book-open" size={18} /></span>
           <h3>Glossary</h3>
           <p>Plain-English definitions for every opchain term — checkpoint, tri-agent, audit gate.</p>
           <span class="read">read ›</span>
         </a>
         <a class="res-card" href="/uses">
-          <span class="res-icon" aria-hidden="true">◆</span>
+          <span class="res-icon" aria-hidden="true"><Icon name="cpu" size={18} /></span>
           <h3>How it's built</h3>
           <p>opchain.dev is itself built with opchain. Every commit ran through the gates.</p>
           <span class="read">read ›</span>
         </a>
         <a class="res-card" href="/security">
-          <span class="res-icon" aria-hidden="true">🔒</span>
+          <span class="res-icon" aria-hidden="true"><Icon name="shield" size={18} /></span>
           <h3>Security</h3>
           <p>Threat model, dependency posture, secret handling — what we actually do.</p>
           <span class="read">read ›</span>
@@ -686,8 +689,7 @@ const softwareLd = {
     background: var(--accent-dim);
     color: var(--accent);
     border-radius: 50%;
-    font-family: var(--font-mono);
-    font-size: 16px;
+    flex: 0 0 auto;
   }
   .res-card h3 {
     font-family: var(--font-display);

@@ -71,7 +71,7 @@ window.WALKTHROUGHS = [
         artifacts: ["live"] },
       { type: "exchange", role: "user", content: "Soaked fine overnight. /oc-launch" },
       { type: "exchange", role: "claude", skill: "oc-deploy-ops",
-        content: "Promoted staging → production. headsdown.app live. 0 5xx in first 60 min. 2,627 lines across 6 PRs, $0 infra cost. You shipped. 🚀" },
+        content: "Promoted staging → production. headsdown.app live. 0 5xx in first 60 min. 2,627 lines across 6 PRs, $0 infra cost. You shipped." },
     ],
   },
 
@@ -135,7 +135,7 @@ window.WALKTHROUGHS = [
     ],
     outputs: [
       { id: "spec", label: "Reconstructed spec", kind: "spec.md",
-        body: "Haulier — freight-broker SaaS. 28 models. Dispatcher → Load → Bid ← Carrier; Shipment → Document → Invoice → Payment → Settlement. Risk map highlights: settlement.rb (812 lines, 0 tests, money flow) 🚨, fuel_reindex.rb (no alerting), seeds.rb (hardcoded prod IDs)." },
+        body: "Haulier — freight-broker SaaS. 28 models. Dispatcher → Load → Bid ← Carrier; Shipment → Document → Invoice → Payment → Settlement. Risk map highlights: settlement.rb (812 lines, 0 tests, money flow) CRITICAL, fuel_reindex.rb (no alerting), seeds.rb (hardcoded prod IDs)." },
       { id: "feature", label: "Feature spec", kind: "spec.md",
         body: "Carrier Scorecard. Read-only views over Bids, Shipments, Documents. Three metrics: on-time %, damage %, dispute %. No write paths near Settlement. Behind FLAG_CARRIER_SCORECARD. Rollback: drop the route, drop the column." },
       { id: "audit", label: "Audit gate report", kind: "audit.md",
@@ -150,7 +150,7 @@ window.WALKTHROUGHS = [
       { type: "exchange", role: "claude", skill: "oc-reverse-spec",
         content: "Crawling 47k lines. Reconstructing spec from models, controllers, naming patterns. ETA 12 minutes. Marking confidence per section: ★★★★★ for machine-extractable inventories, ★★★ where I had to infer." },
       { type: "exchange", role: "claude", skill: "oc-reverse-spec",
-        content: "Done. 142-page spec. Risk map: settlement.rb (812 lines, 0 tests, money flow) 🚨. fuel_reindex.rb (nightly, no alerting). seeds.rb (hardcoded prod Carrier IDs — delete before prod). Three open questions flagged in honest uncertainty.",
+        content: "Done. 142-page spec. Risk map: settlement.rb (812 lines, 0 tests, money flow) CRITICAL. fuel_reindex.rb (nightly, no alerting). seeds.rb (hardcoded prod Carrier IDs — delete before prod). Three open questions flagged in honest uncertainty.",
         artifacts: ["spec"] },
 
       { type: "beat", label: "02 · Plan the new feature", caption: "oc-app-architect reads the spec as baseline", skills: ["oc-app-architect"] },

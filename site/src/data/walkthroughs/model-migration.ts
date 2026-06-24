@@ -112,8 +112,8 @@ Diff PR open. The behavioral question — does 4.6 extract as well as 4.5? — i
 | Clause extraction precision | 0.93 | 0.95 | **+2** | better |
 | Risk-flag precision | 0.88 | 0.91 | **+3** | better |
 | Risk-flag recall | 0.85 | 0.86 | +1 | better |
-| **Citation-span exactness (all clauses)** | 0.90 | 0.87 | **−3** | ⚠ regression |
-| — of which: \`indemnification\` clauses | 0.92 | 0.84 | **−8** | 🔴 the real regression |
+| **Citation-span exactness (all clauses)** | 0.90 | 0.87 | **−3** | WARN regression |
+| — of which: \`indemnification\` clauses | 0.92 | 0.84 | **−8** | CRITICAL regression |
 | Schema-valid JSON rate | 0.997 | 1.000 | +0.3 | better |
 | Cost / contract | \$0.041 | \$0.038 | −7% | cheaper |
 | p95 latency | 4.1 s | 3.6 s | −12% | faster |
@@ -298,8 +298,8 @@ First the diff makes model selection **config, not a literal** (so the swap *and
  risk-flag precision      0.88 → 0.91   +3   better
  cost / contract          $0.041 → $0.038  -7%
  p95 latency              4.1s → 3.6s   -12%
- citation-span exactness  0.90 → 0.87   -3   ⚠ regression
-   └─ indemnification     0.92 → 0.84   -8   🔴 the real one
+ citation-span exactness  0.90 → 0.87   -3   WARN regression
+   └─ indemnification     0.92 → 0.84   -8   CRITICAL regression
 \`\`\`
 
 Almost everything improves — **except citation spans regressed, concentrated in indemnification clauses.** Root cause: 4.6 took your prompt literally and returned the operative sentence instead of the full clause; 4.5 was inferring "full clause" from looser wording. That's an under-specified prompt the old model was forgiving about — not a model defect.

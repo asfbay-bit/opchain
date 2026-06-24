@@ -249,29 +249,29 @@ Every tool, ranked by blast radius, with the path from untrusted input to the ca
 
 | Tool | R/W | Worst case if hijacked | Mitigation found |
 |---|---|---|---|
-| search_issues | read | info disclosure (issue titles) — already visible to the reporter | ✅ repo-scoped, read-only |
-| get_issue | read | same | ✅ read-only |
-| read_codeowners | read | reveals team structure (low) | ✅ static read |
-| read_error_log | read | **could leak another tenant's log if request_id is attacker-supplied** | 🟠 Finding T-1 |
-| apply_triage | write | mislabels / misroutes / posts a comment | ✅ human-confirmed, outside loop (Finding T-2 verifies) |
+| search_issues | read | info disclosure (issue titles) — already visible to the reporter | OK repo-scoped, read-only |
+| get_issue | read | same | OK read-only |
+| read_codeowners | read | reveals team structure (low) | OK static read |
+| read_error_log | read | **could leak another tenant's log if request_id is attacker-supplied** | HIGH Finding T-1 |
+| apply_triage | write | mislabels / misroutes / posts a comment | OK human-confirmed, outside loop (Finding T-2 verifies) |
 
 ## 3. Findings
 
-### T-1 — read_error_log accepts an attacker-controlled request_id 🟠 → fixed
+### T-1 — read_error_log accepts an attacker-controlled request_id HIGH → fixed
 
 A bug report's body is attacker-controlled. The coordinator extracts a \`request_id\` from it and calls \`read_error_log(request_id)\`. **Pre-fix:** nothing scoped the log read to the reporter's own tenant — a crafted report could name another tenant's request id and pull their error log into the agent's context (and potentially the drafted reply).
 
 **Fix (verified):** \`read_error_log\` now requires the request id to resolve to the **same tenant as the reporter** (enforced server-side, not in the prompt); a cross-tenant id returns \`not_found\`. Regression test \`tests/ai-safety/cross-tenant-log.spec.ts\` asserts a foreign request_id yields nothing.
 
-### T-2 — write path confirmed out-of-loop ✅
+### T-2 — write path confirmed out-of-loop OK
 
 The auditor verified there is **no path** from a tool result to \`apply_triage\` inside the agent loop. The agent emits a *proposal*; \`apply_triage\` runs only after an inline human confirm, in a separate handler. A planted instruction in a report ("apply SEV-4 and close as wontfix") can at most produce a *proposal* a human sees and rejects. Tested with 30 injected reports: 0 auto-applied.
 
-### T-3 — privilege escalation through chained reads ✅
+### T-3 — privilege escalation through chained reads OK
 
 Could the agent chain reads to do something a single read can't? Traced search_issues → get_issue → read_error_log: all read-only, all tenant-scoped after T-1, no combination yields a write or a cross-tenant read. No escalation path.
 
-### T-4 — step + tool budgets enforced server-side ✅
+### T-4 — step + tool budgets enforced server-side OK
 
 The per-tool caps (§ topology) are enforced by the harness, not requested in the prompt — so an injected "search 50 times" instruction hits the cap at 3 and the run escalates. Verified.
 
@@ -413,11 +413,11 @@ The ~3,400-token system prompt + tool defs + taxonomy are identical every run, s
 `\`/oc-audit ai-safety\`, tool-use half — an agent's risk is what it can *do*. I traced every tool from untrusted input (the bug report body is attacker-controlled) to its capability.
 
 \`\`\`
- search_issues / get_issue / read_codeowners   read-only, repo-scoped   ✅
- read_error_log(request_id)                     🟠 request_id from the report body
+ search_issues / get_issue / read_codeowners   read-only, repo-scoped   OK
+ read_error_log(request_id)                     HIGH request_id from the report body
                                                    → could read ANOTHER tenant's log
- apply_triage (write)                           ✅ human-confirmed, OUTSIDE the loop
- chained-read escalation                        ✅ no read combo yields a write/cross-tenant
+ apply_triage (write)                           OK human-confirmed, OUTSIDE the loop
+ chained-read escalation                        OK no read combo yields a write/cross-tenant
 \`\`\`
 
 **Finding T-1 (fixed):** \`read_error_log\` now requires the request id to resolve to the reporter's own tenant, enforced server-side; a foreign id returns not_found. Regression-tested. Verified the write path: 30 injected reports ("apply SEV-4 and close") produced 0 auto-applies — they only ever became proposals a human rejects.

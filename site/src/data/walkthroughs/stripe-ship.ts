@@ -493,69 +493,69 @@ Total: **1,489 lines added**, 7 deleted, across **22 files**.
 
 ## 2. Security
 
-- ✅ **Webhook endpoint verifies signature on raw body** (not parsed). Confirmed \`req.text()\` is read before any JSON parse; type-checked.
-- ✅ **No secret leakage.** \`STRIPE_SECRET\` never logged (verified by grep on the diff); never reaches the client bundle (verified by bundle inspection — \`STRIPE_PUBLIC\` only in client output).
-- ✅ **CSRF.** \`/api/billing/checkout\` requires an authenticated session + same-origin check (\`Origin\` header); no CSRF token needed because it's same-origin JSON.
-- ✅ **No SSRF.** Webhook handler doesn't issue any outbound HTTP based on payload content.
-- ✅ **Customer Portal redirects** use Stripe-signed short-lived URLs; we never construct portal URLs by hand.
-- ⚠ **Rate-limit** on \`/api/billing/webhook\` is 60/min. Stripe can burst to 150/min during incident retries.
+- OK **Webhook endpoint verifies signature on raw body** (not parsed). Confirmed \`req.text()\` is read before any JSON parse; type-checked.
+- OK **No secret leakage.** \`STRIPE_SECRET\` never logged (verified by grep on the diff); never reaches the client bundle (verified by bundle inspection — \`STRIPE_PUBLIC\` only in client output).
+- OK **CSRF.** \`/api/billing/checkout\` requires an authenticated session + same-origin check (\`Origin\` header); no CSRF token needed because it's same-origin JSON.
+- OK **No SSRF.** Webhook handler doesn't issue any outbound HTTP based on payload content.
+- OK **Customer Portal redirects** use Stripe-signed short-lived URLs; we never construct portal URLs by hand.
+- WARN **Rate-limit** on \`/api/billing/webhook\` is 60/min. Stripe can burst to 150/min during incident retries.
     **→ Recommendation:** raise to 300/min **or** switch to Stripe IP allow-list (preferred — see [Stripe docs](https://stripe.com/docs/webhooks#verify-ip)).
-- ✅ **\`/api/billing/checkout\` rate-limit** at 5/min/user — adequate.
-- ✅ **Webhook secret rotation procedure** documented in the runbook (rotate via Stripe dashboard → update \`STRIPE_WEBHOOK_SECRET\` env → no code change).
+- OK **\`/api/billing/checkout\` rate-limit** at 5/min/user — adequate.
+- OK **Webhook secret rotation procedure** documented in the runbook (rotate via Stripe dashboard → update \`STRIPE_WEBHOOK_SECRET\` env → no code change).
 
 ## 3. Correctness
 
-- ✅ Handlers idempotent on \`stripe_event_id\` (unique index confirmed in migration).
-- ✅ Seat-sync uses \`subscription_items.update\` (not \`replace_all\`) — verified by inspecting the SDK call. Doesn't clobber unrelated line items.
-- ✅ Race between \`checkout.completed\` webhook and user closing tab: handled via \`billing_status = 'pending'\` → \`'active'\` transition.
-- ✅ Race between two parallel webhook deliveries: idempotency ledger short-circuits the second; verified via concurrent fixture test.
-- ✅ Race between seat-sync from cron and seat-sync from member-add: serialised on a row-level lock on \`Team\`; verified.
-- ✅ \`subscription_items.update\` is called with \`proration_behavior: "create_prorations"\` — explicit, not Stripe-default.
+- OK Handlers idempotent on \`stripe_event_id\` (unique index confirmed in migration).
+- OK Seat-sync uses \`subscription_items.update\` (not \`replace_all\`) — verified by inspecting the SDK call. Doesn't clobber unrelated line items.
+- OK Race between \`checkout.completed\` webhook and user closing tab: handled via \`billing_status = 'pending'\` → \`'active'\` transition.
+- OK Race between two parallel webhook deliveries: idempotency ledger short-circuits the second; verified via concurrent fixture test.
+- OK Race between seat-sync from cron and seat-sync from member-add: serialised on a row-level lock on \`Team\`; verified.
+- OK \`subscription_items.update\` is called with \`proration_behavior: "create_prorations"\` — explicit, not Stripe-default.
 
 ## 4. Money flow (supplementary pass)
 
 This is the extra-strict pass on the money path. Every claim is backed by a concrete check.
 
-- ✅ **No proration path without explicit toggle.** \`billing_cycle_anchor\` is never set in any handler (grep confirmed); only \`subscription_items.update\` uses \`proration_behavior\` and it's explicit.
-- ✅ \`subscription.deleted\` → \`billing_status = 'canceled'\`, never \`NULL\`. Absent status would fail open (we'd treat the user as paying); verified by route test that asserts BillingStatus.status is non-null after handler.
-- ✅ \`invoice.payment_failed\` → \`billing_status = 'past_due'\`. UI gate in \`lib/billing/billing-gate.ts\` confirmed in route tests; mutation routes return 402 with portal CTA.
-- ✅ \`invoice.payment_succeeded\` clears past_due if set. Verified by sequence test (\`payment_failed → past_due → payment_succeeded → active\`).
-- ✅ **No refund path in scope.** Refund handling is deliberately out of v1 — documented in the contract, not silently missing. The launch plan documents the manual-via-dashboard procedure.
-- ✅ **No double-charge surface.** F2 (user closes tab) leaves \`billing_status='pending'\`; the abandoned-checkout reconciler flips to \`free\` after 1h. No second checkout can race because rate-limit + UI gating.
-- ✅ **No silent currency change.** USD-only enforced by Price configuration in Stripe; no client input controls currency.
-- ✅ **Tax rounding consistency.** Stripe handles tax computation; we never round in our code path.
+- OK **No proration path without explicit toggle.** \`billing_cycle_anchor\` is never set in any handler (grep confirmed); only \`subscription_items.update\` uses \`proration_behavior\` and it's explicit.
+- OK \`subscription.deleted\` → \`billing_status = 'canceled'\`, never \`NULL\`. Absent status would fail open (we'd treat the user as paying); verified by route test that asserts BillingStatus.status is non-null after handler.
+- OK \`invoice.payment_failed\` → \`billing_status = 'past_due'\`. UI gate in \`lib/billing/billing-gate.ts\` confirmed in route tests; mutation routes return 402 with portal CTA.
+- OK \`invoice.payment_succeeded\` clears past_due if set. Verified by sequence test (\`payment_failed → past_due → payment_succeeded → active\`).
+- OK **No refund path in scope.** Refund handling is deliberately out of v1 — documented in the contract, not silently missing. The launch plan documents the manual-via-dashboard procedure.
+- OK **No double-charge surface.** F2 (user closes tab) leaves \`billing_status='pending'\`; the abandoned-checkout reconciler flips to \`free\` after 1h. No second checkout can race because rate-limit + UI gating.
+- OK **No silent currency change.** USD-only enforced by Price configuration in Stripe; no client input controls currency.
+- OK **Tax rounding consistency.** Stripe handles tax computation; we never round in our code path.
 
 ## 5. Performance
 
-- ✅ Webhook handler p99: **86 ms** in staging benchmarking (well under the 800ms invariant).
-- ✅ Customer Portal redirect p99: **142 ms** (Stripe API round-trip).
-- ✅ \`BillingStatus\` reads are indexed on PK \`(ownerType, ownerId)\`; no full scans.
-- ✅ Seat-sync 95th percentile: **310 ms** end-to-end (read DB + Stripe API + write DB).
+- OK Webhook handler p99: **86 ms** in staging benchmarking (well under the 800ms invariant).
+- OK Customer Portal redirect p99: **142 ms** (Stripe API round-trip).
+- OK \`BillingStatus\` reads are indexed on PK \`(ownerType, ownerId)\`; no full scans.
+- OK Seat-sync 95th percentile: **310 ms** end-to-end (read DB + Stripe API + write DB).
 
 ## 6. Style
 
-- ✅ ESLint clean.
-- ✅ Prettier clean.
-- ✅ TypeScript strict; no \`any\` in the diff.
-- ✅ No \`@ts-ignore\` / \`@ts-expect-error\`.
-- ✅ The \`no-restricted-imports\` rule for \`stripe\` outside \`lib/billing/\` is in the lint config and CI-gated.
+- OK ESLint clean.
+- OK Prettier clean.
+- OK TypeScript strict; no \`any\` in the diff.
+- OK No \`@ts-ignore\` / \`@ts-expect-error\`.
+- OK The \`no-restricted-imports\` rule for \`stripe\` outside \`lib/billing/\` is in the lint config and CI-gated.
 
 ## 7. Tests
 
-- ✅ **22 contract tests + 14 handler tests + 6 E2E** in Stripe **test mode** with the fixture clock. All green.
-- ✅ Fixture clock used — deterministic. No sleeps, no retries-that-hide-bugs.
-- ✅ Coverage: 96% line, 91% branch on the billing diff.
-- ⚠ **Missing coverage.** No test for "user closes tab mid-Checkout, returns next day." Absent, we can't prove we don't double-charge.
+- OK **22 contract tests + 14 handler tests + 6 E2E** in Stripe **test mode** with the fixture clock. All green.
+- OK Fixture clock used — deterministic. No sleeps, no retries-that-hide-bugs.
+- OK Coverage: 96% line, 91% branch on the billing diff.
+- WARN **Missing coverage.** No test for "user closes tab mid-Checkout, returns next day." Absent, we can't prove we don't double-charge.
     **→ Recommendation:** add \`abandoned-checkout-recovery.e2e.ts\` covering the 1-hour timeout → \`free\` fallback.
 
 ## 8. Operability
 
-- ✅ Structured logs on every webhook (event type, owner, duration, idempotent-replay flag).
-- ✅ Sentry breadcrumbs on each handler.
-- ✅ Slack alert on \`StripeEvent.attemptCount > 3\` for any single event.
-- ✅ Slack alert on \`billing_status='past_due'\` for any team with > 3 members (high-impact).
-- ✅ Documented runbook for the launch (separate artifact).
-- ✅ Rollback procedure: flip \`FLAG_STRIPE_LIVE\` off; existing subs continue billing in Stripe.
+- OK Structured logs on every webhook (event type, owner, duration, idempotent-replay flag).
+- OK Sentry breadcrumbs on each handler.
+- OK Slack alert on \`StripeEvent.attemptCount > 3\` for any single event.
+- OK Slack alert on \`billing_status='past_due'\` for any team with > 3 members (high-impact).
+- OK Documented runbook for the launch (separate artifact).
+- OK Rollback procedure: flip \`FLAG_STRIPE_LIVE\` off; existing subs continue billing in Stripe.
 
 ## 9. Overall (initial gate)
 
@@ -876,7 +876,7 @@ Contract tests: 22 passing. Every handler has an idempotency test (replay the sa
    ✓ webhook endpoint verifies signature on raw body (not parsed)
    ✓ no secret leakage: STRIPE_SECRET never logged, never client-shipped
    ✓ CSRF: checkout endpoint requires session + same-origin check
-   ⚠ rate-limit on /api/billing/webhook is 60/min; Stripe can burst to 150
+   WARN rate-limit on /api/billing/webhook is 60/min; Stripe can burst to 150
        recommendation: raise to 300/min or use IP allow-list
 
  correctness

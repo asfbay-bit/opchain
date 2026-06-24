@@ -71,7 +71,7 @@ Shipper ──▶ Load ──▶ Bid ◀── Carrier
               │                          │
               │                          └──▶ Invoice ──▶ Payment
               │                                  │
-              │                                  └──▶ Settlement  ⚠ fragile
+              │                                  └──▶ Settlement  WARN fragile
               ▼
           Dispatcher (user)
 \`\`\`
@@ -279,14 +279,14 @@ Top 10 by row count:
 
 The original spec excerpt covered the top 10. The full oc-reverse-spec found 30 load-bearing risks ranked by *fragility* × *blast radius*. This is the working backlog any successor team should triage first.
 
-1. **\`app/models/settlement.rb\`** — 812 lines, 6 callbacks, **0 tests**. Money flow. The single highest-risk file in the repo. 🚨
+1. **\`app/models/settlement.rb\`** — 812 lines, 6 callbacks, **0 tests**. Money flow. The single highest-risk file in the repo. CRITICAL
 2. **\`app/jobs/fuel_reindex.rb\`** — runs nightly, no failure alerting; silent failure → stale bid prices for 24h.
 3. **\`app/controllers/api/v2/loads_controller.rb\`** — 19 endpoints, long methods (avg 84 LoC), partially migrated from v1.
 4. **\`app/models/invoice.rb\`** — multi-step state machine; good test coverage but 7 callbacks deep — touch with care.
 5. **\`app/services/settlement_runner.rb\`** — batched job, transactional. Failure mid-batch leaves partial Settlements written. (★★★ uncertain — no test confirms transaction wraps the loop.)
 6. **\`app/models/bid.rb\`** — no validation on negative prices (latent bug; a Carrier could in theory submit a negative bid).
 7. **\`app/jobs/invoice_delinquency_nudge.rb\`** — timezone bug in tests (currently \`skip\`-ped); production runs in broker-local but tests assume UTC.
-8. **\`db/seeds.rb\`** — hardcodes production Carrier ids (🚨 must not run on prod).
+8. **\`db/seeds.rb\`** — hardcodes production Carrier ids (CRITICAL must not run on prod).
 9. **\`app/controllers/dispatchers_controller.rb\`** — mass-assignment via strong_params; \`permit!\` used in one path. Audit before adding any new field.
 10. **\`app/models/carrier.rb\`** — scope \`active\` includes soft-deleted in prod (off-by-one in the chained \`.where.not(deleted_at: nil)\` is inverted).
 11. **\`app/admin/settlements.rb\`** — Active Admin exposes Settlement to two SuperAdmins; no AuditLog on Active Admin actions.
@@ -408,14 +408,14 @@ A composite hides trade-offs (cheap-but-late vs. on-time-but-pricey is a real ch
 Each option shows a 3-glyph strip:
 
 \`\`\`
- Big Rig Logistics      ⏱ 94%   ▲ 1.2%   ✎ 0.3%     [12 shipments]
- Mountain Freight       ⏱ 82%   ▲ 4.0%   ✎ 2.1%     [44 shipments]
- SmallCo Hauling        ⏱ 99%   ▲ 0.0%   ✎ 0.0%     [3 shipments · low data]
+ Big Rig Logistics      time 94%   ▲ 1.2%   ✎ 0.3%     [12 shipments]
+ Mountain Freight       time 82%   ▲ 4.0%   ✎ 2.1%     [44 shipments]
+ SmallCo Hauling        time 99%   ▲ 0.0%   ✎ 0.0%     [3 shipments · low data]
 \`\`\`
 
 - Hover → full breakdown tooltip with raw numerator/denominator.
 - Click the metric → deep-dive modal with the historical trend (sparkline + table view, last 12 weeks).
-- Glyphs: \`⏱\` on-time, \`▲\` damage (think "warning triangle"), \`✎\` dispute (think "edit / contention").
+- Glyphs: \`time\` on-time, \`▲\` damage (think "warning triangle"), \`✎\` dispute (think "edit / contention").
 
 ### 4.2 Secondary surface: Carrier index page
 
@@ -608,22 +608,22 @@ Total: **612** lines added, **0** removed, across **14** files + **2** migration
 
 ## 2. Security
 
-- ✅ **No new user-input surfaces.** The only new endpoint is an internal scope via Ransack; no raw params enter SQL.
-- ✅ **No SQL interpolation.** Scope uses parameterized fragments. \`?min_on_time=80\` is parsed as Float and clamped to [0, 100].
-- ✅ **Mass assignment.** New columns are not permitted in any \`_params\` method. Verified by grepping every \`permit(\` call site.
-- ✅ **Authorization.** \`CarrierScorecard\` is read-only; Pundit policy restricts access to \`Dispatcher\` role. SuperAdmin sees aggregate dashboard, not per-Carrier scorecards.
-- ✅ **Pundit verify_authorized.** The new controller actions invoke \`authorize @carrier_scorecard\` — verified by static check (\`bundle exec pundit-matchers\`).
-- ✅ **No PII in logs.** The new code logs only carrier_id (already an internal id, not surfaced in URLs).
-- ✅ **Rate-limiting.** Picker endpoint inherits the existing \`rack-attack\` 600/hr/user rule.
+- OK **No new user-input surfaces.** The only new endpoint is an internal scope via Ransack; no raw params enter SQL.
+- OK **No SQL interpolation.** Scope uses parameterized fragments. \`?min_on_time=80\` is parsed as Float and clamped to [0, 100].
+- OK **Mass assignment.** New columns are not permitted in any \`_params\` method. Verified by grepping every \`permit(\` call site.
+- OK **Authorization.** \`CarrierScorecard\` is read-only; Pundit policy restricts access to \`Dispatcher\` role. SuperAdmin sees aggregate dashboard, not per-Carrier scorecards.
+- OK **Pundit verify_authorized.** The new controller actions invoke \`authorize @carrier_scorecard\` — verified by static check (\`bundle exec pundit-matchers\`).
+- OK **No PII in logs.** The new code logs only carrier_id (already an internal id, not surfaced in URLs).
+- OK **Rate-limiting.** Picker endpoint inherits the existing \`rack-attack\` 600/hr/user rule.
 
 ## 3. Performance
 
-- ✅ \`EXPLAIN ANALYZE\` on the hot query — **38 ms p95** over the 1.2M-shipment staging dump.
-- ✅ Index coverage — the materialized view hits a unique index on \`(carrier_id)\`; the filtered ordering hits the secondary index on \`on_time_rate\`. No seq scans.
-- ✅ Backfill — one-shot migration on 1.2M rows runs in **~14 s** on a t3.large in staging; runs in < 60 s on prod dimensions. Idempotent (safe to re-run).
-- ✅ \`CONCURRENTLY\` REFRESH measured at **18 s p99** on staging; runs without taking the table lock.
-- ✅ Picker page weight change: **+1.1 KB gzipped** (mostly the Stimulus controller + the SVG glyphs).
-- ✅ No N+1 — \`includes(:carrier_scorecard)\` on the picker query.
+- OK \`EXPLAIN ANALYZE\` on the hot query — **38 ms p95** over the 1.2M-shipment staging dump.
+- OK Index coverage — the materialized view hits a unique index on \`(carrier_id)\`; the filtered ordering hits the secondary index on \`on_time_rate\`. No seq scans.
+- OK Backfill — one-shot migration on 1.2M rows runs in **~14 s** on a t3.large in staging; runs in < 60 s on prod dimensions. Idempotent (safe to re-run).
+- OK \`CONCURRENTLY\` REFRESH measured at **18 s p99** on staging; runs without taking the table lock.
+- OK Picker page weight change: **+1.1 KB gzipped** (mostly the Stimulus controller + the SVG glyphs).
+- OK No N+1 — \`includes(:carrier_scorecard)\` on the picker query.
 
 ### EXPLAIN excerpt
 
@@ -639,44 +639,44 @@ Execution Time: 38.7 ms
 
 ## 4. Correctness
 
-- ✅ **Idempotent refresh.** \`ScorecardRefresh\` uses \`REFRESH MATERIALIZED VIEW CONCURRENTLY\`; re-runs are safe and don't take a write lock.
-- ✅ **Timezone.** Windows computed in UTC inside the view; display converted to Dispatcher-local via existing \`TimezoneConcern\`. No naive timestamps cross boundaries.
-- ✅ **Null-handling.** Carriers with zero shipments show \`—\` with a tooltip, not a division-by-zero crash. The view uses \`NULLIF(denominator, 0)\` so the underlying float is \`NULL\`, not \`Inf\` or \`NaN\`.
-- ✅ **Low-data badge.** Shown when \`shipments_90d < 5\` — chosen empirically (below 5, the metric variance is too high to be useful).
-- ✅ **Filter clamping.** \`?min_on_time=200\` → clamped to 100. \`?min_on_time=-5\` → clamped to 0. \`?min_on_time=foo\` → falls back to default (off).
+- OK **Idempotent refresh.** \`ScorecardRefresh\` uses \`REFRESH MATERIALIZED VIEW CONCURRENTLY\`; re-runs are safe and don't take a write lock.
+- OK **Timezone.** Windows computed in UTC inside the view; display converted to Dispatcher-local via existing \`TimezoneConcern\`. No naive timestamps cross boundaries.
+- OK **Null-handling.** Carriers with zero shipments show \`—\` with a tooltip, not a division-by-zero crash. The view uses \`NULLIF(denominator, 0)\` so the underlying float is \`NULL\`, not \`Inf\` or \`NaN\`.
+- OK **Low-data badge.** Shown when \`shipments_90d < 5\` — chosen empirically (below 5, the metric variance is too high to be useful).
+- OK **Filter clamping.** \`?min_on_time=200\` → clamped to 100. \`?min_on_time=-5\` → clamped to 0. \`?min_on_time=foo\` → falls back to default (off).
 
 ## 5. Settlement model — explicit verification (money-flow pass)
 
 This is the **extra-strict** pass mandated by the project context (the only engineer who knew \`settlement.rb\` is leaving in 3 weeks; the file has 0 tests and 6 callbacks). Anything in this diff that touched it would be a hard fail.
 
-- ✅ **Zero diff lines** touch \`app/models/settlement.rb\` or any of its callbacks.
-- ✅ **Zero diff lines** touch \`app/services/settlement_runner.rb\`, \`app/jobs/weekly_settlement_run.rb\`, \`app/models/settlement_line_item.rb\`.
-- ✅ **Zero query paths** join \`settlements\` table. Grep confirms no \`JOIN settlements\` or \`Settlement.\` references in the diff (including ERB partials and Ruby string heredocs).
-- ✅ **Foreign-key scan** — the materialized view references \`shipments\`, \`claims\`, \`invoices\`. Not \`payments\` or \`settlements\`.
-- ✅ **Active Admin scan** — no new Active Admin registration; no new admin can edit Settlement.
-- ✅ **Background job scan** — \`scorecard_refresh.rb\` operates on the new view only; doesn't enqueue or dequeue any \`Settlement*\` job.
-- ✅ **Pundit policy scan** — no new \`SettlementPolicy\` change; existing access control unchanged.
+- OK **Zero diff lines** touch \`app/models/settlement.rb\` or any of its callbacks.
+- OK **Zero diff lines** touch \`app/services/settlement_runner.rb\`, \`app/jobs/weekly_settlement_run.rb\`, \`app/models/settlement_line_item.rb\`.
+- OK **Zero query paths** join \`settlements\` table. Grep confirms no \`JOIN settlements\` or \`Settlement.\` references in the diff (including ERB partials and Ruby string heredocs).
+- OK **Foreign-key scan** — the materialized view references \`shipments\`, \`claims\`, \`invoices\`. Not \`payments\` or \`settlements\`.
+- OK **Active Admin scan** — no new Active Admin registration; no new admin can edit Settlement.
+- OK **Background job scan** — \`scorecard_refresh.rb\` operates on the new view only; doesn't enqueue or dequeue any \`Settlement*\` job.
+- OK **Pundit policy scan** — no new \`SettlementPolicy\` change; existing access control unchanged.
 
 The Settlement clean-diff stamp (separate artifact) is the machine-verifiable receipt of this pass.
 
 ## 6. Style
 
-- ✅ **RuboCop clean** — 0 offences. Run with \`bundle exec rubocop --parallel\`.
-- ✅ **Brakeman clean** — 0 warnings, 0 errors. Run with \`bundle exec brakeman -q\`.
-- ✅ **Stimulus controller** 17 lines, keyboard-accessible (Tab, Enter, Space all work), respects \`prefers-reduced-motion\` (skips the slider's settle animation).
-- ✅ **ERB partial** uses \`html_safe\`-on-helpers, never on user input. No raw interpolation.
-- ✅ **No \`raw\`** calls in any new view; everything passes through Rails' default escaping.
-- ✅ **No new \`config.eager_load = false\`** in env files.
-- ✅ **i18n** — new strings live in \`config/locales/en.yml\`; no inline strings in views.
+- OK **RuboCop clean** — 0 offences. Run with \`bundle exec rubocop --parallel\`.
+- OK **Brakeman clean** — 0 warnings, 0 errors. Run with \`bundle exec brakeman -q\`.
+- OK **Stimulus controller** 17 lines, keyboard-accessible (Tab, Enter, Space all work), respects \`prefers-reduced-motion\` (skips the slider's settle animation).
+- OK **ERB partial** uses \`html_safe\`-on-helpers, never on user input. No raw interpolation.
+- OK **No \`raw\`** calls in any new view; everything passes through Rails' default escaping.
+- OK **No new \`config.eager_load = false\`** in env files.
+- OK **i18n** — new strings live in \`config/locales/en.yml\`; no inline strings in views.
 
 ## 7. Tests
 
-- ✅ **38 new RSpec examples**, 100% line coverage on the diff (verified by SimpleCov).
-- ✅ **Contract test** for \`?min_on_time=80\` query param — asserts the URL is bookmarkable.
-- ✅ **Fixture builders** for "zero-shipments" and "one-shipment" edge cases.
-- ✅ **System spec** with Capybara + Selenium covers the picker flow end-to-end including keyboard navigation.
-- ✅ **a11y test** — \`axe-rspec\` matcher run on the picker page; 0 violations.
-- ✅ **Performance regression** — Capybara assertion that the picker render time is < 200 ms in CI (it's 88 ms on the test rig).
+- OK **38 new RSpec examples**, 100% line coverage on the diff (verified by SimpleCov).
+- OK **Contract test** for \`?min_on_time=80\` query param — asserts the URL is bookmarkable.
+- OK **Fixture builders** for "zero-shipments" and "one-shipment" edge cases.
+- OK **System spec** with Capybara + Selenium covers the picker flow end-to-end including keyboard navigation.
+- OK **a11y test** — \`axe-rspec\` matcher run on the picker page; 0 violations.
+- OK **Performance regression** — Capybara assertion that the picker render time is < 200 ms in CI (it's 88 ms on the test rig).
 
 | Test file | Examples | Coverage |
 |---|---:|---:|
@@ -686,7 +686,7 @@ The Settlement clean-diff stamp (separate artifact) is the machine-verifiable re
 
 ## 8. Dependencies
 
-- ⚠ **New gem:** \`scenic\` (1.7.0). Rails idiom for materialized views.
+- WARN **New gem:** \`scenic\` (1.7.0). Rails idiom for materialized views.
   - Verified on the allow-list (\`bundle audit\` clean).
   - Last release: 3 months ago. Maintainer: thoughtbot. Active.
   - License: MIT. No copyleft contamination.
@@ -694,12 +694,12 @@ The Settlement clean-diff stamp (separate artifact) is the machine-verifiable re
 
 ## 9. Operability
 
-- ✅ **Sidekiq queue** \`money_adjacent\` (not \`default\`) — the refresh job won't compete with email blasts in the queue.
-- ✅ **Failure alert** — the refresh job fires a Slack alert if it runs > 5 min (anomaly threshold).
-- ✅ **Stale-data alert** — a separate watchdog asserts the view's \`pg_stat_user_tables\` last-vacuum timestamp is within 6 hours.
-- ✅ **Feature flag** — \`scorecard_picker\` (Flipper) gates the new picker UI; off by default. Rollout plan in the feature spec.
-- ✅ **Rollback procedure** — flip the flag off; legacy picker renders unchanged. Drop the materialized view when confident.
-- ✅ **Documented runbook** — \`docs/runbooks/carrier-scorecard.md\` (added in this PR).
+- OK **Sidekiq queue** \`money_adjacent\` (not \`default\`) — the refresh job won't compete with email blasts in the queue.
+- OK **Failure alert** — the refresh job fires a Slack alert if it runs > 5 min (anomaly threshold).
+- OK **Stale-data alert** — a separate watchdog asserts the view's \`pg_stat_user_tables\` last-vacuum timestamp is within 6 hours.
+- OK **Feature flag** — \`scorecard_picker\` (Flipper) gates the new picker UI; off by default. Rollout plan in the feature spec.
+- OK **Rollback procedure** — flip the flag off; legacy picker renders unchanged. Drop the materialized view when confident.
+- OK **Documented runbook** — \`docs/runbooks/carrier-scorecard.md\` (added in this PR).
 
 ## 10. Overall
 
@@ -890,7 +890,7 @@ Point me at the repo and I'll go. \`/scan /path/to/haulier\` or paste the top-le
 \`Dispatcher ─▶ Load ─▶ Bid ◀─ Carrier · Load ─▶ Shipment ─▶ Document · Shipment ─▶ Invoice ─▶ Payment\`
 
 **Risk map** — top 3 files:
-- \`app/models/settlement.rb\` — 812 lines, 6 callbacks, 0 tests. Handles money. 🚨
+- \`app/models/settlement.rb\` — 812 lines, 6 callbacks, 0 tests. Handles money. CRITICAL
 - \`app/jobs/fuel_reindex.rb\` — runs nightly, no failure alerting.
 - \`app/controllers/api/v2/loads_controller.rb\` — 19 endpoints, long methods.
 
@@ -979,7 +979,7 @@ Invoking **oc-code-auditor** for the gate before PR.`
  correctness    ✓ backfill idempotent; scorecard refresh is a transaction
  style          ✓ RuboCop clean
  tests          ✓ 38 new · 100% on the diff · settlement.rb untouched
- dependencies   ⚠ scenic gem added — verified it's on the current allow-list
+ dependencies   WARN scenic gem added — verified it's on the current allow-list
 
  overall grade  A (94/100)
 \`\`\`

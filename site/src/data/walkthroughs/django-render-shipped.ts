@@ -1320,7 +1320,7 @@ oc-git-ops will:
 
 Refs: #5 · Sprint 1: time-entry foundations · Audit gate: PASS
 
-🤖 Generated with opchain oc-git-ops v1.2.
+Generated with opchain oc-git-ops v1.2.
 `,
     },
     {

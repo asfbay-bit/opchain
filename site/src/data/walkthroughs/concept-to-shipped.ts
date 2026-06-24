@@ -1161,7 +1161,7 @@ Staging is live. Production deploy is one \`/oc-launch\` away — but give it 24
 - **Infra cost:** \`$0\` (Workers free tier fits the 50-team soft cap).
 - **Next natural phase:** \`oc-scale-ops\` advisory when you hit ~30 teams; \`oc-integrations-engineer\` whenever you're ready for the Slack bot.
 
-Congrats — you shipped. 🚀`
+Congrats — you shipped.`
     },
   ],
 };
