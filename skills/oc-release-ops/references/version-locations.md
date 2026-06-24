@@ -17,10 +17,13 @@ diverge.
 | `skills/<id>/SKILL.md` (every directory) | Frontmatter `version:` field | `version: 1.3.0` |
 | `site/src/pages/styleguide.astro` | Top-of-page badge | `v1.3.0` |
 | `site/src/pages/index.astro` | Homepage release-pill href + label | `href="/changelog#v1.3"` `<span>v1.3</span>` |
+| `site/src/components/Header.astro` | Menu-bar release chip href + label | `CURRENT_RELEASE = "v1.3"` `CURRENT_RELEASE_HREF = "/changelog#v1-3"` |
 | `site/src/pages/changelog.astro` | Most recent `<section class="release release--current">` | `<span class="rel-tag">v1.3</span>` |
 
-The pill href uses the **major.minor** form (`v1.3`, not `v1.3.0`) because the
-changelog page anchors are major.minor; patches roll into the same anchor.
+The pill/chip labels use the **major.minor** form (`v1.3`, not `v1.3.0`)
+because the changelog page anchors are major.minor; patches roll into the same
+anchor. The homepage uses `/changelog#v1.3`; the Astro changelog card IDs use
+hyphenated anchors like `/changelog#v1-3`.
 
 ---
 
