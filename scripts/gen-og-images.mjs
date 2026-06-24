@@ -46,6 +46,11 @@ const ROUTES = [
     headline: "privacy.",
     tagline: "opchain.dev data practices.",
   },
+  {
+    file: "blog.png",
+    headline: "notes from the pipeline.",
+    tagline: "Deep-dives, opinions, playbooks, and releases — building, as a discipline.",
+  },
   // Per-skill cards for the v1.5 AI-native skills (B-03 backlog).
   {
     file: "skills-oc-claude-api.png",
