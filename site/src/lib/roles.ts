@@ -17,10 +17,12 @@ export type Role =
 // Skill → role mapping. Source of truth for the colored role pills shown
 // on the homepage, the Skill Library, and the /demo workbench.
 const ROLE_BY_NAME: Record<string, Role> = {
+  "oc-agent-forge": "tri-agent",
   "oc-api-dev": "tri-agent",
   "oc-app-architect": "workflow",
   "oc-bug-check": "audit-gate",
   "oc-checkpoint-protocol": "success",
+  "oc-claude-api": "specialist",
   "oc-code-auditor": "audit-gate",
   "oc-dash-forge": "specialist",
   "oc-deploy-ops": "orchestrator",
@@ -29,6 +31,9 @@ const ROLE_BY_NAME: Record<string, Role> = {
   "oc-migration-ops": "specialist",
   "oc-monitoring-ops": "specialist",
   "oc-orchestrator": "orchestrator",
+  "oc-prompt-ops": "specialist",
+  "oc-rag-forge": "tri-agent",
+  "oc-release-ops": "orchestrator",
   "oc-reverse-spec": "specialist",
   "oc-scale-ops": "advisor",
   "oc-security-auditor": "audit-gate",
