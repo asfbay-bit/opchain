@@ -78,6 +78,19 @@ const blog = defineCollection({
     author: z.string().optional(),
     tags: z.array(z.string()).optional(),
     draft: z.boolean().optional(),
+    // Overhaul additions (all optional — existing posts keep validating).
+    // One content pillar per post; drives the index filter + post badge.
+    pillar: z.enum(["engineering", "opinion", "playbook", "release"]).optional(),
+    // Groups multi-part posts (e.g. "Dogfooding opchain"); renders series nav.
+    series: z.string().optional(),
+    // Pins the post to the index hero slot.
+    featured: z.boolean().optional(),
+    // Last-substantive-edit date (ISO YYYY-MM-DD); surfaced as "Updated …".
+    updated: z.string().optional(),
+    // Per-post social/OG card: `/og/...` path or absolute URL. Falls back to
+    // the route map in Base.astro when unset. Reading time is NOT stored —
+    // it's computed from the body at render time (see lib/blog.ts).
+    image: z.string().optional(),
   }),
 });
 

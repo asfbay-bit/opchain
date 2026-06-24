@@ -1,50 +1,122 @@
 ---
-import { getCollection, type CollectionEntry } from "astro:content";
+import { getCollection } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import Eyebrow from "../../components/ui/Eyebrow.astro";
 import Card from "../../components/ui/Card.astro";
+import Badge from "../../components/ui/Badge.astro";
+import {
+  publishedPosts,
+  pillarMeta,
+  readingTime,
+  fmtDate,
+  PILLAR_ORDER,
+  PILLARS,
+  type BlogPost,
+} from "../../lib/blog";
+import { authorFor } from "../../data/authors";
 
 // Static blog index. Posts live in site/src/blog/<slug>.md, validated by the
 // `blog` collection schema in content.config.ts. Drafts are excluded.
-type BlogEntry = CollectionEntry<"blog">;
-const all = (await getCollection("blog")) as BlogEntry[];
-const posts = all
-  .filter((p) => !p.data.draft)
-  .sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf());
+const all = (await getCollection("blog")) as BlogPost[];
+const posts = publishedPosts(all);
 
-const fmtDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+// Hero = newest post flagged `featured: true`, else the newest post. Rendered
+// as a large card; the rest go in the grid. The hero still carries a
+// data-pillar so the filter can hide it when a non-matching pillar is active.
+const hero = posts.find((p) => p.data.featured) ?? posts[0];
+const rest = posts.filter((p) => p.id !== hero?.id);
+
+// Per-pillar counts for the filter chips. The hero counts toward its pillar.
+const counts = PILLAR_ORDER.map((pillar) => ({
+  pillar,
+  meta: PILLARS[pillar],
+  count: posts.filter((p) => p.data.pillar === pillar).length,
+})).filter((c) => c.count > 0);
+
+const rt = (p: BlogPost) => readingTime(p.body);
 ---
 
 <Base
   title="Blog · opchain"
-  description="Notes on opchain — releases, engineering, and the discipline of building software (and AI features) that ships."
+  description="Notes on opchain — engineering deep-dives, opinions on AI-assisted development, playbooks, and releases. Building software that ships, as a discipline."
   active="/blog"
+  ogImage="/og/blog.png"
 >
   <main class="page blog-index">
     <div class="page-head">
       <Eyebrow>blog</Eyebrow>
       <h1>Notes from the pipeline.</h1>
+      <p class="lede">
+        Engineering deep-dives, opinions on building with AI, end-to-end
+        playbooks, and the story behind each release. Honest about what worked
+        and what didn't. <a href="/blog/rss.xml">RSS</a>.
+      </p>
     </div>
 
-    <p class="lede">
-      Releases, engineering write-ups, and the occasional honest note on what
-      worked and what didn't. <a href="/blog/rss.xml">RSS</a>.
-    </p>
+    {posts.length === 0 && <p class="empty">No posts yet.</p>}
 
-    <ul class="post-list">
-      {posts.map((post) => (
-        <li>
+    {hero && (
+      <a
+        class="hero-card"
+        href={`/blog/${hero.id}`}
+        data-pillar={hero.data.pillar ?? ""}
+        data-card
+      >
+        <Card variant="card" glow={true} class="hero-inner">
+          <div class="hero-meta">
+            {pillarMeta(hero.data.pillar) && (
+              <Badge variant={pillarMeta(hero.data.pillar)!.variant}>
+                {pillarMeta(hero.data.pillar)!.label}
+              </Badge>
+            )}
+            <span class="dot">·</span>
+            <time datetime={hero.data.date}>{fmtDate(hero.data.date)}</time>
+            <span class="dot">·</span>
+            <span>{rt(hero)} min read</span>
+          </div>
+          <h2 class="hero-title">{hero.data.title}</h2>
+          <p class="hero-desc">{hero.data.description}</p>
+          <div class="hero-foot">
+            <span class="byline">{authorFor(hero.data.author).name}</span>
+            <span class="read-more">Read →</span>
+          </div>
+        </Card>
+      </a>
+    )}
+
+    {counts.length > 1 && (
+      <div class="filter-bar" role="group" aria-label="Filter posts by topic">
+        <button class="filter-pill" data-filter="all" aria-pressed="true">
+          All <span class="filter-count">{posts.length}</span>
+        </button>
+        {counts.map((c) => (
+          <button class="filter-pill" data-filter={c.pillar} aria-pressed="false">
+            {c.meta.label} <span class="filter-count">{c.count}</span>
+          </button>
+        ))}
+      </div>
+    )}
+
+    <ul class="post-grid">
+      {rest.map((post) => (
+        <li data-pillar={post.data.pillar ?? ""} data-card>
           <Card variant="surface" glow={false}>
             <a class="post-link" href={`/blog/${post.id}`}>
               <div class="post-meta">
-                <time datetime={post.data.date}>{fmtDate(post.data.date)}</time>
-                {(post.data.tags ?? []).length > 0 && (
-                  <span class="post-tags">{(post.data.tags ?? []).join(" · ")}</span>
+                {pillarMeta(post.data.pillar) && (
+                  <Badge variant={pillarMeta(post.data.pillar)!.variant}>
+                    {pillarMeta(post.data.pillar)!.label}
+                  </Badge>
                 )}
+                <time datetime={post.data.date}>{fmtDate(post.data.date)}</time>
+                <span class="dot">·</span>
+                <span>{rt(post)} min</span>
               </div>
               <h2 class="post-title">{post.data.title}</h2>
               <p class="post-desc">{post.data.description}</p>
+              {post.data.series && (
+                <span class="post-series">Series · {post.data.series}</span>
+              )}
               <span class="post-more">Read →</span>
             </a>
           </Card>
@@ -52,27 +124,95 @@ const fmtDate = (iso: string) =>
       ))}
     </ul>
 
-    {posts.length === 0 && <p class="empty">No posts yet.</p>}
+    <p class="no-match" hidden>No posts in this topic yet.</p>
   </main>
 </Base>
 
+<script>
+  // Progressive-enhancement pillar filter. The full list renders server-side;
+  // JS only toggles visibility, so the page works with JS off.
+  const bar = document.querySelector<HTMLElement>(".filter-bar");
+  if (bar) {
+    const cards = Array.from(document.querySelectorAll<HTMLElement>("[data-card]"));
+    const noMatch = document.querySelector<HTMLElement>(".no-match");
+    const pills = Array.from(bar.querySelectorAll<HTMLButtonElement>(".filter-pill"));
+
+    const apply = (filter: string) => {
+      let shown = 0;
+      for (const card of cards) {
+        const match = filter === "all" || card.dataset.pillar === filter;
+        card.toggleAttribute("hidden", !match);
+        if (match) shown++;
+      }
+      if (noMatch) noMatch.toggleAttribute("hidden", shown !== 0);
+      for (const pill of pills) {
+        pill.setAttribute("aria-pressed", String(pill.dataset.filter === filter));
+      }
+    };
+
+    bar.addEventListener("click", (e) => {
+      const pill = (e.target as HTMLElement).closest<HTMLButtonElement>(".filter-pill");
+      if (pill?.dataset.filter) apply(pill.dataset.filter);
+    });
+  }
+</script>
+
 <style>
-  .blog-index { max-width: 52rem; }
-  .lede { color: var(--muted); font-size: 1.05rem; line-height: 1.6; margin-bottom: 2rem; }
+  .blog-index { max-width: 56rem; }
+  .lede { color: var(--muted); font-size: 1.05rem; line-height: 1.6; margin-top: 0.75rem; }
   .lede a { color: var(--accent); }
 
-  .post-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem; }
-
-  .post-link { display: block; text-decoration: none; color: inherit; }
+  /* Featured hero — the magazine cover. */
+  .hero-card { display: block; text-decoration: none; color: inherit; margin: 2rem 0 1.5rem; }
+  .hero-card :global(.hero-inner) { padding: 1.75rem 1.9rem; }
+  .hero-meta,
   .post-meta {
-    display: flex; gap: 0.75rem; align-items: baseline;
-    font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;
+    display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;
+    font-size: 0.8rem; color: var(--muted);
   }
-  .post-tags { color: var(--accent); }
-  .post-title { font-size: 1.35rem; line-height: 1.25; margin: 0 0 0.4rem; }
-  .post-desc { color: var(--muted); line-height: 1.55; margin: 0 0 0.6rem; }
-  .post-more { color: var(--accent); font-size: 0.9rem; font-weight: 600; }
+  .hero-title { font-size: 2rem; line-height: 1.15; margin: 0.7rem 0 0.5rem; }
+  .hero-desc { color: var(--muted); line-height: 1.6; font-size: 1.05rem; margin: 0 0 1rem; }
+  .hero-foot { display: flex; justify-content: space-between; align-items: baseline; }
+  .byline { font-size: 0.85rem; color: var(--muted); }
+  .read-more, .post-more { color: var(--accent); font-size: 0.9rem; font-weight: 600; }
+  .hero-card:hover .hero-title { color: var(--accent); }
+  .dot { color: var(--border); }
+
+  /* Filter bar. */
+  .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0 0 1.5rem; }
+  .filter-pill {
+    font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 500;
+    letter-spacing: var(--ls-wide); text-transform: uppercase;
+    background: transparent; color: var(--muted);
+    border: 0.5px solid var(--border); border-radius: var(--r-pill);
+    padding: 0.35rem 0.75rem; cursor: pointer; white-space: nowrap;
+    transition: color var(--dur-fast) var(--ease-standard),
+                border-color var(--dur-fast) var(--ease-standard),
+                background var(--dur-fast) var(--ease-standard);
+  }
+  .filter-pill:hover { color: var(--text); }
+  .filter-pill[aria-pressed="true"] {
+    color: var(--text); border-color: var(--accent); background: var(--accent-dim);
+  }
+  .filter-count { opacity: 0.6; margin-left: 0.15rem; }
+
+  /* Post grid. */
+  .post-grid {
+    list-style: none; padding: 0; margin: 0;
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;
+  }
+  .post-grid > li[hidden] { display: none; }
+  @media (max-width: 640px) { .post-grid { grid-template-columns: 1fr; } }
+
+  .post-link { display: block; text-decoration: none; color: inherit; height: 100%; }
+  .post-meta { margin-bottom: 0.5rem; }
+  .post-title { font-size: 1.2rem; line-height: 1.25; margin: 0 0 0.4rem; }
+  .post-desc { color: var(--muted); line-height: 1.55; margin: 0 0 0.6rem; font-size: 0.95rem; }
+  .post-series {
+    display: block; font-family: var(--font-mono); font-size: var(--fs-xs);
+    color: var(--muted); margin-bottom: 0.5rem;
+  }
   .post-link:hover .post-title { color: var(--accent); }
 
-  .empty { color: var(--muted); }
+  .empty, .no-match { color: var(--muted); }
 </style>

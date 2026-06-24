@@ -1,22 +1,67 @@
 ---
-import { getCollection, render, type CollectionEntry } from "astro:content";
+import { getCollection, render } from "astro:content";
+import type { MarkdownHeading } from "astro";
 import Base from "../../layouts/Base.astro";
 import Eyebrow from "../../components/ui/Eyebrow.astro";
-
-type BlogEntry = CollectionEntry<"blog">;
+import Badge from "../../components/ui/Badge.astro";
+import Card from "../../components/ui/Card.astro";
+import {
+  publishedPosts,
+  relatedPosts,
+  seriesPosts,
+  pillarMeta,
+  readingTime,
+  fmtDate,
+  type BlogPost,
+} from "../../lib/blog";
+import { authorFor } from "../../data/authors";
 
 export async function getStaticPaths() {
-  const posts = (await getCollection("blog")) as BlogEntry[];
+  const posts = (await getCollection("blog")) as BlogPost[];
   return posts
     .filter((post) => !post.data.draft)
     .map((post) => ({ params: { slug: post.id }, props: { post } }));
 }
 
-const { post } = Astro.props as { post: BlogEntry };
-const { Content } = await render(post);
+const { post } = Astro.props as { post: BlogPost };
+const { Content, headings } = await render(post);
 
-const fmtDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+const all = (await getCollection("blog")) as BlogPost[];
+const ordered = publishedPosts(all); // newest-first
+
+// Prev/next across the whole blog by date. "newer" sits earlier in `ordered`.
+const idx = ordered.findIndex((p) => p.id === post.id);
+const newer = idx > 0 ? ordered[idx - 1] : null;
+const older = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : null;
+
+const related = relatedPosts(post, all);
+const series = post.data.series ? seriesPosts(post.data.series, all) : [];
+const seriesIndex = series.findIndex((p) => p.id === post.id);
+
+// Table of contents from h2/h3. Only render when the post is substantial.
+const toc = headings.filter((h: MarkdownHeading) => h.depth === 2 || h.depth === 3);
+const showToc = toc.length >= 3;
+
+const author = authorFor(post.data.author);
+const meta = pillarMeta(post.data.pillar);
+const rt = readingTime(post.body);
+const ogImage = post.data.image ?? "/og/blog.png";
+
+// BlogPosting structured data — merged into Base's site-wide @graph so search
+// engines + AI crawlers parse the post as an article.
+const blogPostingLd = {
+  "@type": "BlogPosting",
+  "@id": new URL(`/blog/${post.id}#post`, Astro.site).toString(),
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished: post.data.date,
+  dateModified: post.data.updated ?? post.data.date,
+  author: { "@type": "Organization", name: author.name },
+  publisher: { "@id": new URL("/#org", Astro.site).toString() },
+  mainEntityOfPage: new URL(`/blog/${post.id}`, Astro.site).toString(),
+  image: new URL(ogImage, Astro.site).toString(),
+  keywords: (post.data.tags ?? []).join(", "),
+};
 ---
 
 <Base
@@ -24,46 +69,205 @@ const fmtDate = (iso: string) =>
   description={post.data.description}
   active="/blog"
   ogType="article"
+  ogImage={ogImage}
+  jsonLd={blogPostingLd}
 >
   <main class="page blog-post">
     <div class="page-head">
       <Eyebrow>blog</Eyebrow>
       <h1>{post.data.title}</h1>
       <div class="post-meta">
+        {meta && <Badge variant={meta.variant}>{meta.label}</Badge>}
         <time datetime={post.data.date}>{fmtDate(post.data.date)}</time>
-        <span>·</span>
-        <span>{post.data.author ?? "opchain"}</span>
-        {(post.data.tags ?? []).length > 0 && <span>· {(post.data.tags ?? []).join(" · ")}</span>}
+        <span class="dot">·</span>
+        <span>{rt} min read</span>
+        <span class="dot">·</span>
+        <span>{author.name}</span>
+        {post.data.updated && post.data.updated !== post.data.date && (
+          <span class="updated">· Updated {fmtDate(post.data.updated)}</span>
+        )}
       </div>
     </div>
 
-    <article class="prose">
-      <Content />
-    </article>
+    {series.length > 1 && (
+      <Card variant="surface" glow={false} class="series-box">
+        <div class="series-head">
+          <span class="series-label">Series · {post.data.series}</span>
+          <span class="series-pos">Part {seriesIndex + 1} of {series.length}</span>
+        </div>
+        <ol class="series-list">
+          {series.map((p, i) => (
+            <li class={p.id === post.id ? "current" : ""}>
+              {p.id === post.id ? (
+                <span>{i + 1}. {p.data.title}</span>
+              ) : (
+                <a href={`/blog/${p.id}`}>{i + 1}. {p.data.title}</a>
+              )}
+            </li>
+          ))}
+        </ol>
+      </Card>
+    )}
+
+    <div class="post-body">
+      {showToc && (
+        <aside class="toc" aria-label="Table of contents">
+          <p class="toc-head">On this page</p>
+          <ul>
+            {toc.map((h: MarkdownHeading) => (
+              <li class={h.depth === 3 ? "toc-sub" : ""}>
+                <a href={`#${h.slug}`}>{h.text}</a>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )}
+
+      <article class="prose">
+        <Content />
+      </article>
+    </div>
+
+    <div class="author-card">
+      <Card variant="surface" glow={false}>
+        <p class="author-name">
+          {author.url ? <a href={author.url}>{author.name}</a> : author.name}
+        </p>
+        <p class="author-role">{author.role}</p>
+        <p class="author-bio">{author.bio}</p>
+      </Card>
+    </div>
+
+    {related.length > 0 && (
+      <section class="related">
+        <h2 class="related-head">Related reading</h2>
+        <ul>
+          {related.map((p) => {
+            const m = pillarMeta(p.data.pillar);
+            return (
+              <li>
+                <a href={`/blog/${p.id}`}>
+                  {m && <Badge variant={m.variant}>{m.label}</Badge>}
+                  <span class="related-title">{p.data.title}</span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    )}
+
+    <nav class="post-nav" aria-label="More posts">
+      {older ? (
+        <a class="nav-prev" href={`/blog/${older.id}`}>
+          <span class="nav-dir">← Older</span>
+          <span class="nav-title">{older.data.title}</span>
+        </a>
+      ) : <span />}
+      {newer ? (
+        <a class="nav-next" href={`/blog/${newer.id}`}>
+          <span class="nav-dir">Newer →</span>
+          <span class="nav-title">{newer.data.title}</span>
+        </a>
+      ) : <span />}
+    </nav>
 
     <p class="back"><a href="/blog">← All posts</a></p>
   </main>
 </Base>
 
 <style>
-  .blog-post { max-width: 46rem; }
+  .blog-post { max-width: 52rem; }
   .post-meta {
-    display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: baseline;
-    font-size: 0.85rem; color: var(--muted); margin-top: 0.6rem;
+    display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;
+    font-size: 0.85rem; color: var(--muted); margin-top: 0.7rem;
+  }
+  .dot { color: var(--border); }
+  .updated { font-style: italic; }
+
+  /* Series box. */
+  .series-box { margin: 1.5rem 0; padding: 1rem 1.25rem; }
+  .series-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 0.5rem;
+  }
+  .series-label { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--accent); text-transform: uppercase; letter-spacing: var(--ls-wide); }
+  .series-pos { font-size: 0.8rem; color: var(--muted); }
+  .series-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.3rem; }
+  .series-list li { font-size: 0.95rem; }
+  .series-list a { color: var(--text); text-decoration: none; }
+  .series-list a:hover { color: var(--accent); }
+  .series-list li.current { color: var(--muted); }
+
+  /* TOC + body layout. TOC sits in a left rail on wide screens. */
+  .post-body { display: grid; grid-template-columns: 1fr; gap: 0; margin-top: 1.5rem; }
+  @media (min-width: 1024px) {
+    .post-body { grid-template-columns: 13rem 1fr; gap: 2.5rem; align-items: start; }
+    .toc { position: sticky; top: 6rem; }
+  }
+  .toc { font-size: 0.85rem; }
+  .toc-head {
+    font-family: var(--font-mono); font-size: var(--fs-xs); text-transform: uppercase;
+    letter-spacing: var(--ls-wide); color: var(--muted); margin: 0 0 0.5rem;
+  }
+  .toc ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; border-left: 1px solid var(--border); }
+  .toc li { padding-left: 0.75rem; }
+  .toc li.toc-sub { padding-left: 1.5rem; font-size: 0.8rem; }
+  .toc a { color: var(--muted); text-decoration: none; }
+  .toc a:hover { color: var(--accent); }
+  @media (max-width: 1023px) {
+    .toc { margin-bottom: 1.5rem; }
+    .toc ul { border-left: none; padding-left: 0; }
+    .toc li { padding-left: 0; }
   }
 
-  .prose { line-height: 1.7; color: var(--text); }
-  .prose :global(h2) { font-size: 1.5rem; margin: 2rem 0 0.75rem; }
-  .prose :global(h3) { font-size: 1.2rem; margin: 1.5rem 0 0.5rem; }
+  .prose { line-height: 1.7; color: var(--text); min-width: 0; }
+  .prose :global(h2) { font-size: 1.5rem; margin: 2rem 0 0.75rem; scroll-margin-top: 5rem; }
+  .prose :global(h3) { font-size: 1.2rem; margin: 1.5rem 0 0.5rem; scroll-margin-top: 5rem; }
   .prose :global(p) { margin: 0 0 1rem; }
   .prose :global(ul), .prose :global(ol) { margin: 0 0 1rem 1.25rem; line-height: 1.6; }
   .prose :global(li) { margin: 0.35rem 0; }
   .prose :global(a) { color: var(--accent); }
+  .prose :global(blockquote) {
+    border-left: 2px solid var(--accent); margin: 1.25rem 0; padding: 0.25rem 0 0.25rem 1rem;
+    color: var(--muted); font-style: italic;
+  }
   .prose :global(code) {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 4px; padding: 0.1em 0.35em; font-size: 0.9em;
   }
+  .prose :global(pre) { border-radius: var(--r-md); padding: 1rem; overflow-x: auto; margin: 0 0 1.25rem; }
+  .prose :global(pre code) { background: none; border: none; padding: 0; }
   .prose :global(strong) { color: var(--text); font-weight: 700; }
+  .prose :global(hr) { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+  /* Author card. */
+  .author-card { margin-top: 2.5rem; }
+  .author-name { font-weight: 700; margin: 0 0 0.1rem; }
+  .author-name a { color: var(--text); text-decoration: none; }
+  .author-name a:hover { color: var(--accent); }
+  .author-role { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--accent); text-transform: uppercase; letter-spacing: var(--ls-wide); margin: 0 0 0.5rem; }
+  .author-bio { color: var(--muted); line-height: 1.6; margin: 0; font-size: 0.95rem; }
+
+  /* Related. */
+  .related { margin-top: 2.5rem; }
+  .related-head { font-size: 1.1rem; margin: 0 0 0.75rem; }
+  .related ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+  .related a {
+    display: flex; align-items: center; gap: 0.6rem; text-decoration: none;
+    color: var(--text); padding: 0.6rem 0.75rem; border: 0.5px solid var(--border);
+    border-radius: var(--r-md); transition: border-color var(--dur-fast) var(--ease-standard);
+  }
+  .related a:hover { border-color: var(--accent); }
+  .related-title { line-height: 1.3; }
+
+  /* Prev/next. */
+  .post-nav { display: flex; justify-content: space-between; gap: 1rem; margin-top: 2.5rem; }
+  .post-nav a { display: flex; flex-direction: column; gap: 0.2rem; text-decoration: none; max-width: 48%; }
+  .nav-next { text-align: right; margin-left: auto; }
+  .nav-dir { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--accent); text-transform: uppercase; letter-spacing: var(--ls-wide); }
+  .nav-title { color: var(--muted); font-size: 0.9rem; line-height: 1.3; }
+  .post-nav a:hover .nav-title { color: var(--text); }
 
   .back { margin-top: 2.5rem; }
   .back a { color: var(--accent); }
