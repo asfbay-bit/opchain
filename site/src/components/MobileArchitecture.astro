@@ -107,9 +107,9 @@ const packCounts = {
 
     <!-- Header -->
     <div class="ma-header">
-      <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE · v1.5</div>
+      <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE · v1.6</div>
       <h1>opchain skills ecosystem</h1>
-      <p class="ma-subtitle">Checkpoint-driven pipeline · 22 skills · 6 phases · 7 tri-agent · 3 audit gates · spine ordinals</p>
+      <p class="ma-subtitle">Checkpoint-driven pipeline · 24 skills · 6 phases · 7 tri-agent · 3 audit gates · spine ordinals · v1.6 instrument rail</p>
     </div>
 
     <!-- Diagram container -->
@@ -125,7 +125,7 @@ const packCounts = {
             <span class="ma-fp-tag">PROTOCOL</span>
             <span class="ma-fp-name">oc-checkpoint-protocol</span>
           </div>
-          <div class="ma-fp-desc">JSON schema written by every skill: phase · progress · blockers · next_actions. Single source of truth — no database, no vendor lock-in.</div>
+          <div class="ma-fp-desc">JSON schema written by every skill: phase · progress · blockers · next_actions · <span style="color:var(--ma-inst)">wire 1.1: cost · eval_scores · telemetry_handle</span>. Single source of truth — no database, no vendor lock-in.</div>
         </div>
         <div class="ma-foundation-pill">
           <div class="ma-fp-row">
@@ -136,11 +136,24 @@ const packCounts = {
         </div>
       </details>
 
+      <!-- INSTRUMENT RAIL anchor (v1.6) — names the two new cross-cutting
+           skills that own the per-band meter chips below. The chips stream a
+           single illustrative sample run (driven by the page's inline script;
+           reduced-motion shows final totals). Numbers are a sample, not live spend. -->
+      <div class="ma-instrail" aria-label="Instrumentation rail (v1.6): oc-cost-ops and oc-telemetry-ops own the per-band cost and usage chips below. Values are an illustrative sample, not live spend.">
+        <div class="ma-instrail-row">
+          <span class="ma-instrail-tag">RAIL</span>
+          <span class="ma-instrail-name">Instrumentation rail · v1.6</span>
+        </div>
+        <div class="ma-instrail-desc"><b>oc-cost-ops</b> + <b>oc-telemetry-ops</b> · NEW · gated · tap every band ↓</div>
+      </div>
+
       <!-- BAND 1: DISCOVER -->
       <details class="ma-band" open style="--ma-phase-color: var(--ma-text-secondary)">
         <summary class="ma-band-header">
           <span class="ma-band-num">1</span>
           <span class="ma-band-title">Discover</span>
+          <span class="ma-meter" data-phase="discover" aria-hidden="true"><span class="mm-dot"></span><span class="mm-cost">$0.00</span> · <span class="mm-use">0</span></span>
           <span class="ma-band-of">Phase 1 of 6</span>
         </summary>
         <div class="ma-band-svg-wrap">
@@ -168,6 +181,7 @@ const packCounts = {
         <summary class="ma-band-header">
           <span class="ma-band-num">2</span>
           <span class="ma-band-title">Plan</span>
+          <span class="ma-meter" data-phase="plan" aria-hidden="true"><span class="mm-dot"></span><span class="mm-cost">$0.00</span> · <span class="mm-use">0</span></span>
           <span class="ma-band-of">Phase 2 of 6</span>
         </summary>
         <div class="ma-band-svg-wrap">
@@ -354,6 +368,7 @@ const packCounts = {
         <summary class="ma-band-header">
           <span class="ma-band-num">3</span>
           <span class="ma-band-title">Build</span>
+          <span class="ma-meter" data-phase="build" aria-hidden="true"><span class="mm-dot"></span><span class="mm-cost">$0.00</span> · <span class="mm-use">0</span></span>
           <span class="ma-band-of">Phase 4 of 6</span>
         </summary>
         <div class="ma-band-svg-wrap">
@@ -412,6 +427,7 @@ const packCounts = {
         <summary class="ma-band-header">
           <span class="ma-band-num">4</span>
           <span class="ma-band-title">Ship</span>
+          <span class="ma-meter" data-phase="ship" aria-hidden="true"><span class="mm-dot"></span><span class="mm-cost">$0.00</span> · <span class="mm-use">0</span></span>
           <span class="ma-band-of">Phase 5 of 6</span>
         </summary>
         <div class="ma-band-svg-wrap">
@@ -513,6 +529,7 @@ const packCounts = {
         <summary class="ma-band-header">
           <span class="ma-band-num">5</span>
           <span class="ma-band-title">Monitor</span>
+          <span class="ma-meter" data-phase="monitor" aria-hidden="true"><span class="mm-dot"></span><span class="mm-cost">$0.00</span> · <span class="mm-use">0</span></span>
           <span class="ma-band-of">Phase 6 of 6</span>
         </summary>
         <div class="ma-band-svg-wrap">
@@ -536,13 +553,16 @@ const packCounts = {
         </div>
       </details>
 
+      <!-- INSTRUMENT RAIL rollup (v1.6) — total of the per-band sample meters above. -->
+      <div class="ma-instrail-total" aria-hidden="true">rolls up → /oc-ops budget<b id="mm-total-cost">$0.00</b><span id="mm-total-use">0 ev</span></div>
+
       <!-- APPENDIX A: CHECKPOINT PROTOCOL SYNC -->
       <details class="ma-appendix" style="margin-top:22px">
         <summary>
           <div class="ma-appendix-eyebrow">Appendix A · Cross-cutting</div>
           <div class="ma-appendix-title">Checkpoint Protocol — sync topology</div>
         </summary>
-        <p class="ma-appendix-desc">Every skill (all 22) writes a JSON checkpoint after each state change. The oc-orchestrator both reads from and writes to each — bidirectional sync. Diagram below shows 6 representative connections; the same topology extends to all 22 skills.</p>
+        <p class="ma-appendix-desc">Every skill (all 24) writes a JSON checkpoint after each state change. The oc-orchestrator both reads from and writes to each — bidirectional sync. Diagram below shows 6 representative connections; the same topology extends to all 24 skills.</p>
         <svg viewBox="0 0 330 360" role="img" aria-label="Orchestrator bidirectionally syncs checkpoints with all skills (6 shown)">
           <rect x="20" y="14" width="92" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="1.5"/>
           <text x="66" y="32" fill="#e05c18" font-size="11" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
@@ -580,7 +600,10 @@ const packCounts = {
 &nbsp;&nbsp;<span class="ma-k">"progress_table"</span>: &#123; <span class="ma-s">"discover"</span>: <span class="ma-s">"complete"</span> &#125;,<br/>
 &nbsp;&nbsp;<span class="ma-k">"context_primer"</span>: <span class="ma-s">"2-sentence summary..."</span>,<br/>
 &nbsp;&nbsp;<span class="ma-k">"blockers"</span>: [<span class="ma-s">"waiting on API key"</span>],<br/>
-&nbsp;&nbsp;<span class="ma-k">"next_actions"</span>: [<span class="ma-s">"/oc-git-sync"</span>]<br/>
+&nbsp;&nbsp;<span class="ma-k">"next_actions"</span>: [<span class="ma-s">"/oc-git-sync"</span>],<br/>
+&nbsp;&nbsp;<span class="ma-k">"cost"</span>: &#123; <span class="ma-k">"total_usd"</span>: 1.81 &#125;,<br/>
+&nbsp;&nbsp;<span class="ma-k">"eval_scores"</span>: [&#123; <span class="ma-k">"rubric"</span>: <span class="ma-s">"oc-bug-check"</span> &#125;],<br/>
+&nbsp;&nbsp;<span class="ma-k">"telemetry_handle"</span>: &#123; <span class="ma-k">"enabled"</span>: false &#125;<br/>
 &#125;
         </div>
       </details>
@@ -659,7 +682,7 @@ const packCounts = {
             <div class="ma-li-swatch" style="background:var(--ma-ember);border-radius:50%;width:14px;height:14px"></div>
             <div class="ma-li-name">CP · checkpoint indicator</div>
           </div>
-          <div class="ma-li-desc">Solid ember dot in each skill's top-right corner indicates the skill writes a checkpoint. <strong>All 22 skills carry CP</strong> — desktop version shows full CP badge on each rect; mobile uses the dot for legibility.</div>
+          <div class="ma-li-desc">Solid ember dot in each skill's top-right corner indicates the skill writes a checkpoint. <strong>All 24 skills carry CP</strong> — desktop version shows full CP badge on each rect; mobile uses the dot for legibility.</div>
           <div class="ma-li-eg"><code>.checkpoints/&lt;skill&gt;.json</code> · phase · progress · blockers · next_actions</div>
         </div>
         <div class="ma-legend-item">
@@ -667,7 +690,7 @@ const packCounts = {
             <div class="ma-li-swatch" style="background:var(--ma-ember);border-radius:50%;width:14px;height:14px;opacity:0.55"></div>
             <div class="ma-li-name">ORC · oc-orchestrator indicator</div>
           </div>
-          <div class="ma-li-desc">Faded ember dot adjacent to the CP dot indicates the skill participates in <code>/oc-ops</code> routing. <strong>All 22 skills carry ORC</strong> — every skill is route-addressable by the oc-orchestrator.</div>
+          <div class="ma-li-desc">Faded ember dot adjacent to the CP dot indicates the skill participates in <code>/oc-ops</code> routing. <strong>All 24 skills carry ORC</strong> — every skill is route-addressable by the oc-orchestrator.</div>
           <div class="ma-li-eg"><code>/oc-ops</code> · cross-project routing · gate enforcement · "what should I do next"</div>
         </div>
         <div class="ma-legend-divider"></div>
@@ -694,7 +717,7 @@ const packCounts = {
             <div class="ma-li-name" style="color:var(--ma-specialist)">Standalone specialist</div>
           </div>
           <div class="ma-li-desc">Single-purpose skills that produce a concrete artifact and hand it off. No internal loop, no orchestration of others.</div>
-          <div class="ma-li-eg">oc-reverse-spec · oc-dash-forge · oc-git-ops · oc-release-ops · oc-migration-ops · oc-monitoring-ops</div>
+          <div class="ma-li-eg">oc-reverse-spec · oc-dash-forge · oc-git-ops · oc-release-ops · oc-migration-ops · oc-monitoring-ops · <span style="color:var(--ma-inst)">oc-cost-ops · oc-telemetry-ops (v1.6)</span></div>
         </div>
         <div class="ma-legend-item">
           <div class="ma-legend-head">
@@ -772,7 +795,7 @@ const packCounts = {
           <ul>
             <li>JSON files at <code>.checkpoints/&lt;skill&gt;.json</code></li>
             <li>Keys: phase · progress_table · context_primer · blockers · next_actions</li>
-            <li>All 22 skills read all 22 checkpoints (no ACL)</li>
+            <li>All 24 skills read all 24 checkpoints (no ACL)</li>
             <li>Resume order: own → upstream → novice mode</li>
             <li>Framework-agnostic — no platform lock-in</li>
           </ul>
@@ -839,6 +862,7 @@ const packCounts = {
     --ma-orch:       #e05c18;
     --ma-ai:         #a78bfa;   /* v1.5 AI-native phase accent */
     --ma-vec:        #ec4899;   /* v1.5 vector-db pack category */
+    --ma-inst:       #a3e635;   /* v1.6 instrumentation accent (lime) */
 
     background: var(--ma-bg-page);
     color: var(--ma-text-primary);
@@ -878,6 +902,7 @@ const packCounts = {
     --ma-orch:       #c14e0f;
     --ma-ai:         #7c3aed;
     --ma-vec:        #be185d;
+    --ma-inst:       #65a30d;
   }
 
   /* Hidden defs SVG — must be in DOM but invisible. */
@@ -1008,6 +1033,56 @@ const packCounts = {
     color: var(--ma-text-primary);
   }
   .ma-band-of { font-size: 12px; color: var(--ma-text-secondary); margin-left: auto; padding-right: 8px; }
+
+  /* ── Instrument rail (v1.6): per-band meter chips + anchor pill + rollup ── */
+  .mobile-architecture .ma-instrail {
+    border: 1px solid var(--ma-inst);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--ma-inst) 8%, transparent);
+    padding: 9px 11px;
+    margin-bottom: 12px;
+  }
+  .mobile-architecture .ma-instrail-row { display: flex; align-items: center; gap: 7px; }
+  .mobile-architecture .ma-instrail-tag {
+    font-size: 8.5px; font-weight: 700; letter-spacing: .08em;
+    padding: 2px 5px; border-radius: 4px;
+    background: color-mix(in srgb, var(--ma-inst) 18%, transparent); color: var(--ma-inst);
+  }
+  .mobile-architecture .ma-instrail-name {
+    font-family: var(--font-display, "Outfit"), system-ui, sans-serif;
+    font-size: 13px; font-weight: 600; color: var(--ma-text-primary);
+  }
+  .mobile-architecture .ma-instrail-desc { font-size: 10.5px; color: var(--ma-text-secondary); margin-top: 5px; }
+  .mobile-architecture .ma-instrail-desc b { color: var(--ma-inst); font-weight: 600; }
+
+  /* spine bands carrying a meter chip get a lime left edge = "on the rail" */
+  .mobile-architecture .ma-band:has(.ma-meter) { border-left: 3px solid var(--ma-inst); }
+
+  .mobile-architecture .ma-meter {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums;
+    padding: 3px 7px; border-radius: 6px;
+    border: 1px solid var(--ma-inst); color: var(--ma-inst);
+    background: color-mix(in srgb, var(--ma-inst) 8%, transparent);
+  }
+  .mobile-architecture .ma-meter .mm-dot {
+    width: 5px; height: 5px; border-radius: 50%; background: var(--ma-inst); flex: 0 0 auto;
+  }
+  .mobile-architecture .ma-meter.streaming .mm-dot { animation: ma-mm-blink .7s steps(1) infinite; }
+  @keyframes ma-mm-blink { 50% { opacity: .25; } }
+
+  .mobile-architecture .ma-instrail-total {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid var(--ma-border-divider);
+    font-size: 11px; color: var(--ma-text-muted);
+  }
+  .mobile-architecture .ma-instrail-total b { color: var(--ma-inst); font-variant-numeric: tabular-nums; margin-left: auto; }
+  .mobile-architecture .ma-instrail-total span { color: var(--ma-text-secondary); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-architecture .ma-meter.streaming .mm-dot { animation: none; }
+  }
 
   .ma-band-svg-wrap {
     padding: 14px 8px;

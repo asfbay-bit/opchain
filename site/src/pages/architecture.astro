@@ -29,7 +29,7 @@ const packCounts = {
 
 <Base
   title="Architecture · opchain"
-  description="Checkpoint-driven pipeline of 22 opchain skills across 6 phases — interactive diagram of how skills chain through .checkpoints/<skill>.json."
+  description="Checkpoint-driven pipeline of 24 opchain skills across 6 phases — interactive diagram of how skills chain through .checkpoints/<skill>.json."
   active="/architecture"
 >
   <!-- Mobile-only static architecture (≤767px). Hidden on desktop via the
@@ -102,9 +102,9 @@ const packCounts = {
 
     <div class="container">
       <div class="header">
-        <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2 · RELEASE v1.5</div>
+        <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2 · RELEASE v1.6</div>
         <h1>opchain skills ecosystem</h1>
-        <p class="subtitle">Checkpoint-driven pipeline · 22 skills · 6 phases · 7 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span></p>
+        <p class="subtitle">Checkpoint-driven pipeline · 24 skills · 6 phases · 7 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span> · <span class="subtitle-inst">v1.6 instrument rail</span></p>
       </div>
 
       <div class="diagram-container">
@@ -146,7 +146,10 @@ const packCounts = {
                 &nbsp;&nbsp;<span class="k">"progress_table"</span>: &#123; <span class="s">"discover"</span>: <span class="s">"complete"</span>, <span class="s">"spec"</span>: <span class="s">"in_progress"</span> &#125;,<br>
                 &nbsp;&nbsp;<span class="k">"context_primer"</span>: <span class="s">"2-sentence summary..."</span>,<br>
                 &nbsp;&nbsp;<span class="k">"blockers"</span>: [<span class="s">"waiting on API key"</span>],<br>
-                &nbsp;&nbsp;<span class="k">"next_actions"</span>: [<span class="s">"/oc-git-sync"</span>]<br>
+                &nbsp;&nbsp;<span class="k">"next_actions"</span>: [<span class="s">"/oc-git-sync"</span>],<br>
+                &nbsp;&nbsp;<span class="k">"cost"</span>: &#123; <span class="k">"total_usd"</span>: 1.81 &#125;,<br>
+                &nbsp;&nbsp;<span class="k">"eval_scores"</span>: [&#123; <span class="k">"rubric"</span>: <span class="s">"oc-bug-check"</span>, <span class="k">"score"</span>: 0.86 &#125;],<br>
+                &nbsp;&nbsp;<span class="k">"telemetry_handle"</span>: &#123; <span class="k">"enabled"</span>: false &#125; <span style="color:var(--inst)">&#47;&#47; v1.6 wire 1.1 (additive)</span><br>
                 &#125;
               </div>
             </div>
@@ -233,7 +236,7 @@ const packCounts = {
           <!-- ── Orchestrator detail card with routing-decision animation ── -->
           <div class="orch-detail-expand" id="orch-detail-top">
             <div class="cpd-inner">
-              <p class="cpd-intro">The oc-orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/oc-ops</code> queries. Reads all 22 checkpoints; writes its own pipeline state.</p>
+              <p class="cpd-intro">The oc-orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/oc-ops</code> queries. Reads all 24 checkpoints; writes its own pipeline state.</p>
               <svg class="orch-route-svg" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orchestrator routing decision: oc-app-architect checkpoint update routed to oc-ux-engineer, oc-dash-forge, and oc-api-dev in parallel">
                 <defs>
                   <marker id="orch-rt-end" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
@@ -912,6 +915,43 @@ const packCounts = {
             </div>
           </div>
 
+          <!-- ══ INSTRUMENT RAIL (cross-cutting, v1.6) ══
+               Per-phase cost + opt-in usage, anchored by oc-cost-ops +
+               oc-telemetry-ops. The meter grid streams ONE illustrative
+               sample run on load (inline script, single pass — perf-safe);
+               reduced-motion shows final totals. Not on the spine; the
+               numbers are a representative example, not live spend. -->
+          <div class="irail" aria-label="Instrumentation rail (v1.6): per-phase cost and usage anchored by oc-cost-ops and oc-telemetry-ops. Values shown are an illustrative sample run, not live spend.">
+            <div class="irail-head">
+              <span class="irail-eyebrow">v1.6 · cross-cutting · instrument rail</span>
+              <span class="irail-title">Instrumentation — per-phase cost + opt-in usage telemetry</span>
+            </div>
+            <div class="irail-anchors">
+              <a class="irail-anchor" href="/skills/oc-cost-ops" aria-label="View oc-cost-ops skill">
+                <span class="ia-name">oc-cost-ops</span>
+                <span class="ia-meta">Specialist · /oc-cost</span>
+                <span class="ia-do">$ attribution · budget gates · tier routing</span>
+                <span class="ia-badges"><span class="ia-cp">CP</span><span class="ia-cp">ORC</span><span class="ia-new">NEW v1.6 · gated</span></span>
+              </a>
+              <a class="irail-anchor" href="/skills/oc-telemetry-ops" aria-label="View oc-telemetry-ops skill">
+                <span class="ia-name">oc-telemetry-ops</span>
+                <span class="ia-meta">Specialist · /oc-telemetry · default OFF</span>
+                <span class="ia-do">opt-in local usage metering · anonymized</span>
+                <span class="ia-badges"><span class="ia-cp">CP</span><span class="ia-cp">ORC</span><span class="ia-new">NEW v1.6 · gated</span></span>
+              </a>
+            </div>
+            <div class="irail-grid" aria-hidden="true">
+              <div class="irow irail-h"><span class="ir-ph">phase</span><span class="ir-sk">spine skill</span><span class="ir-c">cost</span><span class="ir-u">usage (events)</span></div>
+              <div class="irow" data-phase="discover"><span class="ir-ph"><i class="ir-ord">1</i>DISCOVER</span><span class="ir-sk">oc-reverse-spec</span><span class="ir-c"><span class="rm-cost">$0.00</span></span><span class="ir-u"><span class="rm-bar"><i></i></span><span class="rm-use">0</span></span></div>
+              <div class="irow" data-phase="plan"><span class="ir-ph"><i class="ir-ord">2</i>PLAN</span><span class="ir-sk">oc-app-architect</span><span class="ir-c"><span class="rm-cost">$0.00</span></span><span class="ir-u"><span class="rm-bar"><i></i></span><span class="rm-use">0</span></span></div>
+              <div class="irow" data-phase="build"><span class="ir-ph"><i class="ir-ord">3</i>BUILD</span><span class="ir-sk">ux · api · integrations</span><span class="ir-c"><span class="rm-cost">$0.00</span></span><span class="ir-u"><span class="rm-bar"><i></i></span><span class="rm-use">0</span></span></div>
+              <div class="irow" data-phase="ship"><span class="ir-ph"><i class="ir-ord">4</i>SHIP</span><span class="ir-sk">git · audits · deploy</span><span class="ir-c"><span class="rm-cost">$0.00</span></span><span class="ir-u"><span class="rm-bar"><i></i></span><span class="rm-use">0</span></span></div>
+              <div class="irow" data-phase="monitor"><span class="ir-ph"><i class="ir-ord">6</i>MONITOR</span><span class="ir-sk">oc-monitoring-ops</span><span class="ir-c"><span class="rm-cost">$0.00</span></span><span class="ir-u"><span class="rm-bar"><i></i></span><span class="rm-use">0</span></span></div>
+              <div class="irow irail-total"><span class="ir-ph">RUN TOTAL</span><span class="ir-sk">rolls up → /oc-ops budget</span><span class="ir-c"><span class="rm-cost" id="irail-total-cost">$0.00</span></span><span class="ir-u"><span class="rm-use" id="irail-total-use">0 events</span></span></div>
+            </div>
+            <div class="irail-foot">↑ taps every phase · illustrative sample run · CP wire 1.1: cost · eval_scores · telemetry_handle</div>
+          </div>
+
           <!-- Legend -->
           <div class="legend">
             <div class="legend-section-label">connections</div>
@@ -962,7 +1002,7 @@ const packCounts = {
               <span>CP · checkpoint</span>
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title">Checkpoint Protocol</div>
-                Every skill writes JSON to <code>.checkpoints/</code> after each state change. Single source of truth — any skill can read any other's checkpoint to rebuild context after a reset. CP badge sits centered on the top edge of each skill, paired just to the left of ORC. Hover the CP zone toggle top-left of the diagram to see all 22 connected.
+                Every skill writes JSON to <code>.checkpoints/</code> after each state change. Single source of truth — any skill can read any other's checkpoint to rebuild context after a reset. CP badge sits centered on the top edge of each skill, paired just to the left of ORC. Hover the CP zone toggle top-left of the diagram to see all 24 connected.
                 <div class="legend-card-examples">.checkpoints/oc-app-architect.json · phase · progress_table · blockers · next_actions</div>
               </div>
             </span>
@@ -1040,6 +1080,16 @@ const packCounts = {
                 <div class="legend-card-examples">oc-claude-api · oc-rag-forge · oc-agent-forge · oc-prompt-ops</div>
               </div>
             </span>
+            <span class="legend-item" tabindex="0" role="button"
+                  >
+              <div class="li-swatch" style="background:rgba(163,230,53,.10);border:1px solid #a3e635;box-shadow:0 0 6px rgba(163,230,53,.4)"></div>
+              <span>instrument · v1.6</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title" style="color:#a3e635">Instrument rail (v1.6)</div>
+                The two cross-cutting v1.6 skills that meter the pipeline — per-phase cost attribution and opt-in usage telemetry. Not on the spine; they tap every phase. Both gated behind <code>skills.registry.&lt;id&gt;.enabled</code>; checkpoint wire 1.1 adds <code>cost</code> · <code>eval_scores</code> · <code>telemetry_handle</code>. Rail meters show an illustrative sample, not live spend.
+                <div class="legend-card-examples">oc-cost-ops · oc-telemetry-ops</div>
+              </div>
+            </span>
           </div>
         </div>
       </div>
@@ -1109,7 +1159,7 @@ const packCounts = {
           <ul>
             <li>· JSON files at .checkpoints/&lt;skill&gt;.json</li>
             <li>· Keys: phase · progress_table · context_primer · blockers · next_actions</li>
-            <li>· All 22 skills read all 22 checkpoints (no ACL)</li>
+            <li>· All 24 skills read all 24 checkpoints (no ACL)</li>
             <li>· Resume: own → upstream → novice mode</li>
             <li>· Framework-agnostic — no platform lock-in</li>
           </ul>
@@ -1131,7 +1181,7 @@ const packCounts = {
         </div>
       </div>
 
-      <p class="footer">opchain skills ecosystem v2 · asfbay-bit/opchain · 22 skills · 6 phases · 7 tri-agent · 3 audit gates · spine ordinals · v1.5 · checkpoint-driven</p>
+      <p class="footer">opchain skills ecosystem v2 · asfbay-bit/opchain · 24 skills · 6 phases · 7 tri-agent · 3 audit gates · spine ordinals · v1.6 · checkpoint-driven</p>
     </div>
   </main>
 
@@ -1634,6 +1684,63 @@ const packCounts = {
         el.replaceWith(a);
       });
     })();
+
+    /* ══ Instrument rail (v1.6) — drives BOTH the desktop .irail meter rows
+       and the mobile .ma-meter chips from one place (same page DOM). Runs a
+       single illustrative sample pass on load (perf-safe: no infinite loop),
+       then stops at the totals. prefers-reduced-motion renders final totals
+       with no streaming. Guarded so a missing element never throws. Selectors
+       are scoped to .irow / .ma-meter so the existing data-phase bands are
+       never touched. Numbers are a representative sample, not live spend. ══ */
+    (() => {
+      const PH = [
+        { k: 'discover', cost: 0.04, use: 12 },
+        { k: 'plan',     cost: 0.38, use: 41 },
+        { k: 'build',    cost: 1.12, use: 88 },
+        { k: 'ship',     cost: 0.21, use: 30 },
+        { k: 'monitor',  cost: 0.06, use: 19 }
+      ];
+      const MAXU = 88;
+      if (!document.querySelector('.irow[data-phase] .rm-cost, .ma-meter[data-phase] .mm-cost')) return;
+      const st = PH.map(() => ({ c: 0, u: 0, s: 'pending' }));
+      const fmt = (c) => '$' + c.toFixed(2);
+      const setT = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
+      function paint() {
+        let tc = 0, tu = 0;
+        PH.forEach((p, i) => {
+          const c = st[i]; tc += c.c; tu += c.u;
+          document.querySelectorAll('.irow[data-phase="' + p.k + '"], .ma-meter[data-phase="' + p.k + '"]').forEach((el) => {
+            el.classList.toggle('streaming', c.s === 'active');
+            const cost = el.querySelector('.rm-cost') || el.querySelector('.mm-cost');
+            if (cost) cost.textContent = fmt(c.c);
+            const use = el.querySelector('.rm-use') || el.querySelector('.mm-use');
+            if (use) use.textContent = String(Math.round(c.u));
+            const bar = el.querySelector('.rm-bar > i');
+            if (bar) bar.style.transform = 'scaleX(' + (c.u / MAXU) + ')';
+          });
+        });
+        setT('irail-total-cost', fmt(tc)); setT('irail-total-use', Math.round(tu) + ' events');
+        setT('mm-total-cost', fmt(tc));    setT('mm-total-use', Math.round(tu) + ' ev');
+      }
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce) {
+        st.forEach((c, i) => { c.c = PH[i].cost; c.u = PH[i].use; c.s = 'done'; });
+        paint();
+        return;
+      }
+      let idx = 0;
+      function step() {
+        if (idx >= PH.length) { paint(); return; }
+        const p = PH[idx], c = st[idx];
+        c.s = 'active';
+        c.c = Math.min(p.cost, c.c + p.cost * 0.18);
+        c.u = Math.min(p.use, c.u + Math.max(1, p.use * 0.16));
+        paint();
+        if (c.c >= p.cost - 0.0005 && c.u >= p.use) { c.c = p.cost; c.u = p.use; c.s = 'done'; idx++; }
+        if (idx < PH.length) setTimeout(step, 80);
+      }
+      setTimeout(step, 500);
+    })();
   </script>
 </Base>
 
@@ -1662,6 +1769,9 @@ const packCounts = {
     --advisor:    #0EA5E9;
     --auditor:    #F43F5E;
     --ai:         #a78bfa;   /* v1.5 AI-native phase accent */
+    --inst:       #a3e635;   /* v1.6 instrumentation accent (lime) */
+    --inst-dim:   rgba(163,230,53,.08);
+    --inst-mid:   rgba(163,230,53,.16);
 
     /* Spacing */
     --s-1: .25rem; --s-2: .5rem; --s-3: .75rem;
@@ -2377,6 +2487,86 @@ const packCounts = {
       transition-duration: 0.01ms !important;
     }
   }
+
+  /* ── INSTRUMENT RAIL (v1.6) ──────────────────────────────────────
+        Cross-cutting cost + usage panel under the spine. Lime --inst
+        accent (the v1.6 analog of v1.5's violet --ai). Live meters are
+        driven by the inline script (one illustrative pass; reduced-motion
+        shows final totals via the global reduced-motion rule above).
+        Dark-only, like the rest of .arch-v2. */
+  .arch-v2 .subtitle-inst { color: var(--inst); }
+
+  .arch-v2 .irail {
+    margin: 1.25rem .5rem 0 0;
+    border: 1px solid var(--inst);
+    border-radius: 8px;
+    background: var(--inst-dim);
+    padding: 14px 16px 12px;
+  }
+  .arch-v2 .irail-head { margin-bottom: 12px; }
+  .arch-v2 .irail-eyebrow {
+    display: block; font-size: .5625rem; font-weight: 700; color: var(--inst);
+    letter-spacing: .14em; text-transform: uppercase; margin-bottom: 4px;
+  }
+  .arch-v2 .irail-title {
+    font-family: 'Outfit', system-ui, sans-serif; font-size: .9rem;
+    font-weight: 600; color: var(--linen);
+  }
+  .arch-v2 .irail-anchors { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .arch-v2 .irail-anchor {
+    flex: 1 1 240px; display: flex; flex-direction: column; gap: 2px;
+    border: 1px solid var(--inst); border-radius: 6px;
+    background: var(--obsidian); padding: 9px 11px; text-decoration: none;
+    transition: background .15s ease;
+  }
+  .arch-v2 .irail-anchor:hover,
+  .arch-v2 .irail-anchor:focus-visible { background: var(--inst-mid); outline: none; }
+  .arch-v2 .ia-name { font-family: 'Outfit', system-ui, sans-serif; font-size: .8rem; font-weight: 600; color: var(--linen); }
+  .arch-v2 .ia-meta { font-size: .56rem; color: var(--sand); }
+  .arch-v2 .ia-do   { font-size: .56rem; color: var(--inst); }
+  .arch-v2 .ia-badges { display: flex; gap: 5px; align-items: center; margin-top: 4px; }
+  .arch-v2 .ia-cp {
+    font-size: .5rem; font-weight: 700; color: var(--ember);
+    border: .5px solid rgba(224,92,24,.6); background: var(--obsidian);
+    border-radius: 3px; padding: 1px 4px;
+  }
+  .arch-v2 .ia-new {
+    font-size: .5rem; font-weight: 700; color: var(--inst);
+    border: .5px solid var(--inst); background: var(--inst-mid);
+    border-radius: 3px; padding: 1px 4px;
+  }
+  .arch-v2 .irail-grid { display: flex; flex-direction: column; }
+  .arch-v2 .irow {
+    display: grid;
+    grid-template-columns: 150px 1fr 64px 200px;
+    align-items: center; gap: 8px;
+    padding: 6px 8px; border-bottom: .5px solid rgba(196,184,158,.12);
+    font-size: .66rem;
+  }
+  .arch-v2 .irow.irail-h {
+    font-size: .5rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--sand); font-weight: 600; border-bottom: 1px solid rgba(163,230,53,.3);
+  }
+  /* Active-phase highlight is an inset lime bar, NOT a background fill — a fill
+     lightens the row and drops text contrast below WCAG AA mid-animation. */
+  .arch-v2 .irow.streaming { box-shadow: inset 2px 0 0 var(--inst); }
+  .arch-v2 .irow.irail-total { border-bottom: none; padding-top: 9px; }
+  .arch-v2 .irow.irail-total .ir-ph { color: var(--inst); font-weight: 700; }
+  .arch-v2 .irow.irail-total .ir-sk { font-style: italic; color: var(--sand); }
+  .arch-v2 .irow.irail-total .rm-cost { font-size: .8rem; }
+  .arch-v2 .ir-ph { display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--sand); letter-spacing: .04em; }
+  .arch-v2 .ir-ord {
+    font-style: normal; font-size: .5rem; font-weight: 700; color: var(--success);
+    border: .5px solid var(--success); background: var(--obsidian);
+    border-radius: 3px; padding: 0 4px;
+  }
+  .arch-v2 .ir-sk { color: var(--linen); }
+  .arch-v2 .ir-c, .arch-v2 .ir-u { display: flex; align-items: center; gap: 7px; }
+  .arch-v2 .rm-cost { color: var(--inst); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .arch-v2 .rm-bar { flex: 1; height: 6px; min-width: 70px; background: rgba(163,230,53,.12); border-radius: 4px; overflow: hidden; }
+  .arch-v2 .rm-bar > i { display: block; height: 100%; width: 100%; transform: scaleX(0); transform-origin: left; background: var(--inst); border-radius: 4px; transition: transform .12s linear; }
+  .arch-v2 .rm-use { color: var(--sand); font-variant-numeric: tabular-nums; min-width: 26px; text-align: right; }
+  .arch-v2 .irail-foot { font-size: .56rem; color: var(--inst); letter-spacing: .04em; margin-top: 8px; }
 
   /* ── Desktop / mobile architecture swap ──
         The desktop interactive diagram is dense and assumes ≥768px gutter
