@@ -1184,8 +1184,14 @@ const futureReleaseGroups = [
     margin-bottom: 0.6rem;
   }
   .hero-badge::before { content: "●"; font-size: 6px; }
-  .hero-card--next .hero-badge { color: var(--info); border: 0.5px solid var(--info); background: var(--info-dim); }
-  .hero-card--released .hero-badge { color: var(--accent); border: 0.5px solid var(--accent); background: var(--accent-dim); }
+  /* Label uses --text (AA on any themed background); the coloured border, dim
+     tint, and dot carry the release identity. accent/info text on a faint
+     *-dim tint fails Lighthouse color-contrast at 9.5px — same fix the active
+     tab-count pill uses. */
+  .hero-card--next .hero-badge { color: var(--text); border: 0.5px solid var(--info); background: var(--info-dim); }
+  .hero-card--next .hero-badge::before { color: var(--info); }
+  .hero-card--released .hero-badge { color: var(--text); border: 0.5px solid var(--accent); background: var(--accent-dim); }
+  .hero-card--released .hero-badge::before { color: var(--accent); }
   .hero-ver { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--subtle); margin-bottom: 0.3rem; }
   .hero-title {
     display: block;
