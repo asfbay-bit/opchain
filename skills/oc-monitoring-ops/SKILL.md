@@ -1,7 +1,7 @@
 ---
 name: oc-monitoring-ops
 displayName: OC · Monitoring Ops
-version: 1.5.0
+version: 1.6.0
 shortDesc: Post-deploy observability — uptime, errors, alerts, incidents. v1.2 opens PM incident tickets when alerts fire.
 phases: [build]
 triAgent: false
@@ -369,6 +369,33 @@ DIAGNOSE (what's broken? use runbook decision tree)
 | `monitoring/postmortems/` | Post-incident reviews |
 
 ---
+
+## AI-App Monitoring Template (v1.6 — the instrumented pipeline)
+
+When the deployed app has an LLM in the loop (an `11-ai-architecture.md` spec, or
+any oc-claude-api / oc-rag-forge / oc-agent-forge surface), the standard uptime +
+error template isn't enough — AI apps fail in ways HTTP 200s hide. This template
+adds four AI-specific signals on top of the usual ones:
+
+| Signal | What it catches | Source / how |
+|---|---|---|
+| **Token rate** | a runaway loop or prompt bloat burning spend | tokens/min from the request layer; alert on a step-change |
+| **Cost rate** | spend outrunning budget in production | `oc-cost-ops` attribution per request → $/hour; alert past a ceiling |
+| **Eval drift** | model/prompt quality silently regressing in prod | scheduled `oc-prompt-ops` drift run on the live prompt; alert when score drops past `regression_epsilon` |
+| **Hallucination / refusal flags** | answers ungrounded or the model over-refusing | sampled output checks (RAG faithfulness, refusal-rate, schema-valid tool calls); alert on rate spikes |
+
+Wiring notes:
+- **Cost rate** reuses `oc-cost-ops` — monitoring watches the *production* spend
+  rate; cost-ops owns the attribution + the budget gate. A sustained breach pages
+  on-call the same as an error-rate breach.
+- **Eval drift** reuses `oc-prompt-ops drift` — monitoring schedules it against the
+  live model and treats a score regression as an incident trigger, closing the
+  loop the v1.6 theme is about: quality and cost are monitored, not just uptime.
+- **Token/hallucination** signals are sampled (not every request) to keep the
+  monitor cheap; the sample rate is a `/oc-monitor instrument` config.
+
+This template is additive — it sits beside the uptime/error/latency SLOs, it does
+not replace them. Select it with `/oc-monitor setup --template ai-app`.
 
 ## Observability Audit (`/oc-monitor audit`)
 

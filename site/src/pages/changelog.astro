@@ -525,19 +525,20 @@ const futureReleaseGroups = [
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">building next</span>
-          <span class="hero-ver">v1.6.0 · in planning</span>
+          <span class="hero-ver">v1.6.0 · in build · shipping next</span>
           <span class="hero-title">Cost &amp; telemetry</span>
           <span class="hero-desc">
             With four AI-native skills shipped in v1.5, the next question is
             what they cost and whether the pipeline is measurably improving.
-            v1.6 adds cost attribution and opt-in telemetry, plus the first
-            <code>oc-checkpoint-protocol</code> bump since v1.2.
+            v1.6 adds <code>oc-cost-ops</code> and <code>oc-telemetry-ops</code>,
+            a public <code>/dashboard</code>, and the first
+            <code>oc-checkpoint-protocol</code> wire bump since v1.2.
           </span>
         </button>
         <div class="card-body" id="v1-6-body" data-disclosure-body>
           <div class="card-body-inner hero-body-inner">
-            <div class="tag-row"><span class="tag tag--info">est. Jul 2026</span><span class="tag">2 new skills</span><span class="tag">protocol bump</span></div>
-            <p>v1.6 turns the new AI pipeline from powerful into measurable: per-phase LLM cost attribution, opt-in local usage telemetry, and checkpoint fields for cost, eval scores, and telemetry handles.</p>
+            <div class="tag-row"><span class="tag tag--info">shipping next</span><span class="tag">2 new skills</span><span class="tag">protocol wire 1.1</span></div>
+            <p>v1.6 turns the new AI pipeline from powerful into measurable: per-phase LLM cost attribution (<code>oc-cost-ops</code>), opt-in local usage telemetry feeding a public <code>/dashboard</code> (<code>oc-telemetry-ops</code>), and additive checkpoint fields for cost, eval scores, and telemetry handles (wire 1.0 → 1.1). oc-bug-check and oc-code-auditor now emit eval scores, not just pass/fail.</p>
             <h3>What's in scope — vote on what matters most</h3>
             <ul class="vote-list">
               {v16Items.map((it) => (

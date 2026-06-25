@@ -1,7 +1,7 @@
 ---
 name: oc-bug-check
 displayName: OC · Bug Check
-version: 1.5.0
+version: 1.6.0
 shortDesc: Pre-commit QA gate — fast checks on every commit. v1.2 attaches the failure report to the linked PM ticket on block.
 phases: [build]
 triAgent: false
@@ -482,6 +482,27 @@ bugcheck: bypassed (type_safety FAIL, tests FAIL)
 This creates an audit trail in git history.
 
 ---
+
+## Eval Score Emission (v1.6 — the instrumented pipeline)
+
+Bug-check's gate verdict stays **binary** (PASS/FAIL — that's the contract). But
+v1.6 also asks every quality skill to emit a *score* against a stable rubric so
+the pipeline can read trend, not just the latest pass/fail. On each run, bug-check
+appends an entry to the wire-1.1 `eval_scores` checkpoint field:
+
+```jsonc
+"eval_scores": [
+  { "rubric": "oc-bug-check", "score": 0.86, "max": 1, "at": "2026-06-25T12:00:00Z",
+    "dimensions": { "checks_passed": 6, "checks_total": 7, "warnings": 1 } }
+]
+```
+
+The rubric is fixed so the number is comparable run-to-run: `score = checks_passed
+/ checks_total` (0..1, `max: 1`), with the per-check breakdown in `dimensions`. A
+FAIL still blocks the commit regardless of score — the score is for trend
+(`oc-telemetry-ops` aggregates `eval_score_trend`; `oc-orchestrator` reads it as a
+"what's drifting?" signal), not a softening of the gate. The score is additive: it
+does not change the PASS/FAIL logic, the streak, or the bypass protocol.
 
 ## Checkpoint Schema
 

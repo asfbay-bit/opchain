@@ -34,9 +34,12 @@
  *     `update <skill> --field=value`.
  *
  * Schema version vs skill release version:
- *   `protocol_version` is the ON-DISK schema version. It is "1.0" and changes
- *   only when the file shape breaks compatibly. It is NOT the checkpoint-protocol
- *   *skill* release version (that lives in skills/checkpoint-protocol/SKILL.md
+ *   `protocol_version` is the ON-DISK schema version. It is currently "1.1"
+ *   (v1.6 release) and changes only when the file shape grows. v1.1 added the
+ *   additive optional fields cost / eval_scores / telemetry_handle; both "1.0"
+ *   and "1.1" validate (1.0 checkpoints stay valid, new writes stamp "1.1",
+ *   oc-migration-ops sweeps 1.0 → 1.1). It is NOT the checkpoint-protocol
+ *   *skill* release version (that lives in skills/oc-checkpoint-protocol/SKILL.md
  *   frontmatter and moves independently as the docs/tooling evolve).
  */
 
@@ -48,8 +51,13 @@ import { execSync } from "node:child_process";
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const DIR  = join(ROOT, ".checkpoints");
 
-/** On-disk schema version. See header note: distinct from the skill release version. */
-const SCHEMA_VERSION = "1.0";
+/** On-disk schema version stamped on new writes. See header note: distinct from
+ *  the skill release version. v1.1 (v1.6 release) added the additive optional
+ *  fields cost / eval_scores / telemetry_handle. */
+const SCHEMA_VERSION = "1.1";
+/** Wire versions the validator accepts. 1.0 checkpoints predate the v1.1 fields and
+ *  stay valid (those fields are optional); oc-migration-ops sweeps 1.0 → 1.1. */
+const ACCEPTED_SCHEMA_VERSIONS = ["1.0", "1.1"];
 
 /** Required scalar fields (hard errors if missing). */
 const REQUIRED = [
@@ -128,11 +136,12 @@ function validate(path, data, bytes = 0) {
       errors.push(`missing required field "${k}"`);
     }
   }
-  if (data.protocol_version && data.protocol_version !== SCHEMA_VERSION) {
+  if (data.protocol_version && !ACCEPTED_SCHEMA_VERSIONS.includes(data.protocol_version)) {
     errors.push(
-      `protocol_version must be the on-disk schema version "${SCHEMA_VERSION}" ` +
-      `(got ${JSON.stringify(data.protocol_version)}). This is the wire-format ` +
-      `version, not the checkpoint-protocol skill release version.`
+      `protocol_version must be a supported on-disk schema version ` +
+      `(${ACCEPTED_SCHEMA_VERSIONS.map((v) => `"${v}"`).join(" or ")}); got ` +
+      `${JSON.stringify(data.protocol_version)}. This is the wire-format version, ` +
+      `not the checkpoint-protocol skill release version.`
     );
   }
   if (data.status && !STATUS_ENUM.includes(data.status)) {
@@ -234,6 +243,86 @@ function validate(path, data, bytes = 0) {
     }
   }
 
+  // ── v1.1 additive extensions (cost / eval_scores / telemetry_handle) ──
+  // Like pm_refs, these are OPTIONAL and validated only when present; 1.0
+  // checkpoints omit them entirely and stay valid.
+
+  // cost — per-checkpoint LLM spend attribution + budget ceiling (oc-cost-ops).
+  if (data.cost !== undefined) {
+    if (typeof data.cost !== "object" || data.cost === null || Array.isArray(data.cost)) {
+      errors.push(`cost must be an object (oc-cost-ops spend attribution)`);
+    } else {
+      for (const k of ["total_usd", "budget_usd"]) {
+        const v = data.cost[k];
+        if (v !== undefined && (typeof v !== "number" || !Number.isFinite(v) || v < 0)) {
+          errors.push(`cost.${k} must be a non-negative number`);
+        }
+      }
+      for (const k of ["by_phase", "by_model"]) {
+        const m = data.cost[k];
+        if (m !== undefined) {
+          if (typeof m !== "object" || m === null || Array.isArray(m)) {
+            errors.push(`cost.${k} must be an object mapping name → number`);
+          } else {
+            for (const [name, v] of Object.entries(m)) {
+              if (typeof v !== "number" || !Number.isFinite(v) || v < 0) {
+                errors.push(`cost.${k}["${name}"] must be a non-negative number`);
+              }
+            }
+          }
+        }
+      }
+      const { total_usd: t, budget_usd: b } = data.cost;
+      if (typeof t === "number" && typeof b === "number" && b > 0 && t > b) {
+        warnings.push(`cost.total_usd (${t}) exceeds cost.budget_usd (${b}) — budget gate tripped`);
+      }
+    }
+  }
+
+  // eval_scores — append-only eval records against a stable rubric (oc-bug-check,
+  // oc-code-auditor, oc-prompt-ops). score is rubric-relative; pair with max when
+  // the scale isn't 0..10 (e.g. a 0..1 pass_rate uses max: 1).
+  if (data.eval_scores !== undefined) {
+    if (!Array.isArray(data.eval_scores)) {
+      errors.push(`eval_scores must be an array`);
+    } else {
+      data.eval_scores.forEach((s, i) => {
+        if (!s || typeof s !== "object" || Array.isArray(s)) { errors.push(`eval_scores[${i}] must be an object`); return; }
+        if (!s.rubric || typeof s.rubric !== "string") errors.push(`eval_scores[${i}].rubric required (string — which rubric produced the score)`);
+        if (typeof s.score !== "number" || !Number.isFinite(s.score)) errors.push(`eval_scores[${i}].score must be a number`);
+        if (s.max !== undefined && (typeof s.max !== "number" || !Number.isFinite(s.max) || s.max <= 0)) errors.push(`eval_scores[${i}].max must be a positive number`);
+        if (typeof s.score === "number" && typeof s.max === "number" && s.max > 0 && s.score > s.max) errors.push(`eval_scores[${i}].score (${s.score}) exceeds max (${s.max})`);
+        if (s.at !== undefined && !ISO.test(s.at)) errors.push(`eval_scores[${i}].at must be ISO-8601 UTC`);
+        if (s.dimensions !== undefined) {
+          if (typeof s.dimensions !== "object" || s.dimensions === null || Array.isArray(s.dimensions)) {
+            errors.push(`eval_scores[${i}].dimensions must be an object mapping name → number`);
+          } else {
+            for (const [name, v] of Object.entries(s.dimensions)) {
+              if (typeof v !== "number" || !Number.isFinite(v)) errors.push(`eval_scores[${i}].dimensions["${name}"] must be a number`);
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // telemetry_handle — opt-in local-metering link (oc-telemetry-ops). A string id,
+  // or an object whose `enabled` (when present) is boolean. Default stance is OFF;
+  // the field's mere presence is not consent — `enabled: true` is.
+  if (data.telemetry_handle !== undefined && data.telemetry_handle !== null) {
+    const th = data.telemetry_handle;
+    if (typeof th === "string") {
+      if (th.trim() === "") errors.push(`telemetry_handle string must be non-empty`);
+    } else if (typeof th === "object" && !Array.isArray(th)) {
+      if (th.enabled !== undefined && typeof th.enabled !== "boolean") errors.push(`telemetry_handle.enabled must be a boolean (opt-in state)`);
+      if (th.id !== undefined && typeof th.id !== "string") errors.push(`telemetry_handle.id must be a string (anonymous handle)`);
+      if (th.sink !== undefined && typeof th.sink !== "string") errors.push(`telemetry_handle.sink must be a string (local sink path)`);
+      if (th.since !== undefined && !ISO.test(th.since)) errors.push(`telemetry_handle.since must be ISO-8601 UTC`);
+    } else {
+      errors.push(`telemetry_handle must be a string handle or an object { enabled, id?, sink?, since? }`);
+    }
+  }
+
   // D2: soft size guidance.
   if (bytes > SIZE_WARN_BYTES) {
     warnings.push(`checkpoint is ${(bytes / 1024).toFixed(1)}KB (> ${SIZE_WARN_BYTES / 1024}KB) — rotate old skill_state telemetry into .checkpoints/history/`);
@@ -281,10 +370,26 @@ function rankCheckpoint(data) {
   return 6;
 }
 
+// v1.6: cost/budget awareness for /oc-ops next. A checkpoint whose attributed
+// spend has passed its budget ceiling is overspending right now — that's a signal
+// worth surfacing. This is a TIEBREAKER within a rank + a recommendation note, not
+// a change to the rank hierarchy (so the status-based ordering is unchanged).
+function budgetExceeded(data) {
+  const c = data && data.cost;
+  if (!c || typeof c !== "object") return false;
+  const { total_usd: t, budget_usd: b } = c;
+  return typeof t === "number" && typeof b === "number" && b > 0 && t > b;
+}
+
 function pickNext(checkpoints) {
   const ranked = checkpoints
-    .map(({ data }) => ({ data, rank: rankCheckpoint(data), t: Date.parse(data.updated_at || 0) || 0 }))
-    .sort((a, b) => (a.rank - b.rank) || (b.t - a.t));
+    .map(({ data }) => ({
+      data,
+      rank: rankCheckpoint(data),
+      over: budgetExceeded(data) ? 0 : 1, // over-budget sorts first within a rank
+      t: Date.parse(data.updated_at || 0) || 0,
+    }))
+    .sort((a, b) => (a.rank - b.rank) || (a.over - b.over) || (b.t - a.t));
   return ranked[0];
 }
 
@@ -305,8 +410,13 @@ function recommendedAction(data) {
     };
   }
   const na = (data.next_actions || [])[0];
+  const base = data.progress_summary ? data.progress_summary.split(/(?<=\.)\s/)[0] : `${data.skill} is ${data.status}`;
+  // v1.6: surface a tripped budget in the recommendation (oc-cost-ops writes cost).
+  const why = budgetExceeded(data)
+    ? `⚠ over budget ($${data.cost.total_usd} > $${data.cost.budget_usd}) — ${base}`
+    : base;
   return {
-    why: data.progress_summary ? data.progress_summary.split(/(?<=\.)\s/)[0] : `${data.skill} is ${data.status}`,
+    why,
     action: actionText(na) || "No queued next action — review the checkpoint.",
   };
 }
@@ -669,7 +779,7 @@ function cmdInit() {
 
 // Exported for tests. The CLI dispatch below only runs when invoked directly,
 // so importing this module (e.g. from vitest) is side-effect-free.
-export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, SCHEMA_VERSION };
+export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, budgetExceeded, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS };
 
 // ───────────────────────────── arg parsing ──────────────────────────────────
 

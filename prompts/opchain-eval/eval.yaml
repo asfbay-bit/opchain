@@ -26,4 +26,11 @@ thresholds:
   regression_epsilon: 0.05       # a pass_rate drop > this vs the last green baseline fails the gate
 
 cost:
-  cost_per_eval: null            # populated by oc-cost-ops in v1.6
+  # Owned by oc-cost-ops (v1.6). cost_per_eval is MEASURED from real token counts
+  # by `/oc-cost attribute` — it stays null until the first costed run (we don't
+  # estimate). budget_per_eval + regression_pct are config that drive the
+  # cost-regression gate alongside the score gate. See
+  # skills/oc-cost-ops/references/budget-gates.md.
+  cost_per_eval: null            # measured + populated by oc-cost-ops /oc-cost attribute
+  budget_per_eval: 0.05          # hard ceiling per eval run (cost gate FAILs above this)
+  regression_pct: 0.50           # a cost rise > 50% vs the cost baseline fails the gate

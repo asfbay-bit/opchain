@@ -103,6 +103,10 @@ cross-cutting:
   oc-migration-ops ──► runs when a live system's engine changes (DB / framework / platform)
   oc-scale-ops ──► runs when scaling questions arise
   oc-dash-forge ──► invoked by oc-ux-engineer (or oc-app-architect) for dashboards + dense data UIs
+
+instrumentation (v1.6 "the instrumented pipeline"):
+  oc-cost-ops ──► attributes LLM spend per phase, budget gates, model-tier routing
+  oc-telemetry-ops ──► opt-in local usage metering → anonymized aggregate for /dashboard
 ```
 
 ### Upstream/Downstream Map
@@ -125,6 +129,8 @@ cross-cutting:
 | **oc-monitoring-ops** | oc-deploy-ops (what shipped) | — (incident loops back to oc-app-architect / oc-code-auditor as needed) |
 | **oc-release-ops** | every skill's `*.checkpoint.json` (what shipped per skill since last release), oc-app-architect (sprint outputs feed changelog draft), oc-git-ops (merged-PR list), oc-deploy-ops (last-shipped commit SHA) | oc-git-ops (release PR / tag), oc-deploy-ops (staging then prod ship) |
 | **oc-scale-ops** | oc-stack-forge (platform limits) | — (advisory, no chain) |
+| **oc-cost-ops** | oc-claude-api (price table), oc-prompt-ops (eval token counts), any skill (phase token counts) | oc-prompt-ops (cost-regression gate), oc-telemetry-ops (attributed cost to aggregate), oc-orchestrator (budget into `/oc-ops next`) |
+| **oc-telemetry-ops** | oc-cost-ops (per-run cost), any skill (skill/phase usage) | the site `/dashboard` (anonymized aggregate), oc-orchestrator (most-used-skill signal) |
 | **oc-reverse-spec** | — (entry point for existing code) | oc-app-architect (handoff specs) |
 
 ---
@@ -417,6 +423,25 @@ description: >
   draft, /oc-release bump, /oc-release announce, /oc-release ship, "cut a release",
   "ship v1.3", "tag the release", "draft the changelog", "what's in this
   release", "version bump". Trigger liberally on release-cadence work.
+
+# oc-cost-ops
+description: >
+  Cost operations harness — attribute LLM spend to the skill phase that incurred
+  it, set per-phase and per-suite budgets that gate in the checkpoint, and
+  recommend model-tier routing (Haiku for cheap repetitive phases, Opus for
+  spec/audit/migration). Use for /oc-cost, "what did this cost", "cost
+  attribution", "token cost", "budget gate", "model tier routing", "cost
+  regression", "cheaper model", "spend per feature". Trigger liberally on
+  cost/spend work.
+
+# oc-telemetry-ops
+description: >
+  Telemetry operations harness — opt-in, local-first usage metering to a local
+  .checkpoints/usage.sqlite store, with anonymized aggregates for the public
+  /dashboard. Default OFF; no prompt content or PII ever leaves the machine.
+  Use for /oc-telemetry, "usage metering", "telemetry", "opt-in analytics",
+  "which skills do people use", "usage stats", "dashboard data". Trigger
+  liberally on usage/telemetry work.
 ```
 
 ---
@@ -444,6 +469,11 @@ Every skill should know these facts:
 - **Cross-cutting skills:** oc-api-dev (first-party APIs — OpenAPI/GraphQL, versioning,
   SDKs), oc-integrations-engineer (external APIs), oc-migration-ops (live system changes —
   DB, framework, platform), oc-scale-ops (advisory), oc-dash-forge (dense data UIs).
+- **Instrumentation (v1.6 "the instrumented pipeline"):** oc-cost-ops (LLM spend
+  attribution per phase, budget gates, model-tier routing) and oc-telemetry-ops
+  (opt-in local usage metering → anonymized `/dashboard` aggregate). They add the
+  wire-1.1 checkpoint fields `cost` / `eval_scores` / `telemetry_handle`. v1.6
+  takes the catalog to 24 skills.
 - **Checkpoint protocol:** every skill writes to `.checkpoints/[skill].checkpoint.json`.
 - **Tri-dev is retired.** Its build harness lives inside oc-app-architect Phase 6.
   If a user asks for tri-dev, route to oc-app-architect /oc-build.

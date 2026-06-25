@@ -127,13 +127,22 @@ const DEFINITIONS = [
       "Show the Codex / any-MCP-agent install flow on /install (hosted opchain.dev/mcp endpoint + .codex/skills drop-in). On as of v1.4.3.",
   },
   {
+    name: "site.feature.dashboard",
+    type: "boolean",
+    default: true,
+    category: "release",
+    owner: "site",
+    description:
+      "Expose /dashboard — anonymized aggregate opchain usage (pipelines run, most-used skill, model-tier mix, cost-per-feature) from oc-telemetry-ops. When false the route 404s and nav links hide. Ships labeled sample data until a live aggregate is published.",
+  },
+  {
     name: "site.feature.replays-section",
     type: "boolean",
     default: true,
     category: "release",
     owner: "site",
     description:
-      "Reserved — render a session-replay vignettes block on the home page. The block isn't built yet; flipping this flag does nothing today.",
+      "Render the session-replay vignettes block (real pipeline runs with cost overlays) on /dashboard. Wired in v1.6; flip off to hide the block.",
   },
 
   // ── site.experiment ──────────────────────────────────────────────────────
@@ -227,6 +236,9 @@ const DEFINITIONS = [
     "oc-rag-forge",
     "oc-agent-forge",
     "oc-prompt-ops",
+    // v1.6 "The instrumented pipeline" — cost + telemetry instrumentation.
+    "oc-cost-ops",
+    "oc-telemetry-ops",
   ]),
 
   // ── skills.capability ────────────────────────────────────────────────────
@@ -267,6 +279,8 @@ const DEFINITIONS = [
     "/oc-threat-model", "/oc-uxe",
     // v1.5 AI-native verbs (ADEV-344). Subcommands inherit the parent verb.
     "/oc-claude-api", "/oc-rag", "/oc-agent", "/oc-prompt",
+    // v1.6 instrumentation verbs. Subcommands inherit the parent verb.
+    "/oc-cost", "/oc-telemetry",
   ]),
 
   // ── skills.coverage.<id>.enabled — one per oc-stack-forge pack ──────────────

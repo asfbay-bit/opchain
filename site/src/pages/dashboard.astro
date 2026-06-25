@@ -1,0 +1,220 @@
+---
+import Base from "../layouts/Base.astro";
+import Eyebrow from "../components/ui/Eyebrow.astro";
+import Card from "../components/ui/Card.astro";
+import { defaultFor } from "../lib/flags/build-defaults";
+import { usage, replays } from "../data/dashboard-static";
+
+/**
+ * /dashboard (v1.6 "the instrumented pipeline").
+ *
+ * Anonymized aggregate opchain usage from oc-telemetry-ops — pipelines run,
+ * most-used skill, model-tier mix, cost-per-feature, eval-score trend. The data
+ * is the oc-telemetry-ops export shape (aggregation.md). Until a live aggregate
+ * is published it ships labeled SAMPLE data (`usage.sample`), never presented as
+ * real. The replays vignettes block is gated by site.feature.replays-section.
+ */
+const dashboardEnabled = defaultFor("site.feature.dashboard") as boolean;
+const replaysEnabled = defaultFor("site.feature.replays-section") as boolean;
+
+const maxRuns = Math.max(...usage.by_skill.map((s) => s.runs));
+const tierPct = (s: number) => Math.round(s * 100);
+const usd = (n: number) => `$${n.toFixed(2)}`;
+const trendMin = Math.min(...usage.eval_score_trend.map((p) => p.avg));
+const trendMax = Math.max(...usage.eval_score_trend.map((p) => p.avg));
+// normalize each trend point to a 0..100 bar height (floor at 12% so it's visible)
+const trendH = (v: number) =>
+  trendMax === trendMin ? 60 : Math.round(12 + ((v - trendMin) / (trendMax - trendMin)) * 88);
+---
+
+<Base
+  title="Dashboard · opchain"
+  description="Anonymized aggregate opchain usage — pipelines run, most-used skills, model-tier mix, and cost per shipped feature. Powered by oc-telemetry-ops + oc-cost-ops."
+  active="/dashboard"
+>
+  {!dashboardEnabled && (
+    <main class="page">
+      <h1>Dashboard unavailable</h1>
+      <p>The usage dashboard is currently turned off. See the <a href="/skills">skill library</a> or <a href="/showcase">showcase</a>.</p>
+    </main>
+  )}
+
+  {dashboardEnabled && (
+    <main class="page">
+      <div class="page-head">
+        <Eyebrow>dashboard</Eyebrow>
+        <h1>The instrumented pipeline.</h1>
+      </div>
+
+      <p class="lede">
+        Anonymized, aggregate usage of opchain's own pipeline — <strong>which
+        skills actually run</strong>, what tier they run on, and what they cost.
+        Counts and sums only; no prompt content, no identity (see
+        <a href="/privacy">privacy</a>). Metered locally and opt-in by
+        <code>oc-telemetry-ops</code>, costed by <code>oc-cost-ops</code>.
+      </p>
+
+      {usage.sample && (
+        <div class="sample-banner" role="note">
+          <strong>Sample data.</strong> These are illustrative seed numbers, not a
+          live aggregate yet — opt-in telemetry is rolling out. The page swaps to
+          real figures once a live export is published. Shape:
+          <code>opchain-usage-aggregate/1</code>.
+        </div>
+      )}
+
+      <section class="totals" aria-label="Totals">
+        <Card variant="surface" glow={false}>
+          <div class="t-head">Pipelines run</div>
+          <div class="t-val mono">{usage.totals.pipelines_run.toLocaleString()}</div>
+          <div class="t-sub">{usage.window.from} → {usage.window.to}</div>
+        </Card>
+        <Card variant="surface" glow={false}>
+          <div class="t-head">Skill runs</div>
+          <div class="t-val mono">{usage.totals.skill_runs.toLocaleString()}</div>
+          <div class="t-sub">across {usage.by_skill.length} skill buckets</div>
+        </Card>
+        <Card variant="surface" glow={false}>
+          <div class="t-head">Avg cost / shipped feature</div>
+          <div class="t-val mono">{usd(usage.totals.avg_cost_per_feature_usd)}</div>
+          <div class="t-sub">attributed by oc-cost-ops</div>
+        </Card>
+      </section>
+
+      <section class="block">
+        <h2>Most-used skills</h2>
+        <ul class="bars" aria-label="Runs per skill">
+          {usage.by_skill.map((s) => (
+            <li class="bar-row">
+              <span class="bar-label mono">{s.skill}</span>
+              <span class="bar-track">
+                <span class="bar-fill" style={`width:${Math.round((s.runs / maxRuns) * 100)}%`}></span>
+              </span>
+              <span class="bar-num mono">{s.runs.toLocaleString()}</span>
+            </li>
+          ))}
+        </ul>
+        <p class="note">Buckets with fewer than 5 runs fold into <code>other</code> (k-anonymity).</p>
+      </section>
+
+      <div class="two-col">
+        <section class="block">
+          <h2>Model-tier mix</h2>
+          <ul class="tiers" aria-label="Share of runs by model tier">
+            {usage.model_tier_distribution.map((t) => (
+              <li class="tier-row">
+                <span class="tier-label mono">{t.tier}</span>
+                <span class="bar-track">
+                  <span class={`bar-fill tier-${t.tier}`} style={`width:${tierPct(t.share)}%`}></span>
+                </span>
+                <span class="bar-num mono">{tierPct(t.share)}%</span>
+              </li>
+            ))}
+          </ul>
+          <p class="note">Tier, never the full model id — all the distribution needs.</p>
+        </section>
+
+        <section class="block">
+          <h2>Eval-score trend</h2>
+          <div class="spark" aria-label="Average eval score by week">
+            {usage.eval_score_trend.map((p) => (
+              <span class="spark-col" title={`${p.week}: ${p.avg.toFixed(2)}`}>
+                <span class="spark-bar" style={`height:${trendH(p.avg)}%`}></span>
+                <span class="spark-x mono">{p.week.replace("2026-", "")}</span>
+              </span>
+            ))}
+          </div>
+          <p class="note">Avg score across rubrics (oc-bug-check, oc-code-auditor, oc-prompt-ops), normalized 0–1.</p>
+        </section>
+      </div>
+
+      {replaysEnabled && (
+        <section class="block replays" id="replays">
+          <h2>Replays — real runs, with cost overlays</h2>
+          <p class="note">Pipeline runs recorded end-to-end, annotated with attributed spend + eval score.</p>
+          <div class="replay-grid">
+            {replays.map((r) => (
+              <Card variant="surface" glow={false}>
+                <div class="r-head">
+                  <h3>{r.title}</h3>
+                  <span class="r-cost mono">{usd(r.costUsd)}</span>
+                </div>
+                <div class="r-path mono">{r.skillPath}</div>
+                <p class="r-summary">{r.summary}</p>
+                <div class="r-meta">
+                  <span class="r-chip">{r.durationLabel}</span>
+                  <span class="r-chip">eval {r.evalScore.toFixed(1)}/10</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section class="block">
+        <h2>How this is measured</h2>
+        <ul>
+          <li><strong>Opt-in + local-first.</strong> <code>oc-telemetry-ops</code> meters runs to a local <code>.checkpoints/usage.sqlite</code> only when enabled; default is off.</li>
+          <li><strong>Content-free by schema.</strong> No prompt text, file paths, or identity is ever recorded — only categories and counts.</li>
+          <li><strong>Aggregate-only.</strong> Only this anonymized rollup leaves a machine; raw rows never do, and small cells fold into <code>other</code>.</li>
+          <li><strong>Cost is attributed, not estimated.</strong> <code>oc-cost-ops</code> multiplies measured tokens by the live price table.</li>
+        </ul>
+      </section>
+    </main>
+  )}
+</Base>
+
+<style>
+  .page { max-width: 64rem; margin: 0 auto; padding: 2rem 1.25rem 5rem; }
+  .lede { font-size: 1.05rem; line-height: 1.6; color: var(--text-2, #cbd5e1); max-width: 48rem; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+  .sample-banner {
+    margin: 1.25rem 0 0; padding: 0.75rem 1rem; border-radius: 0.6rem;
+    border: 1px solid var(--border, #334155);
+    background: color-mix(in oklab, var(--accent, #14b8a6) 8%, transparent);
+    font-size: 0.9rem; line-height: 1.5;
+  }
+  .sample-banner code { font-size: 0.82em; }
+
+  .totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.75rem 0 0; }
+  .t-head { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-3, #94a3b8); }
+  .t-val { font-size: 2rem; font-weight: 700; margin: 0.25rem 0; }
+  .t-sub { font-size: 0.82rem; color: var(--text-3, #94a3b8); }
+
+  .block { margin-top: 2.5rem; }
+  .block h2 { font-size: 1.25rem; margin: 0 0 0.9rem; }
+  .note { font-size: 0.82rem; color: var(--text-3, #94a3b8); margin-top: 0.6rem; }
+
+  .bars, .tiers { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  .bar-row, .tier-row { display: grid; grid-template-columns: 9.5rem 1fr 4rem; align-items: center; gap: 0.6rem; }
+  .tier-row { grid-template-columns: 5rem 1fr 3rem; }
+  .bar-label, .tier-label { font-size: 0.85rem; color: var(--text-2, #cbd5e1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { height: 0.7rem; border-radius: 0.4rem; background: var(--surface-2, #1e293b); overflow: hidden; }
+  .bar-fill { display: block; height: 100%; border-radius: 0.4rem; background: var(--accent, #14b8a6); }
+  .bar-num { font-size: 0.82rem; text-align: right; color: var(--text-2, #cbd5e1); }
+  .tier-haiku { background: #38bdf8; } .tier-sonnet { background: #14b8a6; }
+  .tier-opus { background: #a78bfa; } .tier-fable { background: #f472b6; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+
+  .spark { display: flex; align-items: flex-end; gap: 0.5rem; height: 8rem; padding-top: 0.5rem; }
+  .spark-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1; height: 100%; }
+  .spark-bar { width: 100%; max-width: 2.2rem; background: var(--accent, #14b8a6); border-radius: 0.3rem 0.3rem 0 0; min-height: 4px; }
+  .spark-x { font-size: 0.68rem; color: var(--text-3, #94a3b8); margin-top: 0.35rem; }
+
+  .replay-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+  .r-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+  .r-head h3 { font-size: 1rem; margin: 0; }
+  .r-cost { color: var(--accent, #14b8a6); font-weight: 700; }
+  .r-path { font-size: 0.75rem; color: var(--text-3, #94a3b8); margin: 0.4rem 0 0.6rem; line-height: 1.4; }
+  .r-summary { font-size: 0.88rem; line-height: 1.5; color: var(--text-2, #cbd5e1); margin: 0; }
+  .r-meta { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+  .r-chip { font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 0.4rem; background: var(--surface-2, #1e293b); color: var(--text-2, #cbd5e1); }
+
+  @media (max-width: 720px) {
+    .totals { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .bar-row { grid-template-columns: 7rem 1fr 3.5rem; }
+  }
+</style>

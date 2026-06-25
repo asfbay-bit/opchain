@@ -1,7 +1,7 @@
 ---
 name: oc-prompt-ops
 displayName: OC · Prompt Ops
-version: 1.5.0
+version: 1.6.0
 shortDesc: Prompt-as-code — versioning, eval datasets, regression and drift detection for LLM prompts.
 phases: [build, ai-native]
 triAgent: false
@@ -19,7 +19,7 @@ description: >
   prompt-engineering / eval work.
 governance:
   breaking_change_policy: skills/CHANGELOG.md
-  last_reviewed: 2026-06-21
+  last_reviewed: 2026-06-25
   owner: opchain
   docs:
     - { path: SKILL.md, kind: contract, lifecycle: stable }
@@ -199,7 +199,7 @@ thresholds:
   pass_rate: 0.90              # ≥ 90% of cases must pass
   regression_epsilon: 0.05     # a pass_rate drop > this vs baseline fails the gate
 cost:
-  cost_per_eval: null          # populated by oc-cost-ops in v1.6
+  cost_per_eval: null          # measured by oc-cost-ops /oc-cost attribute (null until first costed run)
 ```
 
 ### Grading modes
@@ -338,16 +338,17 @@ large goldsets, route eval runs through the **Batch API** (50% of standard
 price, sourced from `oc-claude-api`) — eval is latency-tolerant by definition, so
 batch is the right default.
 
-`eval.yaml` carries a `cost_per_eval` field that is **populated once
-`oc-cost-ops` lands in v1.6**. Until then it is recorded as `null` and the eval
-runner reports raw token counts only; it does not yet track spend, set per-suite
-budgets, or alert on cost regression. When v1.6 ships, `oc-cost-ops` will own
-live eval-spend tracking and a cost-regression gate that runs alongside the
-score-regression gate (a prompt change that holds quality but triples token cost
-is also a regression).
+`eval.yaml` carries `cost_per_eval` / `budget_per_eval` / `regression_pct`, owned
+by **`oc-cost-ops`** (shipped v1.6). `cost_per_eval` is *measured* from real token
+counts by `/oc-cost attribute` — it stays `null` until the first costed run (Cost
+Ops attributes, it does not estimate). `oc-cost-ops` runs a **cost-regression gate
+beside this skill's score gate**: a prompt change that holds quality but triples
+token cost is also a regression and blocks the merge. The two gates run together
+so a prompt/model change is judged on both quality and cost. See
+`oc-cost-ops/references/budget-gates.md`.
 
 ```json
-"cost": { "cost_per_eval": null, "_note": "populated by oc-cost-ops in v1.6" }
+"cost": { "cost_per_eval": null, "_note": "measured by oc-cost-ops /oc-cost attribute (null until first costed run)" }
 ```
 
 ---
@@ -359,7 +360,7 @@ is also a regression).
 | Model routing, prompt caching, tool wiring, the request layer | `oc-claude-api` | Prompt Ops versions + evals the prompt text; oc-claude-api runs it |
 | Agent topology, subagent budgets, harness loop shape | `oc-agent-forge` | Agent-forge designs the loop; it *uses* this skill's eval harness to score it |
 | Retrieval quality (recall@k, MRR, faithfulness) | `oc-rag-forge` | RAG owns *retrieval* evals; Prompt Ops owns *generation-prompt* evals |
-| Live eval-spend tracking, cost-regression gate | `oc-cost-ops` (v1.6) | Prompt Ops emits token counts; cost-ops will own the budget gate |
+| Live eval-spend tracking, cost-regression gate | `oc-cost-ops` | Prompt Ops emits token counts; oc-cost-ops owns the budget + cost-regression gate |
 | Running the model-migration diff itself | `oc-claude-api migrate` | Prompt Ops supplies the drift signal that gates the migration |
 | Deploying the evaluated prompt | `oc-deploy-ops` | Receives a frozen, score-gated prompt version |
 
@@ -376,7 +377,7 @@ deploy, and cost it.
 | **oc-claude-api** | Owns model routing; Prompt Ops pins each prompt/eval to the chosen model ID. On a model migration, `oc-claude-api migrate` gates its diff on `/oc-prompt drift` showing no score regression on the new model. |
 | **oc-agent-forge** | Consumes this skill's eval harness to score agent behavior — its agent goldset runs through `/oc-prompt eval` rather than a bespoke runner. |
 | **oc-rag-forge** | Consumes the same eval harness for its *generation* prompt (the answer-synthesis step). RAG owns the *retrieval* goldset; Prompt Ops owns the generation-prompt goldset; the two regression suites run side by side. |
-| **oc-cost-ops** (v1.6) | Will own live eval-spend tracking and the `cost_per_eval` field + cost-regression gate that runs alongside the score gate. |
+| **oc-cost-ops** | Owns live eval-spend tracking and the `cost_per_eval` field + cost-regression gate that runs alongside the score gate (shipped v1.6). |
 | **oc-deploy-ops** | Receives a frozen, score-gated prompt version; gates prod on the regression suite passing. |
 | **oc-git-ops** | Opens the PR carrying the prompt diff + scorecard; CI runs `/oc-prompt regress` as a required check. |
 | **oc-app-architect** | When an app has an LLM feature, its prompt is registered under `prompts/` with a goldset from day one rather than backfilled later. |
@@ -428,7 +429,7 @@ deploy, and cost it.
     "delta": 0.01,
     "verdict": "PASS"
   },
-  "cost": { "cost_per_eval": null, "_note": "populated by oc-cost-ops in v1.6" }
+  "cost": { "cost_per_eval": null, "_note": "measured by oc-cost-ops /oc-cost attribute (null until first costed run)" }
 }
 ```
 
@@ -445,7 +446,7 @@ deploy, and cost it.
 | oc-agent-forge | Eval harness contract for scoring agent behavior |
 | oc-rag-forge | Eval harness contract for scoring the generation prompt |
 | oc-deploy-ops | Frozen, score-gated prompt version as a deploy gate |
-| oc-cost-ops | Token counts per eval run as the cost-tracking input (v1.6) |
+| oc-cost-ops | Token counts per eval run as the cost-tracking input |
 
 ---
 

@@ -5,14 +5,16 @@
  * `roadmap.json`, read via `loadRoadmap()`) as the data source for
  * RoadmapTimeline. The Linear plumbing is left in place but bypassed;
  * the roadmap is now hand-maintained here so it tells a clean
- * release-arc story (v1.5 next → v1.6 / v1.7 planned) without depending
+ * release-arc story (v1.6 building → v1.7 planned) without depending
  * on label hygiene in Linear at build time.
  *
  * Bucket = release status, NOT a release number. "Shipped" means live in
  * production (those live in the release-history list on /changelog, so the
- * shipped bucket here is empty). v1.5 is built but NOT yet deployed, so it
- * sits in "in-progress"; v1.6 and v1.7 are "planned". Every forward item is
- * votable.
+ * shipped bucket here is empty). v1.5 shipped (live since 2026-06-22) so it has
+ * left the forward timeline. v1.6 is building now and is surfaced as "Coming
+ * Next" on /changelog — its items live in "planned" because that is the bucket
+ * /changelog renders + makes votable. v1.7 themes are also "planned". Every
+ * forward (rendered) item is votable.
  *
  * Voting: vote buttons POST /api/votes/<id> and the Worker dedups
  * per-IP/day in KV keyed on the id. IDs use an `OPC-` prefix (matches the
@@ -25,29 +27,15 @@
 import type { Roadmap } from "./roadmap-types";
 
 export const staticRoadmap: Roadmap = {
-  generated_at: "2026-05-25T00:00:00.000Z",
+  generated_at: "2026-06-25T00:00:00.000Z",
   note: null,
   items: {
-    // Empty: shipped releases live in the release-history list on
-    // /changelog, not in the forward-looking roadmap timeline.
+    // Empty: shipped releases (incl. v1.5, live since 2026-06-22) live in the
+    // release-history list on /changelog, not in the forward-looking timeline.
     shipped: [],
-    "in-progress": [
-      {
-        id: "OPC-150",
-        title: "v1.5 — Build the AI app",
-        blurb:
-          "Four new AI-native skills (claude-api, rag-forge, agent-forge, prompt-ops), vector-DB packs, and an AI-app branch in /oc-discover. Built and lockstep-bumped to 1.5.0 (22 skills) — shipping next, not yet live.",
-        url: "/changelog#v1-5",
-        bucket: "in-progress",
-        milestone: "v1.5",
-        milestoneSort: 1500,
-        // Built, awaiting release — no firm public ship date yet.
-        targetDate: null,
-        labels: [],
-        priority: 2,
-        updatedAt: "2026-05-25T00:00:00.000Z",
-      },
-    ],
+    // Empty: the building-now release (v1.6) is surfaced as "Coming Next" and
+    // its votable items live in `planned` (the bucket /changelog renders).
+    "in-progress": [],
     planned: [
       {
         id: "OPC-160",
@@ -79,9 +67,9 @@ export const staticRoadmap: Roadmap = {
       },
       {
         id: "OPC-162",
-        title: "oc-checkpoint-protocol v1.3 — cost + eval fields",
+        title: "checkpoint protocol wire 1.1 — cost + eval fields",
         blurb:
-          "First protocol bump since v1.2: adds cost, eval_scores, and telemetry_handle fields. oc-bug-check and oc-code-auditor start emitting eval scores against a stable rubric, not just pass/fail.",
+          "First protocol bump since the v1.2 pm_refs extension: adds the additive optional fields cost, eval_scores, and telemetry_handle (on-disk wire 1.0 → 1.1, backward compatible). oc-bug-check and oc-code-auditor start emitting eval scores against a stable rubric, not just pass/fail.",
         url: "/changelog#v1-6",
         bucket: "planned",
         milestone: "v1.6",

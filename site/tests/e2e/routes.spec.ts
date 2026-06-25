@@ -63,6 +63,9 @@ const ROUTES: RouteSpec[] = [
       },
     ],
   },
+  // v1.6 "the instrumented pipeline": /dashboard renders the anonymized usage
+  // aggregate + replays. Labeled sample data until a live export ships.
+  { path: "/dashboard", h1: /instrumented pipeline/i, disabledRules: [COLOR_CONTRAST_DISABLE] },
 ];
 
 test.describe("routes render", () => {

@@ -42,7 +42,7 @@ first commit on a fresh clone.
 
 | Field | Required | Type | Notes |
 |---|:-:|---|---|
-| `protocol_version` | ✓ | `"1.0"` | Bump if the schema breaks. |
+| `protocol_version` | ✓ | `"1.0"` \| `"1.1"` | On-disk wire format. `1.1` (v1.6) added `cost`/`eval_scores`/`telemetry_handle`; both validate, new writes stamp `1.1`. |
 | `skill` | ✓ | string | Must match the filename: `<skill>.checkpoint.json`. |
 | `project` | ✓ | string | Human-readable project name. |
 | `project_dir` | ✓ | string | Absolute path to the project. |
@@ -56,6 +56,10 @@ first commit on a fresh clone.
 | `context_primer` |   | object | `{ key_decisions[], generated_files[], user_preferences[] }` |
 | `blockers` |   | array | `{ id, description, blocking, needs, proposed_resolution }` |
 | `next_actions` |   | string[] | Ordered, the next session reads `[0]` first. |
+| `pm_refs` |   | array | `{ provider, id, role?, url? }` — PM tickets touched (skill release 1.2+). |
+| `cost` |   | object | `{ total_usd?, budget_usd?, by_phase?, by_model?, currency? }` — LLM spend attribution + budget ceiling (oc-cost-ops, wire 1.1+). |
+| `eval_scores` |   | array | `{ rubric, score, max?, at?, dimensions? }[]` — eval scores vs a stable rubric (oc-bug-check / oc-code-auditor / oc-prompt-ops, wire 1.1+). |
+| `telemetry_handle` |   | string \| object | Opt-in local-metering link `{ enabled, id?, sink?, since? }` — default OFF (oc-telemetry-ops, wire 1.1+). |
 | `skill_state` |   | object | Freeform — private to the owning skill. |
 
 Validation runs in CI via `npm run checkpoint:validate`. The validator is

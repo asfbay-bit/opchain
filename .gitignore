@@ -85,6 +85,12 @@ site/src/data/roadmap.json
 # merge conflicts this exception exists to prevent. Fixed to the correct name.
 .checkpoints/oc-bug-check.checkpoint.json
 
+# Telemetry store (oc-telemetry-ops, v1.6). Local-only, opt-in usage metering.
+# Unlike the tracked checkpoint JSONs, this raw SQLite store NEVER leaves the
+# machine — only the anonymized aggregate export (no PII) is ever published.
+.checkpoints/usage.sqlite
+.checkpoints/usage.sqlite-*
+
 # Playwright (Sprint 7a)
 site/test-results/
 site/playwright-report/
