@@ -37,10 +37,36 @@ live-claim flips until deploy.
 | L1 | Header version chip | `site/src/components/Header.astro` | `CURRENT_RELEASE = "vN"` + `CURRENT_RELEASE_HREF = "/changelog#vN"` |
 | L2 | Homepage release bar (shipped) | `site/src/pages/index.astro` | `<span class="rb-tag">vN · shipped</span>` + its description line |
 | L3 | Homepage stat chip | `site/src/pages/index.astro` | `<span class="stat-num">vN</span>` (the "latest release" stat) |
-| L4 | Changelog — Just Released hero | `site/src/pages/changelog.astro` | promote the newly-live release to the open `hero-card--released` (`#vN`, `hero-ver "vN.0 · shipped <date>"`), demote the prior hero to a collapsed `rel-card` |
+| L4 | Changelog — Just Released hero | `site/src/pages/changelog.astro` | promote the newly-live release to the open `hero-card--released` (`#vN`, `hero-ver "vN.0 · shipped <date>"`); keep it **and every release shipped ≤ 21 days ago** as collapsed `hero-card--released` "previous release" heroes (above the *earlier releases* divider); demote any hero now older than 21 days to a compact `rel-card`. See *The 21-day active window* below. |
 | L5 | Changelog — tab counts | `site/src/pages/changelog.astro` | `Just Released <span class="tab-count">K shipped</span>` (K++) |
 | L6 | Roadmap timeline — shipped flip | `site/src/data/roadmap-static.ts` | the now-live release leaves `in-progress` (shipped releases live in the changelog release-history, not the forward timeline — per the file's own header) |
 | L7 | styleguide Badge example | `site/src/pages/styleguide.astro` | `<Badge>vN.N.N</Badge>` (cosmetic component demo) |
+
+### The 21-day active window (L4 detail)
+
+Newly-released entries stay prominent as **heroes** for **21 days**, then age
+into the compact "earlier releases" `rel-card` list. In the *Just Released* tab:
+
+- **Newest release** → the one open `hero-card--released is-open` ("latest release" badge).
+- **Every release shipped ≤ 21 days ago** → a collapsed `hero-card--released`
+  ("previous release" badge), above the `earlier releases` divider.
+- **Releases shipped > 21 days ago** → a compact `rel-card`, below the divider.
+
+Enforced **manually at each release cut** — it is *not* date-driven at build
+time. When `oc-release-ops` cuts a release, walk the hero list and:
+
+1. **Age out:** demote any "previous release" hero whose `shipped <date>` is now
+   > 21 days old to a `rel-card` — move it below the `earlier releases` divider,
+   swap `hero-card hero-card--released` → `rel-card`, the `hero-head` block →
+   `rc-row` (with `ver-pill ver-pill--past` + `rc-title` + `rc-date` +
+   `rc-summary`), and `card-body-inner hero-body-inner` → `card-body-inner`.
+2. **Promote:** add the newly-shipped release as the open hero and demote the
+   prior open hero to a collapsed "previous release" hero.
+
+The `hero-ver "... · shipped <Mon DD, YYYY>"` date is the source of truth for
+the 21-day age — these hand-authored cards carry no separate machine-readable
+ship date. (Reverse of step 1 — promoting a `rel-card` back to a hero — applies
+if a release re-enters the window, e.g. a date correction.)
 
 ## Forward surfaces (update IN THE BUILD PR)
 
