@@ -1,7 +1,7 @@
 ---
 name: oc-rag-forge
 displayName: OC · RAG Forge
-version: 1.5.0
+version: 1.6.0
 shortDesc: Design and build RAG systems — vector DB choice, embeddings, chunking, hybrid search, retrieval eval. Tri-agent.
 phases: [build, ai-native]
 triAgent: true

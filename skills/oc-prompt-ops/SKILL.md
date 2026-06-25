@@ -1,7 +1,7 @@
 ---
 name: oc-prompt-ops
 displayName: OC · Prompt Ops
-version: 1.5.0
+version: 1.6.0
 shortDesc: Prompt-as-code — versioning, eval datasets, regression and drift detection for LLM prompts.
 phases: [build, ai-native]
 triAgent: false
@@ -19,7 +19,7 @@ description: >
   prompt-engineering / eval work.
 governance:
   breaking_change_policy: skills/CHANGELOG.md
-  last_reviewed: 2026-06-21
+  last_reviewed: 2026-06-25
   owner: opchain
   docs:
     - { path: SKILL.md, kind: contract, lifecycle: stable }

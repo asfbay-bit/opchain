@@ -1,7 +1,7 @@
 ---
 name: oc-deploy-ops
 displayName: OC · Deploy Ops
-version: 1.5.0
+version: 1.6.0
 shortDesc: Audit gate → staging → production → monitor. v1.2 creates deploy tickets and updates linked PM tickets per env.
 phases: [build]
 triAgent: false

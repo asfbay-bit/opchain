@@ -1,7 +1,7 @@
 ---
 name: oc-api-dev
 displayName: OC · API Developer
-version: 1.5.0
+version: 1.6.0
 shortDesc: First-party API design, OpenAPI, versioning, SDKs. v1.2 files breaking-change + deprecation tickets; drift on PR.
 phases: [plan, build]
 triAgent: true
