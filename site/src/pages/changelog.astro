@@ -3,8 +3,9 @@
  * /changelog — Option C v2 layout: three full-width ARIA tabs, each with its
  * own colour identity, every section led by a rich card expanded on load.
  *
- *   Just Released → v1.6 hero (accent) + v1.5 collapsed hero + compact
- *                   release cards (v1.4.3 ↓).
+ *   Just Released → v1.6 open hero (accent) + v1.5 / v1.4.3 collapsed heroes
+ *                   (the 21-day "active" window) + compact release cards
+ *                   (v1.4.2 ↓, older than 21 days).
  *   Coming Next   → v1.7 distribution-theme vote (info) — the next release,
  *                   its theme chosen by a live relative bar-chart vote.
  *   Planned       → v1.8/v1.9 grouped roadmap cards, then the feature-request
@@ -334,19 +335,29 @@ const futureReleaseGroups = [
         </div>
       </article>
 
-      <div class="divider"><span class="divider-line"></span><span class="divider-label">earlier releases</span><span class="divider-line"></span></div>
-
-      <!-- v1.4.3 — past; demoted from hero to rel-card -->
-      <article class="rel-card" id="v1-4-3" data-card>
-        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-4-3-body" data-disclosure-toggle>
-          <span class="rc-toggle" aria-hidden="true">▶</span>
-          <span class="rc-meta">
-            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.4.3</span><span class="rc-title">opchain runs on Codex</span><span class="rc-date">Jun 12, 2026</span></span>
-            <span class="rc-summary">opchain now speaks the Model Context Protocol, so Codex — and any MCP-aware agent (Claude Desktop, Cursor, Windsurf) — gets the same concept-to-ship pipeline Claude Code auto-discovers: catalog, intent routing, the orchestrator protocol, and cross-session checkpoints.</span>
+      <!-- v1.4.3 — previous release; kept active within the 21-day window (shipped Jun 12) -->
+      <article class="hero-card hero-card--released" id="v1-4-3" data-card>
+        <button
+          class="hero-head"
+          type="button"
+          aria-expanded="false"
+          aria-controls="v1-4-3-body"
+          data-disclosure-toggle
+        >
+          <span class="hero-chevron" aria-hidden="true">▶</span>
+          <span class="hero-badge">previous release</span>
+          <span class="hero-ver">v1.4.3 · shipped Jun 12, 2026</span>
+          <span class="hero-title">opchain runs on Codex</span>
+          <span class="hero-desc">
+            opchain now speaks the Model Context Protocol, so Codex — and any
+            MCP-aware agent (Claude Desktop, Cursor, Windsurf) — gets the same
+            concept-to-ship pipeline Claude Code auto-discovers: the skill
+            catalog, intent routing, the shared orchestrator protocol, and
+            cross-session checkpoints.
           </span>
         </button>
         <div class="card-body" id="v1-4-3-body" data-disclosure-body inert>
-          <div class="card-body-inner">
+          <div class="card-body-inner hero-body-inner">
             <h3>What's new</h3>
             <div class="tile-grid">
               <div class="tile">
@@ -406,6 +417,8 @@ const futureReleaseGroups = [
           </div>
         </div>
       </article>
+
+      <div class="divider"><span class="divider-line"></span><span class="divider-label">earlier releases</span><span class="divider-line"></span></div>
 
       <!-- v1.4.2 — past; demoted from hero to rel-card -->
       <article class="rel-card" id="v1-4-2" data-card>
