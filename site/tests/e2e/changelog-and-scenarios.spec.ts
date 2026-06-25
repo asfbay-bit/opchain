@@ -5,18 +5,18 @@ import { expect, test } from "@playwright/test";
  * release entries as opchain version-bumps.
  *
  * /changelog uses the Option C v2 layout: three full-width ARIA tabs —
- * "Just Released" (release history, newest first), "Coming Next" (the one
- * release building now, v1.6), and "Planned" (the v1.7 distribution-theme
- * vote plus v1.8 / v1.9 grouped roadmap cards). The newest release
- * (v1.5, shipped) is the open hero in Just Released; each card is a
- * button[aria-expanded] disclosure. Deep links: #v1-5 → Just Released;
- * #v1-6 → Coming Next; #v1-7/#v1-8/#v1-9 → Planned; #v1-4 still carries
- * the /coverage link.
+ * "Just Released" (release history, newest first), "Coming Next" (the next
+ * release, v1.7, its theme chosen by a live vote), and "Planned" (v1.8 / v1.9
+ * grouped roadmap cards). The newest release (v1.6, shipped) is the open hero
+ * in Just Released, with v1.5 a collapsed hero below it; each card is a
+ * button[aria-expanded] disclosure. Deep links: #v1-6/#v1-5 → Just Released;
+ * #v1-7 → Coming Next; #v1-8/#v1-9 → Planned; #v1-4 still carries the
+ * /coverage link.
  *
  * Two specs:
- *   1. /changelog — three tabs; v1.5 is the open hero in Just Released;
+ *   1. /changelog — three tabs; v1.6 is the open hero in Just Released;
  *      the v1.4 card still deep-links to /coverage; Coming Next leads with
- *      the full v1.6 roadmap; Planned leads with v1.7, v1.8, and v1.9
+ *      the v1.7 theme vote; Planned groups v1.8 and v1.9
  *      (>= 6 votable items across the page).
  *
  *   2. /demo — every curated scenario remains pickable on /demo. v1.5
@@ -44,7 +44,7 @@ const ALL_PICKABLE = [
 ];
 
 test.describe("/changelog", () => {
-  test("three tabs; Just Released is active with the v1.5 hero open", async ({ page }) => {
+  test("three tabs; Just Released is active with the v1.6 hero open", async ({ page }) => {
     await page.goto("/changelog");
 
     // Three ARIA tabs; Just Released is selected by default and its panel is
@@ -55,11 +55,11 @@ test.describe("/changelog", () => {
     await expect(page.locator("#panel-coming")).toBeHidden();
     await expect(page.locator("#panel-planned")).toBeHidden();
 
-    // The newest release (v1.5) is the accent hero, open on load, tagged
+    // The newest release (v1.6) is the accent hero, open on load, tagged
     // with its version + a non-empty compatibility note (changelog-recipe rule).
-    const hero = page.locator("#v1-5.hero-card--released");
+    const hero = page.locator("#v1-6.hero-card--released");
     await expect(hero).toBeVisible();
-    await expect(hero.locator(".hero-ver")).toContainText("v1.5.0");
+    await expect(hero.locator(".hero-ver")).toContainText("v1.6.0");
     await expect(hero.locator(".hero-head")).toHaveAttribute("aria-expanded", "true");
     await expect(hero.locator(".compat-box")).toBeVisible();
     await expect(hero.locator(".compat-box")).not.toBeEmpty();
@@ -75,52 +75,53 @@ test.describe("/changelog", () => {
       .toBeVisible();
   });
 
-  test("Coming Next leads with the v1.6 roadmap", async ({ page }) => {
+  test("Coming Next leads with the v1.7 theme vote", async ({ page }) => {
     await page.goto("/changelog");
     await page.locator("#tab-coming").click();
 
     await expect(page.locator("#panel-coming")).toBeVisible();
-    // v1.5 shipped, so Coming Next now owns the canonical v1.6 roadmap.
-    await expect(page.locator("#v1-6.hero-card--next .hero-title")).toHaveText(
-      /cost & telemetry/i,
+    // v1.6 shipped, so Coming Next now owns the v1.7 distribution-theme vote.
+    await expect(page.locator("#v1-7.hero-card--next .hero-title")).toHaveText(
+      /distribution play/i,
     );
-    await expect(page.locator("#v1-6 .hero-ver")).toContainText("v1.6");
-    await expect(page.locator('#v1-6 [data-vote-target="OPC-160"]')).toBeVisible();
+    await expect(page.locator("#v1-7 .hero-ver")).toContainText("v1.7");
+    await expect(page.locator('#v1-7 [data-vote-target="OPC-170"]')).toBeVisible();
   });
 
-  test("Planned starts at v1.7, groups v1.8 / v1.9, and has >= 6 votable items", async ({ page }) => {
+  test("Planned groups v1.8 / v1.9, and the page has >= 6 votable items", async ({ page }) => {
     await page.goto("/changelog");
     await page.locator("#tab-planned").click();
 
     await expect(page.locator("#panel-planned")).toBeVisible();
-    await expect(page.locator("#v1-7 .pc-title")).toBeVisible();
     await expect(page.locator("#v1-8 .pc-title")).toHaveText(/install and operate/i);
     await expect(page.locator("#v1-9 .pc-title")).toHaveText(/assurance and governed/i);
+    // v1.6 shipped (Just Released) and v1.7 moved to Coming Next.
     await expect(page.locator("#panel-planned #v1-6")).toHaveCount(0);
-    await expect(page.locator("#v1-7 [data-disclosure-toggle]")).toHaveAttribute(
+    await expect(page.locator("#panel-planned #v1-7")).toHaveCount(0);
+    await expect(page.locator("#v1-8 [data-disclosure-toggle]")).toHaveAttribute(
       "aria-expanded",
       "true",
     );
 
-    // Votable items across the whole page: OPC-160/161/162 (v1.6) +
-    // OPC-170/173/174 (v1.7 theme) + OPC-18x (v1.8 / v1.9).
+    // Votable items across the whole page: OPC-170/173/174 (v1.7 theme, now in
+    // Coming Next) + OPC-18x (v1.8 / v1.9 planned).
     const voteButtons = page.locator("[data-vote-target]");
     expect(await voteButtons.count()).toBeGreaterThanOrEqual(6);
   });
 
-  test("deep-link #v1-6 opens the Coming Next tab and the v1.6 card", async ({ page }) => {
+  test("deep-link #v1-6 opens the Just Released tab and the v1.6 card", async ({ page }) => {
     await page.goto("/changelog#v1-6");
-    await expect(page.locator("#tab-coming")).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator("#panel-coming")).toBeVisible();
+    await expect(page.locator("#tab-released")).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#panel-released")).toBeVisible();
     await expect(
       page.locator("#v1-6 [data-disclosure-toggle]"),
     ).toHaveAttribute("aria-expanded", "true");
   });
 
-  test("deep-link #v1-7 opens the Planned tab and the v1.7 card", async ({ page }) => {
+  test("deep-link #v1-7 opens the Coming Next tab and the v1.7 card", async ({ page }) => {
     await page.goto("/changelog#v1-7");
-    await expect(page.locator("#tab-planned")).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator("#panel-planned")).toBeVisible();
+    await expect(page.locator("#tab-coming")).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#panel-coming")).toBeVisible();
     await expect(
       page.locator("#v1-7 [data-disclosure-toggle]"),
     ).toHaveAttribute("aria-expanded", "true");

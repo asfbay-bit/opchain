@@ -3,20 +3,21 @@
  * /changelog — Option C v2 layout: three full-width ARIA tabs, each with its
  * own colour identity, every section led by a rich card expanded on load.
  *
- *   Just Released → v1.5 hero (accent) + compact release cards (v1.4.3 ↓).
- *   Coming Next   → v1.6 roadmap card (info) — the release building now.
- *   Planned       → v1.7 distribution-theme vote (live relative bar chart),
- *                   v1.8/v1.9 grouped roadmap cards, then the feature-request
+ *   Just Released → v1.6 hero (accent) + v1.5 collapsed hero + compact
+ *                   release cards (v1.4.3 ↓).
+ *   Coming Next   → v1.7 distribution-theme vote (info) — the next release,
+ *                   its theme chosen by a live relative bar-chart vote.
+ *   Planned       → v1.8/v1.9 grouped roadmap cards, then the feature-request
  *                   form.
  *
  * Voting is real: vote buttons carry data-vote-target=<id> and the client
  * script batches GET /api/votes then POSTs /api/votes/<id> per click (the
- * Worker dedups per-IP/day in KV). Votable ids: OPC-16x (v1.6 features),
+ * Worker dedups per-IP/day in KV). Votable ids:
  * OPC-170/173/174 (v1.7 theme options — these also drive the bar chart),
  * and OPC-18x (v1.8/v1.9 planned items).
  *
- * Deep links (#v1-5 → Just Released; #v1-6 → Coming Next;
- * #v1-7/#v1-8/#v1-9 → Planned; #v1-4 → /coverage) are handled client-side:
+ * Deep links (#v1-6/#v1-5 → Just Released; #v1-7 → Coming Next;
+ * #v1-8/#v1-9 → Planned; #v1-4 → /coverage) are handled client-side:
  * the matching tab is activated, the target card expanded, and scrolled into
  * view.
  *
@@ -27,18 +28,6 @@
  */
 import Base from "../layouts/Base.astro";
 import RoadmapForm from "../components/RoadmapForm.astro";
-import { staticRoadmap } from "../data/roadmap-static";
-import type { RoadmapItem } from "../data/roadmap-types";
-
-// Group the planned items by milestone, preserving source order.
-const plannedByMilestone = new Map<string, RoadmapItem[]>();
-for (const it of staticRoadmap.items.planned) {
-  const key = it.milestone ?? "Later";
-  const arr = plannedByMilestone.get(key) ?? [];
-  arr.push(it);
-  plannedByMilestone.set(key, arr);
-}
-const v16Items = plannedByMilestone.get("v1.6") ?? [];
 
 // v1.7 is a single "pick the distribution theme" decision, rendered as a
 // relative bar chart — three competing options, each a real vote. OPC-170
@@ -181,7 +170,7 @@ const futureReleaseGroups = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">8 shipped</span>
+          Just Released <span class="tab-count">9 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -191,7 +180,7 @@ const futureReleaseGroups = [
           aria-selected="false"
           tabindex="-1"
         >
-          Coming Next <span class="tab-count">v1.6</span>
+          Coming Next <span class="tab-count">v1.7</span>
         </button>
         <button
           class="tab-btn tab-btn--planned"
@@ -201,7 +190,7 @@ const futureReleaseGroups = [
           aria-selected="false"
           tabindex="-1"
         >
-          Planned <span class="tab-count">v1.7 → v1.9</span>
+          Planned <span class="tab-count">v1.8 → v1.9</span>
         </button>
       </div>
       <span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
@@ -220,17 +209,80 @@ const futureReleaseGroups = [
         <span class="panel-sub">Newest is open; click any release for full notes.</span>
       </div>
 
-      <!-- v1.5 — newest, AUTO-OPEN; build the AI app -->
-      <article class="hero-card hero-card--released is-open" id="v1-5" data-card>
+      <!-- v1.6 — newest, AUTO-OPEN; the instrumented pipeline -->
+      <article class="hero-card hero-card--released is-open" id="v1-6" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
-          aria-controls="v1-5-body"
+          aria-controls="v1-6-body"
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
+          <span class="hero-ver">v1.6.0 · shipped Jun 25, 2026</span>
+          <span class="hero-title">Cost &amp; telemetry</span>
+          <span class="hero-desc">
+            With four AI-native skills shipped in v1.5, the next question was
+            what they cost and whether the pipeline is measurably improving.
+            v1.6 makes the pipeline self-instrumenting: per-phase LLM cost
+            attribution, opt-in local usage telemetry feeding a public
+            <code>/dashboard</code>, and the first
+            <code>oc-checkpoint-protocol</code> wire bump since v1.2.
+          </span>
+        </button>
+        <div class="card-body" id="v1-6-body" data-disclosure-body>
+          <div class="card-body-inner hero-body-inner">
+            <h3>Two new skills</h3>
+            <div class="tile-grid">
+              <div class="tile">
+                <span class="tile-name">oc-cost-ops · /oc-cost</span>
+                <p class="tile-desc">Attributes Anthropic spend to each skill phase, sets per-phase and per-suite budget gates in the checkpoint, and recommends model-tier routing (Haiku for cheap phases, Opus for spec/audit/migration).</p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">oc-telemetry-ops · /oc-telemetry</span>
+                <p class="tile-desc">Opt-in, local-first usage metering to <code>.checkpoints/usage.sqlite</code> — anonymized aggregates only, default OFF. No prompt content or PII ever leaves the machine.</p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">protocol wire 1.1</span>
+                <p class="tile-desc">First bump since v1.2's <code>pm_refs</code>: additive optional <code>cost</code>, <code>eval_scores</code>, and <code>telemetry_handle</code> fields. Wire 1.0 and 1.1 both validate — fully backward compatible.</p>
+              </div>
+              <div class="tile">
+                <span class="tile-name">public /dashboard + /showcase</span>
+                <p class="tile-desc">Anonymized aggregate usage and cost-per-feature, fed by opt-in telemetry, plus a <a href="/showcase">/showcase</a> of projects shipped with opchain.</p>
+              </div>
+            </div>
+
+            <div class="callout">
+              <h3>Cross-skill ripples</h3>
+              <ul class="callout-list">
+                <li><strong>oc-prompt-ops</strong> — the <code>cost_per_eval</code> contract it already advertised is now fulfilled by <strong>oc-cost-ops</strong>, pairing the cost-regression gate with the score gate.</li>
+                <li><strong>oc-bug-check</strong> and <strong>oc-code-auditor</strong> now emit <em>eval scores</em> against a stable rubric, not just pass/fail.</li>
+                <li>New GTM surfaces: <a href="/dashboard">/dashboard</a> and <a href="/showcase">/showcase</a>.</li>
+              </ul>
+            </div>
+
+            <div class="compat-box">
+              <strong>Back-compatible with v1.5.</strong> All 24 skills
+              lockstep-bump to <code>1.6.0</code>; the two new skills ship gated
+              behind their <code>skills.registry.&lt;id&gt;.enabled</code> flags,
+              and the checkpoint wire 1.0 → 1.1 is additive — both validate.
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.5 — previous release; demoted from auto-open; build the AI app -->
+      <article class="hero-card hero-card--released" id="v1-5" data-card>
+        <button
+          class="hero-head"
+          type="button"
+          aria-expanded="false"
+          aria-controls="v1-5-body"
+          data-disclosure-toggle
+        >
+          <span class="hero-chevron" aria-hidden="true">▶</span>
+          <span class="hero-badge">previous release</span>
           <span class="hero-ver">v1.5.0 · shipped Jun 21, 2026</span>
           <span class="hero-title">Build the AI app</span>
           <span class="hero-desc">
@@ -241,7 +293,7 @@ const futureReleaseGroups = [
             artifacts.
           </span>
         </button>
-        <div class="card-body" id="v1-5-body" data-disclosure-body>
+        <div class="card-body" id="v1-5-body" data-disclosure-body inert>
           <div class="card-body-inner hero-body-inner">
             <h3>Four new skills</h3>
             <div class="tile-grid">
@@ -282,29 +334,19 @@ const futureReleaseGroups = [
         </div>
       </article>
 
-      <!-- v1.4.3 — previous release; demoted from auto-open -->
-      <article class="hero-card hero-card--released" id="v1-4-3" data-card>
-        <button
-          class="hero-head"
-          type="button"
-          aria-expanded="false"
-          aria-controls="v1-4-3-body"
-          data-disclosure-toggle
-        >
-          <span class="hero-chevron" aria-hidden="true">▶</span>
-          <span class="hero-badge">previous release</span>
-          <span class="hero-ver">v1.4.3 · shipped Jun 12, 2026</span>
-          <span class="hero-title">opchain runs on Codex</span>
-          <span class="hero-desc">
-            opchain now speaks the Model Context Protocol, so Codex — and any
-            MCP-aware agent (Claude Desktop, Cursor, Windsurf) — gets the same
-            concept-to-ship pipeline Claude Code auto-discovers: the skill
-            catalog, intent routing, the shared orchestrator protocol, and
-            cross-session checkpoints. Brought forward from the tabled v1.8 slot.
+      <div class="divider"><span class="divider-line"></span><span class="divider-label">earlier releases</span><span class="divider-line"></span></div>
+
+      <!-- v1.4.3 — past; demoted from hero to rel-card -->
+      <article class="rel-card" id="v1-4-3" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-4-3-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.4.3</span><span class="rc-title">opchain runs on Codex</span><span class="rc-date">Jun 12, 2026</span></span>
+            <span class="rc-summary">opchain now speaks the Model Context Protocol, so Codex — and any MCP-aware agent (Claude Desktop, Cursor, Windsurf) — gets the same concept-to-ship pipeline Claude Code auto-discovers: catalog, intent routing, the orchestrator protocol, and cross-session checkpoints.</span>
           </span>
         </button>
         <div class="card-body" id="v1-4-3-body" data-disclosure-body inert>
-          <div class="card-body-inner hero-body-inner">
+          <div class="card-body-inner">
             <h3>What's new</h3>
             <div class="tile-grid">
               <div class="tile">
@@ -364,8 +406,6 @@ const futureReleaseGroups = [
           </div>
         </div>
       </article>
-
-      <div class="divider"><span class="divider-line"></span><span class="divider-label">earlier releases</span><span class="divider-line"></span></div>
 
       <!-- v1.4.2 — past; demoted from hero to rel-card -->
       <article class="rel-card" id="v1-4-2" data-card>
@@ -511,88 +551,34 @@ const futureReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What's coming</h2>
-        <span class="panel-sub">The one release building right now. Vote to signal priority.</span>
+        <span class="panel-sub">The next release — its theme is being chosen. Your vote decides.</span>
       </div>
 
-      <!-- v1.6 — next release building toward; deep-linkable from #v1-6. -->
-      <article class="hero-card hero-card--next is-open" id="v1-6" data-card>
+      <!-- v1.7 — next release; theme vote open. Deep-linkable from #v1-7. -->
+      <article class="hero-card hero-card--next is-open" id="v1-7" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
-          aria-controls="v1-6-body"
+          aria-controls="v1-7-body"
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
-          <span class="hero-badge">building next</span>
-          <span class="hero-ver">v1.6.0 · in build · shipping next</span>
-          <span class="hero-title">Cost &amp; telemetry</span>
+          <span class="hero-badge">voting open</span>
+          <span class="hero-ver">v1.7.0 · theme vote open · est. Sep 2026</span>
+          <span class="hero-title">The distribution play</span>
           <span class="hero-desc">
-            With four AI-native skills shipped in v1.5, the next question is
-            what they cost and whether the pipeline is measurably improving.
-            v1.6 adds <code>oc-cost-ops</code> and <code>oc-telemetry-ops</code>,
-            a public <code>/dashboard</code>, and the first
-            <code>oc-checkpoint-protocol</code> wire bump since v1.2.
-          </span>
-        </button>
-        <div class="card-body" id="v1-6-body" data-disclosure-body>
-          <div class="card-body-inner hero-body-inner">
-            <div class="tag-row"><span class="tag tag--info">shipping next</span><span class="tag">2 new skills</span><span class="tag">protocol wire 1.1</span></div>
-            <p>v1.6 turns the new AI pipeline from powerful into measurable: per-phase LLM cost attribution (<code>oc-cost-ops</code>), opt-in local usage telemetry feeding a public <code>/dashboard</code> (<code>oc-telemetry-ops</code>), and additive checkpoint fields for cost, eval scores, and telemetry handles (wire 1.0 → 1.1). oc-bug-check and oc-code-auditor now emit eval scores, not just pass/fail.</p>
-            <h3>What's in scope — vote on what matters most</h3>
-            <ul class="vote-list">
-              {v16Items.map((it) => (
-                <li class="vote-item">
-                  <div class="vote-item-meta">
-                    <span class="vote-item-title">{it.title}</span>
-                    <p class="vote-item-blurb">{it.blurb}</p>
-                  </div>
-                  <button
-                    class="vote-btn"
-                    type="button"
-                    data-vote-target={it.id}
-                    aria-label={`Vote for ${it.title}`}
-                  >
-                    <span class="v-arrow" aria-hidden="true">▲</span>
-                    <span class="v-count" data-vote-count>—</span>
-                    <span class="v-label" data-vote-label>vote</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <div class="planned-box">Building next — scope may shift before release. All 24 skills lockstep-bump to <code>1.6.0</code>.</div>
-          </div>
-        </div>
-      </article>
-    </section>
-
-    <!-- ══ PANEL 2 — PLANNED ═════════════════════════════════ -->
-    <section
-      class="tab-panel"
-      role="tabpanel"
-      id="panel-planned"
-      aria-labelledby="tab-planned"
-      tabindex="0"
-      hidden
-    >
-      <div class="panel-head">
-        <h2>What's planned</h2>
-        <span class="panel-sub">v1.7 is yours to steer; v1.8 and v1.9 group the longer-range work.</span>
-      </div>
-
-      <!-- v1.7 — the distribution-theme vote (live relative bar chart) -->
-      <article class="plan-card is-open" id="v1-7" data-card>
-        <button class="pc-row" type="button" aria-expanded="true" aria-controls="v1-7-body" data-disclosure-toggle>
-          <span class="pc-toggle" aria-hidden="true">▶</span>
-          <span class="pc-meta">
-            <span class="pc-head"><span class="ver-pill ver-pill--next">v1.7</span><span class="pc-title">The distribution play</span><span class="pc-timing">theme vote open · est. Sep 2026</span></span>
-            <span class="pc-summary">After v1.6 measures the pipeline, v1.7 chooses how opchain reaches more users: marketplace, agency workflows, or deeper pipeline coverage.</span>
+            With v1.6 measuring the pipeline, the biggest remaining gap is
+            distribution. v1.7 deliberately promotes one growth play into a
+            flagship theme instead of accreting more skills — and the theme is
+            yours to pick. Your vote goes on record now and helps decide the
+            order.
           </span>
         </button>
         <div class="card-body" id="v1-7-body" data-disclosure-body>
-          <div class="card-body-inner">
+          <div class="card-body-inner hero-body-inner">
             <div class="tag-row"><span class="tag tag--info">theme vote open</span><span class="tag">est. Sep 2026</span><span class="tag">1 flagship theme</span></div>
-            <p>By the time v1.6 ships, the biggest remaining gap is distribution. v1.7 deliberately promotes one growth play into a flagship theme instead of accreting more skills. The three contenders are below; your vote goes on record now and helps decide the order.</p>
+            <p>The three contenders are below. Bars redistribute live as votes arrive; the final v1.7 theme is chosen after the v1.5 / v1.6 retro.</p>
             <h3>Choose the v1.7 theme</h3>
             <ul class="theme-list">
               {v17Options.map((opt) => (
@@ -624,18 +610,32 @@ const futureReleaseGroups = [
           </div>
         </div>
       </article>
+    </section>
 
-      <div class="divider"><span class="divider-line"></span><span class="divider-label">later planned releases</span><span class="divider-line"></span></div>
-      {futureReleaseGroups.map((group) => (
-        <article class="plan-card" id={group.id} data-card>
-          <button class="pc-row" type="button" aria-expanded="false" aria-controls={`${group.id}-body`} data-disclosure-toggle>
+    <!-- ══ PANEL 2 — PLANNED ═════════════════════════════════ -->
+    <section
+      class="tab-panel"
+      role="tabpanel"
+      id="panel-planned"
+      aria-labelledby="tab-planned"
+      tabindex="0"
+      hidden
+    >
+      <div class="panel-head">
+        <h2>What's planned</h2>
+        <span class="panel-sub">v1.8 and v1.9 group the longer-range work. Vote to signal priority.</span>
+      </div>
+
+      {futureReleaseGroups.map((group, gi) => (
+        <article class:list={["plan-card", { "is-open": gi === 0 }]} id={group.id} data-card>
+          <button class="pc-row" type="button" aria-expanded={gi === 0 ? "true" : "false"} aria-controls={`${group.id}-body`} data-disclosure-toggle>
             <span class="pc-toggle" aria-hidden="true">▶</span>
             <span class="pc-meta">
               <span class="pc-head"><span class="ver-pill ver-pill--next">{group.version}</span><span class="pc-title">{group.title}</span><span class="pc-timing">{group.timing}</span></span>
               <span class="pc-summary">{group.summary}</span>
             </span>
           </button>
-          <div class="card-body" id={`${group.id}-body`} data-disclosure-body inert>
+          <div class="card-body" id={`${group.id}-body`} data-disclosure-body inert={gi !== 0}>
             <div class="card-body-inner">
               <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">{group.items.length} items</span></div>
               <p>{group.summary}</p>
@@ -1184,8 +1184,14 @@ const futureReleaseGroups = [
     margin-bottom: 0.6rem;
   }
   .hero-badge::before { content: "●"; font-size: 6px; }
-  .hero-card--next .hero-badge { color: var(--info); border: 0.5px solid var(--info); background: var(--info-dim); }
-  .hero-card--released .hero-badge { color: var(--accent); border: 0.5px solid var(--accent); background: var(--accent-dim); }
+  /* Label uses --text (AA on any themed background); the coloured border, dim
+     tint, and dot carry the release identity. accent/info text on a faint
+     *-dim tint fails Lighthouse color-contrast at 9.5px — same fix the active
+     tab-count pill uses. */
+  .hero-card--next .hero-badge { color: var(--text); border: 0.5px solid var(--info); background: var(--info-dim); }
+  .hero-card--next .hero-badge::before { color: var(--info); }
+  .hero-card--released .hero-badge { color: var(--text); border: 0.5px solid var(--accent); background: var(--accent-dim); }
+  .hero-card--released .hero-badge::before { color: var(--accent); }
   .hero-ver { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--subtle); margin-bottom: 0.3rem; }
   .hero-title {
     display: block;
