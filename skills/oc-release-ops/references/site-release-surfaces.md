@@ -59,6 +59,7 @@ live-claim flips until deploy.
 
 | Surface | Test that pins it |
 |---|---|
+| Header chip `CURRENT_RELEASE` + `_HREF` (L1) | `tests/site-release-chip.test.js` — pins the exact `const CURRENT_RELEASE = "vN"` / `_HREF = "/changelog#vN-N"` strings. **Bump these literals in lockstep with L1.** |
 | Changelog DOM/tabs/anchors (L4/L5/F2/F3/F4) | `site/tests/e2e/changelog-and-scenarios.spec.ts` — hero id, `hero-ver`, tab counts, deep-link anchors, vote-target count. **Rewrite these assertions whenever the changelog cards move panels.** |
 | `/dashboard`, route smoke | `site/tests/e2e/routes.spec.ts` |
 | Skill count | `tests/mcp-route.test.js` (`parsed.skills.length`) |
