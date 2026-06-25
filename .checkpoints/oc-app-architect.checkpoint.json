@@ -1,25 +1,65 @@
 {
-  "protocol_version": "1.0",
+  "protocol_version": "1.1",
   "skill": "oc-app-architect",
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-06-22T18:05:00Z",
+  "updated_at": "2026-06-25T01:24:33.683Z",
   "phase": "build",
-  "step": "search-and-filter-implemented-tests-green-pending-pr-ci",
+  "step": "s1-protocol-fields-and-new-skill-scaffolds-shipped",
   "status": "in_progress",
-  "progress_summary": "NEW FEATURE CYCLE (post-v1.5): /demo workbench Search & Filter — IMPLEMENTED on branch claude/relaxed-cannon-ut762y, all local gates green, PR/CI pending. User approved spec gate as-is, then said 'implement the design' (design gate approved by instruction; formal punch-list/sprint-plan gates folded into one build since spec+design were complete). DELIVERED: (1) data model — `Phase` union + required `phase` on Beat (types.ts), all 49 beats tagged across 12 scenarios via a one-shot script; (2) pure lib site/src/lib/demo-search/ — kinds.ts (normalizeKind, full corpus coverage), phases.ts, model.ts, strip.ts, index-build.ts (buildSearchIndex), engine.ts (filter/rank/facet-counts, OR-within/AND-across), url-state.ts; role map extracted to pure lib/roles.ts (skills.ts re-exports); (3) UI — demo-search.client.ts wires DesktopWorkbench (rail tabs ⌕/● + sidebar search/facet panels) + MobileWorkbench (topbar ⌕ → full-screen Find overlay), jump-to-exchange with ember-flash, shareable URL state; flag site.feature.demo-search (default true) gates it; index inlined in demo.astro (55KB gz, budget 120KB). TESTS: 32 new Vitest unit tests (kinds/index/engine/url) + index-size budget guard — full suite 423/423 green; astro check 0 errors; site build OK; 8 Playwright e2e specs written (run in CI — browser download blocked in sandbox). PRIOR (last release): v1.5.0 'Build the AI app' SHIPPED + LIVE (2026-06-22). v1.4 via stack-forge ADEV-328→337. v1.3 shipped 2026-05-08 (526a9a2). v1.6 'Cost & telemetry' (roadmap/07) is the next release theme; this demo-search feature is a standalone site enhancement.",
+  "progress_summary": "v1.6 'The instrumented pipeline' — building straight through on branch claude/charming-knuth-2jyhhf (plan: roadmap/09-v16-sprint-plan.md, 7 sprints, gate-approved). S1 DONE: checkpoint wire protocol_version bumped 1.0→1.1 (validator accepts both; cost/eval_scores/telemetry_handle optional fields validated-when-present); all tracked checkpoints swept to 1.1; oc-checkpoint-protocol SKILL.md + .checkpoints/README.md documented; oc-cost-ops + oc-telemetry-ops scaffolded (1.6.0, frontmatter+body skeleton); 4 flags added (registry+command for both) + gen-flags (137 flags); .gitignore ignores usage.sqlite. Gates green: 433 tests, gen-catalog 24 skills, astro check 0 errors, worker build. NEXT: S2 oc-cost-ops full body+references.",
   "progress_table": [
-    { "id": "discovery",   "label": "Discovery interview",                       "status": "complete" },
-    { "id": "spec",        "label": "Feature spec (00/01/02/06/08)",             "status": "complete" },
-    { "id": "spec-gate",   "label": "★ Spec approval",                           "status": "complete" },
-    { "id": "design",      "label": "Design — search/facet UI + mockup",         "status": "complete" },
-    { "id": "design-gate", "label": "★ Design approval (by 'implement' instr.)", "status": "complete" },
-    { "id": "punch-list",  "label": "Punch list (folded into spec+design)",      "status": "complete" },
-    { "id": "sprint-plan", "label": "Sprint plan (single build)",                "status": "complete" },
-    { "id": "build",       "label": "Build — lib + UI + 32 unit + 8 e2e",        "status": "in_progress" },
-    { "id": "pr",          "label": "PR + CI green",                             "status": "not_started" },
-    { "id": "launch",      "label": "Launch — audit → manual deploy",            "status": "not_started" }
+    {
+      "id": "discovery",
+      "label": "Discovery interview",
+      "status": "complete"
+    },
+    {
+      "id": "spec",
+      "label": "Feature spec (00/01/02/06/08)",
+      "status": "complete"
+    },
+    {
+      "id": "spec-gate",
+      "label": "★ Spec approval",
+      "status": "complete"
+    },
+    {
+      "id": "design",
+      "label": "Design — search/facet UI + mockup",
+      "status": "complete"
+    },
+    {
+      "id": "design-gate",
+      "label": "★ Design approval (by 'implement' instr.)",
+      "status": "complete"
+    },
+    {
+      "id": "punch-list",
+      "label": "Punch list (folded into spec+design)",
+      "status": "complete"
+    },
+    {
+      "id": "sprint-plan",
+      "label": "Sprint plan (single build)",
+      "status": "complete"
+    },
+    {
+      "id": "build",
+      "label": "Build — lib + UI + 32 unit + 8 e2e",
+      "status": "in_progress"
+    },
+    {
+      "id": "pr",
+      "label": "PR + CI green",
+      "status": "not_started"
+    },
+    {
+      "id": "launch",
+      "label": "Launch — audit → manual deploy",
+      "status": "not_started"
+    }
   ],
   "context_primer": {
     "key_decisions": [
@@ -42,9 +82,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "Push branch claude/relaxed-cannon-ut762y + open PR; let CI run (Vitest, astro check, site build, Playwright e2e, LHCI).",
-    "On green: Phase 7 launch — /oc-audit pre-deploy then manual wrangler deploy:staging (eyeball /demo search) → prod, per CLAUDE.md deploy flow.",
-    "Optional follow-ups: cross-link /skills/<id> → /demo?skill=<id>; a 'copy link to this exchange' affordance in the output lightbox (noted stretch in 02-architecture §5)."
+    "S2: write oc-cost-ops full body + references (cost-attribution.md, model-tier-routing.md, budget-gates.md, pricing-reference.md); wire prompts/opchain-eval/eval.yaml cost_per_eval + oc-prompt-ops cost block from null; register in orchestrator.md.",
+    "S3: oc-telemetry-ops full body + references (local-metering sqlite schema, privacy-consent, aggregation).",
+    "S4 ripples, S5 site /dashboard, S6 lockstep 1.6.0, S7 site release surfaces + checklist."
   ],
   "skill_state": {
     "feature": {
@@ -53,12 +93,20 @@
       "surface": "/demo (DesktopWorkbench + MobileWorkbench)",
       "spec_dir": "specs/features/demo-search/",
       "search_depth": "deep-full-text",
-      "facets": ["skill", "role", "artifact-kind", "pipeline-phase"],
+      "facets": [
+        "skill",
+        "role",
+        "artifact-kind",
+        "pipeline-phase"
+      ],
       "result_behavior": "jump-to-exchange + shareable URL state",
       "phase_data": "explicit phase tags on beats; exchanges inherit nearest-preceding beat",
       "mobile": "full-parity",
       "approach": "build-time index + client-side filter; zero new runtime deps",
-      "wires_activity_rail": ["search (⌕)", "skills (●)"]
+      "wires_activity_rail": [
+        "search (⌕)",
+        "skills (●)"
+      ]
     },
     "prior_release": {
       "version": "1.5.0",

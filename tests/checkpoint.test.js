@@ -6,6 +6,7 @@ import {
   recommendedAction,
   actionText,
   SCHEMA_VERSION,
+  ACCEPTED_SCHEMA_VERSIONS,
 } from "../scripts/checkpoint.mjs";
 
 // A minimal, fully-valid in_progress checkpoint to clone per-test.
@@ -43,6 +44,14 @@ describe("checkpoint validator — required fields & schema version", () => {
   it("rejects a wrong protocol_version and explains schema-vs-release", () => {
     const e = errs(base({ protocol_version: "1.2" }));
     expect(e.some((x) => /schema version/.test(x))).toBe(true);
+  });
+
+  it("stamps the current wire version 1.1 and accepts both 1.0 and 1.1", () => {
+    expect(SCHEMA_VERSION).toBe("1.1");
+    expect(ACCEPTED_SCHEMA_VERSIONS).toEqual(["1.0", "1.1"]);
+    // 1.0 checkpoints predate the v1.1 fields and must stay valid.
+    expect(errs(base({ protocol_version: "1.0" }))).toEqual([]);
+    expect(errs(base({ protocol_version: "1.1" }))).toEqual([]);
   });
 
   it("rejects a bad top-level status enum", () => {
@@ -89,6 +98,42 @@ describe("checkpoint validator — blockers, pm_refs, timestamps", () => {
   it("rejects updated_at before created_at", () => {
     const d = base({ created_at: "2026-06-02T12:00:00Z", updated_at: "2026-06-01T12:00:00Z" });
     expect(errs(d).some((e) => /before created_at/.test(e))).toBe(true);
+  });
+});
+
+describe("checkpoint validator — v1.1 additive fields (cost / eval_scores / telemetry_handle)", () => {
+  it("omitting all three keeps a checkpoint valid (they're optional)", () => {
+    expect(errs(base())).toEqual([]);
+  });
+
+  it("accepts a well-formed cost block and rejects negative / non-number spend", () => {
+    expect(errs(base({ cost: { currency: "USD", total_usd: 12.34, budget_usd: 50, by_phase: { spec: 3.1 }, by_model: { "claude-opus-4-8": 8 } } }))).toEqual([]);
+    expect(errs(base({ cost: { total_usd: -1 } })).some((e) => /cost\.total_usd must be a non-negative/.test(e))).toBe(true);
+    expect(errs(base({ cost: { by_phase: { spec: "lots" } } })).some((e) => /cost\.by_phase\["spec"\] must be a non-negative/.test(e))).toBe(true);
+    expect(errs(base({ cost: [1, 2] })).some((e) => /cost must be an object/.test(e))).toBe(true);
+  });
+
+  it("warns (does not error) when total_usd exceeds budget_usd — the budget gate", () => {
+    const { errors, warnings } = validate(PATH, base({ cost: { total_usd: 80, budget_usd: 50 } }), 0);
+    expect(errors).toEqual([]);
+    expect(warnings.some((w) => /budget gate tripped/.test(w))).toBe(true);
+  });
+
+  it("accepts eval_scores and rejects missing rubric / non-number / over-max", () => {
+    expect(errs(base({ eval_scores: [{ rubric: "oc-code-auditor", score: 8.2, max: 10, at: "2026-06-25T12:00:00Z", dimensions: { functionality: 9 } }] }))).toEqual([]);
+    expect(errs(base({ eval_scores: [{ rubric: "oc-prompt-ops", score: 0.93, max: 1 }] }))).toEqual([]); // 0..1 scale
+    expect(errs(base({ eval_scores: [{ score: 8 }] })).some((e) => /rubric required/.test(e))).toBe(true);
+    expect(errs(base({ eval_scores: [{ rubric: "x", score: "high" }] })).some((e) => /score must be a number/.test(e))).toBe(true);
+    expect(errs(base({ eval_scores: [{ rubric: "x", score: 11, max: 10 }] })).some((e) => /exceeds max/.test(e))).toBe(true);
+    expect(errs(base({ eval_scores: { rubric: "x", score: 8 } })).some((e) => /eval_scores must be an array/.test(e))).toBe(true);
+  });
+
+  it("accepts telemetry_handle as a string or an opt-in object, rejects bad shapes", () => {
+    expect(errs(base({ telemetry_handle: "anon-7f3a" }))).toEqual([]);
+    expect(errs(base({ telemetry_handle: { enabled: false } }))).toEqual([]);
+    expect(errs(base({ telemetry_handle: { enabled: true, id: "anon-7f3a", sink: ".checkpoints/usage.sqlite", since: "2026-06-25T12:00:00Z" } }))).toEqual([]);
+    expect(errs(base({ telemetry_handle: { enabled: "yes" } })).some((e) => /enabled must be a boolean/.test(e))).toBe(true);
+    expect(errs(base({ telemetry_handle: 42 })).some((e) => /telemetry_handle must be a string handle or an object/.test(e))).toBe(true);
   });
 });
 

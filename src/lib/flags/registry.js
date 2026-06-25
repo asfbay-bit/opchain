@@ -227,6 +227,9 @@ const DEFINITIONS = [
     "oc-rag-forge",
     "oc-agent-forge",
     "oc-prompt-ops",
+    // v1.6 "The instrumented pipeline" — cost + telemetry instrumentation.
+    "oc-cost-ops",
+    "oc-telemetry-ops",
   ]),
 
   // ── skills.capability ────────────────────────────────────────────────────
@@ -267,6 +270,8 @@ const DEFINITIONS = [
     "/oc-threat-model", "/oc-uxe",
     // v1.5 AI-native verbs (ADEV-344). Subcommands inherit the parent verb.
     "/oc-claude-api", "/oc-rag", "/oc-agent", "/oc-prompt",
+    // v1.6 instrumentation verbs. Subcommands inherit the parent verb.
+    "/oc-cost", "/oc-telemetry",
   ]),
 
   // ── skills.coverage.<id>.enabled — one per oc-stack-forge pack ──────────────

@@ -137,6 +137,26 @@
       "version": "1.5.0"
     },
     {
+      "id": "oc-cost-ops",
+      "name": "oc-cost-ops",
+      "displayName": "OC · Cost Ops",
+      "shortDesc": "LLM cost attribution per skill phase, budget gates in checkpoints, and model-tier routing recommendations.",
+      "description": "Cost operations harness — attribute LLM spend to the skill phase that incurred it, set per-phase and per-suite budgets that gate in the checkpoint, and recommend model-tier routing (Haiku for cheap repetitive phases, Opus for spec/audit/migration). Use for /oc-cost, \"what did this cost\", \"cost attribution\", \"token cost\", \"budget gate\", \"model tier routing\", \"cost regression\", \"cheaper model\", \"spend per feature\". Pairs with oc-prompt-ops (cost-regression gate alongside the score gate) and oc-telemetry-ops (feeds the public /dashboard cost stats). Trigger liberally on cost/spend work.",
+      "phases": [
+        "build"
+      ],
+      "triAgent": false,
+      "commands": [
+        "/oc-cost",
+        "/oc-cost attribute",
+        "/oc-cost budget",
+        "/oc-cost route",
+        "/oc-cost gate",
+        "/oc-cost report"
+      ],
+      "version": "1.6.0"
+    },
+    {
       "id": "oc-dash-forge",
       "name": "oc-dash-forge",
       "displayName": "OC · Dash Forge",
@@ -431,6 +451,26 @@
         "/oc-feature"
       ],
       "version": "1.5.0"
+    },
+    {
+      "id": "oc-telemetry-ops",
+      "name": "oc-telemetry-ops",
+      "displayName": "OC · Telemetry Ops",
+      "shortDesc": "Opt-in, local-first usage metering to .checkpoints/usage.sqlite; anonymized aggregates power the public /dashboard.",
+      "description": "Telemetry operations harness — opt-in, local-first usage metering that records which skills and phases actually run, to a local .checkpoints/usage.sqlite store, then produces anonymized aggregates for the public /dashboard. Use for /oc-telemetry, \"usage metering\", \"telemetry\", \"opt-in analytics\", \"which skills do people use\", \"usage stats\", \"dashboard data\", \"anonymized usage\". Default stance is OFF — nothing is recorded until you explicitly enable it, and no prompt content or PII ever leaves the machine. Pairs with oc-cost-ops (cost per run) for the cost-per-feature dashboard stats. Trigger liberally on usage/telemetry work.",
+      "phases": [
+        "build"
+      ],
+      "triAgent": false,
+      "commands": [
+        "/oc-telemetry",
+        "/oc-telemetry enable",
+        "/oc-telemetry disable",
+        "/oc-telemetry status",
+        "/oc-telemetry aggregate",
+        "/oc-telemetry export"
+      ],
+      "version": "1.6.0"
     },
     {
       "id": "oc-ux-engineer",

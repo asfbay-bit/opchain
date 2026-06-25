@@ -10,17 +10,26 @@ of it like HTTP — the spec lives here, the implementations live in each skill.
 
 ### Two versions, don't confuse them
 
-- **`protocol_version`** — the **on-disk schema version**, currently `"1.0"`. It
-  lives inside every checkpoint file and only changes when the file *shape* changes
+- **`protocol_version`** — the **on-disk schema version**, currently `"1.1"`. It
+  lives inside every checkpoint file and only changes when the file *shape* grows
   in a way the validator must know about. The validator (`scripts/checkpoint.mjs`)
-  enforces it.
+  enforces it and accepts **both `"1.0"` and `"1.1"`**.
 - **Skill release version** — the `version` in this file's YAML frontmatter. It
   tracks the evolution of the *docs and tooling* (the `pm_refs` extension, the
-  `doctor`/`next` commands, etc.) and moves independently. oc-release-ops bumps it.
+  `doctor`/`next` commands, etc.) and moves independently, in lockstep with the
+  rest of the catalog. oc-release-ops bumps it.
 
-A new field like `pm_refs` is an **optional, additive extension** under schema
-`1.0` — old checkpoints stay valid, new ones may include it. The schema version
-does **not** bump just because the tooling grew a feature.
+**Additive fields, two ways to ship them.** An optional additive field can ride
+under the *same* wire version — `pm_refs` (skill release 1.2) was added under
+schema `"1.0"` with no wire bump, because old checkpoints stayed valid and the
+shape only grew. OR a release can group additive fields into a **marked minor
+wire bump** when it wants a visible protocol revision. v1.6 ("the instrumented
+pipeline") took the second path: `cost`, `eval_scores`, and `telemetry_handle`
+landed together as wire **`"1.1"`**. It is still fully backward compatible —
+`"1.0"` checkpoints validate unchanged, those three fields stay optional — the
+`1.1` stamp just marks the revision. New writes stamp `"1.1"`; `oc-migration-ops`
+sweeps existing `"1.0"` files forward. A wire bump is *never* a breaking change
+here: it only ever adds optional fields, never removes or repurposes one.
 
 ---
 
@@ -538,6 +547,90 @@ contain CUI / PHI; the body retrieval path runs through the
 broker + redactor on each access (see `mcp-enterprise-f500` and
 `mcp-enterprise-defense` scenarios). The checkpoint is therefore
 safe to commit + share within the project.
+
+---
+
+## Wire 1.1 extensions: `cost`, `eval_scores`, `telemetry_handle`
+
+Three **optional, additive** fields introduced with on-disk schema `"1.1"`
+(v1.6 "the instrumented pipeline"). Checkpoints without them stay valid; they
+are validated only when present. Together they make the pipeline *instrumented*:
+every phase can report cost, every skill can report an eval score, every
+checkpoint can carry a budget and an opt-in telemetry link.
+
+### `cost` — LLM spend attribution + budget gate (owner: `oc-cost-ops`)
+
+```jsonc
+{
+  "cost": {
+    "currency": "USD",                       // optional, default USD
+    "total_usd": 12.34,                      // optional, ≥ 0 — spend attributed to this checkpoint
+    "budget_usd": 50,                        // optional, ≥ 0 — the budget ceiling; gate trips when total > budget
+    "by_phase": { "spec": 3.10, "build": 8.40, "audit": 0.84 },   // optional, name → ≥ 0
+    "by_model": { "claude-opus-4-8": 9.2, "claude-haiku-4-5": 3.1 }, // optional, name → ≥ 0
+    "tokens": { "input": 1_200_000, "output": 240_000 },          // optional, free-form
+    "updated_at": "2026-06-25T12:00:00Z"     // optional
+  }
+}
+```
+
+`oc-cost-ops` owns this field. The validator enforces: `cost` is an object;
+`total_usd`/`budget_usd` are non-negative numbers; `by_phase`/`by_model` map
+names to non-negative numbers. When `total_usd > budget_usd > 0` the validator
+**warns** ("budget gate tripped") rather than erroring — overspend is a signal,
+not a corrupt file. The budget *gate* (block vs warn) is policy `oc-cost-ops`
+applies; the checkpoint just records the numbers.
+
+### `eval_scores` — scores against a stable rubric (owners: `oc-bug-check`, `oc-code-auditor`, `oc-prompt-ops`)
+
+```jsonc
+{
+  "eval_scores": [
+    { "rubric": "oc-code-auditor", "score": 8.2, "max": 10, "at": "2026-06-25T12:00:00Z",
+      "ref": "sprints/sprint-2/eval-round-1.md",
+      "dimensions": { "functionality": 9, "completeness": 8, "quality": 8, "ux": 8 } },
+    { "rubric": "oc-prompt-ops", "score": 0.93, "max": 1 }   // 0..1 pass_rate uses max: 1
+  ]
+}
+```
+
+Append-only list. The score is **rubric-relative** — pair it with `max` when the
+scale isn't 0..10 (a prompt-ops `pass_rate` is 0..1 with `max: 1`; a code-auditor
+grade is 0..10). The validator requires each entry to be an object with a string
+`rubric` and a numeric `score`; `max` (if present) must be positive and `score`
+must not exceed it; `at` (if present) must be ISO-8601; `dimensions` (if present)
+maps names to numbers. This is what lets `oc-orchestrator` and `oc-cost-ops`
+reason about quality trend, not just pass/fail.
+
+### `telemetry_handle` — opt-in local-metering link (owner: `oc-telemetry-ops`)
+
+```jsonc
+{
+  // a bare anonymous id …
+  "telemetry_handle": "anon-7f3a91c0"
+  // … or the richer opt-in object form:
+  // "telemetry_handle": { "enabled": true, "id": "anon-7f3a91c0",
+  //                       "sink": ".checkpoints/usage.sqlite",
+  //                       "since": "2026-06-25T12:00:00Z" }
+}
+```
+
+Links a checkpoint to its rows in the local `usage.sqlite` metering store
+*without storing any PII or content*. **Default stance is OFF** — the field's
+mere presence is not consent; `enabled: true` is. A string value is just an
+anonymous handle; the object form additionally carries the opt-in flag, sink
+path, and start time. The validator accepts a non-empty string or an object
+whose `enabled` (when present) is boolean, `id`/`sink` are strings, and `since`
+is ISO-8601. `oc-telemetry-ops` owns the metering store and the consent gate;
+the checkpoint only carries the link.
+
+### Validation & migration
+
+`npm run checkpoint:validate` treats all three as optional and checks their shape
+only when present (exactly like `pm_refs`). Existing `"1.0"` checkpoints validate
+unchanged. The forward sweep (`"1.0"` → `"1.1"` stamp) is an `oc-migration-ops`
+job — additive, no data transform, reversible — the same way governance
+frontmatter rolled out in v1.4.
 
 ---
 

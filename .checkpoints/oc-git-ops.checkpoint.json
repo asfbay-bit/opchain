@@ -1,5 +1,5 @@
 {
-  "protocol_version": "1.0",
+  "protocol_version": "1.1",
   "skill": "oc-git-ops",
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",

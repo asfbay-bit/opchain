@@ -1,46 +1,151 @@
 {
-  "protocol_version": "1.0",
+  "protocol_version": "1.1",
   "skill": "oc-orchestrator",
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-01T16:50:00Z",
   "updated_at": "2026-06-22T16:35:00Z",
-
   "phase": "post-release",
   "step": "v1.5.0-shipped-and-live",
   "status": "complete",
   "progress_summary": "v1.5.0 'Build the AI app' is SHIPPED and LIVE on opchain.dev (2026-06-22). The session that started 2026-06-21 from a hard PM↔code drift — Linear had batch-closed the v1.5 tree Done on 2026-05-26 while NONE of it existed in code — is fully resolved end to end. Built and merged across 7 PRs, all CI-green: #299 reconciliation + deploy-lag canary hardening; #300 Sprint 1 (four AI-native skill scaffolds + ai-native phase + flag registry); #303 Sprint 2 (oc-claude-api + oc-rag-forge bodies + 4 oc-stack-forge vector-db packs pgvector/pinecone/turbopuffer/supabase-vectors + app-architect AI-app /discover branch); #306 Sprint 3 (oc-agent-forge + oc-prompt-ops bodies + oc-code-auditor AI-safety rule pack/signatures/'Phase: AI app?' sweep + prompts/opchain-eval dogfooding eval set); #309 Sprint 4 (GTM surfaces /ai-recipes, /blog +RSS +2 posts, /for-agencies, footer newsletter→/api/notify, /compare 'Build AI apps' row); #311 Sprint 5 release cut (lockstep all 22 skills→1.5.0, styleguide badge, homepage pill, /changelog v1.5 promoted to Just Released); #316 deferred tail (pipeline-builder AI-app branch + per-skill OG cards). Linear: ADEV-344 + children + ADEV-364 (release) all Done. DEPLOY: the Cloudflare Managed-Challenge that had blocked /api/health + /mcp (and blinded the deploy-lag canary) was cleared by the user; v1.4.3 Codex/MCP + all of v1.5 are now serving in prod. deploy-lag canary patched to fail loudly on the challenge body. No deploy-lag tracking issue outstanding.",
-
   "progress_table": [
-    { "id": "intake-1.4",     "label": "Intake: 1.4 scope expansion (5 langs → 11+ langs + iOS)",     "status": "complete" },
-    { "id": "route-architect","label": "Route → app-architect for sprint planning",                   "status": "complete" },
-    { "id": "linear-tickets", "label": "Linear: ADEV-327 parent + ADEV-328-337 PR sub-issues",        "status": "complete" },
-    { "id": "stackforge-cp",  "label": "Save stack-forge.checkpoint.json (v1.4 plan, 10 next_actions)", "status": "complete" },
-    { "id": "merge-187",      "label": "PR #187 merged (squash) — v1.4 plan checkpoint on main",      "status": "complete" },
-    { "id": "lhci-triage",    "label": "Triage LHCI a11y failures from #187 build",                   "status": "complete" },
-    { "id": "a11y-tickets",   "label": "Linear: ADEV-338 parent + 4 sub-issues (TOC, code, bands, links)", "status": "complete" },
-    { "id": "a11y-branch",    "label": "Cut claude/a11y-lhci-cleanup off main (fast-forwarded)",      "status": "complete" },
-    { "id": "v13-shipped",    "label": "Verify v1.3 shipped (526a9a2 live in prod + staging)",         "status": "complete" },
-    { "id": "reconcile-cps",  "label": "Reconcile stale checkpoints (app-architect + git-ops)",        "status": "complete" },
-    { "id": "reconcile-pm",   "label": "Reconcile .opchain/pm.yaml (v1.3 archive + v1.4 advance)",     "status": "complete" },
-    { "id": "fix-project-dirs","label": "Fix /home/user/opchain → /Users/... in orchestrator + git-ops","status": "complete" },
-    { "id": "commit-reconcile","label": "Commit reconciliation diff to main (4927bc1 + 60ac971)",      "status": "complete" },
-    { "id": "v1.4-pr1",       "label": "v1.4 PR 1 — schema, generator, auto-flag wiring (ADEV-328 / #192 / 4cb0b09)", "status": "complete" },
-    { "id": "v1.4-pr2",       "label": "v1.4 PR 2 — backfill 5 existing stacks as language packs (ADEV-329 / #203 / 22c45cd)", "status": "complete" },
-    { "id": "v1.4-pr3",       "label": "v1.4 PR 3 — deploy-ops dispatcher + api-dev pack-read + kind:mobile branch (ADEV-330 / #207 / 29218da)", "status": "complete" },
-    { "id": "v1.4-pr4",       "label": "v1.4 PR 4 — Modern web bulk: elixir/bun/deno languages + phoenix/remix/sveltekit/solid frameworks (ADEV-334)", "status": "complete" },
-    { "id": "v1.4-pr5",       "label": "v1.4 PR 5 — Enterprise bulk: java/csharp/kotlin/php + spring/dotnet-aspnet/laravel (ADEV-335)", "status": "complete" },
-    { "id": "v1.4-pr6",       "label": "v1.4 PR 6 — Apple/iOS: swift + swiftui + ios-swiftui + app-store adapter (ADEV-336 / #218)", "status": "complete" },
-    { "id": "v1.4-pr6-5",     "label": "v1.4 PR 6.5 — Mobile bulk: kotlin-android + flutter + react-native-expo + play-store (ADEV-343 / #216)", "status": "complete" },
-    { "id": "v1.4-pr7",       "label": "v1.4 PR 7 — Hosting adapters: railway/netlify/heroku/aws-amplify (ADEV-337)", "status": "complete" },
-    { "id": "v1.4-pr8",       "label": "v1.4 PR 8 — Site surfaces + v1.4.0 release (ADEV-331)", "status": "complete" },
-    { "id": "nav-overhaul",   "label": "Post-v1.4 navigation overhaul: PR #213 homepage + grouped header + ⌘K palette; PR #223 /changelog roadmap timeline + Linear-connected form", "status": "complete" },
-    { "id": "a11y-fixes",     "label": "Land a11y fixes via PRs #196 (ADEV-339-342, squash 08377ea) + #197 (ADEV-343-347 root-cause follow-ups, squash ba8d0cc)", "status": "complete" },
-    { "id": "linear-roadmap-labels", "label": "Linear hygiene: applied `roadmap-visible` to ADEV-336/343/330 (shipped v1.4 PRs) for /changelog roadmap UI population", "status": "complete" },
-    { "id": "email-pipeline", "label": "Route Resend-powered /api/email-pipeline + Step 5 form (PR #233 merged, follow-up fix #239 also merged 2026-05-31)", "status": "complete" },
-    { "id": "wave-2026-05-31", "label": "2026-05-31 PR-review wave — merge/route 13 open PRs: 11 merged (2 feature, 2 security, 7 dep hygiene), 1 closed obsolete (#208), 1 held for user review (#232)", "status": "complete" }
+    {
+      "id": "intake-1.4",
+      "label": "Intake: 1.4 scope expansion (5 langs → 11+ langs + iOS)",
+      "status": "complete"
+    },
+    {
+      "id": "route-architect",
+      "label": "Route → app-architect for sprint planning",
+      "status": "complete"
+    },
+    {
+      "id": "linear-tickets",
+      "label": "Linear: ADEV-327 parent + ADEV-328-337 PR sub-issues",
+      "status": "complete"
+    },
+    {
+      "id": "stackforge-cp",
+      "label": "Save stack-forge.checkpoint.json (v1.4 plan, 10 next_actions)",
+      "status": "complete"
+    },
+    {
+      "id": "merge-187",
+      "label": "PR #187 merged (squash) — v1.4 plan checkpoint on main",
+      "status": "complete"
+    },
+    {
+      "id": "lhci-triage",
+      "label": "Triage LHCI a11y failures from #187 build",
+      "status": "complete"
+    },
+    {
+      "id": "a11y-tickets",
+      "label": "Linear: ADEV-338 parent + 4 sub-issues (TOC, code, bands, links)",
+      "status": "complete"
+    },
+    {
+      "id": "a11y-branch",
+      "label": "Cut claude/a11y-lhci-cleanup off main (fast-forwarded)",
+      "status": "complete"
+    },
+    {
+      "id": "v13-shipped",
+      "label": "Verify v1.3 shipped (526a9a2 live in prod + staging)",
+      "status": "complete"
+    },
+    {
+      "id": "reconcile-cps",
+      "label": "Reconcile stale checkpoints (app-architect + git-ops)",
+      "status": "complete"
+    },
+    {
+      "id": "reconcile-pm",
+      "label": "Reconcile .opchain/pm.yaml (v1.3 archive + v1.4 advance)",
+      "status": "complete"
+    },
+    {
+      "id": "fix-project-dirs",
+      "label": "Fix /home/user/opchain → /Users/... in orchestrator + git-ops",
+      "status": "complete"
+    },
+    {
+      "id": "commit-reconcile",
+      "label": "Commit reconciliation diff to main (4927bc1 + 60ac971)",
+      "status": "complete"
+    },
+    {
+      "id": "v1.4-pr1",
+      "label": "v1.4 PR 1 — schema, generator, auto-flag wiring (ADEV-328 / #192 / 4cb0b09)",
+      "status": "complete"
+    },
+    {
+      "id": "v1.4-pr2",
+      "label": "v1.4 PR 2 — backfill 5 existing stacks as language packs (ADEV-329 / #203 / 22c45cd)",
+      "status": "complete"
+    },
+    {
+      "id": "v1.4-pr3",
+      "label": "v1.4 PR 3 — deploy-ops dispatcher + api-dev pack-read + kind:mobile branch (ADEV-330 / #207 / 29218da)",
+      "status": "complete"
+    },
+    {
+      "id": "v1.4-pr4",
+      "label": "v1.4 PR 4 — Modern web bulk: elixir/bun/deno languages + phoenix/remix/sveltekit/solid frameworks (ADEV-334)",
+      "status": "complete"
+    },
+    {
+      "id": "v1.4-pr5",
+      "label": "v1.4 PR 5 — Enterprise bulk: java/csharp/kotlin/php + spring/dotnet-aspnet/laravel (ADEV-335)",
+      "status": "complete"
+    },
+    {
+      "id": "v1.4-pr6",
+      "label": "v1.4 PR 6 — Apple/iOS: swift + swiftui + ios-swiftui + app-store adapter (ADEV-336 / #218)",
+      "status": "complete"
+    },
+    {
+      "id": "v1.4-pr6-5",
+      "label": "v1.4 PR 6.5 — Mobile bulk: kotlin-android + flutter + react-native-expo + play-store (ADEV-343 / #216)",
+      "status": "complete"
+    },
+    {
+      "id": "v1.4-pr7",
+      "label": "v1.4 PR 7 — Hosting adapters: railway/netlify/heroku/aws-amplify (ADEV-337)",
+      "status": "complete"
+    },
+    {
+      "id": "v1.4-pr8",
+      "label": "v1.4 PR 8 — Site surfaces + v1.4.0 release (ADEV-331)",
+      "status": "complete"
+    },
+    {
+      "id": "nav-overhaul",
+      "label": "Post-v1.4 navigation overhaul: PR #213 homepage + grouped header + ⌘K palette; PR #223 /changelog roadmap timeline + Linear-connected form",
+      "status": "complete"
+    },
+    {
+      "id": "a11y-fixes",
+      "label": "Land a11y fixes via PRs #196 (ADEV-339-342, squash 08377ea) + #197 (ADEV-343-347 root-cause follow-ups, squash ba8d0cc)",
+      "status": "complete"
+    },
+    {
+      "id": "linear-roadmap-labels",
+      "label": "Linear hygiene: applied `roadmap-visible` to ADEV-336/343/330 (shipped v1.4 PRs) for /changelog roadmap UI population",
+      "status": "complete"
+    },
+    {
+      "id": "email-pipeline",
+      "label": "Route Resend-powered /api/email-pipeline + Step 5 form (PR #233 merged, follow-up fix #239 also merged 2026-05-31)",
+      "status": "complete"
+    },
+    {
+      "id": "wave-2026-05-31",
+      "label": "2026-05-31 PR-review wave — merge/route 13 open PRs: 11 merged (2 feature, 2 security, 7 dep hygiene), 1 closed obsolete (#208), 1 held for user review (#232)",
+      "status": "complete"
+    }
   ],
-
   "context_primer": {
     "key_decisions": [
       "v1.4 theme: coverage-as-a-plugin-registry. skills/stack-forge/packs/<id>/pack.yml + reference docs replace hardcoded stack tables.",
@@ -66,18 +171,19 @@
       "Skips non-actionable bot replies on PRs (no noise back to LHCI bot)."
     ]
   },
-
   "blockers": [],
-
   "next_actions": [
     "v1.5 is DONE and live — no v1.5 work remains. Next theme is v1.6 'Cost & telemetry' per roadmap/07-v15-v16-v17-roadmap.md: cost attribution + opt-in telemetry, and the first oc-checkpoint-protocol bump since v1.2 (adds cost, eval_scores, telemetry_handle). No tickets cut yet; create the ADEV v1.6 parent + sprint children when kicking off.",
     "Housekeeping: the other skill checkpoints were refreshed in this same reconciliation (app-architect, stack-forge, code-auditor, git-ops, ux-engineer) to read 'v1.5 shipped'. oc-code-auditor should run a real post-release sweep at some point — the v1.4 dispatcher refactor (ADEV-330) and the v1.5 cycle shipped without a full code-auditor pass (only the AI-safety rule pack was added, not run).",
     "Optional: verify opchain.dev sending domain in Resend + `wrangler secret put RESEND_API_KEY` before flipping the email-pipeline flag on (still gated off)."
   ],
-
   "skill_state": {
     "active_branches": [
-      { "name": "claude/expand-language-platform-support-t7Uu7", "purpose": "v1.4 implementation (planned parent for PRs 1-8); actual PRs shipped from per-PR branches", "next_pr": "ADEV-330" }
+      {
+        "name": "claude/expand-language-platform-support-t7Uu7",
+        "purpose": "v1.4 implementation (planned parent for PRs 1-8); actual PRs shipped from per-PR branches",
+        "next_pr": "ADEV-330"
+      }
     ],
     "merged_prs_this_session": [
       "asfbay-bit/opchain#187",
@@ -94,12 +200,46 @@
       "60ac971 chore(state): expand v1.4 mobile scope — Android + Flutter + RN"
     ],
     "linear_active_parents": [
-      { "id": "ADEV-327", "title": "opchain v1.4 — Drastically expand language & platform coverage", "children": ["ADEV-328", "ADEV-329", "ADEV-330", "ADEV-331", "ADEV-332", "ADEV-334", "ADEV-335", "ADEV-336", "ADEV-337"] }
+      {
+        "id": "ADEV-327",
+        "title": "opchain v1.4 — Drastically expand language & platform coverage",
+        "children": [
+          "ADEV-328",
+          "ADEV-329",
+          "ADEV-330",
+          "ADEV-331",
+          "ADEV-332",
+          "ADEV-334",
+          "ADEV-335",
+          "ADEV-336",
+          "ADEV-337"
+        ]
+      }
     ],
     "linear_completed_this_session": [
-      { "id": "ADEV-338", "title": "a11y cleanup — LHCI failing audits across /skills, /architecture, /changelog", "children": ["ADEV-339", "ADEV-340", "ADEV-341", "ADEV-342", "ADEV-343", "ADEV-344", "ADEV-345", "ADEV-346", "ADEV-347"], "shipped_via": ["asfbay-bit/opchain#196", "asfbay-bit/opchain#197"] }
+      {
+        "id": "ADEV-338",
+        "title": "a11y cleanup — LHCI failing audits across /skills, /architecture, /changelog",
+        "children": [
+          "ADEV-339",
+          "ADEV-340",
+          "ADEV-341",
+          "ADEV-342",
+          "ADEV-343",
+          "ADEV-344",
+          "ADEV-345",
+          "ADEV-346",
+          "ADEV-347"
+        ],
+        "shipped_via": [
+          "asfbay-bit/opchain#196",
+          "asfbay-bit/opchain#197"
+        ]
+      }
     ],
-    "linear_cancelled_this_session": ["ADEV-333"],
+    "linear_cancelled_this_session": [
+      "ADEV-333"
+    ],
     "skills_invoked_this_session": [
       "orchestrator",
       "app-architect",
@@ -118,28 +258,66 @@
     "supersedes_prior_orchestrator_state": "Prior session shipped #140/#143/#146/#148/#150/#151 and returned 'Session done — open a fresh session.' That work is now part of main; this session continues forward from there.",
     "reconciliation_2026_05_08": {
       "trigger": "User asked /orchestrator to analyze open action items + v1.4 plan. Surfaced that v1.3 had already shipped while local checkpoints still showed 'launch-pending'.",
-      "verified_via": ["curl https://opchain.dev/api/health → version 526a9a2", "curl https://staging.opchain.dev/api/health → version 526a9a2", "homepage release pill → v1.3", "git rev-parse HEAD → 526a9a2 == origin/main"],
+      "verified_via": [
+        "curl https://opchain.dev/api/health → version 526a9a2",
+        "curl https://staging.opchain.dev/api/health → version 526a9a2",
+        "homepage release pill → v1.3",
+        "git rev-parse HEAD → 526a9a2 == origin/main"
+      ],
       "linear_state_verified": "ADEV-306 + ADEV-307/308/309/310 all status=Done, completedAt 2026-05-08 — no flips needed",
       "files_changed": 4,
-      "validators_run": ["npm run checkpoint:validate (7/7)", "npm run validate-pm-mcp (5 skills, 0 warnings)"]
+      "validators_run": [
+        "npm run checkpoint:validate (7/7)",
+        "npm run validate-pm-mcp (5 skills, 0 warnings)"
+      ]
     },
     "reconciliation_2026_05_13": {
       "trigger": "User invoked /orchestrator + /checkpoint-protocol after the email-pipeline PR opened. Surfaced two drifts: git-ops stuck on last-merge-#223 (no record of #233), orchestrator next_actions still telling future-self to ship v1.4 PR 4 even though stack-forge.checkpoint.json records it as shipped (#214 → 245ba47).",
-      "files_updated": [".checkpoints/git-ops.checkpoint.json", ".checkpoints/orchestrator.checkpoint.json"],
-      "files_left_alone": [".checkpoints/app-architect.checkpoint.json (v1.3 launched/shipped state preserved — email-pipeline didn't run the full /discover→/spec→/build pipeline)", ".checkpoints/stack-forge.checkpoint.json (already records #214 ship + #235 in flight)", ".checkpoints/code-auditor.checkpoint.json (no overlap with email-pipeline)", ".checkpoints/ux-engineer.checkpoint.json (Round 5 still current; the Step 5 form change is small enough not to be a round 6)", ".checkpoints/bug-check.checkpoint.json (already stamped this session with PASS for email-pipeline)"],
-      "validators_run": ["npm run checkpoint:validate (7/7 valid)"]
+      "files_updated": [
+        ".checkpoints/git-ops.checkpoint.json",
+        ".checkpoints/orchestrator.checkpoint.json"
+      ],
+      "files_left_alone": [
+        ".checkpoints/app-architect.checkpoint.json (v1.3 launched/shipped state preserved — email-pipeline didn't run the full /discover→/spec→/build pipeline)",
+        ".checkpoints/stack-forge.checkpoint.json (already records #214 ship + #235 in flight)",
+        ".checkpoints/code-auditor.checkpoint.json (no overlap with email-pipeline)",
+        ".checkpoints/ux-engineer.checkpoint.json (Round 5 still current; the Step 5 form change is small enough not to be a round 6)",
+        ".checkpoints/bug-check.checkpoint.json (already stamped this session with PASS for email-pipeline)"
+      ],
+      "validators_run": [
+        "npm run checkpoint:validate (7/7 valid)"
+      ]
     },
     "reconciliation_2026_05_15": {
       "trigger": "GitHub's auto-merge of origin/main into the PR branch (commit 1a3293a, authored by asfbay-bit) overlapped with the prior reconcile in commit 2c1f381. The auto-merge took both versions of three conflict regions (header, progress_table, next_actions) without adding the inter-section commas that JSON requires; checkpoint:validate failed on the resulting file at line 40 col 5, breaking the Worker CI step.",
       "fix": "Hand-rewrote orchestrator.checkpoint.json to consolidate the two branches' content into a single valid document: kept theirs' v1.4-shipped / v1.5-planning narrative, appended the email-pipeline thread, deduplicated progress_table rows, and put the PR #233 watch action at the top of next_actions.",
-      "validators_run": ["npm run checkpoint:validate (7/7 valid)", "npm test (295/295)"]
+      "validators_run": [
+        "npm run checkpoint:validate (7/7 valid)",
+        "npm test (295/295)"
+      ]
     },
     "pr_wave_2026_05_31": {
       "trigger": "User invoked /orchestrator asking which PRs needed review and which were ready to merge. Surfaced 13 open PRs (4 feature, 9 Dependabot) — actioned all in one session.",
       "merged_count": 11,
-      "merged_prs": ["#239", "#243", "#241", "#227", "#211", "#210", "#175", "#209", "#176", "#242", "#173"],
-      "closed_obsolete": ["#208"],
-      "held_for_user_review": ["#232"],
+      "merged_prs": [
+        "#239",
+        "#243",
+        "#241",
+        "#227",
+        "#211",
+        "#210",
+        "#175",
+        "#209",
+        "#176",
+        "#242",
+        "#173"
+      ],
+      "closed_obsolete": [
+        "#208"
+      ],
+      "held_for_user_review": [
+        "#232"
+      ],
       "notable_actions": [
         "Resolved 3 site/package-lock.json conflict cascades by re-updating branches in dependency order after each merge.",
         "Triggered `@dependabot rebase` on #173 and #176 after first-pass conflicts; #173 also required `@dependabot recreate` (which bumped wrangler 4.90→4.95 latest).",
@@ -147,7 +325,9 @@
         "Closed #208 rather than rebasing because the underlying stale-baseline bug it fixed no longer exists on main (v1.4 PRs landed correct baselines)."
       ],
       "deploy_state_after_wave": "production ~12 PRs behind staging; deploy-ops hand-off queued as next_actions[0]",
-      "validators_run": ["all 11 PRs passed Worker + Site + Playwright + LHCI before merge"]
+      "validators_run": [
+        "all 11 PRs passed Worker + Site + Playwright + LHCI before merge"
+      ]
     },
     "reconciliation_2026_06_21": {
       "trigger": "User invoked /orchestrator + /app-architect asking for a v1.5 status report. Cross-checking Linear against the actual git tree surfaced a hard PM↔code drift.",
@@ -169,7 +349,14 @@
     "reconciliation_2026_06_22": {
       "trigger": "User confirmed v1.5.0 deployed + live; ran a post-release checkpoint reconciliation so /oc-ops reads true.",
       "outcome": "v1.5.0 SHIPPED + LIVE. All 7 PRs (#299/#300/#303/#306/#309/#311/#316) merged; ADEV-344 chain + ADEV-364 release ticket all Done; Cloudflare WAF challenge cleared by user; v1.4.3 + v1.5 serving in prod.",
-      "checkpoints_refreshed": ["oc-orchestrator (this file)", "oc-app-architect", "oc-stack-forge", "oc-code-auditor", "oc-git-ops", "oc-ux-engineer"],
+      "checkpoints_refreshed": [
+        "oc-orchestrator (this file)",
+        "oc-app-architect",
+        "oc-stack-forge",
+        "oc-code-auditor",
+        "oc-git-ops",
+        "oc-ux-engineer"
+      ],
       "stale_when_found": "app-architect 38d (v1.4-shipped-v1.5-planning), code-auditor 38d (v1.3-sweep), git-ops 3d (last-merge-#263), ux-engineer 2d (round-6 PR-open), stack-forge 1d (v1.5-not-started), orchestrator 1d (v1.5-NOT-built-undeployed)",
       "next_theme": "v1.6 'Cost & telemetry' (roadmap/07) — no tickets cut yet"
     }
