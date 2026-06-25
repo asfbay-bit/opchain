@@ -5,7 +5,7 @@
 > Companion to `roadmap/08-v15-sprint-plan.md` (which froze the v1.5 arc).
 > Produced by **oc-app-architect /oc-roadmap**.
 
-**Status:** APPROVED (sprint-plan gate) — 2026-06-25
+**Status:** BUILD COMPLETE (S1–S7 shipped to PR #351) — 2026-06-25
 **Owner:** opchain core
 **Branch:** `claude/charming-knuth-2jyhhf`
 **Predecessor:** v1.5.0 "Build the AI app" — SHIPPED + LIVE 2026-06-22 (22 skills @ 1.5.0)
