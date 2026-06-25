@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-06-25T01:38:30.289Z",
+  "updated_at": "2026-06-25T01:41:31.588Z",
   "phase": "build",
-  "step": "s2-oc-cost-ops-body-shipped",
+  "step": "s3-oc-telemetry-ops-body-shipped",
   "status": "in_progress",
-  "progress_summary": "v1.6 building straight through (branch claude/charming-knuth-2jyhhf, PR #351, CI green on S1). S1 DONE (protocol wire 1.1 + scaffolds + flags + .claude/skills symlinks). S2 DONE: oc-cost-ops full body + 4 references (cost-attribution, model-tier-routing, budget-gates, pricing-reference — pricing sourced from oc-claude-api); wired the prompt-ops contract (eval.yaml cost_per_eval/budget_per_eval/regression_pct; oc-prompt-ops updated to present-tense 'cost-ops shipped'); registered both new skills in orchestrator.md (map + pipeline + descriptions + ecosystem). Gates: 433 tests, build, catalog 24. NEXT: S3 oc-telemetry-ops body.",
+  "progress_summary": "v1.6 straight-through (branch claude/charming-knuth-2jyhhf, PR #351). S1+S2+S3 DONE. S3: oc-telemetry-ops full body + 3 references (local-metering sqlite schema + content-free-by-schema guarantee, privacy-consent opt-in/default-OFF, aggregation export shape + k-anonymity for /dashboard). Both new skills now have full bodies. Gates: 433 tests, build, catalog 24. NEXT: S4 cross-skill ripples.",
   "progress_table": [
     {
       "id": "discovery",
@@ -82,9 +82,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "S3: oc-telemetry-ops full body + references (local-metering sqlite schema, privacy-consent opt-in, aggregation export shape for /dashboard).",
-    "S4: cross-skill ripples (bug-check/code-auditor eval_scores, monitoring AI template, orchestrator cost-aware next).",
-    "S5 site /dashboard; S6 lockstep 1.6.0; S7 site release surfaces + checklist."
+    "S4: oc-bug-check + oc-code-auditor emit eval_scores vs a stable rubric; oc-monitoring-ops AI-app template; oc-orchestrator /oc-ops next factors cost/budget.",
+    "S5: site /dashboard + /showcase + replays flag.",
+    "S6 lockstep 1.6.0; S7 site release surfaces + checklist."
   ],
   "skill_state": {
     "feature": {

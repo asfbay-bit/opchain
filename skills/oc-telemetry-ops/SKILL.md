@@ -122,12 +122,44 @@ random local id, not derived from any user identity.
 
 ---
 
-> **Scaffold note (v1.6 Sprint 3).** This file establishes the contract,
-> commands, pipeline position, the privacy stance, and the `telemetry_handle`
-> field. The full methodology — the SQLite schema, the opt-in/anonymization
-> rules, and the aggregate export shape `/dashboard` consumes — lands in Sprint 3
-> as `references/local-metering.md`, `references/privacy-consent.md`, and
-> `references/aggregation.md`, and this body expands to reference them.
+## Principle 1: Local-first metering, content-free by schema
+
+Usage is recorded to a single local SQLite file, `.checkpoints/usage.sqlite`
+(gitignored), and only when telemetry is enabled. The store records *that* a
+skill/phase ran and what it cost — never *what* was in the prompt. The privacy
+guarantee is structural: prompt text, file paths, project names, and any user
+identifier are **not columns**, so they cannot be recorded. Schema, write path,
+and the opt-out→zero-writes guarantee: `references/local-metering.md`.
+
+SQLite (not a JSON array) because usage is append-heavy and queried by aggregate
+— and because a growing JSON array in `.checkpoints/` would be a merge-conflict
+magnet, the exact failure the checkpoint protocol warns against.
+
+## Principle 2: Opt-in — presence is not consent
+
+Default is **OFF**: no store, no writes, no `telemetry_handle`. `/oc-telemetry
+enable` flips `telemetry_handle.enabled = true` and mints a random, machine-local
+`handle` (never derived from any identity). A `telemetry_handle` whose `enabled`
+is `false` — or absent — means off; only `enabled: true` authorizes a write, and
+the write path checks it on every run. `/oc-telemetry disable` stops metering
+immediately (the local file is kept; deleting it is the user's call). Full consent
+model, the recorded-vs-never-recorded table, and the relationship to the site's
+separate PostHog consent: `references/privacy-consent.md`.
+
+## Principle 3: Aggregate-only export
+
+The only thing that ever leaves the machine is a small, anonymized **aggregate** —
+counts and sums, no raw rows, no identity — produced by `/oc-telemetry aggregate`
+and emitted by `/oc-telemetry export` in the exact shape the site `/dashboard`
+(Sprint 5) renders: `pipelines_run`, `by_skill`, `model_tier_distribution`,
+`avg_cost_per_feature_usd` (cost from `oc-cost-ops`), `eval_score_trend`. Guards:
+no raw rows are ever exported, the `handle` is never exported, small cells
+(< k=5) fold into `"other"`, tiers not full model ids, weekly time buckets. Shape
++ queries + k-anonymity: `references/aggregation.md`.
+
+This is the honest answer to "is anyone actually using this, and which parts?" —
+real because it comes from real runs, publishable because it's anonymized and
+content-free by construction.
 
 ---
 
