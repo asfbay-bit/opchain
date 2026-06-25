@@ -75,7 +75,7 @@ const blogPostingLd = {
   ogImage={ogImage}
   jsonLd={blogPostingLd}
 >
-  <main class="page blog-post">
+  <main class={`page blog-post${showToc ? " has-toc" : ""}`}>
     <div class="page-head">
       <Eyebrow>blog</Eyebrow>
       <h1>{post.data.title}</h1>
@@ -180,7 +180,21 @@ const blogPostingLd = {
 </Base>
 
 <style>
-  .blog-post { max-width: 52rem; }
+  .blog-post {
+    max-width: 52rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+  }
+  .page-head { margin-bottom: 1.5rem; }
+  .page-head h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    line-height: var(--lh-tight);
+    color: var(--text);
+    letter-spacing: var(--ls-tight);
+    margin: 0.5rem 0 0;
+  }
   .post-meta {
     display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;
     font-size: 0.85rem; color: var(--muted); margin-top: 0.7rem;
@@ -205,8 +219,23 @@ const blogPostingLd = {
   /* TOC + body layout. TOC sits in a left rail on wide screens. */
   .post-body { display: grid; grid-template-columns: 1fr; gap: 0; margin-top: 1.5rem; }
   @media (min-width: 1024px) {
-    .post-body { grid-template-columns: 13rem 1fr; gap: 2.5rem; align-items: start; }
-    .toc { position: sticky; top: 6rem; }
+    .blog-post.has-toc { max-width: 68rem; }
+    .blog-post.has-toc .post-body {
+      max-width: none;
+      grid-template-columns: minmax(10rem, 12rem) minmax(0, 44rem);
+      gap: 3rem;
+      justify-content: end;
+      align-items: start;
+    }
+    .blog-post.has-toc > :where(.page-head, .series-box, .author-card, .related, .post-nav, .back) {
+      margin-right: 0;
+    }
+    .toc {
+      position: sticky;
+      top: 6rem;
+      max-height: calc(100vh - 8rem);
+      overflow: auto;
+    }
   }
   .toc { font-size: 0.85rem; }
   .toc-head {
@@ -274,4 +303,20 @@ const blogPostingLd = {
 
   .back { margin-top: 2.5rem; }
   .back a { color: var(--accent); }
+
+  .blog-post > :where(.page-head, .series-box, .post-body, .author-card, .related, .post-nav, .back) {
+    max-width: 44rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  @media (max-width: 640px) {
+    .post-nav { flex-direction: column; }
+    .post-nav a { max-width: none; }
+    .nav-next { text-align: left; margin-left: 0; }
+  }
+  @media (max-width: 540px) {
+    .blog-post { padding-inline: 1rem; }
+    .series-head { flex-direction: column; gap: 0.2rem; }
+  }
 </style>
