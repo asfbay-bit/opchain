@@ -42,17 +42,17 @@ interface FeatureGroup {
 }
 
 const FEATURES: Feature[] = [
-  { id: "prompts",     label: "Where the prompts live",     winner: "opchain" },
+  { id: "prompts",     label: "Where instructions live",    winner: "opchain" },
   { id: "session",     label: "Session persistence",        winner: "opchain" },
-  { id: "extend",      label: "Adding your own",            winner: ["opchain", "claude", "cursor", "copilot", "codex"] },
+  { id: "extend",      label: "Adding your own workflow" },
   { id: "pipeline",    label: "Pipeline awareness",         winner: "opchain" },
   { id: "ai-apps",     label: "Build AI apps (RAG / agents / evals)", winner: "opchain" },
-  { id: "tri-agent",   label: "Tri-agent quality loops",    winner: "opchain" },
+  { id: "tri-agent",   label: "Multi-agent quality loops" },
   { id: "gates",       label: "Audit gates before deploy",  winner: "opchain" },
   { id: "multi-proj",  label: "Multi-project status",       winner: "opchain" },
-  { id: "cost",        label: "Cost",                       winner: ["opchain", "claude"] },
+  { id: "cost",        label: "Cost",                       winner: "opchain" },
   { id: "lockin",      label: "Vendor lock-in",             winner: "opchain" },
-  { id: "runs-on",     label: "Where it runs",              winner: ["opchain", "claude"] },
+  { id: "runs-on",     label: "Where it runs" },
 ];
 
 const FEATURE_GROUPS: FeatureGroup[] = [
@@ -83,145 +83,145 @@ const PLATFORMS: Record<string, Platform> = {
   opchain: {
     name: "opchain", accent: true, fixed: true,
     cells: {
-      "prompts":    { v: "Markdown files in .claude/skills/", note: "MIT, in your repo, plain text — diffable, reviewable" },
+      "prompts":    { v: "SKILL.md files checked into your repo", note: "MIT, plain text — diffable, reviewable, portable" },
       "session":    { v: "JSON checkpoints in .checkpoints/", note: "Survive across chats; auto-resume next session" },
       "pipeline":   { v: "Yes — orchestrator routes between 22 skills", note: "Knows what phase you're in and what's next" },
-      "ai-apps":    { v: "Yes — 4 AI-native skills (oc-claude-api, oc-rag-forge, oc-agent-forge, oc-prompt-ops)", note: "RAG, agents, prompt evals + an AI-safety audit pass — the LangChain / LlamaIndex / Vellum territory, as evaluated skills in your repo" },
-      "tri-agent":  { v: "7 skills (oc-app-architect, oc-code-auditor, oc-integrations-engineer, oc-api-dev, oc-ux-engineer, oc-rag-forge, oc-agent-forge)", note: "Planner → Generator → Evaluator built in" },
+      "ai-apps":    { v: "Yes — 4 AI-native skills", note: "oc-claude-api, oc-rag-forge, oc-agent-forge, oc-prompt-ops: model routing, RAG, agent harnesses, prompt evals" },
+      "tri-agent":  { v: "Built into the skill protocols", note: "Planner / Builder / Evaluator loops where they matter, committed as Markdown contracts" },
       "gates":      { v: "Three (oc-bug-check, oc-code-auditor, oc-security-auditor)", note: "oc-deploy-ops blocks prod if any gate fails" },
-      "cost":       { v: "Free, MIT", note: "Pay only your Claude usage" },
+      "cost":       { v: "Free, MIT", note: "Pay only for the model or agent surface you run it through" },
       "lockin":     { v: "None — every skill is one Markdown file", note: "Fork, edit, fork again" },
-      "runs-on":    { v: "Claude Code · Claude.ai · Claude Desktop · Codex / any MCP agent", note: "Native in Claude Code; hosted MCP endpoint for Codex and other MCP clients (v1.4.3)" },
-      "extend":     { v: "Write a SKILL.md, drop it in .claude/skills/", note: "oc-reverse-spec backfills one from existing code" },
+      "runs-on":    { v: "Claude Code · Claude.ai/Desktop · Codex · any MCP client", note: "Drop-in skills plus the hosted MCP endpoint at opchain.dev/mcp" },
+      "extend":     { v: "Write a SKILL.md or fork an existing skill", note: "oc-reverse-spec can backfill a spec from existing code" },
       "multi-proj": { v: "/oc-ops command shows every project's last checkpoint", note: "Cross-repo dashboard built in" },
     },
   },
   claude: {
     name: "Claude defaults", fixed: true,
     cells: {
-      "prompts":    { v: "CLAUDE.md (single file)", note: "All-or-nothing" },
-      "session":    { v: "Single CLAUDE.md context", note: "Re-read on every session" },
-      "pipeline":   { v: "No" },
-      "ai-apps":    { v: "No — wire RAG / agents / evals by hand" },
-      "tri-agent":  { v: "No" },
-      "gates":      { v: "No" },
-      "cost":       { v: "Free" },
-      "lockin":     { v: "Claude-coupled", note: "But trivial to migrate" },
-      "runs-on":    { v: "Anywhere Claude runs" },
-      "extend":     { v: "Edit CLAUDE.md" },
-      "multi-proj": { v: "No" },
+      "prompts":    { v: "CLAUDE.md, .claude/rules, skills, agents, hooks", note: "Claude Code now has several first-party customization files" },
+      "session":    { v: "CLAUDE.md + auto memory", note: "Memory is repo-local and machine-local; chat context is still per session" },
+      "pipeline":   { v: "No bundled phase graph", note: "You design the workflow yourself" },
+      "ai-apps":    { v: "No packaged RAG / agent / eval skill suite" },
+      "tri-agent":  { v: "Possible with subagents/workflows", note: "Powerful primitives, no default evaluator contract" },
+      "gates":      { v: "Hooks/settings can enforce commands", note: "No stock deploy pipeline gate" },
+      "cost":       { v: "Claude plan or API usage", note: "Claude Code access is tied to eligible plans or API billing" },
+      "lockin":     { v: "Anthropic-coupled", note: "Most local files are Markdown and easy to move" },
+      "runs-on":    { v: "Claude Code, Claude.ai/Desktop, IDE integrations" },
+      "extend":     { v: "Add skills, rules, hooks, subagents, MCP config" },
+      "multi-proj": { v: "No bundled cross-repo checkpoint dashboard" },
     },
   },
   cursor: {
     name: "Cursor",
     cells: {
-      "prompts":    { v: ".cursorrules / .mdc rules", note: "Per-project, editor-coupled" },
-      "session":    { v: "Per-chat memory; no formal protocol" },
-      "pipeline":   { v: "No — rules apply globally" },
-      "ai-apps":    { v: "No" },
-      "tri-agent":  { v: "No" },
-      "gates":      { v: "No" },
-      "cost":       { v: "$20–40 / user / mo" },
-      "lockin":     { v: "IDE-coupled", note: "Rules only run inside Cursor" },
-      "runs-on":    { v: "Cursor IDE" },
-      "extend":     { v: "Write a .cursorrules file" },
-      "multi-proj": { v: "No" },
+      "prompts":    { v: "Project / Team / User Rules, AGENTS.md, skills", note: "Project rules are file-based; teams can share internal rules and skills" },
+      "session":    { v: "Agent threads + project context", note: "No repo-owned checkpoint schema" },
+      "pipeline":   { v: "Partial — Agent, Cloud Agents, Bugbot", note: "Strong coding flow; not a portable phase protocol" },
+      "ai-apps":    { v: "General coding agent", note: "No packaged RAG / eval skill suite" },
+      "tri-agent":  { v: "Cloud agents + Bugbot", note: "Reviewer exists, but the loop is service-defined" },
+      "gates":      { v: "Bugbot reviews + hooks", note: "Deploy blocking lives in your CI or process" },
+      "cost":       { v: "Free tier · Pro $20/mo · Teams $40/user/mo" },
+      "lockin":     { v: "Cursor-coupled", note: "Rules are portable; execution is inside Cursor" },
+      "runs-on":    { v: "Cursor IDE + Cloud Agents" },
+      "extend":     { v: "Rules, AGENTS.md, MCPs, skills, hooks" },
+      "multi-proj": { v: "Cloud/workspace views", note: "No portable checkpoint rollup" },
     },
   },
   copilot: {
     name: "GH Copilot",
     cells: {
-      "prompts":    { v: ".github/copilot-instructions.md + hosted instructions", note: "Vendor-managed" },
-      "session":    { v: "Per-IDE-session" },
-      "pipeline":   { v: "No — chat is single-turn-ish" },
-      "ai-apps":    { v: "No" },
-      "tri-agent":  { v: "No" },
-      "gates":      { v: "No" },
-      "cost":       { v: "$10–39 / user / mo" },
+      "prompts":    { v: ".github/copilot-instructions.md + .github/instructions/*.instructions.md", note: "Prompt files add reusable task prompts in supported IDEs" },
+      "session":    { v: "Copilot Chat / agent context", note: "GitHub context is rich; no repo-owned checkpoints" },
+      "pipeline":   { v: "Partial — agent mode, cloud agent, code review" },
+      "ai-apps":    { v: "General coding + GitHub Spark", note: "No packaged RAG / eval skill suite" },
+      "tri-agent":  { v: "Agent mode + third-party agents/MCP", note: "No explicit Planner → Evaluator contract" },
+      "gates":      { v: "Copilot code review", note: "CI/GitHub Actions can enforce separately" },
+      "cost":       { v: "Free · Pro $10 · Pro+ $39 · Max $100 · Biz/Ent $19/$39 seat" },
       "lockin":     { v: "GitHub-coupled", note: "Runs against the Copilot service" },
-      "runs-on":    { v: "VS Code · JetBrains · GitHub.com" },
-      "extend":     { v: "Edit copilot-instructions.md" },
-      "multi-proj": { v: "No" },
+      "runs-on":    { v: "VS Code · Visual Studio · JetBrains · Xcode · GitHub.com · CLI" },
+      "extend":     { v: "Custom instructions, prompt files, MCP, Copilot skills" },
+      "multi-proj": { v: "GitHub/org context", note: "No repo-local checkpoint dashboard" },
     },
   },
   devin: {
     name: "Devin",
     cells: {
-      "prompts":    { v: "Hosted, internal", note: "Black box" },
-      "session":    { v: "Hosted task state", note: "Tied to a Devin task, not your repo" },
-      "pipeline":   { v: "Yes, but as one monolithic agent" },
-      "ai-apps":    { v: "No — no first-class RAG / agent / eval skills" },
-      "tri-agent":  { v: "Implicit", note: "Not surfaced as a contract" },
-      "gates":      { v: "Internal checks", note: "No external contract" },
-      "cost":       { v: "$500 / mo seat (last published)" },
-      "lockin":     { v: "Service-coupled", note: "All work runs on Devin infra" },
-      "runs-on":    { v: "Devin web UI" },
-      "extend":     { v: "Limited", note: "Custom playbooks in Beta" },
-      "multi-proj": { v: "Per-task dashboard", note: "Devin-hosted" },
+      "prompts":    { v: "Knowledge, Playbooks, .devin.md files", note: "Playbooks are reusable prompts; Knowledge carries project facts" },
+      "session":    { v: "Hosted session state + searchable history" },
+      "pipeline":   { v: "Yes — autonomous task planning/execution", note: "Service-owned workflow with cloud agents" },
+      "ai-apps":    { v: "General software agent", note: "No repo-local RAG / prompt-eval catalog" },
+      "tri-agent":  { v: "Yes — Devin can manage child Devins", note: "Parallel hosted agents with a coordinator session" },
+      "gates":      { v: "Devin Review + internal checks", note: "External CI remains your enforcement layer" },
+      "cost":       { v: "Free · Pro $20/mo · Max $200/mo · Teams $80 min + $40/full seat" },
+      "lockin":     { v: "Service-coupled", note: "Knowledge, sessions, and cloud agents live in Devin" },
+      "runs-on":    { v: "Devin web, Desktop, Cloud, API/MCP" },
+      "extend":     { v: "Knowledge, Playbooks, automations, MCP" },
+      "multi-proj": { v: "Hosted session/team views + DeepWiki" },
     },
   },
   zed: {
     name: "Zed",
     cells: {
-      "prompts":    { v: ".zed/settings.json + Agent Profiles", note: "Project + per-profile system prompts" },
-      "session":    { v: "Persistent assistant panel per workspace; no cross-session protocol" },
-      "pipeline":   { v: "No — single agent, no pipeline concept" },
-      "ai-apps":    { v: "No" },
-      "tri-agent":  { v: "Agent profiles can chain", note: "Manual setup; not a contract" },
-      "gates":      { v: "No" },
-      "cost":       { v: "Editor free · Zed Pro $20/mo or BYOK", note: "AI usage gated; editor is fully free" },
-      "lockin":     { v: "Editor-coupled", note: "Profiles only run inside Zed" },
-      "runs-on":    { v: "Zed editor (Mac · Linux · Windows beta)" },
-      "extend":     { v: "Add an Agent Profile or edit .zed/settings.json" },
-      "multi-proj": { v: "No" },
+      "prompts":    { v: "Agent rules/skills + settings", note: "External agents keep their own native config" },
+      "session":    { v: "Agent Panel threads/sidebar", note: "No opchain-style checkpoint schema" },
+      "pipeline":   { v: "Partial — agents in editor, external agents via ACP" },
+      "ai-apps":    { v: "No packaged RAG / eval suite" },
+      "tri-agent":  { v: "Parallel/external agents", note: "Profiles and ACP agents are manual composition" },
+      "gates":      { v: "Tool permissions + sandbox settings", note: "CI/deploy gates are external" },
+      "cost":       { v: "Personal free · Pro $10/mo · Business $30/seat/mo" },
+      "lockin":     { v: "Editor-coupled for Zed Agent", note: "External agents own their own runtime and billing" },
+      "runs-on":    { v: "Zed editor (macOS · Linux · Windows)" },
+      "extend":     { v: "MCP tools, Agent Profiles, skills, ACP external agents" },
+      "multi-proj": { v: "Threads/worktrees in editor", note: "No cross-repo checkpoint dashboard" },
     },
   },
   vscode: {
     name: "VS Code",
     cells: {
-      "prompts":    { v: "Per-extension (Copilot / Continue / Cline)", note: "Whatever your AI extension wants" },
-      "session":    { v: "Per extension; usually per-IDE-session" },
-      "pipeline":   { v: "No — depends entirely on extension" },
-      "ai-apps":    { v: "No (extension-dependent)" },
-      "tri-agent":  { v: "No" },
-      "gates":      { v: "No" },
+      "prompts":    { v: "Per extension", note: "Copilot uses .github instruction files; Continue/Cline/etc. each differ" },
+      "session":    { v: "Per extension/editor task", note: "Background agents can be tracked in VS Code, but state is extension-owned" },
+      "pipeline":   { v: "Host-level only", note: "Agent workflow depends on Copilot or another extension" },
+      "ai-apps":    { v: "Extension-dependent" },
+      "tri-agent":  { v: "Extension-dependent", note: "VS Code is the host, not the protocol" },
+      "gates":      { v: "Extension/CI dependent" },
       "cost":       { v: "Editor free · extension pricing varies", note: "Copilot, Continue, Cline each priced separately" },
-      "lockin":     { v: "Extension-coupled", note: "Tied to whichever AI extension you use" },
-      "runs-on":    { v: "VS Code (Mac · Linux · Windows · Web)" },
-      "extend":     { v: "Configure your extension's prompt or rules file" },
-      "multi-proj": { v: "No" },
+      "lockin":     { v: "Low editor lock-in; extension/service coupling varies" },
+      "runs-on":    { v: "VS Code desktop + web" },
+      "extend":     { v: "Extensions, MCP servers, workspace settings" },
+      "multi-proj": { v: "Workspaces/background tasks", note: "No common checkpoint protocol" },
     },
   },
   codex: {
     name: "OpenAI Codex",
     cells: {
-      "prompts":    { v: "AGENTS.md in repo + ChatGPT custom instructions", note: "Per-repo; vendor model controls behaviour" },
-      "session":    { v: "Per-task cloud session + ChatGPT memory", note: "No formal cross-task protocol" },
-      "pipeline":   { v: "No — single autonomous reasoning loop" },
-      "ai-apps":    { v: "No" },
-      "tri-agent":  { v: "No (single-agent)" },
-      "gates":      { v: "No" },
-      "cost":       { v: "Bundled with ChatGPT Plus/Pro ($20–200/mo)", note: "CLI free with API usage" },
-      "lockin":     { v: "OpenAI-coupled", note: "GPT-5/4 only; no model swap" },
-      "runs-on":    { v: "chatgpt.com/codex · codex CLI · IDE extension" },
-      "extend":     { v: "Edit AGENTS.md or ChatGPT instructions" },
-      "multi-proj": { v: "Per-project; no cross-repo dashboard" },
+      "prompts":    { v: "AGENTS.md + Codex Skills + ChatGPT instructions" },
+      "session":    { v: "ChatGPT workspaces + cloud tasks/worktrees", note: "No repo-owned checkpoint schema" },
+      "pipeline":   { v: "Yes — agentic coding workflows", note: "Platform-owned, not a repo-local phase protocol" },
+      "ai-apps":    { v: "General coding agent", note: "Can build AI apps, but not a committed RAG/eval skill catalog" },
+      "tri-agent":  { v: "Yes — multi-agent workflows", note: "No repo-defined Planner → Evaluator loop contract" },
+      "gates":      { v: "PR review, testing, code review", note: "Not a deploy gate you own in the repo" },
+      "cost":       { v: "Included in ChatGPT plans; API pay-per-token path", note: "Free, Go, Plus, Pro, Business, Edu, Enterprise all include Codex with varying limits" },
+      "lockin":     { v: "OpenAI-coupled", note: "AGENTS.md and skills are files; execution is Codex" },
+      "runs-on":    { v: "Codex web/app · CLI · IDE extension · iOS" },
+      "extend":     { v: "AGENTS.md, Skills, plugins, automations, MCP/tools" },
+      "multi-proj": { v: "Codex workspaces/projects", note: "No opchain checkpoint dashboard" },
     },
   },
   antigravity: {
-    name: "Google Antigravity", needsReview: true,
+    name: "Google Antigravity",
     cells: {
-      "prompts":    { v: "Workspace instructions + Knowledge files", note: "Cross-session memory via Knowledge" },
-      "session":    { v: "Knowledge persists; agent state per workspace" },
-      "pipeline":   { v: "Multi-agent — Editor + Manager dispatch parallel agents", note: "Coordinated, but not a phase pipeline" },
-      "ai-apps":    { v: "No — general coding agents, no RAG / eval skills" },
-      "tri-agent":  { v: "Yes — Manager dispatches and verifies via screenshot/recording" },
-      "gates":      { v: "Built-in verification (browser proof / screenshot)" },
-      "cost":       { v: "Free tier · paid tiers announced" },
-      "lockin":     { v: "Google-coupled", note: "Gemini-first; Claude / GPT-OSS optional" },
-      "runs-on":    { v: "Antigravity desktop app (Mac · Linux · Windows)" },
-      "extend":     { v: "Add Knowledge files or workspace settings" },
-      "multi-proj": { v: "Manager view shows every running workspace" },
+      "prompts":    { v: "Knowledge base, skills, hooks, subagents, plugins" },
+      "session":    { v: "Knowledge + resumable agent harness state", note: "Persistent isolated environments in the API path" },
+      "pipeline":   { v: "Yes — Manager Surface orchestrates agents", note: "Not a repo-owned phase graph" },
+      "ai-apps":    { v: "Strong general AI-app platform", note: "No opchain-style RAG / prompt-eval skill catalog in the repo" },
+      "tri-agent":  { v: "Yes — dynamic subagents and parallel workflows" },
+      "gates":      { v: "Artifacts: plans, screenshots, browser recordings", note: "Verification artifacts, not deploy gates" },
+      "cost":       { v: "Individual preview free; Pro/Ultra/Cloud quotas for more", note: "Google AI Ultra was announced at $100/mo with higher Antigravity limits" },
+      "lockin":     { v: "Google-coupled", note: "Gemini-first, with model optionality published" },
+      "runs-on":    { v: "Antigravity desktop, CLI, SDK, Gemini Enterprise Agent Platform" },
+      "extend":     { v: "Skills, hooks, subagents, plugins, SDK" },
+      "multi-proj": { v: "Manager Surface across workspaces" },
     },
   },
 };
@@ -241,7 +241,7 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
 <Base
   title="Compare · opchain"
   description="opchain vs. Cursor, Copilot, Devin, Zed, VS Code, OpenAI Codex, Google Antigravity, and stock Claude defaults — pick which to compare against, feature by feature."
-  active="/"
+  active="/compare"
 >
   <main class="page">
     <div class="page-head">
@@ -260,10 +260,10 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
       <Card variant="surface" glow={false}>
         <div class="quick-head">If you want…</div>
         <ul class="when-list">
-          <li><strong>One prompt file your whole team edits</strong> → stock <code>CLAUDE.md</code> is fine</li>
-          <li><strong>Editor autocomplete with style</strong> → Cursor or Copilot</li>
-          <li><strong>A managed agent that ships PRs unattended</strong> → Devin or OpenAI Codex</li>
-          <li><strong>A multi-agent dispatcher with browser-verified output</strong> → Google Antigravity</li>
+          <li><strong>Claude-native customization primitives</strong> → stock Claude Code is already strong</li>
+          <li><strong>Editor autocomplete with style</strong> → Cursor, Copilot, Zed, or VS Code</li>
+          <li><strong>A managed agent that ships PRs unattended</strong> → Devin, OpenAI Codex, or Copilot cloud agent</li>
+          <li><strong>A multi-agent dispatcher with browser-verified output</strong> → Google Antigravity or Codex</li>
           <li><strong>A pipeline of skills you own, free, in your repo</strong> → opchain</li>
         </ul>
       </Card>
@@ -358,8 +358,9 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
     <section class="block">
       <h2>What opchain isn't</h2>
       <p>
-        opchain isn't an IDE. It doesn't autocomplete as you type, and
-        it won't open a PR against a remote repo for you while you sleep.
+        opchain isn't an IDE or a hosted cloud agent. It doesn't autocomplete
+        as you type, and it won't run unattended on vendor infrastructure while
+        you sleep.
         It's a set of <a href="/skills">skills</a> that turn Claude (in
         any of its surfaces) into a pipeline you can lean on for the
         slow work — discovery, spec, audits, deploys, postmortems — and
@@ -423,7 +424,16 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
     </section>
 
     <p class="footnote">
-      Comparisons reflect publicly published features as of 2026-05.
+      Comparisons reflect publicly published features refreshed 2026-06-24 against
+      <a href="https://code.claude.com/docs/en/claude-directory" rel="noopener">Claude Code</a>,
+      <a href="https://cursor.com/pricing" rel="noopener">Cursor</a>,
+      <a href="https://docs.github.com/en/copilot/get-started/plans" rel="noopener">GitHub Copilot</a>,
+      <a href="https://devin.ai/pricing/" rel="noopener">Devin</a>,
+      <a href="https://zed.dev/pricing" rel="noopener">Zed</a>,
+      <a href="https://developers.openai.com/codex/pricing" rel="noopener">Codex</a>,
+      and
+      <a href="https://developers.googleblog.com/build-with-google-antigravity-our-new-agentic-development-platform/" rel="noopener">Google Antigravity</a>
+      docs/pricing.
       Spot a mistake? <button type="button" class="inline-link" data-feedback-launcher>tell us</button>.
     </p>
   </main>
@@ -1056,6 +1066,7 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
     font-family: var(--font-mono);
     letter-spacing: var(--ls-wide);
   }
+  .footnote a { color: var(--accent); }
   .inline-link {
     background: transparent;
     border: 0;
