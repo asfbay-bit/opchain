@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>opchain · v1.6 Variant C — functional mockup (live meters)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#1c1710; --card:#2a2218; --deep:rgba(0,0,0,.18);
+    --tp:#e8dfd0; --ts:#c4b89e; --tm:#9d8f73;
+    --border:#5a5040; --divider:rgba(196,184,158,.12);
+    --ember:#e05c18; --mint:#0D9488; --mint-b:#14b8a6;
+    --yellow:#f59e0b; --rose:#F43F5E;
+    --inst:#a3e635; --inst-dim:rgba(163,230,53,.08); --inst-mid:rgba(163,230,53,.16);
+    --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --disp:"Outfit",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--tp);font-family:var(--mono);line-height:1.5}
+  .wrap{max-width:1040px;margin:0 auto;padding:30px 20px 80px}
+  .eyebrow{display:flex;align-items:center;gap:.5em;font-size:11px;font-weight:600;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ember);margin-bottom:10px}
+  .eyebrow::before{content:'—';color:var(--ember);font-size:16px;line-height:1}
+  h1{font-family:var(--disp);font-size:28px;font-weight:600;letter-spacing:-.015em;margin:0 0 8px}
+  .lede{color:var(--ts);font-size:14px;max-width:78ch;margin:0 0 16px}
+  .lede code{color:var(--inst);background:var(--inst-dim);padding:.05em .35em;border-radius:4px}
+
+  /* controls */
+  .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 6px;
+    padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--card)}
+  .btn{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--bg);background:var(--inst);
+    border:none;border-radius:7px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
+  .btn.ghost{background:transparent;color:var(--inst);border:1px solid var(--inst)}
+  .btn:active{transform:translateY(1px)}
+  .runlabel{margin-left:auto;font-size:11px;color:var(--tm)}
+  .runlabel b{color:var(--inst)}
+  .demo-note{font-size:11px;color:var(--tm);margin:8px 2px 0}
+
+  .section-head{margin:40px 0 6px;padding-top:20px;border-top:1px solid var(--divider)}
+  .section-head .skind{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--inst);font-weight:700}
+  .section-head h2{font-family:var(--disp);font-size:21px;font-weight:600;margin:6px 0 4px}
+  .section-head p{color:var(--tm);font-size:13px;margin:0;max-width:74ch}
+
+  .stage{margin:18px 0 0;border:1px solid var(--border);border-radius:12px;background:var(--bg);
+    padding:18px;display:flex;justify-content:center}
+
+  /* ───────── DESKTOP C : grid w/ rail gutter ───────── */
+  .dk{width:760px;max-width:100%}
+  .dk-found{font-size:9.5px;color:var(--ts);text-align:center;padding:7px 0;margin-bottom:10px;
+    border:1px dashed rgba(224,92,24,.5);border-radius:7px;background:rgba(224,92,24,.04)}
+  .dk-found b{color:var(--ember);font-weight:700}
+  .dk-railhead{display:flex;gap:10px;align-items:stretch;margin-bottom:8px}
+  .dk-anchor{flex:1;border:1.1px solid var(--inst);border-radius:8px;background:#1c1710;padding:9px 11px}
+  .dk-anchor .an-name{font-family:var(--disp);font-size:13px;font-weight:600}
+  .dk-anchor .an-meta{font-size:9.5px;color:var(--ts);margin-top:2px}
+  .dk-anchor .an-do{font-size:9.5px;color:var(--inst);margin-top:3px}
+  .dk-anchor .badges{margin-top:6px;display:flex;gap:5px;align-items:center}
+  .bdg{font-size:7px;font-weight:700;border-radius:3px;padding:2px 4px;line-height:1}
+  .bdg.cp{color:var(--ember);border:1px solid rgba(224,92,24,.6);background:#1c1710}
+  .bdg.new{color:var(--inst);border:1px solid var(--inst);background:var(--inst-mid)}
+
+  table.grid{width:100%;border-collapse:collapse;font-size:11px}
+  .grid th{font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--tm);font-weight:600;
+    text-align:left;padding:4px 8px;border-bottom:1px solid var(--divider)}
+  .grid th.rail,.grid td.rail{background:var(--inst-dim)}
+  .grid th.rail:first-of-type{border-left:2px solid var(--inst)}
+  .grid td{padding:0;border-bottom:1px solid var(--divider)}
+  .grid tr td .cellpad{padding:9px 8px}
+  .pbar{width:5px;border-radius:3px;margin-right:2px}
+  .dk-row td{transition:background .15s}
+  .dk-row.active td{background:rgba(163,230,53,.06)}
+  .dk-row.active td.rail{background:var(--inst-mid)}
+  .dk-row .ph{display:flex;align-items:center;gap:8px}
+  .ph-bar{width:4px;height:26px;border-radius:3px}
+  .ph-name{font-weight:700;color:var(--ts);font-size:10px;letter-spacing:.06em}
+  .sk{color:var(--tp);font-size:10.5px}
+  .ord{font-size:8px;font-weight:700;color:var(--mint-b);border:1px solid var(--mint-b);border-radius:3px;
+    padding:1px 4px;background:rgba(20,184,166,.16)}
+  .rm-cost{font-variant-numeric:tabular-nums;color:var(--inst);font-weight:600;font-size:11.5px;min-width:52px;display:inline-block}
+  .usewrap{display:flex;align-items:center;gap:7px}
+  .usebar{flex:1;height:7px;background:rgba(163,230,53,.1);border-radius:4px;overflow:hidden;min-width:90px}
+  .usebar > i{display:block;height:100%;width:0;background:var(--inst);border-radius:4px;transition:width .12s linear}
+  .rm-use{font-variant-numeric:tabular-nums;color:var(--ts);font-size:10.5px;min-width:30px;text-align:right}
+  .dk-row.done .rm-cost{opacity:.78}
+  .grid tr.total td{border-bottom:none;padding-top:8px}
+  .grid tr.total .cellpad{padding:10px 8px}
+  .total .sk{color:var(--tm);font-style:italic;font-size:10px}
+  .total .rm-cost{font-size:13px}
+  .pulse{box-shadow:0 0 0 0 rgba(163,230,53,.5)}
+  .dk-row.active .ph-bar{box-shadow:0 0 8px var(--inst)}
+  .rail-cap{font-size:8.5px;color:var(--inst);text-align:right;letter-spacing:.08em;margin-top:6px;font-weight:700}
+
+  /* ───────── MOBILE C : phone ───────── */
+  .phone{width:390px;max-width:100%;border:8px solid #0d0a06;border-radius:30px;background:#1c1710;
+    padding:14px 12px 18px;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+  .ma-h{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ember);
+    display:flex;align-items:center;gap:.4em;margin-bottom:6px}
+  .ma-h::before{content:'—';color:var(--ember)}
+  .ma-title{font-family:var(--disp);font-size:20px;font-weight:600;margin:0 0 4px}
+  .ma-sub{font-size:11.5px;color:var(--ts);margin:0 0 14px}
+  .ma-dc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 11px}
+  .ma-anchor{border:1.1px solid var(--inst);border-radius:8px;background:var(--inst-dim);padding:9px 10px;margin-bottom:12px}
+  .ma-anchor-row{display:flex;align-items:center;gap:7px}
+  .ma-tag{font-size:8.5px;font-weight:700;letter-spacing:.08em;padding:2px 5px;border-radius:4px;
+    background:var(--inst-mid);color:var(--inst)}
+  .ma-anchor-name{font-family:var(--disp);font-size:13px;font-weight:600}
+  .ma-anchor-desc{font-size:10px;color:var(--ts);margin-top:5px}
+  .ma-anchor-desc b{color:var(--inst)}
+  .ma-band{border:1px solid var(--border);border-left:3px solid var(--inst);border-radius:9px;
+    background:var(--deep);padding:11px;margin-top:11px;transition:background .15s,box-shadow .15s}
+  .ma-band.active{background:rgba(163,230,53,.07);box-shadow:0 0 0 1px var(--inst) inset}
+  .ma-band-row{display:flex;align-items:center;gap:8px}
+  .ma-bnum{width:20px;height:20px;border-radius:5px;display:grid;place-items:center;font-size:11px;font-weight:700;
+    background:rgba(20,184,166,.16);color:var(--mint-b);border:1px solid var(--mint-b)}
+  .ma-btitle{font-family:var(--disp);font-size:14px;font-weight:600}
+  .chip{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:9.5px;font-weight:600;
+    padding:4px 8px;border-radius:6px;border:1px solid var(--inst);color:var(--inst);background:var(--inst-dim);
+    font-variant-numeric:tabular-nums}
+  .chip .dot{width:5px;height:5px;border-radius:50%;background:var(--inst);display:inline-block;flex:0 0 auto}
+  .ma-band.active .chip .dot{animation:blink .7s steps(1) infinite}
+  @keyframes blink{50%{opacity:.25}}
+  .ma-sk{font-size:10px;color:var(--ts);margin-top:6px}
+  .ma-total{display:flex;align-items:center;gap:7px;margin-top:13px;padding-top:11px;border-top:1px solid var(--divider);
+    font-size:11px;color:var(--tm)}
+  .ma-total b{color:var(--inst);font-variant-numeric:tabular-nums;margin-left:auto}
+  .ma-total .b2{color:var(--ts);margin-left:8px}
+
+  .foot{margin-top:42px;padding-top:16px;border-top:1px solid var(--divider);font-size:11.5px;color:var(--tm);max-width:80ch}
+  .foot b{color:var(--ts)}
+
+  @media (prefers-reduced-motion: reduce){
+    .usebar > i{transition:none}
+    .ma-band.active .chip .dot{animation:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">opchain · v1.6 · variant C · functional mockup</div>
+  <h1>Variant C — spine-side meter rail, live</h1>
+  <p class="lede">
+    The interactive read of placement <b>C</b>: a per-phase instrumentation rail anchored by
+    <code>oc-cost-ops</code> + <code>oc-telemetry-ops</code>. Press <b>Replay</b> to watch a simulated pipeline
+    run stream <b>cost ($)</b> and <b>usage</b> through each phase — the rail meters update live, the active
+    phase highlights, and the totals roll up. Desktop and mobile run from the same engine. Lime
+    <code>--inst</code> accent + faithful chrome; dark theme.
+  </p>
+
+  <div class="toolbar">
+    <button class="btn" id="replay">⟳ Replay run</button>
+    <button class="btn ghost" id="toggle">⏸ Pause</button>
+    <span class="runlabel">simulated run <b id="runno">#1</b> · <span id="runstate">streaming…</span></span>
+  </div>
+  <p class="demo-note">Demo shows usage populated for illustration. In production <code>oc-telemetry-ops</code> is opt-in &amp; default-OFF — usage meters would read “off” until enabled. (You didn’t ask for the toggle, so it’s left out here.)</p>
+
+  <!-- ════════ DESKTOP ════════ -->
+  <div class="section-head">
+    <div class="skind">Desktop · meter rail</div>
+    <h2>Desktop C</h2>
+    <p>The right two columns are the rail (lime gutter): each phase taps it with a live cost + usage readout. The two new skills anchor the rail above; the spine, ordinals and bands are unchanged.</p>
+  </div>
+  <div class="stage">
+    <div class="dk">
+      <div class="dk-found"><b>PROTOCOL</b> oc-checkpoint-protocol&nbsp;&nbsp;·&nbsp;&nbsp;<b>ORCH</b> oc-orchestrator&nbsp;&nbsp;·&nbsp;&nbsp;wire 1.1: cost · eval_scores · telemetry_handle</div>
+      <div class="dk-railhead">
+        <div class="dk-anchor">
+          <div class="an-name">oc-cost-ops</div>
+          <div class="an-meta">Specialist · /oc-cost</div>
+          <div class="an-do">$ attribution · budget gates · tier routing</div>
+          <div class="badges"><span class="bdg cp">CP</span><span class="bdg cp">ORC</span><span class="bdg new">NEW v1.6 · gated</span></div>
+        </div>
+        <div class="dk-anchor">
+          <div class="an-name">oc-telemetry-ops</div>
+          <div class="an-meta">Specialist · /oc-telemetry · default OFF</div>
+          <div class="an-do">opt-in local usage metering · anonymized</div>
+          <div class="badges"><span class="bdg cp">CP</span><span class="bdg cp">ORC</span><span class="bdg new">NEW v1.6 · gated</span></div>
+        </div>
+      </div>
+      <table class="grid">
+        <thead>
+          <tr>
+            <th style="width:150px">Phase</th>
+            <th>Spine skill</th>
+            <th class="rail" style="width:80px">Cost</th>
+            <th class="rail" style="width:190px">Usage (events)</th>
+          </tr>
+        </thead>
+        <tbody id="dk-body">
+          <tr class="dk-row" data-phase="discover">
+            <td><div class="cellpad"><div class="ph"><span class="ph-bar" style="background:#9d8f73"></span><span class="ord">1</span><span class="ph-name">DISCOVER</span></div></div></td>
+            <td><div class="cellpad"><span class="sk">oc-reverse-spec</span></div></td>
+            <td class="rail"><div class="cellpad"><span class="rm-cost">$0.00</span></div></td>
+            <td class="rail"><div class="cellpad"><div class="usewrap"><span class="usebar"><i></i></span><span class="rm-use">0</span></div></div></td>
+          </tr>
+          <tr class="dk-row" data-phase="plan">
+            <td><div class="cellpad"><div class="ph"><span class="ph-bar" style="background:#e05c18"></span><span class="ord">2</span><span class="ph-name">PLAN</span></div></div></td>
+            <td><div class="cellpad"><span class="sk">oc-app-architect</span></div></td>
+            <td class="rail"><div class="cellpad"><span class="rm-cost">$0.00</span></div></td>
+            <td class="rail"><div class="cellpad"><div class="usewrap"><span class="usebar"><i></i></span><span class="rm-use">0</span></div></div></td>
+          </tr>
+          <tr class="dk-row" data-phase="build">
+            <td><div class="cellpad"><div class="ph"><span class="ph-bar" style="background:#f59e0b"></span><span class="ord">3</span><span class="ph-name">BUILD</span></div></div></td>
+            <td><div class="cellpad"><span class="sk">ux · api · integrations</span></div></td>
+            <td class="rail"><div class="cellpad"><span class="rm-cost">$0.00</span></div></td>
+            <td class="rail"><div class="cellpad"><div class="usewrap"><span class="usebar"><i></i></span><span class="rm-use">0</span></div></div></td>
+          </tr>
+          <tr class="dk-row" data-phase="ship">
+            <td><div class="cellpad"><div class="ph"><span class="ph-bar" style="background:#F43F5E"></span><span class="ord">4</span><span class="ph-name">SHIP</span></div></div></td>
+            <td><div class="cellpad"><span class="sk">git · audits · deploy</span></div></td>
+            <td class="rail"><div class="cellpad"><span class="rm-cost">$0.00</span></div></td>
+            <td class="rail"><div class="cellpad"><div class="usewrap"><span class="usebar"><i></i></span><span class="rm-use">0</span></div></div></td>
+          </tr>
+          <tr class="dk-row" data-phase="monitor">
+            <td><div class="cellpad"><div class="ph"><span class="ph-bar" style="background:#0D9488"></span><span class="ord">6</span><span class="ph-name">MONITOR</span></div></div></td>
+            <td><div class="cellpad"><span class="sk">oc-monitoring-ops</span></div></td>
+            <td class="rail"><div class="cellpad"><span class="rm-cost">$0.00</span></div></td>
+            <td class="rail"><div class="cellpad"><div class="usewrap"><span class="usebar"><i></i></span><span class="rm-use">0</span></div></div></td>
+          </tr>
+          <tr class="total">
+            <td><div class="cellpad"><span class="ph-name" style="color:var(--inst)">RUN TOTAL</span></div></td>
+            <td><div class="cellpad"><span class="sk">rolls up → /oc-ops budget</span></div></td>
+            <td class="rail"><div class="cellpad"><span class="rm-cost" id="dk-total-cost">$0.00</span></div></td>
+            <td class="rail"><div class="cellpad"><span class="rm-use" id="dk-total-use" style="text-align:left;min-width:0">0 events</span></div></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="rail-cap">↑ INSTRUMENT RAIL · v1.6 · taps every phase</div>
+    </div>
+  </div>
+
+  <!-- ════════ MOBILE ════════ -->
+  <div class="section-head">
+    <div class="skind">Mobile · per-band meter chips</div>
+    <h2>Mobile C</h2>
+    <p>The desktop rail folds into mobile’s vertical flow: a lime left-edge accent + a live meter chip on each band, anchored by one rail pill up top. Same run drives it.</p>
+  </div>
+  <div class="stage">
+    <div class="phone">
+      <div class="ma-h">Skills · Architecture · Mobile · v1.6</div>
+      <div class="ma-title">opchain skills ecosystem</div>
+      <p class="ma-sub">Checkpoint-driven · <b>24 skills</b> · 6 phases</p>
+      <div class="ma-dc">
+        <div class="ma-anchor">
+          <div class="ma-anchor-row"><span class="ma-tag">RAIL</span><span class="ma-anchor-name">Instrumentation rail · v1.6</span></div>
+          <div class="ma-anchor-desc"><b>oc-cost-ops</b> + <b>oc-telemetry-ops</b> · NEW · gated · tap every band ↓</div>
+        </div>
+        <div class="ma-band" data-phase="plan">
+          <div class="ma-band-row"><span class="ma-bnum">2</span><span class="ma-btitle">Plan</span>
+            <span class="chip"><span class="dot"></span><span class="chip-cost">$0.00</span> · <span class="chip-use">0</span></span></div>
+          <div class="ma-sk">oc-app-architect</div>
+        </div>
+        <div class="ma-band" data-phase="build">
+          <div class="ma-band-row"><span class="ma-bnum">3</span><span class="ma-btitle">Build</span>
+            <span class="chip"><span class="dot"></span><span class="chip-cost">$0.00</span> · <span class="chip-use">0</span></span></div>
+          <div class="ma-sk">ux · api · integrations</div>
+        </div>
+        <div class="ma-band" data-phase="ship">
+          <div class="ma-band-row"><span class="ma-bnum">4</span><span class="ma-btitle">Ship</span>
+            <span class="chip"><span class="dot"></span><span class="chip-cost">$0.00</span> · <span class="chip-use">0</span></span></div>
+          <div class="ma-sk">git · audits · deploy</div>
+        </div>
+        <div class="ma-band" data-phase="monitor">
+          <div class="ma-band-row"><span class="ma-bnum">6</span><span class="ma-btitle">Monitor</span>
+            <span class="chip"><span class="dot"></span><span class="chip-cost">$0.00</span> · <span class="chip-use">0</span></span></div>
+          <div class="ma-sk">oc-monitoring-ops</div>
+        </div>
+        <div class="ma-total">rolls up → /oc-ops budget <b id="mb-total-cost">$0.00</b><span class="b2" id="mb-total-use">0 ev</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <b>What you’re evaluating.</b> C makes the pipeline’s cost + usage legible per phase, live — the
+    strongest “instrumented” feel of the three placements. Trade-off: it adds the most geometry (a rail
+    column on desktop, a chip on every band on mobile) and introduces animation that the
+    <code>/architecture</code> Lighthouse perf budget will police. If you pick C, the punch list swaps the
+    Desktop-A band / Mobile-B pills for this rail + chips, plus a reduced-motion fallback (meters render
+    final totals, no streaming) and a static-data path (the real meters read the checkpoint
+    <code>cost</code> / <code>telemetry_handle</code> wire-1.1 fields, not a simulated loop).
+  </div>
+</div>
+
+<script>
+(function(){
+  // Per-phase targets for the simulated run (cost in USD, usage in events).
+  var PHASES = [
+    { key:"discover", cost:0.04, use:12 },
+    { key:"plan",     cost:0.38, use:41 },
+    { key:"build",    cost:1.12, use:88 },
+    { key:"ship",     cost:0.21, use:30 },
+    { key:"monitor",  cost:0.06, use:19 }
+  ];
+  var MAXUSE = PHASES.reduce(function(m,p){return Math.max(m,p.use)},0);
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var state, idx, running = true, runNo = 1, timer = null;
+  function fresh(){ return PHASES.map(function(){ return { cost:0, use:0, st:"pending" }; }); }
+  function fmt(c){ return "$" + c.toFixed(2); }
+
+  function render(){
+    var tc = 0, tu = 0;
+    PHASES.forEach(function(p, i){
+      var c = state[i]; tc += c.cost; tu += c.use;
+      document.querySelectorAll('[data-phase="'+p.key+'"]').forEach(function(el){
+        el.classList.toggle("active", c.st === "active");
+        el.classList.toggle("done", c.st === "done");
+        var cost = el.querySelector(".rm-cost"); if (cost) cost.textContent = fmt(c.cost);
+        var use  = el.querySelector(".rm-use");  if (use)  use.textContent  = String(Math.round(c.use));
+        var bar  = el.querySelector(".usebar > i"); if (bar) bar.style.width = (c.use / MAXUSE * 100) + "%";
+        var cc = el.querySelector(".chip-cost"); if (cc) cc.textContent = fmt(c.cost);
+        var cu = el.querySelector(".chip-use");  if (cu) cu.textContent  = String(Math.round(c.use));
+      });
+    });
+    setText("dk-total-cost", fmt(tc));
+    setText("dk-total-use",  Math.round(tu) + " events");
+    setText("mb-total-cost", fmt(tc));
+    setText("mb-total-use",  Math.round(tu) + " ev");
+  }
+  function setText(id, t){ var e = document.getElementById(id); if (e) e.textContent = t; }
+
+  function finishRun(){
+    setText("runstate", "complete · total streamed");
+    var rs = document.getElementById("runstate"); if (rs) rs.style.color = "var(--inst)";
+    if (running){ timer = setTimeout(function(){ runNo++; setText("runno", "#" + runNo); start(); }, 1900); }
+  }
+
+  function tick(){
+    if (!running) return;
+    var p = PHASES[idx], c = state[idx];
+    c.st = "active";
+    c.cost = Math.min(p.cost, c.cost + p.cost * (0.12 + Math.random() * 0.13));
+    c.use  = Math.min(p.use,  c.use  + Math.max(1, p.use * (0.10 + Math.random() * 0.16)));
+    render();
+    if (c.cost >= p.cost - 0.0005 && c.use >= p.use){
+      c.cost = p.cost; c.use = p.use; c.st = "done";
+      idx++;
+      if (idx >= PHASES.length){ render(); finishRun(); return; }
+    }
+    timer = setTimeout(tick, 75);
+  }
+
+  function start(){
+    if (timer){ clearTimeout(timer); timer = null; }
+    state = fresh(); idx = 0;
+    var rs = document.getElementById("runstate"); if (rs){ rs.textContent = "streaming…"; rs.style.color = ""; }
+    render();
+    if (reduce){
+      // No animation: jump straight to final totals.
+      state.forEach(function(c, i){ c.cost = PHASES[i].cost; c.use = PHASES[i].use; c.st = "done"; });
+      render(); setText("runstate", "complete (reduced-motion)");
+      return;
+    }
+    tick();
+  }
+
+  document.getElementById("replay").addEventListener("click", function(){
+    running = true;
+    document.getElementById("toggle").textContent = "⏸ Pause";
+    start();
+  });
+  document.getElementById("toggle").addEventListener("click", function(){
+    running = !running;
+    this.textContent = running ? "⏸ Pause" : "▶ Resume";
+    if (running) tick();
+  });
+
+  start();
+})();
+</script>
+</body>
+</html>

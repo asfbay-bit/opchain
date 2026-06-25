@@ -2,140 +2,140 @@
 
 **Release:** v1.6 "Cost & telemetry" (the instrumented pipeline) — adds `oc-cost-ops` +
 `oc-telemetry-ops`, catalog 22 → 24, checkpoint wire 1.0 → 1.1.
-**Chosen variants:** Desktop **A · cross-cutting Instrumentation band** · Mobile **B · foundation block**.
-**Source of truth for the look:** `design/architecture-v1.6-proposals.html` (approved preview).
+**Chosen variants:** Desktop **C · spine-side meter rail** · Mobile **C · per-band meter chips** (animated).
+**Source of truth for the look/behavior:**
+- `design/architecture-v1.6-proposals.html` — all 3 placements, static (A/B/C).
+- `design/architecture-v1.6-variantC-functional.html` — the approved C, **functional** (live meters, Replay/Pause, reduced-motion fallback).
+
 **New semantic accent:** `--inst` lime — the v1.6 analog of v1.5's violet `--ai`.
-**Status:** ⛔ Awaiting go-ahead to implement. This document is the scope; no component is edited yet.
+**Status:** ✅ Implemented in `architecture.astro` (desktop rail panel + controller) and `MobileArchitecture.astro` (anchor pill + per-band chips). `--inst`/`--ma-inst` lime tokens, counts 22→24, wire-1.1 CP fields, legend entries, and a11y (decorative meters `aria-hidden`, reduced-motion → static totals) all landed. Local `astro check` = 0 errors / 0 warnings; site build green; manual desktop + mobile renders verified. Animation is a single perf-safe pass on load (illustrative sample data) — CI LHCI polices the `/architecture` perf budget.
 
 > The punch list IS the scope. If it's not listed here, it doesn't get built.
 
 ---
 
+## ⚠ Read first — two consequences of picking C
+
+1. **The `/architecture` page is static (Astro static mode).** The rail's per-phase numbers are **not real
+   per-visitor spend** — they are *illustrative sample data*, either a scripted demo loop (as in the
+   functional mockup) or a baked static snapshot. Real live data would require wiring to the `/dashboard`
+   aggregate, which was deselected. The UI must read as a *representative example*, not a live billing meter
+   (a small "sample" / "illustrative" label avoids implying real-time cost).
+2. **Animation runs under the Lighthouse perf budget.** `/architecture` currently scores **0.89 perf** (the
+   lowest budgeted route). The meter loop must be cheap (animate `width`/`opacity` only, no layout thrash,
+   tiny JS, throttled) and **must not** drop the route below its LHCI budget. A `prefers-reduced-motion`
+   fallback to static final totals is mandatory.
+
+---
+
 ## 0 · Shared tokens & SVG defs (both components)
 
-- [ ] **0.1 — Desktop `--inst` accent.** In `site/src/pages/architecture.astro`, instrumentation
-  elements use inline hex (matching how the desktop diagram already inlines `#0D9488`, `#f59e0b`, etc.):
-  - stroke / text: `#a3e635`
-  - fills: `rgba(163,230,53,.04)` (band wash) · `rgba(163,230,53,.16)` (chips)
-  - If/where a CSS custom prop is cleaner, add `--inst:#a3e635;` and a `[data-theme="light"]` override `--inst:#65a30d;` alongside the page's existing token block.
-- [ ] **0.2 — Desktop glow filter.** Add `<filter id="glow-inst">` to the `.arch-v2-defs` block,
-  cloned from `glow-mint`/`glow-yellow` with `flood-color="#a3e635"` (stdDeviation `7`, flood-opacity `~0.5`).
-- [ ] **0.3 — Mobile `--ma-inst` token.** In `site/src/components/MobileArchitecture.astro` `.mobile-architecture`
-  block add `--ma-inst:#a3e635;`; in the `:global([data-theme="light"]) .mobile-architecture` block add `--ma-inst:#65a30d;`.
-  (Mirror the existing `--ma-ai` / `--ma-vec` v1.5 precedent.)
-- [ ] **0.4 — Mobile glow + marker.** Add `<filter id="ma-glow-inst">` (flood `#a3e635`) and
-  `<marker id="ma-ah-inst">` (lime polygon) to the mobile `.ma-defs` block. (Only needed if the
-  foundation pills use a glow/arrow — keep minimal; foundation pills today have no glow, so these may be skippable.)
+- [ ] **0.1 — Desktop `--inst` accent.** In `site/src/pages/architecture.astro`: stroke/text `#a3e635`;
+  fills `rgba(163,230,53,.04)` (gutter wash) · `rgba(163,230,53,.16)` (active/anchor). Add `--inst:#a3e635;`
+  + `[data-theme="light"]` override `--inst:#65a30d;` to the page token block.
+- [ ] **0.2 — Desktop glow filter.** Add `<filter id="glow-inst">` to `.arch-v2-defs` (clone of `glow-mint`,
+  `flood-color="#a3e635"`). Only if anchors/markers use a glow.
+- [ ] **0.3 — Mobile `--ma-inst` token.** Add `--ma-inst:#a3e635;` (dark) and `#65a30d` in the
+  `:global([data-theme="light"]) .mobile-architecture` block. Mirror the `--ma-ai` v1.5 precedent.
 
 ---
 
-## 1 · Desktop — `site/src/pages/architecture.astro` (Variant A)
+## 1 · Desktop — `site/src/pages/architecture.astro` (Variant C · meter rail)
 
 ### 1a · Header counts
-- [ ] **1.1** Eyebrow `SKILLS · ARCHITECTURE · v2 · RELEASE v1.5` → `… RELEASE v1.6`.
-- [ ] **1.2** Subtitle `… · 22 skills · 6 phases …` → `… · 24 skills · 6 phases …`. Leave
-  `7 tri-agent · 3 audit gates · spine ordinals · v1.5 pack fabric (N)` intact (tri-agent count
-  unchanged; cost/telemetry are specialists, not tri-agent).
+- [ ] **1.1** Eyebrow `… RELEASE v1.5` → `… RELEASE v1.6`.
+- [ ] **1.2** Subtitle `… 22 skills · 6 phases …` → `… 24 skills · 6 phases …`.
 
-### 1b · New cross-cutting Instrumentation band
-- [ ] **1.3 — Insertion point.** Add a new `.band` block **after** the MONITOR spine band
-  (`#band-monitor`), before the diagram's legend/reference. **No** preceding `.band-arrow` —
-  it is cross-cutting, not a spine step (same treatment as the `#band-packs` pack-fabric band).
-- [ ] **1.4 — Band shell.** `band-label` with a lime label bar (`background:var(--inst)` / `#a3e635`)
-  and label text `INSTRUMENTATION`; `band-content` holds an `.instrument-band` block modeled on
-  `.pack-fabric-band` (eyebrow → title → cells).
-- [ ] **1.5 — Eyebrow + title.**
-  - eyebrow: `v1.6 · cross-cutting · instrumentation`
-  - title: `Instrumentation — per-phase cost + opt-in usage telemetry`
-- [ ] **1.6 — Cell: `oc-cost-ops`.** Box stroked `#a3e635`. Lines:
-  `oc-cost-ops` / `Specialist · /oc-cost` / `$ attribution · budget gates · tier routing` /
-  italic ripple `→ pairs cost-regression gate w/ oc-prompt-ops`.
-  Badges: `CP`, `ORC` (same small-rect pattern as every other node), and a lime `NEW v1.6·gated` chip.
-  Wrap in `<a href="/skills/oc-cost-ops" class="node-link">` (dir exists → route resolves).
-- [ ] **1.7 — Cell: `oc-telemetry-ops`.** Box stroked `#a3e635`. Lines:
-  `oc-telemetry-ops` / `Specialist · /oc-telemetry · default OFF` /
-  `opt-in local metering · .checkpoints/usage.sqlite` /
-  italic `anonymized aggregate · no PII leaves the machine`.
-  Badges `CP` + `ORC` + lime `NEW v1.6·gated`. Wrap in `<a href="/skills/oc-telemetry-ops" class="node-link">`.
-- [ ] **1.8 — "Measures every phase" taps.** Inside the band's own inline `<svg>`, draw 5 dashed
-  lime taps (`stroke="#a3e635" stroke-dasharray="3,3"` + `marker-end` lime arrow) pointing up toward
-  the five lanes. Keep these **self-contained in the band SVG** — do **not** extend the `lines-canvas`
-  connector JS (avoids touching the spine-arrow drawing logic).
+### 1b · Rail anchors (the two new skills)
+- [ ] **1.3** Add two anchor boxes for `oc-cost-ops` + `oc-telemetry-ops`, lime-stroked, positioned as the
+  rail's header (right side, above/beside the spine). Each: name · `Specialist · /oc-cost|/oc-telemetry` ·
+  one-line role · `CP` + `ORC` badges · lime `NEW v1.6·gated` chip. Wrap each in
+  `<a href="/skills/oc-cost-ops">` / `/skills/oc-telemetry-ops` (dirs exist → routes resolve).
+- [ ] **1.4** `oc-telemetry-ops` anchor notes `default OFF · opt-in`.
 
-### 1c · Wire 1.1 + ripples
-- [ ] **1.9 — Band caption note.** Add `CP wire 1.1: cost · eval_scores · telemetry_handle (additive; wire 1.0 still validates)`.
-- [ ] **1.10 — CP-detail JSON.** In the `#cp-detail-top` example JSON, add the optional `cost`,
-  `eval_scores`, `telemetry_handle` fields (commented or shown as additive) so the protocol card matches reality.
+### 1c · Per-phase meter rail (the gutter)
+- [ ] **1.5** Add a right-aligned **rail gutter** keyed to each spine phase (Discover/Plan/Build/Ship/Monitor):
+  each phase gets a `Cost` readout + a `Usage` bar+count, lime-tinted, marked as a visually-distinct rail
+  column (`border-left:2px solid --inst` on the gutter). Reuse the structure/colors from
+  `architecture-v1.6-variantC-functional.html` (`.rail-meter` / `.usebar`).
+- [ ] **1.6** Add a **RUN TOTAL** row rolling the per-phase values up, captioned `rolls up → /oc-ops budget`.
+- [ ] **1.7** Active-phase highlight as the (illustrative) run streams; `↑ INSTRUMENT RAIL · v1.6 · taps every phase` caption.
 
-### 1d · Legend / Reference / a11y
-- [ ] **1.11** Add an `Instrumentation (v1.6)` entry to the desktop legend with a lime swatch +
-  one-line definition ("cross-cutting · measures every phase · gated").
-- [ ] **1.12** Bump every "22"/"all 22" assertion in this file to "24"/"all 24"
-  (skill count, CP/ORC "all N skills carry", checkpoint-sync copy).
-- [ ] **1.13** a11y: band `aria-label` ("Instrumentation: oc-cost-ops and oc-telemetry-ops, cross-cutting v1.6");
-  inline `<svg role="img" aria-label="…">`; preserve the nested-interactive pattern (links inside, no
-  conflicting `role="img"` on a wrapper that contains `<a>`).
-- [ ] **1.14** Verify the page `<script>` (band hover/expand, canvas line draw) does not assume the new
-  band has a `data-phase` spine role or a `band-arrow`. The band should render correctly with JS disabled.
+### 1d · The meter behavior (data + animation)
+- [ ] **1.8** Implement the live loop as a **small, self-contained script** (port the controller from the
+  functional mockup): per-phase cost/usage ramp, active highlight, totals, auto-loop, with the values clearly
+  flagged illustrative/sample. Keep it `<~1KB`, no dependencies.
+- [ ] **1.9** **`prefers-reduced-motion: reduce` → render final totals, no streaming** (already in the mockup; port it).
+- [ ] **1.10** Decide the data source for the baked numbers: a `SAMPLE_RUN` constant in the component
+  (recommended — deterministic, reviewable) rather than random per-load, so LHCI runs are stable.
+- [ ] **1.11** Consider gating the whole rail behind the instrumentation flag (`skills.registry.oc-cost-ops.enabled`
+  || the v1.6 flag) so it can be killed without a redeploy, consistent with "both skills ship gated."
+
+### 1e · Wire 1.1 + legend + a11y
+- [ ] **1.12** Band/rail caption + `#cp-detail-top` CP JSON gain `cost · eval_scores · telemetry_handle` (additive; wire 1.0 still validates).
+- [ ] **1.13** Legend: add `Instrumentation (v1.6)` lime swatch + the rail/meter explanation.
+- [ ] **1.14** Bump every `22`/`all 22` → `24`/`all 24` in this file.
+- [ ] **1.15** a11y: the animated meters are decorative — mark the streaming region `aria-hidden="true"`
+  (or `aria-live="off"`) so screen readers aren't spammed; give the rail a static `aria-label` describing
+  it ("Instrumentation rail: per-phase cost and usage, illustrative"). Provide the final totals as static text.
 
 ---
 
-## 2 · Mobile — `site/src/components/MobileArchitecture.astro` (Variant B)
+## 2 · Mobile — `site/src/components/MobileArchitecture.astro` (Variant C · per-band chips)
 
 ### 2a · Header counts
-- [ ] **2.1** Eyebrow `… · MOBILE · v1.5` → `… · MOBILE · v1.6`.
-- [ ] **2.2** Subtitle `… 22 skills · 6 phases …` → `… 24 skills · 6 phases …`.
+- [ ] **2.1** Eyebrow `… MOBILE · v1.5` → `… MOBILE · v1.6`; subtitle `22` → `24`.
 
-### 2b · Foundation block — two new pills
-- [ ] **2.3** Inside the existing Foundation `<details class="ma-foundation">`, **after** the
-  `oc-orchestrator` pill, add two `.ma-foundation-pill` blocks with `--inst` styling
-  (lime border + `var(--ma-inst-dim)` wash):
-  - **COST** → `oc-cost-ops` — desc `/oc-cost · per-phase $ attribution · budget gates · model-tier routing` + `NEW · gated` marker.
-  - **USAGE** → `oc-telemetry-ops` — desc `/oc-telemetry · opt-in local metering · default OFF · anonymized` + `NEW · gated` marker.
-- [ ] **2.4** Add a small sublabel under the new pills: `v1.6 instrumentation · measures every phase` (lime).
-- [ ] **2.5** Confirm the foundation `<summary>`/`aria-label` copy still reads correctly with 4 pills
-  ("Foundation layer: oc-checkpoint-protocol, oc-orchestrator, oc-cost-ops, oc-telemetry-ops").
+### 2b · Rail anchor + per-band chips
+- [ ] **2.2** Add a **rail anchor pill** above the bands: `RAIL · Instrumentation rail · v1.6`, naming
+  `oc-cost-ops` + `oc-telemetry-ops` (NEW · gated), "tap every band ↓".
+- [ ] **2.3** Add a lime `border-left:3px solid --ma-inst` to each phase band and a live **meter chip**
+  (`$ · usage`) on each band summary — port `.chip` from the functional mockup.
+- [ ] **2.4** Add a **roll-up total** line (`rolls up → /oc-ops budget · $X · N ev`).
+- [ ] **2.5** The mobile component is currently **static, no JS** (its own header says "no JS · no animations").
+  **Decision required:** introducing the streaming chips means adding a small script to this component.
+  Port the same controller + `prefers-reduced-motion` fallback; update the component header note from
+  "no JS · no animations" to reflect the gated, reduced-motion-safe meter loop. (If you'd rather keep mobile
+  strictly no-JS, fall back to **static sample chips** — say the word and I'll switch 2.3/2.5 to static.)
 
-### 2c · Wire 1.1
-- [ ] **2.6** Extend the `oc-checkpoint-protocol` pill `ma-fp-desc` to append
-  `· wire 1.1: cost · eval_scores · telemetry_handle`.
-- [ ] **2.7** Add the three optional fields to the **Appendix A** CP JSON example (`.ma-cp-json`).
-
-### 2d · Legend / Reference cards
-- [ ] **2.8** Bump "all 22" → "all 24" everywhere in this file (CP indicator, ORC indicator,
-  Checkpoint-Protocol card "All 22 skills read all 22 checkpoints", Appendix A "all 22").
-- [ ] **2.9** Add `oc-cost-ops` / `oc-telemetry-ops` to the **Standalone specialist** type list in
-  the Skill-types legend (they are specialists). Tri-agent list stays 7; audit gates stay 3.
-- [ ] **2.10** Optional: add an `Instrumentation · v1.6` line to the Reference info-cards
-  ("cost + usage · cross-cutting · gated") for parity with desktop's legend entry.
+### 2c · Wire 1.1 + legend
+- [ ] **2.6** `oc-checkpoint-protocol` pill desc + Appendix A CP JSON gain the three wire-1.1 fields.
+- [ ] **2.7** Bump all `22` → `24`; add `oc-cost-ops` / `oc-telemetry-ops` to the Standalone-specialist type list;
+  add an `Instrumentation · v1.6` reference line.
+- [ ] **2.8** a11y: chips decorative → `aria-hidden` on the animated value; band still announces its title/phase.
 
 ---
 
 ## 3 · Validation & acceptance
 
-- [ ] **3.1** `npm run site:build` (or `npm run build`) green; `astro check` clean.
-- [ ] **3.2** Playwright e2e for the `/architecture` route still passes (and any snapshot updated intentionally).
-- [ ] **3.3** Lighthouse/Axe budgets hold — **specifically** lime `#a3e635` text/stroke contrast on
-  `#1c1710` (dark) and `#65a30d` on `#f6f0e8` (light) meet the SEO/a11y budget; no new nested-interactive violations.
-- [ ] **3.4** Manual: dark **and** light theme both legible; reduced-motion respected; the two new
-  desktop boxes link to working `/skills/oc-cost-ops` + `/skills/oc-telemetry-ops` pages.
-- [ ] **3.5** Manual: mobile foundation block (4 pills) doesn't overflow 390pt; desktop band scales without horizontal squish.
+- [ ] **3.1** `npm run site:build` / `npm run build` green; `astro check` clean.
+- [ ] **3.2** Playwright e2e for `/architecture` passes; update any snapshot intentionally.
+- [ ] **3.3** **LHCI is the key gate now.** `/architecture` perf must stay at/above its budget (≈0.89) **with the
+  animation running**; A11y/SEO stay 1.00; Best-practices ≥0.96. If perf regresses, fall back to static
+  sample meters (no loop).
+- [ ] **3.4** Lime contrast: `#a3e635` on `#1c1710` (dark) and `#65a30d` on `#f6f0e8` (light) meet the a11y budget.
+- [ ] **3.5** Manual: reduced-motion shows static totals (no streaming); dark+light both legible; anchor skills link to working `/skills/<id>`; mobile chips don't overflow 390pt; desktop rail doesn't force horizontal scroll.
 
 **Acceptance criteria (Evaluator-gradeable):**
-1. Both diagrams show exactly two new skills, lime-accented, marked `NEW · v1.6 · gated`, on `/skills/<id>` links (desktop).
-2. Every "22" the diagrams asserted now reads "24"; headers read v1.6.
-3. Wire-1.1 fields appear in the CP example(s) of both components.
-4. No spine band, ordinal, or existing edge changed; the only structural additions are the desktop band + the two mobile pills.
-5. Build + a11y budgets green in both themes.
+1. Both diagrams show the two new skills (lime, `NEW·v1.6·gated`) anchoring a per-phase meter rail (desktop) / per-band chips (mobile).
+2. Meters are clearly illustrative/sample; reduced-motion renders static totals; the loop is gated + cheap.
+3. Every "22" → "24"; headers read v1.6; wire-1.1 fields appear in the CP example(s).
+4. No spine band, ordinal, or existing edge altered; additions are the rail/anchors (desktop) + chips/anchor (mobile).
+5. Build green **and `/architecture` LHCI perf holds its budget** in both themes.
 
 ---
 
 ## 4 · Out of scope / adjacent (NOT in this punch list)
 
-- **`PipelineDiagram.astro`** — not imported anywhere (dead component); intentionally untouched.
-- **`compare.astro`** — also contains a `"22 skills"` string. You chose "Approve as-is" (not the
-  +compare option), so it is **not** a punch-list item. Noting it here only so the inconsistency is visible.
-- **`/dashboard` tie-in** — deliberately omitted per the design decision; the rail/rollup language was
-  dropped with Variant C and isn't part of Desktop A / Mobile B.
-- **New `/skills/<id>` page content** for cost/telemetry — the dirs + SKILL.md already exist; this list
-  only wires the diagram links to them, not their page content.
+- **`/dashboard` live wiring** — deselected; meters stay illustrative sample data on the static page.
+- **`PipelineDiagram.astro`** — unused (no imports); untouched.
+- **`compare.astro`** — also says "22 skills"; per "approve as-is" it is **not** a punch-list item (noted only).
+- **New `/skills/<id>` page content** for cost/telemetry — dirs + SKILL.md already exist; this list only wires the diagram links.
+
+---
+
+## 5 · Open decision carried into implementation
+
+- **Mobile no-JS stance (item 2.5).** Mobile C adds animation to a component that today advertises "no JS · no
+  animations." Default plan: add the small gated, reduced-motion-safe loop. Alternative: keep mobile strictly
+  static with fixed sample chips. Confirm at implementation time if you have a preference.
