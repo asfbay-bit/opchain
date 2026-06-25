@@ -1716,7 +1716,7 @@ const packCounts = {
             const use = el.querySelector('.rm-use') || el.querySelector('.mm-use');
             if (use) use.textContent = String(Math.round(c.u));
             const bar = el.querySelector('.rm-bar > i');
-            if (bar) bar.style.width = (c.u / MAXU * 100) + '%';
+            if (bar) bar.style.transform = 'scaleX(' + (c.u / MAXU) + ')';
           });
         });
         setT('irail-total-cost', fmt(tc)); setT('irail-total-use', Math.round(tu) + ' events');
@@ -2545,9 +2545,11 @@ const packCounts = {
   }
   .arch-v2 .irow.irail-h {
     font-size: .5rem; letter-spacing: .1em; text-transform: uppercase;
-    color: var(--slag); font-weight: 600; border-bottom: 1px solid rgba(163,230,53,.3);
+    color: var(--sand); font-weight: 600; border-bottom: 1px solid rgba(163,230,53,.3);
   }
-  .arch-v2 .irow.streaming { background: var(--inst-mid); }
+  /* Active-phase highlight is an inset lime bar, NOT a background fill — a fill
+     lightens the row and drops text contrast below WCAG AA mid-animation. */
+  .arch-v2 .irow.streaming { box-shadow: inset 2px 0 0 var(--inst); }
   .arch-v2 .irow.irail-total { border-bottom: none; padding-top: 9px; }
   .arch-v2 .irow.irail-total .ir-ph { color: var(--inst); font-weight: 700; }
   .arch-v2 .irow.irail-total .ir-sk { font-style: italic; color: var(--slag); }
@@ -2555,14 +2557,14 @@ const packCounts = {
   .arch-v2 .ir-ph { display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--sand); letter-spacing: .04em; }
   .arch-v2 .ir-ord {
     font-style: normal; font-size: .5rem; font-weight: 700; color: var(--success);
-    border: .5px solid var(--success); background: rgba(13,148,136,.16);
+    border: .5px solid var(--success); background: var(--obsidian);
     border-radius: 3px; padding: 0 4px;
   }
   .arch-v2 .ir-sk { color: var(--linen); }
   .arch-v2 .ir-c, .arch-v2 .ir-u { display: flex; align-items: center; gap: 7px; }
   .arch-v2 .rm-cost { color: var(--inst); font-weight: 600; font-variant-numeric: tabular-nums; }
   .arch-v2 .rm-bar { flex: 1; height: 6px; min-width: 70px; background: rgba(163,230,53,.12); border-radius: 4px; overflow: hidden; }
-  .arch-v2 .rm-bar > i { display: block; height: 100%; width: 0; background: var(--inst); border-radius: 4px; transition: width .12s linear; }
+  .arch-v2 .rm-bar > i { display: block; height: 100%; width: 100%; transform: scaleX(0); transform-origin: left; background: var(--inst); border-radius: 4px; transition: transform .12s linear; }
   .arch-v2 .rm-use { color: var(--sand); font-variant-numeric: tabular-nums; min-width: 26px; text-align: right; }
   .arch-v2 .irail-foot { font-size: .56rem; color: var(--inst); letter-spacing: .04em; margin-top: 8px; }
 
