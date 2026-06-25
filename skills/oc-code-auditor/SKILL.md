@@ -386,6 +386,28 @@ Output: actual test files written to the project, not a report.
 
 ---
 
+## Eval Score Emission (v1.6 — the instrumented pipeline)
+
+The audit's letter grade stays the headline. But v1.6 asks every quality skill to
+also emit a numeric *score* against a stable rubric so the pipeline can read trend.
+On each graded sweep, code-auditor appends to the wire-1.1 `eval_scores` checkpoint
+field, mapping the grade to a 0..10 score:
+
+```jsonc
+"eval_scores": [
+  { "rubric": "oc-code-auditor", "score": 8.0, "max": 10, "at": "2026-06-25T12:00:00Z",
+    "dimensions": { "security": 9, "performance": 8, "quality": 7, "ux": 8 },
+    "ref": ".checkpoints/oc-code-auditor.checkpoint.json" }
+]
+```
+
+Grade → score mapping (fixed, so runs are comparable): `A≈9.5, B≈8, C≈6.5, D≈4,
+F≈2` (nudge ±0.5 for +/−). `dimensions` carries the per-category sub-scores from
+the sweep. The score is additive — it does not change the grade, the
+Auditor/Fixer/Verifier loop, or the CRITICAL/HIGH deploy-block logic.
+`oc-telemetry-ops` aggregates these into `eval_score_trend`; `oc-orchestrator`
+reads a downward trend as a "schedule the next audit" signal.
+
 ## Checkpoint Integration
 
 ### Checkpoint Location

@@ -448,6 +448,20 @@ oc-reverse-spec → oc-app-architect → oc-git-ops → oc-deploy-ops
           oc-scale-ops (advisory)
 ```
 
+### Cost / Budget Awareness (v1.6 — the instrumented pipeline)
+
+When `oc-cost-ops` has written a `cost` block to a checkpoint, `/oc-ops next`
+factors budget into the ranking as a **tiebreaker within a priority level** (it
+does not override the hierarchy above — a decision blocker still wins). Among
+same-rank items, a checkpoint whose attributed spend has passed its ceiling
+(`cost.total_usd > cost.budget_usd`) sorts first, and the recommendation is
+prefixed `⚠ over budget ($X > $Y)`. Overspending is something you want surfaced
+now, alongside resuming the work. Encoded as `budgetExceeded()` in
+`scripts/checkpoint.mjs` and wired into `pickNext` / `recommendedAction`, so
+`/oc-ops next` and `node scripts/checkpoint.mjs next` agree. (`eval_scores` on a
+checkpoint inform the same "what needs attention?" read — a skill trending down on
+its rubric is a candidate for the next pass.)
+
 ### Cross-Project Priority
 
 When recommending across projects, the priority engine layers project weight on top

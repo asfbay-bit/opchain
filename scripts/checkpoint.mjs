@@ -370,10 +370,26 @@ function rankCheckpoint(data) {
   return 6;
 }
 
+// v1.6: cost/budget awareness for /oc-ops next. A checkpoint whose attributed
+// spend has passed its budget ceiling is overspending right now — that's a signal
+// worth surfacing. This is a TIEBREAKER within a rank + a recommendation note, not
+// a change to the rank hierarchy (so the status-based ordering is unchanged).
+function budgetExceeded(data) {
+  const c = data && data.cost;
+  if (!c || typeof c !== "object") return false;
+  const { total_usd: t, budget_usd: b } = c;
+  return typeof t === "number" && typeof b === "number" && b > 0 && t > b;
+}
+
 function pickNext(checkpoints) {
   const ranked = checkpoints
-    .map(({ data }) => ({ data, rank: rankCheckpoint(data), t: Date.parse(data.updated_at || 0) || 0 }))
-    .sort((a, b) => (a.rank - b.rank) || (b.t - a.t));
+    .map(({ data }) => ({
+      data,
+      rank: rankCheckpoint(data),
+      over: budgetExceeded(data) ? 0 : 1, // over-budget sorts first within a rank
+      t: Date.parse(data.updated_at || 0) || 0,
+    }))
+    .sort((a, b) => (a.rank - b.rank) || (a.over - b.over) || (b.t - a.t));
   return ranked[0];
 }
 
@@ -394,8 +410,13 @@ function recommendedAction(data) {
     };
   }
   const na = (data.next_actions || [])[0];
+  const base = data.progress_summary ? data.progress_summary.split(/(?<=\.)\s/)[0] : `${data.skill} is ${data.status}`;
+  // v1.6: surface a tripped budget in the recommendation (oc-cost-ops writes cost).
+  const why = budgetExceeded(data)
+    ? `⚠ over budget ($${data.cost.total_usd} > $${data.cost.budget_usd}) — ${base}`
+    : base;
   return {
-    why: data.progress_summary ? data.progress_summary.split(/(?<=\.)\s/)[0] : `${data.skill} is ${data.status}`,
+    why,
     action: actionText(na) || "No queued next action — review the checkpoint.",
   };
 }
@@ -758,7 +779,7 @@ function cmdInit() {
 
 // Exported for tests. The CLI dispatch below only runs when invoked directly,
 // so importing this module (e.g. from vitest) is side-effect-free.
-export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS };
+export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, budgetExceeded, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS };
 
 // ───────────────────────────── arg parsing ──────────────────────────────────
 

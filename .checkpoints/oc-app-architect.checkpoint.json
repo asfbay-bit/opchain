@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-06-25T01:41:31.588Z",
+  "updated_at": "2026-06-25T01:46:35.355Z",
   "phase": "build",
-  "step": "s3-oc-telemetry-ops-body-shipped",
+  "step": "s4-cross-skill-ripples-shipped",
   "status": "in_progress",
-  "progress_summary": "v1.6 straight-through (branch claude/charming-knuth-2jyhhf, PR #351). S1+S2+S3 DONE. S3: oc-telemetry-ops full body + 3 references (local-metering sqlite schema + content-free-by-schema guarantee, privacy-consent opt-in/default-OFF, aggregation export shape + k-anonymity for /dashboard). Both new skills now have full bodies. Gates: 433 tests, build, catalog 24. NEXT: S4 cross-skill ripples.",
+  "progress_summary": "v1.6 straight-through (branch claude/charming-knuth-2jyhhf, PR #351). S1-S4 DONE. S4 ripples: scripts/checkpoint.mjs budgetExceeded() + cost/budget tiebreaker in pickNext + over-budget note in recommendedAction (4 new tests, 437 total); oc-bug-check + oc-code-auditor emit eval_scores vs a fixed rubric; oc-monitoring-ops AI-app template (token/cost rate, eval drift, hallucination flags); oc-orchestrator /oc-ops next documents cost/budget factoring. Gates: 437 tests, build, catalog 24. NEXT: S5 site /dashboard.",
   "progress_table": [
     {
       "id": "discovery",
@@ -82,9 +82,8 @@
   },
   "blockers": [],
   "next_actions": [
-    "S4: oc-bug-check + oc-code-auditor emit eval_scores vs a stable rubric; oc-monitoring-ops AI-app template; oc-orchestrator /oc-ops next factors cost/budget.",
-    "S5: site /dashboard + /showcase + replays flag.",
-    "S6 lockstep 1.6.0; S7 site release surfaces + checklist."
+    "S5: site /dashboard (anonymized aggregate, telemetry export shape, labeled sample data) + /showcase cost-per-feature + wire site.feature.replays-section; Playwright e2e + LHCI.",
+    "S6 lockstep all 24 -> 1.6.0; S7 site release surfaces + reusable checklist."
   ],
   "skill_state": {
     "feature": {

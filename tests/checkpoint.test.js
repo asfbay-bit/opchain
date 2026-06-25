@@ -5,6 +5,7 @@ import {
   pickNext,
   recommendedAction,
   actionText,
+  budgetExceeded,
   SCHEMA_VERSION,
   ACCEPTED_SCHEMA_VERSIONS,
 } from "../scripts/checkpoint.mjs";
@@ -167,6 +168,36 @@ describe("priority engine", () => {
     const rec = recommendedAction(d);
     expect(rec.why).toMatch(/pick A or B/);
     expect(rec.action).toMatch(/go with A/);
+  });
+});
+
+describe("cost/budget awareness (v1.6 — /oc-ops next)", () => {
+  it("budgetExceeded is true only when total exceeds a positive budget", () => {
+    expect(budgetExceeded(base({ cost: { total_usd: 80, budget_usd: 50 } }))).toBe(true);
+    expect(budgetExceeded(base({ cost: { total_usd: 30, budget_usd: 50 } }))).toBe(false);
+    expect(budgetExceeded(base({ cost: { total_usd: 80 } }))).toBe(false); // no budget set
+    expect(budgetExceeded(base())).toBe(false); // no cost field
+  });
+
+  it("recommendedAction prepends an over-budget note when the budget is tripped", () => {
+    const rec = recommendedAction(base({ cost: { total_usd: 80, budget_usd: 50 } }));
+    expect(rec.why).toMatch(/over budget/);
+  });
+
+  it("over-budget sorts first within the same rank (tiebreaker, not a rank change)", () => {
+    const cps = [
+      { data: base({ skill: "under", cost: { total_usd: 10, budget_usd: 50 }, updated_at: "2026-06-02T12:00:00Z" }) },
+      { data: base({ skill: "over",  cost: { total_usd: 80, budget_usd: 50 }, updated_at: "2026-06-01T12:00:00Z" }) },
+    ];
+    expect(pickNext(cps).data.skill).toBe("over"); // over-budget wins the tie despite older updated_at
+  });
+
+  it("does not override the rank hierarchy — a decision blocker still wins over an over-budget mid-work item", () => {
+    const cps = [
+      { data: base({ skill: "over", cost: { total_usd: 80, budget_usd: 50 } }) },
+      { data: base({ skill: "decision", blockers: [{ id: "b1", description: "approve?", needs: "user_decision" }] }) },
+    ];
+    expect(pickNext(cps).data.skill).toBe("decision");
   });
 });
 
