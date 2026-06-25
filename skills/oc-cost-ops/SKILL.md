@@ -132,13 +132,51 @@ Ops applies in `/oc-cost gate`, documented in `references/budget-gates.md`.
 
 ---
 
-> **Scaffold note (v1.6 Sprint 1).** This file establishes the contract,
-> commands, pipeline position, and the `cost` checkpoint field. The full
-> methodology — the attribution model, the model-tier routing decision tree, the
-> budget-gate mechanics, and the dated pricing snapshot — lands in Sprint 2 as
-> `references/cost-attribution.md`, `references/model-tier-routing.md`,
-> `references/budget-gates.md`, and `references/pricing-reference.md`, and this
-> body expands to reference them.
+## Principle 1: Attribute, don't estimate
+
+Cost Ops never calls a model itself. It reads the token counts the model-facing
+skills already emit (`oc-claude-api` usage, `oc-prompt-ops` per-eval counts) and
+multiplies by the `oc-claude-api` price table. The result is **attributed**
+spend, broken down by phase and by model, written into the `cost` checkpoint
+field. Full method, the per-call → per-phase math, the worked example, and the
+read→merge→write rules: `references/cost-attribution.md`.
+
+The two rollups must reconcile — `Σ by_phase == Σ by_model == total_usd` — which
+is how `/oc-cost attribute` catches a miscounted call. If a phase's tokens are
+missing, it's reported `unknown`, never guessed.
+
+## Principle 2: Route to the cheapest tier that holds quality
+
+The cheapest model that holds quality on a phase is the right model for it —
+recommended, never silently applied (a quiet Opus→Haiku demotion is a quality
+regression dressed as a cost win). `/oc-cost route` emits a per-phase
+recommendation with the projected delta; the user applies it and the next
+`eval_scores` run confirms quality held. Decision tree + the opchain phase→tier
+table: `references/model-tier-routing.md`. Routing facts come from `oc-claude-api`.
+
+Three levers, in order of usual impact: **fix caching** (often larger than a tier
+gap; caches are model-scoped), **cap output** (output is 5× input price at every
+tier), **then downgrade tier**. `/oc-cost route` checks cache-hit rate first and
+may recommend "keep the tier, fix caching" instead.
+
+## Principle 3: Cost is a regression dimension
+
+Two gates run in CI beside the quality gates (`references/budget-gates.md`):
+
+- **Budget ceiling** — `cost.budget_usd` per phase / per suite. Validator warns on
+  overspend; strict mode blocks. Raising a budget is a logged decision.
+- **Cost regression** — the gate `oc-prompt-ops` advertises: freeze a cost
+  baseline, fail a PR when `cost_per_eval` spikes past `regression_pct`, *even if
+  quality held*. It runs next to `oc-prompt-ops`'s score gate so a prompt/model
+  change is judged on both axes — quality and cost — and neither moves silently.
+
+## Pricing
+
+A dated snapshot of the `oc-claude-api` price table lives in
+`references/pricing-reference.md` (Fable 5 $10/$50, Opus 4.8 $5/$25, Sonnet 4.6
+$3/$15, Haiku 4.5 $1/$5 per MTok; Batch = 50%; caching is the big lever). It is a
+**snapshot** — always defer to `oc-claude-api` as source of truth before quoting a
+price.
 
 ---
 

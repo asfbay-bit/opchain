@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-06-25T01:24:33.683Z",
+  "updated_at": "2026-06-25T01:38:30.289Z",
   "phase": "build",
-  "step": "s1-protocol-fields-and-new-skill-scaffolds-shipped",
+  "step": "s2-oc-cost-ops-body-shipped",
   "status": "in_progress",
-  "progress_summary": "v1.6 'The instrumented pipeline' — building straight through on branch claude/charming-knuth-2jyhhf (plan: roadmap/09-v16-sprint-plan.md, 7 sprints, gate-approved). S1 DONE: checkpoint wire protocol_version bumped 1.0→1.1 (validator accepts both; cost/eval_scores/telemetry_handle optional fields validated-when-present); all tracked checkpoints swept to 1.1; oc-checkpoint-protocol SKILL.md + .checkpoints/README.md documented; oc-cost-ops + oc-telemetry-ops scaffolded (1.6.0, frontmatter+body skeleton); 4 flags added (registry+command for both) + gen-flags (137 flags); .gitignore ignores usage.sqlite. Gates green: 433 tests, gen-catalog 24 skills, astro check 0 errors, worker build. NEXT: S2 oc-cost-ops full body+references.",
+  "progress_summary": "v1.6 building straight through (branch claude/charming-knuth-2jyhhf, PR #351, CI green on S1). S1 DONE (protocol wire 1.1 + scaffolds + flags + .claude/skills symlinks). S2 DONE: oc-cost-ops full body + 4 references (cost-attribution, model-tier-routing, budget-gates, pricing-reference — pricing sourced from oc-claude-api); wired the prompt-ops contract (eval.yaml cost_per_eval/budget_per_eval/regression_pct; oc-prompt-ops updated to present-tense 'cost-ops shipped'); registered both new skills in orchestrator.md (map + pipeline + descriptions + ecosystem). Gates: 433 tests, build, catalog 24. NEXT: S3 oc-telemetry-ops body.",
   "progress_table": [
     {
       "id": "discovery",
@@ -82,9 +82,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "S2: write oc-cost-ops full body + references (cost-attribution.md, model-tier-routing.md, budget-gates.md, pricing-reference.md); wire prompts/opchain-eval/eval.yaml cost_per_eval + oc-prompt-ops cost block from null; register in orchestrator.md.",
-    "S3: oc-telemetry-ops full body + references (local-metering sqlite schema, privacy-consent, aggregation).",
-    "S4 ripples, S5 site /dashboard, S6 lockstep 1.6.0, S7 site release surfaces + checklist."
+    "S3: oc-telemetry-ops full body + references (local-metering sqlite schema, privacy-consent opt-in, aggregation export shape for /dashboard).",
+    "S4: cross-skill ripples (bug-check/code-auditor eval_scores, monitoring AI template, orchestrator cost-aware next).",
+    "S5 site /dashboard; S6 lockstep 1.6.0; S7 site release surfaces + checklist."
   ],
   "skill_state": {
     "feature": {
