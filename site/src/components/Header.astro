@@ -11,6 +11,7 @@ interface Props {
 }
 
 const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
+const dashboardEnabled = defaultFor("site.feature.dashboard") as boolean;
 const { active = "/" } = Astro.props;
 const CURRENT_RELEASE = "v1.5";
 const CURRENT_RELEASE_HREF = "/changelog#v1-5";
@@ -51,6 +52,7 @@ const groups: NavGroup[] = [
       { href: "/ai-recipes", label: "AI Recipes", blurb: "Multi-skill walkthroughs for AI features." },
       ...(demoEnabled ? [{ href: "/demo", label: "Demo", blurb: "Walkthroughs of opchain end-to-end." }] : []),
       { href: "/showcase", label: "Showcase", blurb: "Projects shipped with opchain." },
+      ...(dashboardEnabled ? [{ href: "/dashboard", label: "Dashboard", blurb: "Anonymized aggregate usage + cost per feature.", badge: "new" }] : []),
       { href: "/status",   label: "Status",   blurb: "Live API health from /api/health." },
     ],
   },

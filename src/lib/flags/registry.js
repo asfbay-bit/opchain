@@ -127,13 +127,22 @@ const DEFINITIONS = [
       "Show the Codex / any-MCP-agent install flow on /install (hosted opchain.dev/mcp endpoint + .codex/skills drop-in). On as of v1.4.3.",
   },
   {
+    name: "site.feature.dashboard",
+    type: "boolean",
+    default: true,
+    category: "release",
+    owner: "site",
+    description:
+      "Expose /dashboard — anonymized aggregate opchain usage (pipelines run, most-used skill, model-tier mix, cost-per-feature) from oc-telemetry-ops. When false the route 404s and nav links hide. Ships labeled sample data until a live aggregate is published.",
+  },
+  {
     name: "site.feature.replays-section",
     type: "boolean",
     default: true,
     category: "release",
     owner: "site",
     description:
-      "Reserved — render a session-replay vignettes block on the home page. The block isn't built yet; flipping this flag does nothing today.",
+      "Render the session-replay vignettes block (real pipeline runs with cost overlays) on /dashboard. Wired in v1.6; flip off to hide the block.",
   },
 
   // ── site.experiment ──────────────────────────────────────────────────────
