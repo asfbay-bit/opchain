@@ -9,17 +9,17 @@
  *   Coming Next   → v1.8 "The distribution play" (info) — the next release, a
  *                   theme VOTE: three growth options compete on a relative bar
  *                   chart. Your vote decides the theme — it's not yet scoped.
- *   Planned       → v1.9/v2.0 grouped roadmap cards, then the request form.
+ *   Planned       → v1.9/v1.10 grouped roadmap cards, then the request form.
  *
  * Voting is real: vote buttons carry data-vote-target=<id> and the client
  * script batches GET /api/votes then POSTs /api/votes/<id> per click (the
  * Worker dedups per-IP/day in KV). Votable ids:
  * OPC-170/173/174 (v1.8 distribution-theme options — these also drive the bar
- * chart), and OPC-18x (v1.9/v2.0 planned items). Shipped releases carry
+ * chart), and OPC-18x (v1.9/v1.10 planned items). Shipped releases carry
  * no vote buttons.
  *
  * Deep links (#v1-7/#v1-6/#v1-5 → Just Released; #v1-8 → Coming Next;
- * #v1-9/#v2-0 → Planned; #v1-4 → /coverage) are handled client-side:
+ * #v1-9/#v1-10 → Planned; #v1-4 → /coverage) are handled client-side:
  * the matching tab is activated, the target card expanded, and scrolled into
  * view.
  *
@@ -133,8 +133,8 @@ const futureReleaseGroups = [
     ],
   },
   {
-    version: "v2.0",
-    id: "v2-0",
+    version: "v1.10",
+    id: "v1-10",
     title: "Assurance and governed delivery",
     timing: "planned after v1.9",
     summary:
@@ -216,7 +216,7 @@ const futureReleaseGroups = [
           aria-selected="false"
           tabindex="-1"
         >
-          Planned <span class="tab-count">v1.9 → v2.0</span>
+          Planned <span class="tab-count">v1.9 → v1.10</span>
         </button>
       </div>
       <span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
@@ -713,7 +713,7 @@ const futureReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What's planned</h2>
-        <span class="panel-sub">v1.9 and v2.0 group the longer-range work. Vote to signal priority.</span>
+        <span class="panel-sub">v1.9 and v1.10 group the longer-range work. Vote to signal priority.</span>
       </div>
 
       {futureReleaseGroups.map((group, gi) => (
