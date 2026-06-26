@@ -60,6 +60,11 @@ site/src/data/roadmap.json
 # Claude Code parallel-agent worktrees — temporary, per-session
 .claude/worktrees/
 
+# .claude/skills/ holds ONLY symlinks to ../../skills/<name> (CI enforces this).
+# Stray zipped bundles get drag-dropped here via the GitHub web UI — keep them
+# out so they can't break the symlink-integrity check.
+.claude/skills/*.zip
+
 # Env
 .env
 .env.local
