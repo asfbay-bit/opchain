@@ -1,7 +1,7 @@
 ---
 name: oc-reverse-spec
 displayName: OC · Reverse Spec
-version: 1.6.0
+version: 1.7.0
 shortDesc: Turn existing code into pipeline-ready specs. v1.2 mirrors discovered scope to the PM tool as parent + children.
 phases: [plan]
 triAgent: false

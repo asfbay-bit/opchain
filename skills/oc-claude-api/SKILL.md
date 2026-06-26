@@ -1,7 +1,7 @@
 ---
 name: oc-claude-api
 displayName: OC · Claude API
-version: 1.6.0
+version: 1.7.0
 shortDesc: Build, debug, and migrate Claude API apps — model routing, prompt caching, tool use, version-migration playbooks.
 phases: [build, ai-native]
 triAgent: false

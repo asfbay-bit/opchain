@@ -473,7 +473,8 @@ Every skill should know these facts:
   attribution per phase, budget gates, model-tier routing) and oc-telemetry-ops
   (opt-in local usage metering → anonymized `/dashboard` aggregate). They add the
   wire-1.1 checkpoint fields `cost` / `eval_scores` / `telemetry_handle`. v1.6
-  takes the catalog to 24 skills.
+  took the catalog to 24 skills; v1.7 "Seams & Signals" adds oc-signal-forge /
+  oc-modularize-ops / oc-fleet-ops → 27.
 - **Checkpoint protocol:** every skill writes to `.checkpoints/[skill].checkpoint.json`.
 - **Tri-dev is retired.** Its build harness lives inside oc-app-architect Phase 6.
   If a user asks for tri-dev, route to oc-app-architect /oc-build.
