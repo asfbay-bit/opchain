@@ -1,0 +1,73 @@
+{
+  "by_model": [
+    {
+      "model": "claude-opus-4-8",
+      "pct_of_total_cost": 100.0,
+      "cost_usd": 19.439514,
+      "cache_read_tokens": 7667528,
+      "cache_write_tokens": 1242386,
+      "input_tokens": 33938,
+      "output_tokens": 120488,
+      "total_tokens": 9064340
+    }
+  ],
+  "by_session": [
+    {
+      "session_id": "41037e38-edd2-51b5-bea5-53fa66b1eb87",
+      "first_ts": "2026-06-26T23:43:36.737000+00:00",
+      "last_ts": "2026-06-26T23:52:01.833000+00:00",
+      "dominant_branch": "claude/token-analysis-prompt-xis8j8",
+      "pct_of_total_cost": 100.0,
+      "cost_usd": 19.439514,
+      "cache_read_tokens": 7667528,
+      "cache_write_tokens": 1242386,
+      "input_tokens": 33938,
+      "output_tokens": 120488,
+      "total_tokens": 9064340
+    }
+  ],
+  "by_pr_permessage": [
+    {
+      "pr": "claude/token-analysis-prompt-xis8j8 [no PR]",
+      "pct_of_total_cost": 100.0,
+      "cost_usd": 19.439514,
+      "cache_read_tokens": 7667528,
+      "cache_write_tokens": 1242386,
+      "input_tokens": 33938,
+      "output_tokens": 120488,
+      "total_tokens": 9064340
+    }
+  ],
+  "by_pr_session_dominant": [
+    {
+      "pr": "claude/token-analysis-prompt-xis8j8 [no PR]",
+      "pct_of_total_cost": 100.0,
+      "cost_usd": 19.439514,
+      "cache_read_tokens": 7667528,
+      "cache_write_tokens": 1242386,
+      "input_tokens": 33938,
+      "output_tokens": 120488,
+      "total_tokens": 9064340
+    }
+  ],
+  "by_release": [
+    {
+      "release": "unreleased",
+      "pct_of_total_cost": 100.0,
+      "cost_usd": 19.439514,
+      "cache_read_tokens": 7667528,
+      "cache_write_tokens": 1242386,
+      "input_tokens": 33938,
+      "output_tokens": 120488,
+      "total_tokens": 9064340
+    }
+  ],
+  "totals": {
+    "input_tokens": 33938,
+    "output_tokens": 120488,
+    "cache_read_tokens": 7667528,
+    "cache_write_tokens": 1242386,
+    "total_tokens": 9064340,
+    "cost_usd": 19.439514
+  }
+}
