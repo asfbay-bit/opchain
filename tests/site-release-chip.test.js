@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const header = readFileSync("site/src/components/Header.astro", "utf8");
+const skillsPage = readFileSync("site/src/pages/skills/index.astro", "utf8");
 const statusPage = readFileSync("site/src/pages/status.astro", "utf8");
 const versionLocations = readFileSync("skills/oc-release-ops/references/version-locations.md", "utf8");
 
@@ -19,6 +20,16 @@ describe("site release chip", () => {
     expect(header).toContain('fetch("/api/health"');
     expect(header).toContain('body.ok === true || body.status === "ok"');
     expect(header).not.toContain("live Worker ${version}");
+  });
+
+  it("keeps the Skill Library release callout on the current release", () => {
+    expect(skillsPage).toContain('href="/changelog#v1-7"');
+    expect(skillsPage).toContain('aria-label="See what shipped in opchain v1.7"');
+    expect(skillsPage).toContain('<span class="release-callout-tag">v1.7 · SHIPPED</span>');
+    expect(skillsPage).toContain("Seams &amp; Signals");
+    expect(skillsPage).toContain("<code>oc-signal-forge</code>");
+    expect(skillsPage).toContain("<code>oc-modularize-ops</code>");
+    expect(skillsPage).toContain("<code>oc-fleet-ops</code>");
   });
 
   it("documents the release chip in the release-version location map", () => {
