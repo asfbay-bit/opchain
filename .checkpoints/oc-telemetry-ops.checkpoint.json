@@ -1,0 +1,23 @@
+{
+  "protocol_version": "1.1",
+  "skill": "oc-telemetry-ops",
+  "project": "opchain.dev",
+  "project_dir": "/home/user/opchain",
+  "created_at": "2026-06-26T01:52:18.111Z",
+  "updated_at": "2026-06-26T01:52:35.464Z",
+  "phase": "build",
+  "step": "metering-enabled",
+  "status": "in_progress",
+  "progress_summary": "Opt-in local metering is ENABLED. Skill/phase runs are recorded to .checkpoints/usage.sqlite (gitignored, content-free). Only an anonymized aggregate ever leaves the machine, and only on explicit /oc-telemetry export.",
+  "next_actions": [
+    "Let the pipeline run — metered rows accumulate in .checkpoints/usage.sqlite.",
+    "Run /oc-telemetry aggregate once there's data to roll up.",
+    "Run /oc-telemetry export to emit the anonymized /dashboard aggregate."
+  ],
+  "telemetry_handle": {
+    "enabled": true,
+    "id": "anon-df8b416f",
+    "sink": ".checkpoints/usage.sqlite",
+    "since": "2026-06-26T01:52:35.464Z"
+  }
+}
