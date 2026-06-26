@@ -51,6 +51,17 @@ const PROBES = [
     join: (m) => `v${m[1]}.${m[2]}`,
   },
   {
+    label: "Skill Library release callout",
+    file: "site/src/pages/skills/index.astro",
+    re: /<span class="release-callout-tag">(v\d+\.\d+) · SHIPPED<\/span>/,
+  },
+  {
+    label: "Skill Library release callout href",
+    file: "site/src/pages/skills/index.astro",
+    re: /<a class="release-callout" href="\/changelog#v(\d+)-(\d+)"/,
+    join: (m) => `v${m[1]}.${m[2]}`,
+  },
+  {
     label: "styleguide version Badge",
     file: "site/src/pages/styleguide.astro",
     re: /<Badge[^>]*>(v\d+\.\d+)\.\d+<\/Badge>/,
