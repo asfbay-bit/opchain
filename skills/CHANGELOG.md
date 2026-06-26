@@ -10,6 +10,43 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
+## [1.7.0] — 2026-06-26 — "Seams & Signals"
+
+Seams between systems and the signals that prove they work. The catalog goes
+from 24 → **27 skills**.
+
+### Added
+- **oc-signal-forge** (`/oc-signal`) — turns a *question* into a trustworthy
+  metric: designs the instrumentation, builds the harvester + transform, and
+  adversarially proves the signal answers the question before wiring it to a
+  surface. The product-analytics backend none of the instrumentation skills
+  owned (oc-telemetry-ops meters the pipeline; oc-dash-forge renders;
+  oc-monitoring-ops watches prod). Designer/Builder/Evaluator loop.
+- **oc-modularize-ops** (`/oc-modularize`) — decomposes a live monolith with
+  **provably zero functionality or data loss**, using golden fixtures captured
+  from real traffic as the equivalence oracle; refuses when modularization
+  isn't warranted, then hands the bulk code-move + live cutover to
+  oc-migration-ops's Structural type.
+- **oc-fleet-ops** (`/oc-fleet`) — provisions, deploys, and operates
+  one-or-more containers across self-managed environments (k8s/Nomad/Compose,
+  IaC, on-prem VMs, GCE) — the bare-metal/self-managed territory oc-deploy-ops
+  routes away. Mandatory dry-run/plan gate before any IaC apply.
+
+### Changed
+- **oc-deploy-ops** — Platform Matrix "What's NOT first-class" re-point: the
+  bare-metal / VPS / multi-node row now routes to **oc-fleet-ops** (was the
+  oc-migration-ops default pointer). deploy-ops and fleet-ops are peers —
+  managed app → deploy-ops; self-managed fleet → fleet-ops.
+- **oc-dash-forge** + **oc-monitoring-ops** — gain oc-signal-forge as the
+  upstream that feeds validated metrics (dash-forge renders them;
+  monitoring-ops enforces each signal's freshness SLA).
+- Lockstep bump: all 27 skills → `1.7.0`.
+
+### Not breaking
+- No documented cross-skill contract was removed. The three new skills are
+  additive; the oc-deploy-ops re-point only changes where bare-metal *routes*,
+  a surface that was a default pointer, not a guarantee.
+
 ## [1.6.0] — 2026-06-25 — "The instrumented pipeline"
 
 Cost + telemetry instrumentation. The catalog goes from 22 → **24 skills**.

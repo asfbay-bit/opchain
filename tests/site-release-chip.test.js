@@ -7,8 +7,8 @@ const versionLocations = readFileSync("skills/oc-release-ops/references/version-
 
 describe("site release chip", () => {
   it("keeps the header chip as a hard-coded release label", () => {
-    expect(header).toContain('const CURRENT_RELEASE = "v1.6";');
-    expect(header).toContain('const CURRENT_RELEASE_HREF = "/changelog#v1-6";');
+    expect(header).toContain('const CURRENT_RELEASE = "v1.7";');
+    expect(header).toContain('const CURRENT_RELEASE_HREF = "/changelog#v1-7";');
     expect(header).toContain("data-version-chip");
     expect(header).toContain('data-release-version={CURRENT_RELEASE}');
     expect(header).toContain('<span class="vchip-tag">{CURRENT_RELEASE}</span>');
