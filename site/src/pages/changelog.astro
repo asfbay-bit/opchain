@@ -6,19 +6,21 @@
  *   Just Released → v1.6 open hero (accent) + v1.5 / v1.4.3 collapsed heroes
  *                   (the 21-day "active" window) + compact release cards
  *                   (v1.4.2 ↓, older than 21 days).
- *   Coming Next   → v1.7 distribution-theme vote (info) — the next release,
- *                   its theme chosen by a live relative bar-chart vote.
- *   Planned       → v1.8/v1.9 grouped roadmap cards, then the feature-request
- *                   form.
+ *   Coming Next   → v1.7 "Seams & Signals" (info) — the next release, a
+ *                   DECIDED plan: three new skills (oc-signal-forge,
+ *                   oc-modularize-ops, oc-fleet-ops). No vote — it's scoped.
+ *   Planned       → v1.8 distribution-theme vote (relative bar-chart) +
+ *                   v1.9/v2.0 grouped roadmap cards, then the request form.
  *
  * Voting is real: vote buttons carry data-vote-target=<id> and the client
  * script batches GET /api/votes then POSTs /api/votes/<id> per click (the
  * Worker dedups per-IP/day in KV). Votable ids:
- * OPC-170/173/174 (v1.7 theme options — these also drive the bar chart),
- * and OPC-18x (v1.8/v1.9 planned items).
+ * OPC-170/173/174 (v1.8 distribution-theme options — these also drive the bar
+ * chart), and OPC-18x (v1.9/v2.0 planned items). v1.7 is decided, so it has
+ * no vote buttons.
  *
  * Deep links (#v1-6/#v1-5 → Just Released; #v1-7 → Coming Next;
- * #v1-8/#v1-9 → Planned; #v1-4 → /coverage) are handled client-side:
+ * #v1-8/#v1-9/#v2-0 → Planned; #v1-4 → /coverage) are handled client-side:
  * the matching tab is activated, the target card expanded, and scrolled into
  * view.
  *
@@ -30,11 +32,40 @@
 import Base from "../layouts/Base.astro";
 import RoadmapForm from "../components/RoadmapForm.astro";
 
-// v1.7 is a single "pick the distribution theme" decision, rendered as a
-// relative bar chart — three competing options, each a real vote. OPC-170
-// carries over its existing count (was the standalone "marketplace" item);
-// the other two are fresh vote keys. Bars redistribute live as votes arrive.
-const v17Options = [
+// v1.7 "Seams & Signals" — the next release, a DECIDED plan (no vote). Three
+// new skills take the catalog 24 → 27, lockstep-bumped to 1.7.0. Per the plan
+// of record, oc-signal-forge lands first as 1.7; the oc-modularize-ops →
+// oc-fleet-ops chain follows in 1.7.1. Source: docs/releases/1.7-plan.md.
+const v17Skills = [
+  {
+    name: "oc-signal-forge",
+    command: "/oc-signal",
+    tag: "1.7",
+    blurb:
+      "Question → trustworthy metric. Designs the instrumentation, builds the harvester + transform, and adversarially proves the signal answers the question before wiring it to oc-dash-forge. The product-analytics backend none of the instrumentation skills owned.",
+  },
+  {
+    name: "oc-modularize-ops",
+    command: "/oc-modularize",
+    tag: "1.7.1",
+    blurb:
+      'Decompose a live monolith with provably zero functionality/data loss — golden fixtures captured from real traffic as the equivalence oracle. Willing to say "don\'t." Hands the code-move + cutover to oc-migration-ops and deploy to oc-fleet-ops.',
+  },
+  {
+    name: "oc-fleet-ops",
+    command: "/oc-fleet",
+    tag: "1.7.1",
+    blurb:
+      "Provision, deploy, and operate one-or-more containers across self-managed infra (k8s/Nomad/Compose, IaC, on-prem VMs, GCE). Terraform when it fits, not by reflex. Claims the bare-metal/VPS territory oc-deploy-ops routes away — its peer, not its rival.",
+  },
+];
+
+// v1.8 "The distribution play" — pick ONE growth theme, rendered as a relative
+// bar chart of three competing options, each a real vote. (Was v1.7 before the
+// 1.7 "Seams & Signals" plan landed and pushed this play out a release.) OPC-170
+// carries over its existing count (was the standalone "marketplace" item); the
+// other two are their own vote keys. Bars redistribute live as votes arrive.
+const v18Options = [
   {
     id: "OPC-170",
     label: "Marketplace + templates",
@@ -70,14 +101,14 @@ const v17Options = [
   },
 ];
 
-// Planned release groups beyond v1.7. Votable to signal priority; fresh vote
+// Planned release groups beyond v1.8. Votable to signal priority; fresh vote
 // keys (OPC-18x), independent of any Linear identifier.
 const futureReleaseGroups = [
   {
-    version: "v1.8",
-    id: "v1-8",
+    version: "v1.9",
+    id: "v1-9",
     title: "Install and operate anywhere",
-    timing: "planned after v1.7",
+    timing: "planned after v1.8",
     summary:
       "Make opchain easier to adopt in the places people already work: Claude.ai, editors, discovery, and multi-repo programs.",
     items: [
@@ -108,10 +139,10 @@ const futureReleaseGroups = [
     ],
   },
   {
-    version: "v1.9",
-    id: "v1-9",
+    version: "v2.0",
+    id: "v2-0",
     title: "Assurance and governed delivery",
-    timing: "planned after v1.8",
+    timing: "planned after v1.9",
     summary:
       "Deepen the quality, data, compliance, and security layers that larger teams need before they trust the pipeline for serious delivery.",
     items: [
@@ -191,7 +222,7 @@ const futureReleaseGroups = [
           aria-selected="false"
           tabindex="-1"
         >
-          Planned <span class="tab-count">v1.8 → v1.9</span>
+          Planned <span class="tab-count">v1.8 → v2.0</span>
         </button>
       </div>
       <span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
@@ -564,10 +595,10 @@ const futureReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What's coming</h2>
-        <span class="panel-sub">The next release — its theme is being chosen. Your vote decides.</span>
+        <span class="panel-sub">The next release — scoped and decided. Here's what's landing.</span>
       </div>
 
-      <!-- v1.7 — next release; theme vote open. Deep-linkable from #v1-7. -->
+      <!-- v1.7 — next release; "Seams & Signals", a decided plan (no vote). Deep-linkable from #v1-7. -->
       <article class="hero-card hero-card--next is-open" id="v1-7" data-card>
         <button
           class="hero-head"
@@ -577,24 +608,94 @@ const futureReleaseGroups = [
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
-          <span class="hero-badge">voting open</span>
-          <span class="hero-ver">v1.7.0 · theme vote open · est. Sep 2026</span>
-          <span class="hero-title">The distribution play</span>
+          <span class="hero-badge">next release</span>
+          <span class="hero-ver">v1.7.0 · next · est. Sep 2026</span>
+          <span class="hero-title">Seams &amp; Signals</span>
           <span class="hero-desc">
-            With v1.6 measuring the pipeline, the biggest remaining gap is
-            distribution. v1.7 deliberately promotes one growth play into a
-            flagship theme instead of accreting more skills — and the theme is
-            yours to pick. Your vote goes on record now and helps decide the
-            order.
+            With v1.6 measuring the pipeline, v1.7 builds out the seams between
+            systems and the signals that prove they work. Three new skills take
+            the catalog from 24 to 27: a product-analytics backend that proves a
+            metric is right, a monolith-decomposition operator with a provable
+            no-loss guarantee, and a self-managed multi-container deploy operator.
           </span>
         </button>
         <div class="card-body" id="v1-7-body" data-disclosure-body>
           <div class="card-body-inner hero-body-inner">
-            <div class="tag-row"><span class="tag tag--info">theme vote open</span><span class="tag">est. Sep 2026</span><span class="tag">1 flagship theme</span></div>
-            <p>The three contenders are below. Bars redistribute live as votes arrive; the final v1.7 theme is chosen after the v1.5 / v1.6 retro.</p>
-            <h3>Choose the v1.7 theme</h3>
+            <div class="tag-row"><span class="tag tag--info">scoped</span><span class="tag">est. Sep 2026</span><span class="tag">24 → 27 skills</span></div>
+            <p>
+              The next release is decided, not up for vote.
+              <strong>oc-signal-forge ships first as 1.7</strong>; the
+              <strong>oc-modularize-ops → oc-fleet-ops</strong> chain follows in
+              <strong>1.7.1</strong>. All three lockstep-bump the catalog to
+              <code>1.7.0</code>.
+            </p>
+            <h3>Three new skills</h3>
+            <div class="tile-grid">
+              {v17Skills.map((skill) => (
+                <div class="tile">
+                  <span class="tile-name">{skill.name} · {skill.command} <span class="tag tag--info">{skill.tag}</span></span>
+                  <p class="tile-desc">{skill.blurb}</p>
+                </div>
+              ))}
+            </div>
+
+            <div class="callout">
+              <h3>Resolves existing seams</h3>
+              <ul class="callout-list">
+                <li><strong>oc-signal-forge</strong> finally executes <code>oc-app-architect</code>'s <code>08-analytics.md</code> plan and feeds validated metrics to <code>oc-dash-forge</code>; <code>oc-monitoring-ops</code> enforces each signal's freshness SLA.</li>
+                <li><strong>oc-modularize-ops</strong> owns the decision plus the real-data equivalence oracle, then hands the bulk code-move and live cutover to <code>oc-migration-ops</code> (Structural type).</li>
+                <li><strong>oc-fleet-ops</strong> claims the bare-metal / self-managed-fleet territory <code>oc-deploy-ops</code> routes away — the two are peers (managed app → deploy-ops; self-managed fleet → fleet-ops).</li>
+              </ul>
+            </div>
+
+            <div class="planned-box">Scoped from the 1.7 "Seams &amp; Signals" plan (<code>docs/releases/1.7-plan.md</code>). Build sequencing and the theme name are confirmed at release time by <code>oc-release-ops</code>.</div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- ══ PANEL 2 — PLANNED ═════════════════════════════════ -->
+    <section
+      class="tab-panel"
+      role="tabpanel"
+      id="panel-planned"
+      aria-labelledby="tab-planned"
+      tabindex="0"
+      hidden
+    >
+      <div class="panel-head">
+        <h2>What's planned</h2>
+        <span class="panel-sub">v1.8 is the next theme vote; v1.9 and v2.0 group the longer-range work. Vote to signal priority.</span>
+      </div>
+
+      <!-- v1.8 — "The distribution play"; theme vote, pushed here from Coming
+           Next when v1.7 "Seams & Signals" was scoped. Deep-linkable from #v1-8. -->
+      <article class="hero-card hero-card--next is-open" id="v1-8" data-card>
+        <button
+          class="hero-head"
+          type="button"
+          aria-expanded="true"
+          aria-controls="v1-8-body"
+          data-disclosure-toggle
+        >
+          <span class="hero-chevron" aria-hidden="true">▶</span>
+          <span class="hero-badge">voting open</span>
+          <span class="hero-ver">v1.8.0 · theme vote open · planned after v1.7</span>
+          <span class="hero-title">The distribution play</span>
+          <span class="hero-desc">
+            Once v1.7 ships the seams and signals, the biggest remaining gap is
+            distribution. v1.8 deliberately promotes one growth play into a
+            flagship theme instead of accreting more skills — and the theme is
+            yours to pick. Your vote goes on record now and helps decide the order.
+          </span>
+        </button>
+        <div class="card-body" id="v1-8-body" data-disclosure-body>
+          <div class="card-body-inner hero-body-inner">
+            <div class="tag-row"><span class="tag tag--info">theme vote open</span><span class="tag">planned after v1.7</span><span class="tag">1 flagship theme</span></div>
+            <p>The three contenders are below. Bars redistribute live as votes arrive; the final v1.8 theme is chosen closer to the time.</p>
+            <h3>Choose the v1.8 theme</h3>
             <ul class="theme-list">
-              {v17Options.map((opt) => (
+              {v18Options.map((opt) => (
                 <li class="theme-option">
                   <div class="theme-meta">
                     <span class="theme-label">{opt.label}</span>
@@ -619,36 +720,21 @@ const futureReleaseGroups = [
                 </li>
               ))}
             </ul>
-            <div class="planned-box">Lean, not locked — the final v1.7 theme is chosen after the v1.5 / v1.6 retro.</div>
+            <div class="planned-box">Lean, not locked — the final v1.8 theme is chosen closer to the time.</div>
           </div>
         </div>
       </article>
-    </section>
 
-    <!-- ══ PANEL 2 — PLANNED ═════════════════════════════════ -->
-    <section
-      class="tab-panel"
-      role="tabpanel"
-      id="panel-planned"
-      aria-labelledby="tab-planned"
-      tabindex="0"
-      hidden
-    >
-      <div class="panel-head">
-        <h2>What's planned</h2>
-        <span class="panel-sub">v1.8 and v1.9 group the longer-range work. Vote to signal priority.</span>
-      </div>
-
-      {futureReleaseGroups.map((group, gi) => (
-        <article class:list={["plan-card", { "is-open": gi === 0 }]} id={group.id} data-card>
-          <button class="pc-row" type="button" aria-expanded={gi === 0 ? "true" : "false"} aria-controls={`${group.id}-body`} data-disclosure-toggle>
+      {futureReleaseGroups.map((group) => (
+        <article class:list={["plan-card"]} id={group.id} data-card>
+          <button class="pc-row" type="button" aria-expanded="false" aria-controls={`${group.id}-body`} data-disclosure-toggle>
             <span class="pc-toggle" aria-hidden="true">▶</span>
             <span class="pc-meta">
               <span class="pc-head"><span class="ver-pill ver-pill--next">{group.version}</span><span class="pc-title">{group.title}</span><span class="pc-timing">{group.timing}</span></span>
               <span class="pc-summary">{group.summary}</span>
             </span>
           </button>
-          <div class="card-body" id={`${group.id}-body`} data-disclosure-body inert={gi !== 0}>
+          <div class="card-body" id={`${group.id}-body`} data-disclosure-body inert>
             <div class="card-body-inner">
               <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">{group.items.length} items</span></div>
               <p>{group.summary}</p>
@@ -789,7 +875,7 @@ const futureReleaseGroups = [
     document.addEventListener("click", (e) => {
       const a = (e.target as HTMLElement).closest<HTMLAnchorElement>("a");
       if (!a) return;
-      const m = (a.getAttribute("href") || "").match(/#(v1-[0-9-]+)$/);
+      const m = (a.getAttribute("href") || "").match(/#(v\d+-[0-9-]+)$/);
       if (!m) return;
       const url = new URL(a.href, location.href);
       if (url.pathname !== location.pathname && url.pathname !== "/changelog") return;
