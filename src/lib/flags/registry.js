@@ -239,6 +239,11 @@ const DEFINITIONS = [
     // v1.6 "The instrumented pipeline" — cost + telemetry instrumentation.
     "oc-cost-ops",
     "oc-telemetry-ops",
+    // v1.7 "Seams & Signals" — analytics-signals backend, monolith
+    // decomposition, and self-managed fleet deployment.
+    "oc-signal-forge",
+    "oc-modularize-ops",
+    "oc-fleet-ops",
   ]),
 
   // ── skills.capability ────────────────────────────────────────────────────
@@ -281,6 +286,8 @@ const DEFINITIONS = [
     "/oc-claude-api", "/oc-rag", "/oc-agent", "/oc-prompt",
     // v1.6 instrumentation verbs. Subcommands inherit the parent verb.
     "/oc-cost", "/oc-telemetry",
+    // v1.7 "Seams & Signals" verbs. Subcommands inherit the parent verb.
+    "/oc-signal", "/oc-modularize", "/oc-fleet",
   ]),
 
   // ── skills.coverage.<id>.enabled — one per oc-stack-forge pack ──────────────

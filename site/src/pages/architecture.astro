@@ -76,6 +76,12 @@ const packCounts = {
           <feComposite in="c" in2="b" operator="in" result="s"/>
           <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
+        <filter id="glow-sig" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="7" result="b"/>
+          <feFlood flood-color="#e879f9" flood-opacity="0.5" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="s"/>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
         <marker id="ah-success" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
           <polygon points="0 0, 8 3, 0 6" fill="#0D9488"/>
         </marker>
@@ -102,9 +108,9 @@ const packCounts = {
 
     <div class="container">
       <div class="header">
-        <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2 · RELEASE v1.6</div>
+        <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2 · RELEASE v1.7</div>
         <h1>opchain skills ecosystem</h1>
-        <p class="subtitle">Checkpoint-driven pipeline · 24 skills · 6 phases · 7 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span> · <span class="subtitle-inst">v1.6 instrument rail</span></p>
+        <p class="subtitle">Checkpoint-driven pipeline · 27 skills · 6 phases · 8 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span> · <span class="subtitle-inst">v1.6 instrument rail</span> · <span style="color:var(--sig)">v1.7 Seams &amp; Signals</span></p>
       </div>
 
       <div class="diagram-container">
@@ -236,7 +242,7 @@ const packCounts = {
           <!-- ── Orchestrator detail card with routing-decision animation ── -->
           <div class="orch-detail-expand" id="orch-detail-top">
             <div class="cpd-inner">
-              <p class="cpd-intro">The oc-orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/oc-ops</code> queries. Reads all 24 checkpoints; writes its own pipeline state.</p>
+              <p class="cpd-intro">The oc-orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/oc-ops</code> queries. Reads all 27 checkpoints; writes its own pipeline state.</p>
               <svg class="orch-route-svg" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orchestrator routing decision: oc-app-architect checkpoint update routed to oc-ux-engineer, oc-dash-forge, and oc-api-dev in parallel">
                 <defs>
                   <marker id="orch-rt-end" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
@@ -408,6 +414,21 @@ const packCounts = {
                 <rect x="729" y="43" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
                 <text x="740" y="52.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
 
+                <!-- oc-modularize-ops — NEW v1.7 (Seams chain). Owns the decision + golden-fixture oracle; delegates the bulk move + cutover to oc-migration-ops (Structural). -->
+                <rect x="610" y="104" width="130" height="44" rx="5" fill="#1c1710" stroke="#e879f9" stroke-width="1" filter="url(#glow-sig)" opacity="0.97"><title>oc-modularize-ops — NEW v1.7; decompose a live monolith with provable zero functionality/data loss using golden fixtures from real data. Owns the decision + equivalence oracle; hands the bulk code-move + cutover to oc-migration-ops Structural, and per-module deploy to oc-fleet-ops.</title></rect>
+                <rect x="610" y="104" width="130" height="44" rx="5" fill="rgba(232,121,249,0.06)" stroke="#e879f9" stroke-width="0.5"/>
+                <text x="675" y="118" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-modularize-ops</text>
+                <text x="675" y="129" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · gated ops</text>
+                <text x="675" y="141" fill="#e879f9" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-modularize · → migration (seam)</text>
+                <rect x="665" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="665" y="97" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5" filter="url(#glow-sig)"/>
+                <text x="676" y="106.5" fill="#e879f9" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="691" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="691" y="97" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5"/>
+                <text x="702" y="106.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="610" y="97" width="50" height="11" rx="2" fill="rgba(232,121,249,.16)" stroke="#e879f9" stroke-width="0.6"/>
+                <text x="635" y="105" fill="#e879f9" font-size="5.6" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">NEW v1.7·gated</text>
+
                 <line x1="240" y1="26" x2="138" y2="26" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.78" marker-end="url(#ah-ember)"/>
                 <line x1="138" y1="50" x2="240" y2="50" stroke="#c4b89e" stroke-width="1.0" stroke-dasharray="5,3" opacity="0.55" marker-end="url(#ah-sand)"/>
                 <line x1="138" y1="96" x2="240" y2="96" stroke="#c4b89e" stroke-width="1.0" stroke-dasharray="5,3" opacity="0.55" marker-end="url(#ah-sand)"/>
@@ -433,6 +454,7 @@ const packCounts = {
                         <span class="bd-tag" style="background:rgba(14,165,233,0.1);border:0.5px solid rgba(14,165,233,0.35);color:#0EA5E9">oc-stack-forge</span>
                         <span class="bd-tag" style="background:rgba(14,165,233,0.1);border:0.5px solid rgba(14,165,233,0.35);color:#0EA5E9">oc-scale-ops</span>
                         <span class="bd-tag" style="background:rgba(13,148,136,0.1);border:0.5px solid rgba(13,148,136,0.35);color:#0D9488">oc-migration-ops</span>
+                        <span class="bd-tag" style="background:rgba(232,121,249,0.1);border:0.5px solid rgba(232,121,249,0.45);color:#e879f9">oc-modularize-ops</span>
                       </div></div>
                       <div class="bd-meta-row"><span class="bd-meta-label">checkpt</span><div class="bd-cp"><span class="bd-cp-badge">CP</span> phase · stack_decision · capacity · migration_plan</div></div>
                       <div class="bd-meta-row"><span class="bd-meta-label">links</span><div class="bd-cross">
@@ -443,7 +465,7 @@ const packCounts = {
                     <div class="bd-text">
                       <div class="bd-badge" style="color:var(--ember)">Phase 2 of 6</div>
                       <div class="bd-title">Plan</div>
-                      <div class="bd-desc">oc-app-architect anchors the spine, auto-invoking oc-stack-forge for platform decisions, taking advisory input from oc-scale-ops on capacity, and routing oc-migration-ops when a live system needs a schema, framework, or platform change. The plan checkpoint is the master record downstream skills consume.</div>
+                      <div class="bd-desc">oc-app-architect anchors the spine, auto-invoking oc-stack-forge for platform decisions, taking advisory input from oc-scale-ops on capacity, and routing oc-migration-ops when a live system needs a schema, framework, or platform change. The plan checkpoint is the master record downstream skills consume. <strong style="color:#e879f9">v1.7</strong> adds <strong style="color:#e879f9">oc-modularize-ops</strong> here — it decides whether to split a live monolith, captures golden fixtures from real data, proves zero functionality/data loss, then hands the bulk move to oc-migration-ops (the <strong style="color:#e879f9">Seams</strong> chain → oc-fleet-ops).</div>
                     </div>
                   </div>
                 </div>
@@ -640,7 +662,7 @@ const packCounts = {
               <span class="band-label-text">BUILD</span>
             </div>
             <div class="band-content">
-              <svg viewBox="0 0 760 120" role="img" aria-label="Build phase: oc-ux-engineer, oc-dash-forge, oc-api-dev, oc-integrations-engineer">
+              <svg viewBox="0 0 760 205" role="img" aria-label="Build phase: oc-ux-engineer, oc-dash-forge, oc-api-dev, oc-integrations-engineer, and the v1.7 oc-signal-forge (Signals chain)">
                 <rect x="14" y="22" width="170" height="76" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1" opacity="0.97"><title>oc-ux-engineer — tri-agent: Planner / Generator / Evaluator. Auto-attaches Design Evaluator to UI sprints.</title></rect>
                 <rect x="14" y="22" width="170" height="76" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
                 <text x="99" y="40" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-ux-engineer</text>
@@ -695,6 +717,25 @@ const packCounts = {
                 <rect x="729" y="15" width="22" height="13" rx="3" fill="#1c1710"/>
                 <rect x="729" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
                 <text x="740" y="24.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+
+                <!-- oc-signal-forge — NEW v1.7 (Signals chain). Auto-invoked by oc-app-architect Phase 2 (08-analytics); feeds oc-dash-forge (render) + oc-monitoring-ops (freshness SLA). -->
+                <line x1="306" y1="112" x2="306" y2="99" stroke="#e879f9" stroke-width="1.3" stroke-dasharray="4,2" opacity="0.85" marker-end="url(#ah-ember)"/>
+                <text x="360" y="108" fill="#e879f9" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">signal → render</text>
+                <rect x="206" y="112" width="200" height="80" rx="5" fill="#1c1710" stroke="#e879f9" stroke-width="1" filter="url(#glow-sig)" opacity="0.97"><title>oc-signal-forge — NEW v1.7; question → trustworthy metric. Designer/Builder/Evaluator loop builds the instrumentation + harvester + transform and adversarially proves the signal answers the question before wiring it. Auto-invoked by oc-app-architect (08-analytics.md); hands the validated signal to oc-dash-forge and a freshness SLA to oc-monitoring-ops.</title></rect>
+                <rect x="206" y="112" width="200" height="80" rx="5" fill="rgba(232,121,249,0.05)" stroke="#e879f9" stroke-width="0.5"/>
+                <text x="306" y="131" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-signal-forge</text>
+                <text x="306" y="144" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · Designer / Builder / Evaluator</text>
+                <text x="306" y="158" fill="#e879f9" font-size="7" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-signal · frame · verify · wire</text>
+                <text x="306" y="170" fill="#c4b89e" font-size="6" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">prove it answers the question — then wire</text>
+                <g class="branch-tag"><rect x="226" y="178" width="160" height="11" rx="2" fill="rgba(232,121,249,.12)" stroke="#e879f9" stroke-width="0.5"/><text x="306" y="186" fill="#e879f9" font-size="6.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">→ oc-dash-forge · oc-monitoring-ops</text></g>
+                <rect x="359" y="105" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="359" y="105" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5" filter="url(#glow-sig)"/>
+                <text x="370" y="114.5" fill="#e879f9" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="385" y="105" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="385" y="105" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5"/>
+                <text x="396" y="114.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="206" y="105" width="50" height="11" rx="2" fill="rgba(232,121,249,.16)" stroke="#e879f9" stroke-width="0.6"/>
+                <text x="231" y="113" fill="#e879f9" font-size="5.6" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">NEW v1.7·gated</text>
               </svg>
               <div class="band-detail">
                 <div class="bd-inner" style="background:rgba(245,158,11,0.04);border:0.5px solid rgba(245,158,11,0.2)">
@@ -705,6 +746,7 @@ const packCounts = {
                         <span class="bd-tag" style="background:rgba(13,148,136,0.1);border:0.5px solid rgba(13,148,136,0.35);color:#0D9488">oc-dash-forge</span>
                         <span class="bd-tag" style="background:rgba(245,158,11,0.1);border:0.5px solid rgba(245,158,11,0.4);color:#f59e0b">oc-api-dev</span>
                         <span class="bd-tag" style="background:rgba(245,158,11,0.1);border:0.5px solid rgba(245,158,11,0.4);color:#f59e0b">integrations-eng</span>
+                        <span class="bd-tag" style="background:rgba(232,121,249,0.1);border:0.5px solid rgba(232,121,249,0.45);color:#e879f9">oc-signal-forge</span>
                       </div></div>
                       <div class="bd-meta-row"><span class="bd-meta-label">checkpt</span><div class="bd-cp"><span class="bd-cp-badge">CP</span> phase · ux_specs · api_surface · integrations · dashboards</div></div>
                       <div class="bd-meta-row"><span class="bd-meta-label">links</span><div class="bd-cross">
@@ -715,7 +757,7 @@ const packCounts = {
                     <div class="bd-text">
                       <div class="bd-badge" style="color:var(--warning)">Phase 4 of 6</div>
                       <div class="bd-title">Build</div>
-                      <div class="bd-desc">Three tri-agent loops (oc-ux-engineer · oc-api-dev · oc-integrations-engineer) plus the dense-UI specialist (oc-dash-forge) work in parallel. oc-ux-engineer hands data-heavy screens to oc-dash-forge; oc-api-dev produces an OpenAPI/GraphQL contract that the deploy-time drift gate later enforces. All four feed checkpoints back to oc-app-architect.</div>
+                      <div class="bd-desc">Three tri-agent loops (oc-ux-engineer · oc-api-dev · oc-integrations-engineer) plus the dense-UI specialist (oc-dash-forge) work in parallel. oc-ux-engineer hands data-heavy screens to oc-dash-forge; oc-api-dev produces an OpenAPI/GraphQL contract that the deploy-time drift gate later enforces. All four feed checkpoints back to oc-app-architect. <strong style="color:#e879f9">v1.7</strong> adds <strong style="color:#e879f9">oc-signal-forge</strong> — auto-invoked from oc-app-architect's <code>08-analytics</code> plan, it builds and adversarially proves a metric answers its question before wiring it to oc-dash-forge (render) and a freshness SLA in oc-monitoring-ops (the <strong style="color:#e879f9">Signals</strong> chain).</div>
                     </div>
                   </div>
                 </div>
@@ -783,6 +825,22 @@ const packCounts = {
                 <text x="620" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
                 <g class="spine-chip"><rect x="495" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="495" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="525" y="17" fill="#0D9488" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑4·5·↓6</text></g>
 
+                <!-- oc-fleet-ops — NEW v1.7 (Seams chain). Peer of oc-deploy-ops (managed PaaS → deploy-ops; self-managed fleet → fleet-ops). Lands oc-modularize-ops' modules; → oc-monitoring-ops. -->
+                <rect x="628" y="14" width="112" height="50" rx="5" fill="#1c1710" stroke="#e879f9" stroke-width="1" filter="url(#glow-sig)" opacity="0.97"><title>oc-fleet-ops — NEW v1.7; provision + operate one-or-more containers across self-managed infra (k8s/Nomad/Compose/VMs), IaC with Terraform when it fits. Peer of oc-deploy-ops; lands the modules oc-modularize-ops carves out; hands fleet health to oc-monitoring-ops.</title></rect>
+                <rect x="628" y="14" width="112" height="50" rx="5" fill="rgba(232,121,249,0.06)" stroke="#e879f9" stroke-width="0.5"/>
+                <text x="684" y="29" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-fleet-ops</text>
+                <text x="684" y="40" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · gated ops</text>
+                <text x="684" y="52" fill="#e879f9" font-size="6.3" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-fleet · ↔ deploy peer</text>
+                <rect x="683" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="683" y="7" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5" filter="url(#glow-sig)"/>
+                <text x="694" y="16.5" fill="#e879f9" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="709" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="709" y="7" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5"/>
+                <text x="720" y="16.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="628" y="7" width="50" height="11" rx="2" fill="rgba(232,121,249,.16)" stroke="#e879f9" stroke-width="0.6"/>
+                <text x="653" y="15" fill="#e879f9" font-size="5.6" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">NEW v1.7·gated</text>
+                <line x1="620" y1="39" x2="628" y2="39" stroke="#e879f9" stroke-width="1.3" marker-start="url(#ah-ember-rev)" marker-end="url(#ah-ember)"/>
+
                 <line x1="160" y1="39" x2="200" y2="39" stroke="#0D9488" stroke-width="1.4" opacity="0.85" marker-end="url(#ah-success)"/>
                 <line x1="370" y1="39" x2="430" y2="39" stroke="#0D9488" stroke-width="1.4" opacity="0.85" marker-end="url(#ah-success)"/>
 
@@ -846,6 +904,7 @@ const packCounts = {
                         <span class="bd-tag" style="background:rgba(245,158,11,0.1);border:0.5px solid rgba(245,158,11,0.4);color:#f59e0b">oc-code-auditor</span>
                         <span class="bd-tag" style="background:rgba(244,63,94,0.1);border:0.5px solid rgba(244,63,94,0.4);color:#F43F5E">oc-security-auditor</span>
                         <span class="bd-tag" style="background:rgba(224,92,24,0.1);border:0.5px solid rgba(224,92,24,0.4);color:#e05c18">oc-deploy-ops</span>
+                        <span class="bd-tag" style="background:rgba(232,121,249,0.1);border:0.5px solid rgba(232,121,249,0.45);color:#e879f9">oc-fleet-ops</span>
                       </div></div>
                       <div class="bd-meta-row"><span class="bd-meta-label">checkpt</span><div class="bd-cp"><span class="bd-cp-badge">CP</span> phase · audit_score · posture · branch · pr · release_tag · deploy_status</div></div>
                       <div class="bd-meta-row"><span class="bd-meta-label">links</span><div class="bd-cross">
@@ -857,7 +916,7 @@ const packCounts = {
                     <div class="bd-text">
                       <div class="bd-badge" style="color:var(--ember)">Phase 5 of 6</div>
                       <div class="bd-title">Ship</div>
-                      <div class="bd-desc">Three audit gates (oc-bug-check pre-commit, oc-code-auditor for code-level findings, oc-security-auditor for STRIDE/OWASP/infra) all must pass before oc-deploy-ops will run the production sequence. At release boundaries the spine threads oc-git-ops → <strong style="color:#0D9488">oc-release-ops</strong> → oc-deploy-ops; oc-release-ops produces changelog · version bump · release ticket · announcement, then hands off (it is <em>not</em> itself a deployer). The gate cluster sits below and writes blocker status into shared checkpoints. <strong style="color:#a78bfa">v1.5</strong> taught oc-code-auditor prompt-injection and tool-use safety rules for AI apps.</div>
+                      <div class="bd-desc">Three audit gates (oc-bug-check pre-commit, oc-code-auditor for code-level findings, oc-security-auditor for STRIDE/OWASP/infra) all must pass before oc-deploy-ops will run the production sequence. At release boundaries the spine threads oc-git-ops → <strong style="color:#0D9488">oc-release-ops</strong> → oc-deploy-ops; oc-release-ops produces changelog · version bump · release ticket · announcement, then hands off (it is <em>not</em> itself a deployer). The gate cluster sits below and writes blocker status into shared checkpoints. <strong style="color:#a78bfa">v1.5</strong> taught oc-code-auditor prompt-injection and tool-use safety rules for AI apps. <strong style="color:#e879f9">v1.7</strong> adds <strong style="color:#e879f9">oc-fleet-ops</strong> as oc-deploy-ops' <em>peer</em>: managed PaaS → oc-deploy-ops; self-managed multi-container fleets (k8s/Nomad/Compose/VMs, IaC) → oc-fleet-ops, which lands the modules oc-modularize-ops carves out and reports fleet health to oc-monitoring-ops.</div>
                     </div>
                   </div>
                 </div>
@@ -1002,7 +1061,7 @@ const packCounts = {
               <span>CP · checkpoint</span>
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title">Checkpoint Protocol</div>
-                Every skill writes JSON to <code>.checkpoints/</code> after each state change. Single source of truth — any skill can read any other's checkpoint to rebuild context after a reset. CP badge sits centered on the top edge of each skill, paired just to the left of ORC. Hover the CP zone toggle top-left of the diagram to see all 24 connected.
+                Every skill writes JSON to <code>.checkpoints/</code> after each state change. Single source of truth — any skill can read any other's checkpoint to rebuild context after a reset. CP badge sits centered on the top edge of each skill, paired just to the left of ORC. Hover the CP zone toggle top-left of the diagram to see all 27 connected.
                 <div class="legend-card-examples">.checkpoints/oc-app-architect.json · phase · progress_table · blockers · next_actions</div>
               </div>
             </span>
@@ -1027,7 +1086,7 @@ const packCounts = {
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title" style="color:#f59e0b">Tri-agent</div>
                 Skills running an internal Planner / Generator / Evaluator loop. The Evaluator scores output (≥ 7/10 to advance); failure triggers Generator retry until threshold or max iterations.
-                <div class="legend-card-examples">oc-app-architect · oc-ux-engineer · oc-api-dev · oc-integrations-engineer · oc-code-auditor · oc-rag-forge · oc-agent-forge</div>
+                <div class="legend-card-examples">oc-app-architect · oc-ux-engineer · oc-api-dev · oc-integrations-engineer · oc-code-auditor · oc-rag-forge · oc-agent-forge · oc-signal-forge</div>
               </div>
             </span>
             <span class="legend-item" tabindex="0" role="button"
@@ -1088,6 +1147,16 @@ const packCounts = {
                 <div class="legend-card-title" style="color:#a3e635">Instrument rail (v1.6)</div>
                 The two cross-cutting v1.6 skills that meter the pipeline — per-phase cost attribution and opt-in usage telemetry. Not on the spine; they tap every phase. Both gated behind <code>skills.registry.&lt;id&gt;.enabled</code>; checkpoint wire 1.1 adds <code>cost</code> · <code>eval_scores</code> · <code>telemetry_handle</code>. Rail meters show an illustrative sample, not live spend.
                 <div class="legend-card-examples">oc-cost-ops · oc-telemetry-ops</div>
+              </div>
+            </span>
+            <span class="legend-item" tabindex="0" role="button"
+                  >
+              <div class="li-swatch" style="background:rgba(232,121,249,.10);border:1px solid #e879f9;box-shadow:0 0 6px rgba(232,121,249,.4)"></div>
+              <span>Seams &amp; Signals · v1.7</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title" style="color:#e879f9">Seams &amp; Signals (v1.7)</div>
+                The three v1.7 skills, gated behind <code>skills.registry.&lt;id&gt;.enabled</code>. Two new throughlines. <strong style="color:#e879f9">Signals</strong>: oc-app-architect's <code>08-analytics</code> auto-invokes oc-signal-forge (build + adversarially prove a metric), which feeds oc-dash-forge (render) and a freshness SLA to oc-monitoring-ops. <strong style="color:#e879f9">Seams</strong>: oc-modularize-ops decomposes a live monolith with golden-fixture proof, hands the move to oc-migration-ops, and the modules deploy via oc-fleet-ops — oc-deploy-ops' self-managed peer.
+                <div class="legend-card-examples">oc-signal-forge · oc-modularize-ops · oc-fleet-ops</div>
               </div>
             </span>
           </div>
@@ -1159,7 +1228,7 @@ const packCounts = {
           <ul>
             <li>· JSON files at .checkpoints/&lt;skill&gt;.json</li>
             <li>· Keys: phase · progress_table · context_primer · blockers · next_actions</li>
-            <li>· All 24 skills read all 24 checkpoints (no ACL)</li>
+            <li>· All 27 skills read all 27 checkpoints (no ACL)</li>
             <li>· Resume: own → upstream → novice mode</li>
             <li>· Framework-agnostic — no platform lock-in</li>
           </ul>
@@ -1181,7 +1250,7 @@ const packCounts = {
         </div>
       </div>
 
-      <p class="footer">opchain skills ecosystem v2 · asfbay-bit/opchain · 24 skills · 6 phases · 7 tri-agent · 3 audit gates · spine ordinals · v1.6 · checkpoint-driven</p>
+      <p class="footer">opchain skills ecosystem v2 · asfbay-bit/opchain · 27 skills · 6 phases · 8 tri-agent · 3 audit gates · spine ordinals · v1.7 · checkpoint-driven</p>
     </div>
   </main>
 
@@ -1770,6 +1839,7 @@ const packCounts = {
     --auditor:    #F43F5E;
     --ai:         #a78bfa;   /* v1.5 AI-native phase accent */
     --inst:       #a3e635;   /* v1.6 instrumentation accent (lime) */
+    --sig:        #e879f9;   /* v1.7 "Seams & Signals" accent (magenta) */
     --inst-dim:   rgba(163,230,53,.08);
     --inst-mid:   rgba(163,230,53,.16);
 

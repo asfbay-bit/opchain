@@ -100,6 +100,15 @@ const packCounts = {
       <marker id="ma-ah-violet" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
         <polygon points="0 0, 8 3, 0 6" fill="#a78bfa"/>
       </marker>
+      <filter id="ma-glow-sig" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="3" result="b"/>
+        <feFlood flood-color="#e879f9" flood-opacity="0.45" result="c"/>
+        <feComposite in="c" in2="b" operator="in" result="s"/>
+        <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <marker id="ma-ah-sig" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#e879f9"/>
+      </marker>
     </defs>
   </svg>
 
@@ -107,9 +116,9 @@ const packCounts = {
 
     <!-- Header -->
     <div class="ma-header">
-      <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE · v1.6</div>
+      <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE · v1.7</div>
       <h1>opchain skills ecosystem</h1>
-      <p class="ma-subtitle">Checkpoint-driven pipeline · 24 skills · 6 phases · 7 tri-agent · 3 audit gates · spine ordinals · v1.6 instrument rail</p>
+      <p class="ma-subtitle">Checkpoint-driven pipeline · 27 skills · 6 phases · 8 tri-agent · 3 audit gates · spine ordinals · v1.6 instrument rail · v1.7 Seams &amp; Signals</p>
     </div>
 
     <!-- Diagram container -->
@@ -185,7 +194,7 @@ const packCounts = {
           <span class="ma-band-of">Phase 2 of 6</span>
         </summary>
         <div class="ma-band-svg-wrap">
-          <svg viewBox="0 0 330 540" role="img" aria-label="Plan phase: oc-scale-ops and oc-stack-forge advise oc-app-architect; oc-migration-ops paired bidirectionally">
+          <svg viewBox="0 0 330 640" role="img" aria-label="Plan phase: oc-scale-ops and oc-stack-forge advise oc-app-architect; oc-migration-ops paired bidirectionally">
             <rect x="40" y="14" width="250" height="68" rx="6" fill="#1c1710" stroke="#38bdf8" stroke-width="1.8" filter="url(#ma-glow-cyan)"/>
             <rect x="40" y="14" width="250" height="68" rx="6" fill="rgba(56,189,248,.06)" stroke="#38bdf8" stroke-width="1"/>
             <circle cx="278" cy="24" r="3" fill="#e05c18"/>
@@ -232,8 +241,15 @@ const packCounts = {
             <text x="165" y="454" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-migration-ops</text>
             <text x="165" y="470" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist</text>
             <text x="165" y="486" fill="#14b8a6" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-migrate · schema · platform</text>
-            <line x1="165" y1="504" x2="165" y2="528" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
-            <text x="165" y="538" fill="#14b8a6" font-size="11" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">↓ spine 2 → 3 (build)</text>
+            <rect x="40" y="510" width="250" height="68" rx="6" fill="#1c1710" stroke="#e879f9" stroke-width="1.8" filter="url(#ma-glow-sig)"/>
+            <rect x="40" y="510" width="250" height="68" rx="6" fill="rgba(232,121,249,.06)" stroke="#e879f9" stroke-width="1"/>
+            <circle cx="278" cy="520" r="3" fill="#e05c18"/>
+            <circle cx="270" cy="520" r="3" fill="#e05c18" opacity="0.55"/>
+            <text x="165" y="534" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-modularize-ops</text>
+            <text x="165" y="550" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · gated ops · NEW v1.7</text>
+            <text x="165" y="566" fill="#e879f9" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-modularize · → migration (seam)</text>
+            <line x1="165" y1="586" x2="165" y2="610" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
+            <text x="165" y="620" fill="#14b8a6" font-size="11" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">↓ spine 2 → 3 (build)</text>
           </svg>
         </div>
         <div class="ma-band-caption">
@@ -372,7 +388,7 @@ const packCounts = {
           <span class="ma-band-of">Phase 4 of 6</span>
         </summary>
         <div class="ma-band-svg-wrap">
-          <svg viewBox="0 0 330 600" role="img" aria-label="Build phase: oc-ux-engineer hands to oc-dash-forge; oc-api-dev and oc-integrations-engineer both branch to oc-code-auditor downstream">
+          <svg viewBox="0 0 330 680" role="img" aria-label="Build phase: oc-ux-engineer hands to oc-dash-forge; oc-api-dev and oc-integrations-engineer both branch to oc-code-auditor downstream; the v1.7 oc-signal-forge analytics loop">
             <rect x="20" y="14" width="290" height="92" rx="6" fill="#1c1710" stroke="#fbbf24" stroke-width="1.8" filter="url(#ma-glow-yellow)"/>
             <rect x="20" y="14" width="290" height="92" rx="6" fill="rgba(251,191,36,.06)" stroke="#fbbf24" stroke-width="1"/>
             <circle cx="298" cy="24" r="3" fill="#e05c18"/>
@@ -412,8 +428,15 @@ const packCounts = {
             <rect x="40" y="496" width="250" height="44" rx="6" fill="rgba(251,191,36,.04)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,3"/>
             <text x="165" y="514" fill="#fbbf24" font-size="11" font-weight="600" letter-spacing="0.06em" font-family="JetBrains Mono,monospace" text-anchor="middle">↑ ALL 4 RETURN CHECKPOINTS</text>
             <text x="165" y="530" fill="#c4b89e" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">to oc-app-architect (Phase 2)</text>
-            <line x1="165" y1="556" x2="165" y2="586" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
-            <text x="165" y="596" fill="#14b8a6" font-size="11" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">↓ spine 3 (ship)</text>
+            <rect x="40" y="552" width="250" height="68" rx="6" fill="#1c1710" stroke="#e879f9" stroke-width="1.8" filter="url(#ma-glow-sig)"/>
+            <rect x="40" y="552" width="250" height="68" rx="6" fill="rgba(232,121,249,.06)" stroke="#e879f9" stroke-width="1"/>
+            <circle cx="278" cy="562" r="3" fill="#e05c18"/>
+            <circle cx="270" cy="562" r="3" fill="#e05c18" opacity="0.55"/>
+            <text x="165" y="576" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-signal-forge</text>
+            <text x="165" y="592" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · Designer/Builder/Eval · NEW v1.7</text>
+            <text x="165" y="608" fill="#e879f9" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-signal · frame · verify · wire</text>
+            <line x1="165" y1="636" x2="165" y2="666" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
+            <text x="165" y="676" fill="#14b8a6" font-size="11" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">↓ spine 3 (ship)</text>
           </svg>
         </div>
         <div class="ma-band-caption">
@@ -431,7 +454,7 @@ const packCounts = {
           <span class="ma-band-of">Phase 5 of 6</span>
         </summary>
         <div class="ma-band-svg-wrap">
-          <svg viewBox="0 0 330 880" role="img" aria-label="Ship phase: oc-bug-check pre-commit, oc-git-ops spine, three audit gates, oc-release-ops at release boundaries, oc-deploy-ops orchestrates production">
+          <svg viewBox="0 0 330 960" role="img" aria-label="Ship phase: oc-bug-check pre-commit, oc-git-ops spine, three audit gates, oc-release-ops at release boundaries, oc-deploy-ops orchestrates production, the v1.7 oc-fleet-ops self-managed peer">
             <rect x="20" y="14" width="290" height="86" rx="6" fill="#1c1710" stroke="#fb7185" stroke-width="1.8" filter="url(#ma-glow-rose)"/>
             <rect x="20" y="14" width="290" height="86" rx="6" fill="rgba(251,113,133,.06)" stroke="#fb7185" stroke-width="1"/>
             <circle cx="298" cy="24" r="3" fill="#e05c18"/>
@@ -514,8 +537,15 @@ const packCounts = {
             <text x="165" y="790" fill="#e05c18" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-deploy</text>
             <text x="165" y="808" fill="#e05c18" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">gates → prod → rollback</text>
             <text x="165" y="824" fill="#c4b89e" font-size="11" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">enforces all 3 audit gates</text>
-            <line x1="165" y1="838" x2="165" y2="862" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
-            <text x="165" y="871" fill="#14b8a6" font-size="11" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">↓ spine 5 → 6 (monitor)</text>
+            <rect x="40" y="836" width="250" height="68" rx="6" fill="#1c1710" stroke="#e879f9" stroke-width="1.8" filter="url(#ma-glow-sig)"/>
+            <rect x="40" y="836" width="250" height="68" rx="6" fill="rgba(232,121,249,.06)" stroke="#e879f9" stroke-width="1"/>
+            <circle cx="278" cy="846" r="3" fill="#e05c18"/>
+            <circle cx="270" cy="846" r="3" fill="#e05c18" opacity="0.55"/>
+            <text x="165" y="860" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-fleet-ops</text>
+            <text x="165" y="876" fill="#c4b89e" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · gated ops · NEW v1.7</text>
+            <text x="165" y="892" fill="#e879f9" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-fleet · ↔ deploy peer</text>
+            <line x1="165" y1="918" x2="165" y2="942" stroke="#14b8a6" stroke-width="2" marker-end="url(#ma-ah-mint)"/>
+            <text x="165" y="951" fill="#14b8a6" font-size="11" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">↓ spine 5 → 6 (monitor)</text>
           </svg>
         </div>
         <div class="ma-band-caption">
@@ -562,7 +592,7 @@ const packCounts = {
           <div class="ma-appendix-eyebrow">Appendix A · Cross-cutting</div>
           <div class="ma-appendix-title">Checkpoint Protocol — sync topology</div>
         </summary>
-        <p class="ma-appendix-desc">Every skill (all 24) writes a JSON checkpoint after each state change. The oc-orchestrator both reads from and writes to each — bidirectional sync. Diagram below shows 6 representative connections; the same topology extends to all 24 skills.</p>
+        <p class="ma-appendix-desc">Every skill (all 27) writes a JSON checkpoint after each state change. The oc-orchestrator both reads from and writes to each — bidirectional sync. Diagram below shows 6 representative connections; the same topology extends to all 27 skills.</p>
         <svg viewBox="0 0 330 360" role="img" aria-label="Orchestrator bidirectionally syncs checkpoints with all skills (6 shown)">
           <rect x="20" y="14" width="92" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="1.5"/>
           <text x="66" y="32" fill="#e05c18" font-size="11" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
@@ -682,7 +712,7 @@ const packCounts = {
             <div class="ma-li-swatch" style="background:var(--ma-ember);border-radius:50%;width:14px;height:14px"></div>
             <div class="ma-li-name">CP · checkpoint indicator</div>
           </div>
-          <div class="ma-li-desc">Solid ember dot in each skill's top-right corner indicates the skill writes a checkpoint. <strong>All 24 skills carry CP</strong> — desktop version shows full CP badge on each rect; mobile uses the dot for legibility.</div>
+          <div class="ma-li-desc">Solid ember dot in each skill's top-right corner indicates the skill writes a checkpoint. <strong>All 27 skills carry CP</strong> — desktop version shows full CP badge on each rect; mobile uses the dot for legibility.</div>
           <div class="ma-li-eg"><code>.checkpoints/&lt;skill&gt;.json</code> · phase · progress · blockers · next_actions</div>
         </div>
         <div class="ma-legend-item">
@@ -690,7 +720,7 @@ const packCounts = {
             <div class="ma-li-swatch" style="background:var(--ma-ember);border-radius:50%;width:14px;height:14px;opacity:0.55"></div>
             <div class="ma-li-name">ORC · oc-orchestrator indicator</div>
           </div>
-          <div class="ma-li-desc">Faded ember dot adjacent to the CP dot indicates the skill participates in <code>/oc-ops</code> routing. <strong>All 24 skills carry ORC</strong> — every skill is route-addressable by the oc-orchestrator.</div>
+          <div class="ma-li-desc">Faded ember dot adjacent to the CP dot indicates the skill participates in <code>/oc-ops</code> routing. <strong>All 27 skills carry ORC</strong> — every skill is route-addressable by the oc-orchestrator.</div>
           <div class="ma-li-eg"><code>/oc-ops</code> · cross-project routing · gate enforcement · "what should I do next"</div>
         </div>
         <div class="ma-legend-divider"></div>
@@ -795,7 +825,7 @@ const packCounts = {
           <ul>
             <li>JSON files at <code>.checkpoints/&lt;skill&gt;.json</code></li>
             <li>Keys: phase · progress_table · context_primer · blockers · next_actions</li>
-            <li>All 24 skills read all 24 checkpoints (no ACL)</li>
+            <li>All 27 skills read all 27 checkpoints (no ACL)</li>
             <li>Resume order: own → upstream → novice mode</li>
             <li>Framework-agnostic — no platform lock-in</li>
           </ul>
@@ -863,6 +893,7 @@ const packCounts = {
     --ma-ai:         #a78bfa;   /* v1.5 AI-native phase accent */
     --ma-vec:        #ec4899;   /* v1.5 vector-db pack category */
     --ma-inst:       #a3e635;   /* v1.6 instrumentation accent (lime) */
+    --ma-sig:        #e879f9;   /* v1.7 "Seams & Signals" accent (magenta) */
 
     background: var(--ma-bg-page);
     color: var(--ma-text-primary);
@@ -903,6 +934,7 @@ const packCounts = {
     --ma-ai:         #7c3aed;
     --ma-vec:        #be185d;
     --ma-inst:       #65a30d;
+    --ma-sig:        #c026d3;
   }
 
   /* Hidden defs SVG — must be in DOM but invisible. */
