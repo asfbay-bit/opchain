@@ -1,0 +1,1500 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>opchain · v1.7 “Seams &amp; Signals” architecture-diagram proposals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#1c1710; --card:#2a2218; --deep:rgba(0,0,0,.18); --surface:#251d14;
+    --tp:#e8dfd0; --ts:#c4b89e; --tm:#9d8f73;
+    --border:#5a5040; --divider:rgba(196,184,158,.12);
+    --ember:#e05c18; --mint:#0D9488; --mint-b:#14b8a6;
+    --cyan:#0EA5E9; --cyan-b:#38bdf8; --yellow:#f59e0b; --yellow-b:#fbbf24;
+    --rose:#F43F5E; --rose-b:#fb7185; --ai:#a78bfa;          /* v1.5 violet */
+    --inst:#a3e635;                                          /* v1.6 lime   */
+    --sig:#e879f9; --sig-b:#f0abfc;                          /* v1.7 magenta — NEW */
+    --sig-dim:rgba(232,121,249,.08); --sig-active:rgba(232,121,249,.16);
+    --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --disp:"Outfit",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--tp);
+    font-family:var(--mono);line-height:1.5;-webkit-text-size-adjust:100%}
+  a{color:var(--sig)}
+  .wrap{max-width:1120px;margin:0 auto;padding:32px 20px 90px}
+
+  /* ── page header ── */
+  .eyebrow{display:flex;align-items:center;gap:.5em;font-size:11px;font-weight:600;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--sig);margin-bottom:10px}
+  .eyebrow::before{content:'—';color:var(--sig);font-size:16px;line-height:1}
+  h1{font-family:var(--disp);font-size:31px;font-weight:600;letter-spacing:-.015em;
+    line-height:1.12;margin:0 0 10px}
+  .lede{color:var(--ts);font-size:14.5px;max-width:78ch;margin:0 0 18px}
+  .lede code{color:var(--sig);background:var(--sig-dim);padding:.05em .35em;border-radius:4px}
+  .lede b{color:var(--tp);font-weight:600}
+
+  .rules{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+  .rule{font-size:11px;color:var(--ts);border:1px solid var(--border);border-radius:6px;
+    padding:5px 9px;background:var(--deep)}
+  .rule b{color:var(--tp);font-weight:600}
+  .rule.new{border-color:var(--sig);color:var(--sig-b);background:var(--sig-dim)}
+
+  .legend-inline{display:flex;flex-wrap:wrap;gap:14px;margin:6px 0 0;font-size:11px;color:var(--ts)}
+  .legend-inline span{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:14px;height:10px;border-radius:3px;display:inline-block;flex:0 0 auto}
+
+  /* ── section + variant card ── */
+  .section-head{margin:48px 0 6px;padding-top:22px;border-top:1px solid var(--divider)}
+  .section-head .skind{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--sig);font-weight:700}
+  .section-head h2{font-family:var(--disp);font-size:23px;font-weight:600;margin:6px 0 4px}
+  .section-head p{color:var(--tm);font-size:13px;margin:0;max-width:80ch}
+  .section-head code{color:var(--ts)}
+
+  .variant{margin:26px 0 0;border:1px solid var(--border);border-radius:12px;
+    background:var(--card);overflow:hidden}
+  .v-head{display:flex;gap:14px;align-items:flex-start;padding:16px 18px 12px;
+    border-bottom:1px solid var(--divider)}
+  .v-tag{flex:0 0 auto;font-family:var(--disp);font-size:22px;font-weight:700;color:var(--sig);
+    width:38px;height:38px;display:grid;place-items:center;border:1.5px solid var(--sig);
+    border-radius:8px;background:var(--sig-dim)}
+  .v-meta{min-width:0}
+  .v-meta h3{font-family:var(--disp);font-size:17px;font-weight:600;margin:0 0 3px}
+  .v-meta .sub{color:var(--ts);font-size:13px;margin:0 0 8px}
+  .v-flags{display:flex;flex-wrap:wrap;gap:6px}
+  .flag{font-size:10.5px;padding:3px 8px;border-radius:5px;letter-spacing:.02em}
+  .flag.keep{color:var(--mint-b);background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.35)}
+  .flag.trade{color:var(--yellow-b);background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3)}
+  .flag.new{color:var(--sig-b);background:var(--sig-dim);border:1px solid var(--sig)}
+  .v-stage{padding:22px 18px;background:var(--bg);display:flex;justify-content:center}
+  .v-stage.dk{overflow-x:auto;justify-content:flex-start}
+  .v-stage svg{max-width:100%;height:auto;display:block}
+  .note{font-size:11px;color:var(--tm);margin:0;padding:11px 13px;border-radius:8px;
+    border:1px dashed var(--border);background:var(--deep)}
+  .note b{color:var(--ts)} .note code{color:var(--sig)}
+  .v-foot{padding:12px 18px;border-top:1px solid var(--divider)}
+
+  /* ════════ DESKTOP DIAGRAM KIT (.av-*) ════════ */
+  .av-board{width:100%;max-width:760px;font-family:var(--mono)}
+  .av-board-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+  .av-toggle-btn{font:600 11px/1 var(--mono);color:var(--sig);background:var(--sig-dim);
+    border:1px solid var(--sig);border-radius:6px;padding:6px 10px;cursor:pointer;letter-spacing:.04em}
+  .av-toggle-btn.is-on{background:var(--sig-active);box-shadow:0 0 12px rgba(232,121,249,.3)}
+  .av-toggle-btn.alt{color:var(--mint-b);border-color:var(--mint);background:rgba(20,184,166,.08)}
+  .av-toggle-btn.alt.is-on{background:rgba(20,184,166,.18)}
+  .av-hint{font-size:10.5px;color:var(--tm)}
+
+  .av-found{border:1.4px dashed rgba(224,92,24,.5);border-radius:9px;background:rgba(224,92,24,.03);
+    padding:9px 11px;margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .av-found-lab{font-size:9.5px;font-weight:700;color:var(--ember);letter-spacing:.12em;text-transform:uppercase;flex:0 0 100%}
+  .av-found-pill{display:inline-flex;align-items:center;gap:7px;background:var(--deep);
+    border:1px solid var(--border);border-radius:7px;padding:6px 9px}
+  .fp-tag{font-size:8.5px;font-weight:700;letter-spacing:.06em;padding:2px 5px;border-radius:4px;
+    background:rgba(224,92,24,.16);color:var(--ember)}
+  .fp-name{font-family:var(--disp);font-size:12px;font-weight:600;color:var(--tp)}
+  .fp-desc{font-size:9.5px;color:var(--tm)}
+
+  /* instrumentation rail mini-strip (v1.6, lime) */
+  .av-inst{border:1.2px solid var(--inst);border-radius:9px;background:rgba(163,230,53,.04);
+    padding:8px 11px;margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .av-inst-lab{font-size:9.5px;font-weight:700;color:var(--inst);letter-spacing:.1em;text-transform:uppercase;flex:0 0 100%}
+  .av-inst .fp-tag{background:rgba(163,230,53,.16);color:var(--inst)}
+
+  .av-band{border:1px solid var(--border);border-radius:10px;background:var(--deep);
+    margin-top:10px;overflow:hidden}
+  .av-band.is-new{border-color:rgba(232,121,249,.4)}
+  .av-band-head{display:flex;align-items:center;gap:10px;padding:11px 12px;cursor:pointer;
+    background:transparent;border:0;width:100%;text-align:left;font:inherit;color:inherit}
+  .av-band-head:hover{background:rgba(196,184,158,.04)}
+  .av-band-head:focus-visible{outline:2px solid var(--sig);outline-offset:-2px}
+  .av-band-bar{width:5px;height:30px;border-radius:3px;flex:0 0 auto}
+  .av-band-label{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--ts);min-width:78px}
+  .av-band-of{font-size:9.5px;color:var(--tm)}
+  .av-band-ordinal{font-size:9px;font-weight:700;color:var(--mint-b);background:rgba(20,184,166,.16);
+    border:1px solid var(--mint);border-radius:4px;padding:2px 6px}
+  .av-band-skills{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+  .av-mini{font-size:9.5px;color:var(--ts);background:var(--surface);border:1px solid var(--border);
+    border-radius:5px;padding:2px 6px}
+  .av-mini.is-new{color:var(--sig-b);border-color:var(--sig);background:var(--sig-dim)}
+  .av-caret{flex:0 0 auto;color:var(--tm);font-size:11px;transition:transform .18s ease}
+  .av-band.is-open .av-caret{transform:rotate(90deg)}
+  .av-band-detail{max-height:0;overflow:hidden;transition:max-height .26s ease}
+  .av-band.is-open .av-band-detail{max-height:1400px}
+  .av-nodes{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;padding:4px 12px 13px}
+  .av-band-caption{font-size:10px;color:var(--tm);padding:0 12px 11px;line-height:1.5}
+  .av-band-caption code{color:var(--sig)}
+
+  .av-node{display:block;text-decoration:none;color:inherit;border:1px solid var(--border);
+    border-left:3px solid var(--accent,var(--border));border-radius:8px;background:var(--card);
+    padding:9px 10px;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}
+  a.av-node:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.35);border-color:var(--accent,var(--border))}
+  .av-node-head{display:flex;align-items:center;gap:6px}
+  .av-node-name{font-family:var(--disp);font-size:12.5px;font-weight:600;color:var(--tp)}
+  .av-badges{margin-left:auto;display:flex;gap:3px}
+  .av-badge{font-size:7px;font-weight:700;color:var(--ember);border:0.5px solid rgba(224,92,24,.6);
+    border-radius:3px;padding:1px 3px;background:rgba(224,92,24,.08)}
+  .av-node-role{font-size:9.5px;color:var(--ts);margin-top:3px}
+  .av-node-cmd{font-size:9.5px;color:var(--accent,var(--ts));margin-top:2px}
+  .av-node-foot{margin-top:6px;display:flex;gap:5px;flex-wrap:wrap}
+  .av-chip{font-size:8px;font-weight:700;letter-spacing:.02em;color:var(--ts);
+    border:1px solid var(--border);border-radius:4px;padding:2px 5px}
+  .av-chip.is-new{color:var(--sig-b);border-color:var(--sig);background:var(--sig-dim)}
+  .av-node.av-new{border-left-color:var(--sig);box-shadow:0 0 0 1px rgba(232,121,249,.18)}
+
+  /* edges / chains caption row */
+  .av-chains{margin-top:14px;display:grid;gap:8px}
+  .av-chain{display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--ts);
+    border:1px solid var(--border);border-radius:8px;padding:8px 11px;background:var(--deep)}
+  .av-chain b{color:var(--sig-b);font-weight:700}
+  .av-chain .ar{color:var(--sig);font-weight:700}
+  .av-chain.seams .ar{color:var(--sig)} .av-chain .mut{color:var(--tm)}
+  .av-chain-tag{font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    padding:2px 7px;border-radius:5px;background:var(--sig-dim);color:var(--sig);border:1px solid var(--sig);flex:0 0 auto}
+
+  /* delta-overlay: dim everything that is NOT a v1.7 addition */
+  .av-board.show-delta .av-node:not(.av-new),
+  .av-board.show-delta .av-mini:not(.is-new),
+  .av-board.show-delta .av-found,
+  .av-board.show-delta .av-inst{opacity:.2;filter:grayscale(.5)}
+  .av-board.show-delta .av-node.av-new{box-shadow:0 0 0 1px var(--sig),0 0 20px rgba(232,121,249,.28)}
+  .av-board.show-delta .av-chain{opacity:1}
+  .av-board:not(.show-delta) .av-node,.av-board:not(.show-delta) .av-mini{transition:opacity .25s ease}
+
+  /* chain highlight */
+  .av-board.hi-signals [data-chain~="seams"],
+  .av-board.hi-seams [data-chain~="signals"]{opacity:.25}
+  .av-board.hi-signals [data-chain~="signals"]{outline:1.5px solid var(--sig);outline-offset:1px}
+  .av-board.hi-seams [data-chain~="seams"]{outline:1.5px solid var(--sig-b);outline-offset:1px}
+
+  /* node-graph (D3) helpers */
+  .av-graph svg{width:100%;max-width:760px;height:auto}
+  .av-graph text{font-family:var(--mono)}
+
+  /* two-rail (D4) helpers */
+  .av-rails{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:760px}
+  .av-rail{border:1.2px solid var(--sig);border-radius:11px;background:var(--sig-dim);padding:12px}
+  .av-rail.seams{border-color:var(--sig-b)}
+  .av-rail-lab{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--sig);margin-bottom:9px;display:flex;align-items:center;gap:7px}
+  .av-rail-step{display:flex;align-items:center;gap:8px;margin:7px 0}
+  .av-rail-step .conn{color:var(--sig);font-weight:700;text-align:center}
+  @media(max-width:720px){.av-rails{grid-template-columns:1fr}}
+
+  /* ════════ MOBILE DIAGRAM KIT (static) ════════ */
+  .av-phone{width:390px;max-width:100%;border:8px solid #0d0a06;border-radius:30px;
+    background:#1c1710;padding:14px 12px 18px;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+  .av-phone .ma-h{font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ember);display:flex;align-items:center;gap:.4em;margin-bottom:6px}
+  .av-phone .ma-h::before{content:'—';color:var(--ember)}
+  .av-phone .ma-title{font-family:var(--disp);font-size:20px;font-weight:600;margin:0 0 4px;line-height:1.12}
+  .av-phone .ma-sub{font-size:11px;color:var(--ts);margin:0 0 14px}
+  .av-phone .ma-sub b{color:var(--tp)}
+  .ma-dc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 11px}
+  .ma-found{border:1.4px dashed rgba(224,92,24,.5);border-radius:8px;background:rgba(224,92,24,.02);
+    padding:10px;margin-bottom:13px}
+  .ma-found-lab{font-size:9.5px;font-weight:700;color:var(--ember);letter-spacing:.12em;
+    text-transform:uppercase;text-align:center;margin-bottom:8px}
+  .ma-pill{background:var(--deep);border:1px solid var(--border);border-radius:7px;padding:8px 9px;margin-top:7px}
+  .ma-pill:first-of-type{margin-top:0}
+  .ma-pill.is-new{border-color:var(--sig);background:var(--sig-dim)}
+  .ma-pill-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .ma-tag{font-size:8px;font-weight:700;letter-spacing:.06em;padding:2px 5px;border-radius:4px;
+    background:rgba(224,92,24,.14);color:var(--ember);flex:0 0 auto}
+  .ma-tag.is-new{background:var(--sig-active);color:var(--sig-b)}
+  .ma-tag.spec{background:rgba(20,184,166,.16);color:var(--mint-b)}
+  .ma-tag.adv{background:rgba(14,165,233,.16);color:var(--cyan-b)}
+  .ma-tag.tri{background:rgba(245,158,11,.16);color:var(--yellow-b)}
+  .ma-tag.gate{background:rgba(244,63,94,.16);color:var(--rose-b)}
+  .ma-tag.ai{background:rgba(167,139,250,.16);color:var(--ai)}
+  .ma-name{font-family:var(--disp);font-size:12.5px;font-weight:600;color:var(--tp)}
+  .ma-desc{font-size:10px;color:var(--ts);margin-top:5px;line-height:1.45}
+  .ma-desc code{color:var(--sig)}
+  .ma-band{border:1px solid var(--border);border-radius:9px;background:var(--deep);margin-top:12px;overflow:hidden}
+  .ma-band.is-new{border-color:var(--sig)}
+  .ma-bsum{display:flex;align-items:center;gap:8px;padding:10px 11px;border-bottom:1px solid var(--divider)}
+  .ma-bnum{width:20px;height:20px;border-radius:5px;display:grid;place-items:center;font-size:11px;
+    font-weight:700;background:rgba(20,184,166,.16);color:var(--mint-b);border:1px solid var(--mint-b);flex:0 0 auto}
+  .ma-bnum.is-new{background:var(--sig-active);color:var(--sig-b);border-color:var(--sig)}
+  .ma-btitle{font-family:var(--disp);font-size:14px;font-weight:600}
+  .ma-bof{margin-left:auto;font-size:9px;color:var(--tm)}
+  .ma-bbody{padding:10px 11px}
+  .ma-chip{display:inline-flex;align-items:center;gap:5px;font-size:8.5px;font-weight:600;
+    padding:2px 6px;border-radius:5px;border:1px solid var(--border);color:var(--ts);background:var(--surface)}
+  .ma-chip.is-new{border-color:var(--sig);color:var(--sig-b);background:var(--sig-dim)}
+  .ma-roster{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .ma-rcell{font-size:9.5px;color:var(--ts);border:1px solid var(--border);border-left:3px solid var(--accent,var(--border));
+    border-radius:6px;padding:5px 7px;background:var(--surface)}
+  .ma-rcell.is-new{border-color:var(--sig);border-left-color:var(--sig);color:var(--sig-b);background:var(--sig-dim)}
+  .ma-rgrouplab{grid-column:1/-1;font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--tm);margin-top:6px}
+  .ma-foot-note{font-size:9.5px;color:var(--sig-b);text-align:center;margin-top:11px}
+  .ma-step{display:flex;align-items:center;gap:7px;font-size:10px;color:var(--ts);margin:5px 0}
+  .ma-step .n{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;font-size:8.5px;
+    font-weight:700;background:var(--sig-dim);color:var(--sig-b);border:1px solid var(--sig);flex:0 0 auto}
+  .ma-rail-lab{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sig);margin:0 0 4px}
+
+  .foot{margin-top:54px;padding-top:18px;border-top:1px solid var(--divider);font-size:11px;color:var(--tm)}
+  .foot b{color:var(--ts)}
+</style>
+</head>
+<body>
+<!-- Shared SVG filter + marker defs (faithful to the production diagrams) -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <filter id="g-ember" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="b"/><feFlood flood-color="#e05c18" flood-opacity=".55" result="c"/>
+      <feComposite in="c" in2="b" operator="in" result="s"/><feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="g-mint" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="6" result="b"/><feFlood flood-color="#0D9488" flood-opacity=".45" result="c"/>
+      <feComposite in="c" in2="b" operator="in" result="s"/><feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="g-inst" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/><feFlood flood-color="#a3e635" flood-opacity=".5" result="c"/>
+      <feComposite in="c" in2="b" operator="in" result="s"/><feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="g-sig" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/><feFlood flood-color="#e879f9" flood-opacity=".5" result="c"/>
+      <feComposite in="c" in2="b" operator="in" result="s"/><feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <marker id="m-ember" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0, 7 2.5, 0 5" fill="#e05c18"/></marker>
+    <marker id="m-mint" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0, 7 2.5, 0 5" fill="#0D9488"/></marker>
+    <marker id="m-inst" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0, 7 2.5, 0 5" fill="#a3e635"/></marker>
+    <marker id="m-sig" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0, 7 2.5, 0 5" fill="#e879f9"/></marker>
+    <marker id="m-sig-rev" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto-start-reverse"><polygon points="0 0, 7 2.5, 0 5" fill="#e879f9"/></marker>
+  </defs>
+</svg>
+
+<div class="wrap">
+
+  <div class="eyebrow">opchain · architecture diagram · v1.7 proposals</div>
+  <h1>Incorporating the 1.7 “Seams &amp; Signals” release into the architecture diagrams</h1>
+  <p class="lede">
+    v1.7 adds <b>three</b> skills, taking the catalog <b>24 → 27</b>:
+    <code>oc-signal-forge</code> (question → trustworthy metric — the analytics backend),
+    <code>oc-modularize-ops</code> (decompose a monolith with provable zero loss), and
+    <code>oc-fleet-ops</code> (deploy + operate containers on self-managed infra). They form
+    <b>two new throughlines</b> — a <b>Signals</b> chain (app-architect → signal-forge → dash-forge / monitoring-ops)
+    and a <b>Seams</b> chain (modularize-ops → migration-ops → fleet-ops, with deploy-ops as a <b>peer</b>).
+    One new semantic accent — <code>--sig</code> magenta — marks every 1.7 addition, the analog of v1.5’s
+    violet AI accent and v1.6’s lime instrument accent. Below: <b>4 desktop</b> (interactive) and
+    <b>4 mobile</b> (static) ways to view the updated diagram.
+  </p>
+
+  <div class="rules">
+    <span class="rule"><b>Kept:</b> 6 spine bands · mint ordinals · CP·ORC on every skill</span>
+    <span class="rule"><b>Kept:</b> solid = spine · dashed = auto-invoke / advisory</span>
+    <span class="rule new"><b>New:</b> count 24 → <b>27</b></span>
+    <span class="rule new"><b>New:</b> 3 skills · <b>magenta · NEW v1.7 · gated</b></span>
+    <span class="rule new"><b>New:</b> Signals + Seams throughlines</span>
+    <span class="rule"><b>Tri-agent:</b> 7 → <b>8</b> (signal-forge)</span>
+  </div>
+  <div class="legend-inline">
+    <span><i class="sw" style="background:var(--sig-active);border:1px solid var(--sig)"></i> 1.7 addition (magenta)</span>
+    <span><i class="sw" style="background:rgba(245,158,11,.14);border:1px solid var(--yellow)"></i> tri-agent</span>
+    <span><i class="sw" style="background:rgba(20,184,166,.14);border:1px solid var(--mint)"></i> specialist / spine</span>
+    <span><i class="sw" style="background:rgba(14,165,233,.14);border:1px solid var(--cyan)"></i> advisor</span>
+    <span><i class="sw" style="background:rgba(244,63,94,.14);border:1px solid var(--rose)"></i> audit gate</span>
+    <span><i class="sw" style="background:rgba(167,139,250,.14);border:1px solid var(--ai)"></i> AI-native (v1.5)</span>
+    <span><i class="sw" style="background:rgba(163,230,53,.14);border:1px solid var(--inst)"></i> instrument (v1.6)</span>
+    <span><i class="sw" style="background:rgba(224,92,24,.1);border:1px dashed var(--ember)"></i> foundation</span>
+  </div>
+
+  <!-- ════════════════════════════════ DESKTOP ════════════════════════════════ -->
+  <div class="section-head">
+    <div class="skind">Desktop · /architecture · interactive</div>
+    <h2>Desktop — 4 ways (clickable)</h2>
+    <p>Faithful to <code>site/src/pages/architecture.astro</code>: vertical band spine, foundation strip, CP/ORC badges, mint spine ordinals, v1.6 instrument rail. Each variant is <b>interactive</b> — expandable bands, real <code>/skills/&lt;id&gt;</code> links, hover highlight, and a “Highlight 1.7” delta toggle where useful. Dark theme.</p>
+  </div>
+
+  <!-- ===== D1 — faithful spine extension (REFERENCE) ===== -->
+  <div class="variant" id="v-d1">
+    <div class="v-head">
+      <div class="v-tag">D1</div>
+      <div class="v-meta">
+        <h3>Faithful spine extension</h3>
+        <p class="sub">The production vertical band stack, unchanged — the 3 new skills slot into their real phases (modularize → Plan, signal-forge → Build, fleet-ops → Ship). Click any band to expand its skills. Lowest-risk “ship it” candidate.</p>
+        <div class="v-flags">
+          <span class="flag keep">Zero new geometry — matches production exactly</span>
+          <span class="flag keep">New skills read in-context, in their phase</span>
+          <span class="flag trade">Two new chains shown as captions, not first-class</span>
+        </div>
+      </div>
+    </div>
+    <div class="v-stage">
+      <div class="av-board" id="d1-board">
+        <div class="av-board-bar">
+          <span class="av-hint">Eyebrow → <b style="color:var(--sig)">RELEASE v1.7 · 27 skills</b> · click a band to expand · hover a skill to lift</span>
+        </div>
+
+        <div class="av-found">
+          <span class="av-found-lab">Foundation · cross-cutting · always-on</span>
+          <span class="av-found-pill"><span class="fp-tag">PROTOCOL</span><span class="fp-name">oc-checkpoint-protocol</span><span class="fp-desc">phase · progress · blockers · next_actions · wire 1.1</span></span>
+          <span class="av-found-pill"><span class="fp-tag">ORCH</span><span class="fp-name">oc-orchestrator</span><span class="fp-desc">/oc-ops · routing · gate enforcement</span></span>
+        </div>
+
+        <!-- DISCOVER -->
+        <div class="av-band" data-phase="discover">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--tm)"></span>
+            <span class="av-band-label">DISCOVER</span><span class="av-band-of">1 of 6</span>
+            <span class="av-band-skills"><span class="av-band-ordinal">1·↓2</span><span class="av-mini">reverse-spec</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-reverse-spec" style="--accent:var(--mint)">
+              <div class="av-node-head"><span class="av-node-name">oc-reverse-spec</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+              <div class="av-node-role">Specialist · Workflow</div><div class="av-node-cmd">/oc-rev-spec · /oc-rev-full</div>
+            </a>
+          </div></div>
+        </div>
+
+        <!-- PLAN -->
+        <div class="av-band is-new" data-phase="plan">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--ember)"></span>
+            <span class="av-band-label">PLAN</span><span class="av-band-of">2 of 6</span>
+            <span class="av-band-skills"><span class="av-band-ordinal">↑1·2·↓3</span><span class="av-mini">app-architect</span><span class="av-mini">stack-forge</span><span class="av-mini">scale-ops</span><span class="av-mini">migration-ops</span><span class="av-mini is-new">modularize-ops</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-app-architect" style="--accent:var(--yellow)" data-chain="signals">
+              <div class="av-node-head"><span class="av-node-name">oc-app-architect</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+              <div class="av-node-role">Tri-agent · Orchestrator</div><div class="av-node-cmd">/oc-app · /oc-discover · /oc-build</div>
+              <div class="av-node-foot"><span class="av-chip is-new">→ Phase 2 auto-invokes signal-forge</span></div>
+            </a>
+            <a class="av-node" href="/skills/oc-stack-forge" style="--accent:var(--cyan)">
+              <div class="av-node-head"><span class="av-node-name">oc-stack-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+              <div class="av-node-role">Advisor</div><div class="av-node-cmd">/oc-stack-decide</div>
+            </a>
+            <a class="av-node" href="/skills/oc-scale-ops" style="--accent:var(--cyan)" data-chain="seams">
+              <div class="av-node-head"><span class="av-node-name">oc-scale-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+              <div class="av-node-role">Advisor</div><div class="av-node-cmd">/oc-scale · replica targets → fleet-ops</div>
+            </a>
+            <a class="av-node" href="/skills/oc-migration-ops" style="--accent:var(--mint)" data-chain="seams">
+              <div class="av-node-head"><span class="av-node-name">oc-migration-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+              <div class="av-node-role">Specialist · Structural type</div><div class="av-node-cmd">/oc-migrate · cutover</div>
+            </a>
+            <a class="av-node av-new" href="/skills/oc-modularize-ops" style="--accent:var(--sig)" data-chain="seams">
+              <div class="av-node-head"><span class="av-node-name">oc-modularize-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+              <div class="av-node-role">Specialist · gated ops</div><div class="av-node-cmd">/oc-modularize · assess · verify</div>
+              <div class="av-node-foot"><span class="av-chip is-new">NEW v1.7 · gated</span><span class="av-chip">golden fixtures · can say “don’t”</span></div>
+            </a>
+          </div></div>
+        </div>
+
+        <!-- AI-NATIVE (v1.5) -->
+        <div class="av-band" data-phase="ai">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--ai)"></span>
+            <span class="av-band-label">AI-NATIVE</span><span class="av-band-of">v1.5 · build-adjacent</span>
+            <span class="av-band-skills"><span class="av-mini">claude-api</span><span class="av-mini">rag-forge</span><span class="av-mini">agent-forge</span><span class="av-mini">prompt-ops</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-claude-api" style="--accent:var(--ai)"><div class="av-node-head"><span class="av-node-name">oc-claude-api</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · Advisor</div><div class="av-node-cmd">/oc-claude-api</div></a>
+            <a class="av-node" href="/skills/oc-rag-forge" style="--accent:var(--ai)"><div class="av-node-head"><span class="av-node-name">oc-rag-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Designer/Builder/Evaluator</div><div class="av-node-cmd">/oc-rag · vector DB</div></a>
+            <a class="av-node" href="/skills/oc-agent-forge" style="--accent:var(--ai)"><div class="av-node-head"><span class="av-node-name">oc-agent-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Planner/Builder/Evaluator</div><div class="av-node-cmd">/oc-agent · Agent SDK</div></a>
+            <a class="av-node" href="/skills/oc-prompt-ops" style="--accent:var(--ai)"><div class="av-node-head"><span class="av-node-name">oc-prompt-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · prompt-as-code</div><div class="av-node-cmd">/oc-prompt · eval · regression</div></a>
+          </div></div>
+        </div>
+
+        <!-- BUILD -->
+        <div class="av-band is-new" data-phase="build">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--yellow)"></span>
+            <span class="av-band-label">BUILD</span><span class="av-band-of">4 of 6</span>
+            <span class="av-band-skills"><span class="av-mini">ux-engineer</span><span class="av-mini">dash-forge</span><span class="av-mini">api-dev</span><span class="av-mini">integrations</span><span class="av-mini is-new">signal-forge</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-ux-engineer" style="--accent:var(--yellow)"><div class="av-node-head"><span class="av-node-name">oc-ux-engineer</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Planner/Generator/Evaluator</div><div class="av-node-cmd">/oc-uxe · /oc-design</div></a>
+            <a class="av-node" href="/skills/oc-dash-forge" style="--accent:var(--mint)" data-chain="signals"><div class="av-node-head"><span class="av-node-name">oc-dash-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · Tufte-density UI</div><div class="av-node-cmd">/oc-data-forge · renders signals</div></a>
+            <a class="av-node" href="/skills/oc-api-dev" style="--accent:var(--yellow)"><div class="av-node-head"><span class="av-node-name">oc-api-dev</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · OpenAPI / GraphQL</div><div class="av-node-cmd">/oc-api · design · sdk</div></a>
+            <a class="av-node" href="/skills/oc-integrations-engineer" style="--accent:var(--yellow)"><div class="av-node-head"><span class="av-node-name">oc-integrations-engineer</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Planner/Builder/Tester</div><div class="av-node-cmd">/oc-integrate · OAuth · webhooks</div></a>
+            <a class="av-node av-new" href="/skills/oc-signal-forge" style="--accent:var(--sig)" data-chain="signals"><div class="av-node-head"><span class="av-node-name">oc-signal-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Designer / Builder / Evaluator</div><div class="av-node-cmd">/oc-signal · frame · verify · wire</div><div class="av-node-foot"><span class="av-chip is-new">NEW v1.7 · gated</span><span class="av-chip">prove it answers the question</span></div></a>
+          </div></div>
+        </div>
+
+        <!-- SHIP -->
+        <div class="av-band is-new" data-phase="ship">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--rose)"></span>
+            <span class="av-band-label">SHIP</span><span class="av-band-of">5 of 6 · 3 audit gates</span>
+            <span class="av-band-skills"><span class="av-band-ordinal">↑4·5·↓6</span><span class="av-mini">bug-check</span><span class="av-mini">git-ops</span><span class="av-mini">release-ops</span><span class="av-mini">code-auditor</span><span class="av-mini">security-auditor</span><span class="av-mini">deploy-ops</span><span class="av-mini is-new">fleet-ops</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-bug-check" style="--accent:var(--rose)"><div class="av-node-head"><span class="av-node-name">oc-bug-check</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Audit gate · pre-commit</div><div class="av-node-cmd">/oc-bugcheck</div></a>
+            <a class="av-node" href="/skills/oc-git-ops" style="--accent:var(--mint)"><div class="av-node-head"><span class="av-node-name">oc-git-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · Workflow</div><div class="av-node-cmd">/oc-git · /oc-commit · /oc-pr</div></a>
+            <a class="av-node" href="/skills/oc-release-ops" style="--accent:var(--mint)"><div class="av-node-head"><span class="av-node-name">oc-release-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · release-boundary</div><div class="av-node-cmd">/oc-release</div></a>
+            <a class="av-node" href="/skills/oc-code-auditor" style="--accent:var(--yellow)"><div class="av-node-head"><span class="av-node-name">oc-code-auditor</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Auditor/Fixer/Verifier</div><div class="av-node-cmd">/oc-audit · ≥7/10</div></a>
+            <a class="av-node" href="/skills/oc-security-auditor" style="--accent:var(--rose)"><div class="av-node-head"><span class="av-node-name">oc-security-auditor</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Audit gate · posture</div><div class="av-node-cmd">/oc-security · STRIDE · OWASP</div></a>
+            <a class="av-node" href="/skills/oc-deploy-ops" style="--accent:var(--ember)" data-chain="seams"><div class="av-node-head"><span class="av-node-name">oc-deploy-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Orchestrator · Workflow</div><div class="av-node-cmd">/oc-deploy · managed PaaS</div><div class="av-node-foot"><span class="av-chip is-new">↔ peer of fleet-ops</span></div></a>
+            <a class="av-node av-new" href="/skills/oc-fleet-ops" style="--accent:var(--sig)" data-chain="seams"><div class="av-node-head"><span class="av-node-name">oc-fleet-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · gated ops</div><div class="av-node-cmd">/oc-fleet · provision · deploy</div><div class="av-node-foot"><span class="av-chip is-new">NEW v1.7 · gated</span><span class="av-chip">k8s · Nomad · Compose · VMs</span></div></a>
+          </div></div>
+        </div>
+
+        <!-- MONITOR -->
+        <div class="av-band" data-phase="monitor">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--mint)"></span>
+            <span class="av-band-label">MONITOR</span><span class="av-band-of">6 of 6</span>
+            <span class="av-band-skills"><span class="av-band-ordinal">↑5·6</span><span class="av-mini">monitoring-ops</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-monitoring-ops" style="--accent:var(--mint)" data-chain="signals"><div class="av-node-head"><span class="av-node-name">oc-monitoring-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · observability</div><div class="av-node-cmd">/oc-monitor · enforces signal freshness SLA · fleet health</div></a>
+          </div></div>
+        </div>
+
+        <!-- instrumentation rail (v1.6) -->
+        <div class="av-inst" style="margin-top:12px">
+          <span class="av-inst-lab">v1.6 · cross-cutting · instrument rail (unchanged)</span>
+          <span class="av-found-pill"><span class="fp-tag">$</span><span class="fp-name">oc-cost-ops</span><span class="fp-desc">/oc-cost · per-phase attribution</span></span>
+          <span class="av-found-pill"><span class="fp-tag">USE</span><span class="fp-name">oc-telemetry-ops</span><span class="fp-desc">/oc-telemetry · OFF</span></span>
+        </div>
+
+        <!-- the two new throughlines -->
+        <div class="av-chains">
+          <div class="av-chain" data-chain="signals"><span class="av-chain-tag">Signals</span><span><b>app-architect</b> <span class="ar">→</span> <b>signal-forge</b> <span class="ar">→</span> <b>dash-forge</b> <span class="mut">/</span> <b>monitoring-ops</b></span><span class="mut">build a trustworthy metric → render it · enforce freshness SLA</span></div>
+          <div class="av-chain seams" data-chain="seams"><span class="av-chain-tag">Seams</span><span><b>modularize-ops</b> <span class="ar">→</span> <b>migration-ops</b> <span class="ar">→</span> <b>fleet-ops</b> · <b>deploy-ops</b> <span class="ar">↔</span> <b>fleet-ops</b></span><span class="mut">decompose with proof → cutover → deploy the pieces · peers</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="v-foot"><div class="note"><b>Why this one ships:</b> it is the production diagram with three nodes added in their real phases — no new layout to QA against the Lighthouse perf budget. The two throughlines ride along as caption rows. <code>Highlight 1.7</code> isn’t needed here because the magenta already reads in-place.</div></div>
+  </div>
+
+  <!-- ===== D2 PLACEHOLDER ===== -->
+  <div class="variant" id="v-d2">
+    <div class="v-head">
+      <div class="v-tag">D2</div>
+      <div class="v-meta">
+        <h3>Delta-overlay lens</h3>
+        <p class="sub">The same 6-band production spine as D1, but with a control row on top. <b>Highlight 1.7</b> dims everything that isn’t a v1.7 addition so the three new skills pop instantly; <b>Signals</b> / <b>Seams</b> isolate one throughline at a time. Collapsed headers keep the whole catalog on screen at once.</p>
+        <div class="v-flags">
+          <span class="flag keep">One toggle = instant what-is-new view</span>
+          <span class="flag keep">Same spine, zero relayout</span>
+          <span class="flag trade">Overlay carries its own legend — extra chrome above the spine</span>
+        </div>
+      </div>
+    </div>
+    <div class="v-stage">
+      <div class="av-board" id="d2-board">
+        <div class="av-board-bar" role="group" aria-label="Diagram lens controls">
+          <button class="av-toggle-btn" data-toggle="delta" aria-pressed="false" title="Dim everything except the three v1.7 additions (Enter / Space)" aria-keyshortcuts="Enter Space">Highlight 1.7 &#9656;</button>
+          <button class="av-toggle-btn alt" data-toggle="chain" data-chain="signals" aria-pressed="false" aria-label="Isolate the Signals throughline" title="Isolate the Signals throughline (Enter / Space)" aria-keyshortcuts="Enter Space">Signals</button>
+          <button class="av-toggle-btn alt" data-toggle="chain" data-chain="seams" aria-pressed="false" aria-label="Isolate the Seams throughline" title="Isolate the Seams throughline (Enter / Space)" aria-keyshortcuts="Enter Space">Seams</button>
+          <span class="av-hint"><b style="color:var(--sig)">RELEASE v1.7 · 27 skills</b> · toggle a lens, then click a band to expand</span>
+        </div>
+
+        <div class="av-legend legend-inline" aria-label="Overlay legend">
+          <span><i class="sw" style="background:var(--sig-active);border:1px solid var(--sig)"></i> 1.7 addition · stays lit under Highlight 1.7</span>
+          <span><i class="sw" style="background:var(--surface);border:1px solid var(--border)"></i> existing skill · dimmed by the active lens</span>
+          <span><i class="sw" style="background:var(--sig-dim);border:1px solid var(--sig-b)"></i> Signals / Seams throughline outline</span>
+        </div>
+
+        <div class="av-found">
+          <span class="av-found-lab">Foundation · cross-cutting · always-on</span>
+          <span class="av-found-pill"><span class="fp-tag">PROTOCOL</span><span class="fp-name">oc-checkpoint-protocol</span><span class="fp-desc">phase · progress · blockers · next_actions · wire 1.1</span></span>
+          <span class="av-found-pill"><span class="fp-tag">ORCH</span><span class="fp-name">oc-orchestrator</span><span class="fp-desc">/oc-ops · routing · gate enforcement</span></span>
+        </div>
+
+        <!-- DISCOVER -->
+        <div class="av-band" data-phase="discover">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--tm)"></span>
+            <span class="av-band-label">DISCOVER</span><span class="av-band-of">1 of 6</span>
+            <span class="av-band-skills"><span class="av-band-ordinal">1·↓2</span><span class="av-mini">reverse-spec</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-reverse-spec" style="--accent:var(--mint)">
+              <div class="av-node-head"><span class="av-node-name">oc-reverse-spec</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+              <div class="av-node-role">Specialist · Workflow</div><div class="av-node-cmd">/oc-rev-spec</div>
+            </a>
+          </div></div>
+        </div>
+
+        <!-- PLAN -->
+        <div class="av-band is-new" data-phase="plan">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--ember)"></span>
+            <span class="av-band-label">PLAN</span><span class="av-band-of">2 of 6</span>
+            <span class="av-band-skills"><span class="av-band-ordinal">↑1·2·↓3</span><span class="av-mini" data-chain="signals">app-architect</span><span class="av-mini">stack-forge</span><span class="av-mini" data-chain="seams">scale-ops</span><span class="av-mini" data-chain="seams">migration-ops</span><span class="av-mini is-new" data-chain="seams">modularize-ops</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-app-architect" style="--accent:var(--yellow)" data-chain="signals">
+              <div class="av-node-head"><span class="av-node-name">oc-app-architect</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+              <div class="av-node-role">Tri-agent · Orchestrator</div><div class="av-node-cmd">/oc-app · /oc-discover · /oc-build</div>
+              <div class="av-node-foot"><span class="av-chip is-new">→ 08-analytics.md auto-invokes signal-forge</span></div>
+            </a>
+            <a class="av-node" href="/skills/oc-stack-forge" style="--accent:var(--cyan)">
+              <div class="av-node-head"><span class="av-node-name">oc-stack-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+              <div class="av-node-role">Advisor</div><div class="av-node-cmd">/oc-stack-decide</div>
+            </a>
+            <a class="av-node" href="/skills/oc-scale-ops" style="--accent:var(--cyan)" data-chain="seams">
+              <div class="av-node-head"><span class="av-node-name">oc-scale-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+              <div class="av-node-role">Advisor</div><div class="av-node-cmd">/oc-scale · advisory replica targets → fleet-ops</div>
+            </a>
+            <a class="av-node" href="/skills/oc-migration-ops" style="--accent:var(--mint)" data-chain="seams">
+              <div class="av-node-head"><span class="av-node-name">oc-migration-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+              <div class="av-node-role">Specialist · Structural type</div><div class="av-node-cmd">/oc-migrate · cutover</div>
+            </a>
+            <a class="av-node av-new" href="/skills/oc-modularize-ops" style="--accent:var(--sig)" data-chain="seams">
+              <div class="av-node-head"><span class="av-node-name">oc-modularize-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+              <div class="av-node-role">Specialist · gated ops</div><div class="av-node-cmd">/oc-modularize · assess · verify</div>
+              <div class="av-node-foot"><span class="av-chip is-new">NEW v1.7 · gated</span><span class="av-chip">golden fixtures · provable zero loss · can say “don’t”</span></div>
+            </a>
+          </div></div>
+        </div>
+
+        <!-- AI-NATIVE (v1.5) -->
+        <div class="av-band" data-phase="ai">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--ai)"></span>
+            <span class="av-band-label">AI-NATIVE</span><span class="av-band-of">v1.5 · build-adjacent</span>
+            <span class="av-band-skills"><span class="av-mini">claude-api</span><span class="av-mini">rag-forge</span><span class="av-mini">agent-forge</span><span class="av-mini">prompt-ops</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-claude-api" style="--accent:var(--ai)"><div class="av-node-head"><span class="av-node-name">oc-claude-api</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · Advisor</div><div class="av-node-cmd">/oc-claude-api</div></a>
+            <a class="av-node" href="/skills/oc-rag-forge" style="--accent:var(--ai)"><div class="av-node-head"><span class="av-node-name">oc-rag-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Designer/Builder/Evaluator</div><div class="av-node-cmd">/oc-rag · vector DB</div></a>
+            <a class="av-node" href="/skills/oc-agent-forge" style="--accent:var(--ai)"><div class="av-node-head"><span class="av-node-name">oc-agent-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Planner/Builder/Evaluator</div><div class="av-node-cmd">/oc-agent · Agent SDK</div></a>
+            <a class="av-node" href="/skills/oc-prompt-ops" style="--accent:var(--ai)"><div class="av-node-head"><span class="av-node-name">oc-prompt-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · prompt-as-code</div><div class="av-node-cmd">/oc-prompt · eval · regression</div></a>
+          </div></div>
+        </div>
+
+        <!-- BUILD -->
+        <div class="av-band is-new" data-phase="build">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--yellow)"></span>
+            <span class="av-band-label">BUILD</span><span class="av-band-of">4 of 6</span>
+            <span class="av-band-skills"><span class="av-mini">ux-engineer</span><span class="av-mini" data-chain="signals">dash-forge</span><span class="av-mini">api-dev</span><span class="av-mini">integrations</span><span class="av-mini is-new" data-chain="signals">signal-forge</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-ux-engineer" style="--accent:var(--yellow)"><div class="av-node-head"><span class="av-node-name">oc-ux-engineer</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Planner/Generator/Evaluator</div><div class="av-node-cmd">/oc-uxe</div></a>
+            <a class="av-node" href="/skills/oc-dash-forge" style="--accent:var(--mint)" data-chain="signals"><div class="av-node-head"><span class="av-node-name">oc-dash-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · Tufte-density UI</div><div class="av-node-cmd">/oc-data-forge · renders signals</div></a>
+            <a class="av-node" href="/skills/oc-api-dev" style="--accent:var(--yellow)"><div class="av-node-head"><span class="av-node-name">oc-api-dev</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · OpenAPI / GraphQL</div><div class="av-node-cmd">/oc-api · design · sdk</div></a>
+            <a class="av-node" href="/skills/oc-integrations-engineer" style="--accent:var(--yellow)"><div class="av-node-head"><span class="av-node-name">oc-integrations-engineer</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Planner/Builder/Tester</div><div class="av-node-cmd">/oc-integrate · OAuth · webhooks</div></a>
+            <a class="av-node av-new" href="/skills/oc-signal-forge" style="--accent:var(--sig)" data-chain="signals"><div class="av-node-head"><span class="av-node-name">oc-signal-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Designer / Builder / Evaluator</div><div class="av-node-cmd">/oc-signal · frame · verify · wire</div><div class="av-node-foot"><span class="av-chip is-new">NEW v1.7 · gated</span><span class="av-chip">prove it answers the question · backend only</span></div></a>
+          </div></div>
+        </div>
+
+        <!-- SHIP -->
+        <div class="av-band is-new" data-phase="ship">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--rose)"></span>
+            <span class="av-band-label">SHIP</span><span class="av-band-of">5 of 6 · 3 audit gates</span>
+            <span class="av-band-skills"><span class="av-band-ordinal">↑4·5·↓6</span><span class="av-mini">bug-check</span><span class="av-mini">git-ops</span><span class="av-mini">release-ops</span><span class="av-mini">code-auditor</span><span class="av-mini">security-auditor</span><span class="av-mini" data-chain="seams">deploy-ops</span><span class="av-mini is-new" data-chain="seams">fleet-ops</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-bug-check" style="--accent:var(--rose)"><div class="av-node-head"><span class="av-node-name">oc-bug-check</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Audit gate · pre-commit</div><div class="av-node-cmd">/oc-bugcheck</div></a>
+            <a class="av-node" href="/skills/oc-git-ops" style="--accent:var(--mint)"><div class="av-node-head"><span class="av-node-name">oc-git-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · Workflow</div><div class="av-node-cmd">/oc-git · /oc-commit · /oc-pr</div></a>
+            <a class="av-node" href="/skills/oc-release-ops" style="--accent:var(--mint)"><div class="av-node-head"><span class="av-node-name">oc-release-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · release-boundary</div><div class="av-node-cmd">/oc-release</div></a>
+            <a class="av-node" href="/skills/oc-code-auditor" style="--accent:var(--yellow)"><div class="av-node-head"><span class="av-node-name">oc-code-auditor</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Auditor/Fixer/Verifier</div><div class="av-node-cmd">/oc-audit · ≥7/10</div></a>
+            <a class="av-node" href="/skills/oc-security-auditor" style="--accent:var(--rose)"><div class="av-node-head"><span class="av-node-name">oc-security-auditor</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Audit gate · posture</div><div class="av-node-cmd">/oc-security · STRIDE · OWASP</div></a>
+            <a class="av-node" href="/skills/oc-deploy-ops" style="--accent:var(--ember)" data-chain="seams"><div class="av-node-head"><span class="av-node-name">oc-deploy-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Orchestrator · Workflow</div><div class="av-node-cmd">/oc-deploy · managed PaaS</div><div class="av-node-foot"><span class="av-chip is-new">↔ peer of fleet-ops</span></div></a>
+            <a class="av-node av-new" href="/skills/oc-fleet-ops" style="--accent:var(--sig)" data-chain="seams"><div class="av-node-head"><span class="av-node-name">oc-fleet-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · gated ops</div><div class="av-node-cmd">/oc-fleet · provision · deploy</div><div class="av-node-foot"><span class="av-chip is-new">NEW v1.7 · gated</span><span class="av-chip">k8s · Nomad · Compose · VMs</span></div></a>
+          </div></div>
+        </div>
+
+        <!-- MONITOR -->
+        <div class="av-band" data-phase="monitor">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--mint)"></span>
+            <span class="av-band-label">MONITOR</span><span class="av-band-of">6 of 6</span>
+            <span class="av-band-skills"><span class="av-band-ordinal">↑5·6</span><span class="av-mini" data-chain="signals">monitoring-ops</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-monitoring-ops" style="--accent:var(--mint)" data-chain="signals"><div class="av-node-head"><span class="av-node-name">oc-monitoring-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · observability</div><div class="av-node-cmd">/oc-monitor · enforces signal freshness SLA · watches fleet health</div></a>
+          </div></div>
+        </div>
+
+        <!-- instrumentation rail (v1.6) -->
+        <div class="av-inst" style="margin-top:12px">
+          <span class="av-inst-lab">v1.6 · cross-cutting · instrument rail (unchanged)</span>
+          <span class="av-found-pill"><span class="fp-tag">$</span><span class="fp-name">oc-cost-ops</span><span class="fp-desc">/oc-cost · per-phase attribution</span></span>
+          <span class="av-found-pill"><span class="fp-tag">USE</span><span class="fp-name">oc-telemetry-ops</span><span class="fp-desc">/oc-telemetry · OFF</span></span>
+        </div>
+
+        <!-- the two new throughlines -->
+        <div class="av-chains">
+          <div class="av-chain" data-chain="signals"><span class="av-chain-tag">Signals</span><span><b>app-architect</b> <span class="ar">→</span> <b>signal-forge</b> <span class="ar">→</span> <b>dash-forge</b> <span class="mut">/</span> <b>monitoring-ops</b></span><span class="mut">build a trustworthy metric → render it · enforce freshness SLA</span></div>
+          <div class="av-chain seams" data-chain="seams"><span class="av-chain-tag">Seams</span><span><b>modularize-ops</b> <span class="ar">→</span> <b>migration-ops</b> <span class="ar">→</span> <b>fleet-ops</b> · <b>deploy-ops</b> <span class="ar">↔</span> <b>fleet-ops</b></span><span class="mut">decompose with proof → cutover → deploy the pieces · peers</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="v-foot"><div class="note"><b>The toggle:</b> <code>Highlight 1.7 ▸</code> sets <code>.show-delta</code> on the board, which dims every node that isn’t <code>.av-new</code> — the three magenta skills (modularize-ops, signal-forge, fleet-ops) stay lit so reviewers see exactly what shipped. <code>Signals</code> / <code>Seams</code> instead isolate one throughline, dimming the other chain’s nodes. All six bands stay present for context; the chains caption rows stay readable in every mode.</div></div>
+  </div>
+
+  <!-- ===== D3 PLACEHOLDER ===== -->
+  <div class="variant" id="v-d3">
+    <div class="v-head">
+      <div class="v-tag">D3</div>
+      <div class="v-meta">
+        <h3>Relationship graph</h3>
+        <p class="sub">All 27 skills as a network, not a phase stack — five phase clusters left→right with foundation and the v1.6 instrument rail cross-cutting. Mint edges are spine handoffs; the two new magenta chains (Signals, Seams) pop on top. Toggle a chain to isolate it; the 3 new nodes link to their pages.</p>
+        <div class="v-flags">
+          <span class="flag keep">Relationships over phases — new edges pop</span>
+          <span class="flag keep">Fresh mental model for repeat visitors</span>
+          <span class="flag trade">Densest layout; least like production</span>
+        </div>
+      </div>
+    </div>
+    <div class="v-stage dk">
+      <div class="av-board av-graph" id="d3-board">
+        <div class="av-board-bar">
+          <span class="av-hint">Isolate a 1.7 throughline →</span>
+          <button class="av-toggle-btn alt" data-toggle="chain" data-chain="signals" aria-pressed="false">Signals</button>
+          <button class="av-toggle-btn alt" data-toggle="chain" data-chain="seams" aria-pressed="false">Seams</button>
+          <span class="av-hint">27 nodes · 6 phases · 8 tri-agent · 3 audit gates · mint = spine handoff · magenta = new v1.7</span>
+        </div>
+
+        <svg viewBox="0 0 760 580" role="img" aria-label="Node-graph of all 27 opchain skills laid out as a relationship network. Five phase clusters left to right — Discover, Plan, Build, Ship, Monitor — with the v1.5 AI-native group near Build, and the foundation skills (checkpoint-protocol, orchestrator) plus the v1.6 instrument rail (cost-ops, telemetry-ops) cross-cutting along the top and bottom. Mint solid edges are spine handoffs. Two new v1.7 chains are drawn in magenta: the Signals chain runs app-architect to signal-forge to dash-forge and monitoring-ops; the Seams chain runs modularize-ops to migration-ops and fleet-ops, with fleet-ops peering with deploy-ops and feeding monitoring-ops.">
+
+          <!-- ───────── cluster backdrops ───────── -->
+          <g aria-hidden="true" fill="none" stroke="var(--divider)" stroke-dasharray="3 4">
+            <rect x="20"  y="92"  width="116" height="150" rx="12"/>
+            <rect x="152" y="92"  width="150" height="330" rx="12"/>
+            <rect x="318" y="92"  width="150" height="200" rx="12"/>
+            <rect x="484" y="92"  width="150" height="360" rx="12"/>
+            <rect x="650" y="92"  width="92"  height="120" rx="12"/>
+            <rect x="318" y="306" width="150" height="146" rx="12" stroke="var(--ai)" stroke-opacity=".4"/>
+          </g>
+          <g aria-hidden="true" font-family="var(--mono)" font-size="9.5" font-weight="700" letter-spacing="1.4" fill="var(--tm)" text-anchor="middle">
+            <text x="78"  y="108">DISCOVER</text>
+            <text x="227" y="108">PLAN</text>
+            <text x="393" y="108">BUILD</text>
+            <text x="559" y="108">SHIP</text>
+            <text x="696" y="108">MONITOR</text>
+            <text x="393" y="322" fill="var(--ai)">AI-NATIVE · v1.5</text>
+          </g>
+
+          <!-- ───────── SPINE handoff edges (mint, solid) ───────── -->
+          <g aria-hidden="true" fill="none" stroke="#0D9488" stroke-width="1.6" opacity=".85">
+            <!-- reverse-spec → app-architect -->
+            <path d="M132 165 C 150 165, 158 150, 178 150" marker-end="url(#m-mint)"/>
+            <!-- app-architect → ux-engineer (Plan→Build spine) -->
+            <path d="M298 150 C 318 150, 330 138, 350 138" marker-end="url(#m-mint)"/>
+            <!-- ux-engineer / build → bug-check (Build→Ship spine) -->
+            <path d="M464 138 C 484 138, 496 150, 516 150" marker-end="url(#m-mint)"/>
+            <!-- deploy-ops → monitoring-ops (Ship→Monitor spine) -->
+            <path d="M634 392 C 668 392, 688 230, 696 200" marker-end="url(#m-mint)"/>
+            <!-- migration-ops cutover handoff inside plan→ship deploy (spine support) -->
+            <path d="M298 230 C 360 250, 470 250, 516 220" marker-end="url(#m-mint)" opacity=".55"/>
+          </g>
+
+          <!-- ───────── NEW v1.7 · SIGNALS chain (magenta) ───────── -->
+          <g data-chain="signals" fill="none" stroke="#e879f9" stroke-width="2">
+            <!-- app-architect → signal-forge (auto-invoke, 08-analytics) -->
+            <path d="M294 162 C 400 200, 470 300, 491 356" marker-end="url(#m-sig)"/>
+            <!-- signal-forge → dash-forge -->
+            <path d="M482 358 C 440 300, 380 240, 372 192" marker-end="url(#m-sig)"/>
+            <!-- signal-forge → monitoring-ops (freshness SLA) -->
+            <path d="M528 372 C 640 350, 692 250, 700 218" marker-end="url(#m-sig)"/>
+          </g>
+
+          <!-- ───────── NEW v1.7 · SEAMS chain (magenta) ───────── -->
+          <g data-chain="seams" fill="none" stroke="#e879f9" stroke-width="2">
+            <!-- modularize-ops → migration-ops -->
+            <path d="M227 372 C 227 330, 227 290, 227 252" marker-end="url(#m-sig)"/>
+            <!-- modularize-ops → fleet-ops (deploy modules direct) -->
+            <path d="M294 396 C 400 410, 460 432, 506 438" marker-end="url(#m-sig)"/>
+            <!-- migration-ops → fleet-ops (structural cutover → run the pieces) -->
+            <path d="M294 232 C 440 250, 490 380, 522 416" marker-end="url(#m-sig)"/>
+            <!-- fleet-ops → monitoring-ops -->
+            <path d="M602 438 C 672 430, 700 270, 702 220" marker-end="url(#m-sig)"/>
+            <!-- deploy-ops ↔ fleet-ops (peer, dashed, double-headed) -->
+            <path d="M588 414 L 564 418" stroke-dasharray="5 4" marker-end="url(#m-sig)" marker-start="url(#m-sig-rev)"/>
+            <!-- scale-ops → fleet-ops (advisory replica targets, dashed) -->
+            <path d="M294 200 C 470 220, 500 400, 514 426" stroke-dasharray="4 5" opacity=".75" marker-end="url(#m-sig)"/>
+          </g>
+
+          <!-- ════════ CROSS-CUTTING FOUNDATION (top) ════════ -->
+          <g aria-hidden="true">
+            <text x="32" y="30" font-family="var(--mono)" font-size="8.5" font-weight="700" letter-spacing="1.2" fill="var(--ember)">FOUNDATION · CROSS-CUTTING</text>
+            <g>
+              <rect x="120" y="38" width="150" height="34" rx="7" fill="rgba(224,92,24,.05)" stroke="#e05c18" stroke-dasharray="4 3" stroke-width="1.2"/>
+              <text x="195" y="55" text-anchor="middle" font-family="var(--mono)" font-size="9.5" font-weight="600" fill="var(--tp)">oc-checkpoint-protocol</text>
+              <text x="195" y="66" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--tm)">PROTOCOL · wire 1.1</text>
+            </g>
+            <g>
+              <rect x="290" y="38" width="150" height="34" rx="7" fill="rgba(224,92,24,.05)" stroke="#e05c18" stroke-dasharray="4 3" stroke-width="1.2"/>
+              <text x="365" y="55" text-anchor="middle" font-family="var(--mono)" font-size="9.5" font-weight="600" fill="var(--tp)">oc-orchestrator</text>
+              <text x="365" y="66" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--tm)">ORCH · /oc-ops · routing</text>
+            </g>
+          </g>
+
+          <!-- ════════ NODES ════════ font-size 9.5 name / 7.5 sub ════════ -->
+
+          <!-- DISCOVER -->
+          <g aria-hidden="true">
+            <rect x="30" y="150" width="96" height="34" rx="7" fill="rgba(13,148,136,.10)" stroke="#0D9488" stroke-width="1.4"/>
+            <text x="78" y="167" text-anchor="middle" font-family="var(--mono)" font-size="9.5" font-weight="600" fill="var(--tp)">reverse-spec</text>
+            <text x="78" y="178" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--mint-b)">/oc-rev-spec · 1·↓2</text>
+          </g>
+
+          <!-- PLAN cluster -->
+          <!-- app-architect (orchestrator, Signals source) -->
+          <g data-chain="signals" aria-hidden="true">
+            <rect x="178" y="134" width="116" height="34" rx="7" fill="rgba(245,158,11,.10)" stroke="#f59e0b" stroke-width="1.4"/>
+            <text x="236" y="151" text-anchor="middle" font-family="var(--mono)" font-size="9.5" font-weight="600" fill="var(--tp)">app-architect</text>
+            <text x="236" y="162" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--yellow-b)">/oc-app · tri-agent</text>
+          </g>
+          <g aria-hidden="true">
+            <rect x="178" y="176" width="55" height="32" rx="6" fill="rgba(14,165,233,.10)" stroke="#0EA5E9" stroke-width="1.4"/>
+            <text x="205.5" y="190" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">stack-</text>
+            <text x="205.5" y="200" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">forge</text>
+          </g>
+          <g data-chain="seams" aria-hidden="true">
+            <rect x="239" y="176" width="55" height="32" rx="6" fill="rgba(14,165,233,.10)" stroke="#0EA5E9" stroke-width="1.4"/>
+            <text x="266.5" y="190" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">scale-</text>
+            <text x="266.5" y="200" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">ops</text>
+          </g>
+          <g data-chain="seams" aria-hidden="true">
+            <rect x="178" y="216" width="116" height="32" rx="7" fill="rgba(13,148,136,.10)" stroke="#0D9488" stroke-width="1.4"/>
+            <text x="236" y="230" text-anchor="middle" font-family="var(--mono)" font-size="9" font-weight="600" fill="var(--tp)">migration-ops</text>
+            <text x="236" y="241" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--mint-b)">/oc-migrate · structural</text>
+          </g>
+          <!-- modularize-ops NEW (clickable) -->
+          <a href="/skills/oc-modularize-ops" role="link" aria-label="oc-modularize-ops — new v1.7 gated-ops skill, Seams chain, opens detail page">
+            <g data-chain="seams">
+              <rect x="178" y="372" width="116" height="38" rx="8" fill="rgba(232,121,249,.16)" stroke="#e879f9" stroke-width="1.8" filter="url(#g-sig)"/>
+              <text x="222" y="388" text-anchor="middle" font-family="var(--mono)" font-size="9.5" font-weight="700" fill="#f0abfc">modularize-ops</text>
+              <text x="222" y="399" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="#f0abfc">/oc-modularize · NEW v1.7</text>
+              <text x="222" y="408" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--sig-b)">gated · CP · ORC</text>
+            </g>
+          </a>
+
+          <!-- AI-NATIVE group (near Build, v1.5 violet) -->
+          <g aria-hidden="true">
+            <rect x="326" y="330" width="64" height="30" rx="6" fill="rgba(167,139,250,.10)" stroke="#a78bfa" stroke-width="1.3"/>
+            <text x="358" y="344" text-anchor="middle" font-family="var(--mono)" font-size="7.5" font-weight="600" fill="var(--tp)">claude-api</text>
+            <text x="358" y="354" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--ai)">specialist</text>
+          </g>
+          <g aria-hidden="true">
+            <rect x="396" y="330" width="64" height="30" rx="6" fill="rgba(167,139,250,.10)" stroke="#a78bfa" stroke-width="1.3"/>
+            <text x="428" y="344" text-anchor="middle" font-family="var(--mono)" font-size="7.5" font-weight="600" fill="var(--tp)">rag-forge</text>
+            <text x="428" y="354" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--ai)">tri-agent</text>
+          </g>
+          <g aria-hidden="true">
+            <rect x="326" y="364" width="64" height="30" rx="6" fill="rgba(167,139,250,.10)" stroke="#a78bfa" stroke-width="1.3"/>
+            <text x="358" y="378" text-anchor="middle" font-family="var(--mono)" font-size="7.5" font-weight="600" fill="var(--tp)">agent-forge</text>
+            <text x="358" y="388" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--ai)">tri-agent</text>
+          </g>
+          <g aria-hidden="true">
+            <rect x="396" y="364" width="64" height="30" rx="6" fill="rgba(167,139,250,.10)" stroke="#a78bfa" stroke-width="1.3"/>
+            <text x="428" y="378" text-anchor="middle" font-family="var(--mono)" font-size="7.5" font-weight="600" fill="var(--tp)">prompt-ops</text>
+            <text x="428" y="388" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--ai)">specialist</text>
+          </g>
+
+          <!-- BUILD cluster -->
+          <g aria-hidden="true">
+            <rect x="344" y="122" width="116" height="32" rx="7" fill="rgba(245,158,11,.10)" stroke="#f59e0b" stroke-width="1.4"/>
+            <text x="402" y="136" text-anchor="middle" font-family="var(--mono)" font-size="9" font-weight="600" fill="var(--tp)">ux-engineer</text>
+            <text x="402" y="147" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--yellow-b)">/oc-uxe · tri-agent</text>
+          </g>
+          <g data-chain="signals" aria-hidden="true">
+            <rect x="344" y="160" width="56" height="30" rx="6" fill="rgba(13,148,136,.10)" stroke="#0D9488" stroke-width="1.4"/>
+            <text x="372" y="174" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">dash-</text>
+            <text x="372" y="184" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">forge</text>
+          </g>
+          <g aria-hidden="true">
+            <rect x="404" y="160" width="56" height="30" rx="6" fill="rgba(245,158,11,.10)" stroke="#f59e0b" stroke-width="1.4"/>
+            <text x="432" y="174" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">api-</text>
+            <text x="432" y="184" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">dev</text>
+          </g>
+          <g aria-hidden="true">
+            <rect x="344" y="196" width="116" height="30" rx="7" fill="rgba(245,158,11,.10)" stroke="#f59e0b" stroke-width="1.4"/>
+            <text x="402" y="210" text-anchor="middle" font-family="var(--mono)" font-size="8.5" font-weight="600" fill="var(--tp)">integrations-engineer</text>
+            <text x="402" y="220" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--yellow-b)">/oc-integrate · tri-agent</text>
+          </g>
+          <!-- signal-forge NEW (clickable) -->
+          <a href="/skills/oc-signal-forge" role="link" aria-label="oc-signal-forge — new v1.7 skill, Signals chain, opens detail page">
+            <g data-chain="signals">
+              <rect x="470" y="358" width="58" height="42" rx="8" fill="rgba(232,121,249,.16)" stroke="#e879f9" stroke-width="1.8" filter="url(#g-sig)"/>
+              <text x="499" y="375" text-anchor="middle" font-family="var(--mono)" font-size="8.5" font-weight="700" fill="#f0abfc">signal-</text>
+              <text x="499" y="385" text-anchor="middle" font-family="var(--mono)" font-size="8.5" font-weight="700" fill="#f0abfc">forge</text>
+              <text x="499" y="395" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--sig-b)">NEW · CP·ORC</text>
+            </g>
+          </a>
+
+          <!-- SHIP cluster -->
+          <g aria-hidden="true">
+            <rect x="492" y="118" width="56" height="30" rx="6" fill="rgba(244,63,94,.10)" stroke="#F43F5E" stroke-width="1.4"/>
+            <text x="520" y="132" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">bug-</text>
+            <text x="520" y="142" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">check</text>
+          </g>
+          <g aria-hidden="true">
+            <rect x="552" y="118" width="56" height="30" rx="6" fill="rgba(13,148,136,.10)" stroke="#0D9488" stroke-width="1.4"/>
+            <text x="580" y="132" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">git-</text>
+            <text x="580" y="142" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">ops</text>
+          </g>
+          <g aria-hidden="true">
+            <rect x="492" y="152" width="56" height="30" rx="6" fill="rgba(13,148,136,.10)" stroke="#0D9488" stroke-width="1.4"/>
+            <text x="520" y="166" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">release-</text>
+            <text x="520" y="176" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">ops</text>
+          </g>
+          <g aria-hidden="true">
+            <rect x="552" y="152" width="56" height="30" rx="6" fill="rgba(245,158,11,.10)" stroke="#f59e0b" stroke-width="1.4"/>
+            <text x="580" y="166" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">code-</text>
+            <text x="580" y="176" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="600" fill="var(--tp)">auditor</text>
+          </g>
+          <g aria-hidden="true">
+            <rect x="492" y="186" width="116" height="30" rx="7" fill="rgba(244,63,94,.10)" stroke="#F43F5E" stroke-width="1.4"/>
+            <text x="550" y="200" text-anchor="middle" font-family="var(--mono)" font-size="8.5" font-weight="600" fill="var(--tp)">security-auditor</text>
+            <text x="550" y="210" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--rose-b)">/oc-security · gate</text>
+          </g>
+          <!-- deploy-ops (Seams peer) -->
+          <g data-chain="seams" aria-hidden="true">
+            <rect x="552" y="378" width="80" height="34" rx="7" fill="rgba(224,92,24,.12)" stroke="#e05c18" stroke-width="1.5"/>
+            <text x="592" y="394" text-anchor="middle" font-family="var(--mono)" font-size="9" font-weight="600" fill="var(--tp)">deploy-ops</text>
+            <text x="592" y="405" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--ember)">/oc-deploy · ↑4·5·↓6</text>
+          </g>
+          <!-- fleet-ops NEW (clickable, Seams) -->
+          <a href="/skills/oc-fleet-ops" role="link" aria-label="oc-fleet-ops — new v1.7 gated-ops skill, Seams chain, deploy-ops peer, opens detail page">
+            <g data-chain="seams">
+              <rect x="510" y="420" width="92" height="40" rx="8" fill="rgba(232,121,249,.16)" stroke="#e879f9" stroke-width="1.8" filter="url(#g-sig)"/>
+              <text x="556" y="436" text-anchor="middle" font-family="var(--mono)" font-size="9.5" font-weight="700" fill="#f0abfc">fleet-ops</text>
+              <text x="556" y="447" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="#f0abfc">/oc-fleet · NEW v1.7</text>
+              <text x="556" y="456" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--sig-b)">gated · CP · ORC</text>
+            </g>
+          </a>
+
+          <!-- MONITOR -->
+          <g data-chain="signals" aria-hidden="true">
+            <rect x="656" y="180" width="80" height="36" rx="7" fill="rgba(13,148,136,.10)" stroke="#0D9488" stroke-width="1.5"/>
+            <text x="696" y="196" text-anchor="middle" font-family="var(--mono)" font-size="8.5" font-weight="600" fill="var(--tp)">monitoring-ops</text>
+            <text x="696" y="207" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--mint-b)">/oc-monitor · ↑5·6</text>
+          </g>
+
+          <!-- ════════ CROSS-CUTTING INSTRUMENT RAIL (bottom, v1.6 lime) ════════ -->
+          <g aria-hidden="true">
+            <text x="32" y="476" font-family="var(--mono)" font-size="8.5" font-weight="700" letter-spacing="1.2" fill="var(--inst)">INSTRUMENT RAIL · v1.6 · CROSS-CUTTING</text>
+            <g>
+              <rect x="180" y="484" width="150" height="34" rx="7" fill="rgba(163,230,53,.05)" stroke="#a3e635" stroke-width="1.2"/>
+              <text x="255" y="501" text-anchor="middle" font-family="var(--mono)" font-size="9.5" font-weight="600" fill="var(--tp)">oc-cost-ops</text>
+              <text x="255" y="512" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--inst)">/oc-cost · per-phase attribution</text>
+            </g>
+            <g>
+              <rect x="350" y="484" width="150" height="34" rx="7" fill="rgba(163,230,53,.05)" stroke="#a3e635" stroke-width="1.2"/>
+              <text x="425" y="501" text-anchor="middle" font-family="var(--mono)" font-size="9.5" font-weight="600" fill="var(--tp)">oc-telemetry-ops</text>
+              <text x="425" y="512" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--inst)">/oc-telemetry · OFF by default</text>
+            </g>
+          </g>
+
+          <!-- ════════ INLINE LEGEND ════════ -->
+          <g aria-hidden="true" font-family="var(--mono)" font-size="8.5" fill="var(--ts)">
+            <line x1="540" y1="498" x2="566" y2="498" stroke="#e879f9" stroke-width="2" marker-end="url(#m-sig)"/>
+            <text x="572" y="501">new v1.7 chain</text>
+            <line x1="540" y1="514" x2="566" y2="514" stroke="#0D9488" stroke-width="1.6" marker-end="url(#m-mint)"/>
+            <text x="572" y="517">spine handoff</text>
+            <line x1="540" y1="530" x2="566" y2="530" stroke="#e879f9" stroke-width="2" stroke-dasharray="4 4"/>
+            <text x="572" y="533">advisory / peer</text>
+          </g>
+
+        </svg>
+      </div>
+    </div>
+    <div class="v-foot"><div class="note"><b>Why consider this one:</b> the spine fades into mint background structure and the two 1.7 throughlines read as the figure — exactly the v1.7 story (<code>Seams</code> + <code>Signals</code>). The cost is density and distance from the production stack, so it works best as a secondary "how do they connect?" view, not the primary <code>/architecture</code> hero.</div></div>
+  </div>
+
+  <!-- ===== D4 PLACEHOLDER ===== -->
+  <div class="variant" id="v-d4">
+    <div class="v-head">
+      <div class="v-tag">D4</div>
+      <div class="v-meta">
+        <h3>Two-rail throughline view</h3>
+        <p class="sub">Leads with the 1.7 story: two side-by-side rails render the <b>Signals</b> and <b>Seams</b> chains as flow — each a vertical run of clickable skill cards, magenta where the skill is new. The full 6-band spine is demoted to a collapsed reference strip below so all 27 skills stay in context. Click a band to expand; click any skill to open its page.</p>
+        <div class="v-flags">
+          <span class="flag keep">Foregrounds the 1.7 actual story</span>
+          <span class="flag keep">Two chains legible at a glance</span>
+          <span class="flag trade">Spine demoted to a reference strip</span>
+        </div>
+      </div>
+    </div>
+    <div class="v-stage">
+      <div class="av-board" id="d4-board">
+        <div class="av-board-bar">
+          <button class="av-toggle-btn" data-toggle="delta" aria-pressed="false">Highlight 1.7 ▸</button>
+          <span class="av-hint">Eyebrow → <b style="color:var(--sig)">RELEASE v1.7 · 27 skills</b> · two throughlines up top · the 6-band spine collapses below for full context</span>
+        </div>
+
+        <div class="av-rails">
+          <!-- ───────────── SIGNALS RAIL ───────────── -->
+          <div class="av-rail" data-chain="signals">
+            <div class="av-rail-lab"><span class="av-chain-tag">Signals</span> question → trustworthy metric</div>
+
+            <div class="av-rail-step">
+              <a class="av-node" href="/skills/oc-app-architect" style="--accent:var(--yellow)" data-chain="signals">
+                <div class="av-node-head"><span class="av-node-name">oc-app-architect</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+                <div class="av-node-role">Tri-agent · Orchestrator</div>
+                <div class="av-node-cmd">/oc-app · /oc-discover · /oc-build</div>
+                <div class="av-node-foot"><span class="av-chip">auto-invoke · 08-analytics.md</span></div>
+              </a>
+            </div>
+            <div class="av-rail-step"><span class="conn" aria-hidden="true">&#8595;</span></div>
+
+            <div class="av-rail-step">
+              <a class="av-node av-new" href="/skills/oc-signal-forge" style="--accent:var(--sig)" data-chain="signals">
+                <div class="av-node-head"><span class="av-node-name">oc-signal-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+                <div class="av-node-role">Tri-agent · Designer / Builder / Evaluator</div>
+                <div class="av-node-cmd">/oc-signal · frame · verify · wire</div>
+                <div class="av-node-foot"><span class="av-chip is-new">NEW v1.7 · gated</span><span class="av-chip">prove it answers the question</span></div>
+              </a>
+            </div>
+            <div class="av-rail-step"><span class="conn" aria-hidden="true">&#8595;</span></div>
+
+            <div class="av-rail-step">
+              <a class="av-node" href="/skills/oc-dash-forge" style="--accent:var(--mint)" data-chain="signals">
+                <div class="av-node-head"><span class="av-node-name">oc-dash-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+                <div class="av-node-role">Specialist · Tufte-density UI</div>
+                <div class="av-node-cmd">/oc-data-forge · render the signal</div>
+              </a>
+            </div>
+            <div class="av-rail-step">
+              <a class="av-node" href="/skills/oc-monitoring-ops" style="--accent:var(--mint)" data-chain="signals">
+                <div class="av-node-head"><span class="av-node-name">oc-monitoring-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+                <div class="av-node-role">Specialist · observability</div>
+                <div class="av-node-cmd">/oc-monitor · freshness SLA</div>
+              </a>
+            </div>
+          </div>
+
+          <!-- ───────────── SEAMS RAIL ───────────── -->
+          <div class="av-rail seams" data-chain="seams">
+            <div class="av-rail-lab"><span class="av-chain-tag">Seams</span> decompose → cutover → operate</div>
+
+            <div class="av-rail-step">
+              <a class="av-node av-new" href="/skills/oc-modularize-ops" style="--accent:var(--sig)" data-chain="seams">
+                <div class="av-node-head"><span class="av-node-name">oc-modularize-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+                <div class="av-node-role">Specialist · gated ops</div>
+                <div class="av-node-cmd">/oc-modularize · assess · verify</div>
+                <div class="av-node-foot"><span class="av-chip is-new">NEW v1.7 · gated</span><span class="av-chip">golden fixtures · can say &ldquo;don&rsquo;t&rdquo;</span></div>
+              </a>
+            </div>
+            <div class="av-rail-step"><span class="conn" aria-hidden="true">&#8595;</span></div>
+
+            <div class="av-rail-step">
+              <a class="av-node" href="/skills/oc-migration-ops" style="--accent:var(--mint)" data-chain="seams">
+                <div class="av-node-head"><span class="av-node-name">oc-migration-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+                <div class="av-node-role">Specialist · Structural type</div>
+                <div class="av-node-cmd">/oc-migrate · rollback points</div>
+              </a>
+            </div>
+            <div class="av-rail-step"><span class="conn" aria-hidden="true">&#8595;</span></div>
+
+            <div class="av-rail-step">
+              <a class="av-node av-new" href="/skills/oc-fleet-ops" style="--accent:var(--sig)" data-chain="seams">
+                <div class="av-node-head"><span class="av-node-name">oc-fleet-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+                <div class="av-node-role">Specialist · gated ops</div>
+                <div class="av-node-cmd">/oc-fleet · provision · deploy</div>
+                <div class="av-node-foot"><span class="av-chip is-new">NEW v1.7 · gated</span><span class="av-chip">k8s · Nomad · Compose · VMs</span></div>
+              </a>
+            </div>
+            <div class="av-rail-step">
+              <a class="av-node" href="/skills/oc-deploy-ops" style="--accent:var(--ember)" data-chain="seams">
+                <div class="av-node-head"><span class="av-node-name">oc-deploy-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+                <div class="av-node-role">Orchestrator · Workflow</div>
+                <div class="av-node-cmd">/oc-deploy · managed PaaS</div>
+                <div class="av-node-foot"><span class="av-chip">&#8596; peer</span></div>
+              </a>
+            </div>
+            <div class="av-rail-step">
+              <a class="av-node" href="/skills/oc-scale-ops" style="--accent:var(--cyan)" data-chain="seams">
+                <div class="av-node-head"><span class="av-node-name">oc-scale-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+                <div class="av-node-role">Advisor</div>
+                <div class="av-node-cmd">/oc-scale · advisory → replica targets</div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ───── compact full-spine reference (collapsed, expandable) ───── -->
+        <div class="av-board-bar" style="margin-top:16px"><span class="av-hint">Full spine · all 27 skills · click a band to expand</span></div>
+
+        <div class="av-found">
+          <span class="av-found-lab">Foundation · cross-cutting · always-on</span>
+          <span class="av-found-pill"><span class="fp-tag">PROTOCOL</span><span class="fp-name">oc-checkpoint-protocol</span><span class="fp-desc">phase · progress · blockers · next_actions · wire 1.1</span></span>
+          <span class="av-found-pill"><span class="fp-tag">ORCH</span><span class="fp-name">oc-orchestrator</span><span class="fp-desc">/oc-ops · routing · gate enforcement</span></span>
+        </div>
+
+        <!-- DISCOVER -->
+        <div class="av-band" data-phase="discover">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--tm)"></span>
+            <span class="av-band-label">DISCOVER</span><span class="av-band-of">1 of 6</span>
+            <span class="av-band-skills"><span class="av-band-ordinal">1·↓2</span><span class="av-mini">reverse-spec</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-reverse-spec" style="--accent:var(--mint)">
+              <div class="av-node-head"><span class="av-node-name">oc-reverse-spec</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div>
+              <div class="av-node-role">Specialist · Workflow</div><div class="av-node-cmd">/oc-rev-spec · reverse-engineer code → specs</div>
+            </a>
+          </div></div>
+        </div>
+
+        <!-- PLAN -->
+        <div class="av-band is-new" data-phase="plan">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--ember)"></span>
+            <span class="av-band-label">PLAN</span><span class="av-band-of">2 of 6</span>
+            <span class="av-band-skills"><span class="av-band-ordinal">↑1·2·↓3</span><span class="av-mini">app-architect</span><span class="av-mini">stack-forge</span><span class="av-mini">scale-ops</span><span class="av-mini">migration-ops</span><span class="av-mini is-new">modularize-ops</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-app-architect" style="--accent:var(--yellow)" data-chain="signals"><div class="av-node-head"><span class="av-node-name">oc-app-architect</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Orchestrator</div><div class="av-node-cmd">/oc-app · /oc-discover · /oc-build</div></a>
+            <a class="av-node" href="/skills/oc-stack-forge" style="--accent:var(--cyan)"><div class="av-node-head"><span class="av-node-name">oc-stack-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Advisor</div><div class="av-node-cmd">/oc-stack-decide</div></a>
+            <a class="av-node" href="/skills/oc-scale-ops" style="--accent:var(--cyan)" data-chain="seams"><div class="av-node-head"><span class="av-node-name">oc-scale-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Advisor</div><div class="av-node-cmd">/oc-scale · replica targets → fleet-ops</div></a>
+            <a class="av-node" href="/skills/oc-migration-ops" style="--accent:var(--mint)" data-chain="seams"><div class="av-node-head"><span class="av-node-name">oc-migration-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · Structural type</div><div class="av-node-cmd">/oc-migrate · cutover</div></a>
+            <a class="av-node av-new" href="/skills/oc-modularize-ops" style="--accent:var(--sig)" data-chain="seams"><div class="av-node-head"><span class="av-node-name">oc-modularize-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · gated ops</div><div class="av-node-cmd">/oc-modularize · assess · verify</div><div class="av-node-foot"><span class="av-chip is-new">NEW v1.7 · gated</span></div></a>
+          </div></div>
+        </div>
+
+        <!-- AI-NATIVE (v1.5) -->
+        <div class="av-band" data-phase="ai">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--ai)"></span>
+            <span class="av-band-label">AI-NATIVE</span><span class="av-band-of">v1.5 · build-adjacent</span>
+            <span class="av-band-skills"><span class="av-mini">claude-api</span><span class="av-mini">rag-forge</span><span class="av-mini">agent-forge</span><span class="av-mini">prompt-ops</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-claude-api" style="--accent:var(--ai)"><div class="av-node-head"><span class="av-node-name">oc-claude-api</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · Advisor</div><div class="av-node-cmd">/oc-claude-api</div></a>
+            <a class="av-node" href="/skills/oc-rag-forge" style="--accent:var(--ai)"><div class="av-node-head"><span class="av-node-name">oc-rag-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Designer/Builder/Evaluator</div><div class="av-node-cmd">/oc-rag · vector DB</div></a>
+            <a class="av-node" href="/skills/oc-agent-forge" style="--accent:var(--ai)"><div class="av-node-head"><span class="av-node-name">oc-agent-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Planner/Builder/Evaluator</div><div class="av-node-cmd">/oc-agent · Agent SDK</div></a>
+            <a class="av-node" href="/skills/oc-prompt-ops" style="--accent:var(--ai)"><div class="av-node-head"><span class="av-node-name">oc-prompt-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · prompt-as-code</div><div class="av-node-cmd">/oc-prompt · eval · regression</div></a>
+          </div></div>
+        </div>
+
+        <!-- BUILD -->
+        <div class="av-band is-new" data-phase="build">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--yellow)"></span>
+            <span class="av-band-label">BUILD</span><span class="av-band-of">4 of 6</span>
+            <span class="av-band-skills"><span class="av-mini">ux-engineer</span><span class="av-mini">dash-forge</span><span class="av-mini">api-dev</span><span class="av-mini">integrations</span><span class="av-mini is-new">signal-forge</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-ux-engineer" style="--accent:var(--yellow)"><div class="av-node-head"><span class="av-node-name">oc-ux-engineer</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Planner/Generator/Evaluator</div><div class="av-node-cmd">/oc-uxe · /oc-design</div></a>
+            <a class="av-node" href="/skills/oc-dash-forge" style="--accent:var(--mint)" data-chain="signals"><div class="av-node-head"><span class="av-node-name">oc-dash-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · Tufte-density UI</div><div class="av-node-cmd">/oc-data-forge · renders signals</div></a>
+            <a class="av-node" href="/skills/oc-api-dev" style="--accent:var(--yellow)"><div class="av-node-head"><span class="av-node-name">oc-api-dev</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · OpenAPI / GraphQL</div><div class="av-node-cmd">/oc-api · design · sdk</div></a>
+            <a class="av-node" href="/skills/oc-integrations-engineer" style="--accent:var(--yellow)"><div class="av-node-head"><span class="av-node-name">oc-integrations-engineer</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Planner/Builder/Tester</div><div class="av-node-cmd">/oc-integrate · OAuth · webhooks</div></a>
+            <a class="av-node av-new" href="/skills/oc-signal-forge" style="--accent:var(--sig)" data-chain="signals"><div class="av-node-head"><span class="av-node-name">oc-signal-forge</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Designer / Builder / Evaluator</div><div class="av-node-cmd">/oc-signal · frame · verify · wire</div><div class="av-node-foot"><span class="av-chip is-new">NEW v1.7 · gated</span></div></a>
+          </div></div>
+        </div>
+
+        <!-- SHIP -->
+        <div class="av-band is-new" data-phase="ship">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--rose)"></span>
+            <span class="av-band-label">SHIP</span><span class="av-band-of">5 of 6 · 3 audit gates</span>
+            <span class="av-band-skills"><span class="av-band-ordinal">↑4·5·↓6</span><span class="av-mini">bug-check</span><span class="av-mini">git-ops</span><span class="av-mini">release-ops</span><span class="av-mini">code-auditor</span><span class="av-mini">security-auditor</span><span class="av-mini">deploy-ops</span><span class="av-mini is-new">fleet-ops</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-bug-check" style="--accent:var(--rose)"><div class="av-node-head"><span class="av-node-name">oc-bug-check</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Audit gate · pre-commit</div><div class="av-node-cmd">/oc-bugcheck</div></a>
+            <a class="av-node" href="/skills/oc-git-ops" style="--accent:var(--mint)"><div class="av-node-head"><span class="av-node-name">oc-git-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · Workflow</div><div class="av-node-cmd">/oc-git · /oc-commit · /oc-pr</div></a>
+            <a class="av-node" href="/skills/oc-release-ops" style="--accent:var(--mint)"><div class="av-node-head"><span class="av-node-name">oc-release-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · release-boundary</div><div class="av-node-cmd">/oc-release</div></a>
+            <a class="av-node" href="/skills/oc-code-auditor" style="--accent:var(--yellow)"><div class="av-node-head"><span class="av-node-name">oc-code-auditor</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Tri-agent · Auditor/Fixer/Verifier</div><div class="av-node-cmd">/oc-audit · ≥7/10</div></a>
+            <a class="av-node" href="/skills/oc-security-auditor" style="--accent:var(--rose)"><div class="av-node-head"><span class="av-node-name">oc-security-auditor</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Audit gate · posture</div><div class="av-node-cmd">/oc-security · STRIDE · OWASP</div></a>
+            <a class="av-node" href="/skills/oc-deploy-ops" style="--accent:var(--ember)" data-chain="seams"><div class="av-node-head"><span class="av-node-name">oc-deploy-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Orchestrator · Workflow</div><div class="av-node-cmd">/oc-deploy · managed PaaS</div><div class="av-node-foot"><span class="av-chip is-new">↔ peer of fleet-ops</span></div></a>
+            <a class="av-node av-new" href="/skills/oc-fleet-ops" style="--accent:var(--sig)" data-chain="seams"><div class="av-node-head"><span class="av-node-name">oc-fleet-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · gated ops</div><div class="av-node-cmd">/oc-fleet · provision · deploy</div><div class="av-node-foot"><span class="av-chip is-new">NEW v1.7 · gated</span></div></a>
+          </div></div>
+        </div>
+
+        <!-- MONITOR -->
+        <div class="av-band" data-phase="monitor">
+          <button class="av-band-head" data-toggle="band" aria-expanded="false">
+            <span class="av-band-bar" style="background:var(--mint)"></span>
+            <span class="av-band-label">MONITOR</span><span class="av-band-of">6 of 6</span>
+            <span class="av-band-skills"><span class="av-band-ordinal">↑5·6</span><span class="av-mini">monitoring-ops</span></span>
+            <span class="av-caret">▸</span>
+          </button>
+          <div class="av-band-detail"><div class="av-nodes">
+            <a class="av-node" href="/skills/oc-monitoring-ops" style="--accent:var(--mint)" data-chain="signals"><div class="av-node-head"><span class="av-node-name">oc-monitoring-ops</span><span class="av-badges"><span class="av-badge">CP</span><span class="av-badge">ORC</span></span></div><div class="av-node-role">Specialist · observability</div><div class="av-node-cmd">/oc-monitor · enforces signal freshness SLA · fleet health</div></a>
+          </div></div>
+        </div>
+
+        <!-- instrumentation rail (v1.6) -->
+        <div class="av-inst" style="margin-top:12px">
+          <span class="av-inst-lab">v1.6 · cross-cutting · instrument rail (unchanged)</span>
+          <span class="av-found-pill"><span class="fp-tag">$</span><span class="fp-name">oc-cost-ops</span><span class="fp-desc">/oc-cost · per-phase attribution</span></span>
+          <span class="av-found-pill"><span class="fp-tag">USE</span><span class="fp-name">oc-telemetry-ops</span><span class="fp-desc">/oc-telemetry · OFF</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="v-foot"><div class="note"><b>Why this one:</b> it sells the release narrative — the two new throughlines are the headline, rendered as flow rather than buried in a spine. The 6-band reference strip keeps all <code>27 skills</code> one click away, so reviewers never lose the full map while the <code>Signals</code> and <code>Seams</code> stories carry the page.</div></div>
+  </div>
+
+  <!-- ════════════════════════════════ MOBILE ════════════════════════════════ -->
+  <div class="section-head">
+    <div class="skind">Mobile · /architecture ≤767px · static</div>
+    <h2>Mobile — 4 ways (static)</h2>
+    <p>Faithful to <code>site/src/components/MobileArchitecture.astro</code>: 390pt frame, vertical reading order, spine ordinals, “no JS / no animations.” All four are <b>static</b> — bands render already-expanded; nothing toggles. Header eyebrow → <b>MOBILE · v1.7</b>, subtitle → <b>27 skills · 6 phases</b>.</p>
+  </div>
+
+  <!-- ===== M1 — faithful collapsible bands, rendered static (REFERENCE) ===== -->
+  <div class="variant" id="v-m1">
+    <div class="v-head">
+      <div class="v-tag">M1</div>
+      <div class="v-meta">
+        <h3>Faithful band stack</h3>
+        <p class="sub">The production mobile stack, static and already-open. Foundation pills, then the 6 phase bands top-to-bottom with the 3 new skills magenta-marked in place. The “ship it” mobile candidate.</p>
+        <div class="v-flags">
+          <span class="flag keep">Matches production mobile exactly</span>
+          <span class="flag keep">No JS — pure static, perf-safe</span>
+          <span class="flag trade">Long scroll; new chains are footnotes</span>
+        </div>
+      </div>
+    </div>
+    <div class="v-stage">
+      <div class="av-phone">
+        <div class="ma-h">Skills · Architecture · Mobile · v1.7</div>
+        <div class="ma-title">opchain skills ecosystem</div>
+        <p class="ma-sub">Checkpoint-driven · <b>27 skills</b> · 6 phases · 8 tri-agent · 3 audit gates · Seams &amp; Signals</p>
+        <div class="ma-dc">
+          <div class="ma-found">
+            <div class="ma-found-lab">Foundation · cross-cutting</div>
+            <div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag">PROTOCOL</span><span class="ma-name">oc-checkpoint-protocol</span></div><div class="ma-desc">phase · progress · blockers · next_actions · wire 1.1 (unchanged)</div></div>
+            <div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag">ORCH</span><span class="ma-name">oc-orchestrator</span></div><div class="ma-desc"><code>/oc-ops</code> · routing · gate enforcement</div></div>
+          </div>
+
+          <div class="ma-band"><div class="ma-bsum"><span class="ma-bnum">1</span><span class="ma-btitle">Discover</span><span class="ma-bof">Phase 1 of 6</span></div>
+            <div class="ma-bbody"><div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag spec">SPEC</span><span class="ma-name">oc-reverse-spec</span></div><div class="ma-desc"><code>/oc-rev-spec</code> · reverse-engineer code → specs</div></div></div></div>
+
+          <div class="ma-band is-new"><div class="ma-bsum"><span class="ma-bnum">2</span><span class="ma-btitle">Plan</span><span class="ma-bof">Phase 2 of 6</span></div>
+            <div class="ma-bbody">
+              <div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag tri">TRI</span><span class="ma-name">oc-app-architect</span></div><div class="ma-desc"><code>/oc-app</code> · idea → spec → build · auto-invokes signal-forge (Phase 2)</div></div>
+              <div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag adv">ADV</span><span class="ma-name">oc-stack-forge</span><span class="ma-tag adv">ADV</span><span class="ma-name">oc-scale-ops</span></div><div class="ma-desc">advisors · stack decision · capacity / replica targets</div></div>
+              <div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag spec">SPEC</span><span class="ma-name">oc-migration-ops</span></div><div class="ma-desc"><code>/oc-migrate</code> · Structural cutover (receives modularize handoff)</div></div>
+              <div class="ma-pill is-new"><div class="ma-pill-row"><span class="ma-tag is-new">NEW</span><span class="ma-name">oc-modularize-ops</span><span class="ma-chip is-new">v1.7 · gated</span></div><div class="ma-desc"><code>/oc-modularize</code> · decompose a monolith with provable zero loss · golden fixtures · can say “don’t”</div></div>
+            </div></div>
+
+          <div class="ma-band"><div class="ma-bsum"><span class="ma-bnum" style="background:rgba(167,139,250,.16);color:var(--ai);border-color:var(--ai)">✦</span><span class="ma-btitle">AI-native</span><span class="ma-bof">v1.5</span></div>
+            <div class="ma-bbody"><div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag ai">AI</span><span class="ma-name">claude-api · rag-forge · agent-forge · prompt-ops</span></div><div class="ma-desc">auto-invoked when discovery flags an AI app</div></div></div></div>
+
+          <div class="ma-band is-new"><div class="ma-bsum"><span class="ma-bnum">4</span><span class="ma-btitle">Build</span><span class="ma-bof">Phase 4 of 6</span></div>
+            <div class="ma-bbody">
+              <div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag tri">TRI</span><span class="ma-name">ux-engineer · api-dev · integrations</span></div><div class="ma-desc">tri-agent build skills</div></div>
+              <div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag spec">SPEC</span><span class="ma-name">oc-dash-forge</span></div><div class="ma-desc"><code>/oc-data-forge</code> · renders validated signals from signal-forge</div></div>
+              <div class="ma-pill is-new"><div class="ma-pill-row"><span class="ma-tag is-new">NEW</span><span class="ma-name">oc-signal-forge</span><span class="ma-chip is-new">v1.7 · gated · tri-agent</span></div><div class="ma-desc"><code>/oc-signal</code> · question → trustworthy metric · instrument · harvest · prove it answers the question · wire</div></div>
+            </div></div>
+
+          <div class="ma-band is-new"><div class="ma-bsum"><span class="ma-bnum">5</span><span class="ma-btitle">Ship</span><span class="ma-bof">Phase 5 of 6 · 3 gates</span></div>
+            <div class="ma-bbody">
+              <div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag gate">GATE</span><span class="ma-name">bug-check · code-auditor · security-auditor</span></div><div class="ma-desc">3 audit gates</div></div>
+              <div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag spec">SPEC</span><span class="ma-name">git-ops · release-ops</span><span class="ma-tag" style="background:rgba(224,92,24,.14);color:var(--ember)">ORCH</span><span class="ma-name">deploy-ops</span></div><div class="ma-desc">deploy-ops = managed PaaS · <b style="color:var(--sig-b)">peer of fleet-ops</b></div></div>
+              <div class="ma-pill is-new"><div class="ma-pill-row"><span class="ma-tag is-new">NEW</span><span class="ma-name">oc-fleet-ops</span><span class="ma-chip is-new">v1.7 · gated</span></div><div class="ma-desc"><code>/oc-fleet</code> · provision + operate containers on self-managed infra (k8s · Nomad · Compose · VMs) · deploy-ops peer</div></div>
+            </div></div>
+
+          <div class="ma-band"><div class="ma-bsum"><span class="ma-bnum">6</span><span class="ma-btitle">Monitor</span><span class="ma-bof">Phase 6 of 6</span></div>
+            <div class="ma-bbody"><div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag spec">SPEC</span><span class="ma-name">oc-monitoring-ops</span></div><div class="ma-desc"><code>/oc-monitor</code> · enforces signal freshness SLA · watches fleet health</div></div></div></div>
+
+          <div class="ma-foot-note">＋ v1.7 throughlines · Signals: app-architect→signal-forge→dash-forge/monitoring · Seams: modularize→migration→fleet</div>
+        </div>
+      </div>
+    </div>
+    <div class="v-foot"><div class="note"><b>Why this one ships:</b> identical to production mobile, static, no JS — the three new pills drop into Plan/Build/Ship and the magenta carries the “new” signal without any layout change.</div></div>
+  </div>
+
+  <!-- ===== M2 PLACEHOLDER ===== -->
+  <div class="variant" id="v-m2">
+    <div class="v-head">
+      <div class="v-tag">M2</div>
+      <div class="v-meta">
+        <h3>“What’s new in 1.7” delta card</h3>
+        <p class="sub">The 1.7 delta is the hero above the fold: a magenta card stacks the 3 new skills plus both throughlines first. The full 27-skill roster sits one scroll below as condensed phase bands. Static — bands render already-open, no JS.</p>
+        <div class="v-flags">
+          <span class="flag keep">Delta is the hero, above the fold</span>
+          <span class="flag keep">Phone-first emphasis</span>
+          <span class="flag trade">Duplicates skills (card + roster)</span>
+        </div>
+      </div>
+    </div>
+    <div class="v-stage">
+      <div class="av-phone">
+        <div class="ma-h">Skills · Architecture · Mobile · v1.7</div>
+        <div class="ma-title">What’s new in “Seams &amp; Signals”</div>
+        <p class="ma-sub">Checkpoint-driven · <b>27 skills</b> · 6 phases · 8 tri-agent · 3 audit gates · Seams &amp; Signals</p>
+        <div class="ma-dc">
+
+          <!-- ── HERO: the v1.7 delta card ── -->
+          <div class="ma-band is-new" aria-label="What is new in v1.7">
+            <div class="ma-bsum"><span class="ma-bnum is-new">＋</span><span class="ma-btitle">NEW in v1.7</span><span class="ma-bof">24 → 27</span></div>
+            <div class="ma-bbody">
+
+              <div class="ma-pill is-new"><div class="ma-pill-row"><span class="ma-tag is-new">NEW</span><span class="ma-name">oc-signal-forge</span><span class="ma-chip is-new">NEW v1.7 · gated</span></div><div class="ma-desc"><code>/oc-signal · frame · verify · wire</code> · Question → trustworthy metric: instrument · harvest · <b style="color:var(--sig-b)">prove it answers the question</b> · wire. Backend only. Tri-agent · Build phase. <span style="color:var(--tm)">CP · ORC</span></div></div>
+
+              <div class="ma-pill is-new"><div class="ma-pill-row"><span class="ma-tag is-new">NEW</span><span class="ma-name">oc-modularize-ops</span><span class="ma-chip is-new">NEW v1.7 · gated</span></div><div class="ma-desc"><code>/oc-modularize · assess · verify</code> · Decompose a monolith with <b style="color:var(--sig-b)">provable zero loss</b> — golden fixtures from REAL data; willing to say “don’t.” Specialist · gated ops · Plan → Build. <span style="color:var(--tm)">CP · ORC</span></div></div>
+
+              <div class="ma-pill is-new"><div class="ma-pill-row"><span class="ma-tag is-new">NEW</span><span class="ma-name">oc-fleet-ops</span><span class="ma-chip is-new">NEW v1.7 · gated</span></div><div class="ma-desc"><code>/oc-fleet · provision · deploy</code> · Provision + operate containers across <b style="color:var(--sig-b)">self-managed infra</b> (k8s/Nomad/Compose/VMs). deploy-ops <b style="color:var(--sig-b)">peer</b>. Specialist · gated ops · Ship phase. <span style="color:var(--tm)">CP · ORC</span></div></div>
+
+              <!-- two throughlines as short step lists -->
+              <p class="ma-rail-lab" style="margin-top:13px">Signals throughline</p>
+              <div class="ma-step"><span class="n">1</span><span><b style="color:var(--tp)">oc-app-architect</b> auto-invokes (08-analytics.md)</span></div>
+              <div class="ma-step"><span class="n">2</span><span><b style="color:var(--sig-b)">oc-signal-forge</b> builds the trustworthy metric</span></div>
+              <div class="ma-step"><span class="n">3</span><span><b style="color:var(--tp)">oc-dash-forge</b> renders it · <b style="color:var(--tp)">oc-monitoring-ops</b> holds the freshness SLA</span></div>
+
+              <p class="ma-rail-lab" style="margin-top:11px">Seams throughline</p>
+              <div class="ma-step"><span class="n">1</span><span><b style="color:var(--sig-b)">oc-modularize-ops</b> decomposes with proof</span></div>
+              <div class="ma-step"><span class="n">2</span><span><b style="color:var(--tp)">oc-migration-ops</b> (Structural) cuts the seams over</span></div>
+              <div class="ma-step"><span class="n">3</span><span><b style="color:var(--sig-b)">oc-fleet-ops</b> deploys the modules · <b style="color:var(--tp)">deploy-ops</b> ↔ peer · <b style="color:var(--tp)">scale-ops</b> → replica targets</span></div>
+
+            </div>
+          </div>
+
+          <!-- ── full 27-skill roster, condensed ── -->
+          <div class="ma-band"><div class="ma-bsum"><span class="ma-bnum">1</span><span class="ma-btitle">Discover</span><span class="ma-bof">Phase 1 of 6</span></div>
+            <div class="ma-bbody"><div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag spec">SPEC</span><span class="ma-name">oc-reverse-spec</span></div><div class="ma-desc"><code>/oc-rev-spec</code> · reverse-engineer code → specs</div></div></div></div>
+
+          <div class="ma-band is-new"><div class="ma-bsum"><span class="ma-bnum is-new">2</span><span class="ma-btitle">Plan</span><span class="ma-bof">Phase 2 of 6 · +1 new</span></div>
+            <div class="ma-bbody"><div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag tri">TRI</span><span class="ma-name">app-architect</span><span class="ma-tag adv">ADV</span><span class="ma-name">stack-forge · scale-ops</span><span class="ma-tag spec">SPEC</span><span class="ma-name">migration-ops</span></div><div class="ma-desc">spec · stack + capacity advisors · Structural migration · <b style="color:var(--sig-b)">＋ oc-modularize-ops</b> <span class="ma-chip is-new">NEW v1.7 · gated</span></div></div></div></div>
+
+          <div class="ma-band"><div class="ma-bsum"><span class="ma-bnum" style="background:rgba(167,139,250,.16);color:var(--ai);border-color:var(--ai)">✦</span><span class="ma-btitle">AI-native</span><span class="ma-bof">v1.5 · build-adjacent</span></div>
+            <div class="ma-bbody"><div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag ai">AI</span><span class="ma-name">claude-api · rag-forge · agent-forge · prompt-ops</span></div><div class="ma-desc">auto-invoked when discovery flags an AI app</div></div></div></div>
+
+          <div class="ma-band is-new"><div class="ma-bsum"><span class="ma-bnum is-new">4</span><span class="ma-btitle">Build</span><span class="ma-bof">Phase 4 of 6 · +1 new</span></div>
+            <div class="ma-bbody"><div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag tri">TRI</span><span class="ma-name">ux-engineer · api-dev · integrations</span><span class="ma-tag spec">SPEC</span><span class="ma-name">dash-forge</span></div><div class="ma-desc">tri-agent build skills · dash-forge renders signals · <b style="color:var(--sig-b)">＋ oc-signal-forge</b> <span class="ma-chip is-new">NEW v1.7 · gated · tri-agent</span></div></div></div></div>
+
+          <div class="ma-band is-new"><div class="ma-bsum"><span class="ma-bnum is-new">5</span><span class="ma-btitle">Ship</span><span class="ma-bof">Phase 5 of 6 · 3 gates · +1 new</span></div>
+            <div class="ma-bbody"><div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag gate">GATE</span><span class="ma-name">bug-check · code-auditor · security-auditor</span><span class="ma-tag spec">SPEC</span><span class="ma-name">git-ops · release-ops</span><span class="ma-tag" style="background:rgba(224,92,24,.14);color:var(--ember)">ORCH</span><span class="ma-name">deploy-ops</span></div><div class="ma-desc">3 audit gates · deploy-ops = managed PaaS · <b style="color:var(--sig-b)">＋ oc-fleet-ops</b> <span class="ma-chip is-new">NEW v1.7 · gated · deploy-ops peer</span></div></div></div></div>
+
+          <div class="ma-band"><div class="ma-bsum"><span class="ma-bnum">6</span><span class="ma-btitle">Monitor</span><span class="ma-bof">Phase 6 of 6</span></div>
+            <div class="ma-bbody"><div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag spec">SPEC</span><span class="ma-name">oc-monitoring-ops</span></div><div class="ma-desc"><code>/oc-monitor</code> · enforces signal freshness SLA · watches fleet health</div></div></div></div>
+
+          <div class="ma-foot-note">Foundation: checkpoint-protocol (wire 1.1) · orchestrator · Instrument rail (v1.6): cost-ops · telemetry-ops (OFF)</div>
+        </div>
+      </div>
+    </div>
+    <div class="v-foot"><div class="note"><b>Why this one:</b> a reader who already knows v1.6 only needs the diff — this puts the three new magenta skills and both throughlines first, then the unchanged 27-skill map one scroll down. Trade-off: the new skills appear twice (hero card + roster).</div></div>
+  </div>
+
+  <!-- ===== M3 PLACEHOLDER ===== -->
+  <div class="variant" id="v-m3">
+    <div class="v-head">
+      <div class="v-tag">M3</div>
+      <div class="v-meta">
+        <h3>Throughline step-lists</h3>
+        <p class="sub">Leads with the two new chains as numbered step rows — Signals, then Seams — so a thumb-scroller learns the v1.7 story first. The full 6-phase spine follows as a compact roster so all 27 skills are still present. Static, no JS.</p>
+        <div class="v-flags">
+          <span class="flag keep">Teaches the two new chains as steps</span>
+          <span class="flag keep">Linear, thumb-scrollable</span>
+          <span class="flag trade">Spine shown only as roster</span>
+        </div>
+      </div>
+    </div>
+    <div class="v-stage">
+      <div class="av-phone">
+        <div class="ma-h">Skills · Architecture · Mobile · v1.7</div>
+        <div class="ma-title">Two new throughlines</div>
+        <p class="ma-sub"><b>27 skills</b> · 6 phases · two new chains</p>
+        <div class="ma-dc">
+
+          <!-- foundation -->
+          <div class="ma-found">
+            <div class="ma-found-lab">Foundation · cross-cutting</div>
+            <div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag">PROTOCOL</span><span class="ma-name">oc-checkpoint-protocol</span></div><div class="ma-desc">phase · progress · blockers · next_actions · wire 1.1 (unchanged)</div></div>
+            <div class="ma-pill"><div class="ma-pill-row"><span class="ma-tag">ORCH</span><span class="ma-name">oc-orchestrator</span></div><div class="ma-desc"><code>/oc-ops</code> · routing · gate enforcement</div></div>
+          </div>
+
+          <!-- THROUGHLINE 1 · SIGNALS -->
+          <div class="ma-band is-new">
+            <div class="ma-bsum"><span class="ma-bnum is-new">1</span><span class="ma-btitle">Signals</span><span class="ma-bof">build · BUILD phase</span></div>
+            <div class="ma-bbody">
+              <p class="ma-rail-lab">Signals · question → trustworthy metric</p>
+              <div class="ma-step"><span class="n">1</span><span><b style="color:var(--tp)">oc-app-architect</b> · reads <code>08-analytics.md</code> → auto-invokes signal-forge</span></div>
+              <div class="ma-step"><span class="n">2</span><span><b style="color:var(--sig-b)">oc-signal-forge</b> <span class="ma-chip is-new">NEW v1.7 · gated</span></span></div>
+              <div class="ma-pill is-new"><div class="ma-pill-row"><span class="ma-tag is-new">NEW</span><span class="ma-name"><a class="av-link" href="/skills/oc-signal-forge">oc-signal-forge</a></span><span class="ma-chip is-new">CP</span><span class="ma-chip is-new">ORC</span></div><div class="ma-desc">Tri-agent · Designer / Builder / Evaluator · <code>/oc-signal · frame · verify · wire</code> — frame · build · <b style="color:var(--sig-b)">prove it answers the question</b> · wire. Backend only.</div></div>
+              <div class="ma-step"><span class="n">3a</span><span><b style="color:var(--tp)">oc-dash-forge</b> · <code>/oc-data-forge</code> renders the validated signal</span></div>
+              <div class="ma-step"><span class="n">3b</span><span><b style="color:var(--tp)">oc-monitoring-ops</b> · <code>/oc-monitor</code> enforces the freshness SLA</span></div>
+            </div>
+          </div>
+
+          <!-- THROUGHLINE 2 · SEAMS -->
+          <div class="ma-band is-new">
+            <div class="ma-bsum"><span class="ma-bnum is-new">2</span><span class="ma-btitle">Seams</span><span class="ma-bof">PLAN → SHIP</span></div>
+            <div class="ma-bbody">
+              <p class="ma-rail-lab">Seams · decompose → cutover → operate</p>
+              <div class="ma-step"><span class="n">1</span><span><b style="color:var(--sig-b)">oc-modularize-ops</b> <span class="ma-chip is-new">NEW v1.7 · gated</span></span></div>
+              <div class="ma-pill is-new"><div class="ma-pill-row"><span class="ma-tag is-new">NEW</span><span class="ma-name"><a class="av-link" href="/skills/oc-modularize-ops">oc-modularize-ops</a></span><span class="ma-chip is-new">CP</span><span class="ma-chip is-new">ORC</span></div><div class="ma-desc">Specialist · gated ops · <code>/oc-modularize · assess · verify</code> — assess · characterize · verify. Provable zero loss · golden fixtures from REAL data · willing to say "don't."</div></div>
+              <div class="ma-step"><span class="n">2</span><span><b style="color:var(--tp)">oc-migration-ops</b> · <code>/oc-migrate</code> Structural cutover (receives the modularize handoff)</span></div>
+              <div class="ma-step"><span class="n">3</span><span><b style="color:var(--sig-b)">oc-fleet-ops</b> <span class="ma-chip is-new">NEW v1.7 · gated</span></span></div>
+              <div class="ma-pill is-new"><div class="ma-pill-row"><span class="ma-tag is-new">NEW</span><span class="ma-name"><a class="av-link" href="/skills/oc-fleet-ops">oc-fleet-ops</a></span><span class="ma-chip is-new">CP</span><span class="ma-chip is-new">ORC</span></div><div class="ma-desc">Specialist · gated ops · <code>/oc-fleet · provision · deploy</code> — provision · deploy containers on self-managed infra (k8s · Nomad · Compose · VMs).</div></div>
+              <div class="ma-foot-note">oc-fleet-ops <span aria-hidden="true">&#8596;</span> peer oc-deploy-ops (managed PaaS) · oc-scale-ops → advisory (replica targets) → fleet-ops</div>
+            </div>
+          </div>
+
+          <!-- REMAINING ROSTER · all 27 present -->
+          <div class="ma-band">
+            <div class="ma-bsum"><span class="ma-bnum" aria-hidden="true">＝</span><span class="ma-btitle">Full roster</span><span class="ma-bof">6-phase spine · 27 skills</span></div>
+            <div class="ma-bbody">
+              <div class="ma-roster">
+                <div class="ma-rgrouplab">Discover · phase 1</div>
+                <div class="ma-rcell" style="--accent:var(--mint)">oc-reverse-spec</div>
+                <div class="ma-rcell" style="--accent:var(--mint)"><span style="color:var(--tm)">/oc-rev-spec</span></div>
+
+                <div class="ma-rgrouplab">Plan · phase 2</div>
+                <div class="ma-rcell" style="--accent:var(--yellow)">oc-app-architect</div>
+                <div class="ma-rcell" style="--accent:var(--cyan)">oc-stack-forge</div>
+                <div class="ma-rcell" style="--accent:var(--cyan)">oc-scale-ops</div>
+                <div class="ma-rcell" style="--accent:var(--mint)">oc-migration-ops</div>
+                <div class="ma-rcell is-new">oc-modularize-ops <span aria-hidden="true">✦</span></div>
+
+                <div class="ma-rgrouplab">AI-native · v1.5</div>
+                <div class="ma-rcell" style="--accent:var(--ai)">oc-claude-api</div>
+                <div class="ma-rcell" style="--accent:var(--ai)">oc-rag-forge</div>
+                <div class="ma-rcell" style="--accent:var(--ai)">oc-agent-forge</div>
+                <div class="ma-rcell" style="--accent:var(--ai)">oc-prompt-ops</div>
+
+                <div class="ma-rgrouplab">Build · phase 4</div>
+                <div class="ma-rcell" style="--accent:var(--yellow)">oc-ux-engineer</div>
+                <div class="ma-rcell" style="--accent:var(--mint)">oc-dash-forge</div>
+                <div class="ma-rcell" style="--accent:var(--yellow)">oc-api-dev</div>
+                <div class="ma-rcell" style="--accent:var(--yellow)">oc-integrations-engineer</div>
+                <div class="ma-rcell is-new">oc-signal-forge <span aria-hidden="true">✦</span></div>
+
+                <div class="ma-rgrouplab">Ship · phase 5 · 3 gates</div>
+                <div class="ma-rcell" style="--accent:var(--rose)">oc-bug-check</div>
+                <div class="ma-rcell" style="--accent:var(--mint)">oc-git-ops</div>
+                <div class="ma-rcell" style="--accent:var(--mint)">oc-release-ops</div>
+                <div class="ma-rcell" style="--accent:var(--yellow)">oc-code-auditor</div>
+                <div class="ma-rcell" style="--accent:var(--rose)">oc-security-auditor</div>
+                <div class="ma-rcell" style="--accent:var(--ember)">oc-deploy-ops</div>
+                <div class="ma-rcell is-new">oc-fleet-ops <span aria-hidden="true">✦</span></div>
+
+                <div class="ma-rgrouplab">Monitor · phase 6</div>
+                <div class="ma-rcell" style="--accent:var(--mint)">oc-monitoring-ops</div>
+
+                <div class="ma-rgrouplab">Instrument rail · v1.6</div>
+                <div class="ma-rcell" style="--accent:var(--inst)">oc-cost-ops</div>
+                <div class="ma-rcell" style="--accent:var(--inst)">oc-telemetry-ops · OFF</div>
+              </div>
+              <div class="ma-foot-note">23 phase/AI + 2 foundation + 2 instrument = 27 · ✦ = NEW v1.7 (magenta)</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="v-foot"><div class="note"><b>Why this one:</b> it front-loads the v1.7 narrative — a reader meets <code>signal-forge</code>, <code>modularize-ops</code>, and <code>fleet-ops</code> as numbered steps in the two new chains before the full spine appears as a scan-able roster. The trade is that the 6-phase ordering reads as a flat grid rather than the production band stack.</div></div>
+  </div>
+
+  <!-- ===== M4 PLACEHOLDER ===== -->
+  <div class="variant" id="v-m4">
+    <div class="v-head">
+      <div class="v-tag">M4</div>
+      <div class="v-meta">
+        <h3>Compact roster grid</h3>
+        <p class="sub">Every one of the 27 skills as a dense 2-column chip grid — grouped by phase, accent-coded, with the three v1.7 additions magenta-marked. An inventory you can scan top-to-bottom in one screen; no edges, no flow.</p>
+        <div class="v-flags">
+          <span class="flag keep">Entire 27-skill catalog at a glance</span>
+          <span class="flag keep">New skills instantly findable</span>
+          <span class="flag trade">Inventory only — no flow/edges</span>
+        </div>
+      </div>
+    </div>
+    <div class="v-stage">
+      <div class="av-phone">
+        <div class="ma-h">Skills · Architecture · Mobile · v1.7</div>
+        <div class="ma-title">opchain skills · full roster</div>
+        <p class="ma-sub"><b>27 skills</b> · 6 phases · whole catalog at a glance</p>
+        <div class="ma-dc">
+          <p style="font-size:9.5px;color:var(--tm);margin:0 0 11px;line-height:1.45">Static inventory — accent = skill stroke color · <span style="color:var(--sig-b)">magenta = NEW v1.7 · gated</span> (CP·ORC on every skill).</p>
+
+          <div class="ma-roster" role="list" aria-label="All 27 opchain skills grouped by phase, with the three new v1.7 skills marked in magenta">
+
+            <div class="ma-rgrouplab" style="margin-top:0">Foundation · cross-cutting</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--ember)"><b class="ma-name" style="font-size:10px">checkpoint-protocol</b><br>PROTOCOL · wire 1.1</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--ember)"><b class="ma-name" style="font-size:10px">orchestrator</b><br>ORCH · /oc-ops</div>
+
+            <div class="ma-rgrouplab">Discover · phase 1</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--mint)"><b class="ma-name" style="font-size:10px">reverse-spec</b><br>Specialist · /oc-rev-spec</div>
+
+            <div class="ma-rgrouplab">Plan · phase 2</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--yellow)"><b class="ma-name" style="font-size:10px">app-architect</b><br>Tri-agent · /oc-app</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--cyan)"><b class="ma-name" style="font-size:10px">stack-forge</b><br>Advisor · /oc-stack-decide</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--cyan)"><b class="ma-name" style="font-size:10px">scale-ops</b><br>Advisor · /oc-scale</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--mint)"><b class="ma-name" style="font-size:10px">migration-ops</b><br>Specialist · /oc-migrate</div>
+            <a class="ma-rcell is-new" role="listitem" href="/skills/oc-modularize-ops" style="--accent:var(--sig);text-decoration:none;display:block"><b class="ma-name" style="font-size:10px;color:var(--sig-b)">modularize-ops</b> <span class="ma-chip is-new">NEW v1.7 · gated</span><br>/oc-modularize · provable zero loss</a>
+
+            <div class="ma-rgrouplab">AI-native · v1.5 · build-adjacent</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--ai)"><b class="ma-name" style="font-size:10px">claude-api</b><br>Specialist · /oc-claude-api</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--ai)"><b class="ma-name" style="font-size:10px">rag-forge</b><br>Tri-agent · /oc-rag</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--ai)"><b class="ma-name" style="font-size:10px">agent-forge</b><br>Tri-agent · /oc-agent</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--ai)"><b class="ma-name" style="font-size:10px">prompt-ops</b><br>Specialist · /oc-prompt</div>
+
+            <div class="ma-rgrouplab">Build · phase 4</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--yellow)"><b class="ma-name" style="font-size:10px">ux-engineer</b><br>Tri-agent · /oc-uxe</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--mint)"><b class="ma-name" style="font-size:10px">dash-forge</b><br>Specialist · /oc-data-forge</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--yellow)"><b class="ma-name" style="font-size:10px">api-dev</b><br>Tri-agent · /oc-api</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--yellow)"><b class="ma-name" style="font-size:10px">integrations-engineer</b><br>Tri-agent · /oc-integrate</div>
+            <a class="ma-rcell is-new" role="listitem" href="/skills/oc-signal-forge" style="--accent:var(--sig);text-decoration:none;display:block"><b class="ma-name" style="font-size:10px;color:var(--sig-b)">signal-forge</b> <span class="ma-chip is-new">NEW v1.7 · gated</span><br>/oc-signal · prove it answers the question</a>
+
+            <div class="ma-rgrouplab">Ship · phase 5 · 3 gates</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--rose)"><b class="ma-name" style="font-size:10px">bug-check</b><br>Audit gate · /oc-bugcheck</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--mint)"><b class="ma-name" style="font-size:10px">git-ops</b><br>Specialist · /oc-git</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--mint)"><b class="ma-name" style="font-size:10px">release-ops</b><br>Specialist · /oc-release</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--yellow)"><b class="ma-name" style="font-size:10px">code-auditor</b><br>Tri-agent · /oc-audit</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--rose)"><b class="ma-name" style="font-size:10px">security-auditor</b><br>Audit gate · /oc-security</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--ember)"><b class="ma-name" style="font-size:10px">deploy-ops</b><br>Orchestrator · /oc-deploy</div>
+            <a class="ma-rcell is-new" role="listitem" href="/skills/oc-fleet-ops" style="--accent:var(--sig);text-decoration:none;display:block"><b class="ma-name" style="font-size:10px;color:var(--sig-b)">fleet-ops</b> <span class="ma-chip is-new">NEW v1.7 · gated</span><br>/oc-fleet · self-managed infra · deploy-ops peer</a>
+
+            <div class="ma-rgrouplab">Monitor · phase 6</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--mint)"><b class="ma-name" style="font-size:10px">monitoring-ops</b><br>Specialist · /oc-monitor · freshness SLA</div>
+
+            <div class="ma-rgrouplab">Instrument · v1.6 · cross-cutting</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--inst)"><b class="ma-name" style="font-size:10px">cost-ops</b><br>/oc-cost · per-phase attribution</div>
+            <div class="ma-rcell" role="listitem" style="--accent:var(--inst)"><b class="ma-name" style="font-size:10px">telemetry-ops</b><br>/oc-telemetry · OFF</div>
+
+          </div>
+
+          <div class="ma-foot-note">27 skills · +3 in v1.7 · Signals: app-architect→signal-forge→dash-forge/monitoring · Seams: modularize→migration→fleet</div>
+        </div>
+      </div>
+    </div>
+    <div class="v-foot"><div class="note"><b>Why this one:</b> when you just need to <b>find</b> a skill, not trace a flow. The magenta cells make the three v1.7 additions pop out of the inventory instantly; phase group labels keep the reading order honest. Pairs well with a flow-oriented desktop pick — this is the index, that is the map.</div></div>
+  </div>
+
+  <div class="foot">
+    <b>opchain v1.7 “Seams &amp; Signals” · architecture-diagram proposals.</b>
+    8 options — 4 desktop (interactive) + 4 mobile (static). Generated by <code>oc-app-architect</code> design phase +
+    <code>oc-ux-engineer</code> Design Evaluator. Pick one desktop + one mobile direction; the chosen pair becomes the
+    implementation punch list for <code>architecture.astro</code> + <code>MobileArchitecture.astro</code>.
+  </div>
+</div>
+
+<script>
+/* Shared interaction controller — band expand/collapse, delta overlay, chain highlight.
+   Pure event-delegation; every variant uses data-toggle hooks, no per-variant JS. */
+(function(){
+  function board(el){ var v = el.closest('.variant'); return (v && v.querySelector('.av-board')) || el.closest('.av-board'); }
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('[data-toggle]'); if(!t) return;
+    var kind = t.getAttribute('data-toggle');
+    if(kind==='band'){
+      var b = t.closest('.av-band'); if(!b) return;
+      var open = b.classList.toggle('is-open'); t.setAttribute('aria-expanded', open?'true':'false');
+    } else if(kind==='delta'){
+      var bd = board(t); if(!bd) return;
+      var on = bd.classList.toggle('show-delta'); bd.classList.remove('hi-signals','hi-seams');
+      t.classList.toggle('is-on', on); t.setAttribute('aria-pressed', on?'true':'false');
+    } else if(kind==='chain'){
+      var bd2 = board(t); if(!bd2) return; var chain = t.getAttribute('data-chain'); var cls='hi-'+chain;
+      var was = bd2.classList.contains(cls); bd2.classList.remove('hi-signals','hi-seams','show-delta');
+      var sib = t.parentNode.querySelectorAll('[data-toggle="chain"]'); sib.forEach(function(s){s.classList.remove('is-on');s.setAttribute('aria-pressed','false');});
+      if(!was){ bd2.classList.add(cls); t.classList.add('is-on'); t.setAttribute('aria-pressed','true'); }
+    }
+  });
+  document.addEventListener('keydown', function(e){
+    if((e.key==='Enter'||e.key===' ') && e.target.matches && e.target.matches('[data-toggle]')){ e.preventDefault(); e.target.click(); }
+  });
+})();
+</script>
+</body>
+</html>
