@@ -82,18 +82,41 @@ def iso_week(d: dt.datetime):
 
 def main():
     repo = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
+    repo_basename = os.path.basename(repo)               # e.g. "opchain"
     proj_dir_name = repo.replace("/", "-").replace(".", "-")
     home = os.path.expanduser("~")
-    proj_dir = os.path.join(home, ".claude", "projects", proj_dir_name)
-    if not os.path.isdir(proj_dir):
-        print(f"FATAL: projects dir not found: {proj_dir}", file=sys.stderr)
+    projects_root = os.path.join(home, ".claude", "projects")
+    exact = os.path.join(projects_root, proj_dir_name)
+
+    # "All chats in the repo": every Claude Code project dir that resolves to THIS
+    # repo, regardless of which machine / checkout path produced it. Claude keys
+    # each project dir by the session's absolute repo path with '/' and '.' -> '-',
+    # so a checkout at /home/user/opchain and one at /Users/me/repos/opchain produce
+    # two different dirs that both end in '-opchain'. Match the exact current-path
+    # dir plus any sibling whose decoded path basename equals this repo's basename.
+    # endswith('-<basename>') excludes sibling repos like '...-opchain-skills'.
+    candidate_dirs = []
+    if os.path.isdir(projects_root):
+        for name in sorted(os.listdir(projects_root)):
+            full = os.path.join(projects_root, name)
+            if not os.path.isdir(full):
+                continue
+            if name == proj_dir_name or name.endswith("-" + repo_basename):
+                candidate_dirs.append(full)
+    if os.path.isdir(exact) and exact not in candidate_dirs:
+        candidate_dirs.append(exact)
+    if not candidate_dirs:
+        print(f"FATAL: no project dirs for repo '{repo_basename}' under {projects_root}", file=sys.stderr)
         sys.exit(2)
 
-    jsonls = sorted(
-        os.path.join(proj_dir, f) for f in os.listdir(proj_dir) if f.endswith(".jsonl")
-    )
-    if not jsonls:
-        print(f"FATAL: no .jsonl session files under {proj_dir}", file=sys.stderr)
+    jsonls = []
+    scanned_dirs = []
+    for d in candidate_dirs:
+        files = sorted(os.path.join(d, f) for f in os.listdir(d) if f.endswith(".jsonl"))
+        scanned_dirs.append({"dir": d, "session_files": len(files)})
+        jsonls.extend(files)
+    if not any(s["session_files"] for s in scanned_dirs):
+        print(f"FATAL: no .jsonl session files under: {', '.join(candidate_dirs)}", file=sys.stderr)
         sys.exit(2)
 
     # ---- git tags (release windows) ----
@@ -132,6 +155,7 @@ def main():
     # ---- parse all assistant entries ----
     entries = []
     unpriced_models = set()
+    seen_entry_ids = set()  # idempotent across dirs/files (entry_id = session+line)
     for path in jsonls:
         with open(path) as fh:
             for idx, raw in enumerate(fh):
@@ -177,6 +201,9 @@ def main():
                 session_id = o.get("sessionId") or os.path.basename(path).replace(".jsonl", "")
                 branch = o.get("gitBranch")
                 entry_id = hashlib.sha256(f"{session_id}:{idx}".encode()).hexdigest()[:16]
+                if entry_id in seen_entry_ids:
+                    continue  # same session seen via another dir/file — count once
+                seen_entry_ids.add(entry_id)
 
                 cost = entry_cost(fam, u_in, u_out, u_cread, cw_5m, cw_1h)
 
@@ -448,6 +475,12 @@ def main():
     md.append("- **Cache pricing:** cache-read = 0.10× input; cache-write = 1.25× input for 5-minute TTL, 2.0× input for 1-hour TTL. All cache writes in this dataset are 1-hour.")
     md.append("- **No git tags exist**, so every entry falls in the `unreleased` window.")
     md.append("- **Live-session caveat:** the only transcript is the session that produced this report. It necessarily measures itself up to the moment of generation; assistant turns spent generating/committing the report afterward are not captured.")
+    _present = [s for s in scanned_dirs if s["session_files"]]
+    _cov = "; ".join(f"`{os.path.basename(s['dir'])}` ({s['session_files']})" for s in _present) or "none"
+    md.append(
+        f"- **Chat coverage (all chats for this repo):** scanned every Claude project dir resolving to `{repo_basename}` across checkout paths — {len(scanned_dirs)} dir(s) checked, with session files in: {_cov}. "
+        "Only chats run against this repo in *this* environment are present; historical development chats created on another machine (a different absolute checkout path) live under a different project dir not synced into this ephemeral container. Re-running picks up any that appear, deduped by `entry_id`."
+    )
     if unpriced_models:
         md.append(f"- **Unpriced models (flagged, cost shown as `$… *`):** {', '.join(sorted(unpriced_models))} — not in the pricing table; tokens counted, cost not estimated.")
     md.append("- All timestamps UTC. Costs are estimates from list prices, not a billing statement.")
@@ -526,7 +559,12 @@ def main():
         "generated_at": GEN_ISO,
         "schema_version": SCHEMA_VERSION,
         "repo": repo,
-        "projects_dir": proj_dir,
+        "projects_dir": exact,
+        "chat_coverage": {
+            "scope": f"all Claude project dirs resolving to repo basename '{repo_basename}', any checkout path",
+            "dirs_scanned": scanned_dirs,
+            "session_files_total": sum(s["session_files"] for s in scanned_dirs),
+        },
         "session_count": len(by_session),
         "entry_count": len(entries),
         "date_range": {"start": date_start, "end": date_end},
@@ -551,7 +589,8 @@ def main():
             "ephemeral_5m_tokens": sum(e["cache_write_5m"] for e in entries),
         },
         "caveats": [
-            "Single transcript = the live session generating this report; it measures itself up to generation time.",
+            "Chat coverage is repo-scoped: every Claude project dir resolving to this repo's basename is scanned, not just the current container path. Only chats run in this environment are physically present; historical dev chats from another machine/checkout path are not synced into this ephemeral container.",
+            "Single transcript present = the live session generating this report; it measures itself up to generation time.",
             "No git tags exist; all entries bucket to 'unreleased'.",
             "Development branch has no PR at report time; per-message and session-dominant PR modes are identical.",
             "All cache writes are 1-hour ephemeral, priced at 2.0x input.",

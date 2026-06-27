@@ -1,13 +1,23 @@
 {
-  "generated_at": "2026-06-26T23:52:02+00:00",
+  "generated_at": "2026-06-27T05:09:38+00:00",
   "schema_version": "1.0",
   "repo": "/home/user/opchain",
   "projects_dir": "/root/.claude/projects/-home-user-opchain",
+  "chat_coverage": {
+    "scope": "all Claude project dirs resolving to repo basename 'opchain', any checkout path",
+    "dirs_scanned": [
+      {
+        "dir": "/root/.claude/projects/-home-user-opchain",
+        "session_files": 1
+      }
+    ],
+    "session_files_total": 1
+  },
   "session_count": 1,
-  "entry_count": 49,
+  "entry_count": 146,
   "date_range": {
     "start": "2026-06-26T23:43:36.737000+00:00",
-    "end": "2026-06-26T23:52:01.833000+00:00"
+    "end": "2026-06-27T05:09:37.681000+00:00"
   },
   "pricing_version": "anthropic-list-current-2026-06-26",
   "pricing": {
@@ -47,11 +57,12 @@
   "git_tags": [],
   "divergence": [],
   "cache_write_split": {
-    "ephemeral_1h_tokens": 1242386,
+    "ephemeral_1h_tokens": 2470356,
     "ephemeral_5m_tokens": 0
   },
   "caveats": [
-    "Single transcript = the live session generating this report; it measures itself up to generation time.",
+    "Chat coverage is repo-scoped: every Claude project dir resolving to this repo's basename is scanned, not just the current container path. Only chats run in this environment are physically present; historical dev chats from another machine/checkout path are not synced into this ephemeral container.",
+    "Single transcript present = the live session generating this report; it measures itself up to generation time.",
     "No git tags exist; all entries bucket to 'unreleased'.",
     "Development branch has no PR at report time; per-message and session-dominant PR modes are identical.",
     "All cache writes are 1-hour ephemeral, priced at 2.0x input."
