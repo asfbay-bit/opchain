@@ -1,36 +1,34 @@
 {
-  "generated_at": "2026-06-28T04:34:44+00:00",
-  "schema_version": "1.0",
+  "generated_at": "2026-06-28T21:28:27Z",
+  "schema_version": "1.1",
   "repo": "/Users/aidanelsesser/repos/opchain",
-  "projects_dir": "/Users/aidanelsesser/.claude/projects/-Users-aidanelsesser-repos-opchain",
-  "chat_coverage": {
-    "scope": "all Claude project dirs on this machine resolving to repo basename 'opchain' \u2014 main checkout plus linked worktrees under it",
-    "dirs_scanned": [
-      {
-        "dir": "/Users/aidanelsesser/.claude/projects/-Users-aidanelsesser-repos-opchain",
-        "session_files": 3
-      },
-      {
-        "dir": "/Users/aidanelsesser/.claude/projects/-Users-aidanelsesser-repos-opchain--claude-worktrees-nostalgic-wiles-a1b9a8",
-        "session_files": 1
-      },
-      {
-        "dir": "/Users/aidanelsesser/.claude/projects/-Users-aidanelsesser-repos-opchain--claude-worktrees-wizardly-hamilton-8ccf05",
-        "session_files": 1
-      }
-    ],
-    "session_files_total": 5
+  "discovery": {
+    "method": "cwd field inside each transcript (spec Step 1); folder names NOT used",
+    "transcripts_scanned_machine_wide": 27,
+    "manifest": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/silly-tu-56b768/reports/token-usage/sessions.manifest",
+    "files_in_manifest": 6,
+    "files_processed": 6,
+    "files_failed": [],
+    "assistant_lines_scanned": 1054,
+    "distinct_messages": 317,
+    "entries_written": 317,
+    "dedup": "Claude Code writes one line per assistant content block, each repeating the message's cumulative usage. Usage counted once per (sessionId, message.id); 0 messages had a conflicting usage tuple. Per-line summing inflates output ~13.9x, cache-write ~17x."
   },
-  "session_count": 5,
-  "entry_count": 879,
+  "session_count": 6,
+  "entry_count": 317,
   "date_range": {
     "start": "2026-05-26T01:15:35.389000+00:00",
-    "end": "2026-06-28T04:34:44.150000+00:00"
+    "end": "2026-06-28T21:28:24.683000+00:00"
   },
-  "pricing_version": "anthropic-list-current-2026-06-26",
   "pricing": {
-    "basis": "current Anthropic list pricing (user-selected over the stale pasted block)",
+    "version": "anthropic-list-2026-06-28",
+    "verified_on": "2026-06-28",
+    "source": "skills/oc-claude-api/references/{model-routing,prompt-caching}.md",
     "per_million_tokens": {
+      "claude-fable-5": {
+        "input": 10.0,
+        "output": 50.0
+      },
       "claude-opus-4-x": {
         "input": 5.0,
         "output": 25.0
@@ -42,10 +40,6 @@
       "claude-haiku-4-x": {
         "input": 1.0,
         "output": 5.0
-      },
-      "claude-fable-5": {
-        "input": 10.0,
-        "output": 50.0
       }
     },
     "cache_read_multiplier_on_input": 0.1,
@@ -62,61 +56,85 @@
     "<synthetic>"
   ],
   "pr_resolution": {
-    "method": "gh CLI (`gh pr list --head <branch> --state all`), local environment",
+    "method": "gh CLI (`gh pr list --state all --head <branch>`), local environment",
     "branch_to_pr": {
-      "design/changelog-layout-options": {
-        "number": 257,
-        "title": "design: 4 changelog side-by-side layout options",
+      "claude/changelog-v15-roadmap": {
+        "createdAt": "2026-05-31T03:07:34Z",
+        "mergedAt": "2026-05-31T03:22:11Z",
+        "number": 245,
         "state": "MERGED",
-        "mergedAt": "2026-06-05T21:50:29Z"
+        "title": "feat(changelog): v1.5/v1.6/v1.7 roadmap + curated static timeline"
+      },
+      "claude/nostalgic-wiles-a1b9a8": null,
+      "claude/silly-tu-56b768": null,
+      "claude/wizardly-hamilton-8ccf05": {
+        "createdAt": "2026-06-28T04:37:09Z",
+        "mergedAt": "2026-06-28T20:44:03Z",
+        "number": 362,
+        "state": "MERGED",
+        "title": "docs(reports): regenerate token report from full local chat history"
       },
       "design/changelog-c-v2-polish": {
+        "createdAt": "2026-06-06T01:17:43Z",
+        "mergedAt": "2026-06-19T15:12:01Z",
         "number": 263,
-        "title": "design(changelog): round 2-3 layout explorations \u2014 bidirectional takeover + full-width tabs",
         "state": "MERGED",
-        "mergedAt": "2026-06-19T15:12:01Z"
+        "title": "design(changelog): round 2-3 layout explorations \u2014 bidirectional takeover + full-width tabs"
       },
-      "claude/changelog-v15-roadmap": {
+      "design/changelog-layout-options": {
+        "createdAt": "2026-06-05T20:52:10Z",
+        "mergedAt": "2026-06-05T21:50:29Z",
+        "number": 257,
+        "state": "MERGED",
+        "title": "design: 4 changelog side-by-side layout options"
+      }
+    },
+    "on_main_inference": "nearest merged PR within 14 days; else unattributed",
+    "merged_prs_for_inference": [
+      {
         "number": 245,
-        "title": "feat(changelog): v1.5/v1.6/v1.7 roadmap + curated static timeline",
-        "state": "MERGED",
-        "mergedAt": "2026-05-31T03:22:11Z"
+        "merged": "2026-05-31T03:22:11+00:00"
       },
-      "claude/wizardly-hamilton-8ccf05": null,
-      "claude/nostalgic-wiles-a1b9a8": null
-    }
+      {
+        "number": 257,
+        "merged": "2026-06-05T21:50:29+00:00"
+      },
+      {
+        "number": 263,
+        "merged": "2026-06-19T15:12:01+00:00"
+      },
+      {
+        "number": 362,
+        "merged": "2026-06-28T20:44:03+00:00"
+      }
+    ]
   },
   "git_tags": [],
+  "changelog_release_windows": [
+    {
+      "version": "v1.4",
+      "opened": "2026-05-12T11:52:27+00:00"
+    },
+    {
+      "version": "v1.6",
+      "opened": "2026-06-25T18:16:11+00:00"
+    },
+    {
+      "version": "v1.7",
+      "opened": "2026-06-26T23:10:05+00:00"
+    }
+  ],
+  "divergence_basis": "abs % diff = |permessage - session_dominant| / max(the two), per PR number; flagged when > 20%. Relative to the PR's own attributed cost, not total spend.",
   "divergence": [
     {
-      "pr": "#263 design(changelog): round 2-3 layout explorations \u2014 bidirectional takeover + full-width tabs",
-      "permessage_cost_usd": 2.521529,
+      "pr": "#263",
+      "permessage_cost_usd": 1.189272,
       "session_dominant_cost_usd": 0.0,
       "abs_pct_diff": 100.0
-    },
-    {
-      "pr": "#245 feat(changelog): v1.5/v1.6/v1.7 roadmap + curated static timeline",
-      "permessage_cost_usd": 174.999667,
-      "session_dominant_cost_usd": 0.0,
-      "abs_pct_diff": 100.0
-    },
-    {
-      "pr": "#257 design: 4 changelog side-by-side layout options",
-      "permessage_cost_usd": 10.241243,
-      "session_dominant_cost_usd": 15.662374,
-      "abs_pct_diff": 34.6
     }
   ],
   "cache_write_split": {
-    "ephemeral_1h_tokens": 68385464,
+    "ephemeral_1h_tokens": 4116125,
     "ephemeral_5m_tokens": 0
-  },
-  "caveats": [
-    "Chat coverage is repo-scoped: every Claude project dir on this machine resolving to the repo basename \u2014 the main checkout plus any linked worktrees under it \u2014 is scanned and deduped by entry_id. Chats created on a different machine live under a project dir not present on this filesystem and are not included.",
-    "5 transcripts included; the most recent is the live report-generating session (measures itself up to generation time) and the other 4 are complete.",
-    "No git tags exist; all entries bucket to 'unreleased'.",
-    "3 PR(s) differ by >20% of est. cost between per-message and session-dominant attribution; see the divergence list.",
-    "All cache writes are 1-hour ephemeral, priced at 2.0x input.",
-    "Unpriced models flagged (tokens counted, cost not estimated): <synthetic>."
-  ]
+  }
 }

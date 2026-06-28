@@ -1,0 +1,53 @@
+{
+  "_note": "Retroactive one-shot export shaped to the oc-telemetry-ops /dashboard contract. NOT sourced from .checkpoints/usage.sqlite (opt-in, content-free, can't be backfilled) \u2014 derived from Claude Code session transcripts. Interactive sessions are not skill runs, so pipeline/skill fields are null.",
+  "generated_at": "2026-06-28T21:28:27Z",
+  "k_anonymity_threshold": 5,
+  "model_tier_distribution": {
+    "opus": {
+      "entries": 222,
+      "total_tokens": 37694214,
+      "cost_usd": 66.397048,
+      "pct_of_total_cost": 89.92
+    },
+    "sonnet": {
+      "entries": 94,
+      "total_tokens": 10242650,
+      "cost_usd": 7.443796,
+      "pct_of_total_cost": 10.08
+    },
+    "other": {
+      "entries": 1,
+      "total_tokens": 0,
+      "cost_usd": 0.0,
+      "pct_of_total_cost": 0.0
+    }
+  },
+  "avg_cost_per_feature_usd": 15.898582,
+  "feature_definition": "merged PR (per-message attribution); merged PRs in window: #245, #257, #263, #362",
+  "weekly_buckets": {
+    "2026-W26": {
+      "entries": 102,
+      "total_tokens": 14279578,
+      "cost_usd": 15.140817
+    },
+    "2026-W23": {
+      "entries": 94,
+      "total_tokens": 10242650,
+      "cost_usd": 7.443796
+    },
+    "2026-W22": {
+      "entries": 121,
+      "total_tokens": 23414636,
+      "cost_usd": 51.256231
+    }
+  },
+  "totals": {
+    "cost_usd": 73.840844,
+    "total_tokens": 47936864,
+    "entries": 317
+  },
+  "pipelines_run": null,
+  "by_skill": null,
+  "eval_score_trend": null,
+  "_null_fields_note": "pipelines_run / by_skill / eval_score_trend are N/A for interactive CC traffic (no skill semantics to fake)."
+}
