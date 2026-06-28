@@ -1,0 +1,45 @@
+{
+  "protocol_version": "1.1",
+  "skill": "oc-cost-ops",
+  "project": "opchain.dev",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "created_at": "2026-06-28T21:01:52Z",
+  "updated_at": "2026-06-28T21:28:27Z",
+  "phase": "analysis",
+  "step": "retro-token-audit",
+  "status": "complete",
+  "progress_summary": "Retro token+cost audit of 6 Claude Code session(s) (317 assistant entries, 2026-05-26T01:15:35.389000+00:00 \u2192 2026-06-28T21:28:24.683000+00:00). Grand est. cost $73.8408 on current Anthropic list pricing. Full breakdowns (model/chat/PR/release) live in reports/token-usage/.",
+  "next_actions": [
+    "Re-run reports/token-usage/generate.py weekly; entry_id keys make it append-safe.",
+    "Set budget_usd in this checkpoint to gate future spend via /oc-cost gate."
+  ],
+  "cost": {
+    "currency": "USD",
+    "total_usd": 73.840844,
+    "by_phase": {
+      "interactive": 73.840844
+    },
+    "by_model": {
+      "claude-opus-4-8": 60.855914,
+      "claude-sonnet-4-6": 7.443796,
+      "claude-opus-4-7": 5.541134,
+      "<synthetic>": 0.0
+    },
+    "tokens": {
+      "input": 106572,
+      "output": 622538
+    },
+    "updated_at": "2026-06-28T21:28:27Z"
+  },
+  "skill_state": {
+    "token_buckets": {
+      "input_fresh": 106572,
+      "output": 622538,
+      "cache_read": 43091629,
+      "cache_write": 4116125,
+      "total": 47936864
+    },
+    "report_dir": "reports/token-usage",
+    "pricing_version": "anthropic-list-2026-06-28"
+  }
+}
