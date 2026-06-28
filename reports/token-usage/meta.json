@@ -1,0 +1,70 @@
+{
+  "generated_at": "2026-06-27T05:09:38+00:00",
+  "schema_version": "1.0",
+  "repo": "/home/user/opchain",
+  "projects_dir": "/root/.claude/projects/-home-user-opchain",
+  "chat_coverage": {
+    "scope": "all Claude project dirs resolving to repo basename 'opchain', any checkout path",
+    "dirs_scanned": [
+      {
+        "dir": "/root/.claude/projects/-home-user-opchain",
+        "session_files": 1
+      }
+    ],
+    "session_files_total": 1
+  },
+  "session_count": 1,
+  "entry_count": 146,
+  "date_range": {
+    "start": "2026-06-26T23:43:36.737000+00:00",
+    "end": "2026-06-27T05:09:37.681000+00:00"
+  },
+  "pricing_version": "anthropic-list-current-2026-06-26",
+  "pricing": {
+    "basis": "current Anthropic list pricing (user-selected over the stale pasted block)",
+    "per_million_tokens": {
+      "claude-opus-4-x": {
+        "input": 5.0,
+        "output": 25.0
+      },
+      "claude-sonnet-4-x": {
+        "input": 3.0,
+        "output": 15.0
+      },
+      "claude-haiku-4-x": {
+        "input": 1.0,
+        "output": 5.0
+      },
+      "claude-fable-5": {
+        "input": 10.0,
+        "output": 50.0
+      }
+    },
+    "cache_read_multiplier_on_input": 0.1,
+    "cache_write_5m_multiplier_on_input": 1.25,
+    "cache_write_1h_multiplier_on_input": 2.0
+  },
+  "model_family_mapping": {
+    "claude-opus-4-8": "claude-opus-4-x"
+  },
+  "unpriced_models": [],
+  "pr_resolution": {
+    "method": "github-mcp (gh CLI unavailable)",
+    "branch_to_pr": {
+      "claude/token-analysis-prompt-xis8j8": null
+    }
+  },
+  "git_tags": [],
+  "divergence": [],
+  "cache_write_split": {
+    "ephemeral_1h_tokens": 2470356,
+    "ephemeral_5m_tokens": 0
+  },
+  "caveats": [
+    "Chat coverage is repo-scoped: every Claude project dir resolving to this repo's basename is scanned, not just the current container path. Only chats run in this environment are physically present; historical dev chats from another machine/checkout path are not synced into this ephemeral container.",
+    "Single transcript present = the live session generating this report; it measures itself up to generation time.",
+    "No git tags exist; all entries bucket to 'unreleased'.",
+    "Development branch has no PR at report time; per-message and session-dominant PR modes are identical.",
+    "All cache writes are 1-hour ephemeral, priced at 2.0x input."
+  ]
+}

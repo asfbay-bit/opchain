@@ -112,3 +112,6 @@ npm-debug.log*
 .vscode/
 .idea/
 .DS_Store
+
+# Python bytecode from reports/token-usage/generate.py
+reports/token-usage/__pycache__/
