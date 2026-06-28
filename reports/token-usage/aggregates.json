@@ -2,72 +2,234 @@
   "by_model": [
     {
       "model": "claude-opus-4-8",
-      "pct_of_total_cost": 100.0,
-      "cost_usd": 49.818874,
-      "cache_read_tokens": 38083427,
-      "cache_write_tokens": 2470356,
-      "input_tokens": 41680,
-      "output_tokens": 234608,
-      "total_tokens": 40830071
+      "pct_of_total_cost": 96.47,
+      "cost_usd": 903.921636,
+      "cache_read_tokens": 99644663,
+      "cache_write_tokens": 66738630,
+      "input_tokens": 465556,
+      "output_tokens": 7375409,
+      "total_tokens": 174224258
+    },
+    {
+      "model": "claude-opus-4-7",
+      "pct_of_total_cost": 1.85,
+      "cost_usd": 17.370682,
+      "cache_read_tokens": 12692274,
+      "cache_write_tokens": 753207,
+      "input_tokens": 53085,
+      "output_tokens": 129082,
+      "total_tokens": 13627648
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "pct_of_total_cost": 1.67,
+      "cost_usd": 15.662374,
+      "cache_read_tokens": 17179154,
+      "cache_write_tokens": 893627,
+      "input_tokens": 207,
+      "output_tokens": 343083,
+      "total_tokens": 18416071
+    },
+    {
+      "model": "<synthetic>",
+      "pct_of_total_cost": 0.0,
+      "cost_usd": 0.0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0
     }
   ],
   "by_session": [
     {
-      "session_id": "41037e38-edd2-51b5-bea5-53fa66b1eb87",
-      "first_ts": "2026-06-26T23:43:36.737000+00:00",
-      "last_ts": "2026-06-27T05:09:37.681000+00:00",
-      "dominant_branch": "claude/token-analysis-prompt-xis8j8",
-      "pct_of_total_cost": 100.0,
-      "cost_usd": 49.818874,
-      "cache_read_tokens": 38083427,
-      "cache_write_tokens": 2470356,
-      "input_tokens": 41680,
-      "output_tokens": 234608,
-      "total_tokens": 40830071
+      "session_id": "ec79f7c4-ac0c-45e0-91bc-7a2c9a4d7098",
+      "first_ts": "2026-05-31T02:55:37.144000+00:00",
+      "last_ts": "2026-05-31T03:43:32.924000+00:00",
+      "dominant_branch": "main",
+      "pct_of_total_cost": 92.18,
+      "cost_usd": 863.717666,
+      "cache_read_tokens": 62533613,
+      "cache_write_tokens": 65627489,
+      "input_tokens": 279689,
+      "output_tokens": 6991101,
+      "total_tokens": 135431892
+    },
+    {
+      "session_id": "2e8201ef-73de-431d-b009-848815d3142c",
+      "first_ts": "2026-05-26T01:15:35.389000+00:00",
+      "last_ts": "2026-05-31T03:22:33.046000+00:00",
+      "dominant_branch": "main",
+      "pct_of_total_cost": 4.78,
+      "cost_usd": 44.771217,
+      "cache_read_tokens": 42177025,
+      "cache_write_tokens": 1468019,
+      "input_tokens": 77848,
+      "output_tokens": 344531,
+      "total_tokens": 44067423
+    },
+    {
+      "session_id": "24c401f6-8903-4e6c-80b5-543e8485b06b",
+      "first_ts": "2026-06-05T20:44:39.757000+00:00",
+      "last_ts": "2026-06-06T01:17:47.998000+00:00",
+      "dominant_branch": "design/changelog-layout-options",
+      "pct_of_total_cost": 1.67,
+      "cost_usd": 15.662374,
+      "cache_read_tokens": 17179154,
+      "cache_write_tokens": 893627,
+      "input_tokens": 207,
+      "output_tokens": 343083,
+      "total_tokens": 18416071
+    },
+    {
+      "session_id": "bdb6c4f8-25f6-4e06-99ed-21c5d15b43e5",
+      "first_ts": "2026-06-28T04:18:10.676000+00:00",
+      "last_ts": "2026-06-28T04:34:44.150000+00:00",
+      "dominant_branch": "claude/wizardly-hamilton-8ccf05",
+      "pct_of_total_cost": 1.25,
+      "cost_usd": 11.676939,
+      "cache_read_tokens": 7547307,
+      "cache_write_tokens": 347029,
+      "input_tokens": 70104,
+      "output_tokens": 163299,
+      "total_tokens": 8127739
+    },
+    {
+      "session_id": "6d92b43e-6132-4751-aeb7-02a9196b9f67",
+      "first_ts": "2026-06-28T04:27:57.293000+00:00",
+      "last_ts": "2026-06-28T04:28:01.220000+00:00",
+      "dominant_branch": "claude/nostalgic-wiles-a1b9a8",
+      "pct_of_total_cost": 0.12,
+      "cost_usd": 1.126496,
+      "cache_read_tokens": 78992,
+      "cache_write_tokens": 49300,
+      "input_tokens": 91000,
+      "output_tokens": 5560,
+      "total_tokens": 224852
     }
   ],
   "by_pr_permessage": [
     {
-      "pr": "claude/token-analysis-prompt-xis8j8 [no PR]",
-      "pct_of_total_cost": 100.0,
-      "cost_usd": 49.818874,
-      "cache_read_tokens": 38083427,
-      "cache_write_tokens": 2470356,
-      "input_tokens": 41680,
-      "output_tokens": 234608,
-      "total_tokens": 40830071
+      "pr": "unattributed (main/no-branch)",
+      "pct_of_total_cost": 78.59,
+      "cost_usd": 736.388819,
+      "cache_read_tokens": 77724744,
+      "cache_write_tokens": 55950880,
+      "input_tokens": 351073,
+      "output_tokens": 5527814,
+      "total_tokens": 139554511
+    },
+    {
+      "pr": "#245 feat(changelog): v1.5/v1.6/v1.7 roadmap + curated static timeline",
+      "pct_of_total_cost": 18.68,
+      "cost_usd": 174.999667,
+      "cache_read_tokens": 28082164,
+      "cache_write_tokens": 11395534,
+      "input_tokens": 6494,
+      "output_tokens": 1878831,
+      "total_tokens": 41363023
+    },
+    {
+      "pr": "claude/wizardly-hamilton-8ccf05 [no PR]",
+      "pct_of_total_cost": 1.25,
+      "cost_usd": 11.676939,
+      "cache_read_tokens": 7547307,
+      "cache_write_tokens": 347029,
+      "input_tokens": 70104,
+      "output_tokens": 163299,
+      "total_tokens": 8127739
+    },
+    {
+      "pr": "#257 design: 4 changelog side-by-side layout options",
+      "pct_of_total_cost": 1.09,
+      "cost_usd": 10.241243,
+      "cache_read_tokens": 10589088,
+      "cache_write_tokens": 595486,
+      "input_tokens": 137,
+      "output_tokens": 232746,
+      "total_tokens": 11417457
+    },
+    {
+      "pr": "#263 design(changelog): round 2-3 layout explorations \u2014 bidirectional takeover + full-width tabs",
+      "pct_of_total_cost": 0.27,
+      "cost_usd": 2.521529,
+      "cache_read_tokens": 5493796,
+      "cache_write_tokens": 47235,
+      "input_tokens": 40,
+      "output_tokens": 39324,
+      "total_tokens": 5580395
+    },
+    {
+      "pr": "claude/nostalgic-wiles-a1b9a8 [no PR]",
+      "pct_of_total_cost": 0.12,
+      "cost_usd": 1.126496,
+      "cache_read_tokens": 78992,
+      "cache_write_tokens": 49300,
+      "input_tokens": 91000,
+      "output_tokens": 5560,
+      "total_tokens": 224852
     }
   ],
   "by_pr_session_dominant": [
     {
-      "pr": "claude/token-analysis-prompt-xis8j8 [no PR]",
-      "pct_of_total_cost": 100.0,
-      "cost_usd": 49.818874,
-      "cache_read_tokens": 38083427,
-      "cache_write_tokens": 2470356,
-      "input_tokens": 41680,
-      "output_tokens": 234608,
-      "total_tokens": 40830071
+      "pr": "unattributed (main/no-branch)",
+      "pct_of_total_cost": 96.96,
+      "cost_usd": 908.488884,
+      "cache_read_tokens": 104710638,
+      "cache_write_tokens": 67095508,
+      "input_tokens": 357537,
+      "output_tokens": 7335632,
+      "total_tokens": 179499315
+    },
+    {
+      "pr": "#257 design: 4 changelog side-by-side layout options",
+      "pct_of_total_cost": 1.67,
+      "cost_usd": 15.662374,
+      "cache_read_tokens": 17179154,
+      "cache_write_tokens": 893627,
+      "input_tokens": 207,
+      "output_tokens": 343083,
+      "total_tokens": 18416071
+    },
+    {
+      "pr": "claude/wizardly-hamilton-8ccf05 [no PR]",
+      "pct_of_total_cost": 1.25,
+      "cost_usd": 11.676939,
+      "cache_read_tokens": 7547307,
+      "cache_write_tokens": 347029,
+      "input_tokens": 70104,
+      "output_tokens": 163299,
+      "total_tokens": 8127739
+    },
+    {
+      "pr": "claude/nostalgic-wiles-a1b9a8 [no PR]",
+      "pct_of_total_cost": 0.12,
+      "cost_usd": 1.126496,
+      "cache_read_tokens": 78992,
+      "cache_write_tokens": 49300,
+      "input_tokens": 91000,
+      "output_tokens": 5560,
+      "total_tokens": 224852
     }
   ],
   "by_release": [
     {
       "release": "unreleased",
       "pct_of_total_cost": 100.0,
-      "cost_usd": 49.818874,
-      "cache_read_tokens": 38083427,
-      "cache_write_tokens": 2470356,
-      "input_tokens": 41680,
-      "output_tokens": 234608,
-      "total_tokens": 40830071
+      "cost_usd": 936.954693,
+      "cache_read_tokens": 129516091,
+      "cache_write_tokens": 68385464,
+      "input_tokens": 518848,
+      "output_tokens": 7847574,
+      "total_tokens": 206267977
     }
   ],
   "totals": {
-    "input_tokens": 41680,
-    "output_tokens": 234608,
-    "cache_read_tokens": 38083427,
-    "cache_write_tokens": 2470356,
-    "total_tokens": 40830071,
-    "cost_usd": 49.818874
+    "input_tokens": 518848,
+    "output_tokens": 7847574,
+    "cache_read_tokens": 129516091,
+    "cache_write_tokens": 68385464,
+    "total_tokens": 206267977,
+    "cost_usd": 936.954693
   }
 }

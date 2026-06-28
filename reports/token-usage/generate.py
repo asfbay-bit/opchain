@@ -32,14 +32,20 @@ CACHE_WRITE_1H_MULT = 2.00   # 1-hour  ephemeral cache write
 
 SCHEMA_VERSION = "1.0"
 
-# Branch -> PR resolution, supplied by the caller after querying the GitHub MCP
-# server (no `gh` CLI in this environment). Empty value => branch has no PR.
+# Branch -> PR resolution, supplied by the caller via the `gh` CLI (available in
+# this local environment). Empty value => branch has no PR at report time.
 # Each value: {"number": int, "title": str, "state": str, "mergedAt": str|None}
 BRANCH_PR = {
-    # The development branch for this task has no PR at report time.
-    "claude/token-analysis-prompt-xis8j8": None,
+    # Resolved with `gh pr list --head <branch> --state all` at report time.
+    "design/changelog-layout-options": {"number": 257, "title": "design: 4 changelog side-by-side layout options", "state": "MERGED", "mergedAt": "2026-06-05T21:50:29Z"},
+    "design/changelog-c-v2-polish": {"number": 263, "title": "design(changelog): round 2-3 layout explorations — bidirectional takeover + full-width tabs", "state": "MERGED", "mergedAt": "2026-06-19T15:12:01Z"},
+    "claude/changelog-v15-roadmap": {"number": 245, "title": "feat(changelog): v1.5/v1.6/v1.7 roadmap + curated static timeline", "state": "MERGED", "mergedAt": "2026-05-31T03:22:11Z"},
+    # The current worktree branch has no PR yet at report-generation time.
+    "claude/wizardly-hamilton-8ccf05": None,
+    # A sibling worktree branch present in the local history; no PR (gh returns []).
+    "claude/nostalgic-wiles-a1b9a8": None,
 }
-GH_RESOLVED_VIA = "github-mcp (gh CLI unavailable)"
+GH_RESOLVED_VIA = "gh CLI (`gh pr list --head <branch> --state all`), local environment"
 
 MAIN_BRANCHES = {"main", "master", None, ""}
 
@@ -82,26 +88,47 @@ def iso_week(d: dt.datetime):
 
 def main():
     repo = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
-    repo_basename = os.path.basename(repo)               # e.g. "opchain"
-    proj_dir_name = repo.replace("/", "-").replace(".", "-")
+    # `repo` is the current toplevel, which is a *linked worktree* when this runs
+    # inside one (e.g. <repo>/.claude/worktrees/<name>). Resolve the canonical main
+    # worktree so the repo basename is the real repo name ("opchain") and not the
+    # worktree's directory name — otherwise discovery keys off the wrong basename
+    # and misses the main checkout's chat history. `git worktree list` always
+    # emits the main worktree first.
+    main_repo = repo
+    try:
+        wl = subprocess.check_output(["git", "worktree", "list", "--porcelain"], cwd=repo, text=True)
+        for line in wl.splitlines():
+            if line.startswith("worktree "):
+                main_repo = line[len("worktree "):].strip()
+                break
+    except subprocess.CalledProcessError:
+        pass
+    repo_basename = os.path.basename(main_repo)          # e.g. "opchain"
+    main_proj_name = main_repo.replace("/", "-").replace(".", "-")
     home = os.path.expanduser("~")
     projects_root = os.path.join(home, ".claude", "projects")
-    exact = os.path.join(projects_root, proj_dir_name)
+    exact = os.path.join(projects_root, main_proj_name)
 
-    # "All chats in the repo": every Claude Code project dir that resolves to THIS
-    # repo, regardless of which machine / checkout path produced it. Claude keys
-    # each project dir by the session's absolute repo path with '/' and '.' -> '-',
-    # so a checkout at /home/user/opchain and one at /Users/me/repos/opchain produce
-    # two different dirs that both end in '-opchain'. Match the exact current-path
-    # dir plus any sibling whose decoded path basename equals this repo's basename.
-    # endswith('-<basename>') excludes sibling repos like '...-opchain-skills'.
+    # "All chats in the repo": every Claude Code project dir on this machine that
+    # resolves to THIS repo. Claude keys each project dir by the session's absolute
+    # cwd with '/' and '.' -> '-'. Three shapes belong to this repo:
+    #   1. the main checkout dir itself (== main_proj_name);
+    #   2. another checkout of the same repo at a different path (endswith
+    #      '-<basename>'; excludes sibling repos like '...-opchain-skills');
+    #   3. a linked worktree living under the repo, whose encoded path is
+    #      '<main_proj_name>--<...>' — the '--' comes from the '/.' of a dotted
+    #      subdir (e.g. '/.claude/worktrees/...'), so a single-dash sibling like
+    #      '-opchain-skills' is NOT caught.
+    # Entries are deduped across all matched dirs by entry_id downstream.
     candidate_dirs = []
     if os.path.isdir(projects_root):
         for name in sorted(os.listdir(projects_root)):
             full = os.path.join(projects_root, name)
             if not os.path.isdir(full):
                 continue
-            if name == proj_dir_name or name.endswith("-" + repo_basename):
+            if (name == main_proj_name
+                    or name.endswith("-" + repo_basename)
+                    or name.startswith(main_proj_name + "--")):
                 candidate_dirs.append(full)
     if os.path.isdir(exact) and exact not in candidate_dirs:
         candidate_dirs.append(exact)
@@ -414,10 +441,20 @@ def main():
     md.append("")
     md.append(f"**Grand-total est. cost: {fmt_usd(grand_cost, grand['cost_flagged'])}**")
     md.append("")
+    cw_1h_total = sum(e['cache_write_1h'] for e in entries)
+    cw_5m_total = sum(e['cache_write_5m'] for e in entries)
+    if cw_5m_total == 0:
+        cw_desc = (f"Cache-write is 100% 1-hour ephemeral here "
+                   f"({fmt_int(cw_1h_total)} of {fmt_int(grand['cache_write'])} tokens), priced at 2.0× input.")
+    elif cw_1h_total == 0:
+        cw_desc = (f"Cache-write is 100% 5-minute ephemeral here "
+                   f"({fmt_int(cw_5m_total)} of {fmt_int(grand['cache_write'])} tokens), priced at 1.25× input.")
+    else:
+        cw_desc = (f"Cache-write is {fmt_int(cw_1h_total)} 1-hour (2.0× input) + "
+                   f"{fmt_int(cw_5m_total)} 5-minute (1.25× input) of "
+                   f"{fmt_int(grand['cache_write'])} tokens.")
     md.append(
-        "> Cache-write is 100% 1-hour ephemeral here "
-        f"({fmt_int(sum(e['cache_write_1h'] for e in entries))} of "
-        f"{fmt_int(grand['cache_write'])} tokens), priced at 2.0× input. "
+        "> " + cw_desc + " "
         "The four token buckets are kept separate everywhere; cache-read is "
         "**not** merged into fresh input."
     )
@@ -471,15 +508,26 @@ def main():
     md.append("")
     md.append("## Notes & caveats")
     md.append("")
-    md.append(f"- **Pricing basis:** current Anthropic list pricing ({PRICING_VERSION}). `claude-opus-4-8` → `claude-opus-4-x` family at $5.00 input / $25.00 output per MTok. (The prompt's pasted block had the stale Opus-3-era $15/$75 rate; the user selected current rates.)")
-    md.append("- **Cache pricing:** cache-read = 0.10× input; cache-write = 1.25× input for 5-minute TTL, 2.0× input for 1-hour TTL. All cache writes in this dataset are 1-hour.")
-    md.append("- **No git tags exist**, so every entry falls in the `unreleased` window.")
-    md.append("- **Live-session caveat:** the only transcript is the session that produced this report. It necessarily measures itself up to the moment of generation; assistant turns spent generating/committing the report afterward are not captured.")
+    md.append(f"- **Pricing basis:** current Anthropic list pricing ({PRICING_VERSION}) — opus-4-x $5/$25, sonnet-4-x $3/$15, haiku-4-x $1/$5 per MTok (input/output). Models map to a family by name (e.g. `claude-opus-4-8` → `claude-opus-4-x`, `claude-sonnet-4-6` → `claude-sonnet-4-x`). (The prompt's pasted block had the stale Opus-3-era $15/$75 rate; the user selected current rates.)")
+    if cw_5m_total == 0:
+        md.append("- **Cache pricing:** cache-read = 0.10× input; cache-write = 1.25× input for 5-minute TTL, 2.0× input for 1-hour TTL. All cache writes in this dataset are 1-hour.")
+    elif cw_1h_total == 0:
+        md.append("- **Cache pricing:** cache-read = 0.10× input; cache-write = 1.25× input for 5-minute TTL, 2.0× input for 1-hour TTL. All cache writes in this dataset are 5-minute.")
+    else:
+        md.append(f"- **Cache pricing:** cache-read = 0.10× input; cache-write = 1.25× input for 5-minute TTL, 2.0× input for 1-hour TTL. This dataset has {fmt_int(cw_1h_total)} 1-hour + {fmt_int(cw_5m_total)} 5-minute cache-write tokens.")
+    if tags:
+        md.append(f"- **{len(tags)} git tag(s)** define the release windows; entries before the first tag fall in the `unreleased` window.")
+    else:
+        md.append("- **No git tags exist**, so every entry falls in the `unreleased` window.")
+    if len(by_session) == 1:
+        md.append("- **Live-session caveat:** the only transcript is the session that produced this report. It necessarily measures itself up to the moment of generation; assistant turns spent generating/committing the report afterward are not captured.")
+    else:
+        md.append(f"- **Live-session caveat:** {len(by_session)} transcripts are included. The most recent one is the live session producing this report, so it measures itself only up to the moment of generation (assistant turns spent generating/committing the report afterward are not captured). The other {len(by_session) - 1} session(s) are complete.")
     _present = [s for s in scanned_dirs if s["session_files"]]
     _cov = "; ".join(f"`{os.path.basename(s['dir'])}` ({s['session_files']})" for s in _present) or "none"
     md.append(
-        f"- **Chat coverage (all chats for this repo):** scanned every Claude project dir resolving to `{repo_basename}` across checkout paths — {len(scanned_dirs)} dir(s) checked, with session files in: {_cov}. "
-        "Only chats run against this repo in *this* environment are present; historical development chats created on another machine (a different absolute checkout path) live under a different project dir not synced into this ephemeral container. Re-running picks up any that appear, deduped by `entry_id`."
+        f"- **Chat coverage (all chats for this repo):** scanned every Claude project dir on this machine resolving to `{repo_basename}` — the main checkout plus any linked worktrees under it — {len(scanned_dirs)} dir(s) checked, with session files in: {_cov}. "
+        "Entries are deduped across dirs by `entry_id`. Any development chats created on a *different* machine live under a project dir not present on this filesystem and are therefore not included."
     )
     if unpriced_models:
         md.append(f"- **Unpriced models (flagged, cost shown as `$… *`):** {', '.join(sorted(unpriced_models))} — not in the pricing table; tokens counted, cost not estimated.")
@@ -558,10 +606,10 @@ def main():
     meta = {
         "generated_at": GEN_ISO,
         "schema_version": SCHEMA_VERSION,
-        "repo": repo,
+        "repo": main_repo,
         "projects_dir": exact,
         "chat_coverage": {
-            "scope": f"all Claude project dirs resolving to repo basename '{repo_basename}', any checkout path",
+            "scope": f"all Claude project dirs on this machine resolving to repo basename '{repo_basename}' — main checkout plus linked worktrees under it",
             "dirs_scanned": scanned_dirs,
             "session_files_total": sum(s["session_files"] for s in scanned_dirs),
         },
@@ -589,12 +637,22 @@ def main():
             "ephemeral_5m_tokens": sum(e["cache_write_5m"] for e in entries),
         },
         "caveats": [
-            "Chat coverage is repo-scoped: every Claude project dir resolving to this repo's basename is scanned, not just the current container path. Only chats run in this environment are physically present; historical dev chats from another machine/checkout path are not synced into this ephemeral container.",
-            "Single transcript present = the live session generating this report; it measures itself up to generation time.",
-            "No git tags exist; all entries bucket to 'unreleased'.",
-            "Development branch has no PR at report time; per-message and session-dominant PR modes are identical.",
-            "All cache writes are 1-hour ephemeral, priced at 2.0x input.",
-        ],
+            "Chat coverage is repo-scoped: every Claude project dir on this machine resolving to the repo basename — the main checkout plus any linked worktrees under it — is scanned and deduped by entry_id. Chats created on a different machine live under a project dir not present on this filesystem and are not included.",
+            ("Single transcript present = the live session generating this report; it measures itself up to generation time."
+             if len(by_session) == 1 else
+             f"{len(by_session)} transcripts included; the most recent is the live report-generating session (measures itself up to generation time) and the other {len(by_session) - 1} are complete."),
+            ("No git tags exist; all entries bucket to 'unreleased'."
+             if not tags else
+             f"{len(tags)} git tag(s) define release windows; pre-first-tag entries bucket to 'unreleased'."),
+            ("Per-message and session-dominant PR attribution agree (no PR diverges by >20% of est. cost)."
+             if not divergence else
+             f"{len(divergence)} PR(s) differ by >20% of est. cost between per-message and session-dominant attribution; see the divergence list."),
+            ("All cache writes are 1-hour ephemeral, priced at 2.0x input."
+             if cw_5m_total == 0 else
+             ("All cache writes are 5-minute ephemeral, priced at 1.25x input."
+              if cw_1h_total == 0 else
+              f"Cache writes split {cw_1h_total} 1-hour (2.0x) + {cw_5m_total} 5-minute (1.25x) tokens.")),
+        ] + ([f"Unpriced models flagged (tokens counted, cost not estimated): {', '.join(sorted(unpriced_models))}."] if unpriced_models else []),
     }
     with open(os.path.join(out_dir, "meta.json"), "w") as f:
         json.dump(meta, f, indent=2)

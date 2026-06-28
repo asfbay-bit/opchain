@@ -1,23 +1,31 @@
 {
-  "generated_at": "2026-06-27T05:09:38+00:00",
+  "generated_at": "2026-06-28T04:34:44+00:00",
   "schema_version": "1.0",
-  "repo": "/home/user/opchain",
-  "projects_dir": "/root/.claude/projects/-home-user-opchain",
+  "repo": "/Users/aidanelsesser/repos/opchain",
+  "projects_dir": "/Users/aidanelsesser/.claude/projects/-Users-aidanelsesser-repos-opchain",
   "chat_coverage": {
-    "scope": "all Claude project dirs resolving to repo basename 'opchain', any checkout path",
+    "scope": "all Claude project dirs on this machine resolving to repo basename 'opchain' \u2014 main checkout plus linked worktrees under it",
     "dirs_scanned": [
       {
-        "dir": "/root/.claude/projects/-home-user-opchain",
+        "dir": "/Users/aidanelsesser/.claude/projects/-Users-aidanelsesser-repos-opchain",
+        "session_files": 3
+      },
+      {
+        "dir": "/Users/aidanelsesser/.claude/projects/-Users-aidanelsesser-repos-opchain--claude-worktrees-nostalgic-wiles-a1b9a8",
+        "session_files": 1
+      },
+      {
+        "dir": "/Users/aidanelsesser/.claude/projects/-Users-aidanelsesser-repos-opchain--claude-worktrees-wizardly-hamilton-8ccf05",
         "session_files": 1
       }
     ],
-    "session_files_total": 1
+    "session_files_total": 5
   },
-  "session_count": 1,
-  "entry_count": 146,
+  "session_count": 5,
+  "entry_count": 879,
   "date_range": {
-    "start": "2026-06-26T23:43:36.737000+00:00",
-    "end": "2026-06-27T05:09:37.681000+00:00"
+    "start": "2026-05-26T01:15:35.389000+00:00",
+    "end": "2026-06-28T04:34:44.150000+00:00"
   },
   "pricing_version": "anthropic-list-current-2026-06-26",
   "pricing": {
@@ -45,26 +53,70 @@
     "cache_write_1h_multiplier_on_input": 2.0
   },
   "model_family_mapping": {
-    "claude-opus-4-8": "claude-opus-4-x"
+    "<synthetic>": null,
+    "claude-opus-4-7": "claude-opus-4-x",
+    "claude-opus-4-8": "claude-opus-4-x",
+    "claude-sonnet-4-6": "claude-sonnet-4-x"
   },
-  "unpriced_models": [],
+  "unpriced_models": [
+    "<synthetic>"
+  ],
   "pr_resolution": {
-    "method": "github-mcp (gh CLI unavailable)",
+    "method": "gh CLI (`gh pr list --head <branch> --state all`), local environment",
     "branch_to_pr": {
-      "claude/token-analysis-prompt-xis8j8": null
+      "design/changelog-layout-options": {
+        "number": 257,
+        "title": "design: 4 changelog side-by-side layout options",
+        "state": "MERGED",
+        "mergedAt": "2026-06-05T21:50:29Z"
+      },
+      "design/changelog-c-v2-polish": {
+        "number": 263,
+        "title": "design(changelog): round 2-3 layout explorations \u2014 bidirectional takeover + full-width tabs",
+        "state": "MERGED",
+        "mergedAt": "2026-06-19T15:12:01Z"
+      },
+      "claude/changelog-v15-roadmap": {
+        "number": 245,
+        "title": "feat(changelog): v1.5/v1.6/v1.7 roadmap + curated static timeline",
+        "state": "MERGED",
+        "mergedAt": "2026-05-31T03:22:11Z"
+      },
+      "claude/wizardly-hamilton-8ccf05": null,
+      "claude/nostalgic-wiles-a1b9a8": null
     }
   },
   "git_tags": [],
-  "divergence": [],
+  "divergence": [
+    {
+      "pr": "#263 design(changelog): round 2-3 layout explorations \u2014 bidirectional takeover + full-width tabs",
+      "permessage_cost_usd": 2.521529,
+      "session_dominant_cost_usd": 0.0,
+      "abs_pct_diff": 100.0
+    },
+    {
+      "pr": "#245 feat(changelog): v1.5/v1.6/v1.7 roadmap + curated static timeline",
+      "permessage_cost_usd": 174.999667,
+      "session_dominant_cost_usd": 0.0,
+      "abs_pct_diff": 100.0
+    },
+    {
+      "pr": "#257 design: 4 changelog side-by-side layout options",
+      "permessage_cost_usd": 10.241243,
+      "session_dominant_cost_usd": 15.662374,
+      "abs_pct_diff": 34.6
+    }
+  ],
   "cache_write_split": {
-    "ephemeral_1h_tokens": 2470356,
+    "ephemeral_1h_tokens": 68385464,
     "ephemeral_5m_tokens": 0
   },
   "caveats": [
-    "Chat coverage is repo-scoped: every Claude project dir resolving to this repo's basename is scanned, not just the current container path. Only chats run in this environment are physically present; historical dev chats from another machine/checkout path are not synced into this ephemeral container.",
-    "Single transcript present = the live session generating this report; it measures itself up to generation time.",
+    "Chat coverage is repo-scoped: every Claude project dir on this machine resolving to the repo basename \u2014 the main checkout plus any linked worktrees under it \u2014 is scanned and deduped by entry_id. Chats created on a different machine live under a project dir not present on this filesystem and are not included.",
+    "5 transcripts included; the most recent is the live report-generating session (measures itself up to generation time) and the other 4 are complete.",
     "No git tags exist; all entries bucket to 'unreleased'.",
-    "Development branch has no PR at report time; per-message and session-dominant PR modes are identical.",
-    "All cache writes are 1-hour ephemeral, priced at 2.0x input."
+    "3 PR(s) differ by >20% of est. cost between per-message and session-dominant attribution; see the divergence list.",
+    "All cache writes are 1-hour ephemeral, priced at 2.0x input.",
+    "Unpriced models flagged (tokens counted, cost not estimated): <synthetic>."
   ]
 }
