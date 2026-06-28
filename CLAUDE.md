@@ -44,7 +44,13 @@ feature branch ─► PR ─► CI green (tests only) ─► merge to main
 
 `.github/workflows/ci.yml` runs on every PR and push to main: Vitest, `astro check`, site build, Playwright e2e. CI does not deploy anything — it only verifies the build is green before you decide to ship.
 
-`.github/workflows/lighthouse.yml` runs Lighthouse/Axe budgets on PR builds (not against deployed environments).
+`.github/workflows/lighthouse.yml` runs Lighthouse/Axe budgets on PR builds. `.github/workflows/lighthouse-prod.yml` runs them against the deployed production URL.
+
+`.github/workflows/canary.yml` is a health-check canary. `.github/workflows/deploy-lag.yml` runs daily and opens a tracking issue when the live version falls behind `main` HEAD.
+
+`.github/workflows/mirror-public.yml` syncs `skills/` to `asfbay-bit/opchain-skills` on every push to `main` that touches the skill tree.
+
+`.github/workflows/publish-mcp-registry.yml` publishes `server.json` to the MCP Registry on every `v*` tag (GitHub OIDC — no secrets needed).
 
 ### Rollback
 
@@ -70,30 +76,52 @@ opchain/
 │   ├── (astro dist copied in)
 │   ├── opchain-skills.zip  # Generated from skills/ by scripts/make-skills-zip.sh
 │   └── docs/               # Synced from skills/ by scripts/sync-docs.sh
-├── skills/                 # Skill source definitions (the product)
-│   ├── oc-app-architect/
-│   ├── oc-checkpoint-protocol/
-│   ├── oc-code-auditor/
-│   ├── oc-deploy-ops/
-│   ├── oc-git-ops/
-│   ├── oc-integrations-engineer/
-│   ├── oc-reverse-spec/
-│   ├── oc-scale-ops/
-│   ├── oc-stack-forge/
-│   ├── oc-ux-engineer/
-│   ├── orchestrator.md     # Shared orchestration rules
-│   └── README.md           # Installation instructions
+├── skills/                 # Skill source definitions — 27 skills in v1.7
+│   ├── oc-app-architect/           # plan+build  — discover → spec → sprint → build → launch
+│   ├── oc-api-dev/                 # plan+build  — first-party API design, OpenAPI, versioning, SDKs
+│   ├── oc-migration-ops/           # plan+build  — DB/framework/auth/platform migrations, rollback gates
+│   ├── oc-modularize-ops/          # plan+build  — monolith decomposition, golden-fixture oracle
+│   ├── oc-reverse-spec/            # plan        — reverse-engineer existing code into spec docs
+│   ├── oc-stack-forge/             # plan        — stack advisor (CF/Vercel/AWS/Supabase/Rails/…)
+│   ├── oc-agent-forge/             # build (AI)  — Claude Agent SDK harness, subagent topology
+│   ├── oc-claude-api/              # build (AI)  — Claude API/SDK, prompt caching, tool use, model migration
+│   ├── oc-rag-forge/               # build (AI)  — RAG: vector DB, embeddings, chunking, hybrid search
+│   ├── oc-prompt-ops/              # build (AI)  — prompt-as-code: versioning, eval, regression, drift
+│   ├── oc-ux-engineer/             # build       — design planner → generator → evaluator tri-agent
+│   ├── oc-integrations-engineer/   # build       — planner → builder → tester for third-party APIs
+│   ├── oc-dash-forge/              # build (UI)  — dashboard + dense-data UI spec + React prototype
+│   ├── oc-signal-forge/            # build (UI)  — analytics backend: question → metric → instrument
+│   ├── oc-code-auditor/            # quality     — auditor → fixer → verifier, 5-layer sweep
+│   ├── oc-scale-ops/               # quality     — load testing, perf budgets, caching, capacity
+│   ├── oc-bug-check/               # quality     — pre-commit QA gate, fast checks on every commit
+│   ├── oc-security-auditor/        # quality     — threat modeling, OWASP hardening, attack surface
+│   ├── oc-deploy-ops/              # ship        — audit gate → staging → smoke → prod → rollback
+│   ├── oc-git-ops/                 # ship        — conventional commits, sprint branches, PRs
+│   ├── oc-release-ops/             # ship        — plan, draft, bump, announce, ship a release
+│   ├── oc-telemetry-ops/           # ops         — opt-in local-first usage metering, /dashboard data
+│   ├── oc-cost-ops/                # ops         — LLM cost attribution, budget gates, model routing
+│   ├── oc-monitoring-ops/          # ops         — post-deploy observability, uptime, errors, incidents
+│   ├── oc-fleet-ops/               # ops         — multi-container k8s/Nomad/Compose/VM deployments
+│   ├── oc-checkpoint-protocol/     # foundation  — JSON session persistence across skills
+│   ├── oc-orchestrator/            # foundation  — pipeline coordinator, registry, status, routing
+│   ├── orchestrator.md             # Shared orchestration rules (imported by all skills)
+│   └── README.md                   # Installation instructions
 ├── site/                   # Astro 5 app. Scaffolded Sprint 0; content collection in Sprint 1; cutover Sprint 6.
 ├── scripts/
 │   ├── sync-docs.sh                # skills/ → public/docs/ sync
 │   ├── make-skills-zip.sh          # skills/ → public/opchain-skills.zip
 │   └── gen-skills-catalog.mjs      # validates skills/<id>/SKILL.md frontmatter at build time
 ├── tests/                  # Vitest unit + handler tests
-├── .github/workflows/      # ci.yml + lighthouse.yml (no deploy workflows — manual)
+├── .github/workflows/      # ci.yml · lighthouse.yml · lighthouse-prod.yml · canary.yml · deploy-lag.yml · mirror-public.yml · publish-mcp-registry.yml (→ MCP Registry on v* tags)
 ├── wrangler.jsonc           # Worker config (prod + env.staging)
 ├── build.mjs               # esbuild: src/index.js → dist/index.js, injects __OPCHAIN_VERSION__
 ├── vitest.config.js        # test runner config (defines __OPCHAIN_VERSION__ = "test")
 ├── .env.example            # env var template (copy to .dev.vars for local)
+├── specs/                  # Architecture + feature specs (specs/spec/ = current; specs/features/ per-feature)
+├── docs/                   # Runbooks and living docs (analytics.md, runbooks/, releases/)
+├── roadmap/                # Version roadmaps and planning docs (roadmap/README.md is the index)
+├── mcp/                    # Local MCP server for dev (mcp/local-server.mjs)
+├── server.json             # MCP Registry listing (io.github.asfbay-bit/opchain-skills namespace)
 └── package.json
 ```
 
@@ -141,6 +169,8 @@ the JSON honest.
 | GET | `/api/flags/public` | Public-flag map for the browser; sets `oc_id` cookie |
 | POST | `/api/feedback` | Create Linear issue (bug/feature/improvement) |
 | POST | `/api/notify` | Lead capture (KV-backed) |
+| POST | `/api/votes/:id` | Roadmap vote — per-IP/day dedup; returns `{ok, count, alreadyVoted}` |
+| GET | `/api/votes?ids=…` | Batch vote-count read for the roadmap UI (max 50 ids) |
 | POST | `/mcp` | opchain MCP server (JSON-RPC; Codex / any MCP client) |
 | GET | `/.well-known/ai-catalog.json` | ARD discovery manifest (advertises the MCP server) |
 | GET | `/.well-known/mcp.json` | MCP server card the ARD entry resolves to |
