@@ -50,9 +50,10 @@ without manual handoffs.
 
 ### foundation
 
-| skill | what it does |
-|---|---|
-| `oc-checkpoint-protocol` | JSON session persistence across skills and conversations |
+| skill | trigger | what it does |
+|---|---|---|
+| `oc-checkpoint-protocol` | *(auto-used)* | JSON session persistence across skills and conversations |
+| `oc-orchestrator` | `/oc-ops status` | Pipeline coordinator — multi-project registry, cross-skill status, smart routing |
 
 ### plan
 
@@ -66,6 +67,9 @@ without manual handoffs.
 | skill | trigger | what it does |
 |---|---|---|
 | `oc-app-architect` | `/oc-discover` `/oc-spec` `/oc-build` `/oc-launch` | Unified pipeline: discover → spec → design → sprint → build → launch |
+| `oc-api-dev` | `/oc-api design` | First-party API design, OpenAPI/GraphQL, versioning, SDKs, drift detection |
+| `oc-migration-ops` | `/oc-migrate plan` | DB/framework/auth/platform migrations with rollback gates at every step |
+| `oc-modularize-ops` | `/oc-modularize assess` | Monolith decomposition with golden-fixture equivalence oracle. Says no when warranted. |
 
 ### build
 
@@ -73,6 +77,17 @@ without manual handoffs.
 |---|---|---|
 | `oc-ux-engineer` | `/oc-uxe plan` `/oc-uxe build` `/oc-uxe eval` | Design Planner → Generator → Evaluator tri-agent harness |
 | `oc-integrations-engineer` | `/oc-integrate plan` | Planner → Builder → Tester. Hits real API sandboxes, not mocks. |
+| `oc-dash-forge` | `/oc-dash-forge` | Dashboard + dense-data UI — design spec AND working React prototype |
+| `oc-signal-forge` | `/oc-signal frame` | Analytics backend — question → metric → instrument → verify |
+
+### build (ai-native)
+
+| skill | trigger | what it does |
+|---|---|---|
+| `oc-agent-forge` | `/oc-agent` | Claude Agent SDK harness — subagent topology, tool budgets, harness loops. Tri-agent. |
+| `oc-claude-api` | `/oc-claude-api` | Build, debug, and migrate Claude API apps. Prompt caching on by default. |
+| `oc-rag-forge` | `/oc-rag` | RAG systems — vector DB, embeddings, chunking, hybrid search, retrieval eval. Tri-agent. |
+| `oc-prompt-ops` | `/oc-prompt eval` | Prompt-as-code — versioning, eval datasets, regression + drift detection |
 
 ### quality
 
@@ -80,6 +95,8 @@ without manual handoffs.
 |---|---|---|
 | `oc-code-auditor` | `/oc-audit full` | Auditor → Fixer → Verifier. 5-layer sweep, pre-deploy gate. |
 | `oc-scale-ops` | `/oc-scale audit` | Load testing, perf budgets, caching strategy, capacity planning |
+| `oc-bug-check` | `/oc-bugcheck` | Pre-commit QA gate — types, lint, tests, anti-patterns, secrets. Fast. |
+| `oc-security-auditor` | `/oc-security` | Threat modeling, OWASP Top 10, infra hardening, attack surface review |
 
 ### ship
 
@@ -87,6 +104,16 @@ without manual handoffs.
 |---|---|---|
 | `oc-deploy-ops` | `/oc-deploy staging` | Audit gate → staging → smoke tests → production → auto-rollback |
 | `oc-git-ops` | `/oc-git-commit` `/git-pr` | Conventional commits, sprint-scoped branches, checkpoint-enriched PRs |
+| `oc-release-ops` | `/oc-release plan` | Plan, draft, bump, announce, and ship versioned releases |
+
+### ops
+
+| skill | trigger | what it does |
+|---|---|---|
+| `oc-telemetry-ops` | `/oc-telemetry enable` | Opt-in local-first usage metering; anonymized aggregates power the public /dashboard |
+| `oc-cost-ops` | `/oc-cost attribute` | LLM cost attribution per skill phase, budget gates, model-tier routing |
+| `oc-monitoring-ops` | `/oc-monitor setup` | Post-deploy observability — uptime, errors, alerts, incidents, runbooks |
+| `oc-fleet-ops` | `/oc-fleet provision` | Multi-container / IaC deployments — k8s, Nomad, Compose, VMs, Terraform |
 
 ---
 
@@ -94,7 +121,7 @@ without manual handoffs.
 
 ### Claude.ai / Claude Desktop
 
-1. Download any `.skill` file from [`/skills`](./skills)
+1. Download a skill bundle (`.zip`) from [`/skills`](./skills) or copy any `SKILL.md` directly from [`skills/`](./skills)
 2. Open Claude → Settings → Customize → Skills
 3. Upload the `.skill` file
 4. Start a new conversation and trigger it
@@ -103,7 +130,8 @@ without manual handoffs.
 
 ```bash
 mkdir -p .claude/skills
-cp ~/opchain/skills/*.md .claude/skills/
+cp -r ~/opchain/skills/oc-* .claude/skills/
+cp ~/opchain/skills/orchestrator.md .claude/skills/
 claude
 > /oc-discover
 ```
