@@ -21,9 +21,9 @@
     "lhci": "lhci autorun --config=../lighthouserc.json"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^13.7.0",
+    "@astrojs/cloudflare": "^14.0.1",
     "@astrojs/sitemap": "^3.7.3",
-    "astro": "^6.4.8",
+    "astro": "^7.0.3",
     "dompurify": "^3.4.11",
     "isomorphic-dompurify": "^3.18.0",
     "marked": "^18.0.5"
