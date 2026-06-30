@@ -5,6 +5,9 @@ import {
   pickNext,
   recommendedAction,
   actionText,
+  harvestTokens,
+  actionIsStale,
+  firstFreshAction,
   budgetExceeded,
   SCHEMA_VERSION,
   ACCEPTED_SCHEMA_VERSIONS,
@@ -205,5 +208,60 @@ describe("actionText", () => {
   it("normalizes string and object actions", () => {
     expect(actionText("hello")).toBe("hello");
     expect(actionText({ text: "hi", done_when: "x" })).toBe("hi");
+  });
+});
+
+describe("drift evidence — token harvesting & staleness", () => {
+  it("harvestTokens pulls PR (#NNN) and ticket (ABC-123) tokens from text", () => {
+    const t = harvestTokens("Land PR #42 and close ticket ADEV-7");
+    expect(t.has("#42")).toBe(true);
+    expect(t.has("ADEV-7")).toBe(true);
+    expect(t.has("#99")).toBe(false);
+  });
+
+  it("actionIsStale is true only when a referenced token is in the stale set", () => {
+    expect(actionIsStale("ship PR #42", new Set(["#42"]))).toBe(true);
+    expect(actionIsStale("ship PR #99", new Set(["#42"]))).toBe(false);
+    expect(actionIsStale("ship PR #42", new Set())).toBe(false); // empty set ⇒ never stale
+    expect(actionIsStale("ship PR #42")).toBe(false);            // no set ⇒ old behaviour
+  });
+
+  it("firstFreshAction skips leading stale actions and counts them", () => {
+    expect(firstFreshAction(["Land #42 now", "Write integration tests"], new Set(["#42"])))
+      .toEqual({ action: "Write integration tests", skipped: 1, allStale: false });
+  });
+
+  it("firstFreshAction reports allStale when every queued action is shipped work", () => {
+    expect(firstFreshAction(["Finish #42", "Merge #42 follow-up"], new Set(["#42"])))
+      .toEqual({ action: "", skipped: 2, allStale: true });
+  });
+
+  it("firstFreshAction returns next_actions[0] unchanged with no stale set", () => {
+    expect(firstFreshAction(["Do PR #42"], undefined))
+      .toEqual({ action: "Do PR #42", skipped: 0, allStale: false });
+    expect(firstFreshAction([], new Set(["#42"])))
+      .toEqual({ action: "", skipped: 0, allStale: false });
+  });
+});
+
+describe("drift-aware next (recommendedAction with stale evidence)", () => {
+  it("recommends the first non-stale action and notes how many it skipped", () => {
+    const d = base({ next_actions: ["Land PR #42 to ship the API", "Write the integration test"] });
+    const rec = recommendedAction(d, new Set(["#42"]));
+    expect(rec.action).toMatch(/integration test/);
+    expect(rec.why).toMatch(/skipped 1 stale action referencing already-merged work/);
+  });
+
+  it("recommends reconciliation when every queued action references shipped work", () => {
+    const d = base({ next_actions: ["Finish PR #42", "Merge PR #42 follow-up"] });
+    const rec = recommendedAction(d, new Set(["#42"]));
+    expect(rec.action).toMatch(/checkpoint doctor/);
+    expect(rec.action).toMatch(/reconcile/);
+  });
+
+  it("is unchanged when no stale set is supplied (back-compat)", () => {
+    const rec = recommendedAction(base({ next_actions: ["Land PR #42"] }));
+    expect(rec.action).toBe("Land PR #42");
+    expect(rec.why).not.toMatch(/skipped/);
   });
 });
