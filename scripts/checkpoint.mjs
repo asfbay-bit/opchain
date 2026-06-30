@@ -8,10 +8,19 @@
  *
  * Subcommands:
  *   status [--brief] [--since=ISO]    Print a markdown session-resume summary.
- *   next                              Print the single highest-priority next action.
- *   doctor [--online]                 Cross-check checkpoints against ground truth
+ *   next                              Print the single highest-priority NON-STALE
+ *                                     next action (skips actions whose PR/ticket
+ *                                     already shows merged — same drift evidence
+ *                                     `doctor` uses — and recommends reconciliation
+ *                                     when every queued action is stale).
+ *   doctor [--online] [--fail-on-warnings]
+ *                                     Cross-check checkpoints against ground truth
  *                                     (git, filesystem, optionally /api/health) and
- *                                     report drift. Exit 1 only on hard inconsistencies.
+ *                                     report drift. Exit 1 on hard inconsistencies;
+ *                                     --fail-on-warnings also exits 1 on warnings.
+ *   list                              List every checkpoint file with a one-line status.
+ *   show [skill]                      Print full JSON for one checkpoint, or all.
+ *   reset <skill>                     Archive a checkpoint into .checkpoints/history/.
  *   validate [--strict]               Exit 0 if all checkpoints satisfy the schema.
  *                                     --strict promotes warnings to errors.
  *   update <skill> [--field=value...] Read existing checkpoint (or scaffold), apply
@@ -43,7 +52,7 @@
  *   frontmatter and moves independently as the docs/tooling evolve).
  */
 
-import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, statSync } from "node:fs";
 import { dirname, join, basename } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { execSync } from "node:child_process";
@@ -119,6 +128,38 @@ function actionText(a) {
   if (typeof a === "string") return a;
   if (typeof a === "object" && typeof a.text === "string") return a.text;
   return String(a);
+}
+
+/** Harvest PR/ticket tokens (#NNN, ABC-123) from a string into `into`. */
+function harvestTokens(str, into = new Set()) {
+  if (typeof str === "string") {
+    for (const m of str.matchAll(/#(\d+)/g)) into.add(`#${m[1]}`);
+    for (const m of str.matchAll(/\b([A-Z]{2,}-\d+)\b/g)) into.add(m[1]);
+  }
+  return into;
+}
+
+/** Does an action's text reference a PR/ticket that already shows merged/done?
+ *  Such an action would tell the next session to redo shipped work — `next`
+ *  skips it, `doctor` flags it. An empty/missing token set ⇒ never stale, so
+ *  callers that don't compute drift evidence keep the old behaviour. */
+function actionIsStale(text, staleTokens) {
+  if (!staleTokens || staleTokens.size === 0) return false;
+  for (const tok of harvestTokens(text)) if (staleTokens.has(tok)) return true;
+  return false;
+}
+
+/** From a checkpoint's next_actions, return the first NON-stale action's text,
+ *  plus how many leading stale actions were skipped. allStale ⇒ every queued
+ *  action references already-shipped work (caller recommends reconciliation). */
+function firstFreshAction(actions, staleTokens) {
+  let skipped = 0;
+  for (const a of (Array.isArray(actions) ? actions : [])) {
+    const txt = actionText(a);
+    if (txt && actionIsStale(txt, staleTokens)) { skipped++; continue; }
+    return { action: txt, skipped, allStale: false };
+  }
+  return { action: "", skipped, allStale: skipped > 0 };
 }
 
 /**
@@ -393,7 +434,7 @@ function pickNext(checkpoints) {
   return ranked[0];
 }
 
-function recommendedAction(data) {
+function recommendedAction(data, staleTokens) {
   const blockers = Array.isArray(data.blockers) ? data.blockers : [];
   const decision = blockers.find((b) => b.needs === "user_decision");
   if (decision) {
@@ -409,16 +450,21 @@ function recommendedAction(data) {
       action: firstBlocker?.proposed_resolution || actionText((data.next_actions || [])[0]) || "Diagnose and recover.",
     };
   }
-  const na = (data.next_actions || [])[0];
+  // Normal path: recommend the first NON-stale queued action. With no stale-token
+  // set (the default), firstFreshAction returns next_actions[0] — old behaviour.
+  const { action: fresh, skipped, allStale } = firstFreshAction(data.next_actions, staleTokens);
   const base = data.progress_summary ? data.progress_summary.split(/(?<=\.)\s/)[0] : `${data.skill} is ${data.status}`;
   // v1.6: surface a tripped budget in the recommendation (oc-cost-ops writes cost).
-  const why = budgetExceeded(data)
+  let why = budgetExceeded(data)
     ? `⚠ over budget ($${data.cost.total_usd} > $${data.cost.budget_usd}) — ${base}`
     : base;
-  return {
-    why,
-    action: actionText(na) || "No queued next action — review the checkpoint.",
-  };
+  if (skipped > 0) {
+    why = `${why}  (skipped ${skipped} stale action${skipped === 1 ? "" : "s"} referencing already-merged work)`;
+  }
+  const action = allStale
+    ? `All ${data.next_actions.length} queued action(s) reference already-merged/-completed work — run \`checkpoint doctor\` and reconcile this checkpoint before continuing.`
+    : (fresh || "No queued next action — review the checkpoint.");
+  return { why, action };
 }
 
 // ───────────────────────────── commands ─────────────────────────────────────
@@ -535,9 +581,10 @@ function cmdStatus(opts = {}) {
 function cmdNext() {
   const all = readAll();
   if (all.length === 0) { console.log("(no checkpoints found in .checkpoints/)"); return 0; }
+  const stale = driftTokens(all); // same drift evidence `doctor` uses
   const top = pickNext(all);
   const d = top.data;
-  const rec = recommendedAction(d);
+  const rec = recommendedAction(d, stale);
   console.log("NEXT ACTION");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log(`Skill:  ${d.skill}  (${d.status} — ${d.phase}/${d.step})`);
@@ -552,11 +599,28 @@ function gitMergedTokens() {
   // Best-effort: tokens (PR #NNN, TICKET-NN) that git history shows as already landed.
   try {
     const log = execSync("git log --oneline -n 200", { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
-    const tokens = new Set();
-    for (const m of log.matchAll(/#(\d+)/g)) tokens.add(`#${m[1]}`);
-    for (const m of log.matchAll(/\b([A-Z]{2,}-\d+)\b/g)) tokens.add(m[1]);
-    return tokens;
+    return harvestTokens(log);
   } catch { return new Set(); }
+}
+
+/** The shared "drift evidence": PR/ticket tokens that already appear completed
+ *  in any checkpoint (a progress_table row marked complete, or a *merged /
+ *  shipped / completed / done* skill_state key) OR merged in recent git history.
+ *  Both `doctor` (to flag stale next_actions) and `next` (to skip them) consult
+ *  this single set, so neither tells the next agent to redo shipped work. */
+function driftTokens(all) {
+  const toks = new Set();
+  for (const { data } of all) {
+    for (const row of (Array.isArray(data.progress_table) ? data.progress_table : [])) {
+      if (row.status === "complete") harvestTokens(`${row.id} ${row.label}`, toks);
+    }
+    const st = data.skill_state || {};
+    for (const key of Object.keys(st)) {
+      if (/merged|shipped|completed|done/i.test(key)) harvestTokens(JSON.stringify(st[key]), toks);
+    }
+  }
+  for (const t of gitMergedTokens()) toks.add(t);
+  return toks;
 }
 
 async function cmdDoctor(opts = {}) {
@@ -565,24 +629,9 @@ async function cmdDoctor(opts = {}) {
   const findings = []; // { level: 'error'|'warn', skill, msg }
   const add = (level, skill, msg) => findings.push({ level, skill, msg });
 
-  // Build a map of "completed" tokens across all checkpoints (PRs/tickets that a
-  // progress_table row or merged list marks done) for the cross-checkpoint check.
-  const completedTokens = new Set();
-  for (const { data } of all) {
-    const harvest = (s) => {
-      if (typeof s !== "string") return;
-      for (const m of s.matchAll(/#(\d+)/g)) completedTokens.add(`#${m[1]}`);
-      for (const m of s.matchAll(/\b([A-Z]{2,}-\d+)\b/g)) completedTokens.add(m[1]);
-    };
-    for (const row of (Array.isArray(data.progress_table) ? data.progress_table : [])) {
-      if (row.status === "complete") harvest(`${row.id} ${row.label}`);
-    }
-    const st = data.skill_state || {};
-    for (const key of Object.keys(st)) {
-      if (/merged|shipped|completed|done/i.test(key)) harvest(JSON.stringify(st[key]));
-    }
-  }
-  const gitTokens = gitMergedTokens();
+  // Shared drift evidence: PRs/tickets already completed in a checkpoint or
+  // merged in git history. `next` consults the very same set.
+  const stale = driftTokens(all);
 
   for (const { data, bytes } of all) {
     const skill = data.skill || "?";
@@ -617,11 +666,8 @@ async function cmdDoctor(opts = {}) {
     // landed (its PR/ticket token shows complete elsewhere or in git history).
     for (const a of (Array.isArray(data.next_actions) ? data.next_actions : [])) {
       const txt = actionText(a);
-      const toks = new Set();
-      for (const m of txt.matchAll(/#(\d+)/g)) toks.add(`#${m[1]}`);
-      for (const m of txt.matchAll(/\b([A-Z]{2,}-\d+)\b/g)) toks.add(m[1]);
-      for (const tok of toks) {
-        if (completedTokens.has(tok) || gitTokens.has(tok)) {
+      for (const tok of harvestTokens(txt)) {
+        if (stale.has(tok)) {
           add("warn", skill, `next_action references ${tok}, which already appears as completed/merged — may be stale: "${txt.slice(0, 70)}…"`);
           break;
         }
@@ -657,8 +703,10 @@ async function cmdDoctor(opts = {}) {
   for (const f of warns) console.log(`⚠ [${f.skill}] ${f.msg}`);
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log(`${errs.length} error(s), ${warns.length} warning(s).`);
+  const failOnWarn = Boolean(opts.failOnWarnings) && warns.length > 0;
+  if (failOnWarn) console.log("Failing on warnings (--fail-on-warnings).");
   if (!opts.online) console.log("Tip: `checkpoint doctor --online` also checks the deployed /api/health version.");
-  return errs.length > 0 ? 1 : 0;
+  return (errs.length > 0 || failOnWarn) ? 1 : 0;
 }
 
 /**
@@ -777,9 +825,61 @@ function cmdInit() {
   return 0;
 }
 
+// List every checkpoint file with a scannable one-line status.
+function cmdList() {
+  const paths = listCheckpoints();
+  if (paths.length === 0) { console.log("(no checkpoints found in .checkpoints/)"); return 0; }
+  console.log(`${paths.length} checkpoint(s) in ${DIR}:`);
+  for (const p of paths) {
+    let info = "";
+    try {
+      const { data } = readCheckpoint(p);
+      const updated = data.updated_at ? data.updated_at.replace("T", " ").replace("Z", " UTC") : "—";
+      info = `  — ${data.status || "?"}  ${data.phase || "?"}/${data.step || "?"}  (updated ${updated})`;
+    } catch (e) { info = `  — ⚠ unreadable: ${e.message}`; }
+    console.log(`• ${basename(p)}${info}`);
+  }
+  return 0;
+}
+
+// Display the full JSON for one checkpoint (pipeable to jq), or every checkpoint
+// with a per-file header when no skill is given.
+function cmdShow(skill) {
+  const paths = listCheckpoints();
+  if (paths.length === 0) { console.log("(no checkpoints found in .checkpoints/)"); return 0; }
+  if (skill) {
+    const path = join(DIR, `${skill}.checkpoint.json`);
+    if (!existsSync(path)) { console.error(`no checkpoint for "${skill}" at ${path}`); return 1; }
+    console.log(readFileSync(path, "utf8").trimEnd());
+    return 0;
+  }
+  paths.forEach((p, i) => {
+    if (i > 0) console.log("");
+    console.log(`# ${basename(p)}`);
+    console.log(readFileSync(p, "utf8").trimEnd());
+  });
+  return 0;
+}
+
+// Archive a checkpoint into .checkpoints/history/ (timestamped) and drop it from
+// the active set. The next `update` (or `init`) scaffolds a fresh one.
+function cmdReset(skill) {
+  if (!skill) { console.error("usage: checkpoint reset <skill>"); return 1; }
+  const path = join(DIR, `${skill}.checkpoint.json`);
+  if (!existsSync(path)) { console.error(`no checkpoint for "${skill}" at ${path}`); return 1; }
+  const histDir = join(DIR, "history");
+  if (!existsSync(histDir)) mkdirSync(histDir, { recursive: true });
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const dest = join(histDir, `${skill}.${stamp}.checkpoint.json`);
+  renameSync(path, dest);
+  console.log(`✓ archived ${basename(path)} → ${join(".checkpoints", "history", basename(dest))}`);
+  console.log(`  Run \`checkpoint update ${skill} …\` to start a fresh checkpoint.`);
+  return 0;
+}
+
 // Exported for tests. The CLI dispatch below only runs when invoked directly,
 // so importing this module (e.g. from vitest) is side-effect-free.
-export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, budgetExceeded, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS };
+export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, harvestTokens, actionIsStale, firstFreshAction, budgetExceeded, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS };
 
 // ───────────────────────────── arg parsing ──────────────────────────────────
 
@@ -788,19 +888,27 @@ const flags = new Set(rest.filter((a) => a.startsWith("--") && !a.includes("="))
 const sinceArg = rest.find((a) => a.startsWith("--since="));
 
 function run() {
+  // First non-flag positional (skill name for show/reset/update/done).
+  const arg0 = rest.find((a) => !a.startsWith("--"));
   switch (cmd) {
     case "validate": return cmdValidate(flags.has("--strict"));
     case "status":   return cmdStatus({ brief: flags.has("--brief"), since: sinceArg ? sinceArg.split("=")[1] : null });
     case "next":     return cmdNext();
-    case "doctor":   return cmdDoctor({ online: flags.has("--online") });
+    case "doctor":   return cmdDoctor({ online: flags.has("--online"), failOnWarnings: flags.has("--fail-on-warnings") });
+    case "list":     return cmdList();
+    case "show":     return cmdShow(arg0);
+    case "reset":    return cmdReset(arg0);
     case "update":   return cmdUpdate(rest[0], rest.slice(1));
     case "done":     return cmdDone(rest[0]);
     case "init":     return cmdInit();
     default:
-      console.error("usage: checkpoint <status|next|doctor|validate|update|done|init>");
+      console.error("usage: checkpoint <status|next|doctor|list|show|reset|validate|update|done|init>");
       console.error("  status [--brief] [--since=ISO]      — session-resume summary");
-      console.error("  next                                — the single highest-priority action");
-      console.error("  doctor [--online]                   — flag checkpoints that drifted from reality");
+      console.error("  next                                — the single highest-priority non-stale action");
+      console.error("  doctor [--online] [--fail-on-warnings] — flag checkpoints that drifted from reality");
+      console.error("  list                                — list every checkpoint file with a one-line status");
+      console.error("  show [skill]                        — print full JSON for one checkpoint, or all");
+      console.error("  reset <skill>                       — archive a checkpoint into .checkpoints/history/");
       console.error("  validate [--strict]                 — schema gate (CI); --strict fails on warnings");
       console.error("  update <skill> [--field=value ...]  — apply field updates, stamp updated_at");
       console.error("  done <skill>                        — complete next_actions[0] → recently_done");
