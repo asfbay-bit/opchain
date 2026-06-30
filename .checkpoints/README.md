@@ -66,6 +66,29 @@ Validation runs in CI via `npm run checkpoint:validate`. The validator is
 `scripts/checkpoint.mjs` — pure Node, no deps. It enforces required
 fields + the `status` enum + filename-skill consistency.
 
+## Mandatory lifecycle writes
+
+Every checkpoint-aware skill owns its checkpoint at lifecycle boundaries. The
+write is part of the workflow, not optional cleanup after the fact:
+
+| Event | Required write |
+|---|---|
+| Session resume | Restamp `updated_at`, record `resumed_from` when known, and revalidate or replace `next_actions[0]` before continuing. |
+| Session pause / user says stop / context is getting long | Write a compact `progress_summary`, current `step`, blockers, and the exact next action to run first. |
+| Phase or gate completion | Update `progress_table`, `phase`, `step`, summary, and next action before moving on. |
+| User decision | Append the decision to `context_primer.key_decisions`, clear matching blockers, and restamp. |
+| Blocker found or cleared | Add/remove the blocker and set `status` to `blocked` or back to `in_progress`. |
+| Cross-skill handoff | Current skill writes the handoff reason, named artifacts, and receiving skill before the receiver acts. |
+| Branch / PR opened | Record branch, PR number, scope, touched artifacts, and pending verification. |
+| PR merged | Mark PR-wait actions complete and replace them with deploy/release/follow-up actions. |
+| Deploy to staging/prod | Record environment, commit SHA, health result, user-visible route checked, and next rollout step. |
+| Release cut/ship | Reconcile release-relevant skill checkpoints to the shipped release state. |
+| Merge conflict or rebase resolution | Restamp if conflict resolution changed generated files, summaries, or next actions. |
+| `checkpoint doctor` drift found | Write a reconciliation checkpoint or add an explicit blocker; don't leave drift only in console output. |
+
+The rule of thumb: if a future session would be misled without the write, the
+current skill must write before it hands control back.
+
 ## Tooling
 
 ```bash
@@ -78,14 +101,26 @@ node scripts/checkpoint.mjs next
 
 # Is any checkpoint drifting from reality? (git history + filesystem cross-check)
 node scripts/checkpoint.mjs doctor          # add --online to compare /api/health vs HEAD
+node scripts/checkpoint.mjs doctor --fail-on-warnings
 
 # Validate every .checkpoint.json against the schema (CI runs this).
 npm run checkpoint:validate                 # --strict also fails on warnings
+
+# Utility commands shared by /checkpoint across skills.
+node scripts/checkpoint.mjs list             # list all checkpoint files
+node scripts/checkpoint.mjs show [skill]     # display full JSON for one/all checkpoints
+node scripts/checkpoint.mjs reset <skill>    # archive current file into .checkpoints/history/
 
 # Update a field (creates the file if missing); done = complete the top next action.
 node scripts/checkpoint.mjs update <skill> --status=in_progress --step=...
 node scripts/checkpoint.mjs done <skill>
 ```
+
+`next` is drift-aware: before it recommends work, it checks queued actions
+against completed tokens from checkpoints plus recent git history. If an action
+references already-merged PR work or a completed ticket, `next` skips to the
+first fresh action or recommends checkpoint reconciliation instead of telling the
+next agent to redo shipped work.
 
 ### Status glyphs (canonical legend)
 
@@ -128,6 +163,7 @@ When starting a new session on this repo:
 3. Read its `next_actions[0]` and start there.
 4. Read `context_primer.key_decisions` to load context without re-reading the codebase.
 
-That's the whole protocol. Skills don't auto-write; the assistant updates
-the relevant file at sensible inflection points (after a PR merges, after
-a phase completes, when blocked).
+That's the whole protocol. Skills do not run a background auto-writer, but the
+assistant must update the relevant file at the mandatory lifecycle boundaries
+above: resume, pause, phase/gate completion, user decisions, blockers,
+cross-skill handoff, PR open/merge, deploy, and release ship.

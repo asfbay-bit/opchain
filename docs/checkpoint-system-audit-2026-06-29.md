@@ -49,6 +49,26 @@ wrong filename.
 Net: the checkpoint layer is a good foundation, but it is not yet reliable as the
 single source of truth for "what should an agent do next?"
 
+## Patch Implementation Note
+
+This audit now ships with the first corrective patch:
+
+- Mandatory lifecycle write triggers are documented in `oc-checkpoint-protocol`
+  and `.checkpoints/README.md`.
+- `checkpoint:next` uses the same completed/merged-work evidence as `doctor` and
+  will skip stale PR/ticket actions or recommend checkpoint reconciliation.
+- `checkpoint list`, `checkpoint show [skill]`, and `checkpoint reset <skill>`
+  are implemented in `scripts/checkpoint.mjs`.
+- The tracked wrong-name `.checkpoints/bug-check.checkpoint.json` file is removed;
+  the canonical local-only path remains `.checkpoints/oc-bug-check.checkpoint.json`.
+- `oc-app-architect` has been reconciled so `checkpoint:next` no longer points at
+  merged PR `#351` or the completed v1.6 launch queue.
+- `oc-reverse-spec` no longer points agents at obsolete `scripts/checkpoint.sh`.
+
+The remaining phases below are still valid for deeper hygiene: trimming stale
+checkpoint summaries, adding richer v1.7 skill resume examples, and enforcing
+release-time checkpoint reconciliation in `oc-release-ops`.
+
 ## Findings
 
 ### P0 - Checkpoint writes are advisory, not mandatory

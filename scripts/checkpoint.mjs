@@ -9,9 +9,13 @@
  * Subcommands:
  *   status [--brief] [--since=ISO]    Print a markdown session-resume summary.
  *   next                              Print the single highest-priority next action.
- *   doctor [--online]                 Cross-check checkpoints against ground truth
+ *   doctor [--online] [--fail-on-warnings]
+ *                                     Cross-check checkpoints against ground truth
  *                                     (git, filesystem, optionally /api/health) and
  *                                     report drift. Exit 1 only on hard inconsistencies.
+ *   list                              List checkpoints in the project directory.
+ *   show [skill]                      Display full checkpoint JSON for one/all skills.
+ *   reset <skill>                     Archive a checkpoint into .checkpoints/history/.
  *   validate [--strict]               Exit 0 if all checkpoints satisfy the schema.
  *                                     --strict promotes warnings to errors.
  *   update <skill> [--field=value...] Read existing checkpoint (or scaffold), apply
@@ -43,7 +47,7 @@
  *   frontmatter and moves independently as the docs/tooling evolve).
  */
 
-import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, statSync, renameSync } from "node:fs";
 import { dirname, join, basename } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { execSync } from "node:child_process";
@@ -119,6 +123,67 @@ function actionText(a) {
   if (typeof a === "string") return a;
   if (typeof a === "object" && typeof a.text === "string") return a.text;
   return String(a);
+}
+
+function tokenSetFromText(s) {
+  const tokens = new Set();
+  if (typeof s !== "string") return tokens;
+  for (const m of s.matchAll(/#(\d+)/g)) tokens.add(`#${m[1]}`);
+  for (const m of s.matchAll(/\b([A-Z]{2,}-\d+)\b/g)) tokens.add(m[1]);
+  return tokens;
+}
+
+function harvestCompletionTokens(value, out) {
+  if (typeof value === "string") {
+    for (const tok of tokenSetFromText(value)) out.add(tok);
+    return;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => harvestCompletionTokens(item, out));
+    return;
+  }
+  if (value && typeof value === "object") {
+    Object.values(value).forEach((item) => harvestCompletionTokens(item, out));
+  }
+}
+
+function buildDriftContext(checkpoints, opts = {}) {
+  const completedTokens = new Set();
+  for (const { data } of checkpoints) {
+    for (const row of (Array.isArray(data.progress_table) ? data.progress_table : [])) {
+      if (row.status === "complete") harvestCompletionTokens(`${row.id} ${row.label}`, completedTokens);
+    }
+    const st = data.skill_state || {};
+    for (const key of Object.keys(st)) {
+      if (/merged|shipped|completed|done/i.test(key)) harvestCompletionTokens(st[key], completedTokens);
+    }
+  }
+  return {
+    completedTokens,
+    gitTokens: opts.gitTokens ?? gitMergedTokens(),
+  };
+}
+
+function actionDrift(a, driftContext) {
+  if (!driftContext) return null;
+  const txt = actionText(a);
+  for (const tok of tokenSetFromText(txt)) {
+    if (driftContext.completedTokens.has(tok) || driftContext.gitTokens.has(tok)) {
+      return { token: tok, text: txt };
+    }
+  }
+  return null;
+}
+
+function freshNextAction(data, driftContext) {
+  const actions = Array.isArray(data.next_actions) ? data.next_actions : [];
+  if (!driftContext) return actions[0];
+  return actions.find((a) => !actionDrift(a, driftContext));
+}
+
+function staleNextActions(data, driftContext) {
+  if (!driftContext || !Array.isArray(data.next_actions)) return [];
+  return data.next_actions.map((a) => actionDrift(a, driftContext)).filter(Boolean);
 }
 
 /**
@@ -381,19 +446,20 @@ function budgetExceeded(data) {
   return typeof t === "number" && typeof b === "number" && b > 0 && t > b;
 }
 
-function pickNext(checkpoints) {
+function pickNext(checkpoints, opts = {}) {
   const ranked = checkpoints
     .map(({ data }) => ({
       data,
       rank: rankCheckpoint(data),
+      staleOnly: staleNextActions(data, opts.drift).length > 0 && !freshNextAction(data, opts.drift) ? 1 : 0,
       over: budgetExceeded(data) ? 0 : 1, // over-budget sorts first within a rank
       t: Date.parse(data.updated_at || 0) || 0,
     }))
-    .sort((a, b) => (a.rank - b.rank) || (a.over - b.over) || (b.t - a.t));
+    .sort((a, b) => (a.rank - b.rank) || (a.staleOnly - b.staleOnly) || (a.over - b.over) || (b.t - a.t));
   return ranked[0];
 }
 
-function recommendedAction(data) {
+function recommendedAction(data, driftContext = null) {
   const blockers = Array.isArray(data.blockers) ? data.blockers : [];
   const decision = blockers.find((b) => b.needs === "user_decision");
   if (decision) {
@@ -409,12 +475,22 @@ function recommendedAction(data) {
       action: firstBlocker?.proposed_resolution || actionText((data.next_actions || [])[0]) || "Diagnose and recover.",
     };
   }
-  const na = (data.next_actions || [])[0];
+  const stale = staleNextActions(data, driftContext);
+  const na = freshNextAction(data, driftContext);
   const base = data.progress_summary ? data.progress_summary.split(/(?<=\.)\s/)[0] : `${data.skill} is ${data.status}`;
+  if (stale.length > 0 && !na) {
+    return {
+      why: `Checkpoint drift: ${stale[0].token} already appears completed/merged.`,
+      action: `Reconcile ${data.skill}.checkpoint.json: remove or replace stale next_actions before resuming.`,
+    };
+  }
   // v1.6: surface a tripped budget in the recommendation (oc-cost-ops writes cost).
-  const why = budgetExceeded(data)
+  let why = budgetExceeded(data)
     ? `⚠ over budget ($${data.cost.total_usd} > $${data.cost.budget_usd}) — ${base}`
     : base;
+  if (stale.length > 0) {
+    why = `Skipped stale next_action referencing ${stale[0].token}; ${why}`;
+  }
   return {
     why,
     action: actionText(na) || "No queued next action — review the checkpoint.",
@@ -535,9 +611,10 @@ function cmdStatus(opts = {}) {
 function cmdNext() {
   const all = readAll();
   if (all.length === 0) { console.log("(no checkpoints found in .checkpoints/)"); return 0; }
-  const top = pickNext(all);
+  const drift = buildDriftContext(all);
+  const top = pickNext(all, { drift });
   const d = top.data;
-  const rec = recommendedAction(d);
+  const rec = recommendedAction(d, drift);
   console.log("NEXT ACTION");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log(`Skill:  ${d.skill}  (${d.status} — ${d.phase}/${d.step})`);
@@ -564,25 +641,7 @@ async function cmdDoctor(opts = {}) {
   if (all.length === 0) { console.log("(no checkpoints found in .checkpoints/)"); return 0; }
   const findings = []; // { level: 'error'|'warn', skill, msg }
   const add = (level, skill, msg) => findings.push({ level, skill, msg });
-
-  // Build a map of "completed" tokens across all checkpoints (PRs/tickets that a
-  // progress_table row or merged list marks done) for the cross-checkpoint check.
-  const completedTokens = new Set();
-  for (const { data } of all) {
-    const harvest = (s) => {
-      if (typeof s !== "string") return;
-      for (const m of s.matchAll(/#(\d+)/g)) completedTokens.add(`#${m[1]}`);
-      for (const m of s.matchAll(/\b([A-Z]{2,}-\d+)\b/g)) completedTokens.add(m[1]);
-    };
-    for (const row of (Array.isArray(data.progress_table) ? data.progress_table : [])) {
-      if (row.status === "complete") harvest(`${row.id} ${row.label}`);
-    }
-    const st = data.skill_state || {};
-    for (const key of Object.keys(st)) {
-      if (/merged|shipped|completed|done/i.test(key)) harvest(JSON.stringify(st[key]));
-    }
-  }
-  const gitTokens = gitMergedTokens();
+  const drift = buildDriftContext(all);
 
   for (const { data, bytes } of all) {
     const skill = data.skill || "?";
@@ -616,15 +675,9 @@ async function cmdDoctor(opts = {}) {
     // Drift 4 (F2): a next_action telling future-self to do work that's already
     // landed (its PR/ticket token shows complete elsewhere or in git history).
     for (const a of (Array.isArray(data.next_actions) ? data.next_actions : [])) {
-      const txt = actionText(a);
-      const toks = new Set();
-      for (const m of txt.matchAll(/#(\d+)/g)) toks.add(`#${m[1]}`);
-      for (const m of txt.matchAll(/\b([A-Z]{2,}-\d+)\b/g)) toks.add(m[1]);
-      for (const tok of toks) {
-        if (completedTokens.has(tok) || gitTokens.has(tok)) {
-          add("warn", skill, `next_action references ${tok}, which already appears as completed/merged — may be stale: "${txt.slice(0, 70)}…"`);
-          break;
-        }
+      const stale = actionDrift(a, drift);
+      if (stale) {
+        add("warn", skill, `next_action references ${stale.token}, which already appears as completed/merged — may be stale: "${stale.text.slice(0, 70)}…"`);
       }
     }
   }
@@ -658,7 +711,7 @@ async function cmdDoctor(opts = {}) {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log(`${errs.length} error(s), ${warns.length} warning(s).`);
   if (!opts.online) console.log("Tip: `checkpoint doctor --online` also checks the deployed /api/health version.");
-  return errs.length > 0 ? 1 : 0;
+  return errs.length > 0 || (opts.failOnWarnings && warns.length > 0) ? 1 : 0;
 }
 
 /**
@@ -764,6 +817,48 @@ function cmdDone(skill) {
   return 0;
 }
 
+function cmdList() {
+  const all = readAll();
+  if (all.length === 0) { console.log("(no checkpoints found in .checkpoints/)"); return 0; }
+  console.log("| Skill | Status | Phase | Step | Updated | Next |");
+  console.log("|---|---|---|---|---|---|");
+  for (const { data: d } of all) {
+    const next = actionText((Array.isArray(d.next_actions) ? d.next_actions : [])[0]) || "—";
+    console.log(`| ${d.skill || "?"} | ${d.status || "?"} | ${d.phase || "?"} | ${d.step || "?"} | ${d.updated_at || "—"} | ${next.replace(/\|/g, "\\|")} |`);
+  }
+  return 0;
+}
+
+function cmdShow(skill) {
+  const paths = skill ? [join(DIR, `${skill}.checkpoint.json`)] : listCheckpoints();
+  if (paths.length === 0) { console.log("(no checkpoints found in .checkpoints/)"); return 0; }
+  for (const p of paths) {
+    if (!existsSync(p)) {
+      console.error(`no checkpoint for "${skill}" at ${p}`);
+      return 1;
+    }
+    const raw = readFileSync(p, "utf8");
+    if (paths.length > 1) console.log(`\n// ${basename(p)}`);
+    process.stdout.write(raw);
+    if (!raw.endsWith("\n")) console.log();
+  }
+  return 0;
+}
+
+function cmdReset(skill) {
+  if (!skill) { console.error("usage: checkpoint reset <skill>"); return 1; }
+  const path = join(DIR, `${skill}.checkpoint.json`);
+  if (!existsSync(path)) { console.log(`• no checkpoint for "${skill}" at ${path}`); return 0; }
+  const historyDir = join(DIR, "history");
+  mkdirSync(historyDir, { recursive: true });
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const archived = join(historyDir, `${skill}.${stamp}.checkpoint.json`);
+  renameSync(path, archived);
+  console.log(`✓ archived ${basename(path)} → .checkpoints/history/${basename(archived)}`);
+  console.log(`  Fresh runs should write a new ${basename(path)} with node scripts/checkpoint.mjs update ${skill} ...`);
+  return 0;
+}
+
 // I2: scaffold .checkpoints/ on a fresh project.
 function cmdInit() {
   if (!existsSync(DIR)) { mkdirSync(DIR, { recursive: true }); console.log(`✓ created ${DIR}`); }
@@ -779,7 +874,7 @@ function cmdInit() {
 
 // Exported for tests. The CLI dispatch below only runs when invoked directly,
 // so importing this module (e.g. from vitest) is side-effect-free.
-export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, budgetExceeded, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS };
+export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, actionDrift, buildDriftContext, budgetExceeded, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS };
 
 // ───────────────────────────── arg parsing ──────────────────────────────────
 
@@ -792,15 +887,21 @@ function run() {
     case "validate": return cmdValidate(flags.has("--strict"));
     case "status":   return cmdStatus({ brief: flags.has("--brief"), since: sinceArg ? sinceArg.split("=")[1] : null });
     case "next":     return cmdNext();
-    case "doctor":   return cmdDoctor({ online: flags.has("--online") });
+    case "doctor":   return cmdDoctor({ online: flags.has("--online"), failOnWarnings: flags.has("--fail-on-warnings") || flags.has("--strict") });
+    case "list":     return cmdList();
+    case "show":     return cmdShow(rest[0]);
+    case "reset":    return cmdReset(rest[0]);
     case "update":   return cmdUpdate(rest[0], rest.slice(1));
     case "done":     return cmdDone(rest[0]);
     case "init":     return cmdInit();
     default:
-      console.error("usage: checkpoint <status|next|doctor|validate|update|done|init>");
+      console.error("usage: checkpoint <status|next|doctor|list|show|reset|validate|update|done|init>");
       console.error("  status [--brief] [--since=ISO]      — session-resume summary");
-      console.error("  next                                — the single highest-priority action");
-      console.error("  doctor [--online]                   — flag checkpoints that drifted from reality");
+      console.error("  next                                — the single highest-priority non-stale action");
+      console.error("  doctor [--online] [--fail-on-warnings] — flag checkpoints that drifted from reality");
+      console.error("  list                                — list checkpoints in this project");
+      console.error("  show [skill]                        — display checkpoint JSON");
+      console.error("  reset <skill>                       — archive a checkpoint into .checkpoints/history/");
       console.error("  validate [--strict]                 — schema gate (CI); --strict fails on warnings");
       console.error("  update <skill> [--field=value ...]  — apply field updates, stamp updated_at");
       console.error("  done <skill>                        — complete next_actions[0] → recently_done");

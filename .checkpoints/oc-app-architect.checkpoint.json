@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-06-25T06:44:28.362Z",
-  "phase": "launch",
-  "step": "v16-build-complete-S1-S7-on-PR-351-awaiting-ci-merge-deploy",
-  "status": "in_progress",
-  "progress_summary": "v1.6 'The instrumented pipeline' BUILD COMPLETE — all 7 sprints shipped to PR #351 (branch claude/charming-knuth-2jyhhf), built straight through. S1 protocol wire 1.1 (cost/eval_scores/telemetry_handle) + scaffolds + flags + symlinks; S2 oc-cost-ops body+refs; S3 oc-telemetry-ops body+refs; S4 ripples (eval_scores in bug-check/code-auditor, monitoring AI template, cost-aware /oc-ops next); S5 /dashboard + /showcase cost + replays flag; S6 lockstep all 24 skills -> 1.6.0 + skills/CHANGELOG.md; S7 honest-staging site surfaces (roadmap-static + changelog v1.6 card) + site-release-surfaces.md checklist + check-release-surfaces.mjs guard. Local gates green every sprint (439 vitest, astro check 0 errors, gen-catalog 24, site build 56 pages). PARKED separately: /demo search (branch claude/relaxed-cannon-ut762y).",
+  "updated_at": "2026-06-30T01:46:45.525Z",
+  "phase": "post-release",
+  "step": "v1.7-staged-checkpoint-audit",
+  "status": "complete",
+  "progress_summary": "v1.7 skill files, Skill Library, and checkpoint-audit changelog patch are staged; checkpoint-protocol hardening is being released as the follow-up patch so future sessions do not resume stale PR/deploy work.",
   "progress_table": [
     {
       "id": "discovery",
@@ -81,11 +81,7 @@
     ]
   },
   "blockers": [],
-  "next_actions": [
-    "Watch PR #351 CI to green (Worker/Site/e2e/LHCI). The changelog e2e nav-timeout seen earlier is a flake (LHCI loads /changelog at 1.00 same runs).",
-    "LAUNCH (Phase 7, after merge): oc-release-ops cut -> flip the live-claim site surfaces (Header CURRENT_RELEASE v1.5->v1.6, homepage shipped bar, changelog promote v1.6->Just Released, styleguide badge) per site-release-surfaces.md L1-L7, then npm run deploy:staging (eyeball /dashboard + the rolled surfaces) -> npm run deploy. Optional /oc-audit pre-deploy sweep first (none since v1.3).",
-    "After prod deploy: run node scripts/check-release-surfaces.mjs (expect all v1.6), close any deploy-lag issue."
-  ],
+  "next_actions": [],
   "skill_state": {
     "feature": {
       "id": "demo-search",

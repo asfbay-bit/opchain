@@ -11,6 +11,8 @@ Add this to every skill's command reference section:
 ```
   CHECKPOINT (cross-skill)
   /checkpoint         Show checkpoint status for current project
+  /checkpoint next    Show highest-priority non-stale action
+  /checkpoint doctor  Check checkpoints against git/filesystem drift
   /checkpoint show    Display full checkpoint JSON
   /checkpoint reset   Archive and clear checkpoint
   /checkpoint list    List all skill checkpoints in project
@@ -20,13 +22,13 @@ Add this to every skill's command reference section:
 (pure Node, zero deps) against the current project's `.checkpoints/` directory:
 
 ```bash
-node scripts/checkpoint.mjs <command>     # status | next | doctor | validate | update | done | init
+node scripts/checkpoint.mjs <command>     # status | next | doctor | list | show | reset | validate | update | done | init
 ```
 
 There is **no `checkpoint.sh`** — the tool is `scripts/checkpoint.mjs`. Map the
 `/checkpoint` sub-commands: `/checkpoint` → `status`, `/checkpoint next` → `next`,
-`/checkpoint doctor` → `doctor`, `/checkpoint list` → `status`, `/checkpoint reset`
-→ archive the file and re-`init`.
+`/checkpoint doctor` → `doctor`, `/checkpoint list` → `list`,
+`/checkpoint show` → `show`, `/checkpoint reset` → `reset`.
 
 ---
 

@@ -5,6 +5,8 @@ import {
   pickNext,
   recommendedAction,
   actionText,
+  actionDrift,
+  buildDriftContext,
   budgetExceeded,
   SCHEMA_VERSION,
   ACCEPTED_SCHEMA_VERSIONS,
@@ -168,6 +170,67 @@ describe("priority engine", () => {
     const rec = recommendedAction(d);
     expect(rec.why).toMatch(/pick A or B/);
     expect(rec.action).toMatch(/go with A/);
+  });
+
+  it("detects stale next_actions that reference completed PRs", () => {
+    const completed = base({
+      skill: "release",
+      status: "complete",
+      next_actions: [],
+      progress_table: [{ id: "pr-351", label: "PR #351 merged", status: "complete" }],
+    });
+    const stale = base({ skill: "architect", next_actions: ["Watch PR #351 CI to green"] });
+    const drift = buildDriftContext([{ data: completed }, { data: stale }], { gitTokens: new Set() });
+
+    expect(actionDrift(stale.next_actions[0], drift)).toMatchObject({ token: "#351" });
+  });
+
+  it("recommendedAction refuses to recommend completed PR work", () => {
+    const completed = base({
+      skill: "release",
+      status: "complete",
+      next_actions: [],
+      progress_table: [{ id: "pr-351", label: "PR #351 merged", status: "complete" }],
+    });
+    const stale = base({ skill: "architect", next_actions: ["Watch PR #351 CI to green"] });
+    const drift = buildDriftContext([{ data: completed }, { data: stale }], { gitTokens: new Set() });
+    const rec = recommendedAction(stale, drift);
+
+    expect(rec.why).toMatch(/completed\/merged/);
+    expect(rec.action).toMatch(/Reconcile/);
+    expect(rec.action).not.toMatch(/Watch PR #351/);
+  });
+
+  it("recommendedAction skips stale queued work and uses the first fresh action", () => {
+    const completed = base({
+      skill: "release",
+      status: "complete",
+      next_actions: [],
+      progress_table: [{ id: "pr-351", label: "PR #351 merged", status: "complete" }],
+    });
+    const mixed = base({
+      skill: "architect",
+      next_actions: ["Watch PR #351 CI to green", "Plan the next checkpoint reconciliation PR"],
+    });
+    const drift = buildDriftContext([{ data: completed }, { data: mixed }], { gitTokens: new Set() });
+    const rec = recommendedAction(mixed, drift);
+
+    expect(rec.why).toMatch(/Skipped stale next_action/);
+    expect(rec.action).toBe("Plan the next checkpoint reconciliation PR");
+  });
+
+  it("pickNext prefers a fresh candidate over a stale-only candidate at the same rank", () => {
+    const completed = base({
+      skill: "release",
+      status: "complete",
+      next_actions: [],
+      progress_table: [{ id: "pr-351", label: "PR #351 merged", status: "complete" }],
+    });
+    const stale = base({ skill: "stale", updated_at: "2026-06-03T12:00:00Z", next_actions: ["Watch PR #351 CI"] });
+    const fresh = base({ skill: "fresh", updated_at: "2026-06-01T12:00:00Z", next_actions: ["Do fresh work"] });
+    const drift = buildDriftContext([{ data: completed }, { data: stale }, { data: fresh }], { gitTokens: new Set() });
+
+    expect(pickNext([{ data: stale }, { data: fresh }], { drift }).data.skill).toBe("fresh");
   });
 });
 

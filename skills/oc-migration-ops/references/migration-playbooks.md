@@ -580,9 +580,9 @@ change to how skills are structured.
 ### Why This Is a Migration
 
 The skill ecosystem is infrastructure. It has N files (currently 30+ SKILL.md files,
-10+ orchestrator.md copies, 10+ checkpoint-protocol.md copies, 10+ checkpoint.sh
-copies) that all follow the same contract. Changing that contract is a migration —
-the same expand-migrate-contract discipline applies.
+10+ orchestrator.md copies, 10+ checkpoint-protocol.md copies, plus shared
+checkpoint CLI/docs) that all follow the same contract. Changing that contract is
+a migration — the same expand-migrate-contract discipline applies.
 
 ### Common Ecosystem Migrations
 
@@ -666,9 +666,9 @@ Add `protocol_version` check to checkpoint reads:
   - v[N] reader encountering v[N+1] checkpoint: warn, don't crash
   - Migration path: read v[N], write v[N+1] on next checkpoint write
 
-## Step 3: Update checkpoint.sh
+## Step 3: Update checkpoint.mjs
 
-The shared script handles read/write. Update it to:
+The shared CLI handles read/write. Update `scripts/checkpoint.mjs` to:
   - Write v[N+1] format on new writes
   - Read both v[N] and v[N+1] formats
   - `status` command shows protocol version
@@ -802,7 +802,7 @@ User action: Settings → Customize → Skills → delete old skill.
 |---|---|---|
 | All SKILL.md files parse | Extract YAML frontmatter from each | No parse errors |
 | All descriptions present | Grep for `description:` in frontmatter | N/N skills have descriptions |
-| All checkpoint.sh identical | `md5sum */scripts/checkpoint.sh` | All checksums match |
+| Shared checkpoint CLI valid | `node scripts/checkpoint.mjs validate` | All checkpoints pass schema validation |
 | All orchestrator.md identical | `md5sum */references/orchestrator.md` | All checksums match (or document intentional diffs) |
 | Trigger coverage | List all commands across all skills | No collisions, no gaps |
 
