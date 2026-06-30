@@ -196,7 +196,7 @@ const futureReleaseGroups = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">10 shipped</span>
+          Just Released <span class="tab-count">11 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -232,7 +232,7 @@ const futureReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What shipped</h2>
-        <span class="panel-sub">Newest is open; click any release for full notes.</span>
+        <span class="panel-sub">Latest release is open; patches and earlier releases expand in place.</span>
       </div>
 
       <!-- v1.7 — newest, AUTO-OPEN; seams & signals -->
@@ -282,6 +282,60 @@ const futureReleaseGroups = [
               lockstep-bump to <code>1.7.0</code>; the three new skills ship gated
               behind their <code>skills.registry.&lt;id&gt;.enabled</code> flags,
               and no documented cross-skill contract was removed.
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Checkpoint write-discipline audit patch -->
+      <article class="rel-card" id="checkpoint-write-discipline" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="checkpoint-write-discipline-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">patch</span><span class="rc-title">Checkpoint write discipline audit</span><span class="rc-date">Jun 29, 2026</span></span>
+            <span class="rc-summary">A checkpoint-system audit turns stale-resume findings into a prescriptive write-trigger plan: resume, pause, handoff, PR open, PR merge, deploy, release, and doctor drift all need durable checkpoint updates.</span>
+          </span>
+        </button>
+        <div class="card-body" id="checkpoint-write-discipline-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">checkpoint audit</span><span class="tag">write triggers</span><span class="tag">doctor drift</span><span class="tag">release hygiene</span></div>
+            <p>
+              The audit found that checkpoint infrastructure exists, but it
+              detects more drift than it prevents. <code>checkpoint:next</code>
+              can still recommend already-merged PR work, strict validation
+              fails several current checkpoints, and the v1.7 skills need a
+              stronger shared checkpoint contract before they can be trusted as
+              resumable handoff points.
+            </p>
+            <h3>Skill-by-skill follow-up</h3>
+            <p>
+              The v1.7 skill files and Skill Library are part of this staging
+              candidate; this audit queues the checkpoint-contract fixes each
+              skill still needs.
+            </p>
+            <ul>
+              <li><strong>oc-checkpoint-protocol</strong>: make lifecycle writes mandatory for resume, pause, handoff, PR open/merge, deploy, release, and doctor drift.</li>
+              <li><strong>oc-app-architect</strong>: reconcile the stale merged-PR next action and require PR-merge checkpoint writes.</li>
+              <li><strong>oc-orchestrator</strong>: add the v1.7 skills to routing maps and trim stale oversized checkpoint state.</li>
+              <li><strong>oc-signal-forge</strong>: expose shared checkpoint behavior, <code>next_actions</code>, <code>context_primer</code>, and reference docs.</li>
+              <li><strong>oc-modularize-ops</strong>: add the shared checkpoint command contract plus resume/action examples.</li>
+              <li><strong>oc-fleet-ops</strong>: define explicit resume behavior, action examples, context primer expectations, and reference docs.</li>
+              <li><strong>oc-code-auditor</strong>, <strong>oc-stack-forge</strong>, and <strong>oc-ux-engineer</strong>: shorten oversized summaries into structured checkpoint fields.</li>
+              <li><strong>oc-git-ops</strong> and <strong>oc-bug-check</strong>: reconcile the canonical bug-check checkpoint filename.</li>
+              <li><strong>oc-telemetry-ops</strong>: add missing <code>progress_table</code> and <code>context_primer</code>.</li>
+              <li><strong>oc-reverse-spec</strong>: replace the obsolete <code>scripts/checkpoint.sh</code> instruction.</li>
+              <li><strong>oc-release-ops</strong>: block release completion until relevant skill checkpoints match shipped state.</li>
+            </ul>
+            <h3>What changes next</h3>
+            <ul>
+              <li>Make lifecycle writes mandatory for session resume, session pause, phase completion, user decisions, blockers, cross-skill handoffs, PR open/merge, deploys, and release ship.</li>
+              <li>Make <code>checkpoint:next</code> drift-aware so merged PRs and completed work cannot become the next recommendation.</li>
+              <li>Reconcile the bug-check checkpoint filename mismatch and implement the promised <code>/checkpoint show</code>, <code>/checkpoint reset</code>, and <code>/checkpoint list</code> commands.</li>
+            </ul>
+            <div class="compat-box">
+              <strong>No runtime change yet.</strong> This patch records the
+              audit and self-improvement plan; the next implementation pass
+              should make the protocol and CLI enforce the write policy.
             </div>
           </div>
         </div>
