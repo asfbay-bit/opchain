@@ -302,7 +302,7 @@ On migration, map the fields:
 
 When `/oc-reverse-spec`, `/oc-rev-scan`, `/oc-rev-full`, or any /rev-* command is invoked:
 
-1. Check for checkpoint: `bash scripts/checkpoint.sh exists <project-dir> oc-reverse-spec`
+1. Check for checkpoint: `node scripts/checkpoint.mjs show oc-reverse-spec`
 2. If exists (JSON):
    - Read checkpoint
    - Display: analysis progress, generated docs, next action

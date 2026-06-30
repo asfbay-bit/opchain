@@ -237,17 +237,28 @@ If the checkpoint is >24h old, do a quick consistency check:
 
 ### When to Write
 
-Update the checkpoint after:
+Checkpoint writes are mandatory lifecycle work, not optional bookkeeping. Update
+the checkpoint after:
 
 | Event | Action |
 |---|---|
-| Phase/step completed | Update `progress_table`, `step`, `progress_summary` |
-| Key decision made | Append to `context_primer.key_decisions` |
-| File generated | Append to `context_primer.generated_files` |
-| Blocker discovered | Add to `blockers` |
-| Blocker resolved | Remove from `blockers` (or mark resolved) |
-| User confirms something | Append to `key_decisions` |
-| Session ending (user says bye, context getting long) | Full checkpoint write |
+| Session resume | Restamp `updated_at`, record `resumed_from` when known, and revalidate or replace `next_actions[0]` before continuing. |
+| Session pause / user says stop / context is getting long | Write a compact `progress_summary`, current `step`, blockers, and the exact next action to run first. |
+| Phase or gate completion | Update `progress_table`, `phase`, `step`, summary, and next action before moving on. |
+| Key decision / user decision made | Append to `context_primer.key_decisions`, clear any matching blocker, and restamp. |
+| File generated | Append to `context_primer.generated_files`. |
+| Blocker discovered | Add to `blockers` and set `status` to `blocked` if it stops progress. |
+| Blocker resolved | Remove or mark the blocker resolved and set `status` back to `in_progress`. |
+| Cross-skill handoff | Current skill writes the handoff reason, named artifacts, and receiving skill before the receiver acts. |
+| Branch / PR opened | Record branch, PR number, scope, touched artifacts, and pending verification. |
+| PR merged | Mark PR-wait actions complete and replace them with deploy/release/follow-up actions. |
+| Deploy to staging/prod | Record environment, commit SHA, health result, user-visible route checked, and next rollout step. |
+| Release cut/ship | Reconcile release-relevant skill checkpoints to the shipped release state. |
+| Merge conflict or rebase resolution | Restamp if conflict resolution changed generated files, summaries, or next actions. |
+| `checkpoint doctor` drift found | Write a reconciliation checkpoint or add an explicit blocker; do not leave drift only in console output. |
+
+If a future session would be misled without the write, the current skill must
+write before handing control back.
 
 ### How to Write
 
@@ -333,7 +344,7 @@ skills do **not** bundle their own writers.
 node scripts/checkpoint.mjs status            # "where did I leave off?" — full summary
 node scripts/checkpoint.mjs status --brief    # just the top skill + its next action + blockers
 node scripts/checkpoint.mjs status --since=2026-06-01T00:00:00Z   # momentum digest
-node scripts/checkpoint.mjs next              # the SINGLE highest-priority action (priority engine)
+node scripts/checkpoint.mjs next              # the SINGLE highest-priority non-stale action
 ```
 
 `status` leads with a `⛔ N decisions waiting on you` banner when any blocker
@@ -347,6 +358,7 @@ don't need the oc-orchestrator's registry to answer "what now?".
 ```bash
 node scripts/checkpoint.mjs doctor            # cross-check vs git history + filesystem
 node scripts/checkpoint.mjs doctor --online   # also compare deployed /api/health vs local HEAD
+node scripts/checkpoint.mjs doctor --fail-on-warnings
 ```
 
 `doctor` flags: a `project_dir` that doesn't exist on this machine, stale
@@ -354,10 +366,18 @@ in_progress checkpoints, `generated_files` that reference missing paths, and
 `next_actions` that point at PRs/tickets already merged (the "telling future-self
 to redo shipped work" failure that caused three manual reconciliations in this repo).
 
+`next` uses the same drift evidence before recommending work. If a queued action
+references already-merged PR work or a completed ticket, `next` skips to the
+first fresh action or recommends checkpoint reconciliation instead of telling the
+next agent to redo shipped work.
+
 **Write:**
 
 ```bash
 npm run checkpoint:validate                   # schema gate — CI runs this (add --strict to fail on warnings)
+node scripts/checkpoint.mjs list              # list all checkpoint files
+node scripts/checkpoint.mjs show [skill]      # display full JSON for one/all checkpoints
+node scripts/checkpoint.mjs reset <skill>     # archive current file into .checkpoints/history/
 node scripts/checkpoint.mjs update <skill> --field=value [...]   # apply updates, auto-stamp updated_at
 node scripts/checkpoint.mjs done <skill>      # pop next_actions[0] → recently_done, restamp
 node scripts/checkpoint.mjs init              # scaffold .checkpoints/ on a fresh project
