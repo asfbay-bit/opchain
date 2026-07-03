@@ -30,7 +30,7 @@ own backlog.
 | Waves 1–2 (overhaul plan §5) | 11 | 2026-06-20 → 06-24, live |
 | Launch-gap backfill | 7 | 2026-06-25 → 07-01: v1.6 + v1.7 release narratives, cost-report pair (incl. the 13× correction), telemetry stance, wire-1.1 playbook, "27 skills" |
 | Published today | 1 | `2026-07-02-seo-for-robots-that-arent-googlebot` |
-| **Staged, ready to flip** | 1 | `2026-07-03-we-deleted-our-deploy-pipeline-on-purpose` (`draft: true`) |
+| **Staged, ready to flip** | 3 | `2026-07-03-we-deleted-our-deploy-pipeline-on-purpose` · `2026-07-06-cut-a-live-monolith-without-losing-a-byte` · `2026-07-08-anatomy-of-a-golden-fixture` (all `draft: true`; flip each on its date) |
 
 Featured/hero: `2026-06-28-our-cost-report-was-wrong-by-13x` (newest
 `featured: true` wins the index hero automatically; the 06-24 flag can stay).
@@ -47,8 +47,8 @@ description 120–160 chars, ≥2 internal links.
 | Date | Day | Working title | Pillar | Series | Hook / thesis | Key sources | Status |
 |---|---|---|---|---|---|---|---|
 | Jul 3 | Fri | **We deleted our deploy pipeline on purpose** | opinion | — | Removing flaky CD improved reliability; automate the verification, not the trigger. | `CLAUDE.md` deploy section; `deploy-lag.yml`; May 13 staging gap | ✍️ **staged** — flip `draft` |
-| Jul 6 | Mon | **Cut a live monolith without losing a byte** | playbook | Seams & Signals in practice | Narrated `/oc-modularize` run: fixture capture → seam plan → replay proof — including the path where it refuses. | `skills/oc-modularize-ops`; v1.7 changelog | planned |
-| Jul 8 | Wed | **Anatomy of a golden fixture** | engineering | Seams & Signals in practice | What "equivalence oracle from real traffic" actually means: capture, scrubbing, determinism traps (time, randomness, ordering). | oc-modularize-ops references | planned |
+| Jul 6 | Mon | **Cut a live monolith without losing a byte** | playbook | Seams & Signals in practice | Narrated `/oc-modularize` run: fixture capture → seam plan → replay proof — including the path where it refuses. | `skills/oc-modularize-ops`; v1.7 changelog | ✍️ **staged** — flip `draft` |
+| Jul 8 | Wed | **Anatomy of a golden fixture** | engineering | Seams & Signals in practice | What "equivalence oracle from real traffic" actually means: capture, scrubbing, determinism traps (time, randomness, ordering). | oc-modularize-ops references | ✍️ **staged** — flip `draft` |
 | Jul 10 | Fri | **From Compose guilt to a governed fleet** | playbook | Seams & Signals in practice | `/oc-fleet` end to end: declare topology → pick IaC → mandatory plan gate → day-2 (scale/drain/replace). | `skills/oc-fleet-ops` | planned |
 | Jul 13 | Mon | **The dashboard is not the deliverable** | opinion | — | A chart that renders ≠ a signal that's true; question-first metrics. Sequel to the 13× saga. | oc-signal-forge; 06-28 post | planned |
 | Jul 15 | Wed | **Wire a metric you can actually trust** | playbook | Seams & Signals in practice | Narrated `/oc-signal` build: question → instrumentation → harvester → adversarial refutation → dash-forge handoff. | `skills/oc-signal-forge` | planned |
