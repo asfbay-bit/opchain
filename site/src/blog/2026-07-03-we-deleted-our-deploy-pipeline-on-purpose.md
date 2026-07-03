@@ -70,9 +70,11 @@ post. The guarantees moved into guardrails:
   the remembering.
 - **Staging deploys from `main`, only.** Learned the hard way: on May 13 we
   eyeballed a staging that had been deployed from a feature branch — a SHA
-  not even reachable from `main` — while prod sat six days stale. Staging's
-  entire epistemic value is *"this is what prod is about to become."* Deploy
-  it from anywhere else and you're QA-testing a parallel universe.
+  not even reachable from `main` — while prod sat six days stale. (That
+  incident has [its own postmortem](/blog/2026-05-15-the-deploy-that-forgot-to-happen);
+  the canary above was born there.) Staging's entire epistemic value is
+  *"this is what prod is about to become."* Deploy it from anywhere else and
+  you're QA-testing a parallel universe.
 - **Rollback is two commands** — list deployments, roll back, ~30 seconds to
   previous code. Cheap rollback is what makes a human trigger safe at all.
 
@@ -82,7 +84,8 @@ automation watching our deploys now than when a robot performed them.
 
 ## Where this advice expires
 
-House rules: name the boundary. This works because we're a small team with
+An honest opinion post names its own boundary, so: this works because we're
+a small team with
 one deploy target and the judgment to eyeball a staging URL meaningfully. At
 N engineers × M services, "the laptop" stops scaling and you should take the
 pipeline — our own [oc-deploy-ops](/skills/oc-deploy-ops) skill will design

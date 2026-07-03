@@ -1,9 +1,10 @@
 # Blog overhaul plan
 
-> Status: **Waves 1–3 shipped.** Page, schema, infra, per-post OG automation,
-> the 11 flagship posts (#1–#11), and the launch-window backfill (#12–#19:
+> Status: **Waves 0–3 shipped.** Page, schema, infra, per-post OG automation,
+> the 11 flagship posts (#1–#11), the launch-window backfill (#12–#19:
 > v1.6 + v1.7 narratives, the cost-report pair with public correction,
-> telemetry stance, wire-1.1 playbook, "27 skills", agent-discovery) are
+> telemetry stance, wire-1.1 playbook, "27 skills", agent-discovery), and a
+> 5-post prehistory backfill (Wave 0, 2026-05-12 → 06-19, added 07-02) are
 > live, plus one staged draft. Ongoing cadence (§9 S6) is scheduled in
 > [`blog-content-calendar.md`](./blog-content-calendar.md).
 >
@@ -116,6 +117,22 @@ words). The first wave (★) ships with this overhaul.
 | 17 | **How to grow a protocol without breaking anyone** | engineering | Wire 1.0 → 1.1 as an additive-migration playbook. |
 | 18 | **27 skills is not too many** | opinion | Self-aware sequel to #6; routing cost model vs. junk drawer. |
 | 19 | **SEO for robots that aren't Googlebot** | engineering | The agentic-discovery surface: ARD, llms.txt, did:web, MCP registry. |
+
+### Wave 0 — prehistory backfill ★ (added 2026-07-02, dated 2026-05-12 → 06-19)
+
+Written after Wave 3 but dated into the pre-overhaul era, each anchored to a
+real commit/release so the archive reads as a continuous record. Internal
+docs (this file, the calendar) say so plainly; the posts themselves stay in
+period voice, with an era-names editor's note where the June 5 oc- rename
+would otherwise contradict them.
+
+| # | Title (as shipped) | Pillar | Anchor |
+|---|---|---|---|
+| 20 | **v1.3 — The pipeline meets your PM tool** | release | v1.3.0 ship (2026-05-11); carries the era-names editor's note |
+| 21 | **The deploy that forgot to happen** | engineering | 05-13 staging/prod drift; deploy-lag canary (#237) |
+| 22 | **We renamed every skill in one PR** | engineering | oc- prefix rename (#256) |
+| 23 | **opchain speaks MCP now** | release | v1.4.3 Codex/MCP release (#272) |
+| 24 | **Your deploy shouldn't call someone else's API** | engineering | Linear deploy-decoupling (#294) |
 
 Onward scheduling (staged Jul 3 draft + the M/W/F July slate) lives in
 [`blog-content-calendar.md`](./blog-content-calendar.md). Each slate row is a

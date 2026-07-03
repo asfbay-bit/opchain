@@ -61,10 +61,10 @@ red build instead of a confused user.
 
 ## The seam we found anyway
 
-Full disclosure, per house rules: the rollout still surfaced a bug — ours.
-The checkpoint **CLI** and the **skills** had each grown their own idea of
-the schema, and by June 30 the two had drifted enough that reconciling them
-was its own commit. Two implementations of one contract is one implementation
+Full disclosure, because the rollout wasn't spotless: it still surfaced a
+bug — ours. The checkpoint **CLI** and the **skills** had each grown their
+own idea of the schema, and by this week the two had drifted enough that
+reconciling them was its own commit. Two implementations of one contract is one implementation
 too many; the fix was to make the schema single-sourced and demote everything
 else to a consumer. The migration didn't break any *users*, but it did break
 *us*, quietly, which is the failure mode you should actually expect: protocol

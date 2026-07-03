@@ -10,9 +10,10 @@ tags: [engineering, mcp, discovery, agents]
 A growing share of your next users will never see your homepage. They'll be
 represented by an agent that got asked *"help me ship this app,"* went
 looking for tools, and either found yours — machine-readably, verifiably —
-or found someone else's. Being **callable** (we ship [an MCP
-server](/skills)) turns out to be the easy half. Being **findable** is a
-whole discovery surface, and almost nobody's writing down how to build it.
+or found someone else's. Being **callable** — [opchain has spoken MCP since
+v1.4.3](/blog/2026-06-13-opchain-speaks-mcp-now) — turns out to be the easy
+half. Being **findable** is a whole discovery surface, and almost nobody's
+writing down how to build it.
 
 So here's ours, end to end: every endpoint opchain.dev serves so that
 software can discover, evaluate, and verify the software that helps you build

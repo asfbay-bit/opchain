@@ -72,12 +72,12 @@ story. You have a monolith that's earned a decomposition:
 ## Where the seams show (ours, not yours)
 
 Honesty section, as usual: a release this fast ships **contracts first**. The
-three skills landed with their full command surfaces, architecture diagrams,
-and cross-skill wiring on day one; parts of their reference guts hardened
-over the following days of dogfooding, and the checkpoint-protocol sync that
-trued everything up landed a few days later. We'd rather ship the contract
-and harden the internals in daylight than sit on a finished-looking release —
-but you deserve to know which one you're getting on day one.
+three skills land with their full command surfaces, architecture diagrams,
+and cross-skill wiring on day one; parts of their reference guts will harden
+over the coming days of dogfooding, with a checkpoint-protocol
+reconciliation sweep already queued behind them. We'd rather ship the
+contract and harden the internals in daylight than sit on a finished-looking
+release — but you deserve to know which one you're getting on day one.
 
 ## The through-line
 

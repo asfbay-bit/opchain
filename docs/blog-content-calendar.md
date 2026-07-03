@@ -26,6 +26,7 @@ own backlog.
 
 | Bucket | Count | Notes |
 |---|---|---|
+| Prehistory backfill (Wave 0) | 5 | 2026-05-12 → 06-19: v1.3 release, deploy-gap postmortem, oc- rename, MCP/Codex v1.4.3, Linear deploy-decoupling. Backdated 2026-07-02, anchored to real commits; the v1.3 post carries an era-names editor's note |
 | Waves 1–2 (overhaul plan §5) | 11 | 2026-06-20 → 06-24, live |
 | Launch-gap backfill | 7 | 2026-06-25 → 07-01: v1.6 + v1.7 release narratives, cost-report pair (incl. the 13× correction), telemetry stance, wire-1.1 playbook, "27 skills" |
 | Published today | 1 | `2026-07-02-seo-for-robots-that-arent-googlebot` |
@@ -52,7 +53,7 @@ description 120–160 chars, ≥2 internal links.
 | Jul 13 | Mon | **The dashboard is not the deliverable** | opinion | — | A chart that renders ≠ a signal that's true; question-first metrics. Sequel to the 13× saga. | oc-signal-forge; 06-28 post | planned |
 | Jul 15 | Wed | **Wire a metric you can actually trust** | playbook | Seams & Signals in practice | Narrated `/oc-signal` build: question → instrumentation → harvester → adversarial refutation → dash-forge handoff. | `skills/oc-signal-forge` | planned |
 | Jul 17 | Fri | **Flags all the way down** | engineering | — | The flag registry as single source of truth: layered eval (default → env → PostHog), fail-closed, kill switches, build-fails-on-drift. | `src/lib/flags/registry.js`; `gen-flags.mjs` | planned |
-| Jul 20 | Mon | **Your staging environment is lying to you** | opinion | — | Staging's only epistemic value is "what prod is about to become." Deploy it from a branch and you QA a parallel universe. The May 13 story, expanded. | `CLAUDE.md`; Jul 3 post | planned |
+| Jul 20 | Mon | **Your staging environment is lying to you** | opinion | — | Elevates the [May 15 postmortem](../site/src/blog/2026-05-15-the-deploy-that-forgot-to-happen.md) to principle — don't re-tell the incident, argue the doctrine. | May 15 post; Jul 3 post | planned |
 | Jul 22 | Wed | **Give your API a birth certificate** | playbook | — | `/oc-api` Designer→Builder→Conformance: OpenAPI-first, schema↔code parity, SDK gen, drift gates. | `skills/oc-api-dev` | planned |
 | Jul 24 | Fri | **Docs that can't lie** | engineering | — | Derive every public claim from the artifact it describes: mcp.json from a live server, release surfaces guarded by script, llms.txt from the catalog. | `src/lib/discovery.js`; `check-release-surfaces.mjs`; Jul 2 post | planned |
 | Jul 27 | Mon | **Slop is a choice** | opinion | — | Generic AI output is what you get when nothing in the loop is paid to say no. Skeptical evaluators ("5/10 means mediocre — give it") as the anti-slop mechanism. | oc-app-architect Phase 6; oc-ux-engineer | planned |
