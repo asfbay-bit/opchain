@@ -1,10 +1,14 @@
 # Blog overhaul plan
 
-> Status: **Wave 1 + Wave 2 shipped.** Page, schema, infra, per-post OG
-> automation, and all 11 flagship posts (#1–#11) are live. Remaining: ongoing
-> cadence (§9 S5) and the v1.6 release narrative (#12) when v1.6 lands.
+> Status: **Waves 0–3 shipped.** Page, schema, infra, per-post OG automation,
+> the 11 flagship posts (#1–#11), the launch-window backfill (#12–#19:
+> v1.6 + v1.7 narratives, the cost-report pair with public correction,
+> telemetry stance, wire-1.1 playbook, "27 skills", agent-discovery), and a
+> 5-post prehistory backfill (Wave 0, 2026-05-12 → 06-19, added 07-02) are
+> live, plus one staged draft. Ongoing cadence (§9 S6) is scheduled in
+> [`blog-content-calendar.md`](./blog-content-calendar.md).
 >
-> Owner: opchain. Authored via `/oc-app-architect`. Last updated 2026-06-24.
+> Owner: opchain. Authored via `/oc-app-architect`. Last updated 2026-07-02.
 
 ## 1. Why
 
@@ -101,14 +105,39 @@ words). The first wave (★) ships with this overhaul.
 | 10 | **From Django monolith to shipped in an afternoon** | playbook | reverse-spec → app-architect → deploy on a legacy codebase; migration-ops on the write path. |
 | 11 | **How opchain.dev is built with opchain** | engineering | The recursion in full. Part 3 of the "Dogfooding opchain" series. |
 
-### Wave 3 — backlog
+### Wave 3 — shipped ★ (launch-window backfill, 2026-06-25 → 07-02)
 
-| # | Working title | Pillar | Angle |
+| # | Title (as shipped) | Pillar | Angle |
 |---|---|---|---|
-| 12 | **v1.6 release narrative** | release | (When v1.6 lands.) |
+| 12 | **v1.6 — The instrumented pipeline** | release | cost-ops + telemetry-ops + wire 1.1. |
+| 13 | **v1.7 — Seams & Signals** | release | signal-forge / modularize-ops / fleet-ops; why two releases in two days. |
+| 14 | **What building opchain with opchain cost** | engineering | oc-cost-ops pointed at our own history. Part 4 of "Dogfooding opchain." Carries a public correction. |
+| 15 | **Our cost report was wrong by 13×** | engineering | The correction as postmortem; signal-forge's origin story in the wild. Part 5 of the series. Featured. |
+| 16 | **Telemetry should be off by default** | opinion | Opt-in, local-first, content-free by schema. |
+| 17 | **How to grow a protocol without breaking anyone** | engineering | Wire 1.0 → 1.1 as an additive-migration playbook. |
+| 18 | **27 skills is not too many** | opinion | Self-aware sequel to #6; routing cost model vs. junk drawer. |
+| 19 | **SEO for robots that aren't Googlebot** | engineering | The agentic-discovery surface: ARD, llms.txt, did:web, MCP registry. |
 
-Each backlog row is a future `/oc-app /oc-build` unit: pick it up, draft, run the
-content QA checklist (§8), publish.
+### Wave 0 — prehistory backfill ★ (added 2026-07-02, dated 2026-05-12 → 06-19)
+
+Written after Wave 3 but dated into the pre-overhaul era, each anchored to a
+real commit/release so the archive reads as a continuous record. Internal
+docs (this file, the calendar) say so plainly; the posts themselves stay in
+period voice, with an era-names editor's note where the June 5 oc- rename
+would otherwise contradict them.
+
+| # | Title (as shipped) | Pillar | Anchor |
+|---|---|---|---|
+| 20 | **v1.3 — The pipeline meets your PM tool** | release | v1.3.0 ship (2026-05-11); carries the era-names editor's note |
+| 21 | **The deploy that forgot to happen** | engineering | 05-13 staging/prod drift; deploy-lag canary (#237) |
+| 22 | **We renamed every skill in one PR** | engineering | oc- prefix rename (#256) |
+| 23 | **opchain speaks MCP now** | release | v1.4.3 Codex/MCP release (#272) |
+| 24 | **Your deploy shouldn't call someone else's API** | engineering | Linear deploy-decoupling (#294) |
+
+Onward scheduling (staged Jul 3 draft + the M/W/F July slate) lives in
+[`blog-content-calendar.md`](./blog-content-calendar.md). Each slate row is a
+future `/oc-app /oc-build` unit: pick it up, draft, run the content QA
+checklist (§8), publish.
 
 ## 6. Page & template design
 
