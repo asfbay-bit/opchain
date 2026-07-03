@@ -4,116 +4,102 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-06-25T06:44:28.362Z",
-  "phase": "launch",
-  "step": "v16-build-complete-S1-S7-on-PR-351-awaiting-ci-merge-deploy",
+  "updated_at": "2026-07-02T19:20:00Z",
+  "phase": "build",
+  "step": "blog-content-program-built-evaluated-awaiting-commit-pr-deploy",
   "status": "in_progress",
-  "progress_summary": "v1.6 'The instrumented pipeline' BUILD COMPLETE — all 7 sprints shipped to PR #351 (branch claude/charming-knuth-2jyhhf), built straight through. S1 protocol wire 1.1 (cost/eval_scores/telemetry_handle) + scaffolds + flags + symlinks; S2 oc-cost-ops body+refs; S3 oc-telemetry-ops body+refs; S4 ripples (eval_scores in bug-check/code-auditor, monitoring AI template, cost-aware /oc-ops next); S5 /dashboard + /showcase cost + replays flag; S6 lockstep all 24 skills -> 1.6.0 + skills/CHANGELOG.md; S7 honest-staging site surfaces (roadmap-static + changelog v1.6 card) + site-release-surfaces.md checklist + check-release-surfaces.mjs guard. Local gates green every sprint (439 vitest, astro check 0 errors, gen-catalog 24, site build 56 pages). PARKED separately: /demo search (branch claude/relaxed-cannon-ut762y).",
+  "progress_summary": "PRIOR FEATURE CLOSED: v1.6 shipped 2026-06-25 (PR #351) and v1.7 'Seams & Signals' shipped 2026-06-26 (PRs #356-359, site flip #359/#360) — launch phase of the v1.6 checkpoint is complete. CURRENT QUICK-FEATURE: blog content program (branch claude/vigilant-rhodes-6ebe72). Backfilled the 2026-06-25→07-01 publishing gap with 7 posts grounded in real repo history (v1.6 + v1.7 release narratives, cost-report pair incl. the public 13× correction #361→#364, telemetry stance, wire-1.1 protocol playbook, '27 skills' sequel), published 07-02 agent-discovery post, staged 07-03 deploy-pipeline post as draft:true, wrote docs/blog-content-calendar.md (M/W/F slate 07-03→08-01, 13 slots + spares + runbook), and reconciled docs/blog-overhaul-plan.md (Wave 3 shipped). Evaluator pass green: astro build 67 pages, astro check 0 errors, vitest 448/448, OG gen 19 blog cards, draft excluded from paths/RSS/OG, zero dead internal links, all frontmatter within schema caps, hero = 13x postmortem (featured).",
   "progress_table": [
     {
       "id": "discovery",
-      "label": "Discovery interview",
+      "label": "Discovery (from context: blog infra + release history recon)",
       "status": "complete"
     },
     {
       "id": "spec",
-      "label": "Feature spec (00/01/02/06/08)",
-      "status": "complete"
-    },
-    {
-      "id": "spec-gate",
-      "label": "★ Spec approval",
-      "status": "complete"
-    },
-    {
-      "id": "design",
-      "label": "Design — search/facet UI + mockup",
-      "status": "complete"
-    },
-    {
-      "id": "design-gate",
-      "label": "★ Design approval (by 'implement' instr.)",
-      "status": "complete"
-    },
-    {
-      "id": "punch-list",
-      "label": "Punch list (folded into spec+design)",
-      "status": "complete"
-    },
-    {
-      "id": "sprint-plan",
-      "label": "Sprint plan (single build)",
+      "label": "Content plan (9 posts + 30-day calendar, §8 QA rubric)",
       "status": "complete"
     },
     {
       "id": "build",
-      "label": "Build — lib + UI + 32 unit + 8 e2e",
-      "status": "in_progress"
+      "label": "Build — 9 posts, calendar doc, plan reconcile",
+      "status": "complete"
+    },
+    {
+      "id": "eval",
+      "label": "Evaluator — build/check/tests/links/OG/draft gates",
+      "status": "complete"
     },
     {
       "id": "pr",
-      "label": "PR + CI green",
+      "label": "Commit + PR + CI green",
       "status": "not_started"
     },
     {
       "id": "launch",
-      "label": "Launch — audit → manual deploy",
+      "label": "Deploy (publishes 07-02 post) + flip 07-03 draft",
       "status": "not_started"
     }
   ],
   "context_primer": {
     "key_decisions": [
-      "Surface: /demo workbench (DesktopWorkbench + MobileWorkbench). Substantial new capability, full pipeline (discover→spec→design→roadmap→build).",
-      "Capability: workbench-scoped Search & Filter — NOT merged into the global ⌘K palette (which only indexes pages/skills/actions).",
-      "Search depth: DEEP full-text — index every exchange, beat label, and artifact body across all 12 scenarios.",
-      "Facets (all four): skill · role (7-role taxonomy from lib/skills.ts) · artifact-kind (needs build-time normalization to a controlled vocab) · pipeline-phase (needs explicit data).",
-      "Result behavior: jump-to-exchange + shareable URL state. Deep link opens transcript mode, reveals steps up to/through the target, scrolls + ember-flashes it (reuse existing flash pattern).",
-      "Phase data: EXPLICIT `phase` tags added to beats in the walkthrough model; exchanges inherit nearest-preceding beat's phase. Touches all 12 data files.",
-      "Mobile: FULL parity — MobileWorkbench gets search + facets + deep-link adapted to the bottom-tab layout.",
-      "Stack: inherited/validated (Astro 5 static SSG + Cloudflare Worker ASSETS). No platform/db/auth decision. Build-time index JSON + client filter; zero new runtime deps (hand-rolled, like SearchPalette). MiniSearch noted as fallback only if quality is insufficient."
+      "Backdated posts are grounded in real repo events only (git log + skills/CHANGELOG.md + PR numbers) — no invented history. The 13x cost-report correction (#361→#364, $937.41 → $71.73) is told as a two-post arc: original annotated with a correction banner (house precedent: annotate, never rewrite), follow-up postmortem is the new featured hero.",
+      "Future-dated posts use draft:true as the only embargo — the site is static with no date filtering, so a future-dated published post would render immediately on deploy. Documented in the calendar runbook.",
+      "Calendar lives at docs/blog-content-calendar.md, NOT under site/src/blog/ (the content-collection glob would ingest it and fail the zod schema).",
+      "Calendar extends blog-overhaul-plan.md instead of rivaling it: §8 QA checklist retained as the per-post gate, S6 '~2/mo, no quota' principle preserved via an explicit slip-don't-fill rule; July runs M/W/F deliberately (launch-window backlog).",
+      "Series ledger: 'Dogfooding opchain' grew to 5 parts (cost pair joined); July opens 'Seams & Signals in practice' (4 parts: modularize playbook, golden-fixture anatomy, fleet playbook, signal playbook).",
+      "Hero rotation relies on newest-featured-wins in blog/index.astro — old featured flags don't need retiring.",
+      "Voice: house style per §3 (confident, technical, slightly irreverent, shows the seams) with humor dialed up on user request; every post keeps descriptions 120–160 chars and ≥2 internal links."
     ],
-    "generated_files": [],
+    "generated_files": [
+      "site/src/blog/2026-06-25-v1-6-the-instrumented-pipeline.md",
+      "site/src/blog/2026-06-26-v1-7-seams-and-signals.md",
+      "site/src/blog/2026-06-27-what-building-opchain-with-opchain-cost.md",
+      "site/src/blog/2026-06-28-our-cost-report-was-wrong-by-13x.md",
+      "site/src/blog/2026-06-29-telemetry-should-be-off-by-default.md",
+      "site/src/blog/2026-06-30-how-to-grow-a-protocol-without-breaking-anyone.md",
+      "site/src/blog/2026-07-01-27-skills-is-not-too-many.md",
+      "site/src/blog/2026-07-02-seo-for-robots-that-arent-googlebot.md",
+      "site/src/blog/2026-07-03-we-deleted-our-deploy-pipeline-on-purpose.md",
+      "docs/blog-content-calendar.md",
+      "docs/blog-overhaul-plan.md (status header + Wave 3 table updated)"
+    ],
     "user_preferences": [
       "Picks options when given clear choices; comfortable with 'go with defaults'.",
       "Prefers sharp scoping questions, then approves big plans in one pass.",
       "Answers structured AskUserQuestion rounds quickly and decisively.",
-      "Manual deploy from a wrangler-logged-in laptop is the rule; CI is verification-only."
+      "Manual deploy from a wrangler-logged-in laptop is the rule; CI is verification-only.",
+      "Blog: wants creative + funny + technologically exact; honesty-first house voice extends to jokes."
     ]
   },
   "blockers": [],
   "next_actions": [
-    "Watch PR #351 CI to green (Worker/Site/e2e/LHCI). The changelog e2e nav-timeout seen earlier is a flake (LHCI loads /changelog at 1.00 same runs).",
-    "LAUNCH (Phase 7, after merge): oc-release-ops cut -> flip the live-claim site surfaces (Header CURRENT_RELEASE v1.5->v1.6, homepage shipped bar, changelog promote v1.6->Just Released, styleguide badge) per site-release-surfaces.md L1-L7, then npm run deploy:staging (eyeball /dashboard + the rolled surfaces) -> npm run deploy. Optional /oc-audit pre-deploy sweep first (none since v1.3).",
-    "After prod deploy: run node scripts/check-release-surfaces.mjs (expect all v1.6), close any deploy-lag issue."
+    "Commit via /oc-git-sync (oc-bug-check gates) and open a PR from claude/vigilant-rhodes-6ebe72 to main; CI must be green (vitest + astro check + build + e2e + LHCI).",
+    "After merge: npm run deploy:staging from main, eyeball /blog (hero = 13x post, 19 posts, RSS), then npm run deploy — this publishes everything through the 07-02 post.",
+    "On 2026-07-03: flip draft:false on 2026-07-03-we-deleted-our-deploy-pipeline-on-purpose.md and deploy (the calendar runbook documents the flow).",
+    "Follow docs/blog-content-calendar.md M/W/F slate from Jul 6 (next up: 'Cut a live monolith without losing a byte'); slots slip rather than ship filler.",
+    "Around Jul 29: run /oc-release plan to fill the v1.8 release-post slot, or slip it."
   ],
   "skill_state": {
     "feature": {
-      "id": "demo-search",
-      "title": "Demo Workbench Search & Filter",
-      "surface": "/demo (DesktopWorkbench + MobileWorkbench)",
-      "spec_dir": "specs/features/demo-search/",
-      "search_depth": "deep-full-text",
-      "facets": [
-        "skill",
-        "role",
-        "artifact-kind",
-        "pipeline-phase"
-      ],
-      "result_behavior": "jump-to-exchange + shareable URL state",
-      "phase_data": "explicit phase tags on beats; exchanges inherit nearest-preceding beat",
-      "mobile": "full-parity",
-      "approach": "build-time index + client-side filter; zero new runtime deps",
-      "wires_activity_rail": [
-        "search (⌕)",
-        "skills (●)"
-      ]
+      "id": "blog-content-program",
+      "title": "Blog backfill + current posts + 30-day calendar",
+      "surface": "/blog (+ docs/blog-content-calendar.md)",
+      "posts_published": 8,
+      "posts_staged": 1,
+      "calendar_slots": 13,
+      "series": ["Dogfooding opchain (5 parts)", "Seams & Signals in practice (planned, 4 parts)"],
+      "eval_gates": "astro build 67 pages · astro check 0 errors · vitest 448/448 · OG 19 cards · draft excluded · 0 dead links"
+    },
+    "parked": {
+      "demo-search": "branch claude/relaxed-cannon-ut762y (unchanged, still parked)"
     },
     "prior_release": {
-      "version": "1.5.0",
-      "theme": "Build the AI app",
-      "shipped_at": "2026-06-22",
+      "version": "1.7.0",
+      "theme": "Seams & Signals",
+      "shipped_at": "2026-06-26",
       "status": "live",
-      "next_theme": "v1.6 Cost & telemetry (roadmap/07)"
+      "next_theme": "v1.8 TBD via /oc-release plan (calendar slot 2026-07-29)"
     }
   }
 }

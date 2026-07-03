@@ -90,11 +90,14 @@ export function seriesPosts(series: string, all: BlogPost[]): BlogPost[] {
     .reverse(); // publishedPosts is newest-first; series reads oldest-first
 }
 
-/** Format an ISO date (YYYY-MM-DD) for display. */
+/** Format an ISO date (YYYY-MM-DD) for display. Date-only ISO strings parse
+ * as UTC midnight, so the label must render in UTC too — otherwise every date
+ * displays a day early when built in a timezone west of UTC. */
 export function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: "UTC",
   });
 }
