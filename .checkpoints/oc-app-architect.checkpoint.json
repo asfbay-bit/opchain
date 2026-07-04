@@ -74,11 +74,12 @@
   },
   "blockers": [],
   "next_actions": [
-    "USER: npm run deploy:staging from main (b77144e or later), eyeball /blog (hero = 13x post, 24 posts, dates correct), then npm run deploy — publishes everything through the 07-02 post.",
-    "Merge the claude/blog-jul-6-8-prewrites PR after CI (stages Jul 6 + Jul 8 drafts; no visible site change until flips).",
-    "On 2026-07-03: flip draft on 2026-07-03-we-deleted-our-deploy-pipeline-on-purpose.md (one-line PR per user decision), deploy.",
-    "On 2026-07-06 / 07-08: flip the pre-written drafts (monolith playbook, golden-fixture anatomy) on their dates; per-slot writing resumes Jul 10 ('From Compose guilt to a governed fleet').",
-    "Around Jul 29: run /oc-release plan to fill the v1.8 release-post slot, or slip it.",
+    "URGENT USER: prod is serving 90b90c2 (branch codex/checkpoint-audit-staging, forked pre-blog) — the blog is NOT live in production. Fix: cd .claude/worktrees/silly-tu-56b768 && npm run deploy (staging already validated ed2902b). Deploy-lag canary will nag until done.",
+    "2026-07-03 post DROPPED (owner call 07-04): moved to site/drafts/ drawer, permanently unpublished; calendar slot marked slipped.",
+    "Flips are automated from 07-04: scheduled agent (M/W/F mornings, America/Chicago) flips only a draft dated exactly that day, PRs, merges on green, notifies that a deploy is owed. Next flips: 07-06 monolith playbook, 07-08 golden-fixture anatomy.",
+    "Per-slot writing resumes Jul 10 ('From Compose guilt to a governed fleet').",
+    "v1.8 theme is being re-slated to 'Documentation and repo hygiene' (oc-docs-forge + oc-repo-ops) in uncommitted work on codex/1-7-release — snapshot pushed as tag wip/v1-8-docs-mesh-20260703. Rebase onto main when Codex is done (zero file overlap with blog work; fix stale '26 skills' subtitle). Jul 29 release-post slot inherits the theme.",
+    "/architecture Lighthouse fix (stable 0.89) deferred until after v1.8 lands (page churns then).",
     "Voice calibration is locked (user: 'keep this level') — recorded in auto-memory feedback_blog_voice.md."
   ],
   "skill_state": {
@@ -87,7 +88,8 @@
       "title": "Blog backfill + prehistory wave + current posts + 30-day calendar",
       "surface": "/blog (+ docs/blog-content-calendar.md)",
       "posts_published": 13,
-      "posts_staged": 3,
+      "posts_staged": 2,
+      "posts_drawered": 1,
       "calendar_slots": 13,
       "series": ["Dogfooding opchain (5 parts)", "Seams & Signals in practice (planned, 4 parts)"],
       "prehistory_wave": "5 posts 2026-05-12→06-19 (v1.3, deploy-gap postmortem, oc- rename, MCP v1.4.3, Linear decoupling), each anchored to a real commit; v1.3 post carries an era-names editor's note (pre-rename command forms + updated: field)",

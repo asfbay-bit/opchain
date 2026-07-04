@@ -30,7 +30,8 @@ own backlog.
 | Waves 1–2 (overhaul plan §5) | 11 | 2026-06-20 → 06-24, live |
 | Launch-gap backfill | 7 | 2026-06-25 → 07-01: v1.6 + v1.7 release narratives, cost-report pair (incl. the 13× correction), telemetry stance, wire-1.1 playbook, "27 skills" |
 | Published today | 1 | `2026-07-02-seo-for-robots-that-arent-googlebot` |
-| **Staged, ready to flip** | 3 | `2026-07-03-we-deleted-our-deploy-pipeline-on-purpose` · `2026-07-06-cut-a-live-monolith-without-losing-a-byte` · `2026-07-08-anatomy-of-a-golden-fixture` (all `draft: true`; flip each on its date) |
+| **Staged, ready to flip** | 2 | `2026-07-06-cut-a-live-monolith-without-losing-a-byte` · `2026-07-08-anatomy-of-a-golden-fixture` (both `draft: true`; flipped by the scheduled publish bot on their dates) |
+| Drawered | 1 | `2026-07-03-we-deleted-our-deploy-pipeline-on-purpose` — owner call 2026-07-04, moved to `site/drafts/` (permanently unpublished; slot slipped) |
 
 Featured/hero: `2026-06-28-our-cost-report-was-wrong-by-13x` (newest
 `featured: true` wins the index hero automatically; the 06-24 flag can stay).
@@ -46,7 +47,7 @@ description 120–160 chars, ≥2 internal links.
 
 | Date | Day | Working title | Pillar | Series | Hook / thesis | Key sources | Status |
 |---|---|---|---|---|---|---|---|
-| Jul 3 | Fri | **We deleted our deploy pipeline on purpose** | opinion | — | Removing flaky CD improved reliability; automate the verification, not the trigger. | `CLAUDE.md` deploy section; `deploy-lag.yml`; May 13 staging gap | ✍️ **staged** — flip `draft` |
+| Jul 3 | Fri | ~~We deleted our deploy pipeline on purpose~~ | opinion | — | Slipped permanently (owner call, 2026-07-04). Post preserved in `site/drafts/`. | — | 🗑 **dropped** |
 | Jul 6 | Mon | **Cut a live monolith without losing a byte** | playbook | Seams & Signals in practice | Narrated `/oc-modularize` run: fixture capture → seam plan → replay proof — including the path where it refuses. | `skills/oc-modularize-ops`; v1.7 changelog | ✍️ **staged** — flip `draft` |
 | Jul 8 | Wed | **Anatomy of a golden fixture** | engineering | Seams & Signals in practice | What "equivalence oracle from real traffic" actually means: capture, scrubbing, determinism traps (time, randomness, ordering). | oc-modularize-ops references | ✍️ **staged** — flip `draft` |
 | Jul 10 | Fri | **From Compose guilt to a governed fleet** | playbook | Seams & Signals in practice | `/oc-fleet` end to end: declare topology → pick IaC → mandatory plan gate → day-2 (scale/drain/replace). | `skills/oc-fleet-ops` | planned |
@@ -90,6 +91,12 @@ release — consistent with the plan's credibility-weighted target.
    renders immediately on the next deploy. The draft flag is the only
    embargo. Drafts get no page, no RSS entry, no OG card — flipping the flag
    is the entire publish action.
+   - **Flips are automated** (since 2026-07-04): a scheduled agent runs each
+     publish morning, flips only a draft dated *exactly that day*, opens the
+     PR, merges on green CI, and notifies that a deploy is owed. Overdue
+     drafts are never auto-flipped — a missed day is a human decision.
+     Permanently unpublished posts live in `site/drafts/` (the drawer),
+     outside the collection glob, where the bot can't see them.
 4. **Publish flow:** flip `draft` → PR → CI green → merge → `npm run
    deploy:staging` (from `main`, always) → eyeball `/blog` → `npm run
    deploy`. OG cards and RSS regenerate automatically at build.
