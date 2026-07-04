@@ -87,18 +87,18 @@ const softwareLd = {
       </p>
     </div>
 
-    <!-- Glowing matching release bar — current (ember) + next (slate).
+    <!-- Glowing matching release bar — shipped (ember) + next (slate).
          Both halves share one pill silhouette with a soft pulsing
-         ember box-shadow. Links to /changelog for full notes. -->
-    <a class="release-bar-glow" href="/changelog" aria-label="opchain releases">
+         ember box-shadow. Links to the new v1.8 roadmap slot. -->
+    <a class="release-bar-glow" href="/changelog#v1-8" aria-label="opchain release roadmap">
       <span class="rb-half rb-current">
-        <span class="rb-tag">v1.6 · shipped</span>
-        <span class="rb-text">cost attribution · opt-in telemetry · public dashboard · checkpoint wire 1.1</span>
+        <span class="rb-tag">v1.7 · shipped</span>
+        <span class="rb-text">Seams &amp; Signals · signal-forge · fleet-ops</span>
       </span>
       <span class="rb-divider" aria-hidden="true"></span>
       <span class="rb-half rb-next">
-        <span class="rb-tag rb-tag-next">v1.7 · next</span>
-        <span class="rb-text rb-text-next">Seams &amp; Signals · signal-forge · modularize-ops · fleet-ops</span>
+        <span class="rb-tag rb-tag-next">v1.8 · next</span>
+        <span class="rb-text rb-text-next">docs-forge · repo-ops · every-PR docs gate</span>
       </span>
       <span class="rb-arrow" aria-hidden="true">›</span>
     </a>
@@ -109,7 +109,7 @@ const softwareLd = {
         <span class="stat-label">skills shipped</span>
       </a>
       <a class="stat" href="/changelog">
-        <span class="stat-num">v1.6</span>
+        <span class="stat-num">v1.7</span>
         <span class="stat-label">latest release</span>
       </a>
       <a class="stat" href="/status">
@@ -288,16 +288,18 @@ const softwareLd = {
     margin-top: 1.5rem;
   }
 
-  /* ── Glowing matching release bar (current + next).
+  /* ── Glowing matching release bar (shipped + next).
         Replaces the single-release pill. Two halves share one chip
-        silhouette; the next-release chip uses --info (slate) to read
-        as pending rather than competing with the ember of current. ── */
+        silhouette; shipped gets the ember fill, next gets the slate outline. ── */
   .release-bar-glow {
-    display: inline-flex;
+    display: grid;
+    grid-template-columns: minmax(0, auto) auto minmax(0, auto) auto;
     align-items: center;
+    justify-content: center;
     gap: 0;
     align-self: center;
     margin: 1rem auto 0.5rem;
+    max-width: min(100%, 880px);
     padding: 4px 10px 4px 4px;
     background: var(--surface);
     border: 0.5px solid var(--border);
@@ -336,8 +338,10 @@ const softwareLd = {
   .rb-half {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 0 8px;
+    min-width: 0;
   }
   .rb-tag {
     font-family: var(--font-mono);
@@ -371,6 +375,7 @@ const softwareLd = {
     font-size: 11.5px;
     letter-spacing: var(--ls-wide);
     color: var(--text);
+    white-space: nowrap;
   }
   .rb-text-next { color: var(--muted); }
   .rb-divider {
@@ -389,6 +394,30 @@ const softwareLd = {
   /* Light-mode contrast bump on the rb-text so the body text reads
      against the surface. */
   :global([data-theme="light"]) .release-bar-glow .rb-text { color: var(--obsidian); }
+
+  @media (max-width: 760px) {
+    .release-bar-glow {
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--r-md);
+      padding: 6px;
+      gap: 4px;
+    }
+    .rb-half {
+      width: 100%;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 2px 8px;
+      text-align: center;
+    }
+    .rb-text {
+      white-space: normal;
+    }
+    .rb-divider,
+    .rb-arrow {
+      display: none;
+    }
+  }
 
   /* ── Stat strip ── */
   .stats {

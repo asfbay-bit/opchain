@@ -1,8 +1,8 @@
 ---
 name: oc-git-ops
 displayName: OC · Git Ops
-version: 1.6.0
-shortDesc: Branch, commit, PR, sync workflows. v1.2 is PM-aware — `/oc-git-sync TICKET-1234` reads ticket; transitions on merge.
+version: 1.7.0
+shortDesc: Branch, commit, PR, sync workflows. Every PR runs Docs Forge, Repo Ops, and Bug Check before creation.
 phases: [build]
 triAgent: false
 tryable: true
@@ -13,9 +13,11 @@ commands:
   - /oc-push
   - /oc-git-sync
 description: >
-  Git workflow: branch, commit, PR, sync. Use for /oc-git, /oc-commit, /oc-pr, /oc-push,
-  "commit this", "push to git", "create a PR", "sync to repo", or any git
-  operation. Trigger liberally.
+  Git workflow: branch, commit, PR, sync. Every PR auto-invokes oc-docs-forge
+  for PR body/comment documentation, oc-repo-ops for repository readiness, and
+  oc-bug-check for the fast quality gate before creation. Use for /oc-git,
+  /oc-commit, /oc-pr, /oc-push, "commit this", "push to git", "create a PR",
+  "sync to repo", or any git operation. Trigger liberally.
 ---
 
 # Git Ops
@@ -69,9 +71,11 @@ The typical flow:
 1. Clone the user's repo (or confirm it's already cloned)
 2. Create a feature branch following project conventions
 3. Copy/move built files into the repo working tree
-4. Make structured commits (one per logical unit)
-5. Push the branch
-6. Generate a PR description from the checkpoint + commit log
+4. Invoke oc-docs-forge so the PR gets documentation content
+5. Invoke oc-repo-ops so the repo is clean enough to review
+6. Make structured commits (one per logical unit) after oc-bug-check passes
+7. Push the branch
+8. Generate/create the PR with the Docs Forge packet in the body or a PR comment
 
 ---
 
@@ -218,7 +222,8 @@ git commit -m "test(auth): add unit + integration tests for passkey auth"
 
 ### Pre-Commit Gate (auto-invokes oc-bug-check)
 
-**Before staging files or running `git commit`, invoke the oc-bug-check skill.**
+**Before running `git commit`, invoke the oc-bug-check skill after Docs Forge and
+Repo Ops have had a chance to add documentation and cleanup changes.**
 This is the canonical pre-commit gate — oc-git-ops does NOT run its own
 ad-hoc lint/type/test checks. Bug-check owns the seven-check suite
 (types, lint, tests, anti-patterns, secrets, build, deps) and decides
@@ -254,6 +259,10 @@ Pull from all available sources to build a comprehensive PR description:
 2. **Tri-dev checkpoint** — sprint contract, evaluator scores
 3. **Code-auditor checkpoint** — findings addressed, remaining issues
 4. **App-architect checkpoint** — which roadmap tasks this covers
+5. **Docs-forge checkpoint** — required `## Documentation` body section and
+   optional PR comment body
+6. **Repo-ops checkpoint** — repository readiness verdict, warnings, and cleanup
+   notes
 
 ### PR Template
 
@@ -284,6 +293,15 @@ Pull from all available sources to build a comprehensive PR description:
 - [ ] Manual testing completed
 [If oc-app-architect Phase 6: "Evaluated by oc-app-architect evaluator: X.X/10 (sprint N)"]
 
+## Documentation
+
+[Required. Insert oc-docs-forge `pr_body_fragment` here.]
+[If a PR comment is prepared: "Long-form docs packet will be posted as a PR comment with marker `opchain:oc-docs-forge:pr-docs`."]
+
+## Repo Readiness
+
+[Required. Insert oc-repo-ops verdict: PASS/WARN plus any warnings reviewers need.]
+
 ## Audit Status
 
 [If oc-code-auditor ran: "Pre-deploy audit: Grade [X], [N] findings ([M] addressed in this PR)"]
@@ -297,6 +315,21 @@ Pull from all available sources to build a comprehensive PR description:
 Refs: TICKET-1234
 ```
 
+### Required PR Documentation Pipeline
+
+Before creating or updating any PR:
+
+1. Invoke `oc-docs-forge` with `/oc-docs pr`.
+2. Read `.checkpoints/oc-docs-forge.checkpoint.json`.
+3. Merge `skill_state.pr_body_fragment` into the PR body. It must contain
+   `## Documentation`.
+4. If `skill_state.pr_comment_body` or a comment marker is present, prepare that
+   comment for posting immediately after PR creation.
+5. Invoke `oc-repo-ops` with `/oc-repo verify`.
+6. Read `.checkpoints/oc-repo-ops.checkpoint.json`.
+7. Abort PR creation if Repo Ops verdict is FAIL. Surface blockers and route to
+   `/oc-docs pr`, `/oc-repo clean`, or `/oc-bugcheck fix` as appropriate.
+
 ### Creating the PR
 
 ```bash
@@ -307,6 +340,15 @@ gh pr create --title "[type]: [description]" --body-file /tmp/pr-description.md
 echo "PR description saved to: /mnt/user-data/outputs/pr-description.md"
 echo "Create the PR manually and paste this description."
 ```
+
+If Docs Forge prepared a PR comment and the PR was created with `gh`, post it:
+
+```bash
+gh pr comment <number-or-url> --body-file /tmp/oc-docs-forge-pr-comment.md
+```
+
+If `gh` is unavailable, write the comment body beside the PR description and tell
+the user it must be posted as part of the PR handoff.
 
 ---
 
@@ -321,12 +363,17 @@ One command that runs the entire flow:
 1. **Detect context** — read checkpoints for project, skill, and current state
 2. **Determine branch name** — from checkpoint or description
 3. **Create branch** — `git checkout -b <branch>`
-4. **Stage changes** — intelligently stage (skip build artifacts, node_modules)
-5. **Structure commits** — group by logical unit
-6. **Run oc-bug-check gate** — invoke `Skill(skill="oc-bug-check", args="/oc-bugcheck run")`. **FAIL aborts the sync** — surface the failing checks and stop. The user can `/oc-bugcheck fix`, `/oc-bugcheck bypass`, or address the failures and re-run `/oc-git-sync`.
-7. **Push** — `git push -u origin <branch>`
-8. **Generate PR description** — from all available context
-9. **Create PR** — via gh CLI or output for manual creation
+4. **Run oc-docs-forge** — invoke `/oc-docs pr`; apply README/product docs edits
+   and capture the PR body/comment packet.
+5. **Run oc-repo-ops preflight** — invoke `/oc-repo verify`; **FAIL aborts the
+   sync** until docs, generated files, catalogs, or repo dirt are fixed.
+6. **Stage changes** — intelligently stage code plus required docs (skip build artifacts, node_modules)
+7. **Structure commits** — group by logical unit
+8. **Run oc-bug-check gate** — invoke `Skill(skill="oc-bug-check", args="/oc-bugcheck run")`. **FAIL aborts the sync** — surface the failing checks and stop. The user can `/oc-bugcheck fix`, `/oc-bugcheck bypass`, or address the failures and re-run `/oc-git-sync`.
+9. **Push** — `git push -u origin <branch>`
+10. **Generate PR description** — from all available context, including oc-docs-forge and oc-repo-ops checkpoints
+11. **Run oc-repo-ops final verify** — confirm the PR body includes docs and no new repo drift appeared
+12. **Create PR** — via gh CLI or output for manual creation; post Docs Forge comment if prepared
 
 At each step, show progress. If any step needs user input, ask once and continue.
 
@@ -414,6 +461,8 @@ node scripts/checkpoint.mjs update oc-git-ops \
 | Reads from | Why |
 |---|---|
 | oc-app-architect | Roadmap tasks → PR description, phase → branch naming; Phase 6 sprint contract → commit scoping, eval scores → PR description |
+| oc-docs-forge | Required Documentation section and optional PR comment body for every PR |
+| oc-repo-ops | PR readiness verdict, cleanup notes, catalog/generated-file warnings |
 | oc-code-auditor | Audit grade → PR description, findings → commit grouping |
 | oc-deploy-ops | Deploy status → PR deployment notes |
 
@@ -430,13 +479,16 @@ node_modules/
 dist/
 build/
 .wrangler/
-.checkpoints/          # Checkpoint protocol files
 *.checkpoint.json.bak  # Archived checkpoints
 .git-ops-config.json   # Local oc-git-ops config
 ```
 
 If `.gitignore` is missing entries, add them in a separate `chore: update .gitignore`
 commit before the feature commits.
+
+Do not add `.checkpoints/` to `.gitignore` when the project uses Opchain's
+checkpoint protocol. Checkpoints are tracked session-state docs unless a project
+has an explicit, repo-local policy saying otherwise.
 
 ---
 

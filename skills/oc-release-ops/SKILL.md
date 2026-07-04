@@ -1,8 +1,8 @@
 ---
 name: oc-release-ops
 displayName: OC · Release Ops
-version: 1.6.0
-shortDesc: Plan, draft, bump, announce, ship a release. Closes the loop from sprints to /changelog to oc-git-ops to oc-deploy-ops.
+version: 1.7.0
+shortDesc: Plan, draft, bump, announce, ship a release. Release PRs flow through Docs Forge, Repo Ops, Git Ops, and Deploy Ops.
 phases: [build]
 triAgent: false
 tryable: true
@@ -18,7 +18,8 @@ description: >
   releases of opchain (or any opchain-managed project). Reads sprint
   checkpoints, proposes the next semver, drafts the /changelog entry from
   what actually shipped, bumps every skill version atomically, and hands
-  off to oc-git-ops + oc-deploy-ops. Use for /oc-release, /oc-release plan, /oc-release
+  release PR documentation to oc-docs-forge before handing off to oc-repo-ops,
+  oc-git-ops, and oc-deploy-ops. Use for /oc-release, /oc-release plan, /oc-release
   draft, /oc-release bump, /oc-release announce, /oc-release ship, "cut a release",
   "ship v1.3", "tag the release", "draft the changelog", "what's in this
   release", "version bump". Trigger liberally on release-cadence work.
@@ -259,18 +260,27 @@ End-of-pipeline handoff.
 ### Sequence
 
 1. `/oc-release verify` — run the full pre-ship gate. Hard-blocks on any failure.
-2. Hand off to `oc-git-ops`:
+2. Hand off to `oc-docs-forge`:
+   - Invoke oc-docs-forge.
+   - Run `/oc-docs pr` with the release changelog, version bump, announcement
+     surfaces, and any product-doc changes. The release PR must include the
+     Docs Forge `## Documentation` section.
+3. Hand off to `oc-repo-ops`:
+   - Invoke oc-repo-ops.
+   - Run `/oc-repo verify`; hard-block release PR creation on catalog drift,
+     missing docs packet, stale generated files, or release-surface mismatch.
+4. Hand off to `oc-git-ops`:
    - Invoke the oc-git-ops skill (read its SKILL.md per oc-orchestrator §3 active
      chaining).
    - Run `/oc-git-sync v<semver>` with the bump commit. oc-git-ops opens / merges
      the release PR.
-3. Hand off to `oc-deploy-ops`:
+5. Hand off to `oc-deploy-ops`:
    - Invoke oc-deploy-ops.
    - Run `/oc-deploy staging` first; user eyeballs.
    - Run `/oc-deploy` (prod) on user confirmation.
-4. Update homepage pill + close release ticket via PM-MCP per protocol §3
+6. Update homepage pill + close release ticket via PM-MCP per protocol §3
    marker `<!-- opchain:oc-release-ops:release-shipped:v<semver> -->`.
-5. Write checkpoint: phase `shipped`, status `complete`.
+7. Write checkpoint: phase `shipped`, status `complete`.
 
 ### `/oc-release verify` (the gate)
 
@@ -373,10 +383,14 @@ SKILL.md files, not a single `package.json`.
 | `oc-app-architect.checkpoint.json` | Sprint outputs feed the changelog draft |
 | `oc-git-ops.checkpoint.json` | Merged-PR list feeds "What's new" bullets |
 | `oc-deploy-ops.checkpoint.json` | Last-shipped commit SHA |
+| `oc-docs-forge.checkpoint.json` | Release PR docs packet and product-doc changes |
+| `oc-repo-ops.checkpoint.json` | Release PR readiness verdict |
 
 | Read by | Why |
 |---|---|
 | `oc-git-ops` | Knows a release is in flight; `/oc-git-sync` shapes the release PR specifically |
+| `oc-docs-forge` | Generates the release PR Documentation section and docs comment when needed |
+| `oc-repo-ops` | Verifies release catalog, generated files, docs packet, and repo cleanliness |
 | `oc-deploy-ops` | Treats oc-release-ops handoff as authoritative for the release tag |
 | `oc-monitoring-ops` | Tags incidents in the first 24h after a release with `post-release` |
 

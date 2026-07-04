@@ -3,24 +3,23 @@
  * /changelog — Option C v2 layout: three full-width ARIA tabs, each with its
  * own colour identity, every section led by a rich card expanded on load.
  *
- *   Just Released → v1.6 open hero (accent) + v1.5 / v1.4.3 collapsed heroes
+ *   Just Released → v1.7 open hero (accent) + v1.6 / v1.5 / v1.4.3 collapsed heroes
  *                   (the 21-day "active" window) + compact release cards
  *                   (v1.4.2 ↓, older than 21 days).
- *   Coming Next   → v1.7 "Seams & Signals" (info) — the next release, a
- *                   DECIDED plan: three new skills (oc-signal-forge,
- *                   oc-modularize-ops, oc-fleet-ops). No vote — it's scoped.
- *   Planned       → v1.8 distribution-theme vote (relative bar-chart) +
- *                   v1.9/v2.0 grouped roadmap cards, then the request form.
+ *   Coming Next   → v1.8 PR documentation mesh (info) — the next release,
+ *                   scoped for future-use documentation and repo hygiene.
+ *   Planned       → v1.9 distribution theme vote (relative bar-chart) +
+ *                   v1.10/v1.11 grouped roadmap cards, then the request form.
  *
  * Voting is real: vote buttons carry data-vote-target=<id> and the client
  * script batches GET /api/votes then POSTs /api/votes/<id> per click (the
  * Worker dedups per-IP/day in KV). Votable ids:
- * OPC-170/173/174 (v1.8 distribution-theme options — these also drive the bar
- * chart), and OPC-18x (v1.9/v2.0 planned items). v1.7 is decided, so it has
+ * OPC-170/173/174 (v1.9 distribution-theme options — these also drive the bar
+ * chart), and OPC-18x (v1.10/v1.11 planned items). v1.8 is decided, so it has
  * no vote buttons.
  *
- * Deep links (#v1-6/#v1-5 → Just Released; #v1-7 → Coming Next;
- * #v1-8/#v1-9/#v2-0 → Planned; #v1-4 → /coverage) are handled client-side:
+ * Deep links (#v1-7/#v1-6/#v1-5 → Just Released; #v1-8 → Coming Next;
+ * #v1-9/#v1-10/#v1-11 → Planned; #v1-4 → /coverage) are handled client-side:
  * the matching tab is activated, the target card expanded, and scrolled into
  * view.
  *
@@ -32,10 +31,10 @@
 import Base from "../layouts/Base.astro";
 import RoadmapForm from "../components/RoadmapForm.astro";
 
-// v1.7 "Seams & Signals" — the next release, a DECIDED plan (no vote). Three
-// new skills take the catalog 24 → 27, lockstep-bumped to 1.7.0. Per the plan
-// of record, oc-signal-forge lands first as 1.7; the oc-modularize-ops →
-// oc-fleet-ops chain follows in 1.7.1. Source: docs/releases/1.7-plan.md.
+// v1.7 "Seams & Signals" — shipped release. Three new skills take the catalog
+// 24 → 27, lockstep-bumped to 1.7.0. Per the plan of record, oc-signal-forge
+// lands first as 1.7; the oc-modularize-ops → oc-fleet-ops chain follows in
+// 1.7.1. Source: docs/releases/1.7-plan.md.
 const v17Skills = [
   {
     name: "oc-signal-forge",
@@ -60,12 +59,30 @@ const v17Skills = [
   },
 ];
 
-// v1.8 "The distribution play" — pick ONE growth theme, rendered as a relative
-// bar chart of three competing options, each a real vote. (Was v1.7 before the
-// 1.7 "Seams & Signals" plan landed and pushed this play out a release.) OPC-170
-// carries over its existing count (was the standalone "marketplace" item); the
-// other two are their own vote keys. Bars redistribute live as votes arrive.
-const v18Options = [
+// v1.8 "Documentation and repo hygiene" — a future-only PR mesh that would add
+// oc-docs-forge and oc-repo-ops as the pair responsible for PR documentation,
+// README/product-doc upkeep, repo cleanliness, and readiness evidence.
+const v18Skills = [
+  {
+    name: "oc-docs-forge",
+    command: "/oc-docs",
+    blurb:
+      "Generates the PR documentation packet, PR-body documentation section, optional PR comment, README deltas, and product-doc updates from the actual change set.",
+  },
+  {
+    name: "oc-repo-ops",
+    command: "/oc-repo",
+    blurb:
+      "Runs the repo-readiness gate: generated files, docs catalogs, link hygiene, ignore-rule consistency, dirty related files, and release-surface cleanup before every PR.",
+  },
+];
+
+// v1.9 "The distribution play" — pick ONE growth theme, rendered as a relative
+// bar chart of three competing options, each a real vote. (Was v1.8 before the
+// v1.8 PR documentation mesh took the next future slot.) OPC-170 carries over
+// its existing count (was the standalone "marketplace" item); the other two are
+// their own vote keys. Bars redistribute live as votes arrive.
+const v19Options = [
   {
     id: "OPC-170",
     label: "Marketplace + templates",
@@ -101,14 +118,14 @@ const v18Options = [
   },
 ];
 
-// Planned release groups beyond v1.8. Votable to signal priority; fresh vote
+// Planned release groups beyond v1.9. Votable to signal priority; fresh vote
 // keys (OPC-18x), independent of any Linear identifier.
 const futureReleaseGroups = [
   {
-    version: "v1.9",
-    id: "v1-9",
+    version: "v1.10",
+    id: "v1-10",
     title: "Install and operate anywhere",
-    timing: "planned after v1.8",
+    timing: "planned after v1.9",
     summary:
       "Make opchain easier to adopt in the places people already work: Claude.ai, editors, discovery, and multi-repo programs.",
     items: [
@@ -139,10 +156,10 @@ const futureReleaseGroups = [
     ],
   },
   {
-    version: "v2.0",
-    id: "v2-0",
+    version: "v1.11",
+    id: "v1-11",
     title: "Assurance and governed delivery",
-    timing: "planned after v1.9",
+    timing: "planned after v1.10",
     summary:
       "Deepen the quality, data, compliance, and security layers that larger teams need before they trust the pipeline for serious delivery.",
     items: [
@@ -202,7 +219,7 @@ const futureReleaseGroups = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">9 shipped</span>
+          Just Released <span class="tab-count">11 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -212,7 +229,7 @@ const futureReleaseGroups = [
           aria-selected="false"
           tabindex="-1"
         >
-          Coming Next <span class="tab-count">v1.7</span>
+          Coming Next <span class="tab-count">v1.8</span>
         </button>
         <button
           class="tab-btn tab-btn--planned"
@@ -222,7 +239,7 @@ const futureReleaseGroups = [
           aria-selected="false"
           tabindex="-1"
         >
-          Planned <span class="tab-count">v1.8 → v2.0</span>
+          Planned <span class="tab-count">v1.9 → v1.11</span>
         </button>
       </div>
       <span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
@@ -238,20 +255,74 @@ const futureReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What shipped</h2>
-        <span class="panel-sub">Newest is open; click any release for full notes.</span>
+        <span class="panel-sub">Latest release is open; patches and earlier releases expand in place.</span>
       </div>
 
-      <!-- v1.6 — newest, AUTO-OPEN; the instrumented pipeline -->
-      <article class="hero-card hero-card--released is-open" id="v1-6" data-card>
+      <!-- v1.7 — latest shipped release; "Seams & Signals". Deep-linkable from #v1-7. -->
+      <article class="hero-card hero-card--released is-open" id="v1-7" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
-          aria-controls="v1-6-body"
+          aria-controls="v1-7-body"
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
+          <span class="hero-ver">v1.7.0 · shipped Jul 01, 2026</span>
+          <span class="hero-title">Seams &amp; Signals</span>
+          <span class="hero-desc">
+            With v1.6 measuring the pipeline, v1.7 ships the seams between
+            systems and the signals that prove they work. Three new skills take
+            the catalog from 24 to 27: a product-analytics backend that proves a
+            metric is right, a monolith-decomposition operator with a provable
+            no-loss guarantee, and a self-managed multi-container deploy operator.
+          </span>
+        </button>
+        <div class="card-body" id="v1-7-body" data-disclosure-body>
+          <div class="card-body-inner hero-body-inner">
+            <div class="tag-row"><span class="tag tag--info">shipped</span><span class="tag">Jul 01, 2026</span><span class="tag">24 → 27 skills</span></div>
+            <p>
+              <strong>oc-signal-forge ships first as 1.7</strong>; the
+              <strong>oc-modularize-ops → oc-fleet-ops</strong> chain follows in
+              <strong>1.7.1</strong>. All three lockstep-bump the catalog to
+              <code>1.7.0</code>.
+            </p>
+            <h3>Three new skills</h3>
+            <div class="tile-grid">
+              {v17Skills.map((skill) => (
+                <div class="tile">
+                  <span class="tile-name">{skill.name} · {skill.command} <span class="tag tag--info">{skill.tag}</span></span>
+                  <p class="tile-desc">{skill.blurb}</p>
+                </div>
+              ))}
+            </div>
+
+            <div class="callout">
+              <h3>Resolves existing seams</h3>
+              <ul class="callout-list">
+                <li><strong>oc-signal-forge</strong> finally executes <code>oc-app-architect</code>'s <code>08-analytics.md</code> plan and feeds validated metrics to <code>oc-dash-forge</code>; <code>oc-monitoring-ops</code> enforces each signal's freshness SLA.</li>
+                <li><strong>oc-modularize-ops</strong> owns the decision plus the real-data equivalence oracle, then hands the bulk code-move and live cutover to <code>oc-migration-ops</code> (Structural type).</li>
+                <li><strong>oc-fleet-ops</strong> claims the bare-metal / self-managed-fleet territory <code>oc-deploy-ops</code> routes away — the two are peers (managed app → deploy-ops; self-managed fleet → fleet-ops).</li>
+              </ul>
+            </div>
+
+            <div class="planned-box">Shipped from the 1.7 "Seams &amp; Signals" plan (<code>docs/releases/1.7-plan.md</code>).</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.6 — previous release; the instrumented pipeline -->
+      <article class="hero-card hero-card--released" id="v1-6" data-card>
+        <button
+          class="hero-head"
+          type="button"
+          aria-expanded="false"
+          aria-controls="v1-6-body"
+          data-disclosure-toggle
+        >
+          <span class="hero-chevron" aria-hidden="true">▶</span>
+          <span class="hero-badge">previous release</span>
           <span class="hero-ver">v1.6.0 · shipped Jun 25, 2026</span>
           <span class="hero-title">Cost &amp; telemetry</span>
           <span class="hero-desc">
@@ -263,7 +334,7 @@ const futureReleaseGroups = [
             <code>oc-checkpoint-protocol</code> wire bump since v1.2.
           </span>
         </button>
-        <div class="card-body" id="v1-6-body" data-disclosure-body>
+        <div class="card-body" id="v1-6-body" data-disclosure-body inert>
           <div class="card-body-inner hero-body-inner">
             <h3>Two new skills</h3>
             <div class="tile-grid">
@@ -299,6 +370,59 @@ const futureReleaseGroups = [
               lockstep-bump to <code>1.6.0</code>; the two new skills ship gated
               behind their <code>skills.registry.&lt;id&gt;.enabled</code> flags,
               and the checkpoint wire 1.0 → 1.1 is additive — both validate.
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Checkpoint write-discipline audit patch -->
+      <article class="rel-card" id="checkpoint-write-discipline" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="checkpoint-write-discipline-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">patch</span><span class="rc-title">Checkpoint write discipline audit</span><span class="rc-date">Jun 29, 2026</span></span>
+            <span class="rc-summary">A checkpoint-system audit turns stale-resume findings into a prescriptive write-trigger plan: resume, pause, handoff, PR open, PR merge, deploy, release, and doctor drift all need durable checkpoint updates.</span>
+          </span>
+        </button>
+        <div class="card-body" id="checkpoint-write-discipline-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">checkpoint audit</span><span class="tag">write triggers</span><span class="tag">doctor drift</span><span class="tag">release hygiene</span></div>
+            <p>
+              The audit found that checkpoint infrastructure exists, but it
+              detects more drift than it prevents. <code>checkpoint:next</code>
+              can still recommend already-merged PR work, strict validation
+              fails several current checkpoints, and the v1.7 skills need a
+              stronger shared checkpoint contract before they can be trusted as
+              resumable handoff points.
+            </p>
+            <h3>Skill-by-skill follow-up</h3>
+            <p>
+              No skill Markdown changed in this patch; the audit queues the
+              concrete fixes each skill needs.
+            </p>
+            <ul>
+              <li><strong>oc-checkpoint-protocol</strong>: make lifecycle writes mandatory for resume, pause, handoff, PR open/merge, deploy, release, and doctor drift.</li>
+              <li><strong>oc-app-architect</strong>: reconcile the stale merged-PR next action and require PR-merge checkpoint writes.</li>
+              <li><strong>oc-orchestrator</strong>: add the v1.7 skills to routing maps and trim stale oversized checkpoint state.</li>
+              <li><strong>oc-signal-forge</strong>: expose shared checkpoint behavior, <code>next_actions</code>, <code>context_primer</code>, and reference docs.</li>
+              <li><strong>oc-modularize-ops</strong>: add the shared checkpoint command contract plus resume/action examples.</li>
+              <li><strong>oc-fleet-ops</strong>: define explicit resume behavior, action examples, context primer expectations, and reference docs.</li>
+              <li><strong>oc-code-auditor</strong>, <strong>oc-stack-forge</strong>, and <strong>oc-ux-engineer</strong>: shorten oversized summaries into structured checkpoint fields.</li>
+              <li><strong>oc-git-ops</strong> and <strong>oc-bug-check</strong>: reconcile the canonical bug-check checkpoint filename.</li>
+              <li><strong>oc-telemetry-ops</strong>: add missing <code>progress_table</code> and <code>context_primer</code>.</li>
+              <li><strong>oc-reverse-spec</strong>: replace the obsolete <code>scripts/checkpoint.sh</code> instruction.</li>
+              <li><strong>oc-release-ops</strong>: block release completion until relevant skill checkpoints match shipped state.</li>
+            </ul>
+            <h3>What changes next</h3>
+            <ul>
+              <li>Make lifecycle writes mandatory for session resume, session pause, phase completion, user decisions, blockers, cross-skill handoffs, PR open/merge, deploys, and release ship.</li>
+              <li>Make <code>checkpoint:next</code> drift-aware so merged PRs and completed work cannot become the next recommendation.</li>
+              <li>Reconcile the bug-check checkpoint filename mismatch and implement the promised <code>/checkpoint show</code>, <code>/checkpoint reset</code>, and <code>/checkpoint list</code> commands.</li>
+            </ul>
+            <div class="compat-box">
+              <strong>No runtime change yet.</strong> This patch records the
+              audit and self-improvement plan; the next implementation pass
+              should make the protocol and CLI enforce the write policy.
             </div>
           </div>
         </div>
@@ -595,60 +719,56 @@ const futureReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What's coming</h2>
-        <span class="panel-sub">The next release — scoped and decided. Here's what's landing.</span>
+        <span class="panel-sub">v1.8 is next: scoped as a future-use documentation and repo-readiness release.</span>
       </div>
 
-      <!-- v1.7 — next release; "Seams & Signals", a decided plan (no vote). Deep-linkable from #v1-7. -->
-      <article class="hero-card hero-card--next is-open" id="v1-7" data-card>
+      <!-- v1.8 — future-only PR docs and repo-readiness mesh. Deep-linkable from #v1-8. -->
+      <article class="hero-card hero-card--next is-open" id="v1-8" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
-          aria-controls="v1-7-body"
+          aria-controls="v1-8-body"
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">next release</span>
-          <span class="hero-ver">v1.7.0 · next · est. Sep 2026</span>
-          <span class="hero-title">Seams &amp; Signals</span>
+          <span class="hero-ver">v1.8.0 · next · future use only</span>
+          <span class="hero-title">Documentation &amp; repo hygiene</span>
           <span class="hero-desc">
-            With v1.6 measuring the pipeline, v1.7 builds out the seams between
-            systems and the signals that prove they work. Three new skills take
-            the catalog from 24 to 27: a product-analytics backend that proves a
-            metric is right, a monolith-decomposition operator with a provable
-            no-loss guarantee, and a self-managed multi-container deploy operator.
+            Every PR should leave behind usable documentation, not just merged
+            code. v1.8 adds the pair of skills that turn PR bodies, PR
+            comments, READMEs, product docs, generated catalogs, and repo
+            cleanliness into a standard release gate.
           </span>
         </button>
-        <div class="card-body" id="v1-7-body" data-disclosure-body>
+        <div class="card-body" id="v1-8-body" data-disclosure-body>
           <div class="card-body-inner hero-body-inner">
-            <div class="tag-row"><span class="tag tag--info">scoped</span><span class="tag">est. Sep 2026</span><span class="tag">24 → 27 skills</span></div>
+            <div class="tag-row"><span class="tag tag--info">next</span><span class="tag">future use only</span><span class="tag">2 proposed skills</span></div>
             <p>
-              The next release is decided, not up for vote.
-              <strong>oc-signal-forge ships first as 1.7</strong>; the
-              <strong>oc-modularize-ops → oc-fleet-ops</strong> chain follows in
-              <strong>1.7.1</strong>. All three lockstep-bump the catalog to
-              <code>1.7.0</code>.
+              This is a release package for the documentation and repository
+              upkeep work, not a current behavior change. The intent is to make
+              documentation generation and repo cleanliness visible in every PR
+              before the release train moves on to distribution work.
             </p>
-            <h3>Three new skills</h3>
+            <h3>Two proposed skills</h3>
             <div class="tile-grid">
-              {v17Skills.map((skill) => (
+              {v18Skills.map((skill) => (
                 <div class="tile">
-                  <span class="tile-name">{skill.name} · {skill.command} <span class="tag tag--info">{skill.tag}</span></span>
+                  <span class="tile-name">{skill.name} · {skill.command}</span>
                   <p class="tile-desc">{skill.blurb}</p>
                 </div>
               ))}
             </div>
-
             <div class="callout">
-              <h3>Resolves existing seams</h3>
+              <h3>Every-PR contract</h3>
               <ul class="callout-list">
-                <li><strong>oc-signal-forge</strong> finally executes <code>oc-app-architect</code>'s <code>08-analytics.md</code> plan and feeds validated metrics to <code>oc-dash-forge</code>; <code>oc-monitoring-ops</code> enforces each signal's freshness SLA.</li>
-                <li><strong>oc-modularize-ops</strong> owns the decision plus the real-data equivalence oracle, then hands the bulk code-move and live cutover to <code>oc-migration-ops</code> (Structural type).</li>
-                <li><strong>oc-fleet-ops</strong> claims the bare-metal / self-managed-fleet territory <code>oc-deploy-ops</code> routes away — the two are peers (managed app → deploy-ops; self-managed fleet → fleet-ops).</li>
+                <li><strong>PR body and comments:</strong> generate the documentation section and, when useful, a durable PR comment that reviewers can scan.</li>
+                <li><strong>README and product docs:</strong> update the repo-facing and product-facing docs that changed behavior makes stale.</li>
+                <li><strong>Repo readiness:</strong> verify generated files, docs catalogs, release surfaces, ignore rules, and dirty related files before PR handoff.</li>
               </ul>
             </div>
-
-            <div class="planned-box">Scoped from the 1.7 "Seams &amp; Signals" plan (<code>docs/releases/1.7-plan.md</code>). Build sequencing and the theme name are confirmed at release time by <code>oc-release-ops</code>.</div>
+            <div class="planned-box">Future-only package — this changelog slot names the v1.8 release shape without turning the gate on yet.</div>
           </div>
         </div>
       </article>
@@ -665,37 +785,38 @@ const futureReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What's planned</h2>
-        <span class="panel-sub">v1.8 is the next theme vote; v1.9 and v2.0 group the longer-range work. Vote to signal priority.</span>
+        <span class="panel-sub">v1.9 is the next theme vote; v1.10 and v1.11 group the longer-range work. Vote to signal priority.</span>
       </div>
 
-      <!-- v1.8 — "The distribution play"; theme vote, pushed here from Coming
-           Next when v1.7 "Seams & Signals" was scoped. Deep-linkable from #v1-8. -->
-      <article class="hero-card hero-card--next is-open" id="v1-8" data-card>
+      <!-- v1.9 — "The distribution play"; theme vote, pushed one slot by the
+           v1.8 PR documentation mesh. Deep-linkable from #v1-9. -->
+      <article class="hero-card hero-card--next is-open" id="v1-9" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
-          aria-controls="v1-8-body"
+          aria-controls="v1-9-body"
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">voting open</span>
-          <span class="hero-ver">v1.8.0 · theme vote open · planned after v1.7</span>
+          <span class="hero-ver">v1.9.0 · theme vote open · planned after v1.8</span>
           <span class="hero-title">The distribution play</span>
           <span class="hero-desc">
-            Once v1.7 ships the seams and signals, the biggest remaining gap is
-            distribution. v1.8 deliberately promotes one growth play into a
-            flagship theme instead of accreting more skills — and the theme is
-            yours to pick. Your vote goes on record now and helps decide the order.
+            Once v1.8 gives every PR a documentation and repo-readiness gate,
+            the biggest remaining gap is distribution. v1.9 deliberately
+            promotes one growth play into a flagship theme instead of accreting
+            more skills — and the theme is yours to pick. Your vote goes on
+            record now and helps decide the order.
           </span>
         </button>
-        <div class="card-body" id="v1-8-body" data-disclosure-body>
+        <div class="card-body" id="v1-9-body" data-disclosure-body>
           <div class="card-body-inner hero-body-inner">
-            <div class="tag-row"><span class="tag tag--info">theme vote open</span><span class="tag">planned after v1.7</span><span class="tag">1 flagship theme</span></div>
-            <p>The three contenders are below. Bars redistribute live as votes arrive; the final v1.8 theme is chosen closer to the time.</p>
-            <h3>Choose the v1.8 theme</h3>
+            <div class="tag-row"><span class="tag tag--info">theme vote open</span><span class="tag">planned after v1.8</span><span class="tag">1 flagship theme</span></div>
+            <p>The three contenders are below. Bars redistribute live as votes arrive; the final v1.9 theme is chosen closer to the time.</p>
+            <h3>Choose the v1.9 theme</h3>
             <ul class="theme-list">
-              {v18Options.map((opt) => (
+              {v19Options.map((opt) => (
                 <li class="theme-option">
                   <div class="theme-meta">
                     <span class="theme-label">{opt.label}</span>
@@ -720,7 +841,7 @@ const futureReleaseGroups = [
                 </li>
               ))}
             </ul>
-            <div class="planned-box">Lean, not locked — the final v1.8 theme is chosen closer to the time.</div>
+            <div class="planned-box">Lean, not locked — the final v1.9 theme is chosen closer to the time.</div>
           </div>
         </div>
       </article>
@@ -758,7 +879,7 @@ const futureReleaseGroups = [
                   </li>
                 ))}
               </ul>
-              <div class="planned-box">Planned — order and scope may shift after the v1.7 theme is chosen.</div>
+              <div class="planned-box">Planned — order and scope may shift after the v1.9 theme is chosen.</div>
             </div>
           </div>
         </article>
@@ -894,7 +1015,7 @@ const futureReleaseGroups = [
     window.addEventListener("hashchange", () => revealHash(location.hash));
     if (location.hash) revealHash(location.hash);
 
-    // ===== v1.7 theme bar chart (relative widths from live vote counts) =
+    // ===== v1.9 theme bar chart (relative widths from live vote counts) =
     // Each bar reads the live count of its matching vote button and renders
     // a percentage of the three-option total. Re-run after the batched load
     // and after every successful vote so the bars redistribute.
@@ -1380,7 +1501,7 @@ const futureReleaseGroups = [
     letter-spacing: var(--ls-wide);
   }
 
-  /* ── v1.7 theme vote (relative bar chart) ─────────────── */
+  /* ── v1.9 theme vote (relative bar chart) ─────────────── */
   .theme-list { list-style: none; padding: 0 !important; margin: 0.5rem 0 0 !important; display: grid; gap: 0.5rem; }
   .theme-option {
     display: flex; align-items: flex-start; gap: 1rem;

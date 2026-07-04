@@ -1,8 +1,8 @@
 ---
 name: oc-bug-check
 displayName: OC · Bug Check
-version: 1.6.0
-shortDesc: Pre-commit QA gate — fast checks on every commit. v1.2 attaches the failure report to the linked PM ticket on block.
+version: 1.7.0
+shortDesc: Pre-commit QA gate — fast checks on every commit, run after Docs Forge and Repo Ops in PR flows.
 phases: [build]
 triAgent: false
 tryable: true
@@ -19,7 +19,8 @@ description: >
   safety, lint, tests, anti-pattern scan, secret detection, build verification,
   and dependency vulnerability scan. Blocks commits on failures, warns on cautions,
   passes silently on clean code. Auto-invoked by oc-git-ops before every /oc-git-commit
-  and /oc-git-sync. Use for /oc-bugcheck, "check this before I commit", "run the checks",
+  and /oc-git-sync; in PR flows it runs after oc-docs-forge and oc-repo-ops have
+  produced documentation and repo-readiness output. Use for /oc-bugcheck, "check this before I commit", "run the checks",
   "is this safe to commit", "pre-commit", "quick audit", "lint and test", "any bugs
   in this?", "sanity check". Trigger liberally.
 ---
@@ -100,6 +101,8 @@ oc-app-architect /oc-build ──► BUG-CHECK (gate) ──► oc-git-ops /oc-c
 ```
 
 **Auto-invocation:** oc-git-ops calls oc-bug-check before every `/oc-git-commit` and `/oc-git-sync`.
+For PR creation, oc-git-ops runs Docs Forge and Repo Ops first so documentation
+edits and cleanup fixes are included in the commit that Bug Check validates.
 If oc-bug-check fails, the commit is blocked with a clear failure report. The user can
 override with `/oc-bugcheck bypass` (logged, not silent).
 
@@ -459,11 +462,12 @@ git diff --name-only --diff-filter=ACMR HEAD | grep -E '\.(ts|tsx|js|jsx)$'
 
 When oc-git-ops receives `/oc-git-commit` or `/oc-git-sync`:
 
-1. Check for `.bugcheck.json` at project root (or use defaults)
-2. Run `/oc-bugcheck run`
-3. If PASS or WARN (lenient mode): proceed to commit
-4. If FAIL: block commit, show failure report, suggest `/oc-bugcheck fix`
-5. User can `/oc-bugcheck bypass` to force, or fix and re-run
+1. For PR flows, confirm oc-docs-forge and oc-repo-ops already ran.
+2. Check for `.bugcheck.json` at project root (or use defaults)
+3. Run `/oc-bugcheck run`
+4. If PASS or WARN (lenient mode): proceed to commit
+5. If FAIL: block commit, show failure report, suggest `/oc-bugcheck fix`
+6. User can `/oc-bugcheck bypass` to force, or fix and re-run
 
 ### Commit Message Annotation
 
