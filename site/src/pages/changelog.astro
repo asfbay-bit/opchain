@@ -219,7 +219,7 @@ const futureReleaseGroups = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">11 shipped</span>
+          Just Released <span class="tab-count">12 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -314,6 +314,43 @@ const futureReleaseGroups = [
               lockstep-bump to <code>1.7.0</code>; the three new skills ship gated
               behind their <code>skills.registry.&lt;id&gt;.enabled</code> flags,
               and no documented cross-skill contract was removed.
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.7.1 — skill install portability patch -->
+      <article class="rel-card" id="skill-install-portability" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="skill-install-portability-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.7.1 patch</span><span class="rc-title">Skill install portability patch</span><span class="rc-date">Jul 05, 2026</span></span>
+            <span class="rc-summary">Installed skill bundles now carry the checkpoint and orchestrator protocol they depend on, and catalog validation fails if that portability contract drifts.</span>
+          </span>
+        </button>
+        <div class="card-body" id="skill-install-portability-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">installed skills</span><span class="tag">checkpoint writes</span><span class="tag">protocol bundles</span><span class="tag">catalog guards</span></div>
+            <p>
+              The pensive-hawking patch fixes the gap between the repo-local
+              experience and a user's installed skill bundle. Checkpoint writes
+              no longer depend on a repo-only CLI, every bundle carries the
+              shared orchestrator and checkpoint references it asks the model to
+              read, and the catalog generator now blocks missing bootstraps,
+              dangling reference citations, and overlong descriptions before a
+              release can ship.
+            </p>
+            <h3>What shipped</h3>
+            <ul>
+              <li><strong>Checkpoint writes are self-contained.</strong> The protocol now allows direct `.checkpoints/*.checkpoint.json` writes with file tools, with `scripts/checkpoint.mjs` kept as an optional in-repo fast path.</li>
+              <li><strong>Shared protocol files are bundled everywhere.</strong> Missing `references/orchestrator.md` and `references/checkpoint-protocol.md` copies are created and checked rather than silently skipped.</li>
+              <li><strong>Catalog validation catches portability drift.</strong> Missing bootstrap lines, dangling `references/...` citations, and overlong descriptions fail the build.</li>
+              <li><strong>The audit trail is durable.</strong> The verified portability audit lives at <code>docs/audits/2026-07-04-portability-audit.md</code>.</li>
+            </ul>
+            <div class="compat-box">
+              <strong>Back-compatible with v1.7.</strong> No routes, storage,
+              environment variables, or user-facing commands changed. Existing
+              checkpoint JSON remains valid.
             </div>
           </div>
         </div>

@@ -64,6 +64,11 @@ test.describe("/changelog", () => {
     await expect(hero.locator(".hero-head")).toHaveAttribute("aria-expanded", "true");
     await expect(hero.locator(".compat-box")).toBeVisible();
     await expect(hero.locator(".compat-box")).not.toBeEmpty();
+
+    await expect(page.locator("#skill-install-portability")).toBeVisible();
+    await expect(page.locator("#skill-install-portability .rc-title")).toHaveText(
+      "Skill install portability patch",
+    );
   });
 
   test("the v1.4 entry deep-links to /coverage (the pack catalog)", async ({ page }) => {
