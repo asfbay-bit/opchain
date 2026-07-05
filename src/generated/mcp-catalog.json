@@ -199,6 +199,27 @@
       "version": "1.7.0"
     },
     {
+      "id": "oc-docs-forge",
+      "name": "oc-docs-forge",
+      "displayName": "OC · Docs Forge",
+      "shortDesc": "Documentation generator for every PR: PR body, PR comments, README/catalog docs, product docs, changelog and ADR upkeep.",
+      "description": "Documentation creation, standardization, and upkeep for every PR. Auto-invoked by oc-git-ops before PR creation and by release flows before release PRs. Use for /oc-docs, /oc-docs pr, \"generate the PR docs\", \"update README\", \"standardize docs\", \"refresh product documentation\", \"write PR body docs\", \"post a PR docs comment\", \"docs upkeep\", changelog/ADR/readme/catalog drift, or any request where implementation changes need reader-facing documentation.",
+      "phases": [
+        "plan",
+        "build"
+      ],
+      "triAgent": false,
+      "commands": [
+        "/oc-docs",
+        "/oc-docs pr",
+        "/oc-docs readme",
+        "/oc-docs standardize",
+        "/oc-docs upkeep",
+        "/oc-docs verify"
+      ],
+      "version": "1.8.0"
+    },
+    {
       "id": "oc-fleet-ops",
       "name": "oc-fleet-ops",
       "displayName": "OC · Fleet Ops",
@@ -422,6 +443,26 @@
         "/oc-release ship"
       ],
       "version": "1.7.0"
+    },
+    {
+      "id": "oc-repo-ops",
+      "name": "oc-repo-ops",
+      "displayName": "OC · Repo Ops",
+      "shortDesc": "Repository hygiene and PR readiness gate. Ensures docs, generated files, git state, catalogs, and cleanup are PR-ready.",
+      "description": "Repository hygiene and PR readiness gate. Auto-invoked by oc-git-ops before every PR and after oc-docs-forge generates the PR documentation packet. Use for /oc-repo, /oc-repo audit, /oc-repo verify, \"repo hygiene\", \"clean this repo\", \"is this PR ready\", \"check generated files\", \"catalog drift\", \"plugin/cache drift\", \".gitignore policy\", orphaned docs/files, stale generated artifacts, source-vs-doc mismatch, or any repository cleanliness question.",
+      "phases": [
+        "build"
+      ],
+      "triAgent": false,
+      "commands": [
+        "/oc-repo",
+        "/oc-repo audit",
+        "/oc-repo verify",
+        "/oc-repo clean",
+        "/oc-repo catalog",
+        "/oc-repo status"
+      ],
+      "version": "1.8.0"
     },
     {
       "id": "oc-reverse-spec",
