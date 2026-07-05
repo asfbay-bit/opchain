@@ -6,12 +6,22 @@
  */
 import { describe, it, expect } from "vitest";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync, cpSync, symlinkSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, writeFileSync, cpSync, symlinkSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+function findNodeModules() {
+  let dir = ROOT;
+  while (dir !== dirname(dir)) {
+    const candidate = join(dir, "node_modules");
+    if (existsSync(candidate)) return candidate;
+    dir = dirname(dir);
+  }
+  throw new Error("Could not find node_modules for catalog validator fixture");
+}
 
 function runValidator(skillsDir) {
   // The script reads from <ROOT>/skills, so we shim by symlinking from a
@@ -25,7 +35,7 @@ function runValidator(skillsDir) {
     // of MB / thousands of files per run and intermittently failed or timed out
     // under parallel test load; module resolution follows the symlink, so the
     // spawned validator still resolves gray-matter and the registry import.
-    symlinkSync(join(ROOT, "node_modules"), join(work, "node_modules"), "dir");
+    symlinkSync(findNodeModules(), join(work, "node_modules"), "dir");
     cpSync(join(ROOT, "package.json"), join(work, "package.json"));
     cpSync(skillsDir, join(work, "skills"), { recursive: true });
     return spawnSync("node", ["scripts/gen-skills-catalog.mjs"], {
