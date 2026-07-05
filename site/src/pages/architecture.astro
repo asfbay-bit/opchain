@@ -108,9 +108,9 @@ const packCounts = {
 
     <div class="container">
       <div class="header">
-        <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2 · RELEASE v1.7</div>
+        <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2 · RELEASE v1.8</div>
         <h1>opchain skills ecosystem</h1>
-        <p class="subtitle">Checkpoint-driven pipeline · 27 skills · 6 phases · 8 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span> · <span class="subtitle-inst">v1.6 instrument rail</span> · <span style="color:var(--sig)">v1.7 Seams &amp; Signals</span></p>
+        <p class="subtitle">Checkpoint-driven pipeline · 29 skills · 6 phases · 8 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span> · <span class="subtitle-inst">v1.6 instrument rail</span> · <span style="color:var(--sig)">v1.7 Seams &amp; Signals</span> · <span style="color:var(--docs)">v1.8 docs gate</span></p>
       </div>
 
       <div class="diagram-container">
@@ -242,7 +242,7 @@ const packCounts = {
           <!-- ── Orchestrator detail card with routing-decision animation ── -->
           <div class="orch-detail-expand" id="orch-detail-top">
             <div class="cpd-inner">
-              <p class="cpd-intro">The oc-orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/oc-ops</code> queries. Reads all 27 checkpoints; writes its own pipeline state.</p>
+              <p class="cpd-intro">The oc-orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/oc-ops</code> queries. Reads all 29 checkpoints; writes its own pipeline state.</p>
               <svg class="orch-route-svg" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orchestrator routing decision: oc-app-architect checkpoint update routed to oc-ux-engineer, oc-dash-forge, and oc-api-dev in parallel">
                 <defs>
                   <marker id="orch-rt-end" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
@@ -1061,7 +1061,7 @@ const packCounts = {
               <span>CP · checkpoint</span>
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title">Checkpoint Protocol</div>
-                Every skill writes JSON to <code>.checkpoints/</code> after each state change. Single source of truth — any skill can read any other's checkpoint to rebuild context after a reset. CP badge sits centered on the top edge of each skill, paired just to the left of ORC. Hover the CP zone toggle top-left of the diagram to see all 27 connected.
+                Every skill writes JSON to <code>.checkpoints/</code> after each state change. Single source of truth — any skill can read any other's checkpoint to rebuild context after a reset. CP badge sits centered on the top edge of each skill, paired just to the left of ORC. Hover the CP zone toggle top-left of the diagram to see all 29 connected.
                 <div class="legend-card-examples">.checkpoints/oc-app-architect.json · phase · progress_table · blockers · next_actions</div>
               </div>
             </span>
@@ -1228,7 +1228,7 @@ const packCounts = {
           <ul>
             <li>· JSON files at .checkpoints/&lt;skill&gt;.json</li>
             <li>· Keys: phase · progress_table · context_primer · blockers · next_actions</li>
-            <li>· All 27 skills read all 27 checkpoints (no ACL)</li>
+            <li>· All 29 skills read all 29 checkpoints (no ACL)</li>
             <li>· Resume: own → upstream → novice mode</li>
             <li>· Framework-agnostic — no platform lock-in</li>
           </ul>
@@ -1250,7 +1250,7 @@ const packCounts = {
         </div>
       </div>
 
-      <p class="footer">opchain skills ecosystem v2 · asfbay-bit/opchain · 27 skills · 6 phases · 8 tri-agent · 3 audit gates · spine ordinals · v1.7 · checkpoint-driven</p>
+      <p class="footer">opchain skills ecosystem v2 · asfbay-bit/opchain · 29 skills · 6 phases · 8 tri-agent · 3 audit gates · spine ordinals · v1.8 · checkpoint-driven</p>
     </div>
   </main>
 
@@ -1840,6 +1840,7 @@ const packCounts = {
     --ai:         #a78bfa;   /* v1.5 AI-native phase accent */
     --inst:       #a3e635;   /* v1.6 instrumentation accent (lime) */
     --sig:        #e879f9;   /* v1.7 "Seams & Signals" accent (magenta) */
+    --docs:       #38bdf8;   /* v1.8 docs/repo gate accent */
     --inst-dim:   rgba(163,230,53,.08);
     --inst-mid:   rgba(163,230,53,.16);
 
