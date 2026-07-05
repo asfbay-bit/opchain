@@ -4,165 +4,63 @@
   "project": "opchain.dev",
   "project_dir": "/home/user/opchain",
   "created_at": "2026-05-02T01:35:00Z",
-  "updated_at": "2026-06-22T16:35:00Z",
+  "updated_at": "2026-07-04T00:00:00Z",
   "phase": "audit",
-  "step": "v1.5-shipped-ai-safety-rulepack-added-but-no-full-sweep-since-v1.3",
+  "step": "portability-audit-plus-root-cause-fixes",
   "status": "complete",
-  "progress_summary": "v1.5.0 shipped + live (2026-06-22). code-auditor's v1.5 deliverable — the AI-app safety pass — landed in Sprint 3 (PR #306): references/ai-safety-rules.md (prompt-injection AI-INJ-001..007 + tool-use AI-TOOL-001..005), references/ai-safety-signatures.json (fast pre-screen tripwires), a 'Phase: AI app?' sweep (1f) in SKILL.md, and a fixture test (tests/ai-safety-rules.test.js, 10 pos + 10 neg per category, grades >= B+). NOTE: the rule pack was ADDED but no full code-auditor SWEEP has run since the v1.3 one — the entire v1.4 AND v1.5 cycles shipped without a graded sweep (diffs were small: pack YAMLs, dispatcher refactor, skill markdown + light schema). A real post-release sweep (esp. the ADEV-330 dispatcher + the new Worker schema/flag changes) is worth scheduling. HISTORY: Last full audit was the one-pass sweep over PRs #143-#155 (mobile workbench, mobile architecture diagram, welcome popup, full-bleed UI, top-right feedback pill, skill TOC restyle + click-to-flash, PostHog reverse-proxy) — 16 findings, grade B+. LHCI-1 through LHCI-5 all fixed and shipped. F-005, F-006 fixed; F-001/F-002 verified false-positive on inspection; F-011 (Desktop/Mobile workbench duplication) deferred to a refactor sprint. No new audit has been requested since 2026-05-03; the entire v1.4 cycle (PRs 1-8 ADEV-328 → ADEV-337) shipped without a code-auditor sweep — incremental risk is low because each PR's diff was small (pack YAMLs + dispatcher refactor + light schema changes), but a v1.5 pre-deploy sweep is worth scheduling before agent-forge / claude-api / rag-forge bodies land (Sprint 2-3).",
+  "progress_summary": "Portability audit of the shipped skill suite (why it works on the author's machine but not users'). Multi-agent sweep: 27 per-skill auditors + 5 fresh-machine simulations, adversarially verified — 157 findings survived (14 CRITICAL, 41 HIGH), 2 refuted. Two root causes, both now FIXED: (1) checkpoints never written on user machines because the bundled protocol routed all writes through the repo-only scripts/checkpoint.mjs CLI and told the model NOT to write JSON itself — rewrote oc-checkpoint-protocol SKILL.md so the model writes checkpoints directly with its file tools (CLI reframed as opchain-repo-only optional), and removed the oc-app-architect instruction to gitignore .checkpoints/. (2) cross-skill protocol never loaded because 10/27 skills didn't bundle references/orchestrator.md and 10/27 never instructed reading it — fixed sync-skill-bundles.mjs to create+guard the bundled files (was silently skipping missing ones), propagated the protocol into all 27 skills, and added the first-invocation bootstrap line to 9 runnable skills that lacked it. Regression guards added to gen-skills-catalog.mjs: fails the build on missing protocol files, missing bootstrap line, dangling references/ citations, and >1024-char descriptions. Also trimmed oc-migration-ops description (1242→984 chars, under the truncation limit) and fixed 5 dangling reference citations. gen-catalog + sync-bundles:check green; zips verified to carry the protocol for all 27 skills. Report: docs/audits/2026-07-04-portability-audit.md.",
   "progress_table": [
-    {
-      "id": "scope",
-      "label": "Scoped to session PRs (~8k lines)",
-      "status": "complete"
-    },
-    {
-      "id": "security",
-      "label": "Security sweep — XSS/CSRF/secrets/auth",
-      "status": "complete"
-    },
-    {
-      "id": "performance",
-      "label": "Performance sweep — listeners, animations, bundle",
-      "status": "complete"
-    },
-    {
-      "id": "quality",
-      "label": "Quality sweep — duplication, dead code, types",
-      "status": "complete"
-    },
-    {
-      "id": "ux-a11y",
-      "label": "UX/a11y sweep — contrast, motion, focus, taps",
-      "status": "complete"
-    },
-    {
-      "id": "tests",
-      "label": "Test coverage — demo-mobile.spec.ts strength",
-      "status": "complete"
-    },
-    {
-      "id": "report",
-      "label": "Findings report produced",
-      "status": "complete"
-    }
+    { "id": "audit", "label": "27 per-skill + 5 ground-truth portability auditors", "status": "complete" },
+    { "id": "verify", "label": "Adversarial verification of every finding", "status": "complete" },
+    { "id": "fix-checkpoint", "label": "Root cause 1 — self-contained checkpoint writing", "status": "complete" },
+    { "id": "fix-chaining", "label": "Root cause 2 — protocol bundled + bootstrapped in all 27", "status": "complete" },
+    { "id": "guards", "label": "Build-time regression guards in gen-skills-catalog", "status": "complete" },
+    { "id": "verify-fixes", "label": "gen-catalog + sync-check green; zips carry protocol", "status": "complete" },
+    { "id": "chaining-determinism", "label": "Make cross-skill handoffs deterministic (Skill() calls)", "status": "not_started" }
   ],
   "context_primer": {
     "key_decisions": [
-      "Auditor mode only — no Fixer/Verifier this round (user did not request fix-all).",
-      "Subagent-delegated sweep due to ~8k LOC scope; auditor verified the two CRITICAL claims by reading the cited lines and downgraded both as likely false positives.",
-      "LHCI surfaced a real dark-mode contrast issue on .pill[aria-pressed=true] in Pill.astro — the existing B-10 override only fixes light mode (line 50). Dark-mode pressed-pill text is ~4.0:1 on the alpha-blended accent-dim surface, just under AA 4.5:1 for small text.",
-      "Default page theme is dark (Base.astro line 97), which is what LHCI audits."
+      "Both reported field symptoms (checkpoints not written; skills not chaining) traced to distribution/packaging, not logic: the repo's own hooks (.claude/settings.json Stop + PreToolUse) and scripts/checkpoint.mjs CLI silently satisfy the skills' unstated dependencies on the author's machine; none of it ships to users.",
+      "Fix strategy: single-source. Rewrote the protocol source (oc-checkpoint-protocol/SKILL.md) so sync-skill-bundles.mjs propagates the self-contained checkpoint-writing instructions to all 26 bundled copies at once.",
+      "sync-skill-bundles.mjs had two defects: it skipped any skill with no references/ dir, and only synced files that already existed (if(!exists)continue) — so missing bundled files were never created AND never flagged by the --check CI gate. Both fixed.",
+      "Portability grade: F (the suite had never been exercised outside this repo). The two root causes are now fixed; deeper chaining-determinism rework remains."
     ],
-    "generated_files": [],
+    "generated_files": [
+      "docs/audits/2026-07-04-portability-audit.md"
+    ],
     "user_preferences": [
       "Wants concrete findings with file:line, not generalities.",
-      "Comfortable triaging findings — doesn't need every CRITICAL fixed immediately if it's a low-likelihood false positive."
+      "Runs multi-agent workflows for substantive audits (ultracode)."
     ]
   },
   "blockers": [],
   "next_actions": [
-    "v1.5 AI-safety rule pack shipped (PR #306): references/ai-safety-rules.md + ai-safety-signatures.json + 'Phase: AI app?' sweep + fixture test. The pack is in place but a full graded SWEEP has not been run since v1.3.",
-    "Schedule a real post-release sweep: the ADEV-330 dispatcher refactor, the new Worker schema/flag changes, and the v1.5 skill bodies all shipped without a graded code-auditor pass. F-011 (Desktop/Mobile workbench duplication) is still deferred tech debt."
+    "Cross-skill INVOCATION is now loadable everywhere but still not deterministic: handoffs rely on prose 'read that skill's SKILL.md' + description-keyword triggering rather than explicit Skill() tool calls. Only oc-git-ops -> oc-bug-check is deterministic. Convert the documented handoff points to explicit Skill() invocations with a graceful 'if the skill isn't installed' fallback.",
+    "oc-orchestrator's /oc-ops status|next|doctor commands are still implemented as the repo-only scripts/checkpoint.mjs CLI. The router now loads the protocol, but give it a portable fallback: read .checkpoints/*.checkpoint.json directly and summarize when the CLI is absent.",
+    "Single-skill (per-skill zip) installs: a skill that hard-invokes a sibling still breaks when that sibling isn't installed — no suite-wide fallback exists. Add one.",
+    "MEDIUM/LOW remainders in docs/audits/2026-07-04-portability-audit.md: .opchain/pm.yaml PM-integration assumes repo config; orphaned TRYIT.md files ship in zips; oc-dash-forge default checkpoint path is a Claude.ai sandbox path; internal 'aidops' jargon leakage."
   ],
   "skill_state": {
-    "mode": "audit-only",
-    "scope": "session-prs",
-    "files_audited": [
-      "site/src/components/DesktopWorkbench.astro",
-      "site/src/components/MobileWorkbench.astro",
-      "site/src/components/MobileArchitecture.astro",
-      "site/src/components/WelcomePopup.astro",
-      "site/src/components/FeedbackWidget.astro",
-      "site/src/pages/demo.astro",
-      "site/src/pages/architecture.astro",
-      "site/src/pages/skills/[id].astro",
-      "site/src/pages/skills/index.astro",
-      "site/src/components/ui/Pill.astro",
-      "site/tests/e2e/demo-mobile.spec.ts"
+    "mode": "audit-plus-fix",
+    "scope": "skills/ portability (distribution to user machines)",
+    "findings_total": 157,
+    "findings_by_severity": { "critical": 14, "high": 41, "medium": 52, "low": 50 },
+    "findings_refuted": 2,
+    "grade": "F (portability)",
+    "root_causes_fixed": 2,
+    "fixes_applied": [
+      "Rewrote oc-checkpoint-protocol/SKILL.md How-to-Write / Tooling / Scaffold sections: checkpoints are written directly with file tools; CLI is opchain-repo-only optional.",
+      "Fixed wire-version contradiction (schema example stamped 1.0 while prose mandates 1.1).",
+      "Fixed sync-skill-bundles.mjs to create missing references/ dirs+files and fail --check on missing.",
+      "Propagated orchestrator.md + checkpoint-protocol.md into all 27 skills (10 were missing each).",
+      "Added first-invocation bootstrap line to 9 runnable skills that lacked it.",
+      "Removed oc-app-architect instruction to gitignore .checkpoints/ (contradicted the protocol).",
+      "Added build guards to gen-skills-catalog.mjs: missing protocol files, missing bootstrap line, dangling references/ citations, >1024-char descriptions.",
+      "Trimmed oc-migration-ops description under the ~1024 truncation limit.",
+      "Fixed 5 dangling references/ citations in oc-deploy-ops, oc-stack-forge, oc-signal-forge."
     ],
-    "findings_total": 16,
-    "findings_by_severity": {
-      "critical": 2,
-      "high": 6,
-      "medium": 6,
-      "low": 2
-    },
-    "findings_after_triage": {
-      "critical": 0,
-      "high": 6,
-      "medium": 6,
-      "low": 2
-    },
-    "grade": "B+",
-    "fixes_applied": 7,
-    "fixes_verified": 3,
-    "fixes_rejected": 0,
-    "headline_findings": [
-      {
-        "id": "F-005",
-        "title": "No prefers-reduced-motion guard on WelcomePopup transitions",
-        "severity": "high",
-        "location": "site/src/components/WelcomePopup.astro:107-254",
-        "status": "fixed",
-        "fix": "Added @media (prefers-reduced-motion: reduce) block disabling transition + transform on .welcome-scrim, .welcome-card, .welcome-btn."
-      },
-      {
-        "id": "F-006",
-        "title": "Close-button contrast in light mode",
-        "severity": "high",
-        "location": "site/src/components/WelcomePopup.astro:165-176",
-        "status": "fixed",
-        "fix": "Added :global([data-theme=\"light\"]) .welcome-close { color: var(--text); } — promotes muted gray to high-contrast text token in light theme."
-      },
-      {
-        "id": "F-011",
-        "title": "Desktop/Mobile workbench transcript rendering duplicated",
-        "severity": "medium",
-        "location": "site/src/components/{DesktopWorkbench,MobileWorkbench}.astro",
-        "status": "deferred"
-      },
-      {
-        "id": "LHCI-1",
-        "title": "Dark-mode pressed pill ~4.0:1 contrast on /skills filter",
-        "severity": "high",
-        "location": "site/src/components/ui/Pill.astro:44-50",
-        "status": "fixed",
-        "shipped_in": "PR #155 / 75b6f82",
-        "verification": "LHCI a11y on /skills 0.96 → 1.00 post-merge"
-      },
-      {
-        "id": "LHCI-2",
-        "title": "code[data-cmd] color (--ember) on alpha-pill bg ~4.22:1 — fails AA Normal at 12px",
-        "severity": "high",
-        "location": "site/src/pages/skills/[id].astro :prose code[data-cmd]",
-        "status": "fixed",
-        "fix": "Swapped color/border/background from var(--ember) to var(--workflow) (#FB923C / light: #8a3610). --workflow is the AA-calibrated bright-ember sibling already used for the workflow role; same visual family, clears AA on both themes."
-      },
-      {
-        "id": "LHCI-3",
-        "title": "Skill detail TOC links fail target-size (24×24)",
-        "severity": "high",
-        "location": "site/src/pages/skills/[id].astro .toc-list a",
-        "status": "fixed",
-        "fix": "Bumped link padding from `padding-left: 0.55rem` to `padding: 4px 0 4px 0.55rem`. 14px×1.4 + 8px padding ≈ 28px, clears the 24px threshold without disrupting the fixed-position rail layout."
-      },
-      {
-        "id": "LHCI-4",
-        "title": "Architecture band-label-text + legend-section-label use --slag (~2.30:1) — fails AA Normal",
-        "severity": "high",
-        "location": "site/src/pages/architecture.astro .arch-v2 .band-label-text + .legend-section-label",
-        "status": "fixed",
-        "fix": "Swapped color from var(--slag) (#5a5040) to var(--subtle) (#9d8b78), the calibrated dimmed-text token (5.06–5.42:1 across canonical surfaces). Active band still brightens to var(--sand) so the dim/active hierarchy is preserved."
-      },
-      {
-        "id": "LHCI-5",
-        "title": "Architecture card spans + spine swatch use legacy teal #0D9488 (~4.48:1) — fails AA Normal at small sizes",
-        "severity": "high",
-        "location": "site/src/pages/architecture.astro lines 803-805 + .li-swatch-spine",
-        "status": "fixed",
-        "fix": "Swapped #0D9488 → #14B8A6 (matches global --specialist token after B-10 calibration). Three card span colors and the spine swatch (border + color + bg-mix). Other instances of #0D9488 in SVG text remain — Lighthouse doesn't audit SVG text contrast and these aren't flagged."
-      }
-    ],
-    "depends_on": "checkpoint-protocol v1.0; reads ux-engineer + app-architect checkpoints for context"
+    "verification": "npm run gen-catalog (27 skills) + npm run sync-bundles:check green; combined + per-skill zips confirmed to carry references/orchestrator.md + checkpoint-protocol.md for all 27 skills including the 4 that previously shipped with no references/ at all. Test-suite failures observed (demo-search, gen-roadmap, flags-skills) reproduce identically on clean main and are an environmental artifact of the empty hoisted node_modules in this .claude/worktrees sub-worktree — unrelated to these changes.",
+    "report_path": "docs/audits/2026-07-04-portability-audit.md",
+    "depends_on": "checkpoint-protocol wire-1.1"
   }
 }

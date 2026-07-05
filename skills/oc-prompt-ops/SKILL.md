@@ -27,6 +27,8 @@ governance:
 
 # Prompt Ops
 
+**On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
+
 Treat prompts as **code**: source-controlled, diffable, semver'd, and gated on
 an eval suite the same way application code is gated on tests. A prompt is the
 single most behavior-defining string in an LLM app — and the one most teams

@@ -35,6 +35,8 @@ governance:
 
 # Modularize Ops
 
+**On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
+
 Take a monolith — a codebase, a container, or a large deployment — and decompose it into
 modules or services **without losing functionality or data**. The signature commitment of
 this skill is not "it splits cleanly" but "the split is **provably** behavior- and

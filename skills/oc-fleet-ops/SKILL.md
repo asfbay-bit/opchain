@@ -35,6 +35,8 @@ governance:
 
 # Fleet Ops
 
+**On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
+
 Deploy and operate **one-or-more containers across arbitrary, self-managed environments**
 — the territory `oc-deploy-ops` routes elsewhere today. Where deploy-ops is opinionated
 about a *single app on a managed PaaS* (Workers, Render, Fly, Shuttle), Fleet Ops owns

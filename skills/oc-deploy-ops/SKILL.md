@@ -607,7 +607,7 @@ not first-class in v1.3:
 
 | Platform | Status | Why |
 |---|---|---|
-| Vercel | Reachable via oc-stack-forge `references/deployment-patterns.md`, but no v1.3 scaffold recipe | Overlaps too closely with CF Workers for opchain's audience; pick one. |
+| Vercel | Reachable via oc-stack-forge's platform matrix, but no v1.3 scaffold recipe | Overlaps too closely with CF Workers for opchain's audience; pick one. |
 | AWS Lambda | Same | Steep operational ramp; oc-deploy-ops would need dramatically different audit/rollback shape. |
 | Railway | Same | Render covers the same niche; redundant. |
 | Cloud Run | Same | Fly.io covers the same niche with a simpler dev loop. |

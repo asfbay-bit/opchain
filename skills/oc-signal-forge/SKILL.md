@@ -33,6 +33,8 @@ governance:
 
 # Signal Forge
 
+**On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
+
 Owns the **backend of analytics**: instrumentation design, the harvester / ingestion
 layer, the transform / middleware, the store, and — the part most analytics tooling
 skips — **validation that the signal answers the question correctly**, before it's ever
@@ -151,7 +153,7 @@ Produce the **signal spec**:
 
 Grain is the field most metrics get wrong, so it's mandatory: a "conversion rate" at
 session grain and the same name at user grain are different numbers that disagree, and
-the catalog must say which one this is. See `references/signal-design.md`.
+the catalog must say which one this is.
 
 ### Phase 2 — Builder (`/oc-signal build`, `/oc-signal harvest`)
 
@@ -180,8 +182,8 @@ produces:
 - A **consumer stub** — the query or endpoint that `oc-dash-forge` (or an app) will read.
   The stub is the stable read contract the wire phase later hardens.
 
-See `references/harvester-patterns.md` for the five archetypes, idempotency keys,
-late-data windows, and sampling correction.
+The five archetypes are tabulated above; idempotency keys, late-data windows, and
+sampling correction are covered in the middleware/transform bullet below.
 
 ### Phase 3 — Evaluator (`/oc-signal verify`) — the signature gate
 

@@ -29,6 +29,8 @@ description: >
 
 # Orchestrator
 
+**On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
+
 Pipeline coordinator for the opchain dev ecosystem. This skill does NOT build, audit,
 deploy, or design — it reads every other skill's checkpoints, maintains a project
 registry, and answers three questions:
