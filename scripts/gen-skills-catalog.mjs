@@ -72,8 +72,6 @@ function validateSkill(id) {
       `${DESCRIPTION_MAX} limit — Claude Code truncates it and drops trigger phrases. Trim it.`,
     );
   }
-  validateProtocolWiring(id, content);
-  validateReferencedFiles(id, content);
   if (!Array.isArray(data.phases) || data.phases.length === 0) {
     throw new Error(`skills/${id}/SKILL.md: \`phases\` must be a non-empty array`);
   }
@@ -92,6 +90,10 @@ function validateSkill(id) {
   }
   validateSkillFlags(id, data);
   validateSkillCommands(id, data);
+  // Portability wiring runs last so frontmatter / flag / command errors surface
+  // first (keeps error messages stable for callers that assert on them).
+  validateProtocolWiring(id, content);
+  validateReferencedFiles(id, content);
   return data;
 }
 
