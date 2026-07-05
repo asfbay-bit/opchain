@@ -50,15 +50,16 @@ describe("POST /mcp", () => {
     expect(body.result.serverInfo.version).toBe("test"); // __OPCHAIN_VERSION__ define
   });
 
-  it("list_skills returns the full generated catalog (all 27 skills)", async () => {
+  it("list_skills returns the full generated catalog (all 29 skills)", async () => {
     const res = await post(rpc("tools/call", { name: "list_skills" }));
     const body = await res.json();
     const parsed = JSON.parse(body.result.content[0].text);
     // 18 v1.4-era skills + 4 v1.5 AI-native skills (oc-claude-api,
     // oc-rag-forge, oc-agent-forge, oc-prompt-ops) + 2 v1.6 instrumentation
     // skills (oc-cost-ops, oc-telemetry-ops) + 3 v1.7 "Seams & Signals"
-    // skills (oc-signal-forge, oc-modularize-ops, oc-fleet-ops).
-    expect(parsed.skills.length).toBe(27);
+    // skills (oc-signal-forge, oc-modularize-ops, oc-fleet-ops) + 2 v1.8
+    // PR-documentation mesh skills (oc-docs-forge, oc-repo-ops).
+    expect(parsed.skills.length).toBe(29);
     expect(parsed.skills.map((s) => s.id)).toContain("oc-release-ops");
     expect(parsed.skills.map((s) => s.id)).toContain("oc-claude-api");
     expect(parsed.skills.map((s) => s.id)).toContain("oc-cost-ops");
@@ -66,6 +67,8 @@ describe("POST /mcp", () => {
     expect(parsed.skills.map((s) => s.id)).toContain("oc-signal-forge");
     expect(parsed.skills.map((s) => s.id)).toContain("oc-modularize-ops");
     expect(parsed.skills.map((s) => s.id)).toContain("oc-fleet-ops");
+    expect(parsed.skills.map((s) => s.id)).toContain("oc-docs-forge");
+    expect(parsed.skills.map((s) => s.id)).toContain("oc-repo-ops");
   });
 
   it("get_skill streams the SKILL.md from the ASSETS binding", async () => {
