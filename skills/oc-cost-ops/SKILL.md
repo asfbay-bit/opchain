@@ -36,6 +36,8 @@ governance:
 
 # Cost Ops
 
+**On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
+
 Make LLM spend a **first-class, attributable number** in the pipeline. v1.5 added
 four AI-native skills; the predictable next question is *"what did that cost
 me?"* — and today the honest answer across opchain is "we don't precisely know."

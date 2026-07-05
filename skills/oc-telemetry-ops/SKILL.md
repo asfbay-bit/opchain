@@ -36,6 +36,8 @@ governance:
 
 # Telemetry Ops
 
+**On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
+
 Answer *"is anyone actually using this, and which parts?"* — **without betraying
 opchain's local-first, no-backend stance.** Telemetry Ops meters skill/phase
 usage into a **local** SQLite store (`.checkpoints/usage.sqlite`), strictly

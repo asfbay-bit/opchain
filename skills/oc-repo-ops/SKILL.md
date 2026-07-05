@@ -31,9 +31,7 @@ governance:
 
 # Repo Ops
 
-Read `../orchestrator.md` on first invocation when running from the Opchain repo
-source. In a packaged skill bundle, read the bundled orchestrator reference if
-present.
+**On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
 Repo Ops is the repository-level cleanliness gate. It does not write the docs
 packet itself; Docs Forge does that. Repo Ops verifies that the packet exists,

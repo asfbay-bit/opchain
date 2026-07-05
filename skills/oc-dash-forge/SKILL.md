@@ -33,6 +33,8 @@ description: >
 
 # Dash Forge
 
+**On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
+
 Dashboard and dense-information UI designer. Takes data (from data-architect handoff, upstream spec, or direct input) and produces:
 
 1. **Design spec** — layout, density, component choices, interaction model, design tokens

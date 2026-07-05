@@ -72,7 +72,7 @@ Multiple skills can checkpoint the same project simultaneously without collision
 ```jsonc
 {
   // === HEADER (required) ===
-  "protocol_version": "1.0",             // On-disk schema version (not the skill release version)
+  "protocol_version": "1.1",             // On-disk schema version — stamp new writes "1.1"; validator also accepts "1.0"
   "skill": "oc-app-architect",              // Skill that owns this checkpoint
   "project": "gtrack",                   // Human-readable project name
   "project_dir": "/home/claude/gtrack",  // Absolute path
@@ -262,17 +262,44 @@ write before handing control back.
 
 ### How to Write
 
-Always **read → merge → write**. Never blindly overwrite — another skill might have
-written a checkpoint for the same project in a sibling file, and the current skill's
-own file might have been manually edited.
+**You do not need any special tooling to write a checkpoint — your own file tools
+are the writer.** The `scripts/checkpoint.mjs` CLI described under *Tooling* is an
+optional convenience that exists **only inside the opchain.dev repo**; on a user's
+own project it is absent, and you write checkpoints directly instead. Do not treat a
+missing CLI or a missing `npm run checkpoint:*` script as a reason to skip the write.
 
-```bash
-# Pseudocode
-existing = read_json("{project}/.checkpoints/{skill}.checkpoint.json") or {}
-updated = merge(existing, new_state)
-updated["updated_at"] = now()
-write_json(updated)
+The operation is always **read → merge → write**, four concrete steps you perform
+with the tools you already have:
+
+1. **Ensure the directory exists.** Create `{project-dir}/.checkpoints/` if it isn't
+   there yet — `mkdir -p {project-dir}/.checkpoints` with the Bash tool, or just rely
+   on your Write tool creating parent directories. (`{project-dir}` is the root of the
+   project you're working in — the directory that holds its `.git`, `package.json`,
+   or `src/` — **not** the skill's install directory.)
+2. **Read what's there.** Read `{project-dir}/.checkpoints/{skill-name}.checkpoint.json`
+   if it exists; treat a missing file as `{}`.
+3. **Merge, don't clobber.** Merge your new state into the existing object and set
+   `updated_at` to the current time (ISO-8601). Never blindly overwrite — another
+   skill may have written a sibling checkpoint, and this file may have been hand-edited.
+4. **Write the JSON back** to the same path with the Write tool. Include at least the
+   required header + progress fields from the schema above (`protocol_version`,
+   `skill`, `project`, `project_dir`, `created_at`, `updated_at`, `phase`, `step`,
+   `status`, `progress_summary`, and — while `in_progress` — `next_actions`), and
+   stamp `protocol_version` as `"1.1"`.
+
+```text
+# The shape of the operation — do it with your own Read/Write tools, no CLI required:
+existing = read_json("{project-dir}/.checkpoints/{skill}.checkpoint.json") or {}
+updated  = merge(existing, new_state)
+updated["updated_at"] = now()          # ISO-8601
+write_json("{project-dir}/.checkpoints/{skill}.checkpoint.json", updated)
 ```
+
+> **A hand-written checkpoint is a first-class checkpoint.** If the CLI happens to be
+> present (you're in the opchain repo), it automates the merge and validates the
+> result — use it. Everywhere else, the four steps above ARE the protocol. The one
+> unacceptable outcome is ending a session with state that a future session needed
+> but that was never written to disk.
 
 ### Checkpoint Size
 
@@ -332,11 +359,18 @@ that as the single source of truth; this table is just the common cases.
 
 ---
 
-## Tooling
+## Tooling (optional — opchain.dev repo only)
 
-All commands live in `package.json` and shell out to `scripts/checkpoint.mjs`
-(zero deps, pure Node). The canonical writer is that one file at the repo root —
-skills do **not** bundle their own writers.
+> **This entire section is an optional fast-path, not a requirement.** The commands
+> below exist only inside the opchain.dev repo, where `scripts/checkpoint.mjs` and the
+> `checkpoint:*` `package.json` scripts are present. **On a user's own project none of
+> this exists — and that is expected.** You still create, read, and update checkpoints
+> directly with your file tools (see *How to Write* above). If any command in this
+> section is not found, skip it and write the file yourself; a missing
+> `scripts/checkpoint.mjs` is never a reason not to checkpoint.
+
+When they are available, these commands automate the read → merge → write and
+validate the result. `scripts/checkpoint.mjs` is zero-deps pure Node.
 
 **Read / resume:**
 
@@ -405,26 +439,27 @@ The validator runs after every `update`/`done` so you can't silently corrupt a f
 
 ## Scaffold Phase
 
-This protocol is **not invoked directly** (it has no commands of its own). A fresh
-project gets scaffolded one of two ways:
+This protocol is **not invoked directly** (it has no commands of its own). Scaffolding
+a fresh project is deliberately trivial and needs **no tooling**:
 
-- **Another skill** notices there's no `.checkpoints/` directory and runs
-  `node scripts/checkpoint.mjs init` before writing its first checkpoint.
+- **Any skill** that is about to write its first checkpoint and notices there's no
+  `.checkpoints/` directory simply creates it (`mkdir -p {project-dir}/.checkpoints`,
+  or lets the Write tool create it) and writes the file, per *How to Write*. That is
+  the whole scaffold — a directory and a JSON file.
 - **The oc-orchestrator cold-start** (`/oc-ops` on a project with no `.checkpoints/`)
-  runs the same `init` as step zero.
+  does the same thing as step zero.
 
-`init` creates `.checkpoints/` and a starter `README.md` idempotently. To stand up
-the full protocol on a brand-new repo, drop these (the opchain.dev repo is the
-reference implementation — copying from there is faster than re-typing):
+That is all a user's project ever needs. Everything below is **opchain-repo-only
+convenience** and is *not* required to use the protocol on your own project:
 
-1. `scripts/checkpoint.mjs` — the validator/status/next/doctor/update CLI.
-2. `.checkpoints/README.md` — schema reference + tooling docs (`init` writes a stub).
-3. `package.json` scripts — `checkpoint`, `checkpoint:status`, `checkpoint:validate`
-   (and optionally `checkpoint:next`, `checkpoint:doctor`).
-4. CI step — call `npm run checkpoint:validate` from your CI pipeline.
-5. `.gitattributes` — register the `merge=opchain-checkpoint` driver (see the
-   merge-driver caveat under *Tooling*) plus `scripts/merge-checkpoint.mjs`.
-6. **Do _not_ wire a per-merge auto-stamp workflow.** Earlier guidance here
+1. `scripts/checkpoint.mjs` — an optional validator/status/next/doctor/update CLI that
+   automates the read→merge→write. If you want it on another repo you can copy it from
+   the opchain.dev reference implementation, but nothing here depends on it.
+2. `.checkpoints/README.md` — human-readable schema reference (nice to have; the schema
+   in this document is the authority).
+3. `package.json` scripts / CI validation / `.gitattributes` merge driver — repo
+   ergonomics for a team that tracks many checkpoints. Optional.
+4. **Do _not_ wire a per-merge auto-stamp workflow.** Earlier guidance here
    recommended a `.github/workflows/checkpoint-after-merge.yml` that opened a stamp
    PR on every merge to `main`. opchain.dev shipped it and **removed it 2026-06-22**
    because it was net-negative under branch protection — see *Anti-pattern: don't

@@ -11,7 +11,7 @@
 // Run:        node scripts/sync-skill-bundles.mjs
 // CI check:   node scripts/sync-skill-bundles.mjs --check   (exit 1 if drift)
 
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,6 +19,9 @@ const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILLS_DIR = join(REPO_ROOT, 'skills');
 const ORCHESTRATOR_SRC = join(SKILLS_DIR, 'orchestrator.md');
 const PROTOCOL_SRC = join(SKILLS_DIR, 'oc-checkpoint-protocol', 'SKILL.md');
+// The skill whose SKILL.md IS the protocol source — it must not bundle a copy of
+// itself as references/checkpoint-protocol.md (it still gets orchestrator.md).
+const PROTOCOL_SOURCE_SKILL = 'oc-checkpoint-protocol';
 
 const checkMode = process.argv.includes('--check');
 
@@ -44,18 +47,21 @@ function listSkills() {
 
 function syncTarget(targetPath, expected, label) {
   let actual = '';
+  let missing = false;
   try {
     actual = readFileSync(targetPath, 'utf8');
   } catch {
     actual = null;
+    missing = true;
   }
   if (actual === expected) return { changed: false };
 
   if (checkMode) {
-    return { changed: true, drift: true };
+    return { changed: true, drift: true, missing };
   }
+  mkdirSync(dirname(targetPath), { recursive: true });
   writeFileSync(targetPath, expected);
-  return { changed: true };
+  return { changed: true, missing };
 }
 
 const orchestratorContent = readFileSync(ORCHESTRATOR_SRC, 'utf8');
@@ -64,13 +70,11 @@ const protocolContent = stripFrontmatter(readFileSync(PROTOCOL_SRC, 'utf8'));
 const drift = [];
 const updated = [];
 
+// Every skill directory bundles the shared protocol files so the skill is
+// self-contained once installed into ~/.claude/skills. `references/` is created
+// if absent — a skill shipping without these files is the drift this guards against.
 for (const skill of listSkills()) {
   const refsDir = join(SKILLS_DIR, skill, 'references');
-  try {
-    if (!statSync(refsDir).isDirectory()) continue;
-  } catch {
-    continue;
-  }
 
   const targets = [
     {
@@ -78,21 +82,20 @@ for (const skill of listSkills()) {
       expected: orchestratorContent,
       label: `${skill}/references/orchestrator.md`,
     },
-    {
+  ];
+  // The protocol source skill must not bundle a copy of its own body.
+  if (skill !== PROTOCOL_SOURCE_SKILL) {
+    targets.push({
       path: join(refsDir, 'checkpoint-protocol.md'),
       expected: protocolContent,
       label: `${skill}/references/checkpoint-protocol.md`,
-    },
-  ];
+    });
+  }
 
   for (const t of targets) {
-    let exists = true;
-    try { statSync(t.path); } catch { exists = false; }
-    if (!exists) continue;
-
     const result = syncTarget(t.path, t.expected, t.label);
-    if (result.drift) drift.push(t.label);
-    else if (result.changed) updated.push(t.label);
+    if (result.drift) drift.push(`${t.label}${result.missing ? ' (missing)' : ''}`);
+    else if (result.changed) updated.push(`${t.label}${result.missing ? ' (created)' : ''}`);
   }
 }
 

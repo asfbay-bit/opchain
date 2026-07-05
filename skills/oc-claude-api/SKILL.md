@@ -29,6 +29,8 @@ governance:
 
 # Claude API
 
+**On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
+
 First-party harness for building, debugging, and optimizing applications on the
 Claude API / Anthropic SDK. Owns model routing, prompt caching (on by default),
 tool-use design, batch/streaming patterns, and version-migration playbooks. Apps

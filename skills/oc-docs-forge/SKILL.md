@@ -31,9 +31,7 @@ governance:
 
 # Docs Forge
 
-Read `../orchestrator.md` on first invocation when running from the Opchain repo
-source. In a packaged skill bundle, read the bundled orchestrator reference if
-present.
+**On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
 Docs Forge turns a code change into the documentation that must travel with it.
 It owns the content, wording, placement, and freshness checks for PR bodies, PR

@@ -32,6 +32,17 @@ const REQUIRED_FIELDS = [
   "description",
 ];
 
+// Claude Code truncates skill `description` frontmatter around ~1024 chars, which
+// silently drops trigger phrases (and can drop the skill from the picker). Keep a
+// hard ceiling so an over-long description fails the build instead of the field.
+const DESCRIPTION_MAX = 1024;
+
+// The shared orchestration protocol is what carries the welcome flow, ACTIVE
+// cross-skill chaining, and checkpoint discovery. Every skill must (a) bundle it
+// and (b) instruct the model to read it on first invocation — except the protocol
+// source skill itself, which IS the checkpoint doc and is never invoked directly.
+const PROTOCOL_SOURCE_SKILL = "oc-checkpoint-protocol";
+
 function listSkillDirs() {
   return readdirSync(SKILLS_DIR, { withFileTypes: true })
     .filter((d) => d.isDirectory())
@@ -43,7 +54,7 @@ function listSkillDirs() {
 function validateSkill(id) {
   const skillPath = join(SKILLS_DIR, id, "SKILL.md");
   const raw = readFileSync(skillPath, "utf8");
-  const { data } = matter(raw);
+  const { data, content } = matter(raw);
 
   for (const field of REQUIRED_FIELDS) {
     if (!(field in data)) {
@@ -53,6 +64,12 @@ function validateSkill(id) {
   if (data.name !== id) {
     throw new Error(
       `skills/${id}/SKILL.md: frontmatter \`name: ${data.name}\` does not match directory name \`${id}\``,
+    );
+  }
+  if (typeof data.description === "string" && data.description.length > DESCRIPTION_MAX) {
+    throw new Error(
+      `skills/${id}/SKILL.md: description is ${data.description.length} chars, over the ` +
+      `${DESCRIPTION_MAX} limit — Claude Code truncates it and drops trigger phrases. Trim it.`,
     );
   }
   if (!Array.isArray(data.phases) || data.phases.length === 0) {
@@ -73,7 +90,51 @@ function validateSkill(id) {
   }
   validateSkillFlags(id, data);
   validateSkillCommands(id, data);
+  // Portability wiring runs last so frontmatter / flag / command errors surface
+  // first (keeps error messages stable for callers that assert on them).
+  validateProtocolWiring(id, content);
+  validateReferencedFiles(id, content);
   return data;
+}
+
+function validateProtocolWiring(id, content) {
+  if (id === PROTOCOL_SOURCE_SKILL) return; // the protocol doc itself; not invoked directly
+
+  // (a) Must instruct reading the bundled orchestrator protocol on first invocation.
+  if (!/On first invocation, read\s+`?references\/orchestrator\.md`?/i.test(content)) {
+    throw new Error(
+      `skills/${id}/SKILL.md: missing the first-invocation bootstrap line ` +
+      "(\"On first invocation, read `references/orchestrator.md` ...\"). Without it the " +
+      "shared welcome/chaining/checkpoint protocol never loads on a user machine.",
+    );
+  }
+  // (b) The bundled protocol files must actually exist (run `npm run sync-bundles`).
+  for (const f of ["references/orchestrator.md", "references/checkpoint-protocol.md"]) {
+    if (!existsSync(join(SKILLS_DIR, id, f))) {
+      throw new Error(
+        `skills/${id}/${f} is missing — run \`npm run sync-bundles\` to bundle it. ` +
+        "Shipping a skill without the shared protocol breaks cross-skill chaining and checkpoints.",
+      );
+    }
+  }
+}
+
+function validateReferencedFiles(id, content) {
+  // Every backtick-quoted `references/<name>` cited in the body must exist in the
+  // shipped skill tree. A dangling citation means the model is told to read a file
+  // that isn't in the zip — the exact failure that broke portability.
+  const seen = new Set();
+  for (const m of content.matchAll(/`(references\/[A-Za-z0-9._\/-]+)`/g)) {
+    const rel = m[1];
+    if (seen.has(rel)) continue;
+    seen.add(rel);
+    if (!existsSync(join(SKILLS_DIR, id, rel))) {
+      throw new Error(
+        `skills/${id}/SKILL.md: references \`${rel}\` but skills/${id}/${rel} does not exist ` +
+        "(dangling bundled-file citation — it won't be in the distributed skill).",
+      );
+    }
+  }
 }
 
 function validateSkillFlags(id, data) {

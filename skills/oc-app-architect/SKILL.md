@@ -358,8 +358,13 @@ Write checkpoint: phase "sprint-plan-approved".
 One-time project setup. Read `references/scaffold-guide.md`.
 
 Generates: directory structure, package manifest, config files, .env.example, initial
-migrations, test infrastructure, CI/CD config, .gitignore (includes `.checkpoints/`),
-README with setup instructions.
+migrations, test infrastructure, CI/CD config, .gitignore, README with setup instructions.
+
+> **Do NOT add `.checkpoints/` to `.gitignore`.** The checkpoint directory is tracked
+> in git on purpose — that's what lets session state survive across machines and
+> clones (see `references/checkpoint-protocol.md` → *Directory Convention*). The only
+> checkpoint artifact that IS gitignored is `.checkpoints/usage.sqlite` (oc-telemetry-ops'
+> local metering DB); the `*.checkpoint.json` files must be committed.
 
 Scaffold must be immediately runnable after USER setup tasks (create DB, fill .env, etc).
 
