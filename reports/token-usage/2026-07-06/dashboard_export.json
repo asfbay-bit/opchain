@@ -1,0 +1,44 @@
+{
+  "_note": "NOT telemetry from usage.sqlite (opt-in, content-free, cannot be backfilled). One-shot export shaped to the oc-telemetry-ops /dashboard contract from Claude Code session transcripts (per-message.id deduped).",
+  "generated_at": "2026-07-06T00:00:00Z",
+  "model_tier_distribution": {
+    "opus": 99.579,
+    "fable": 342.5523,
+    "sonnet": 7.4438
+  },
+  "avg_cost_per_feature_usd": 44.07,
+  "weekly": [
+    {
+      "week": "2026-W23",
+      "entries": 94,
+      "cost_usd": 7.4438,
+      "total_tokens": 10242650
+    },
+    {
+      "week": "2026-W26",
+      "entries": 145,
+      "cost_usd": 20.8141,
+      "total_tokens": 20225174
+    },
+    {
+      "week": "2026-W27",
+      "entries": 1927,
+      "cost_usd": 417.2426,
+      "total_tokens": 190525455
+    },
+    {
+      "week": "2026-W28",
+      "entries": 26,
+      "cost_usd": 4.0745,
+      "total_tokens": 2690096
+    }
+  ],
+  "pipelines_run": null,
+  "by_skill": null,
+  "eval_score_trend": null,
+  "totals": {
+    "cost_usd": 449.5751,
+    "total_tokens": 223683375,
+    "entries": 2192
+  }
+}

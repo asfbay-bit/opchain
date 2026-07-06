@@ -1,0 +1,103 @@
+{
+  "generated_at": "2026-07-06T00:00:00Z",
+  "schema_version": "1.0",
+  "date_range": {
+    "start": "2026-06-05",
+    "end": "2026-07-06"
+  },
+  "session_count": 18,
+  "entry_count": 2192,
+  "counting_method": "deduped by message.id (global); one billable row per unique API response",
+  "raw_assistant_lines_before_dedup": 5053,
+  "dedup_ratio_approx": 2.31,
+  "files_in_manifest": 386,
+  "recovered_session": {
+    "session": "24c401f6 (design/changelog, all sonnet-4-6)",
+    "reason": "deleted from ~/.claude/projects between enumeration passes (live dir)",
+    "method": "usage-signature dedup from first snapshot; validated == message.id dedup exactly on all present files",
+    "entries": 94
+  },
+  "excluded_synthetic_zero_token_entries": 126,
+  "unpriced_models": {},
+  "pricing": {
+    "verified_on": "2026-06-28",
+    "source": "oc-claude-api/references/model-routing.md + prompt-caching.md",
+    "unit": "USD per token",
+    "models": {
+      "claude-fable-5": {
+        "input_per_mtok": 10.0,
+        "output_per_mtok": 50.0
+      },
+      "claude-opus-4-8": {
+        "input_per_mtok": 5.0,
+        "output_per_mtok": 25.0
+      },
+      "claude-sonnet-4-6": {
+        "input_per_mtok": 3.0,
+        "output_per_mtok": 15.0
+      },
+      "claude-haiku-4-5": {
+        "input_per_mtok": 1.0,
+        "output_per_mtok": 5.0
+      }
+    },
+    "cache_multipliers": {
+      "read": 0.1,
+      "write_5m_ttl": 1.25,
+      "write_1h_ttl": 2.0,
+      "applied_on": "each model's input rate"
+    },
+    "batch_discount_applied": false
+  },
+  "release_tags": [
+    {
+      "tag": "wip/v1-8-docs-mesh-20260703",
+      "time_utc": "2026-07-04T21:14:19Z"
+    }
+  ],
+  "divergence": [
+    {
+      "pr": "#372",
+      "title": "feat(blog): backfill launch-window posts, stage new",
+      "cost_permessage": 43.29,
+      "cost_session_dominant": 94.99,
+      "abs_pct_diff": 54.4
+    },
+    {
+      "pr": "#374",
+      "title": "chore(blog): drop the Jul 3 post to the drawer",
+      "cost_permessage": 28.32,
+      "cost_session_dominant": 0.0,
+      "abs_pct_diff": 100.0
+    },
+    {
+      "pr": "#373",
+      "title": "feat(blog): pre-write Jul 6 + Jul 8 posts as staged",
+      "cost_permessage": 23.37,
+      "cost_session_dominant": 0.0,
+      "abs_pct_diff": 100.0
+    },
+    {
+      "pr": "#257",
+      "title": "design: 4 changelog side-by-side layout options",
+      "cost_permessage": 5.23,
+      "cost_session_dominant": 7.44,
+      "abs_pct_diff": 29.8
+    },
+    {
+      "pr": "#263",
+      "title": "design(changelog): round 2-3 layout explorations",
+      "cost_permessage": 1.19,
+      "cost_session_dominant": 0.0,
+      "abs_pct_diff": 100.0
+    }
+  ],
+  "notes": [
+    "cwd-filtered from ~/.claude/projects by first cwd occurrence anywhere in file (line 1 is a queue-op record with no cwd; the task's head -1 snippet misses top-level sessions).",
+    "COUNT PER message.id, not per line: each API response is written to the transcript once per streamed content block (all sharing id + identical usage). Per-line counting inflates ~2.3x here (and ~13x historically).",
+    "Global dedup also collapses resume/fork-copied lines that retain original message.ids across files.",
+    "Manifest = top-level sessions + nested subagent/workflow transcripts. Subagents share the parent sessionId, so 'by chat' rolls subagent spend into its parent session.",
+    "Cache writes split into 5m (1.25x) and 1h (2.0x) TTL for precise costing per oc-claude-api/prompt-caching.md.",
+    "main + no-PR worktree branches surfaced as 'unattributed' (guardrail: don't force-fit)."
+  ]
+}
