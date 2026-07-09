@@ -82,6 +82,12 @@ const packCounts = {
           <feComposite in="c" in2="b" operator="in" result="s"/>
           <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
+        <filter id="glow-docs" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="7" result="b"/>
+          <feFlood flood-color="#38bdf8" flood-opacity="0.5" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="s"/>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
         <marker id="ah-success" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
           <polygon points="0 0, 8 3, 0 6" fill="#0D9488"/>
         </marker>
@@ -103,6 +109,12 @@ const packCounts = {
         <marker id="ah-error" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
           <polygon points="0 0, 6 2, 0 4" fill="#ef4444"/>
         </marker>
+        <marker id="ah-docs" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+          <polygon points="0 0, 7 2.5, 0 5" fill="#38bdf8"/>
+        </marker>
+        <marker id="ah-docs-rev" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto-start-reverse">
+          <polygon points="0 0, 7 2.5, 0 5" fill="#38bdf8"/>
+        </marker>
       </defs>
     </svg>
 
@@ -110,7 +122,7 @@ const packCounts = {
       <div class="header">
         <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2 · RELEASE v1.8</div>
         <h1>opchain skills ecosystem</h1>
-        <p class="subtitle">Checkpoint-driven pipeline · 29 skills · 6 phases · 8 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span> · <span class="subtitle-inst">v1.6 instrument rail</span> · <span style="color:var(--sig)">v1.7 Seams &amp; Signals</span> · <span style="color:var(--docs)">v1.8 docs gate</span></p>
+        <p class="subtitle">Checkpoint-driven pipeline · 29 skills · 6 phases · 8 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span> · <span class="subtitle-inst">v1.6 instrument rail</span> · <span style="color:var(--sig)">v1.7 Seams &amp; Signals</span> · <span style="color:var(--docs)">v1.8 quality-gate rail</span></p>
       </div>
 
       <div class="diagram-container">
@@ -1011,6 +1023,108 @@ const packCounts = {
             <div class="irail-foot">↑ taps every phase · illustrative sample run · CP wire 1.1: cost · eval_scores · telemetry_handle</div>
           </div>
 
+          <!-- ══ QUALITY-GATE RAIL (cross-cutting, v1.8) ══
+               Reframes every gate skill onto one boundary timeline —
+               commit · PR · deploy. The v1.8 addition is the PR boundary:
+               oc-git-ops auto-invokes oc-docs-forge → oc-repo-ops before a
+               PR opens. The commit + deploy gates are unchanged; they also
+               appear as nodes in the Ship band. Not on the spine. -->
+          <div class="qrail" aria-label="Quality-gate rail (v1.8): one quality gate at every boundary. oc-bug-check at commit, the new oc-docs-forge and oc-repo-ops at the PR, oc-code-auditor and oc-security-auditor at deploy.">
+            <div class="qrail-head">
+              <span class="qrail-eyebrow">v1.8 · cross-cutting · quality-gate rail</span>
+              <span class="qrail-title">Quality gates — one gate at every boundary: commit · PR · deploy</span>
+            </div>
+            <div class="qrail-svg-wrap">
+              <svg viewBox="0 0 760 238" role="img" aria-label="Quality-gate rail timeline: oc-bug-check gates the commit, the new oc-docs-forge and oc-repo-ops gate the PR, oc-code-auditor and oc-security-auditor gate the deploy.">
+                <!-- PR-stop highlight (drawn behind the pair) -->
+                <rect x="258" y="42" width="244" height="88" rx="9" fill="var(--docs-dim)" stroke="#38bdf8" stroke-width="1" stroke-dasharray="6,4" opacity="0.9"/>
+                <text x="380" y="37" fill="#38bdf8" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" letter-spacing="0.06em">PR GATE · NEW v1.8</text>
+
+                <!-- COMMIT: oc-bug-check -->
+                <rect x="48" y="46" width="164" height="78" rx="5" fill="#1c1710" stroke="#F43F5E" stroke-width="1" opacity="0.97"><title>oc-bug-check — audit gate; runs pre-commit (type · lint · secrets · vuln)</title></rect>
+                <rect x="48" y="46" width="164" height="78" rx="5" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="0.5"/>
+                <text x="130" y="72" fill="#e8dfd0" font-size="8" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-bug-check</text>
+                <text x="130" y="86" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate · pre-commit</text>
+                <text x="130" y="99" fill="#F43F5E" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">type · lint · secrets · vuln</text>
+                <text x="130" y="113" fill="#F43F5E" font-size="6.8" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-bugcheck</text>
+
+                <!-- PR: oc-docs-forge (NEW) -->
+                <rect x="270" y="46" width="104" height="78" rx="5" fill="#1c1710" stroke="#38bdf8" stroke-width="1" filter="url(#glow-docs)" opacity="0.97"><title>oc-docs-forge — NEW v1.8; generates the PR documentation packet (README · changelog · ADR · PR body). Auto-invoked by oc-git-ops before a PR opens, and by release flows.</title></rect>
+                <rect x="270" y="46" width="104" height="78" rx="5" fill="rgba(56,189,248,0.07)" stroke="#38bdf8" stroke-width="0.5"/>
+                <rect x="326" y="39" width="18" height="12" rx="3" fill="#1c1710"/><rect x="326" y="39" width="18" height="12" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="335" y="47.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="346" y="39" width="22" height="12" rx="3" fill="#1c1710"/><rect x="346" y="39" width="22" height="12" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="357" y="47.5" fill="#e05c18" font-size="6" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <text x="322" y="68" fill="#e8dfd0" font-size="7.6" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-docs-forge</text>
+                <text x="322" y="81" fill="#c4b89e" font-size="6" font-family="JetBrains Mono,monospace" text-anchor="middle">Docs packet · pre-PR</text>
+                <text x="322" y="94" fill="#c4b89e" font-size="5.6" font-family="JetBrains Mono,monospace" text-anchor="middle">README · changelog · ADR</text>
+                <text x="322" y="112" fill="#38bdf8" font-size="6.6" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-docs</text>
+
+                <!-- docs-forge → repo-ops (ordered) -->
+                <line x1="374" y1="85" x2="386" y2="85" stroke="#38bdf8" stroke-width="1.4" marker-end="url(#ah-docs)"/>
+
+                <!-- PR: oc-repo-ops (NEW) -->
+                <rect x="386" y="46" width="104" height="78" rx="5" fill="#1c1710" stroke="#38bdf8" stroke-width="1" filter="url(#glow-docs)" opacity="0.97"><title>oc-repo-ops — NEW v1.8; repo-hygiene + PR-readiness gate. Runs after oc-docs-forge: generated-file &amp; catalog drift, .gitignore policy, orphaned files. Blocks the PR until the repo is clean.</title></rect>
+                <rect x="386" y="46" width="104" height="78" rx="5" fill="rgba(56,189,248,0.07)" stroke="#38bdf8" stroke-width="0.5"/>
+                <rect x="442" y="39" width="18" height="12" rx="3" fill="#1c1710"/><rect x="442" y="39" width="18" height="12" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="451" y="47.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="462" y="39" width="22" height="12" rx="3" fill="#1c1710"/><rect x="462" y="39" width="22" height="12" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="473" y="47.5" fill="#e05c18" font-size="6" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <text x="438" y="68" fill="#e8dfd0" font-size="7.6" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-repo-ops</text>
+                <text x="438" y="81" fill="#c4b89e" font-size="6" font-family="JetBrains Mono,monospace" text-anchor="middle">PR-readiness gate</text>
+                <text x="438" y="94" fill="#c4b89e" font-size="5.6" font-family="JetBrains Mono,monospace" text-anchor="middle">hygiene · drift · catalog</text>
+                <text x="438" y="112" fill="#38bdf8" font-size="6.6" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-repo</text>
+
+                <!-- DEPLOY: oc-code-auditor -->
+                <rect x="520" y="46" width="94" height="78" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1" opacity="0.97"><title>oc-code-auditor — tri-agent (Auditor / Fixer / Verifier); gates the production deploy at score ≥ 7/10</title></rect>
+                <rect x="520" y="46" width="94" height="78" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
+                <text x="567" y="72" fill="#e8dfd0" font-size="7.2" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-code-auditor</text>
+                <text x="567" y="86" fill="#c4b89e" font-size="6" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · gates prod</text>
+                <text x="567" y="99" fill="#c4b89e" font-size="6" font-family="JetBrains Mono,monospace" text-anchor="middle">Auditor·Fixer·Verifier</text>
+                <text x="567" y="113" fill="#f59e0b" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-audit · ≥7/10</text>
+
+                <!-- DEPLOY: oc-security-auditor -->
+                <rect x="622" y="46" width="100" height="78" rx="5" fill="#1c1710" stroke="#F43F5E" stroke-width="1" opacity="0.97"><title>oc-security-auditor — audit gate; STRIDE threat model, OWASP Top 10, infra hardening (posture gate before prod)</title></rect>
+                <rect x="622" y="46" width="100" height="78" rx="5" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="0.5"/>
+                <text x="672" y="72" fill="#e8dfd0" font-size="6.6" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-security-auditor</text>
+                <text x="672" y="86" fill="#c4b89e" font-size="6" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate · posture</text>
+                <text x="672" y="99" fill="#c4b89e" font-size="6" font-family="JetBrains Mono,monospace" text-anchor="middle">STRIDE · OWASP · CSP</text>
+                <text x="672" y="113" fill="#F43F5E" font-size="6.2" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-security</text>
+
+                <!-- drop lines to timeline -->
+                <line x1="130" y1="124" x2="130" y2="168" stroke="#F43F5E" stroke-width="1" opacity="0.55"/>
+                <line x1="380" y1="130" x2="380" y2="168" stroke="#38bdf8" stroke-width="1.3"/>
+                <line x1="620" y1="124" x2="620" y2="168" stroke="#e05c18" stroke-width="1" opacity="0.55"/>
+
+                <!-- boundary timeline -->
+                <line x1="48" y1="170" x2="726" y2="170" stroke="#c4b89e" stroke-width="1.2" opacity="0.5" marker-end="url(#ah-sand)"/>
+                <circle cx="130" cy="170" r="4" fill="#1c1710" stroke="#F43F5E" stroke-width="1.4"/>
+                <circle cx="380" cy="170" r="5.5" fill="#1c1710" stroke="#38bdf8" stroke-width="1.8" filter="url(#glow-docs)"/>
+                <circle cx="620" cy="170" r="4" fill="#1c1710" stroke="#e05c18" stroke-width="1.4"/>
+
+                <text x="130" y="188" fill="#F43F5E" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" letter-spacing="0.08em">COMMIT</text>
+                <text x="130" y="200" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.8">1 gate</text>
+                <text x="380" y="188" fill="#38bdf8" font-size="8.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" letter-spacing="0.08em">PR</text>
+                <text x="380" y="200" fill="#38bdf8" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">2 new gates · v1.8</text>
+                <text x="620" y="188" fill="#e05c18" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" letter-spacing="0.08em">DEPLOY</text>
+                <text x="620" y="200" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.8">2 gates</text>
+
+                <text x="380" y="224" fill="#c4b89e" font-size="7.2" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">one quality gate at every boundary — nothing ships ungated</text>
+              </svg>
+            </div>
+            <div class="qrail-anchors">
+              <a class="qrail-anchor" href="/skills/oc-docs-forge" aria-label="View oc-docs-forge skill">
+                <span class="ia-name">oc-docs-forge</span>
+                <span class="ia-meta">Specialist · /oc-docs · pre-PR &amp; release</span>
+                <span class="ia-do">docs packet · README · changelog · ADR · PR body</span>
+                <span class="ia-badges"><span class="ia-cp">CP</span><span class="ia-cp">ORC</span><span class="ia-new">NEW v1.8</span></span>
+              </a>
+              <a class="qrail-anchor" href="/skills/oc-repo-ops" aria-label="View oc-repo-ops skill">
+                <span class="ia-name">oc-repo-ops</span>
+                <span class="ia-meta">Specialist · /oc-repo · PR-readiness gate</span>
+                <span class="ia-do">repo hygiene · generated-file &amp; catalog drift · .gitignore</span>
+                <span class="ia-badges"><span class="ia-cp">CP</span><span class="ia-cp">ORC</span><span class="ia-new">NEW v1.8</span></span>
+              </a>
+            </div>
+            <div class="qrail-foot">↑ the PR boundary is new in v1.8 · oc-git-ops auto-invokes oc-docs-forge → oc-repo-ops before a PR opens · commit + deploy gates unchanged</div>
+          </div>
+
           <!-- Legend -->
           <div class="legend">
             <div class="legend-section-label">connections</div>
@@ -1053,6 +1167,16 @@ const packCounts = {
                 <div class="legend-card-title">Audit Gate</div>
                 Pipeline blocks until the gate writes a passing result. Three gates in this ecosystem: oc-bug-check (pre-commit), oc-code-auditor (code-level), oc-security-auditor (posture).
                 <div class="legend-card-examples">score ≥ 7/10 · STRIDE clean · zero critical CVEs</div>
+              </div>
+            </span>
+            <span class="legend-item" tabindex="0" role="button"
+                  >
+              <div class="li-swatch" style="background:var(--docs-dim);border:1px solid var(--docs)"></div>
+              <span>PR-readiness gate <span style="color:var(--docs)">v1.8</span></span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title">PR-readiness gate (v1.8)</div>
+                The v1.8 quality-gate rail adds a gate at the PR boundary. oc-git-ops auto-invokes oc-docs-forge (writes the docs packet) then oc-repo-ops (repo hygiene + drift), which blocks the PR until the repo is clean. Distinct from the three audit gates — this one gates the PR, not the commit or deploy.
+                <div class="legend-card-examples">oc-git-ops → oc-docs-forge → oc-repo-ops → PR opens</div>
               </div>
             </span>
             <span class="legend-item" tabindex="0" role="button"
@@ -1841,6 +1965,8 @@ const packCounts = {
     --inst:       #a3e635;   /* v1.6 instrumentation accent (lime) */
     --sig:        #e879f9;   /* v1.7 "Seams & Signals" accent (magenta) */
     --docs:       #38bdf8;   /* v1.8 docs/repo gate accent */
+    --docs-dim:   rgba(56,189,248,.08);
+    --docs-mid:   rgba(56,189,248,.16);
     --inst-dim:   rgba(163,230,53,.08);
     --inst-mid:   rgba(163,230,53,.16);
 
@@ -2638,6 +2764,44 @@ const packCounts = {
   .arch-v2 .rm-bar > i { display: block; height: 100%; width: 100%; transform: scaleX(0); transform-origin: left; background: var(--inst); border-radius: 4px; transition: transform .12s linear; }
   .arch-v2 .rm-use { color: var(--sand); font-variant-numeric: tabular-nums; min-width: 26px; text-align: right; }
   .arch-v2 .irail-foot { font-size: .56rem; color: var(--inst); letter-spacing: .04em; margin-top: 8px; }
+
+  /* ── QUALITY-GATE RAIL (v1.8) ────────────────────────────────────
+        Cross-cutting boundary timeline (commit · PR · deploy) under the
+        instrument rail. Sky --docs accent (the v1.8 analog of v1.6's lime
+        --inst). The SVG is role="img" with a descriptive label; the two
+        NEW skills also get keyboard-reachable anchor cards. Dark-only. */
+  .arch-v2 .qrail {
+    margin: 1.25rem .5rem 0 0;
+    border: 1px solid var(--docs);
+    border-radius: 8px;
+    background: var(--docs-dim);
+    padding: 14px 16px 12px;
+  }
+  .arch-v2 .qrail-head { margin-bottom: 8px; }
+  .arch-v2 .qrail-eyebrow {
+    display: block; font-size: .5625rem; font-weight: 700; color: var(--docs);
+    letter-spacing: .14em; text-transform: uppercase; margin-bottom: 4px;
+  }
+  .arch-v2 .qrail-title {
+    font-family: 'Outfit', system-ui, sans-serif; font-size: .9rem;
+    font-weight: 600; color: var(--linen);
+  }
+  .arch-v2 .qrail-svg-wrap { margin: 6px 0 10px; }
+  .arch-v2 .qrail-svg-wrap svg { width: 100%; display: block; }
+  .arch-v2 .qrail-anchors { display: flex; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .arch-v2 .qrail-anchor {
+    flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px;
+    border: 1px solid var(--docs); border-radius: 6px;
+    background: var(--obsidian); padding: 9px 11px; text-decoration: none;
+    transition: background .15s ease;
+  }
+  .arch-v2 .qrail-anchor:hover,
+  .arch-v2 .qrail-anchor:focus-visible { background: var(--docs-mid); outline: none; }
+  .arch-v2 .qrail-anchor .ia-do  { color: var(--docs); }
+  .arch-v2 .qrail-anchor .ia-new {
+    color: var(--docs); border-color: var(--docs); background: var(--docs-mid);
+  }
+  .arch-v2 .qrail-foot { font-size: .56rem; color: var(--docs); letter-spacing: .04em; margin-top: 8px; }
 
   /* ── Desktop / mobile architecture swap ──
         The desktop interactive diagram is dense and assumes ≥768px gutter
