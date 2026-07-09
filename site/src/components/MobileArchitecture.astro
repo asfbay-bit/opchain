@@ -3,7 +3,7 @@
  * Mobile architecture diagram — static, self-contained, no JS.
  *
  * Companion to the desktop interactive diagram in /architecture. Renders
- * the same 6-phase / 22-skill pipeline at iPhone Pro width (390pt) as
+ * the same 6-phase / 29-skill pipeline at iPhone Pro width (390pt) as
  * collapsible <details>/<summary> bands. Inline SVGs for each phase, no
  * external resources, no animation.
  *
@@ -109,6 +109,9 @@ const packCounts = {
       <marker id="ma-ah-sig" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
         <polygon points="0 0, 8 3, 0 6" fill="#e879f9"/>
       </marker>
+      <marker id="ma-ah-docs" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#38bdf8"/>
+      </marker>
     </defs>
   </svg>
 
@@ -116,9 +119,9 @@ const packCounts = {
 
     <!-- Header -->
     <div class="ma-header">
-      <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE · v1.7</div>
+      <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE · v1.8</div>
       <h1>opchain skills ecosystem</h1>
-      <p class="ma-subtitle">Checkpoint-driven pipeline · 27 skills · 6 phases · 8 tri-agent · 3 audit gates · spine ordinals · v1.6 instrument rail · v1.7 Seams &amp; Signals</p>
+      <p class="ma-subtitle">Checkpoint-driven pipeline · 29 skills · 6 phases · 8 tri-agent · 3 audit gates · spine ordinals · v1.6 instrument rail · v1.7 Seams &amp; Signals · <span style="color:var(--ma-docs)">v1.8 quality-gate rail</span></p>
     </div>
 
     <!-- Diagram container -->
@@ -586,13 +589,73 @@ const packCounts = {
       <!-- INSTRUMENT RAIL rollup (v1.6) — total of the per-band sample meters above. -->
       <div class="ma-instrail-total" aria-hidden="true">rolls up → /oc-ops budget<b id="mm-total-cost">$0.00</b><span id="mm-total-use">0 ev</span></div>
 
+      <!-- QUALITY-GATE RAIL (cross-cutting, v1.8) — reframes every gate skill
+           onto one boundary timeline (commit · PR · deploy). The v1.8 addition
+           is the PR boundary: oc-git-ops auto-invokes oc-docs-forge → oc-repo-ops
+           before a PR opens. Commit + deploy gates are unchanged. -->
+      <details class="ma-band ma-qrail" open aria-label="Quality-gate rail (v1.8): one quality gate at every boundary — oc-bug-check at commit, the new oc-docs-forge and oc-repo-ops at the PR, oc-code-auditor and oc-security-auditor at deploy.">
+        <summary class="ma-band-header ma-qrail-header">
+          <span class="ma-band-num">✦</span>
+          <span class="ma-band-title">Quality-gate rail</span>
+          <span class="ma-qrail-badge"><span class="ma-qrail-dot"></span>v1.8 · PR gate</span>
+        </summary>
+        <div class="ma-band-svg-wrap">
+          <svg viewBox="0 0 330 524" role="img" aria-label="Quality-gate rail: oc-bug-check gates the commit; the new oc-docs-forge and oc-repo-ops gate the PR; oc-code-auditor and oc-security-auditor gate the deploy.">
+            <!-- spine -->
+            <line x1="26" y1="46" x2="26" y2="512" stroke="#c4b89e" stroke-width="1.5" opacity="0.4" marker-end="url(#ma-ah-sand)"/>
+
+            <!-- COMMIT -->
+            <line x1="26" y1="104" x2="50" y2="104" stroke="#fb7185" stroke-width="1.2" opacity="0.6"/>
+            <circle cx="26" cy="104" r="5" fill="#1c1710" stroke="#fb7185" stroke-width="2"/>
+            <text x="54" y="60" fill="#fb7185" font-size="11" font-weight="700" letter-spacing="0.08em" font-family="JetBrains Mono,monospace">COMMIT · 1 gate</text>
+            <rect x="50" y="66" width="260" height="76" rx="7" fill="#1c1710" stroke="#fb7185" stroke-width="1.4" filter="url(#ma-glow-rose)"/>
+            <rect x="50" y="66" width="260" height="76" rx="7" fill="rgba(251,113,133,.06)" stroke="#fb7185" stroke-width="0.8"/>
+            <text x="180" y="94" text-anchor="middle" fill="#e8dfd0" font-size="16" font-weight="600" font-family="Outfit,system-ui,sans-serif">oc-bug-check</text>
+            <text x="180" y="114" text-anchor="middle" fill="#c4b89e" font-size="11" font-family="JetBrains Mono,monospace">type · lint · secrets · vuln</text>
+            <text x="180" y="132" text-anchor="middle" fill="#fb7185" font-size="11" font-family="JetBrains Mono,monospace">/oc-bugcheck</text>
+
+            <!-- PR (NEW v1.8) -->
+            <line x1="26" y1="278" x2="50" y2="278" stroke="#38bdf8" stroke-width="1.4"/>
+            <circle cx="26" cy="278" r="6" fill="#1c1710" stroke="#38bdf8" stroke-width="2.2" filter="url(#ma-glow-cyan)"/>
+            <text x="54" y="180" fill="#38bdf8" font-size="11" font-weight="700" letter-spacing="0.08em" font-family="JetBrains Mono,monospace">PR · 2 new gates · v1.8</text>
+            <rect x="50" y="186" width="260" height="184" rx="8" fill="rgba(56,189,248,.05)" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="5,4"/>
+            <!-- docs-forge -->
+            <rect x="60" y="196" width="240" height="74" rx="6" fill="#1c1710" stroke="#38bdf8" stroke-width="1.2" filter="url(#ma-glow-cyan)"/>
+            <text x="180" y="222" text-anchor="middle" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif">oc-docs-forge</text>
+            <text x="180" y="240" text-anchor="middle" fill="#c4b89e" font-size="9.5" font-family="JetBrains Mono,monospace">docs packet · README · changelog · ADR</text>
+            <text x="180" y="258" text-anchor="middle" fill="#38bdf8" font-size="10" font-family="JetBrains Mono,monospace">/oc-docs · pre-PR &amp; release</text>
+            <line x1="180" y1="270" x2="180" y2="284" stroke="#38bdf8" stroke-width="1.8" marker-end="url(#ma-ah-docs)"/>
+            <!-- repo-ops -->
+            <rect x="60" y="286" width="240" height="74" rx="6" fill="#1c1710" stroke="#38bdf8" stroke-width="1.2" filter="url(#ma-glow-cyan)"/>
+            <text x="180" y="312" text-anchor="middle" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif">oc-repo-ops</text>
+            <text x="180" y="330" text-anchor="middle" fill="#c4b89e" font-size="9.5" font-family="JetBrains Mono,monospace">PR-readiness gate · drift · hygiene</text>
+            <text x="180" y="348" text-anchor="middle" fill="#38bdf8" font-size="10" font-family="JetBrains Mono,monospace">/oc-repo · blocks PR until clean</text>
+
+            <!-- DEPLOY -->
+            <line x1="26" y1="456" x2="50" y2="456" stroke="#e05c18" stroke-width="1.2" opacity="0.6"/>
+            <circle cx="26" cy="456" r="5" fill="#1c1710" stroke="#e05c18" stroke-width="2"/>
+            <text x="54" y="402" fill="#e05c18" font-size="11" font-weight="700" letter-spacing="0.08em" font-family="JetBrains Mono,monospace">DEPLOY · 2 gates</text>
+            <rect x="50" y="408" width="260" height="96" rx="7" fill="#1c1710" stroke="#fbbf24" stroke-width="1.4" filter="url(#ma-glow-yellow)"/>
+            <rect x="50" y="408" width="260" height="96" rx="7" fill="rgba(251,191,36,.05)" stroke="#fbbf24" stroke-width="0.8"/>
+            <text x="180" y="436" text-anchor="middle" fill="#e8dfd0" font-size="13" font-weight="600" font-family="Outfit,system-ui,sans-serif">code-auditor · security-auditor</text>
+            <text x="180" y="456" text-anchor="middle" fill="#c4b89e" font-size="9.5" font-family="JetBrains Mono,monospace">tri-agent ≥7/10 · STRIDE · OWASP · CSP</text>
+            <text x="180" y="476" text-anchor="middle" fill="#fb7185" font-size="9.5" font-weight="600" font-family="JetBrains Mono,monospace">both must pass → prod</text>
+            <text x="180" y="494" text-anchor="middle" fill="#c4b89e" font-size="9" font-style="italic" font-family="JetBrains Mono,monospace">/oc-audit · /oc-security</text>
+          </svg>
+        </div>
+        <div class="ma-band-caption">
+          <p>v1.8 reframes every gate onto one <b>boundary timeline</b>. The new piece is the <b style="color:var(--ma-docs)">PR gate</b>: <code>oc-git-ops</code> auto-invokes <code>oc-docs-forge</code> (writes the docs packet — README, changelog, ADR, PR body) then <code>oc-repo-ops</code> (repo hygiene + generated-file/catalog drift), which blocks the PR until the repo is clean. The commit gate (<code>oc-bug-check</code>) and the two deploy gates (<code>oc-code-auditor</code>, <code>oc-security-auditor</code>) are unchanged — they also appear in the Ship band above.</p>
+          <div class="ma-bc-cp"><span class="ma-bc-cp-badge">CP</span><span>docs-forge + repo-ops write phase · pr_docs · readiness · drift</span></div>
+        </div>
+      </details>
+
       <!-- APPENDIX A: CHECKPOINT PROTOCOL SYNC -->
       <details class="ma-appendix" style="margin-top:22px">
         <summary>
           <div class="ma-appendix-eyebrow">Appendix A · Cross-cutting</div>
           <div class="ma-appendix-title">Checkpoint Protocol — sync topology</div>
         </summary>
-        <p class="ma-appendix-desc">Every skill (all 27) writes a JSON checkpoint after each state change. The oc-orchestrator both reads from and writes to each — bidirectional sync. Diagram below shows 6 representative connections; the same topology extends to all 27 skills.</p>
+        <p class="ma-appendix-desc">Every skill (all 29) writes a JSON checkpoint after each state change. The oc-orchestrator both reads from and writes to each — bidirectional sync. Diagram below shows 6 representative connections; the same topology extends to all 29 skills.</p>
         <svg viewBox="0 0 330 360" role="img" aria-label="Orchestrator bidirectionally syncs checkpoints with all skills (6 shown)">
           <rect x="20" y="14" width="92" height="50" rx="5" fill="rgba(224,92,24,.10)" stroke="#e05c18" stroke-width="1.5"/>
           <text x="66" y="32" fill="#e05c18" font-size="11" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
@@ -712,7 +775,7 @@ const packCounts = {
             <div class="ma-li-swatch" style="background:var(--ma-ember);border-radius:50%;width:14px;height:14px"></div>
             <div class="ma-li-name">CP · checkpoint indicator</div>
           </div>
-          <div class="ma-li-desc">Solid ember dot in each skill's top-right corner indicates the skill writes a checkpoint. <strong>All 27 skills carry CP</strong> — desktop version shows full CP badge on each rect; mobile uses the dot for legibility.</div>
+          <div class="ma-li-desc">Solid ember dot in each skill's top-right corner indicates the skill writes a checkpoint. <strong>All 29 skills carry CP</strong> — desktop version shows full CP badge on each rect; mobile uses the dot for legibility.</div>
           <div class="ma-li-eg"><code>.checkpoints/&lt;skill&gt;.json</code> · phase · progress · blockers · next_actions</div>
         </div>
         <div class="ma-legend-item">
@@ -720,7 +783,7 @@ const packCounts = {
             <div class="ma-li-swatch" style="background:var(--ma-ember);border-radius:50%;width:14px;height:14px;opacity:0.55"></div>
             <div class="ma-li-name">ORC · oc-orchestrator indicator</div>
           </div>
-          <div class="ma-li-desc">Faded ember dot adjacent to the CP dot indicates the skill participates in <code>/oc-ops</code> routing. <strong>All 27 skills carry ORC</strong> — every skill is route-addressable by the oc-orchestrator.</div>
+          <div class="ma-li-desc">Faded ember dot adjacent to the CP dot indicates the skill participates in <code>/oc-ops</code> routing. <strong>All 29 skills carry ORC</strong> — every skill is route-addressable by the oc-orchestrator.</div>
           <div class="ma-li-eg"><code>/oc-ops</code> · cross-project routing · gate enforcement · "what should I do next"</div>
         </div>
         <div class="ma-legend-divider"></div>
@@ -825,7 +888,7 @@ const packCounts = {
           <ul>
             <li>JSON files at <code>.checkpoints/&lt;skill&gt;.json</code></li>
             <li>Keys: phase · progress_table · context_primer · blockers · next_actions</li>
-            <li>All 27 skills read all 27 checkpoints (no ACL)</li>
+            <li>All 29 skills read all 29 checkpoints (no ACL)</li>
             <li>Resume order: own → upstream → novice mode</li>
             <li>Framework-agnostic — no platform lock-in</li>
           </ul>
@@ -894,6 +957,7 @@ const packCounts = {
     --ma-vec:        #ec4899;   /* v1.5 vector-db pack category */
     --ma-inst:       #a3e635;   /* v1.6 instrumentation accent (lime) */
     --ma-sig:        #e879f9;   /* v1.7 "Seams & Signals" accent (magenta) */
+    --ma-docs:       #38bdf8;   /* v1.8 docs/repo quality-gate accent (sky) */
 
     background: var(--ma-bg-page);
     color: var(--ma-text-primary);
@@ -935,6 +999,7 @@ const packCounts = {
     --ma-vec:        #be185d;
     --ma-inst:       #65a30d;
     --ma-sig:        #c026d3;
+    --ma-docs:       #0369a1;
   }
 
   /* Hidden defs SVG — must be in DOM but invisible. */
@@ -1181,6 +1246,34 @@ const packCounts = {
     background: var(--ma-ember);
     box-shadow: 0 0 6px var(--ma-ember);
   }
+
+  /* ── QUALITY-GATE RAIL (v1.8) — cross-cutting boundary timeline. Sky
+        --ma-docs accent, mirrors the pack-fabric cross-cutting treatment. */
+  .ma-band.ma-qrail {
+    border-color: color-mix(in srgb, var(--ma-docs) 55%, transparent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--ma-docs) 10%, transparent) 0%, var(--ma-bg-card) 100%);
+  }
+  summary.ma-qrail-header {
+    border-left-color: var(--ma-docs);
+    background: color-mix(in srgb, var(--ma-docs) 12%, transparent);
+  }
+  .ma-qrail-header .ma-band-num { color: var(--ma-docs); font-size: 18px; line-height: 1; }
+  .ma-qrail-badge {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 999px;
+    background: color-mix(in srgb, var(--ma-docs) 22%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ma-docs) 70%, transparent);
+    color: var(--ma-docs);
+    font-family: var(--font-mono, "JetBrains Mono"), monospace;
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  }
+  .ma-qrail-badge .ma-qrail-dot {
+    width: 6px; height: 6px; border-radius: 999px;
+    background: var(--ma-docs);
+    box-shadow: 0 0 6px var(--ma-docs);
+  }
+  .ma-qrail .ma-band-caption b { color: var(--ma-docs); }
 
   .ma-pack-fabric-body {
     padding: 12px 12px 14px;
