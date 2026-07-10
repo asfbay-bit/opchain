@@ -70,7 +70,9 @@ opchain/
 │   ├── (astro dist copied in)
 │   ├── opchain-skills.zip  # Generated from skills/ by scripts/make-skills-zip.sh
 │   └── docs/               # Synced from skills/ by scripts/sync-docs.sh
-├── skills/                 # Skill source definitions (the product)
+├── skills/                 # Skill source definitions (the product) — 29 skills,
+│   │                       # one subdir per id (each with SKILL.md). Full list +
+│   │                       # phases: skills/README.md. A few examples:
 │   ├── oc-app-architect/
 │   ├── oc-checkpoint-protocol/
 │   ├── oc-code-auditor/
@@ -82,13 +84,27 @@ opchain/
 │   ├── oc-stack-forge/
 │   ├── oc-ux-engineer/
 │   ├── orchestrator.md     # Shared orchestration rules
-│   └── README.md           # Installation instructions
-├── site/                   # Astro 5 app. Scaffolded Sprint 0; content collection in Sprint 1; cutover Sprint 6.
-├── scripts/
+│   ├── CHANGELOG.md        # Lockstep skill-catalog release log
+│   └── README.md           # Installation instructions + full skill/phase table
+├── scripts/                # ~20 scripts; a few examples (full list: `ls scripts/`)
 │   ├── sync-docs.sh                # skills/ → public/docs/ sync
 │   ├── make-skills-zip.sh          # skills/ → public/opchain-skills.zip
 │   └── gen-skills-catalog.mjs      # validates skills/<id>/SKILL.md frontmatter at build time
+├── mcp/                    # Local stdio MCP server (mcp/local-server.mjs) — the
+│   │                       # offline/air-gapped alternative to the hosted POST /mcp
+│   │                       # route below. See mcp/README.md.
 ├── tests/                  # Vitest unit + handler tests
+├── docs/                   # Internal planning docs: runbooks, release plans, audits,
+│   │                       # blog calendar. NOT public/docs/ (above) — that's the
+│   │                       # published skill-doc build output.
+├── specs/, roadmap/, sprints/, checklists/  # Historical planning docs from earlier
+│   │                       # releases; roadmap/ is unrelated to the live /changelog
+│   │                       # data (site/src/data/roadmap-static.ts).
+├── design/, design-previews/, previews/, mockups/  # Design exploration HTML/mockups
+│   │                       # (see each dir's README for current-vs-archived status).
+├── mirror/                 # Source for the public skills mirror — see "Public skill
+│   │                       # mirror" below.
+├── .checkpoints/           # Session-state checkpoints — see "Session resume" below.
 ├── .github/workflows/      # ci.yml + lighthouse.yml (no deploy workflows — manual)
 ├── wrangler.jsonc           # Worker config (prod + env.staging)
 ├── build.mjs               # esbuild: src/index.js → dist/index.js, injects __OPCHAIN_VERSION__
@@ -110,7 +126,7 @@ npm run gen-catalog      # validates skills/<id>/SKILL.md frontmatter at build t
 npm run sync-docs        # skills/ → public/docs/ (runs in prebuild)
 npm run make-zip         # skills/ → public/opchain-skills.zip (runs in prebuild)
 
-# New Astro site (Sprint 0 scaffold; real pages land Sprints 1-3) —
+# Astro site (site/) —
 npm run site:install     # one-time: cd site && npm install
 npm run site:dev         # astro dev on localhost:4321
 npm run site:build       # astro build → site/dist
@@ -141,6 +157,8 @@ the JSON honest.
 | GET | `/api/flags/public` | Public-flag map for the browser; sets `oc_id` cookie |
 | POST | `/api/feedback` | Create Linear issue (bug/feature/improvement) |
 | POST | `/api/notify` | Lead capture (KV-backed) |
+| GET | `/api/votes` | Batched roadmap vote counts (`?ids=A,B,C`) |
+| POST | `/api/votes/:id` | Cast a roadmap vote (per-IP/day server-side dedup) |
 | POST | `/mcp` | opchain MCP server (JSON-RPC; Codex / any MCP client) |
 | GET | `/.well-known/ai-catalog.json` | ARD discovery manifest (advertises the MCP server) |
 | GET | `/.well-known/mcp.json` | MCP server card the ARD entry resolves to |
@@ -149,8 +167,9 @@ the JSON honest.
 | GET | `/*` | Static assets from `public/` |
 
 The email-gated Try-It chat (`POST /api/try/start` + `POST /api/try/chat`)
-was removed in `claude/remove-try-it`. Old client requests now get a 410
-Gone response; legacy `/tryit` and `/tryit.html` paths 301 to `/demo`.
+and the Resend-backed `POST /api/email-pipeline` step were both removed.
+Old client requests to any of these now get a 410 Gone response; legacy
+`/tryit` and `/tryit.html` paths 301 to `/demo`.
 
 ## Agentic discovery
 

@@ -59,9 +59,11 @@ Scoped skipped outputs (unchanged from the original run): `05-monetization.md`
 5. `spec/04-integrations.md` — Linear GraphQL, PostHog server + client
 6. `spec/06-testing.md` — Vitest + Playwright + axe + LHCI (all in CI)
 7. `spec/07-devops.md` — manual deploy posture, version stamp, env matrix
-8. `gap-analysis.md` — current punch list (the 2026-04-17 HIGHs are all resolved)
+8. `archive/gap-analysis.md` — current punch list (the 2026-04-17 HIGHs are all resolved)
 
-The `design/`, `stack-forge-audit.md`, and `tri-dev-ready/spec.md`
+The `design/`, `archive/stack-forge-audit.md`, and `tri-dev-ready/spec.md`
 artifacts in this folder were generated against the pre-Sprint-6
 codebase (vanilla HTML site, Try-It chat) and have **not** been
 refreshed in this pass — treat them as stale until a follow-up run.
+(`archive/` holds the 2026-04-27-dated point-in-time docs, moved there
+2026-07-10 during a repo hygiene sweep — content unchanged.)
