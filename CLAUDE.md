@@ -70,32 +70,49 @@ opchain/
 │   ├── (astro dist copied in)
 │   ├── opchain-skills.zip  # Generated from skills/ by scripts/make-skills-zip.sh
 │   └── docs/               # Synced from skills/ by scripts/sync-docs.sh
-├── skills/                 # Skill source definitions (the product)
-│   ├── oc-app-architect/
-│   ├── oc-checkpoint-protocol/
-│   ├── oc-code-auditor/
-│   ├── oc-deploy-ops/
-│   ├── oc-git-ops/
-│   ├── oc-integrations-engineer/
-│   ├── oc-reverse-spec/
-│   ├── oc-scale-ops/
-│   ├── oc-stack-forge/
+├── skills/                 # Skill source definitions (the product) — 29 skills, validated by gen-skills-catalog.mjs
+│   ├── oc-agent-forge/      oc-api-dev/          oc-app-architect/    oc-bug-check/
+│   ├── oc-checkpoint-protocol/  oc-claude-api/   oc-code-auditor/     oc-cost-ops/
+│   ├── oc-dash-forge/       oc-deploy-ops/       oc-docs-forge/       oc-fleet-ops/
+│   ├── oc-git-ops/          oc-integrations-engineer/  oc-migration-ops/  oc-modularize-ops/
+│   ├── oc-monitoring-ops/   oc-orchestrator/     oc-prompt-ops/       oc-rag-forge/
+│   ├── oc-release-ops/      oc-repo-ops/         oc-reverse-spec/     oc-scale-ops/
+│   ├── oc-security-auditor/ oc-signal-forge/     oc-stack-forge/      oc-telemetry-ops/
 │   ├── oc-ux-engineer/
-│   ├── orchestrator.md     # Shared orchestration rules
+│   ├── orchestrator.md     # Shared orchestration rules bundled into every skill (not the oc-orchestrator skill)
+│   ├── CHANGELOG.md        # Skill version history
 │   └── README.md           # Installation instructions
-├── site/                   # Astro 5 app. Scaffolded Sprint 0; content collection in Sprint 1; cutover Sprint 6.
 ├── scripts/
 │   ├── sync-docs.sh                # skills/ → public/docs/ sync
 │   ├── make-skills-zip.sh          # skills/ → public/opchain-skills.zip
-│   └── gen-skills-catalog.mjs      # validates skills/<id>/SKILL.md frontmatter at build time
+│   ├── gen-skills-catalog.mjs      # validates skills/<id>/SKILL.md frontmatter at build time
+│   └── ...                         # ~20 more gen-*/checkpoint/deploy/telemetry scripts — see Key Commands + package.json
 ├── tests/                  # Vitest unit + handler tests
-├── .github/workflows/      # ci.yml + lighthouse.yml (no deploy workflows — manual)
+├── .checkpoints/            # Tracked session-state JSON per skill — see "Session resume" below
+├── .github/workflows/      # ci.yml + lighthouse.yml + deploy-lag.yml + mirror-public.yml + publish-mcp-registry.yml (no deploy-to-prod workflow — manual)
+├── checklists/             # Hand-maintained launch checklist
+├── design/                 # Current architecture/design HTML proposals + punchlists (active work)
+├── design-previews/        # Archived HTML mockups from earlier releases (v1.4–v1.5 era)
+├── docs/                   # analytics.md, blog planning docs, runbooks/ (e.g. cloudflare-challenge.md), audits/, releases/
+├── mcp/                    # Local MCP server reference (mcp/local-server.mjs) + README
+├── mirror/                 # Public-facing copy (README/CONTRIBUTING/issue templates) synced to asfbay-bit/opchain-skills
+├── mockups/                # Archived HTML mockups (packs desktop/mobile)
+├── previews/               # Nav-proposal scratch doc + iteration sandbox HTML (gitignored from build)
+├── prompts/                # opchain-eval/ — eval.yaml + fixtures for the internal eval harness
+├── reports/                # token-usage/ — generated cost/usage reports (gitignored intermediates)
+├── roadmap/                # Sprint-plan history (00–09 + B-10) + sessions/ — see roadmap/README.md
+├── specs/                  # reverse-spec output: current spec/ docs + dated audit/gap/drift snapshots — see specs/README.md
+├── sprints/                # Per-sprint contracts + eval rounds (sprint-7a/7b/7c) — see sprints/README.md
+├── .opchain/pm.yaml        # PM-tool (Linear) integration config for skills
 ├── wrangler.jsonc           # Worker config (prod + env.staging)
 ├── build.mjs               # esbuild: src/index.js → dist/index.js, injects __OPCHAIN_VERSION__
 ├── vitest.config.js        # test runner config (defines __OPCHAIN_VERSION__ = "test")
 ├── .env.example            # env var template (copy to .dev.vars for local)
+├── server.json              # MCP Registry listing (io.github.asfbay-bit/opchain-skills)
 └── package.json
 ```
+
+`.claude/` (hooks, settings, skills bundled into this repo's own Claude Code session) is covered separately.
 
 ## Key Commands
 
