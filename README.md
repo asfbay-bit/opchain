@@ -3,9 +3,9 @@
 > skills that ship.
 
 opchain is an open-source Claude skill ecosystem for developers —
-a tightly-integrated set of `.skill` files covering the full
-development pipeline: discover, spec, design, build, audit, deploy,
-and scale.
+a tightly-integrated set of Claude Code skills (`SKILL.md` files)
+covering the full development pipeline: discover, spec, design,
+build, audit, deploy, and scale.
 
 Install a skill. Trigger it by name. Pick up where you left off.
 
@@ -21,8 +21,8 @@ behavior for a specific phase of development. Each skill:
 - Writes its own checkpoint so work persists across sessions
 - Triggers via slash command or natural language
 
-No API keys. No build step. Drop a `.skill` file into Claude's
-settings and go.
+No API keys. No build step. Unzip the skill bundle into Claude's
+skills folder and go.
 
 ---
 
@@ -48,64 +48,97 @@ without manual handoffs.
 
 ## skill library
 
+29 skills across 6 phases. Canonical list lives in
+[`skills/README.md`](./skills/README.md) — this table mirrors it.
+
 ### foundation
 
-| skill | what it does |
+| skill | role |
 |---|---|
-| `oc-checkpoint-protocol` | JSON session persistence across skills and conversations |
+| `oc-checkpoint-protocol` | Session persistence (bundled in all skills) |
+| `oc-orchestrator` | `/oc-ops` — multi-project registry, status, routing |
 
 ### plan
 
-| skill | trigger | what it does |
-|---|---|---|
-| `oc-stack-forge` | `/oc-stack-decide` | Stack advisor for CF, Vercel, AWS, Supabase, Rails, Django, Go, Rust |
-| `oc-reverse-spec` | `/oc-rev-full` | Reverse-engineer existing code into structured spec docs |
+| skill | role |
+|---|---|
+| `oc-reverse-spec` | Code → spec docs |
+| `oc-stack-forge` | Universal stack advisor |
+| `oc-dash-forge` | Dashboards + dense data UI (spec + React prototype) |
+| `oc-scale-ops` | Scaling readiness |
 
 ### plan + build
 
-| skill | trigger | what it does |
-|---|---|---|
-| `oc-app-architect` | `/oc-discover` `/oc-spec` `/oc-build` `/oc-launch` | Unified pipeline: discover → spec → design → sprint → build → launch |
+| skill | role |
+|---|---|
+| `oc-app-architect` | Unified planning + build harness |
+| `oc-ux-engineer` | Tri-design harness |
+| `oc-docs-forge` | Documentation generator for every PR: PR body/comments, README/catalog docs, changelog, ADR upkeep |
+| `oc-integrations-engineer` | API integration harness (third-party APIs you consume) |
+| `oc-api-dev` | First-party API design + build harness (OpenAPI, versioning, SDKs) |
+| `oc-migration-ops` | `/oc-migrate` — DB / framework / auth / platform migrations |
+| `oc-modularize-ops` | Live-monolith decomposition with golden-fixture equivalence proof |
+
+### build + ai-native
+
+| skill | role |
+|---|---|
+| `oc-agent-forge` | Claude Agent SDK apps: topology, tool budgets, harness loops, agent eval |
+| `oc-claude-api` | Claude API apps: model routing, prompt caching, tool use, migration playbooks |
+| `oc-prompt-ops` | Prompt-as-code: versioning, eval datasets, regression and drift detection |
+| `oc-rag-forge` | RAG systems: vector DB choice, embeddings, chunking, hybrid search, retrieval eval |
 
 ### build
 
-| skill | trigger | what it does |
-|---|---|---|
-| `oc-ux-engineer` | `/oc-uxe plan` `/oc-uxe build` `/oc-uxe eval` | Design Planner → Generator → Evaluator tri-agent harness |
-| `oc-integrations-engineer` | `/oc-integrate plan` | Planner → Builder → Tester. Hits real API sandboxes, not mocks. |
-
-### quality
-
-| skill | trigger | what it does |
-|---|---|---|
-| `oc-code-auditor` | `/oc-audit full` | Auditor → Fixer → Verifier. 5-layer sweep, pre-deploy gate. |
-| `oc-scale-ops` | `/oc-scale audit` | Load testing, perf budgets, caching strategy, capacity planning |
+| skill | role |
+|---|---|
+| `oc-code-auditor` | Auditor → Fixer → Verifier. 5-layer sweep, pre-deploy gate |
+| `oc-bug-check` | Pre-commit QA gate: type, lint, tests, secrets, build, deps, anti-patterns |
+| `oc-security-auditor` | Threat modeling, OWASP hardening, attack-surface review |
+| `oc-repo-ops` | Repository hygiene and PR readiness gate |
+| `oc-cost-ops` | LLM cost attribution, budget gates, model-tier routing recommendations |
+| `oc-telemetry-ops` | Opt-in local usage metering and anonymized aggregate dashboard feed |
+| `oc-signal-forge` | Product-analytics signal builder: question to trustworthy metric |
+| `oc-fleet-ops` | Self-managed fleet deployment and multi-container operations |
 
 ### ship
 
-| skill | trigger | what it does |
-|---|---|---|
-| `oc-deploy-ops` | `/oc-deploy staging` | Audit gate → staging → smoke tests → production → auto-rollback |
-| `oc-git-ops` | `/oc-git-commit` `/git-pr` | Conventional commits, sprint-scoped branches, checkpoint-enriched PRs |
+| skill | role |
+|---|---|
+| `oc-git-ops` | Conventional commits, sprint-scoped branches, checkpoint-enriched PRs |
+| `oc-release-ops` | Release cadence: plan, draft, bump, announce, ship |
+| `oc-deploy-ops` | Audit gate → staging → smoke tests → production → auto-rollback |
+| `oc-monitoring-ops` | Post-deploy observability — uptime, errors, alerts, incidents |
 
 ---
 
 ## install
 
-### Claude.ai / Claude Desktop
+### Claude.ai / Cowork
 
-1. Download any `.skill` file from [`/skills`](./skills)
-2. Open Claude → Settings → Customize → Skills
-3. Upload the `.skill` file
-4. Start a new conversation and trigger it
+1. Go to Settings → Customize → Skills
+2. Upload each `.zip` file (from a release, or built locally with
+   `npm run make-zip` — see [`skills/README.md`](./skills/README.md))
+3. Delete any existing tri-dev skill (merged into `oc-app-architect`)
 
 ### Claude Code CLI
 
 ```bash
 mkdir -p .claude/skills
-cp ~/opchain/skills/*.md .claude/skills/
+# unzip each skill's .zip into .claude/skills/, e.g.:
+unzip oc-app-architect.zip -d .claude/skills/oc-app-architect
 claude
 > /oc-discover
+```
+
+### Codex / any MCP agent
+
+Codex Agent Skills use the same `SKILL.md` format, so either unzip into
+`.codex/skills/` the same way, or point an MCP client at the hosted server:
+
+```toml
+[mcp_servers.opchain]
+url = "https://opchain.dev/mcp"
 ```
 
 ### Team (check into git)
@@ -115,6 +148,9 @@ git add .claude/skills/
 git commit -m "chore: add opchain skills"
 git push
 ```
+
+Full walkthrough: https://opchain.dev/install — full skill list and
+install details: [`skills/README.md`](./skills/README.md).
 
 ---
 
