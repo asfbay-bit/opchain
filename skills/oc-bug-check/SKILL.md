@@ -1,7 +1,7 @@
 ---
 name: oc-bug-check
 displayName: OC · Bug Check
-version: 1.7.0
+version: 1.8.0
 shortDesc: Pre-commit QA gate — fast checks on every commit. v1.2 attaches the failure report to the linked PM ticket on block.
 phases: [build]
 triAgent: false
@@ -102,6 +102,11 @@ oc-app-architect /oc-build ──► BUG-CHECK (gate) ──► oc-git-ops /oc-c
 **Auto-invocation:** oc-git-ops calls oc-bug-check before every `/oc-git-commit` and `/oc-git-sync`.
 If oc-bug-check fails, the commit is blocked with a clear failure report. The user can
 override with `/oc-bugcheck bypass` (logged, not silent).
+
+**Position in the every-PR gate (v1.8):** bug-check is step 3 of the required
+order oc-repo-ops enforces — oc-docs-forge (docs packet) → oc-repo-ops (repo
+readiness) → oc-bug-check (code gate, already run at commit time) → PR. A missing
+or stale bug-check verdict causes oc-repo-ops to chain back here before the PR opens.
 
 **Relationship to oc-code-auditor:** Bug-check is a subset. It runs the checks that are
 fast enough for every commit. Code-auditor's deep sweep runs before deploy (gate) or
@@ -558,6 +563,8 @@ Extends the session persistence section above with full schema details.
 | Read by | Why |
 |---|---|
 | oc-git-ops | Gate verdict → commit or block |
+| oc-repo-ops | Gate verdict + staleness → PR readiness gate (a missing/stale code gate blocks the PR) |
+| oc-docs-forge | Quality notes → PR testing/audit documentation |
 | oc-code-auditor | Bug-check pass rate → skip basic checks in deep audit |
 | oc-deploy-ops | Last oc-bug-check status → deploy confidence |
 | oc-orchestrator | Pass/fail trend, carried debt → project health |

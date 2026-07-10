@@ -1,7 +1,7 @@
 ---
 name: oc-release-ops
 displayName: OC · Release Ops
-version: 1.7.0
+version: 1.8.0
 shortDesc: Plan, draft, bump, announce, ship a release. Closes the loop from sprints to /changelog to oc-git-ops to oc-deploy-ops.
 phases: [build]
 triAgent: false
@@ -259,18 +259,23 @@ End-of-pipeline handoff.
 ### Sequence
 
 1. `/oc-release verify` — run the full pre-ship gate. Hard-blocks on any failure.
-2. Hand off to `oc-git-ops`:
+2. Invoke `oc-docs-forge` for the release docs packet:
+   - Run `/oc-docs pr` so the release PR carries its `## Documentation` section,
+     the changelog entry, and any README/product-doc upkeep the release requires.
+   - (oc-git-ops then runs its own pre-PR gate — oc-docs-forge verify + oc-repo-ops
+     `/oc-repo verify` — before the PR opens; a stale packet or dirty repo blocks it.)
+3. Hand off to `oc-git-ops`:
    - Invoke the oc-git-ops skill (read its SKILL.md per oc-orchestrator §3 active
      chaining).
    - Run `/oc-git-sync v<semver>` with the bump commit. oc-git-ops opens / merges
      the release PR.
-3. Hand off to `oc-deploy-ops`:
+4. Hand off to `oc-deploy-ops`:
    - Invoke oc-deploy-ops.
    - Run `/oc-deploy staging` first; user eyeballs.
    - Run `/oc-deploy` (prod) on user confirmation.
-4. Update homepage pill + close release ticket via PM-MCP per protocol §3
+5. Update homepage pill + close release ticket via PM-MCP per protocol §3
    marker `<!-- opchain:oc-release-ops:release-shipped:v<semver> -->`.
-5. Write checkpoint: phase `shipped`, status `complete`.
+6. Write checkpoint: phase `shipped`, status `complete`.
 
 ### `/oc-release verify` (the gate)
 
@@ -284,6 +289,8 @@ Runs in order; aborts on the first failure:
 | Tests pass | `npm test` |
 | Site builds | `npm run site:build` |
 | `/changelog` has the new release entry | grep for `rel-tag.*v<semver>` |
+| Release-PR docs packet current | oc-docs-forge `/oc-docs verify` — checkpoint `verified_for_sha` matches HEAD, PR body fragment has `## Documentation` |
+| Repo is PR-ready | oc-repo-ops `/oc-repo verify` — verdict PASS |
 | All skill versions match the release version | parse every SKILL.md frontmatter |
 | Styleguide badge matches | parse `site/src/pages/styleguide.astro` |
 
@@ -372,11 +379,14 @@ SKILL.md files, not a single `package.json`.
 | every skill's `*.checkpoint.json` | What shipped per skill since last release |
 | `oc-app-architect.checkpoint.json` | Sprint outputs feed the changelog draft |
 | `oc-git-ops.checkpoint.json` | Merged-PR list feeds "What's new" bullets |
+| `oc-docs-forge.checkpoint.json` | Release-PR docs packet verified before ship |
 | `oc-deploy-ops.checkpoint.json` | Last-shipped commit SHA |
 
 | Read by | Why |
 |---|---|
 | `oc-git-ops` | Knows a release is in flight; `/oc-git-sync` shapes the release PR specifically |
+| `oc-docs-forge` | Release notes, changelog, and version surfaces feed the release docs packet |
+| `oc-repo-ops` | Release PR surfaces and changelog expectations feed the readiness gate |
 | `oc-deploy-ops` | Treats oc-release-ops handoff as authoritative for the release tag |
 | `oc-monitoring-ops` | Tags incidents in the first 24h after a release with `post-release` |
 

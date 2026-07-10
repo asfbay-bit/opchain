@@ -1,7 +1,7 @@
 ---
 name: oc-cost-ops
 displayName: OC · Cost Ops
-version: 1.7.0
+version: 1.8.0
 shortDesc: LLM cost attribution per skill phase, budget gates in checkpoints, and model-tier routing recommendations.
 phases: [build]
 triAgent: false
@@ -214,6 +214,7 @@ price.
 | oc-claude-api | The price table + model IDs |
 | oc-prompt-ops | Per-eval token counts to cost |
 | oc-bug-check / oc-code-auditor | The phase a run belongs to |
+| oc-docs-forge / oc-repo-ops | Per-PR gate runs to attribute (docs packet + readiness verify) |
 
 | Read by | Why |
 |---|---|

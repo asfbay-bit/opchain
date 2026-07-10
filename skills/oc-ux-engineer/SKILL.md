@@ -1,7 +1,7 @@
 ---
 name: oc-ux-engineer
 displayName: OC · UX Engineer
-version: 1.7.0
+version: 1.8.0
 shortDesc: Design Planner → Generator → Evaluator. v1.2 posts eval scores to the PM ticket; a11y as sub-tickets.
 phases: [plan]
 triAgent: true

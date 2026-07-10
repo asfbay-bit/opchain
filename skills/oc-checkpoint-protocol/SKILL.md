@@ -1,7 +1,7 @@
 ---
 name: oc-checkpoint-protocol
 displayName: OC · Checkpoint Protocol
-version: 1.7.0
+version: 1.8.0
 shortDesc: Session persistence across skills — JSON checkpoint contract + status/next/doctor/validate tooling, catches drift.
 phases: [foundation]
 triAgent: false
@@ -363,6 +363,7 @@ that as the single source of truth; this table is just the common cases.
 | oc-app-architect | oc-reverse-spec checkpoint | Know what analysis exists for the codebase |
 | oc-deploy-ops | oc-app-architect checkpoint | Know which sprints have passed QA |
 | oc-git-ops | any skill checkpoint | Know what files to commit |
+| oc-git-ops | oc-docs-forge + oc-repo-ops checkpoints | Pre-PR gate: docs packet + readiness verdict before opening a PR |
 | oc-code-auditor | oc-reverse-spec checkpoint | Know what analysis has been done |
 
 **Rules:**

@@ -1,7 +1,7 @@
 ---
 name: oc-telemetry-ops
 displayName: OC · Telemetry Ops
-version: 1.7.0
+version: 1.8.0
 shortDesc: Opt-in, local-first usage metering to .checkpoints/usage.sqlite; anonymized aggregates power the public /dashboard.
 phases: [build]
 triAgent: false

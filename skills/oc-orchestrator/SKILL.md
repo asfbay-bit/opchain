@@ -1,7 +1,7 @@
 ---
 name: oc-orchestrator
 displayName: OC · Orchestrator
-version: 1.7.0
+version: 1.8.0
 shortDesc: Pipeline coordinator — registry, status, routing. v1.2 reads `pm_refs` across skills; routes by ticket id.
 phases: [foundation]
 triAgent: false
@@ -446,6 +446,8 @@ pipeline wins:
 oc-reverse-spec → oc-app-architect → oc-git-ops → oc-deploy-ops
                     ↕
           oc-code-auditor (required before deploy)
+          oc-bug-check (pre-commit gate, auto-invoked by oc-git-ops)
+          oc-docs-forge → oc-repo-ops (pre-PR gate, auto-invoked by oc-git-ops)
           oc-integrations-engineer (when needed)
           oc-scale-ops (advisory)
 ```
@@ -518,6 +520,8 @@ table currently in orchestrator.md.
 | "connect to [service]", "webhook", "OAuth" | oc-integrations-engineer | /oc-integrate plan |
 | "deploy this", "ship it" | oc-deploy-ops | /oc-deploy staging |
 | "commit", "push to git", "create a PR" | oc-git-ops | /oc-git-sync |
+| "generate the PR docs", "update README", "docs drift" | oc-docs-forge | /oc-docs pr |
+| "is this PR ready", "repo hygiene", "catalog drift" | oc-repo-ops | /oc-repo audit |
 | "can this handle more users", "performance" | oc-scale-ops | /oc-scale audit |
 | "dashboard", "analytics UI", "BI design" | oc-dash-forge | /oc-data-forge |
 | "continue where I left off" | [scan checkpoints] | [resume most recent] |

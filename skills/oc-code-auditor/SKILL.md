@@ -1,7 +1,7 @@
 ---
 name: oc-code-auditor
 displayName: OC · Code Auditor
-version: 1.7.0
+version: 1.8.0
 shortDesc: Auditor → Fixer → Verifier quality loop. v1.2 posts findings to the linked PM ticket; HIGH+ filed as sub-tickets.
 phases: [build]
 triAgent: true
@@ -451,6 +451,7 @@ reads a downward trend as a "schedule the next audit" signal.
 |---|---|
 | oc-deploy-ops | Finding count, grade → deploy gate |
 | oc-git-ops | Report path → include in PR |
+| oc-docs-forge | Quality notes / audit findings → PR testing & audit documentation |
 | oc-app-architect | Findings → pre-seed Phase 6 evaluator |
 | oc-ux-engineer | Component health → UX audit context |
 

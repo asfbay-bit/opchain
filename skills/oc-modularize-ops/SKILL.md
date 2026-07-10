@@ -1,7 +1,7 @@
 ---
 name: oc-modularize-ops
 displayName: OC · Modularize Ops
-version: 1.7.0
+version: 1.8.0
 shortDesc: "Decompose a monolith with provably zero loss — golden fixtures from real data as the oracle. Willing to say don't."
 phases: [plan, build]
 triAgent: false
