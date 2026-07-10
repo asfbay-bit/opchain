@@ -36,12 +36,17 @@ with_retry() {
 check_health() {
   local body
   local hdrs
-  body="$(curl -fsS "${URL}/api/health")" || return 1
+  local bust
+  # Unique query string per request — /api/health is Cache-Control: no-store
+  # at the origin, but a zone-level cache rule can still serve a pre-deploy
+  # HIT, which would smoke-test the OLD deploy and pass vacuously.
+  bust="nocache=$$-$(date +%s)"
+  body="$(curl -fsS "${URL}/api/health?${bust}-body")" || return 1
   echo "$body" | grep -q '"ok":true' || return 1
   # A past failure mode was the Worker returning 200 with a non-JSON body
   # (e.g. Cloudflare intercepting with an error page). Assert content-type
   # directly so the symptom is caught here, not in a downstream consumer.
-  hdrs="$(curl -fsS -D - -o /dev/null "${URL}/api/health")" || return 1
+  hdrs="$(curl -fsS -D - -o /dev/null "${URL}/api/health?${bust}-hdrs")" || return 1
   echo "$hdrs" | grep -qi '^content-type: *application/json'
 }
 

@@ -21,6 +21,13 @@ export const ALLOWED_ORIGINS = [
 export function corsHeaders(origin, requestId) {
   const headers = {
     "Content-Type": "application/json",
+    // API responses are dynamic (deploy versions, flag state, vote counts,
+    // kill-switch 503s) and must never be served stale from Cloudflare's
+    // edge cache — a cached /api/health HIT masked a fresh deploy on
+    // 2026-07-10. no-store is the default for every API response; a handler
+    // that wants caching overrides it deliberately (e.g. /api/flags/public
+    // → `private, max-age=30`).
+    "Cache-Control": "no-store",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, X-Opchain-Request-Id",
     "Access-Control-Expose-Headers": "X-Opchain-Request-Id, X-Opchain-Version",

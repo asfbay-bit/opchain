@@ -26,6 +26,11 @@ describe("GET /api/health", () => {
     expect(body.service).toBe("opchain-dev");
     expect(typeof body.version).toBe("string");
   });
+
+  it("is uncacheable — post-deploy checks and the deploy-lag canary read `version` and must never get an edge-cached HIT", async () => {
+    const res = await worker.fetch(req("https://opchain.dev/api/health"), env());
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
+  });
 });
 
 describe("/api/try/* removed", () => {
@@ -39,6 +44,7 @@ describe("/api/try/* removed", () => {
       env(),
     );
     expect(res.status).toBe(410);
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
     const body = await res.json();
     expect(body.error).toMatch(/removed/i);
   });
