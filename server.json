@@ -3,7 +3,7 @@
   "name": "io.github.asfbay-bit/opchain-skills",
   "title": "opchain",
   "description": "Claude Code / MCP skills for the dev pipeline: discover, spec, design, build, ship, operate.",
-  "version": "1.5.0",
+  "version": "1.8.0",
   "websiteUrl": "https://opchain.dev",
   "repository": {
     "url": "https://github.com/asfbay-bit/opchain-skills",

@@ -1,7 +1,7 @@
 ---
 name: oc-bug-check
 displayName: OC · Bug Check
-version: 1.7.0
+version: 1.8.0
 shortDesc: Pre-commit QA gate — fast checks on every commit. v1.2 attaches the failure report to the linked PM ticket on block.
 phases: [build]
 triAgent: false
@@ -19,7 +19,8 @@ description: >
   safety, lint, tests, anti-pattern scan, secret detection, build verification,
   and dependency vulnerability scan. Blocks commits on failures, warns on cautions,
   passes silently on clean code. Auto-invoked by oc-git-ops before every /oc-git-commit
-  and /oc-git-sync. Use for /oc-bugcheck, "check this before I commit", "run the checks",
+  and /oc-git-sync; in PR flows it runs after oc-docs-forge and oc-repo-ops have
+  produced documentation and repo-readiness output. Use for /oc-bugcheck, "check this before I commit", "run the checks",
   "is this safe to commit", "pre-commit", "quick audit", "lint and test", "any bugs
   in this?", "sanity check". Trigger liberally.
 ---

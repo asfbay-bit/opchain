@@ -1,0 +1,66 @@
+{
+  "protocol_version": "1.1",
+  "project": "opchain.dev",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "created_at": "2026-07-10T17:52:21Z",
+  "updated_at": "2026-07-10T17:52:21Z",
+  "skill": "oc-release-ops",
+  "phase": "ship-pr-open",
+  "step": "release-pr-ready",
+  "status": "in_progress",
+  "progress_summary": "v1.8.0 'Documentation & repo hygiene' release cut on branch claude/release-v1-8 (worktree off origin/main). Shipped in this cut: every-PR mesh wiring in skills/orchestrator.md (+ sync-bundles across 29 skills), SKILL.md description updates (oc-git-ops, oc-bug-check, oc-release-ops), lockstep bump 1.7.0 -> 1.8.0 (27 skills; docs-forge/repo-ops already 1.8.0), changelog swap (v1.8 Coming Next -> Just Released hero, v1.9 vote moved to Coming Next), homepage release bar + stat + Header chip + Skill Library callout -> v1.8, styleguide badge v1.8.0, server.json 1.8.0, skills/CHANGELOG.md [1.8.0] entry, two blog posts published (release post + engineering deep-dive) with OG cards, release-surface guard tests updated to v1.8. Gates: vitest 448/448 PASS, astro check 0 errors, site build 76 pages, gen-catalog 29 skills, sync-bundles:check clean, release-surfaces test PASS. Remaining: PR -> CI -> merge, tag v1.8.0 (publish-mcp-registry workflow), manual staging + prod deploy (deploys are manual by doctrine), close deploy-lag issue.",
+  "context_primer": {
+    "key_decisions": [
+      "Semver v1.8.0 minor, theme 'Documentation & repo hygiene' from the changelog Coming Next card.",
+      "Both 2026-07-10 blog posts publish with the release PR (draft flags removed) rather than via the flip bot.",
+      "Coming Next panel now hosts the v1.9 distribution theme vote; Planned keeps v1.10/v1.11.",
+      "server.json bumped to 1.8.0 in the PR; the v1.8.0 tag re-syncs and publishes to the MCP registry.",
+      "PM release ticket deferred: Linear MCP unauthenticated in this session (pm_deferred_actions)."
+    ],
+    "generated_files": [
+      "skills/CHANGELOG.md",
+      "site/src/blog/2026-07-10-v1-8-documentation-and-repo-hygiene.md",
+      "site/src/blog/2026-07-10-the-docs-bot-doesnt-grade-its-own-homework.md",
+      "site/public/og/blog/2026-07-10-v1-8-documentation-and-repo-hygiene.png",
+      "site/public/og/blog/2026-07-10-the-docs-bot-doesnt-grade-its-own-homework.png"
+    ]
+  },
+  "next_actions": [
+    "Merge the release PR on green CI, then tag v1.8.0 on the merge commit.",
+    "From main: npm run deploy:staging, eyeball staging.opchain.dev (/blog, /changelog, /skills), then npm run deploy.",
+    "Flush pm_deferred_actions via /oc-release announce --retry-pm once Linear MCP is authenticated."
+  ],
+  "pm_refs": [],
+  "skill_state": {
+    "current_release": {
+      "semver": "1.8.0",
+      "theme": "Documentation & repo hygiene",
+      "phase": "ship-pr-open",
+      "release_ticket_id": null,
+      "started_at": "2026-07-10T17:52:21Z"
+    },
+    "history": [
+      {
+        "semver": "1.7.0",
+        "theme": "Seams & Signals",
+        "shipped_at": "2026-07-01"
+      },
+      {
+        "semver": "1.6.0",
+        "theme": "Cost & telemetry",
+        "shipped_at": "2026-06-25"
+      }
+    ],
+    "pm_deferred_actions": [
+      {
+        "skill": "oc-release-ops",
+        "action": "create_issue",
+        "retriable": true,
+        "marker": "<!-- opchain:oc-release-ops:release-ticket:v1.8.0 -->",
+        "title": "Release v1.8.0 \u2014 Documentation & repo hygiene",
+        "reason": "Linear MCP unauthenticated in the shipping session",
+        "recorded_at": "2026-07-10T17:52:21Z"
+      }
+    ]
+  }
+}

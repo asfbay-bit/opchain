@@ -3,23 +3,22 @@
  * /changelog — Option C v2 layout: three full-width ARIA tabs, each with its
  * own colour identity, every section led by a rich card expanded on load.
  *
- *   Just Released → v1.7 open hero (accent) + v1.6 / v1.5 / v1.4.3 collapsed heroes
- *                   (the 21-day "active" window) + compact release cards
- *                   (v1.4.2 ↓, older than 21 days).
- *   Coming Next   → v1.8 PR documentation mesh (info) — the next release,
- *                   scoped for future-use documentation and repo hygiene.
- *   Planned       → v1.9 distribution theme vote (relative bar-chart) +
- *                   v1.10/v1.11 grouped roadmap cards, then the request form.
+ *   Just Released → v1.8 open hero (accent) + v1.7 / v1.6 / v1.5 / v1.4.3
+ *                   collapsed heroes (the "active" window) + compact release
+ *                   cards (v1.4.2 ↓, older).
+ *   Coming Next   → v1.9 distribution theme vote (relative bar-chart) — the
+ *                   next slot; theme undecided, vote open.
+ *   Planned       → v1.10/v1.11 grouped roadmap cards, then the request form.
  *
  * Voting is real: vote buttons carry data-vote-target=<id> and the client
  * script batches GET /api/votes then POSTs /api/votes/<id> per click (the
  * Worker dedups per-IP/day in KV). Votable ids:
  * OPC-170/173/174 (v1.9 distribution-theme options — these also drive the bar
- * chart), and OPC-18x (v1.10/v1.11 planned items). v1.8 is decided, so it has
- * no vote buttons.
+ * chart), and OPC-18x (v1.10/v1.11 planned items). v1.8 shipped 2026-07-10, so
+ * it has no vote buttons.
  *
- * Deep links (#v1-7/#v1-6/#v1-5 → Just Released; #v1-8 → Coming Next;
- * #v1-9/#v1-10/#v1-11 → Planned; #v1-4 → /coverage) are handled client-side:
+ * Deep links (#v1-8/#v1-7/#v1-6/#v1-5 → Just Released; #v1-9 → Coming Next;
+ * #v1-10/#v1-11 → Planned; #v1-4 → /coverage) are handled client-side:
  * the matching tab is activated, the target card expanded, and scrolled into
  * view.
  *
@@ -59,9 +58,10 @@ const v17Skills = [
   },
 ];
 
-// v1.8 "Documentation and repo hygiene" — a future-only PR mesh that would add
-// oc-docs-forge and oc-repo-ops as the pair responsible for PR documentation,
-// README/product-doc upkeep, repo cleanliness, and readiness evidence.
+// v1.8 "Documentation & repo hygiene" — shipped 2026-07-10. Adds oc-docs-forge
+// and oc-repo-ops as the pair responsible for PR documentation, README/
+// product-doc upkeep, repo cleanliness, and readiness evidence; the every-PR
+// gate (docs-forge → repo-ops → bug-check) is wired through oc-git-ops.
 const v18Skills = [
   {
     name: "oc-docs-forge",
@@ -219,7 +219,7 @@ const futureReleaseGroups = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">12 shipped</span>
+          Just Released <span class="tab-count">13 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -229,7 +229,7 @@ const futureReleaseGroups = [
           aria-selected="false"
           tabindex="-1"
         >
-          Coming Next <span class="tab-count">v1.8</span>
+          Coming Next <span class="tab-count">v1.9</span>
         </button>
         <button
           class="tab-btn tab-btn--planned"
@@ -239,7 +239,7 @@ const futureReleaseGroups = [
           aria-selected="false"
           tabindex="-1"
         >
-          Planned <span class="tab-count">v1.9 → v1.11</span>
+          Planned <span class="tab-count">v1.10 → v1.11</span>
         </button>
       </div>
       <span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
@@ -258,17 +258,78 @@ const futureReleaseGroups = [
         <span class="panel-sub">Latest release is open; patches and earlier releases expand in place.</span>
       </div>
 
-      <!-- v1.7 — latest shipped release; "Seams & Signals". Deep-linkable from #v1-7. -->
-      <article class="hero-card hero-card--released is-open" id="v1-7" data-card>
+      <!-- v1.8 — latest shipped release; "Documentation & repo hygiene". Deep-linkable from #v1-8. -->
+      <article class="hero-card hero-card--released is-open" id="v1-8" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
-          aria-controls="v1-7-body"
+          aria-controls="v1-8-body"
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
+          <span class="hero-ver">v1.8.0 · shipped Jul 10, 2026</span>
+          <span class="hero-title">Documentation &amp; repo hygiene</span>
+          <span class="hero-desc">
+            Every PR should leave behind usable documentation, not just merged
+            code. v1.8 adds the pair of skills that turn PR bodies, PR
+            comments, READMEs, product docs, generated catalogs, and repo
+            cleanliness into a standard gate on every PR — and wires the gate
+            into the pipeline so it actually runs.
+          </span>
+        </button>
+        <div class="card-body" id="v1-8-body" data-disclosure-body>
+          <div class="card-body-inner hero-body-inner">
+            <div class="tag-row"><span class="tag tag--info">shipped</span><span class="tag">Jul 10, 2026</span><span class="tag">27 → 29 skills</span></div>
+            <p>
+              Every PR now runs the documentation mesh in order:
+              <strong>oc-docs-forge</strong> writes the documentation packet,
+              <strong>oc-repo-ops</strong> verifies it and the repository around
+              it, <strong>oc-bug-check</strong> runs the fast code gate, and
+              only then does <strong>oc-git-ops</strong> open the PR. The skill
+              that writes the docs never decides whether they're good enough.
+            </p>
+            <h3>Two new skills</h3>
+            <div class="tile-grid">
+              {v18Skills.map((skill) => (
+                <div class="tile">
+                  <span class="tile-name">{skill.name} · {skill.command}</span>
+                  <p class="tile-desc">{skill.blurb}</p>
+                </div>
+              ))}
+            </div>
+            <div class="callout">
+              <h3>Every-PR contract</h3>
+              <ul class="callout-list">
+                <li><strong>PR body and comments:</strong> every PR body carries a <code>## Documentation</code> section — "no docs needed" requires evidence — plus, when the packet runs long, a durable PR comment under a stable marker.</li>
+                <li><strong>README and product docs:</strong> the repo-facing and product-facing docs that changed behavior makes stale are updated from the actual diff, not from memory.</li>
+                <li><strong>Repo readiness:</strong> generated files, docs catalogs, release surfaces, ignore rules, and dirty related files are verified before PR handoff — fail closed.</li>
+              </ul>
+            </div>
+            <div class="planned-box">Read the story: <a href="/blog/2026-07-10-v1-8-documentation-and-repo-hygiene">the release post</a> and <a href="/blog/2026-07-10-the-docs-bot-doesnt-grade-its-own-homework">the engineering deep-dive</a>.</div>
+            <div class="compat-box">
+              <strong>Back-compatible with v1.7.</strong> All 29 skills
+              lockstep-bump to <code>1.8.0</code>; the two new skills ship gated
+              behind their <code>skills.registry.&lt;id&gt;.enabled</code> flags,
+              and no documented cross-skill contract was removed — the every-PR
+              gate is additive wiring in oc-git-ops.
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.7 — previous release; "Seams & Signals". Deep-linkable from #v1-7. -->
+      <article class="hero-card hero-card--released" id="v1-7" data-card>
+        <button
+          class="hero-head"
+          type="button"
+          aria-expanded="false"
+          aria-controls="v1-7-body"
+          data-disclosure-toggle
+        >
+          <span class="hero-chevron" aria-hidden="true">▶</span>
+          <span class="hero-badge">previous release</span>
           <span class="hero-ver">v1.7.0 · shipped Jul 01, 2026</span>
           <span class="hero-title">Seams &amp; Signals</span>
           <span class="hero-desc">
@@ -279,7 +340,7 @@ const futureReleaseGroups = [
             no-loss guarantee, and a self-managed multi-container deploy operator.
           </span>
         </button>
-        <div class="card-body" id="v1-7-body" data-disclosure-body>
+        <div class="card-body" id="v1-7-body" data-disclosure-body inert>
           <div class="card-body-inner hero-body-inner">
             <div class="tag-row"><span class="tag tag--info">shipped</span><span class="tag">Jul 01, 2026</span><span class="tag">24 → 27 skills</span></div>
             <p>
@@ -756,77 +817,11 @@ const futureReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What's coming</h2>
-        <span class="panel-sub">v1.8 is next: scoped as a future-use documentation and repo-readiness release.</span>
+        <span class="panel-sub">v1.9 is next — and the theme is an open vote. Three contenders, live bars, your call.</span>
       </div>
 
-      <!-- v1.8 — future-only PR docs and repo-readiness mesh. Deep-linkable from #v1-8. -->
-      <article class="hero-card hero-card--next is-open" id="v1-8" data-card>
-        <button
-          class="hero-head"
-          type="button"
-          aria-expanded="true"
-          aria-controls="v1-8-body"
-          data-disclosure-toggle
-        >
-          <span class="hero-chevron" aria-hidden="true">▶</span>
-          <span class="hero-badge">next release</span>
-          <span class="hero-ver">v1.8.0 · next · future use only</span>
-          <span class="hero-title">Documentation &amp; repo hygiene</span>
-          <span class="hero-desc">
-            Every PR should leave behind usable documentation, not just merged
-            code. v1.8 adds the pair of skills that turn PR bodies, PR
-            comments, READMEs, product docs, generated catalogs, and repo
-            cleanliness into a standard release gate.
-          </span>
-        </button>
-        <div class="card-body" id="v1-8-body" data-disclosure-body>
-          <div class="card-body-inner hero-body-inner">
-            <div class="tag-row"><span class="tag tag--info">next</span><span class="tag">future use only</span><span class="tag">2 proposed skills</span></div>
-            <p>
-              This is a release package for the documentation and repository
-              upkeep work, not a current behavior change. The intent is to make
-              documentation generation and repo cleanliness visible in every PR
-              before the release train moves on to distribution work.
-            </p>
-            <h3>Two proposed skills</h3>
-            <div class="tile-grid">
-              {v18Skills.map((skill) => (
-                <div class="tile">
-                  <span class="tile-name">{skill.name} · {skill.command}</span>
-                  <p class="tile-desc">{skill.blurb}</p>
-                </div>
-              ))}
-            </div>
-            <div class="callout">
-              <h3>Every-PR contract</h3>
-              <ul class="callout-list">
-                <li><strong>PR body and comments:</strong> generate the documentation section and, when useful, a durable PR comment that reviewers can scan.</li>
-                <li><strong>README and product docs:</strong> update the repo-facing and product-facing docs that changed behavior makes stale.</li>
-                <li><strong>Repo readiness:</strong> verify generated files, docs catalogs, release surfaces, ignore rules, and dirty related files before PR handoff.</li>
-              </ul>
-            </div>
-            <div class="planned-box">Future-only package — this changelog slot names the v1.8 release shape without turning the gate on yet.</div>
-          </div>
-        </div>
-      </article>
-    </section>
-
-    <!-- ══ PANEL 2 — PLANNED ═════════════════════════════════ -->
-    <section
-      class="tab-panel"
-      role="tabpanel"
-      id="panel-planned"
-      aria-labelledby="tab-planned"
-      tabindex="0"
-      hidden
-    >
-      <div class="panel-head">
-        <h2>What's planned</h2>
-        <span class="panel-sub">v1.9 is the next theme vote; v1.10 and v1.11 group the longer-range work. Vote to signal priority.</span>
-      </div>
-
-      <!-- v1.9 — "The distribution play"; theme vote, pushed one slot by the
-           v1.8 PR documentation mesh. Deep-linkable from #v1-9. -->
+      <!-- v1.9 — "The distribution play"; the next slot, theme decided by open
+           vote. Deep-linkable from #v1-9. -->
       <article class="hero-card hero-card--next is-open" id="v1-9" data-card>
         <button
           class="hero-head"
@@ -837,10 +832,10 @@ const futureReleaseGroups = [
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">voting open</span>
-          <span class="hero-ver">v1.9.0 · theme vote open · planned after v1.8</span>
+          <span class="hero-ver">v1.9.0 · next · theme vote open</span>
           <span class="hero-title">The distribution play</span>
           <span class="hero-desc">
-            Once v1.8 gives every PR a documentation and repo-readiness gate,
+            With v1.8 giving every PR a documentation and repo-readiness gate,
             the biggest remaining gap is distribution. v1.9 deliberately
             promotes one growth play into a flagship theme instead of accreting
             more skills — and the theme is yours to pick. Your vote goes on
@@ -849,7 +844,7 @@ const futureReleaseGroups = [
         </button>
         <div class="card-body" id="v1-9-body" data-disclosure-body>
           <div class="card-body-inner hero-body-inner">
-            <div class="tag-row"><span class="tag tag--info">theme vote open</span><span class="tag">planned after v1.8</span><span class="tag">1 flagship theme</span></div>
+            <div class="tag-row"><span class="tag tag--info">theme vote open</span><span class="tag">next release</span><span class="tag">1 flagship theme</span></div>
             <p>The three contenders are below. Bars redistribute live as votes arrive; the final v1.9 theme is chosen closer to the time.</p>
             <h3>Choose the v1.9 theme</h3>
             <ul class="theme-list">
@@ -882,6 +877,21 @@ const futureReleaseGroups = [
           </div>
         </div>
       </article>
+    </section>
+
+    <!-- ══ PANEL 2 — PLANNED ═════════════════════════════════ -->
+    <section
+      class="tab-panel"
+      role="tabpanel"
+      id="panel-planned"
+      aria-labelledby="tab-planned"
+      tabindex="0"
+      hidden
+    >
+      <div class="panel-head">
+        <h2>What's planned</h2>
+        <span class="panel-sub">v1.10 and v1.11 group the longer-range work — order and scope settle after the v1.9 theme vote. Vote to signal priority.</span>
+      </div>
 
       {futureReleaseGroups.map((group) => (
         <article class:list={["plan-card"]} id={group.id} data-card>

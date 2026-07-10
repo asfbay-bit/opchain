@@ -1,7 +1,7 @@
 ---
 name: oc-git-ops
 displayName: OC · Git Ops
-version: 1.7.0
+version: 1.8.0
 shortDesc: Branch, commit, PR, sync workflows. v1.2 is PM-aware — `/oc-git-sync TICKET-1234` reads ticket; transitions on merge.
 phases: [build]
 triAgent: false
@@ -13,9 +13,11 @@ commands:
   - /oc-push
   - /oc-git-sync
 description: >
-  Git workflow: branch, commit, PR, sync. Use for /oc-git, /oc-commit, /oc-pr, /oc-push,
-  "commit this", "push to git", "create a PR", "sync to repo", or any git
-  operation. Trigger liberally.
+  Git workflow: branch, commit, PR, sync. Every PR auto-invokes oc-docs-forge
+  for PR body/comment documentation, oc-repo-ops for repository readiness, and
+  oc-bug-check for the fast quality gate before creation. Use for /oc-git,
+  /oc-commit, /oc-pr, /oc-push, "commit this", "push to git", "create a PR",
+  "sync to repo", or any git operation. Trigger liberally.
 ---
 
 # Git Ops

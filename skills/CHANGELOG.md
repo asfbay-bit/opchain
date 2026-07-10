@@ -10,6 +10,37 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
+## [1.8.0] — 2026-07-10 — "Documentation & repo hygiene"
+
+Every PR now leaves behind usable documentation and a clean repository, gated
+rather than hoped for. The catalog goes from 27 → **29 skills**.
+
+### Added
+- **oc-docs-forge** (`/oc-docs`) — writes the documentation that must travel
+  with a change: the PR body's `## Documentation` section, a durable PR
+  comment under the stable marker `<!-- opchain:oc-docs-forge:pr-docs -->`
+  when the packet runs long, and README/product-doc/changelog/catalog updates
+  derived from the actual diff. "No docs needed" is valid only with evidence —
+  silence is not a pass.
+- **oc-repo-ops** (`/oc-repo`) — the repo-readiness gate before every PR:
+  verifies the docs packet exists and matches the current diff
+  (`verified_for_sha`), generated files agree with sources, catalog surfaces
+  agree with each other, links resolve, and no dirty related files or stale
+  checkpoint pointers remain. Fails closed; warnings surface without blocking
+  outside strict mode.
+
+### Changed
+- **oc-git-ops** — every PR now auto-invokes the mesh in order:
+  oc-docs-forge → oc-repo-ops → oc-bug-check → PR creation. The author of the
+  docs never decides whether they're good enough.
+- **oc-bug-check** — in PR flows it now runs after oc-docs-forge and
+  oc-repo-ops have produced documentation and repo-readiness output.
+- **oc-release-ops** — release PRs hand documentation to oc-docs-forge and
+  readiness to oc-repo-ops before oc-git-ops opens the PR.
+- **orchestrator.md** — pipeline map, upstream/downstream table, handoff
+  triggers, routing table, and skill descriptions updated for the every-PR
+  documentation + repo gate.
+
 ## [1.7.0] — 2026-06-26 — "Seams & Signals"
 
 Seams between systems and the signals that prove they work. The catalog goes
