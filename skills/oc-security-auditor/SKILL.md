@@ -1,7 +1,7 @@
 ---
 name: oc-security-auditor
 displayName: OC · Security Auditor
-version: 1.7.0
+version: 1.8.0
 shortDesc: Threat modeling, OWASP hardening, attack-surface review. v1.2 files CRITICAL findings as PM incident tickets.
 phases: [build]
 triAgent: false

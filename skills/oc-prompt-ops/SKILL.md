@@ -1,7 +1,7 @@
 ---
 name: oc-prompt-ops
 displayName: OC · Prompt Ops
-version: 1.7.0
+version: 1.8.0
 shortDesc: Prompt-as-code — versioning, eval datasets, regression and drift detection for LLM prompts.
 phases: [build, ai-native]
 triAgent: false
@@ -381,7 +381,7 @@ deploy, and cost it.
 | **oc-rag-forge** | Consumes the same eval harness for its *generation* prompt (the answer-synthesis step). RAG owns the *retrieval* goldset; Prompt Ops owns the generation-prompt goldset; the two regression suites run side by side. |
 | **oc-cost-ops** | Owns live eval-spend tracking and the `cost_per_eval` field + cost-regression gate that runs alongside the score gate (shipped v1.6). |
 | **oc-deploy-ops** | Receives a frozen, score-gated prompt version; gates prod on the regression suite passing. |
-| **oc-git-ops** | Opens the PR carrying the prompt diff + scorecard; CI runs `/oc-prompt regress` as a required check. |
+| **oc-git-ops** | Opens the PR carrying the prompt diff + scorecard (surfaced in the PR's oc-docs-forge documentation packet); CI runs `/oc-prompt regress` as a required check. |
 | **oc-app-architect** | When an app has an LLM feature, its prompt is registered under `prompts/` with a goldset from day one rather than backfilled later. |
 
 ---

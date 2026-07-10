@@ -1,7 +1,7 @@
 ---
 name: oc-stack-forge
 displayName: OC · Stack Forge
-version: 1.7.0
+version: 1.8.0
 shortDesc: Stack decisions, Cloudflare patterns, typed pipeline. v1.2 records the chosen stack on the linked PM ticket as an ADR.
 phases: [plan, build]
 triAgent: false
@@ -466,6 +466,7 @@ Checkpoint location: `{project-dir}/.checkpoints/oc-stack-forge.checkpoint.json`
 | oc-code-auditor | Type pipeline standard → compliance check |
 | oc-scale-ops | Platform limits → scaling constraints |
 | oc-deploy-ops | Platform → deployment patterns |
+| oc-docs-forge | Chosen stack + decision rationale → PR documentation packet, README/product-doc updates |
 
 ---
 

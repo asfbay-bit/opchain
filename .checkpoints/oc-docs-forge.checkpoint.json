@@ -1,0 +1,33 @@
+{
+  "protocol_version": "1.1",
+  "project": "opchain.dev",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "created_at": "2026-07-10T17:52:21Z",
+  "updated_at": "2026-07-10T17:52:21Z",
+  "skill": "oc-docs-forge",
+  "phase": "pr-docs",
+  "status": "complete",
+  "step": "release-pr-packet",
+  "progress_summary": "Generated the v1.8.0 release PR documentation packet (the first PR through the mesh is the one that ships it). Docs surfaces updated in the diff: skills/CHANGELOG.md 1.8.0 entry, changelog.astro swap, two published blog posts, orchestrator.md wiring synced to all 29 bundles.",
+  "context_primer": {
+    "key_decisions": [
+      "Release PR body carries the ## Documentation section inline; no PR comment needed."
+    ],
+    "generated_files": [
+      "skills/CHANGELOG.md"
+    ]
+  },
+  "skill_state": {
+    "pr_comment_marker": null,
+    "docs_changed": [
+      "skills/CHANGELOG.md",
+      "skills/orchestrator.md",
+      "site/src/pages/changelog.astro",
+      "site/src/blog/2026-07-10-v1-8-documentation-and-repo-hygiene.md",
+      "site/src/blog/2026-07-10-the-docs-bot-doesnt-grade-its-own-homework.md"
+    ],
+    "docs_not_changed_reason": null,
+    "follow_up_docs": [],
+    "verified_for_sha": "claude/release-v1-8 (pre-commit; base e5ea561)"
+  }
+}
