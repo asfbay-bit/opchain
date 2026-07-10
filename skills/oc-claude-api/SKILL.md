@@ -1,7 +1,7 @@
 ---
 name: oc-claude-api
 displayName: OC · Claude API
-version: 1.7.0
+version: 1.8.0
 shortDesc: Build, debug, and migrate Claude API apps — model routing, prompt caching, tool use, version-migration playbooks.
 phases: [build, ai-native]
 triAgent: false
@@ -285,7 +285,7 @@ spend. Levers, cheapest-first:
 | `oc-integrations-engineer` | Owns third-party API auth (incl. provider clients on Bedrock/Vertex/Foundry) |
 | `oc-code-auditor` | Audits the request layer for unparsed tool inputs, missing refusal handling, leaked keys |
 | `oc-cost-ops` (v1.6) | Will own live spend tracking + cost-regression alerts; this skill sets static ceilings today |
-| `oc-git-ops` | Opens the migration diff PR |
+| `oc-git-ops` | Opens the migration diff PR (via its pre-PR gate: oc-docs-forge docs packet → oc-repo-ops readiness) |
 
 Boundary: this skill owns **the Claude API request surface** — model choice,
 caching, tool wiring, streaming/batch, migration. It does not own agent topology,

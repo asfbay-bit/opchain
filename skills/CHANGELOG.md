@@ -10,6 +10,44 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
+## [1.8.0] — 2026-07-04 — "The quality-gate rail"
+
+Every PR now rides a documentation + hygiene rail before it opens. The catalog
+goes from 27 → **29 skills**.
+
+### Added
+- **oc-docs-forge** (`/oc-docs`) — documentation generator for every PR: the PR
+  body's required `## Documentation` section (long packets overflow to a PR
+  comment with marker `opchain:oc-docs-forge:pr-docs`), README/catalog/product-doc
+  upkeep, changelog + ADR notes, and freshness/drift review (`/oc-docs upkeep`).
+  Auto-invoked by oc-git-ops before PR creation and by release flows before
+  release PRs. "No docs needed" is valid only with evidence — silence is not a pass.
+- **oc-repo-ops** (`/oc-repo`) — repository hygiene and PR readiness gate:
+  verifies the docs packet exists and is current, generated files + catalogs are
+  in sync with source, git state is clean, and `.gitignore` policy holds. Fails
+  closed and blocks the PR. Required every-PR order: oc-docs-forge → oc-repo-ops
+  → oc-bug-check (already run at commit) → PR.
+
+### Changed
+- **oc-git-ops** — gains the pre-PR gate: auto-invokes oc-docs-forge then
+  oc-repo-ops before every PR (mirroring the oc-bug-check pre-commit gate); the
+  PR template gains a `## Documentation` section sourced from the docs-forge
+  checkpoint; `.checkpoints/` is no longer gitignored by default (the checkpoint
+  protocol tracks it unless the project opts out — oc-repo-ops enforces this).
+- **oc-release-ops** — `/oc-release ship` invokes oc-docs-forge for the release
+  docs packet before handing to oc-git-ops; `/oc-release verify` gains
+  docs-packet and repo-readiness gate rows.
+- **orchestrator.md** — pipeline map, upstream/downstream map, handoff points,
+  routing tables, and ecosystem bullets gain the pre-PR gate rail (re-synced
+  into every skill's bundled copy).
+- Lockstep bump: all 29 skills → `1.8.0`.
+
+### Not breaking
+- Both new skills are additive gates. The `.checkpoints/` gitignore default in
+  oc-git-ops flips to match the checkpoint protocol's documented tracking policy —
+  a doc-consistency fix, not a contract change (the protocol was already the
+  source of truth).
+
 ## [1.7.0] — 2026-06-26 — "Seams & Signals"
 
 Seams between systems and the signals that prove they work. The catalog goes

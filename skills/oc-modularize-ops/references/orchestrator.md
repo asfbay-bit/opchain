@@ -51,6 +51,7 @@ clarifying question to determine which phase they're in:
 - Have an idea but no specs? → Start with `/oc-discover`
 - Have specs but no code? → Start with `/oc-build`
 - About to commit code? → Start with `/oc-bugcheck`
+- PR needs docs, or repo needs a readiness check? → Start with `/oc-docs pr`, then `/oc-repo verify`
 - Have code but need quality check? → Start with `/oc-audit`
 - Have code ready to ship? → Start with `/oc-git-sync` then `/oc-deploy`
 - Have existing code, no docs? → Start with oc-reverse-spec
@@ -69,7 +70,8 @@ oc-reverse-spec ──► oc-app-architect ──► oc-git-ops ──► oc-dep
                       │                │           │ oc-release-ops sits between
                       │                │           │ oc-git-ops and oc-deploy-ops
                       │                │           │ at release boundaries
-                      │                └── auto-invokes oc-bug-check before /oc-commit + /sync
+                      │                ├── auto-invokes oc-bug-check before /oc-commit + /sync
+                      │                └── auto-invokes oc-docs-forge ──► oc-repo-ops before every PR
                       ├── Phase 2: auto-invokes oc-stack-forge
                       ├── Phase 3: design pipeline
                       │     ├── auto-attaches oc-ux-engineer on UI sprints
@@ -84,6 +86,12 @@ foundation:
 
 pre-commit gate:
   oc-bug-check ──► fast type/lint/test/secret/build/dep checks (<2 min, blocks commit)
+
+pre-PR gate (v1.8 "quality-gate rail"):
+  oc-docs-forge ──► PR documentation packet: `## Documentation` body section, PR comments,
+                    README/catalog/product-doc upkeep, changelog + ADR notes
+  oc-repo-ops   ──► repo hygiene / PR readiness: docs packet present, generated files +
+                    catalogs in sync, clean git state (fails closed, blocks the PR)
 
 quality gates (run before deploy):
   oc-code-auditor ──► finds code-level issues
@@ -123,8 +131,10 @@ instrumentation (v1.6 "the instrumented pipeline"):
 | **oc-integrations-engineer** | oc-app-architect (integration spec) | oc-code-auditor (verify integration) |
 | **oc-api-dev** | oc-app-architect (`02-architecture.md`, `03-data-model.md`), oc-stack-forge (typed pipeline), oc-reverse-spec (existing-endpoint inventory) | oc-code-auditor (audits scaffolded handlers), oc-security-auditor (CORS/rate-limit posture), oc-monitoring-ops (SLO + drift manifest), oc-deploy-ops (drift gate) |
 | **oc-migration-ops** | oc-app-architect (spec), oc-reverse-spec (current state) | oc-deploy-ops (cutover), oc-monitoring-ops (verify post-migration) |
-| **oc-git-ops** | oc-app-architect (sprint context), oc-bug-check (gate result) | oc-bug-check (pre-commit gate, auto-invoked), oc-deploy-ops (post-push) |
+| **oc-git-ops** | oc-app-architect (sprint context), oc-bug-check (gate result), oc-docs-forge (PR docs packet), oc-repo-ops (PR readiness verdict) | oc-bug-check (pre-commit gate, auto-invoked), oc-docs-forge → oc-repo-ops (pre-PR gate, auto-invoked), oc-deploy-ops (post-push) |
 | **oc-bug-check** | oc-git-ops (gate trigger) | oc-git-ops (returns pass / fail / bypass; failure blocks the commit) |
+| **oc-docs-forge** | oc-git-ops (PR trigger: branch, commit log, PR draft, linked ticket), oc-app-architect (feature scope), oc-reverse-spec (existing docs), oc-api-dev (API doc drift), oc-release-ops (release surfaces), oc-code-auditor / oc-bug-check (quality notes for PR docs) | oc-repo-ops (hands docs packet to the readiness gate), oc-git-ops (returns PR body fragment + optional marker comment) |
+| **oc-repo-ops** | oc-docs-forge (docs packet), oc-git-ops (branch, base, PR draft), oc-bug-check (gate verdict), oc-release-ops (release PR surfaces), oc-checkpoint-protocol (tracking policy) | oc-docs-forge (on missing/stale docs packet), oc-bug-check (on missing/stale code gate), oc-git-ops (PASS → PR can open; FAIL blocks PR creation) |
 | **oc-deploy-ops** | oc-code-auditor (audit grade), oc-security-auditor (posture), oc-git-ops (branch status) | oc-monitoring-ops (post-ship observability) |
 | **oc-monitoring-ops** | oc-deploy-ops (what shipped) | — (incident loops back to oc-app-architect / oc-code-auditor as needed) |
 | **oc-release-ops** | every skill's `*.checkpoint.json` (what shipped per skill since last release), oc-app-architect (sprint outputs feed changelog draft), oc-git-ops (merged-PR list), oc-deploy-ops (last-shipped commit SHA) | oc-git-ops (release PR / tag), oc-deploy-ops (staging then prod ship) |
@@ -159,6 +169,8 @@ RIGHT (active invocation):
 |---|---|---|---|
 | All build sprints pass | oc-app-architect | oc-git-ops | Invoke oc-git-ops, run /oc-git-sync with sprint context |
 | /oc-git-commit or /oc-git-sync starts | oc-git-ops | oc-bug-check | Auto-invoke oc-bug-check; pass → proceed with commit; fail → block, surface report, offer `/oc-bugcheck fix` or `/oc-bugcheck bypass` |
+| PR creation starts (/oc-git-pr, or /oc-git-sync reaches the PR step) | oc-git-ops | oc-docs-forge | Auto-invoke `/oc-docs pr` to generate the PR documentation packet (`## Documentation` body fragment + optional marker comment) |
+| Docs packet written or verified | oc-docs-forge | oc-repo-ops | Auto-invoke `/oc-repo verify`; PASS → return control to oc-git-ops to open the PR; FAIL → block PR creation, surface blocking findings, offer `/oc-repo clean` |
 | git-sync completes | oc-git-ops | oc-deploy-ops | Invoke oc-deploy-ops, run /oc-deploy audit then /oc-deploy staging |
 | Launch phase starts | oc-app-architect | oc-code-auditor → oc-deploy-ops | Run /oc-audit pre-deploy first, then /oc-deploy staging |
 | Existing codebase analyzed | oc-reverse-spec | oc-app-architect | Invoke oc-app-architect, load oc-reverse-spec's output as Phase 2 baseline |
@@ -168,7 +180,7 @@ RIGHT (active invocation):
 | UI sprint detected | oc-app-architect (Phase 6) | oc-ux-engineer | Auto-attach Design Evaluator (already wired) |
 | Data-heavy screen flagged | oc-ux-engineer (Phase 1 intake) or oc-app-architect (Phase 3 design) | oc-dash-forge | Package tokens + design spec into oc-dash-forge context, invoke /oc-data-forge; hand the resulting spec + prototype back to the caller |
 | Release boundary reached (user says "cut a release", "ship v1.3", "bump versions") | any skill | oc-release-ops | Invoke oc-release-ops `/oc-release plan` to propose the next semver and theme, then walk through `draft → bump → announce → ship` |
-| `/oc-release ship` advances to PR | oc-release-ops | oc-git-ops | Invoke oc-git-ops `/oc-git-sync v<semver>` with the bump commit; oc-release-ops resumes after merge |
+| `/oc-release ship` advances to PR | oc-release-ops | oc-docs-forge → oc-git-ops | Invoke oc-docs-forge `/oc-docs pr` for the release docs packet, then oc-git-ops `/oc-git-sync v<semver>` with the bump commit (the pre-PR gate runs as usual); oc-release-ops resumes after merge |
 | `/oc-release ship` advances to deploy | oc-release-ops | oc-deploy-ops | Invoke oc-deploy-ops `/oc-deploy staging` then `/oc-deploy` on user confirmation; oc-release-ops closes the release ticket on prod ship |
 
 ### How to Invoke Another Skill
@@ -236,6 +248,8 @@ right skill and phase based on the request.
 | "Here's my codebase, document it" | oc-reverse-spec | /oc-rev-full |
 | "What stack should I use for..." | oc-stack-forge | /oc-stack-decide |
 | "Check this before I commit" / "Pre-commit" / "Lint and test" / "Quick audit" | oc-bug-check | /oc-bugcheck |
+| "Generate the PR docs" / "Update the README" / "Docs drifted" / "Docs upkeep" | oc-docs-forge | /oc-docs pr |
+| "Is this PR ready?" / "Repo hygiene" / "Clean this repo" / "Catalog drift" | oc-repo-ops | /oc-repo audit |
 | "Review this code" / "Is this code good?" | oc-code-auditor | /oc-audit full |
 | "Fix the UX" / "The design is inconsistent" | oc-ux-engineer | /oc-uxe eval |
 | "Connect to Salesforce" / "Set up webhooks" | oc-integrations-engineer | /oc-integrate plan |
@@ -321,6 +335,24 @@ description: >
   "is this safe to commit", "pre-commit", "quick audit", "lint and test", "any bugs
   in this?", "sanity check". Trigger liberally.
 
+# oc-docs-forge
+description: >
+  Documentation creation, standardization, and upkeep for every PR. Auto-invoked
+  by oc-git-ops before PR creation and by release flows before release PRs. Use
+  for /oc-docs, /oc-docs pr, "generate the PR docs", "update README", "standardize
+  docs", "refresh product documentation", "write PR body docs", "post a PR docs
+  comment", "docs upkeep", changelog/ADR/readme/catalog drift, or any request
+  where implementation changes need reader-facing documentation.
+
+# oc-repo-ops
+description: >
+  Repository hygiene and PR readiness gate. Auto-invoked by oc-git-ops before
+  every PR and after oc-docs-forge generates the PR documentation packet. Use for
+  /oc-repo, /oc-repo audit, /oc-repo verify, "repo hygiene", "clean this repo",
+  "is this PR ready", "check generated files", "catalog drift", "plugin/cache
+  drift", ".gitignore policy", orphaned docs/files, stale generated artifacts,
+  source-vs-doc mismatch, or any repository cleanliness question.
+
 # oc-code-auditor
 description: >
   Code quality auditor with Auditor/Fixer/Verifier loop. Use for /oc-audit, "audit this",
@@ -380,9 +412,10 @@ description: >
 
 # oc-git-ops
 description: >
-  Git workflow: branch, commit, PR, sync. Use for /oc-git, /oc-commit, /oc-pr, /oc-push,
-  "commit this", "push to git", "create a PR", "sync to repo", or any git
-  operation. Trigger liberally.
+  Git workflow: branch, commit, PR, sync. Auto-invokes oc-bug-check before every
+  commit and the oc-docs-forge → oc-repo-ops pre-PR gate before every PR. Use for
+  /oc-git, /oc-commit, /oc-pr, /oc-push, "commit this", "push to git", "create a PR",
+  "sync to repo", or any git operation. Trigger liberally.
 
 # oc-deploy-ops
 description: >
@@ -457,13 +490,19 @@ Every skill should know these facts:
   oc-integrations-engineer (Planner/Builder/Tester), oc-api-dev (Designer/Builder/Conformance).
 - **Auto-invocations:** oc-stack-forge during oc-app-architect Phase 2; oc-ux-engineer during
   oc-app-architect UI sprints; oc-dash-forge from oc-ux-engineer or oc-app-architect on data-heavy
-  screens; oc-bug-check from oc-git-ops before every `/oc-git-commit` and `/oc-git-sync`.
+  screens; oc-bug-check from oc-git-ops before every `/oc-git-commit` and `/oc-git-sync`;
+  oc-docs-forge from oc-git-ops before PR creation (and from release flows before release
+  PRs); oc-repo-ops from oc-git-ops before every PR, after oc-docs-forge.
 - **Pipeline flow:** oc-reverse-spec → oc-app-architect → oc-git-ops → oc-deploy-ops → oc-monitoring-ops.
 - **Release boundary:** oc-release-ops sits between oc-git-ops and oc-deploy-ops; runs only on
   versioned-release events (`/oc-release plan` / `draft` / `bump` / `announce` / `ship`),
   not on every PR. v1.3 added it as the 18th skill; opchain itself dogfoods it.
 - **Pre-commit gate:** oc-bug-check (fast metal-detector — type / lint / tests / secrets /
   build / dep scan in <2 min; blocks the commit on failure).
+- **Pre-PR gate (v1.8 "the quality-gate rail"):** oc-docs-forge (PR documentation packet —
+  `## Documentation` body section, README/catalog/product-doc upkeep) → oc-repo-ops
+  (repo hygiene / PR readiness — docs packet, generated files, catalog parity; fails
+  closed, blocks the PR).
 - **Quality gates (pre-deploy):** oc-code-auditor → oc-security-auditor (runs above oc-code-auditor
   for threat model / hardening).
 - **Cross-cutting skills:** oc-api-dev (first-party APIs — OpenAPI/GraphQL, versioning,
@@ -474,7 +513,8 @@ Every skill should know these facts:
   (opt-in local usage metering → anonymized `/dashboard` aggregate). They add the
   wire-1.1 checkpoint fields `cost` / `eval_scores` / `telemetry_handle`. v1.6
   took the catalog to 24 skills; v1.7 "Seams & Signals" adds oc-signal-forge /
-  oc-modularize-ops / oc-fleet-ops → 27.
+  oc-modularize-ops / oc-fleet-ops → 27; v1.8 "the quality-gate rail" adds
+  oc-docs-forge / oc-repo-ops → 29.
 - **Checkpoint protocol:** every skill writes to `.checkpoints/[skill].checkpoint.json`.
 - **Tri-dev is retired.** Its build harness lives inside oc-app-architect Phase 6.
   If a user asks for tri-dev, route to oc-app-architect /oc-build.
