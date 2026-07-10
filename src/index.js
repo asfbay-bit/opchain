@@ -631,10 +631,9 @@ async function route(request, env, ctx, url, origin, requestId) {
         {
           headers: {
             "Content-Type": "application/json",
-            // Post-deploy verification (CLAUDE.md, smoke.sh) and the daily
-            // deploy-lag canary read `version` from this route. An edge
-            // cache HIT serves a stale SHA and fakes drift — observed on
-            // staging during the 2026-07-10 deploy check.
+            // Version-truth probe: post-deploy sanity checks and the deploy-lag
+            // canary compare this SHA against main HEAD, so a cached response
+            // reads as false drift (or masks a fresh deploy).
             "Cache-Control": "no-store",
             "X-Opchain-Version": VERSION,
             "X-Opchain-Request-Id": requestId,

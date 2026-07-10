@@ -21,6 +21,7 @@ describe("GET /api/health", () => {
     const res = await worker.fetch(req("https://opchain.dev/api/health"), env());
     expect(res.status).toBe(200);
     expect(res.headers.get("X-Opchain-Version")).toBe("test");
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
     const body = await res.json();
     expect(body.ok).toBe(true);
     expect(body.service).toBe("opchain-dev");
