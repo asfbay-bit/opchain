@@ -1,0 +1,29 @@
+{
+  "protocol_version": "1.1",
+  "project": "opchain.dev",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "created_at": "2026-07-10T17:52:21Z",
+  "updated_at": "2026-07-10T17:52:21Z",
+  "skill": "oc-repo-ops",
+  "phase": "pr-readiness",
+  "status": "complete",
+  "step": "release-pr-verify",
+  "progress_summary": "Repo readiness gate PASS for the v1.8.0 release PR: gen-catalog validated 29 skills, sync-bundles:check clean, gen-mcp-catalog regenerated (committed), gen-flags mirror current, release-surfaces test PASS (all 8 live-claim surfaces agree on v1.8), OG re-encodes of pre-existing cards reverted, no unrelated dirty files in the worktree.",
+  "context_primer": {
+    "key_decisions": [
+      "Docs Forge packet verified present before this gate ran (mesh order honored on its own release PR)."
+    ],
+    "generated_files": [
+      ".checkpoints/oc-repo-ops.checkpoint.json"
+    ]
+  },
+  "skill_state": {
+    "verdict": "PASS",
+    "blocking_findings": [],
+    "warnings": [],
+    "docs_packet_verified": true,
+    "catalog_verified": true,
+    "generated_artifacts_verified": true,
+    "verified_for_sha": "claude/release-v1-8 (pre-commit; base e5ea561)"
+  }
+}
