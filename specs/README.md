@@ -13,16 +13,23 @@ The directory was previously `reverse-spec-output/`; renamed to `specs/` on
 > `site/src/components/TryIt.astro`, KV bindings, the Anthropic integration,
 > or the email-gated demo flow is now historical — those files no longer
 > exist. Re-run `/rev-full` to regenerate against the current commit when a
-> fresh baseline is wanted. See `drift-report.md` and `audit-2026-04-27.md`
-> for per-doc impact.
+> fresh baseline is wanted. See `archive/drift-report.md` and
+> `archive/audit-2026-04-27.md` for per-doc impact.
+>
+> The 2026-04-27-dated point-in-time docs (`drift-report.md`,
+> `audit-2026-04-27.md`, `gap-analysis.md`, `stack-forge-audit.md`) moved to
+> `archive/` on 2026-07-10 — repo hygiene sweep; content unchanged.
 
 ## Contents
 
 ```
 specs/
 ├── ORIENTATION.md           Quick summary of what this project is and scope of analysis
-├── drift-report.md          /rev-diff output (2026-04-27) — what changed since the initial run
-├── audit-2026-04-27.md      code-auditor /audit full — findings and grade
+├── archive/
+│   ├── drift-report.md      /rev-diff output (2026-04-27) — what changed since the initial run
+│   ├── audit-2026-04-27.md  code-auditor /audit full — findings and grade
+│   ├── stack-forge-audit.md Typed pipeline link-by-link status (partially stale on Zod layer)
+│   └── gap-analysis.md      Refreshed — HIGH closed, MED/LOW open
 ├── spec/
 │   ├── 00-project-overview.md    What opchain is (product + site), audience, delivery
 │   ├── 01-tech-stack.md          Runtime, KV, bundler, frontend, dependencies (partially stale)
@@ -34,8 +41,6 @@ specs/
 ├── design/
 │   ├── design-system.md          Tokens, typography, spacing (predates Astro tokens — stale)
 │   └── component-inventory.md    UI patterns (predates Astro components — stale)
-├── stack-forge-audit.md          Typed pipeline link-by-link status (partially stale on Zod layer)
-├── gap-analysis.md               Refreshed — HIGH closed, MED/LOW open
 └── tri-dev-ready/
     └── spec.md                   App-architect-ready spec (partially stale)
 ```
@@ -55,19 +60,19 @@ specs/
 |---|---|---|
 | `reverse-spec` | Complete (drift-refresh) | This directory |
 | `app-architect` | Phase 2 baseline loaded | `.checkpoints/app-architect.checkpoint.json` |
-| `code-auditor` | `/audit full` complete (grade A-) | `audit-2026-04-27.md` |
+| `code-auditor` | `/audit full` complete (grade A-) | `archive/audit-2026-04-27.md` |
 | `security-auditor` | Recommended next | — |
 | `api-dev` | Recommended for spec-level M3 (OpenAPI from Zod) | — |
 | `git-ops` / `deploy-ops` | Existing manual flow stands | `CLAUDE.md` |
 
 ## Top open items
 
-All four original HIGH gaps closed (see `drift-report.md`). Remaining priorities:
+All four original HIGH gaps closed (see `archive/drift-report.md`). Remaining priorities:
 
 1. **`security-auditor /hardening`** — verify CSP completeness end-to-end.
 2. **`api-dev /api spec`** — OpenAPI from existing Zod schemas.
 3. **MED-severity audit findings** (A-M1 through A-M6) — quality-of-implementation,
-   not blocking. See `audit-2026-04-27.md`.
+   not blocking. See `archive/audit-2026-04-27.md`.
 4. Land PR #99 (lighthouse-prod) and PR #100 (OG images).
 
-See `gap-analysis.md` for the full prioritized list.
+See `archive/gap-analysis.md` for the full prioritized list.
