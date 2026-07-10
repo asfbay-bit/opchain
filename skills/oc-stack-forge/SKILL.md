@@ -466,6 +466,7 @@ Checkpoint location: `{project-dir}/.checkpoints/oc-stack-forge.checkpoint.json`
 | oc-code-auditor | Type pipeline standard → compliance check |
 | oc-scale-ops | Platform limits → scaling constraints |
 | oc-deploy-ops | Platform → deployment patterns |
+| oc-docs-forge | Chosen stack + decision rationale → PR documentation packet, README/product-doc updates |
 
 ---
 

@@ -214,6 +214,7 @@ price.
 | oc-claude-api | The price table + model IDs |
 | oc-prompt-ops | Per-eval token counts to cost |
 | oc-bug-check / oc-code-auditor | The phase a run belongs to |
+| oc-docs-forge / oc-repo-ops | Per-PR gate runs to attribute (docs packet + readiness verify) |
 
 | Read by | Why |
 |---|---|

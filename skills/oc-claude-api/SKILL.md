@@ -285,7 +285,7 @@ spend. Levers, cheapest-first:
 | `oc-integrations-engineer` | Owns third-party API auth (incl. provider clients on Bedrock/Vertex/Foundry) |
 | `oc-code-auditor` | Audits the request layer for unparsed tool inputs, missing refusal handling, leaked keys |
 | `oc-cost-ops` (v1.6) | Will own live spend tracking + cost-regression alerts; this skill sets static ceilings today |
-| `oc-git-ops` | Opens the migration diff PR |
+| `oc-git-ops` | Opens the migration diff PR (via its pre-PR gate: oc-docs-forge docs packet → oc-repo-ops readiness) |
 
 Boundary: this skill owns **the Claude API request surface** — model choice,
 caching, tool wiring, streaming/batch, migration. It does not own agent topology,

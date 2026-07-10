@@ -533,7 +533,7 @@ suggesting it:
 
 1. **oc-code-auditor** — read `oc-code-auditor/SKILL.md`, execute `/oc-audit pre-deploy`. Block on CRITICAL/HIGH findings.
 2. **oc-security-auditor** — read `oc-security-auditor/SKILL.md`, execute `/oc-security posture`. Block on CRITICAL findings.
-3. **oc-git-ops** — read `oc-git-ops/SKILL.md`, execute `/oc-git-sync`. (oc-git-ops auto-invokes oc-bug-check before commit.)
+3. **oc-git-ops** — read `oc-git-ops/SKILL.md`, execute `/oc-git-sync`. (oc-git-ops auto-invokes oc-bug-check before commit, then the oc-docs-forge → oc-repo-ops pre-PR gate before opening the PR.)
 4. **oc-deploy-ops** — read `oc-deploy-ops/SKILL.md`, execute `/oc-deploy staging`. After staging smoke-tests pass and user confirms, execute `/oc-deploy prod`.
 5. **oc-monitoring-ops** — read `oc-monitoring-ops/SKILL.md`, execute `/oc-monitor` to wire post-deploy observability.
 
@@ -622,7 +622,7 @@ project-dir/
 | **oc-stack-forge** | Auto-invoked during Phase 2. Produces stack recommendation that informs all specs. |
 | **oc-ux-engineer** | Design Evaluator auto-attaches during UI sprints in Phase 6. Also usable standalone for design iteration. |
 | **oc-code-auditor** | Evaluator reads oc-code-auditor checkpoint for pre-existing issues. Phase 7 suggests `/oc-audit pre-deploy`. |
-| **oc-git-ops** | Suggested after each sprint passes. Phase 7 suggests `/oc-git-sync`. |
+| **oc-git-ops** | Suggested after each sprint passes. Phase 7 suggests `/oc-git-sync`, which auto-invokes oc-bug-check at commit and the oc-docs-forge → oc-repo-ops pre-PR gate on every PR. |
 | **oc-deploy-ops** | Phase 7 hands off to deploy pipeline. |
 | **oc-integrations-engineer** | Phase 2 spec `04-integrations.md` can trigger integration planning (third-party APIs we *consume*). |
 | **oc-api-dev** | Phase 2 spec `02-architecture.md` "API Design" + `03-architecture.md` data model trigger oc-api-dev to elaborate the first-party API contract (OpenAPI/GraphQL, versioning, SDK). |

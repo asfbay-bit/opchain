@@ -1805,56 +1805,28 @@ const packCounts = {
       });
     }
 
-    /* One-shot auto-cycle on page load: open the CP panel and let the
-       6-box clockwise build animate, then open the orch panel and let
-       the routing-decision animation play one cycle, then settle.
-       Cancels on first user interaction (mouse, focus, scroll, key). */
-    function autoCycleArch() {
-      const wrap = document.getElementById('bands-wrap');
-      if (!wrap) return;
-      // Honour prefers-reduced-motion: skip the cycle entirely.
-      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    /* No auto-cycle on page load — deliberately removed.
 
-      let cancelled = false;
-      const timeouts = [];
-      const schedule = (fn, delay) => {
-        const t = setTimeout(() => { if (!cancelled) fn(); }, delay);
-        timeouts.push(t);
-      };
-      const cancel = () => {
-        if (cancelled) return;
-        cancelled = true;
-        timeouts.forEach(clearTimeout);
-      };
-      // First user-initiated interaction inside the diagram cancels the cycle.
-      ['pointerdown', 'pointerover', 'focusin', 'keydown', 'wheel'].forEach((ev) => {
-        wrap.addEventListener(ev, cancel, { once: true, capture: true, passive: true });
-      });
-      // Scrolling away also cancels.
-      window.addEventListener('scroll', cancel, { once: true, capture: true, passive: true });
+       An earlier version auto-opened the CP-sync panel (t=1s) and the
+       orchestrator-routing panel (t=9.6s) on a timer to demo them. But
+       both panels reveal via a max-height transition (0 → 320px / 480px),
+       which pushes every band below them down and registers as cumulative
+       layout shift. On /architecture that was the ENTIRE CLS budget:
+       CLS 0.198 / perf 0.90 with the cycle, CLS 0 / perf 0.99 without it
+       (Lighthouse desktop, cold load — it attributed all 15 shifts to
+       #cp-grid-section, i.e. the easing of that max-height transition).
 
-      /* Timing:
-         t=0     +1000ms settle (let layout + fonts settle)
-         t=1000  cpEnter — CP panel transitions open (0.6s)
-                 6 boxes × 1.0s stagger + 0.5s anim each, lines run
-                 0.5–7.5s. Hold ~7.5s so the last line completes.
-         t=8500  cpLeave — panel collapses (~0.9s with the 300ms guard)
-         t=9600  orchEnter — orch panel transitions open
-         t=11000 routing animation peaks — let one full 5s cycle run
-         t=15100 orchLeave — panel collapses
-       */
-      schedule(() => cpEnter(),                               1000);
-      schedule(() => { if (cpActive)   cpLeave();   },        8500);
-      schedule(() => orchEnter(),                             9600);
-      schedule(() => { if (orchActive) orchLeave(); },       15100);
-    }
+       The panels still open on hover / focus / click (wired by
+       wireArchEvents); only the unprompted auto-play is gone. If the
+       self-demo is ever restored, animate the reveal with transform on a
+       reserved-height container instead of max-height so it doesn't shift
+       layout. */
 
     if (document.readyState === 'loading') {
-      window.addEventListener('DOMContentLoaded', () => { wireArchEvents(); drawConnectionLines(); autoCycleArch(); });
+      window.addEventListener('DOMContentLoaded', () => { wireArchEvents(); drawConnectionLines(); });
     } else {
       wireArchEvents();
       drawConnectionLines();
-      autoCycleArch();
     }
     window.addEventListener('load', () => drawConnectionLines());
     window.addEventListener('resize', () => drawConnectionLines());

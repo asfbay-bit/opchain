@@ -430,6 +430,7 @@ oc-deploy-ops gates production deploys on this command returning zero drift.
 | Threat model of the API surface | `oc-security-auditor` | oc-api-dev emits the surface; oc-security-auditor reviews |
 | Per-endpoint SLO *implementation* + alert pipelines | `oc-monitoring-ops` | oc-api-dev emits SLO targets + drift-rule manifest; oc-monitoring-ops wires alerts |
 | Secret rotation procedures | `oc-integrations-engineer` `/oc-integrate secrets` | Already owned |
+| PR-facing / product documentation of API changes | `oc-docs-forge` | oc-api-dev renders reference docs from the spec; oc-docs-forge owns the PR docs packet + product-doc upkeep |
 
 oc-api-dev's outputs (rate-limit policy, CORS policy, SLO targets, drift manifest)
 are *declarations* in the spec. Sibling skills implement them.
@@ -544,6 +545,7 @@ deploy. See `oc-deploy-ops/SKILL.md § Pack-aware dispatch`.)
 | oc-monitoring-ops | Ingests SLO targets + drift-alert manifest |
 | oc-deploy-ops | Drift gate — `oc-api-dev /oc-api drift` must report zero before prod |
 | oc-integrations-engineer | When a sibling app integrates *this* API, the published spec is the source of truth |
+| oc-docs-forge | API doc/spec drift + generated SDK notes → PR documentation packet |
 
 ---
 
