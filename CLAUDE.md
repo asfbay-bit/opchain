@@ -38,7 +38,7 @@ feature branch ─► PR ─► CI green (tests only) ─► merge to main
 - `npm run deploy:staging` → `node scripts/deploy.mjs --staging` → `wrangler deploy --env staging`
 - `npm run deploy` → `node scripts/deploy.mjs` → `wrangler deploy` (production)
 - The wrapper loads `.dev.vars` into the build env and inlines the `PUBLIC_POSTHOG_*` analytics vars. It **no longer requires `LINEAR_API_KEY`**: the `/changelog` roadmap is hand-maintained in `site/src/data/roadmap-static.ts`, so the old build-time Linear pull (`scripts/gen-roadmap.mjs`) is no longer on the deploy path and Linear being unreachable can't block a deploy. `gen-roadmap` and `OPCHAIN_REQUIRE_LINEAR` were removed from the deploy/prebuild flow on 2026-06-19; the script is kept for a future re-wire to a live roadmap.
-- After each deploy, sanity-check by hand: `curl -sS https://staging.opchain.dev/api/health` and confirm `version` matches your local commit SHA.
+- After each deploy, sanity-check by hand: `curl -sS https://staging.opchain.dev/api/health` and confirm `version` matches your local commit SHA. `npm run smoke:staging` / `npm run smoke:prod` (`scripts/smoke.sh`) run a fuller post-deploy check against the same envs.
 
 ### CI
 
@@ -70,32 +70,49 @@ opchain/
 │   ├── (astro dist copied in)
 │   ├── opchain-skills.zip  # Generated from skills/ by scripts/make-skills-zip.sh
 │   └── docs/               # Synced from skills/ by scripts/sync-docs.sh
-├── skills/                 # Skill source definitions (the product)
-│   ├── oc-app-architect/
-│   ├── oc-checkpoint-protocol/
-│   ├── oc-code-auditor/
-│   ├── oc-deploy-ops/
-│   ├── oc-git-ops/
-│   ├── oc-integrations-engineer/
-│   ├── oc-reverse-spec/
-│   ├── oc-scale-ops/
-│   ├── oc-stack-forge/
+├── skills/                 # Skill source definitions (the product) — 29 skills, validated by gen-skills-catalog.mjs
+│   ├── oc-agent-forge/      oc-api-dev/          oc-app-architect/    oc-bug-check/
+│   ├── oc-checkpoint-protocol/  oc-claude-api/   oc-code-auditor/     oc-cost-ops/
+│   ├── oc-dash-forge/       oc-deploy-ops/       oc-docs-forge/       oc-fleet-ops/
+│   ├── oc-git-ops/          oc-integrations-engineer/  oc-migration-ops/  oc-modularize-ops/
+│   ├── oc-monitoring-ops/   oc-orchestrator/     oc-prompt-ops/       oc-rag-forge/
+│   ├── oc-release-ops/      oc-repo-ops/         oc-reverse-spec/     oc-scale-ops/
+│   ├── oc-security-auditor/ oc-signal-forge/     oc-stack-forge/      oc-telemetry-ops/
 │   ├── oc-ux-engineer/
-│   ├── orchestrator.md     # Shared orchestration rules
+│   ├── orchestrator.md     # Shared orchestration rules bundled into every skill (not the oc-orchestrator skill)
+│   ├── CHANGELOG.md        # Skill version history
 │   └── README.md           # Installation instructions
-├── site/                   # Astro 5 app. Scaffolded Sprint 0; content collection in Sprint 1; cutover Sprint 6.
 ├── scripts/
 │   ├── sync-docs.sh                # skills/ → public/docs/ sync
 │   ├── make-skills-zip.sh          # skills/ → public/opchain-skills.zip
-│   └── gen-skills-catalog.mjs      # validates skills/<id>/SKILL.md frontmatter at build time
+│   ├── gen-skills-catalog.mjs      # validates skills/<id>/SKILL.md frontmatter at build time
+│   └── ...                         # ~20 more gen-*/checkpoint/deploy/telemetry scripts — see Key Commands + package.json
 ├── tests/                  # Vitest unit + handler tests
-├── .github/workflows/      # ci.yml + lighthouse.yml (no deploy workflows — manual)
+├── .checkpoints/            # Tracked session-state JSON per skill — see "Session resume" below
+├── .github/workflows/      # ci.yml + lighthouse.yml + deploy-lag.yml + mirror-public.yml + publish-mcp-registry.yml (no deploy-to-prod workflow — manual)
+├── checklists/             # Hand-maintained launch checklist
+├── design/                 # Current architecture/design HTML proposals + punchlists (active work)
+├── design-previews/        # Archived HTML mockups from earlier releases (v1.4–v1.5 era)
+├── docs/                   # analytics.md, blog planning docs, runbooks/ (e.g. cloudflare-challenge.md), audits/, releases/
+├── mcp/                    # Local MCP server reference (mcp/local-server.mjs) + README
+├── mirror/                 # Public-facing copy (README/CONTRIBUTING/issue templates) synced to asfbay-bit/opchain-skills
+├── mockups/                # Archived HTML mockups (packs desktop/mobile)
+├── previews/               # Nav-proposal scratch doc + iteration sandbox HTML (gitignored from build)
+├── prompts/                # opchain-eval/ — eval.yaml + fixtures for the internal eval harness
+├── reports/                # token-usage/ — generated cost/usage reports (gitignored intermediates)
+├── roadmap/                # Sprint-plan history (00–09 + B-10) + sessions/ — see roadmap/README.md
+├── specs/                  # reverse-spec output: current spec/ docs + dated audit/gap/drift snapshots — see specs/README.md
+├── sprints/                # Per-sprint contracts + eval rounds (sprint-7a/7b/7c) — see sprints/README.md
+├── .opchain/pm.yaml        # PM-tool (Linear) integration config for skills
 ├── wrangler.jsonc           # Worker config (prod + env.staging)
 ├── build.mjs               # esbuild: src/index.js → dist/index.js, injects __OPCHAIN_VERSION__
 ├── vitest.config.js        # test runner config (defines __OPCHAIN_VERSION__ = "test")
 ├── .env.example            # env var template (copy to .dev.vars for local)
+├── server.json              # MCP Registry listing (io.github.asfbay-bit/opchain-skills)
 └── package.json
 ```
+
+`.claude/` (hooks, settings, skills bundled into this repo's own Claude Code session) is covered separately.
 
 ## Key Commands
 
@@ -109,8 +126,13 @@ npm test                 # vitest unit + integration-ish suite
 npm run gen-catalog      # validates skills/<id>/SKILL.md frontmatter at build time
 npm run sync-docs        # skills/ → public/docs/ (runs in prebuild)
 npm run make-zip         # skills/ → public/opchain-skills.zip (runs in prebuild)
+npm run smoke:staging    # post-deploy smoke test against staging.opchain.dev
+npm run smoke:prod       # post-deploy smoke test against opchain.dev
+# prebuild also runs gen-stack-packs, gen-api-dev-adapters, gen-packs-catalog,
+# gen-flags, gen-mcp-catalog, validate-pm-mcp, sync-bundles:check, gen-og,
+# build-site — see the full chain in package.json → scripts.prebuild
 
-# New Astro site (Sprint 0 scaffold; real pages land Sprints 1-3) —
+# Astro site (site/ — full site, live since the Sprint 6 cutover) —
 npm run site:install     # one-time: cd site && npm install
 npm run site:dev         # astro dev on localhost:4321
 npm run site:build       # astro build → site/dist
@@ -118,6 +140,8 @@ npm run site:build       # astro build → site/dist
 # Checkpoints (session state docs at .checkpoints/<skill>.checkpoint.json) —
 npm run checkpoint:status    # print "where did I leave off?" markdown summary
 npm run checkpoint:validate  # validate every checkpoint against the schema
+npm run checkpoint:next      # print the next recommended action across skills
+npm run checkpoint:doctor    # diagnose checkpoint inconsistencies
 npm run checkpoint -- update <skill> --field=value   # update a field, restamp updated_at
 ```
 
@@ -140,6 +164,8 @@ the JSON honest.
 | GET | `/api/health` | Health check (with optional flag-overrides summary) |
 | GET | `/api/flags/public` | Public-flag map for the browser; sets `oc_id` cookie |
 | POST | `/api/feedback` | Create Linear issue (bug/feature/improvement) |
+| GET | `/api/votes` | Read feature-vote counts |
+| POST | `/api/votes/:id` | Cast a feature vote |
 | POST | `/api/notify` | Lead capture (KV-backed) |
 | POST | `/mcp` | opchain MCP server (JSON-RPC; Codex / any MCP client) |
 | GET | `/.well-known/ai-catalog.json` | ARD discovery manifest (advertises the MCP server) |
@@ -213,13 +239,13 @@ Template lives in `.env.example`. Copy to `.dev.vars` for local dev; set in the 
 
 - `LINEAR_API_KEY` — Linear API key for feedback endpoint
 - `LINEAR_TEAM_ID`, `LINEAR_PROJECT_ID` — optional overrides for the default team/project
+- `FEEDBACK_DRY_RUN` — set `"true"` to accept feedback submissions without writing to Linear (returns a synthetic 201). Wired into `wrangler.jsonc env.staging`; unset in production.
 - `POSTHOG_PROJECT_API_KEY`, `POSTHOG_HOST` — server-side analytics capture. Env-gated; unset → no-op.
 - `PUBLIC_POSTHOG_KEY`, `PUBLIC_POSTHOG_HOST` — client-side PostHog (consent-gated via `ConsentBanner.astro`).
 
-CI deploy needs two GitHub Actions secrets at the repo level:
-
-- `CLOUDFLARE_API_TOKEN` — Wrangler API token with Workers deploy scope
-- `CLOUDFLARE_ACCOUNT_ID` — the opchain Cloudflare account id
+No GitHub Actions secrets are required — deploys are manual (`wrangler login` on
+a laptop, see "Deployment" above), and none of the workflows in
+`.github/workflows/` deploy to Cloudflare.
 
 ## Important Notes
 
