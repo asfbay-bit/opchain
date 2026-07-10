@@ -38,7 +38,7 @@ feature branch ─► PR ─► CI green (tests only) ─► merge to main
 - `npm run deploy:staging` → `node scripts/deploy.mjs --staging` → `wrangler deploy --env staging`
 - `npm run deploy` → `node scripts/deploy.mjs` → `wrangler deploy` (production)
 - The wrapper loads `.dev.vars` into the build env and inlines the `PUBLIC_POSTHOG_*` analytics vars. It **no longer requires `LINEAR_API_KEY`**: the `/changelog` roadmap is hand-maintained in `site/src/data/roadmap-static.ts`, so the old build-time Linear pull (`scripts/gen-roadmap.mjs`) is no longer on the deploy path and Linear being unreachable can't block a deploy. `gen-roadmap` and `OPCHAIN_REQUIRE_LINEAR` were removed from the deploy/prebuild flow on 2026-06-19; the script is kept for a future re-wire to a live roadmap.
-- After each deploy, sanity-check by hand: `curl -sS https://staging.opchain.dev/api/health` and confirm `version` matches your local commit SHA.
+- After each deploy, sanity-check by hand: `curl -sS https://staging.opchain.dev/api/health` and confirm `version` matches your local commit SHA. `npm run smoke:staging` / `npm run smoke:prod` (`scripts/smoke.sh`) run a fuller post-deploy check against the same envs.
 
 ### CI
 
@@ -126,8 +126,13 @@ npm test                 # vitest unit + integration-ish suite
 npm run gen-catalog      # validates skills/<id>/SKILL.md frontmatter at build time
 npm run sync-docs        # skills/ → public/docs/ (runs in prebuild)
 npm run make-zip         # skills/ → public/opchain-skills.zip (runs in prebuild)
+npm run smoke:staging    # post-deploy smoke test against staging.opchain.dev
+npm run smoke:prod       # post-deploy smoke test against opchain.dev
+# prebuild also runs gen-stack-packs, gen-api-dev-adapters, gen-packs-catalog,
+# gen-flags, gen-mcp-catalog, validate-pm-mcp, sync-bundles:check, gen-og,
+# build-site — see the full chain in package.json → scripts.prebuild
 
-# New Astro site (Sprint 0 scaffold; real pages land Sprints 1-3) —
+# Astro site (site/ — full site, live since the Sprint 6 cutover) —
 npm run site:install     # one-time: cd site && npm install
 npm run site:dev         # astro dev on localhost:4321
 npm run site:build       # astro build → site/dist
@@ -135,6 +140,8 @@ npm run site:build       # astro build → site/dist
 # Checkpoints (session state docs at .checkpoints/<skill>.checkpoint.json) —
 npm run checkpoint:status    # print "where did I leave off?" markdown summary
 npm run checkpoint:validate  # validate every checkpoint against the schema
+npm run checkpoint:next      # print the next recommended action across skills
+npm run checkpoint:doctor    # diagnose checkpoint inconsistencies
 npm run checkpoint -- update <skill> --field=value   # update a field, restamp updated_at
 ```
 
@@ -157,6 +164,8 @@ the JSON honest.
 | GET | `/api/health` | Health check (with optional flag-overrides summary) |
 | GET | `/api/flags/public` | Public-flag map for the browser; sets `oc_id` cookie |
 | POST | `/api/feedback` | Create Linear issue (bug/feature/improvement) |
+| GET | `/api/votes` | Read feature-vote counts |
+| POST | `/api/votes/:id` | Cast a feature vote |
 | POST | `/api/notify` | Lead capture (KV-backed) |
 | POST | `/mcp` | opchain MCP server (JSON-RPC; Codex / any MCP client) |
 | GET | `/.well-known/ai-catalog.json` | ARD discovery manifest (advertises the MCP server) |
@@ -230,13 +239,13 @@ Template lives in `.env.example`. Copy to `.dev.vars` for local dev; set in the 
 
 - `LINEAR_API_KEY` — Linear API key for feedback endpoint
 - `LINEAR_TEAM_ID`, `LINEAR_PROJECT_ID` — optional overrides for the default team/project
+- `FEEDBACK_DRY_RUN` — set `"true"` to accept feedback submissions without writing to Linear (returns a synthetic 201). Wired into `wrangler.jsonc env.staging`; unset in production.
 - `POSTHOG_PROJECT_API_KEY`, `POSTHOG_HOST` — server-side analytics capture. Env-gated; unset → no-op.
 - `PUBLIC_POSTHOG_KEY`, `PUBLIC_POSTHOG_HOST` — client-side PostHog (consent-gated via `ConsentBanner.astro`).
 
-CI deploy needs two GitHub Actions secrets at the repo level:
-
-- `CLOUDFLARE_API_TOKEN` — Wrangler API token with Workers deploy scope
-- `CLOUDFLARE_ACCOUNT_ID` — the opchain Cloudflare account id
+No GitHub Actions secrets are required — deploys are manual (`wrangler login` on
+a laptop, see "Deployment" above), and none of the workflows in
+`.github/workflows/` deploy to Cloudflare.
 
 ## Important Notes
 
