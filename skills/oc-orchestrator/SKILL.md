@@ -1,7 +1,7 @@
 ---
 name: oc-orchestrator
 displayName: OC · Orchestrator
-version: 1.8.0
+version: 1.8.1
 shortDesc: Pipeline coordinator — registry, status, routing. v1.2 reads `pm_refs` across skills; routes by ticket id.
 phases: [foundation]
 triAgent: false
@@ -116,16 +116,25 @@ If the project doesn't have `npm run checkpoint:status` wired up
 ls .checkpoints/*.checkpoint.json 2>/dev/null && cat .checkpoints/*.checkpoint.json
 ```
 
+Treat that direct read as the authoritative status source. The missing convenience
+command is not evidence that checkpoint state is unreliable, and it must not be
+reported as product progress or as a blocker. If the files exist, validate their
+claims against the named specs, git state, tests, and release artifacts as normal.
+
 If `.checkpoints/` doesn't exist at all, this is a cold start. The
-`oc-checkpoint-protocol` is not directly invocable — instead run its scaffolder:
+`oc-checkpoint-protocol` is not directly invocable. If this is the opchain.dev repo
+and its CLI exists, run its scaffolder:
 
 ```bash
 node scripts/checkpoint.mjs init
 ```
 
-That creates `.checkpoints/` + a starter README. Follow the oc-checkpoint-protocol
+In any other repo, create `.checkpoints/` and the receiving skill's checkpoint
+directly with the file tools already available; do not assume `scripts/checkpoint.mjs`
+was copied into the project. Follow the oc-checkpoint-protocol
 SKILL.md § "Scaffold Phase" to add the `package.json` scripts, the `.gitattributes`
-merge driver, and the optional post-merge auto-stamp workflow before routing work.
+merge driver, and the optional post-merge auto-stamp workflow only when the user asks
+to adopt the CLI. Routing and checkpoint writes do not wait for that tooling work.
 
 **Do not** start routing or dispatching work until you've read the
 checkpoint state. The whole point of the protocol is that the next

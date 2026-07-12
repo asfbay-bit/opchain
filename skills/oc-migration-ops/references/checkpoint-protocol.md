@@ -267,6 +267,10 @@ are the writer.** The `scripts/checkpoint.mjs` CLI described under *Tooling* is 
 optional convenience that exists **only inside the opchain.dev repo**; on a user's
 own project it is absent, and you write checkpoints directly instead. Do not treat a
 missing CLI or a missing `npm run checkpoint:*` script as a reason to skip the write.
+Do not tell the user that status is unreliable merely because generated CLI output is
+unavailable: read the checkpoint JSON directly, then corroborate its claims against
+the referenced specs, git state, tests, and release artifacts. Record CLI adoption as
+tooling debt only when the user actually wants that convenience added.
 
 The operation is always **read → merge → write**, four concrete steps you perform
 with the tools you already have:

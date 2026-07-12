@@ -10,6 +10,23 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
+## [1.8.1] — 2026-07-12 — "Checkpoint truth without the CLI"
+
+Consumer repos no longer lose trustworthy project status merely because they do not
+carry opchain.dev's optional checkpoint CLI.
+
+### Fixed
+- **oc-orchestrator** — treats direct `.checkpoints/*.checkpoint.json` reads as the
+  authoritative fallback and no longer recommends a repo-local scaffolder where it
+  cannot exist.
+- **oc-checkpoint-protocol** — explicitly requires agents to corroborate directly
+  read checkpoint state against specs, git, tests, and release artifacts; missing CLI
+  output is neither a blocker nor product progress.
+- Lockstep patch bump: all 29 skills → `1.8.1`.
+
+### Compatibility
+- Back-compatible with v1.8.0. Existing checkpoint files require no migration.
+
 ## [1.8.0] — 2026-07-04 — "The quality-gate rail"
 
 Every PR now rides a documentation + hygiene rail before it opens. The catalog
