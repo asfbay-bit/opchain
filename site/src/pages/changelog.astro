@@ -319,6 +319,41 @@ const futureReleaseGroups = [
         </div>
       </article>
 
+      <!-- v1.8.1 — checkpoint-truth patch under the v1.8 line. Deep-linkable from #v1-8-1. -->
+      <article class="rel-card" id="v1-8-1" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-8-1-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.8.1 patch</span><span class="rc-title">Checkpoint truth without the CLI</span><span class="rc-date">Jul 12, 2026</span></span>
+            <span class="rc-summary">Consumer repos no longer lose trustworthy project status just because they don't carry opchain.dev's optional checkpoint CLI — the checkpoint files themselves are the source of truth.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-8-1-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">checkpoint reads</span><span class="tag">no repo-local CLI</span><span class="tag">corroborated status</span><span class="tag">29 skills</span></div>
+            <p>
+              The checkpoint protocol was leaning on an optional in-repo
+              scaffolder that installed skill bundles don't ship. This patch
+              makes a direct read of <code>.checkpoints/*.checkpoint.json</code>
+              the authoritative path, so "where did I leave off?" answers the
+              same in a consumer repo as it does here — and insists that answer
+              be checked against reality, not taken on faith.
+            </p>
+            <h3>What shipped</h3>
+            <ul>
+              <li><strong>oc-orchestrator</strong> treats a direct checkpoint-file read as the authoritative fallback and no longer recommends a repo-local scaffolder where it cannot exist.</li>
+              <li><strong>oc-checkpoint-protocol</strong> requires agents to corroborate the checkpoint state they read against specs, git, tests, and release artifacts; missing CLI output is neither a blocker nor evidence of progress.</li>
+              <li><strong>Lockstep patch bump</strong> — all 29 skills move to <code>1.8.1</code>.</li>
+            </ul>
+            <div class="compat-box">
+              <strong>Back-compatible with v1.8.0.</strong> No routes, storage,
+              environment variables, or user-facing commands changed, and
+              existing checkpoint JSON requires no migration.
+            </div>
+          </div>
+        </div>
+      </article>
+
       <!-- v1.7 — previous release; "Seams & Signals". Deep-linkable from #v1-7. -->
       <article class="hero-card hero-card--released" id="v1-7" data-card>
         <button
