@@ -1,7 +1,7 @@
 ---
 name: oc-fleet-ops
 displayName: OC · Fleet Ops
-version: 1.8.0
+version: 1.8.1
 shortDesc: "Provision and operate containers across self-managed infra — k8s/Nomad/Compose/VMs. Terraform when it fits, not always."
 phases: [build]
 triAgent: false
