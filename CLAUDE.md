@@ -193,7 +193,10 @@ staging). Builders live in `src/lib/discovery.js`; routes in `src/index.js`.
 - **`/llms.txt`** — Markdown index linking each skill's raw `/docs/<id>/SKILL.md`
   plus the key human + machine entry points.
 - **`/skills.json`** — full JSON skill catalog (served at the root, not under
-  `/api/`, so it isn't blocked by `robots.txt Disallow: /api/`).
+  `/api/`, so it isn't blocked by `robots.txt Disallow: /api/`). Its top-level
+  `catalogVersion` is the lockstep skill semver (unlike `version`, the build SHA);
+  the `/install` page's SessionStart update-check hook compares it against the
+  `version:` frontmatter of installed skills.
 - **JSON-LD** — `Base.astro` emits a site-wide `Organization` + `WebSite` graph
   plus a page node (`SoftwareApplication` on `/`, a per-skill node on `/skills/<id>`).
 

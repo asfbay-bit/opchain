@@ -166,6 +166,11 @@ export function buildSkillsJson({ catalog, origin, version = "dev" } = {}) {
   return {
     name: "opchain",
     version,
+    // Skills version in lockstep (skills/CHANGELOG.md), so the catalog semver
+    // is any skill's version. Unlike `version` (build SHA, not orderable),
+    // this is what installed copies compare against their local SKILL.md
+    // frontmatter to detect an available update.
+    catalogVersion: skills[0]?.version ?? null,
     description: SUITE_DESCRIPTION,
     mcp: { endpoint: `${b}${DISCOVERY_PATHS.mcp}`, card: `${b}${DISCOVERY_PATHS.mcpCard}` },
     install: { bundle: `${b}/opchain-skills.zip`, guide: `${b}/install` },

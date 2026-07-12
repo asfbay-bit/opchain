@@ -101,6 +101,15 @@ describe("buildSkillsJson", () => {
     expect(app.doc).toBe(`${ORIGIN}/docs/oc-app-architect/SKILL.md`);
     expect(app.bundle).toBe(`${ORIGIN}/skills/oc-app-architect.zip`);
   });
+
+  it("exposes the lockstep catalog semver for update checks", () => {
+    const data = buildSkillsJson({ catalog, origin: ORIGIN, version: "v1" });
+    // `version` is the build SHA; `catalogVersion` is the skill-release semver
+    // that installed copies compare against their SKILL.md frontmatter.
+    expect(data.catalogVersion).toBe("1.4.3");
+    const empty = buildSkillsJson({ catalog: { skills: [] }, origin: ORIGIN });
+    expect(empty.catalogVersion).toBeNull();
+  });
 });
 
 // ── Worker route integration (uses the real generated mcp-catalog.json) ──────
@@ -144,6 +153,7 @@ describe("discovery routes", () => {
     const body = await res.json();
     expect(body.count).toBe(realCatalog.skills.length);
     expect(body.skills.map((s) => s.id)).toContain("oc-release-ops");
+    expect(body.catalogVersion).toBe(realCatalog.skills[0].version);
   });
 
   it("GET /llms.txt → text/plain Markdown index", async () => {
