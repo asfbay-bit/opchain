@@ -6,7 +6,8 @@
  */
 import { describe, it, expect } from "vitest";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, mkdirSync, writeFileSync, cpSync, symlinkSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, cpSync, symlinkSync, rmSync } from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,13 +15,13 @@ import { fileURLToPath } from "node:url";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 function findNodeModules() {
-  let dir = ROOT;
-  while (dir !== dirname(dir)) {
-    const candidate = join(dir, "node_modules");
-    if (existsSync(candidate)) return candidate;
-    dir = dirname(dir);
-  }
-  throw new Error("Could not find node_modules for catalog validator fixture");
+  // Locate the node_modules that actually contains the validator's one npm
+  // dependency, using Node's own resolution. A plain "does node_modules
+  // exist?" walk gets poisoned by vitest's cache: the first `vitest run` in a
+  // checkout without installed deps creates node_modules/.vite, and that
+  // cache-only shell would then shadow the real install one level up.
+  const require = createRequire(import.meta.url);
+  return dirname(dirname(require.resolve("gray-matter/package.json")));
 }
 
 function runValidator(skillsDir) {
