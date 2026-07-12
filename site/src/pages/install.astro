@@ -31,6 +31,28 @@ rm opchain-skills.zip`;
 
 const versionCmd = `curl -sS https://opchain.dev/api/health | jq .version`;
 
+// SessionStart update check: compares the installed SKILL.md frontmatter
+// version (project install first, then global) against the lockstep
+// `catalogVersion` in /skills.json. Prints one line when an update exists;
+// silent — no output, exit 0 — when current, offline, or opchain isn't
+// installed. Serialized with JSON.stringify so the snippet users copy is
+// guaranteed-valid settings.json.
+const updateHookCmd = `f=$(ls "\${CLAUDE_PROJECT_DIR:-.}"/.claude/skills/oc-*/SKILL.md "$HOME"/.claude/skills/oc-*/SKILL.md 2>/dev/null | head -n1); [ -n "$f" ] || exit 0; installed=$(sed -n 's/^version:[[:space:]]*//p' "$f" | head -n1); [ -n "$installed" ] || exit 0; latest=$(curl -sf --max-time 3 "https://opchain.dev/skills.json?u=$(date +%s)" | sed -n 's/.*"catalogVersion": *"\\([^"]*\\)".*/\\1/p' | head -n1); [ -n "$latest" ] && [ "$installed" != "$latest" ] && echo "opchain skills v$latest is available (installed: v$installed). Update guide: https://opchain.dev/install#update"; exit 0`;
+const updateHookJson = JSON.stringify(
+  {
+    hooks: {
+      SessionStart: [
+        {
+          matcher: "startup",
+          hooks: [{ type: "command", command: updateHookCmd }],
+        },
+      ],
+    },
+  },
+  null,
+  2,
+);
+
 const codexMcpCmd = `# ~/.codex/config.toml
 [mcp_servers.opchain]
 url = "https://opchain.dev/mcp"`;
@@ -191,7 +213,7 @@ codex`;
     )}
 
     <!-- ───────────── Upgrade ───────────── -->
-    <section class="upgrade">
+    <section class="upgrade" id="update">
       <Eyebrow>upgrade</Eyebrow>
       <h2><Icon name="refresh-cw" /> Update an existing install</h2>
       <p>
@@ -283,6 +305,41 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
         <code class="ic">opchain.dev</code>. Re-run after upgrading and
         confirm a fresh Claude session sees the new skills under
         <code class="ic">.claude/skills/&lt;name&gt;/SKILL.md</code>.
+      </p>
+
+      <h3><Icon name="zap" /> Get notified automatically</h3>
+      <p>
+        Skills don't phone home, so a stale install stays stale silently.
+        This <a href="https://docs.claude.com/en/docs/claude-code/hooks" rel="noopener">Claude Code
+        hook</a> checks at session start: it reads the
+        <code class="ic">version</code> from your installed skills'
+        frontmatter, compares it against the live catalog's
+        <code class="ic">catalogVersion</code> at
+        <code class="ic">opchain.dev/skills.json</code>, and drops a
+        one-line notice into the session when a newer release is out.
+        Merge it into <code class="ic">~/.claude/settings.json</code> (or a
+        project's <code class="ic">.claude/settings.json</code>) — if you
+        already have a <code class="ic">hooks</code> block, add the
+        <code class="ic">SessionStart</code> entry to it rather than
+        pasting the whole object.
+      </p>
+      <div class="code-row">
+        {/* The hook command is one long line, so this block scrolls horizontally —
+            it needs keyboard focus (axe: scrollable-region-focusable). */}
+        <pre class="codeblock" tabindex="0" role="region" aria-label="Update-check hook for settings.json"><code>{updateHookJson}</code></pre>
+        <button class="copy" type="button" data-copy={updateHookJson} data-flow="upgrade-hook" aria-label="Copy update-check hook settings">
+          <Icon name="copy" size={12} />
+          <span class="copy-label">copy</span>
+        </button>
+      </div>
+      <p>
+        It checks, it never installs — releases can carry breaking changes
+        (see the <a href="/changelog">changelog</a>), so the swap stays a
+        deliberate step: run the upgrade command above when you see the
+        notice. When you're current, offline, or opchain isn't installed,
+        the hook prints nothing and gets out of the way. It fires only on
+        <code class="ic">startup</code> — not on resume or compact — and
+        gives the network three seconds before giving up.
       </p>
     </section>
 
