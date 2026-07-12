@@ -38,7 +38,7 @@ feature branch ─► PR ─► CI green (tests only) ─► merge to main
 - `npm run deploy:staging` → `node scripts/deploy.mjs --staging` → `wrangler deploy --env staging`
 - `npm run deploy` → `node scripts/deploy.mjs` → `wrangler deploy` (production)
 - The wrapper loads `.dev.vars` into the build env and inlines the `PUBLIC_POSTHOG_*` analytics vars. It **no longer requires `LINEAR_API_KEY`**: the `/changelog` roadmap is hand-maintained in `site/src/data/roadmap-static.ts`, so the old build-time Linear pull (`scripts/gen-roadmap.mjs`) is no longer on the deploy path and Linear being unreachable can't block a deploy. `gen-roadmap` and `OPCHAIN_REQUIRE_LINEAR` were removed from the deploy/prebuild flow on 2026-06-19; the script is kept for a future re-wire to a live roadmap.
-- After each deploy, sanity-check by hand: `curl -sS https://staging.opchain.dev/api/health` and confirm `version` matches your local commit SHA.
+- After each deploy, sanity-check by hand: `curl -sS https://staging.opchain.dev/api/health` and confirm `version` matches your local commit SHA. The route (and every `/api/*` response) is `Cache-Control: no-store`, so this check can't read a stale edge-cached version; the deploy-lag canary and `scripts/smoke.sh` additionally append a cache-busting query string in case a zone-level cache rule ever overrides origin headers (that bit us on 2026-07-10: `cf-cache-status: HIT` served a pre-deploy `version` on staging).
 
 ### CI
 

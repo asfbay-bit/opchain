@@ -180,6 +180,9 @@ describe("GET /api/votes — batched counts", () => {
       envWith({}),
     );
     expect(res.status).toBe(200);
+    // The no-KV path builds headers from corsHeaders() alone — this locks in
+    // the API-wide no-store default (the bound-KV path sets it explicitly).
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
     expect((await res.json()).counts).toEqual({});
   });
 });

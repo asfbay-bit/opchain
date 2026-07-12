@@ -679,7 +679,9 @@ async function cmdDoctor(opts = {}) {
   if (opts.online) {
     try {
       const head = execSync("git rev-parse --short HEAD", { cwd: ROOT, encoding: "utf8" }).trim();
-      const res = await fetch("https://opchain.dev/api/health", { signal: AbortSignal.timeout(8000) });
+      // Cache-busting query string: the route is no-store at the origin, but
+      // a zone cache rule serving a stale HIT would fake a drift warning.
+      const res = await fetch(`https://opchain.dev/api/health?doctor=${Date.now()}`, { signal: AbortSignal.timeout(8000) });
       const live = (await res.json()).version;
       if (live && head && !head.startsWith(String(live)) && !String(live).startsWith(head)) {
         add("warn", "deploy", `live /api/health version=${live} != local HEAD ${head} — production may be behind main`);

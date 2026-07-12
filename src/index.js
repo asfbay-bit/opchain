@@ -466,7 +466,10 @@ async function sha256Hex(input) {
 // Response is cached briefly per-visitor:
 //   Cache-Control: private, max-age=30
 // — long enough to absorb a burst of fetches on a single page load, short
-// enough that flipping a flag in PostHog propagates within ~30s.
+// enough that flipping a flag in PostHog propagates within ~30s. This
+// deliberately overrides the no-store default from corsHeaders(); `private`
+// still keeps it out of the shared edge cache — only the visitor's browser
+// may hold it.
 
 async function handlePublicFlags(request, env, ctx, origin, requestId) {
   const { id, setCookie } = ensureOcId(request);
@@ -717,7 +720,9 @@ async function route(request, env, ctx, url, origin, requestId) {
     ) {
       return new Response(
         JSON.stringify({ error: "This endpoint has been removed." }),
-        { status: 410, headers: { "Content-Type": "application/json" } },
+        // no-store keeps the "nothing under /api/* is edge-cached" invariant
+        // exception-free — a cached 410 would outlive any future revival.
+        { status: 410, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } },
       );
     }
 

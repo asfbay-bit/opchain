@@ -60,7 +60,12 @@ jobs:
           last_body=""
           challenge=""
           for attempt in 1 2 3; do
-            body="$(curl -sS -m 10 -H 'accept: application/json' https://opchain.dev/api/health 2>/dev/null || true)"
+            # Unique query string per attempt — belt-and-suspenders against
+            # the edge cache. /api/health is Cache-Control: no-store at the
+            # origin, but a zone-level cache rule can override origin headers;
+            # a cached HIT here reads a pre-deploy version and fakes drift
+            # (seen on staging during the 2026-07-10 deploy check).
+            body="$(curl -sS -m 10 -H 'accept: application/json' "https://opchain.dev/api/health?canary=${GITHUB_RUN_ID:-manual}-${attempt}" 2>/dev/null || true)"
             last_body="$body"
             # Detect a Cloudflare bot-management interstitial. When Managed
             # Challenge / Bot Fight Mode is on, the edge answers non-browser

@@ -30,7 +30,9 @@ function makeServer(handlers) {
     const hits = [];
     const server = createServer((req, res) => {
       hits.push(`${req.method} ${req.url}`);
-      const handler = handlers[req.url];
+      // Route on pathname — smoke.sh appends cache-busting query strings
+      // (e.g. /api/health?nocache=…) that must hit the same handler.
+      const handler = handlers[new URL(req.url, "http://localhost").pathname];
       if (!handler) {
         res.writeHead(404, { "content-type": "text/plain" });
         res.end("no handler");
