@@ -1,70 +1,65 @@
 {
-  "_note": "NOT telemetry from .checkpoints/usage.sqlite \u2014 that store is opt-in, content-free and cannot be backfilled. This is a one-shot retroactive export of Claude Code transcript usage, shaped to satisfy the oc-telemetry-ops export contract. Interactive sessions are not skill runs, so skill-semantic fields are null rather than faked.",
-  "schema": "oc-telemetry-ops/dashboard_export@1",
-  "generated_at": "2026-07-10T00:00:00Z",
-  "source": "claude-code transcripts (~/.claude/projects), deduped by message.id, merged append-safe",
-  "k_anonymity": {
-    "threshold": 5,
-    "policy": "cells with <5 entries folded into 'other'"
-  },
+  "_note": "Forward oc-telemetry-ops export contract satisfied RETROACTIVELY from Claude Code session transcripts. NOT telemetry from .checkpoints/usage.sqlite (opt-in, content-free, cannot be backfilled). One-shot shape-match only.",
+  "generated_at": "2026-07-14T14:30:00Z",
   "model_tier_distribution": {
     "opus": {
-      "entries": 1565,
-      "cost_usd": 299.6
+      "entries": 2062,
+      "cost_usd": 401.01,
+      "total_tokens": 371145021
     },
-    "other": {
-      "entries": 128,
-      "cost_usd": 0.0
+    "fable": {
+      "entries": 2375,
+      "cost_usd": 633.29,
+      "total_tokens": 233327786
     },
     "sonnet": {
       "entries": 94,
-      "cost_usd": 7.44
-    },
-    "fable": {
-      "entries": 1427,
-      "cost_usd": 342.55
-    }
-  },
-  "avg_cost_per_feature_usd": 44.43,
-  "avg_cost_per_feature_definition": "feature := merged PR; mean cost over the 11 merged PRs carrying attributed spend",
-  "weekly": {
-    "2026-W22": {
-      "entries": 121,
-      "cost_usd": 51.26,
-      "total_tokens": 23414636
-    },
-    "2026-W23": {
-      "entries": 94,
       "cost_usd": 7.44,
       "total_tokens": 10242650
+    }
+  },
+  "avg_cost_per_feature_usd": 34.48,
+  "avg_cost_per_feature_definition": "mean per-message cost_usd attributed to each distinct MERGED PR",
+  "merged_prs_with_attributed_cost": 22,
+  "weekly_cost": {
+    "2026-W28": {
+      "entries": 2160,
+      "cost_usd": 532.32
+    },
+    "2026-W27": {
+      "entries": 1927,
+      "cost_usd": 417.24
+    },
+    "2026-W29": {
+      "entries": 85,
+      "cost_usd": 12.66
     },
     "2026-W26": {
       "entries": 145,
-      "cost_usd": 20.81,
-      "total_tokens": 20225174
+      "cost_usd": 20.81
     },
-    "2026-W27": {
-      "entries": 2053,
-      "cost_usd": 417.24,
-      "total_tokens": 190525455
+    "2026-W22": {
+      "entries": 120,
+      "cost_usd": 51.26
     },
-    "2026-W28": {
-      "entries": 801,
-      "cost_usd": 152.84,
-      "total_tokens": 152625961
+    "2026-W23": {
+      "entries": 94,
+      "cost_usd": 7.44
     }
   },
   "totals": {
-    "input_tokens": 5060626,
-    "output_tokens": 3805951,
-    "cache_read_tokens": 365736532,
-    "cache_write_tokens": 22430767,
-    "total_tokens": 397033876,
-    "cost_usd": 649.59,
-    "pct_of_total_cost": 100.0
+    "cost_usd": 1041.74,
+    "entries": 4531,
+    "tokens": {
+      "input": 7322245,
+      "output": 5695950,
+      "cache_read": 568652505,
+      "cache_write": 33044757,
+      "total": 614715457
+    }
   },
   "pipelines_run": null,
   "by_skill": null,
   "eval_score_trend": null,
-  "_null_fields_note": "pipelines_run / by_skill / eval_score_trend are N/A: interactive Claude Code sessions carry no skill-run or eval semantics."
+  "na_note": "pipelines_run / by_skill / eval_score_trend are N/A: interactive CC sessions are not skill-pipeline runs."
 }

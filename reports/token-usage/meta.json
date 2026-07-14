@@ -1,38 +1,32 @@
 {
-  "generated_at": "2026-07-10T00:00:00Z",
+  "generated_at": "2026-07-14T14:30:00Z",
   "schema_version": "1.1",
-  "date_range": {
-    "start": "2026-05-26",
-    "end": "2026-07-10"
+  "repo": "/Users/aidanelsesser/repos/opchain",
+  "date_range_utc": {
+    "start": "2026-05-26T01:15:35.389000+00:00",
+    "end": "2026-07-14T14:22:26.423Z"
   },
-  "session_count": 27,
-  "entry_count": 3214,
-  "coverage": {
-    "files_in_manifest": 418,
-    "files_processed": 418,
-    "files_failed": 0
+  "session_count": 42,
+  "entry_count": 4531,
+  "fresh_entries": 4317,
+  "preserved_historical_entries": 214,
+  "excluded_zero_token_synthetic_entries": 141,
+  "dedup": "by message.id, max per token bucket (collapses streaming-snapshot lines)",
+  "append_safe": "merged on message_id with the prior fact table; fresh rows win, prior-only rows (rotated-off transcripts) preserved verbatim at their original pricing epoch",
+  "mixed_pricing_epochs": {
+    "oc-claude-api@2026-07-14": 4317,
+    "anthropic-list-2026-06-28": 214
   },
-  "dedup": {
-    "raw_assistant_usage_lines": 6884,
-    "unique_message_ids_this_run": 2999,
-    "duplicate_lines_dropped": 3885,
-    "duplicate_conflicting": 1267,
-    "dedup_factor": 2.3
-  },
-  "merge": {
-    "append_safe_key": "message_id",
-    "prior_rows_retained": 215,
-    "rows_this_run": 2999,
-    "overlapping_message_ids": 102,
-    "overlap_resolution": "newer run wins (TTL-correct cache-write pricing)",
-    "merged_rows": 3214
+  "attribution": {
+    "pr": "exact gitBranch->PR head match; PR-less named branches and main/HEAD left unattributed (no timestamp guessing; inferred=false)",
+    "release": "timestamp bucketed into [tag_i, tag_i+1), labeled by the tag OPENING the window; pre-first-tag=unreleased"
   },
   "pricing": {
-    "verified_on": "2026-07-10",
+    "verified_on": "2026-07-14",
     "source": "skills/oc-claude-api/references/model-routing.md + prompt-caching.md",
-    "version": "oc-claude-api@2026-07-10",
-    "unit": "USD per 1M tokens",
-    "models": {
+    "unit": "USD per 1e6 tokens",
+    "version": "oc-claude-api@2026-07-14",
+    "rates": {
       "claude-fable-5": {
         "input": 10.0,
         "output": 50.0
@@ -50,86 +44,84 @@
         "output": 5.0
       }
     },
-    "cache_multipliers": {
-      "cache_read": 0.1,
-      "cache_write_5m_ephemeral": 1.25,
-      "cache_write_1h_ephemeral": 2.0
-    },
-    "cache_write_ttl_mix_this_run": {
-      "ephemeral_5m_tokens": 11825965,
-      "ephemeral_1h_tokens": 10604802
-    },
-    "service_tier": "standard on every entry \u2014 no Batch API discount applied",
-    "mixed_epochs": {
-      "anthropic-list-2026-06-28": 215,
-      "oc-claude-api@2026-07-10": 2999
-    },
-    "note": "Rows carry the pricing_version they were costed at. 215 historical rows retain epoch anthropic-list-2026-06-28."
+    "cache_read_multiplier": 0.1,
+    "cache_write_5m_multiplier": 1.25,
+    "cache_write_1h_multiplier": 2.0,
+    "batch_discount_applied": false
   },
-  "unpriced": {
-    "<synthetic>": {
-      "entries": 128,
-      "tokens": 0
-    },
-    "claude-opus-4-7": {
-      "entries": 43,
-      "note": "Not in current model-routing.md price table (listed as active-if-pinned, no rate). Cost carried from prior epoch; do not quote externally without re-verifying."
-    }
-  },
-  "tags": [
-    [
-      "wip/v1-8-docs-mesh-20260703",
-      "2026-07-04T21:14:19+00:00"
-    ]
-  ],
+  "unpriced_models": [],
   "divergence": [
     {
-      "pr": "#372",
-      "title": "feat(blog): backfill launch-window posts, stage next post, add 30-day content calendar",
-      "per_message_usd": 53.68,
-      "session_dominant_usd": 105.38,
-      "delta_usd": 51.7,
-      "pct_diff": 49.1
-    },
-    {
-      "pr": "#383",
-      "title": "feat(architecture): v1.8 quality-gate rail (docs-forge + repo-ops)",
-      "per_message_usd": 29.4,
-      "session_dominant_usd": 0.0,
-      "delta_usd": -29.4,
-      "pct_diff": 100.0
-    },
-    {
-      "pr": "#384",
+      "pr": "PR #384",
       "title": "fix(architecture): resolve 61 layout + formatting defects across both diagrams",
-      "per_message_usd": 93.4,
-      "session_dominant_usd": 122.58,
-      "delta_usd": 29.18,
-      "pct_diff": 23.8
+      "permessage_cost_usd": 98.01,
+      "session_dominant_cost_usd": 151.63,
+      "abs_diff_usd": 53.61,
+      "pct_diff_of_larger": 35.4
     },
     {
-      "pr": "#374",
+      "pr": "PR #372",
+      "title": "feat(blog): backfill launch-window posts, stage next post, add 30-day content calendar",
+      "permessage_cost_usd": 43.29,
+      "session_dominant_cost_usd": 94.99,
+      "abs_diff_usd": 51.7,
+      "pct_diff_of_larger": 54.4
+    },
+    {
+      "pr": "PR #245",
+      "title": "feat(changelog): v1.5/v1.6/v1.7 roadmap + curated static timeline",
+      "permessage_cost_usd": 51.26,
+      "session_dominant_cost_usd": 10.03,
+      "abs_diff_usd": 41.22,
+      "pct_diff_of_larger": 80.4
+    },
+    {
+      "pr": "PR #389",
+      "title": "release: v1.8.0 \"Documentation & repo hygiene\"",
+      "permessage_cost_usd": 27.22,
+      "session_dominant_cost_usd": 58.3,
+      "abs_diff_usd": 31.08,
+      "pct_diff_of_larger": 53.3
+    },
+    {
+      "pr": "PR #383",
+      "title": "feat(architecture): v1.8 quality-gate rail (docs-forge + repo-ops)",
+      "permessage_cost_usd": 29.18,
+      "session_dominant_cost_usd": 0.0,
+      "abs_diff_usd": 29.18,
+      "pct_diff_of_larger": 100.0
+    },
+    {
+      "pr": "PR #374",
       "title": "chore(blog): drop the Jul 3 post to the drawer; document flip automation",
-      "per_message_usd": 28.32,
-      "session_dominant_usd": 0.0,
-      "delta_usd": -28.32,
-      "pct_diff": 100.0
+      "permessage_cost_usd": 28.32,
+      "session_dominant_cost_usd": 0.0,
+      "abs_diff_usd": 28.32,
+      "pct_diff_of_larger": 100.0
     },
     {
-      "pr": "#373",
+      "pr": "PR #373",
       "title": "feat(blog): pre-write Jul 6 + Jul 8 posts as staged drafts",
-      "per_message_usd": 23.37,
-      "session_dominant_usd": 0.0,
-      "delta_usd": -23.37,
-      "pct_diff": 100.0
+      "permessage_cost_usd": 23.37,
+      "session_dominant_cost_usd": 0.0,
+      "abs_diff_usd": 23.37,
+      "pct_diff_of_larger": 100.0
     },
     {
-      "pr": "#263",
-      "title": "design(changelog): round 2-3 layout explorations \u2014 bidirectional takeover + full-width tabs",
-      "per_message_usd": 1.19,
-      "session_dominant_usd": 0.0,
-      "delta_usd": -1.19,
-      "pct_diff": 100.0
+      "pr": "PR #390",
+      "title": "docs(audits): land the 2026-06-29 checkpoint-system audit",
+      "permessage_cost_usd": 4.74,
+      "session_dominant_cost_usd": 0.0,
+      "abs_diff_usd": 4.74,
+      "pct_diff_of_larger": 100.0
+    },
+    {
+      "pr": "PR #386",
+      "title": "fix(architecture): remove auto-cycle to eliminate /architecture CLS",
+      "permessage_cost_usd": 4.01,
+      "session_dominant_cost_usd": 0.0,
+      "abs_diff_usd": 4.01,
+      "pct_diff_of_larger": 100.0
     }
   ]
 }
