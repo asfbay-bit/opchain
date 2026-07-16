@@ -11,6 +11,12 @@ from the `reverse-spec-output/` baseline.
 | `01-stack-decision.md` | Stack-forge auto-invoke — platform, framework, language, validation, styling, tests, CI |
 | `02-sprint-plan.md` | 7 sprints with features, deliverables, test requirements, Definition of Done, effort |
 | `03-post-launch.md` | Post-Sprint-6 audit (2026-04-19): what shipped after cutover, outstanding debt, proposed Sprint 7 |
+| `04-sprint-7-revised.md` | Revised Sprint 7+ roadmap after a full re-audit of `main` (2026-04-19) |
+| `05-post-sprint-7-backlog.md` | Small deferred follow-ups surfaced during Sprint 7, each sized as a single PR |
+| `06-versioning-and-doc-governance.md` | Scoping decision: versioning/doc-governance folded into the 1.4 release rather than a new skill |
+| `B-10-color-contrast-audit.md` | Color-contrast audit hand-off — RESOLVED, kept for the resolution log |
+| `sessions/` | Point-in-time skill checkpoint snapshots captured during early roadmap sessions (historical; see `.checkpoints/` for current state) |
+| `archive/` | Superseded roadmap docs from earlier sprint cycles |
 
 ## TL;DR
 

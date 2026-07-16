@@ -104,7 +104,17 @@ opchain/
 │   │                       # (see each dir's README for current-vs-archived status).
 ├── mirror/                 # Source for the public skills mirror — see "Public skill
 │   │                       # mirror" below.
+├── prompts/                # opchain-eval prompt/eval fixtures (dogfooding eval set;
+│   │                       # see prompts/opchain-eval/README.md).
+├── reports/                # Internal cost/token usage reports (reports/token-usage/).
 ├── .checkpoints/           # Session-state checkpoints — see "Session resume" below.
+├── .claude/                # This repo's own installed skills, so Claude Code
+│   │                       # sessions working on opchain itself have the skills
+│   │                       # available, plus hooks/commands/settings.json.
+│   │                       # .claude/skills/<id> is a symlink to ../../skills/<id>
+│   │                       # (never a copy) — CI asserts this in ci.yml.
+├── .opchain/               # PM-tool routing config (pm.yaml) read by skills that
+│   │                       # file/read issues via the Linear MCP server.
 ├── .github/workflows/      # ci.yml + lighthouse.yml (no deploy workflows — manual)
 ├── wrangler.jsonc           # Worker config (prod + env.staging)
 ├── build.mjs               # esbuild: src/index.js → dist/index.js, injects __OPCHAIN_VERSION__
@@ -116,15 +126,34 @@ opchain/
 ## Key Commands
 
 ```bash
+# One-time setup ————————————————————————————————————————————————
+npm install               # root deps (esbuild, gray-matter, vitest, wrangler, zod, ...)
+
 # Worker (current production) ————————————————————————————————————
 npm run dev              # prebuild then wrangler dev on localhost:8787
 npm run build            # prebuild (gen-catalog + sync-docs + make-zip) → esbuild → dist/
 npm run deploy           # wrangler deploy (production)
 npm run deploy:staging   # wrangler deploy --env staging (staging.opchain.dev)
+npm run deploy:skip-build # wrangler deploy --config wrangler.jsonc --no-build (skip prebuild)
 npm test                 # vitest unit + integration-ish suite
+npm run test:watch       # vitest in watch mode
+npm run smoke            # scripts/smoke.sh against DEPLOY_URL (defaults local)
+npm run smoke:staging    # smoke.sh against staging.opchain.dev
+npm run smoke:prod       # smoke.sh against opchain.dev
 npm run gen-catalog      # validates skills/<id>/SKILL.md frontmatter at build time
+npm run gen-mcp-catalog  # regenerates src/generated/mcp-catalog.json (discovery surface)
+npm run gen-flags        # mirrors src/lib/flags/registry.js → site/src/lib/flags/registry.ts
+npm run gen-stack-packs  # validates/regenerates stack-forge packs + coverage flags
+npm run gen-api-dev-adapters # regenerates api-dev language adapters from stack packs
+npm run gen-packs-catalog    # regenerates the combined stack-packs catalog
+npm run gen-roadmap      # (not on the deploy path — see "Deploy flow" above) pulls Linear roadmap
+npm run gen-og           # generates per-page/per-post Open Graph images
+npm run validate-pm-mcp  # validates .opchain/pm.yaml against skills that read it
+npm run sync-bundles       # re-syncs orchestrator.md + checkpoint-protocol.md into every skill
+npm run sync-bundles:check # CI check: fails if sync-bundles would change anything
 npm run sync-docs        # skills/ → public/docs/ (runs in prebuild)
 npm run make-zip         # skills/ → public/opchain-skills.zip (runs in prebuild)
+npm run build-site       # astro build + copy into public/ (runs in prebuild)
 
 # Astro site (site/) —
 npm run site:install     # one-time: cd site && npm install
@@ -133,8 +162,13 @@ npm run site:build       # astro build → site/dist
 
 # Checkpoints (session state docs at .checkpoints/<skill>.checkpoint.json) —
 npm run checkpoint:status    # print "where did I leave off?" markdown summary
+npm run checkpoint:next      # print the next recommended action across skills
+npm run checkpoint:doctor    # diagnose checkpoint inconsistencies
 npm run checkpoint:validate  # validate every checkpoint against the schema
 npm run checkpoint -- update <skill> --field=value   # update a field, restamp updated_at
+
+# Telemetry (opt-in local usage metering, see oc-telemetry-ops) —
+npm run telemetry -- <subcommand>   # enable/aggregate/export usage metering
 ```
 
 ## Session resume
