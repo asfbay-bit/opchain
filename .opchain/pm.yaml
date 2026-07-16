@@ -1,6 +1,6 @@
-1# opchain PM-tool configuration
+# opchain PM-tool configuration
 # Read by opchain skills during Claude Code sessions to route issue reads/writes
-# via the Linear MCP server. See skills/integrations-engineer/SKILL.md §PM-Tool MCP Integration.
+# via the Linear MCP server. See skills/oc-integrations-engineer/SKILL.md §PM-Tool MCP Integration.
 #
 # Auth: set LINEAR_API_KEY in .dev.vars (local) or Cloudflare dashboard (prod).
 # Staging: no API key required — wrangler.jsonc sets FEEDBACK_DRY_RUN=true so
@@ -28,55 +28,8 @@ labels_default: [opchain, agent-driven]
 
 mcp_server: linear
 
-# Active release tracking
-current_release:
-  version: "1.4.0"
-  parent_ticket: ADEV-327
-  patches_tracker: ADEV-332
-  prs:
-    - ticket: ADEV-328
-      label: "PR 1: Pack architecture (schema + generator + auto-flag wiring + parity validator)"
-      status: in_progress
-    - ticket: ADEV-329
-      label: "PR 2: Backfill 5 existing stacks as packs + equivalence fixtures"
-      status: todo
-    - ticket: ADEV-330
-      label: "PR 3: deploy-ops dispatcher + api-dev pack-read flow"
-      status: todo
-    - ticket: ADEV-334
-      label: "PR 4: Modern web bulk (phoenix, remix, sveltekit, solid, bun, deno)"
-      status: todo
-    - ticket: ADEV-335
-      label: "PR 5: Enterprise bulk (spring-java, dotnet-aspnet, spring-kotlin, laravel-php)"
-      status: todo
-    - ticket: ADEV-336
-      label: "PR 6: Apple/iOS/Swift pack + app-store adapter"
-      status: todo
-    - ticket: ADEV-343
-      label: "PR 6.5: Mobile bulk — Android + Flutter + React Native + play-store adapter"
-      status: todo
-    - ticket: ADEV-337
-      label: "PR 7: Hosting adapter packs (railway, netlify, heroku, aws-amplify)"
-      status: todo
-    - ticket: ADEV-331
-      label: "PR 8: Site surfaces + version cut + v1.4.0 release"
-      status: todo
-
-previous_releases:
-  - version: "1.3.0"
-    parent_ticket: ADEV-306
-    shipped_at: "2026-05-08"
-    shipped_sha: "526a9a2"
-    prs:
-      - ticket: ADEV-307
-        label: "Sprint 1: Runtime PM-MCP made real"
-        status: done
-      - ticket: ADEV-308
-        label: "Sprint 2: New skill release-ops"
-        status: done
-      - ticket: ADEV-309
-        label: "Sprint 3: Platform expansion (Django / Rails / Go / Rust)"
-        status: done
-      - ticket: ADEV-310
-        label: "Sprint 4: Scenarios + carry-over + /changelog + ship"
-        status: done
+# Release state lives in .checkpoints/ (session state) and /changelog
+# (site/src/data/roadmap-static.ts) — not here. A prior "Active release
+# tracking" block in this file went stale for 5+ releases (pinned at
+# v1.4.0 while the repo shipped through v1.8.0) because nothing kept it
+# in sync; removed rather than re-added to avoid the same drift.
