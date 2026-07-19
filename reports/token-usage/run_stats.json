@@ -1,0 +1,27 @@
+{
+  "files_scanned": 1752,
+  "files_no_cwd_excluded": 68,
+  "files_matched": 541,
+  "files_nested_subagent": 493,
+  "files_top_level": 48,
+  "files_head1_would_match": 493,
+  "assistant_lines": 11250,
+  "message_ids": 4719,
+  "dedup_factor": 2.38,
+  "naive_per_line_cost_usd": 2488.5,
+  "excluded_synthetic": 143,
+  "fresh_cache_write_5m": 16993791,
+  "fresh_cache_write_1h": 13362860,
+  "pct_writes_1h": 44.0,
+  "flat125_understatement_usd": 71.61,
+  "prior_ledger": {
+    "source": "2026-07-19 earlier run (uncommitted, worktree youthful-cerf-aafbf8)",
+    "rows": 4750,
+    "total_usd": 1074.87
+  },
+  "latest_committed_ledger": {
+    "commit": "ab22742",
+    "date": "2026-07-17",
+    "total_usd": 1064.6
+  }
+}

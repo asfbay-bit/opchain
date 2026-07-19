@@ -1,38 +1,17 @@
 {
-  "generated_at": "2026-07-10T00:00:00Z",
-  "schema_version": "1.1",
+  "generated_at": "2026-07-19T14:09:49Z",
+  "schema_version": "1.2",
   "date_range": {
     "start": "2026-05-26",
-    "end": "2026-07-10"
+    "end": "2026-07-19"
   },
-  "session_count": 27,
-  "entry_count": 3214,
-  "coverage": {
-    "files_in_manifest": 418,
-    "files_processed": 418,
-    "files_failed": 0
-  },
-  "dedup": {
-    "raw_assistant_usage_lines": 6884,
-    "unique_message_ids_this_run": 2999,
-    "duplicate_lines_dropped": 3885,
-    "duplicate_conflicting": 1267,
-    "dedup_factor": 2.3
-  },
-  "merge": {
-    "append_safe_key": "message_id",
-    "prior_rows_retained": 215,
-    "rows_this_run": 2999,
-    "overlapping_message_ids": 102,
-    "overlap_resolution": "newer run wins (TTL-correct cache-write pricing)",
-    "merged_rows": 3214
-  },
+  "session_count": 49,
+  "entry_count": 4790,
   "pricing": {
-    "verified_on": "2026-07-10",
-    "source": "skills/oc-claude-api/references/model-routing.md + prompt-caching.md",
-    "version": "oc-claude-api@2026-07-10",
-    "unit": "USD per 1M tokens",
-    "models": {
+    "verified_on": "2026-07-19",
+    "version": "2026-07-19",
+    "source": "skills/oc-claude-api/references/{model-routing,prompt-caching}.md",
+    "usd_per_mtok": {
       "claude-fable-5": {
         "input": 10.0,
         "output": 50.0
@@ -50,86 +29,116 @@
         "output": 5.0
       }
     },
-    "cache_multipliers": {
-      "cache_read": 0.1,
-      "cache_write_5m_ephemeral": 1.25,
-      "cache_write_1h_ephemeral": 2.0
-    },
-    "cache_write_ttl_mix_this_run": {
-      "ephemeral_5m_tokens": 11825965,
-      "ephemeral_1h_tokens": 10604802
-    },
-    "service_tier": "standard on every entry \u2014 no Batch API discount applied",
-    "mixed_epochs": {
-      "anthropic-list-2026-06-28": 215,
-      "oc-claude-api@2026-07-10": 2999
-    },
-    "note": "Rows carry the pricing_version they were costed at. 215 historical rows retain epoch anthropic-list-2026-06-28."
+    "cache_read_multiplier": 0.1,
+    "cache_write_5m_multiplier": 1.25,
+    "cache_write_1h_multiplier": 2.0,
+    "batch_discount_applied": false,
+    "note": "service_tier=standard on every fresh entry; no Batch discount."
   },
-  "unpriced": {
-    "<synthetic>": {
-      "entries": 128,
-      "tokens": 0
-    },
-    "claude-opus-4-7": {
-      "entries": 43,
-      "note": "Not in current model-routing.md price table (listed as active-if-pinned, no rate). Cost carried from prior epoch; do not quote externally without re-verifying."
-    }
+  "merge": {
+    "prior_ledger_commit": "ab22742",
+    "prior_rows": 4750,
+    "fresh_rows": 4576,
+    "overlapping_entry_ids": 4536,
+    "preserved_prior_only": 214,
+    "excluded_zero_token_synthetic": 143
   },
-  "tags": [
-    [
-      "wip/v1-8-docs-mesh-20260703",
-      "2026-07-04T21:14:19+00:00"
-    ]
-  ],
   "divergence": [
     {
-      "pr": "#372",
-      "title": "feat(blog): backfill launch-window posts, stage next post, add 30-day content calendar",
-      "per_message_usd": 53.68,
-      "session_dominant_usd": 105.38,
-      "delta_usd": 51.7,
-      "pct_diff": 49.1
-    },
-    {
-      "pr": "#383",
-      "title": "feat(architecture): v1.8 quality-gate rail (docs-forge + repo-ops)",
-      "per_message_usd": 29.4,
-      "session_dominant_usd": 0.0,
-      "delta_usd": -29.4,
-      "pct_diff": 100.0
+      "pr": "unattributed",
+      "per_message_usd": 187.02,
+      "session_dominant_usd": 258.22,
+      "delta_pct": 27.6
     },
     {
       "pr": "#384",
-      "title": "fix(architecture): resolve 61 layout + formatting defects across both diagrams",
-      "per_message_usd": 93.4,
-      "session_dominant_usd": 122.58,
-      "delta_usd": 29.18,
-      "pct_diff": 23.8
+      "per_message_usd": 110.41,
+      "session_dominant_usd": 151.63,
+      "delta_pct": 27.2
+    },
+    {
+      "pr": "#372",
+      "per_message_usd": 53.68,
+      "session_dominant_usd": 94.99,
+      "delta_pct": 43.5
+    },
+    {
+      "pr": "#389",
+      "per_message_usd": 27.22,
+      "session_dominant_usd": 58.3,
+      "delta_pct": 53.3
+    },
+    {
+      "pr": "#245",
+      "per_message_usd": 51.26,
+      "session_dominant_usd": 0.0,
+      "delta_pct": -100.0
+    },
+    {
+      "pr": "#383",
+      "per_message_usd": 29.4,
+      "session_dominant_usd": 0.0,
+      "delta_pct": -100.0
     },
     {
       "pr": "#374",
-      "title": "chore(blog): drop the Jul 3 post to the drawer; document flip automation",
       "per_message_usd": 28.32,
       "session_dominant_usd": 0.0,
-      "delta_usd": -28.32,
-      "pct_diff": 100.0
+      "delta_pct": -100.0
+    },
+    {
+      "pr": "#397",
+      "per_message_usd": 26.95,
+      "session_dominant_usd": 8.52,
+      "delta_pct": -68.4
     },
     {
       "pr": "#373",
-      "title": "feat(blog): pre-write Jul 6 + Jul 8 posts as staged drafts",
       "per_message_usd": 23.37,
       "session_dominant_usd": 0.0,
-      "delta_usd": -23.37,
-      "pct_diff": 100.0
+      "delta_pct": -100.0
+    },
+    {
+      "pr": "#388",
+      "per_message_usd": 19.8,
+      "session_dominant_usd": 12.49,
+      "delta_pct": -36.9
+    },
+    {
+      "pr": "#386",
+      "per_message_usd": 10.85,
+      "session_dominant_usd": 0.0,
+      "delta_pct": -100.0
+    },
+    {
+      "pr": "#390",
+      "per_message_usd": 4.74,
+      "session_dominant_usd": 0.0,
+      "delta_pct": -100.0
+    },
+    {
+      "pr": "#391",
+      "per_message_usd": 4.07,
+      "session_dominant_usd": 0.0,
+      "delta_pct": -100.0
+    },
+    {
+      "pr": "#394",
+      "per_message_usd": 1.82,
+      "session_dominant_usd": 0.0,
+      "delta_pct": -100.0
     },
     {
       "pr": "#263",
-      "title": "design(changelog): round 2-3 layout explorations \u2014 bidirectional takeover + full-width tabs",
       "per_message_usd": 1.19,
       "session_dominant_usd": 0.0,
-      "delta_usd": -1.19,
-      "pct_diff": 100.0
+      "delta_pct": -100.0
+    },
+    {
+      "pr": "#396",
+      "per_message_usd": 0.5,
+      "session_dominant_usd": 0.0,
+      "delta_pct": -100.0
     }
   ]
 }

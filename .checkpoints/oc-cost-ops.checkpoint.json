@@ -4,98 +4,27 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T00:00:00Z",
-  "updated_at": "2026-07-10T00:00:00Z",
+  "updated_at": "2026-07-19T14:09:49Z",
   "phase": "analysis",
   "step": "retro-attribution",
   "status": "complete",
-  "progress_summary": "Retrospective token+cost audit of all Claude Code work on opchain. Scanned 1,244 transcripts, matched 418 by cwd (24 main sessions + 394 workflow subagents) across 17 worktree folders; deduped 6,894 raw assistant lines to 2,999 unique message.id records (2.3x inflation avoided), then merged append-safe with 215 retained historical rows. 363,376,590 tokens for $649.59 over 2026-05-26 -> 2026-07-10. Fable 5 is 52.7% of spend; cache-reads are 93% of tokens but a small slice of cost. Spend is concentrated: PR #376 alone is ~41% of total. 6 PRs diverge >20% between per-message and session-dominant attribution. Full tables in reports/token-usage/token-report-2026-07-10.md.",
-  "next_actions": [
-    "Cut real semver v* tags \u2014 the by-release breakdown is degenerate with only a wip/ tag.",
-    "Investigate PR #376 (largest single-PR spend, ~41% of total) for prompt/caching regressions.",
-    "Re-verify claude-opus-4-7 pricing in oc-claude-api before quoting its $5.54 externally \u2014 it is [unpriced] in model-routing.md.",
-    "Fix the head -1 cwd filter in the task spec; it silently drops scheduled-task sessions.",
-    "Re-run weekly; fact table is append-safe on message_id."
-  ],
+  "progress_summary": "Retrospective token+cost audit of all Claude Code work on opchain (2026-07-19 run, second fire of the day). Scanned 1,752 transcripts, matched 541 by in-file cwd (48 top-level + 493 nested subagent runs); the head -1 filter trap reproduced exactly (493 vs 541). Deduped 11,210 assistant lines to 4,719 unique message.ids (2.38x streaming inflation avoided, per-field max), excluded 143 zero-token synthetic rows. Merged append-safe on entry_id against the earlier 2026-07-19 ledger (4,750 rows / $1,074.87): 4,536 overlap re-priced, 214 preserved historical rows back to 2026-05-26, 40 new. 651.5M tokens for $1,078.74 across 49 sessions. Fable 5 58.7% / Opus 4.8 40.1%; sonnet-4-6 and opus-4-7 are preserved-history only (opus-4-7 still unpriced live, carried at its original epoch). Cache reads are 92.7% of tokens but a small slice of cost. PR #376 remains the single biggest driver at 24.6%; unattributed 17.3%. 16 PRs diverge >20% between the two attribution modes.",
   "cost": {
     "currency": "USD",
-    "total_usd": 649.59,
+    "total_usd": 1078.74,
     "by_phase": {
-      "interactive": 649.59
+      "interactive": 1078.74
     },
     "by_model": {
-      "claude-fable-5": 342.55,
-      "claude-opus-4-8": 294.06,
+      "claude-fable-5": 633.29,
+      "claude-opus-4-8": 432.47,
       "claude-sonnet-4-6": 7.44,
-      "claude-opus-4-7": 5.54,
-      "<synthetic>": 0.0
+      "claude-opus-4-7": 5.54
     },
     "tokens": {
-      "input": 5060626,
-      "output": 3805951
+      "input": 7330293,
+      "output": 6035292
     },
-    "updated_at": "2026-07-10T00:00:00Z"
-  },
-  "skill_state": {
-    "pricing_version": "oc-claude-api@2026-07-10",
-    "mixed_pricing_epochs": {
-      "anthropic-list-2026-06-28": 215,
-      "oc-claude-api@2026-07-10": 2999
-    },
-    "note": "cost.tokens carries only fresh input/output per wire-1.1. Cache buckets (read 365,736,532, write 22,430,767) are priced into total_usd and detailed in aggregates.json.",
-    "report": "reports/token-usage/token-report-2026-07-10.md",
-    "budget_usd": "unset \u2014 retrospective analysis, no budget ceiling (key omitted: validator rejects null)"
-  },
-  "progress_table": [
-    {
-      "id": "manifest",
-      "label": "Enumerate transcripts by cwd (418/418)",
-      "status": "complete"
-    },
-    {
-      "id": "parse",
-      "label": "Parse + dedupe on message.id",
-      "status": "complete"
-    },
-    {
-      "id": "price",
-      "label": "Verify pricing + TTL-aware cache-write multipliers",
-      "status": "complete"
-    },
-    {
-      "id": "attribute",
-      "label": "Attribute by model / chat / PR (2 modes) / release",
-      "status": "complete"
-    },
-    {
-      "id": "merge",
-      "label": "Append-safe merge with prior fact table",
-      "status": "complete"
-    },
-    {
-      "id": "emit",
-      "label": "Emit report + CSV + aggregates + meta + dashboard export",
-      "status": "complete"
-    }
-  ],
-  "context_primer": {
-    "key_decisions": [
-      "Manifest built by scanning every line for cwd \u2014 the spec's `head -1` filter drops 97 transcripts whose first record is queue-operation/started/ai-title.",
-      "Rows keyed on message.id, not transcript line: per-line counting overstates cost ~2.3x.",
-      "Cache-write priced per TTL from usage.cache_creation (1.25x for 5m, 2.0x for 1h), not a flat 1.25x.",
-      "Fact table merged append-safe rather than overwritten: 215 prior rows cover a window whose transcripts have rotated off disk.",
-      "claude-opus-4-7 left [unpriced] \u2014 absent from model-routing.md rate table; its cost is carried from the prior epoch.",
-      "cost.budget_usd omitted (not null) \u2014 scripts/checkpoint.mjs rejects null."
-    ],
-    "generated_files": [
-      "reports/token-usage/token-report-2026-07-10.md",
-      "reports/token-usage/fact_token_usage.csv",
-      "reports/token-usage/aggregates.json",
-      "reports/token-usage/meta.json",
-      "reports/token-usage/dashboard_export.json",
-      ".checkpoints/oc-cost-ops.checkpoint.json"
-    ],
-    "user_preferences": [
-      "Keep the four token buckets separate everywhere; never merge cache-read into fresh input."
-    ]
+    "updated_at": "2026-07-19T14:09:49Z"
   }
 }
