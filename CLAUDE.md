@@ -105,7 +105,10 @@ opchain/
 ├── mirror/                 # Source for the public skills mirror — see "Public skill
 │   │                       # mirror" below.
 ├── .checkpoints/           # Session-state checkpoints — see "Session resume" below.
-├── .github/workflows/      # ci.yml + lighthouse.yml (no deploy workflows — manual)
+├── .github/workflows/      # 7 workflows, no deploy workflows (manual): ci.yml, lighthouse.yml,
+│   │                       # canary.yml (10-min prod+staging /api/health probe, emails on failure),
+│   │                       # lighthouse-prod.yml (daily LHCI vs the live site), deploy-lag.yml,
+│   │                       # mirror-public.yml, publish-mcp-registry.yml
 ├── wrangler.jsonc           # Worker config (prod + env.staging)
 ├── build.mjs               # esbuild: src/index.js → dist/index.js, injects __OPCHAIN_VERSION__
 ├── vitest.config.js        # test runner config (defines __OPCHAIN_VERSION__ = "test")
@@ -118,13 +121,15 @@ opchain/
 ```bash
 # Worker (current production) ————————————————————————————————————
 npm run dev              # prebuild then wrangler dev on localhost:8787
-npm run build            # prebuild (gen-catalog + sync-docs + make-zip) → esbuild → dist/
+npm run build            # 10-step prebuild (see package.json's "prebuild" script for the full chain) → esbuild → dist/
 npm run deploy           # wrangler deploy (production)
 npm run deploy:staging   # wrangler deploy --env staging (staging.opchain.dev)
 npm test                 # vitest unit + integration-ish suite
 npm run gen-catalog      # validates skills/<id>/SKILL.md frontmatter at build time
 npm run sync-docs        # skills/ → public/docs/ (runs in prebuild)
 npm run make-zip         # skills/ → public/opchain-skills.zip (runs in prebuild)
+npm run smoke:staging    # scripts/smoke.sh against staging.opchain.dev
+npm run smoke:prod       # scripts/smoke.sh against opchain.dev
 
 # Astro site (site/) —
 npm run site:install     # one-time: cd site && npm install
@@ -133,6 +138,8 @@ npm run site:build       # astro build → site/dist
 
 # Checkpoints (session state docs at .checkpoints/<skill>.checkpoint.json) —
 npm run checkpoint:status    # print "where did I leave off?" markdown summary
+npm run checkpoint:next      # print the next recommended action per checkpoint
+npm run checkpoint:doctor    # diagnose checkpoint schema/consistency issues
 npm run checkpoint:validate  # validate every checkpoint against the schema
 npm run checkpoint -- update <skill> --field=value   # update a field, restamp updated_at
 ```
