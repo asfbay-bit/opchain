@@ -45,7 +45,7 @@
     "esbuild": "^0.28.1",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.2.0",
-    "vitest": "^4.1.9",
+    "vitest": "^4.1.10",
     "wrangler": "^4.103.0"
   },
   "dependencies": {
