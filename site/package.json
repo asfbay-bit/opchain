@@ -24,9 +24,9 @@
     "@astrojs/cloudflare": "^13.7.0",
     "@astrojs/sitemap": "^3.7.3",
     "astro": "^6.4.8",
-    "dompurify": "^3.4.11",
-    "isomorphic-dompurify": "^3.18.0",
-    "marked": "^18.0.5"
+    "dompurify": "^3.4.12",
+    "isomorphic-dompurify": "^3.19.0",
+    "marked": "^18.0.6"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
