@@ -1,6 +1,6 @@
 1# opchain PM-tool configuration
 # Read by opchain skills during Claude Code sessions to route issue reads/writes
-# via the Linear MCP server. See skills/integrations-engineer/SKILL.md §PM-Tool MCP Integration.
+# via the Linear MCP server. See skills/oc-integrations-engineer/SKILL.md §PM-Tool MCP Integration.
 #
 # Auth: set LINEAR_API_KEY in .dev.vars (local) or Cloudflare dashboard (prod).
 # Staging: no API key required — wrangler.jsonc sets FEEDBACK_DRY_RUN=true so
