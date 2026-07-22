@@ -32,6 +32,7 @@ documented namespaces:
 | `skills.registry.<id>.enabled` | Per-skill catalog visibility (helper) |
 | `skills.capability.<name>` | Cross-cutting capability |
 | `skills.command.<verb>.enabled` | Slash-command verb gate (helper) |
+| `skills.coverage.<id>.enabled` | Per-pack oc-stack-forge coverage option (helper, generated from `skills/oc-stack-forge/packs/<id>/pack.yml`) |
 | `skills.experiment.<id>.<feature>` | Experimental skill behaviour |
 | `platform.observability.<sink>` | Telemetry sinks |
 | `platform.security.<control>` | Infra security controls |
