@@ -34,7 +34,7 @@ description: >
   ecosystem upgrades: "update all skills", "checkpoint protocol upgrade", "bulk update
   SKILL.md". Trigger when transforming an existing system from one state to another —
   not greenfield building (oc-app-architect) or documenting what exists
-  (oc-reverse-spec). Trigger liberally.
+  (oc-reverse-spec).
 ---
 
 # Migration Ops

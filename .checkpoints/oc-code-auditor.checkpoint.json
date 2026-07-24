@@ -2,65 +2,51 @@
   "protocol_version": "1.1",
   "skill": "oc-code-auditor",
   "project": "opchain.dev",
-  "project_dir": "/home/user/opchain",
-  "created_at": "2026-05-02T01:35:00Z",
-  "updated_at": "2026-07-04T00:00:00Z",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "created_at": "2026-07-04T00:00:00Z",
+  "updated_at": "2026-07-22T20:56:51Z",
   "phase": "audit",
-  "step": "portability-audit-plus-root-cause-fixes",
-  "status": "complete",
-  "progress_summary": "Portability audit of the shipped skill suite (why it works on the author's machine but not users'). Multi-agent sweep: 27 per-skill auditors + 5 fresh-machine simulations, adversarially verified — 157 findings survived (14 CRITICAL, 41 HIGH), 2 refuted. Two root causes, both now FIXED: (1) checkpoints never written on user machines because the bundled protocol routed all writes through the repo-only scripts/checkpoint.mjs CLI and told the model NOT to write JSON itself — rewrote oc-checkpoint-protocol SKILL.md so the model writes checkpoints directly with its file tools (CLI reframed as opchain-repo-only optional), and removed the oc-app-architect instruction to gitignore .checkpoints/. (2) cross-skill protocol never loaded because 10/27 skills didn't bundle references/orchestrator.md and 10/27 never instructed reading it — fixed sync-skill-bundles.mjs to create+guard the bundled files (was silently skipping missing ones), propagated the protocol into all 27 skills, and added the first-invocation bootstrap line to 9 runnable skills that lacked it. Regression guards added to gen-skills-catalog.mjs: fails the build on missing protocol files, missing bootstrap line, dangling references/ citations, and >1024-char descriptions. Also trimmed oc-migration-ops description (1242→984 chars, under the truncation limit) and fixed 5 dangling reference citations. gen-catalog + sync-bundles:check green; zips verified to carry the protocol for all 27 skills. Report: docs/audits/2026-07-04-portability-audit.md.",
-  "progress_table": [
-    { "id": "audit", "label": "27 per-skill + 5 ground-truth portability auditors", "status": "complete" },
-    { "id": "verify", "label": "Adversarial verification of every finding", "status": "complete" },
-    { "id": "fix-checkpoint", "label": "Root cause 1 — self-contained checkpoint writing", "status": "complete" },
-    { "id": "fix-chaining", "label": "Root cause 2 — protocol bundled + bootstrapped in all 27", "status": "complete" },
-    { "id": "guards", "label": "Build-time regression guards in gen-skills-catalog", "status": "complete" },
-    { "id": "verify-fixes", "label": "gen-catalog + sync-check green; zips carry protocol", "status": "complete" },
-    { "id": "chaining-determinism", "label": "Make cross-skill handoffs deterministic (Skill() calls)", "status": "not_started" }
-  ],
-  "context_primer": {
-    "key_decisions": [
-      "Both reported field symptoms (checkpoints not written; skills not chaining) traced to distribution/packaging, not logic: the repo's own hooks (.claude/settings.json Stop + PreToolUse) and scripts/checkpoint.mjs CLI silently satisfy the skills' unstated dependencies on the author's machine; none of it ships to users.",
-      "Fix strategy: single-source. Rewrote the protocol source (oc-checkpoint-protocol/SKILL.md) so sync-skill-bundles.mjs propagates the self-contained checkpoint-writing instructions to all 26 bundled copies at once.",
-      "sync-skill-bundles.mjs had two defects: it skipped any skill with no references/ dir, and only synced files that already existed (if(!exists)continue) — so missing bundled files were never created AND never flagged by the --check CI gate. Both fixed.",
-      "Portability grade: F (the suite had never been exercised outside this repo). The two root causes are now fixed; deeper chaining-determinism rework remains."
-    ],
-    "generated_files": [
-      "docs/audits/2026-07-04-portability-audit.md"
-    ],
-    "user_preferences": [
-      "Wants concrete findings with file:line, not generalities.",
-      "Runs multi-agent workflows for substantive audits (ultracode)."
-    ]
-  },
+  "step": "fix-verify-round-1",
+  "status": "in_progress",
+  "progress_summary": "Tri-agent audit of the coordination-gaps overhaul changeset (44 agents: 3 Auditor sweeps -> adversarial Verifier per finding). 41 raised, 31 confirmed, 10 refuted. Fixed and re-verified this round: GATE-01 (git commit -a / -am / pathspec / 'git add -A &&' all defeated the tree binding — write-tree hashes the index BEFORE the command stages; now computes the prospective tree in a scratch index), GATE-01b (--no-verify matched inside quoted commit messages -> failed OPEN), GATE-03 (uncaught throw -> empty stdout -> ALLOW; now a top-level handler denies), GATE-04 (git -C / sh -c undetected), GATE-05 (missing updated_at disabled the freshness backstop), OC-01/MIRROR-01 (mirror shipped neither plugins/ nor marketplace.json, and the source path resolved to a nonexistent dir — the plugin was undeliverable), OC-04 (test harness asserted against live repo state; now hermetic, 28/28), SESSION-01 (checkpoint text injected into model context unescaped), OC-05 (shared orchestrator.md kept the retracted auto-invoke claims and is bundled into all 29 skills). Every gate fix has a regression test and an independent out-of-band reproduction.",
   "blockers": [],
   "next_actions": [
-    "Cross-skill INVOCATION is now loadable everywhere but still not deterministic: handoffs rely on prose 'read that skill's SKILL.md' + description-keyword triggering rather than explicit Skill() tool calls. Only oc-git-ops -> oc-bug-check is deterministic. Convert the documented handoff points to explicit Skill() invocations with a graceful 'if the skill isn't installed' fallback.",
-    "oc-orchestrator's /oc-ops status|next|doctor commands are still implemented as the repo-only scripts/checkpoint.mjs CLI. The router now loads the protocol, but give it a portable fallback: read .checkpoints/*.checkpoint.json directly and summarize when the CLI is absent.",
-    "Single-skill (per-skill zip) installs: a skill that hard-invokes a sibling still breaks when that sibling isn't installed — no suite-wide fallback exists. Add one.",
-    "MEDIUM/LOW remainders in docs/audits/2026-07-04-portability-audit.md: .opchain/pm.yaml PM-integration assumes repo config; orphaned TRYIT.md files ship in zips; oc-dash-forge default checkpoint path is a Claude.ai sandbox path; internal 'aidops' jargon leakage."
+    "Triage the ~20 remaining MEDIUM/LOW findings from this audit (none block; see workflow journal).",
+    "Pre-existing and NOT from this changeset: 14 critical / 41 high from the 2026-07-04 portability audit are still open — that loop predates this work and remains open.",
+    "Wire `test:gate` into package.json + CI so the gate suite runs on every PR."
+  ],
+  "eval_scores": [
+    {
+      "rubric": "oc-code-auditor",
+      "score": 8.0,
+      "max": 10,
+      "at": "2026-07-22T20:56:51Z",
+      "dimensions": {
+        "security": 8,
+        "quality": 8,
+        "config": 7,
+        "performance": 9
+      }
+    }
   ],
   "skill_state": {
-    "mode": "audit-plus-fix",
-    "scope": "skills/ portability (distribution to user machines)",
-    "findings_total": 157,
-    "findings_by_severity": { "critical": 14, "high": 41, "medium": 52, "low": 50 },
-    "findings_refuted": 2,
-    "grade": "F (portability)",
-    "root_causes_fixed": 2,
-    "fixes_applied": [
-      "Rewrote oc-checkpoint-protocol/SKILL.md How-to-Write / Tooling / Scaffold sections: checkpoints are written directly with file tools; CLI is opchain-repo-only optional.",
-      "Fixed wire-version contradiction (schema example stamped 1.0 while prose mandates 1.1).",
-      "Fixed sync-skill-bundles.mjs to create missing references/ dirs+files and fail --check on missing.",
-      "Propagated orchestrator.md + checkpoint-protocol.md into all 27 skills (10 were missing each).",
-      "Added first-invocation bootstrap line to 9 runnable skills that lacked it.",
-      "Removed oc-app-architect instruction to gitignore .checkpoints/ (contradicted the protocol).",
-      "Added build guards to gen-skills-catalog.mjs: missing protocol files, missing bootstrap line, dangling references/ citations, >1024-char descriptions.",
-      "Trimmed oc-migration-ops description under the ~1024 truncation limit.",
-      "Fixed 5 dangling references/ citations in oc-deploy-ops, oc-stack-forge, oc-signal-forge."
-    ],
-    "verification": "npm run gen-catalog (27 skills) + npm run sync-bundles:check green; combined + per-skill zips confirmed to carry references/orchestrator.md + checkpoint-protocol.md for all 27 skills including the 4 that previously shipped with no references/ at all. Test-suite failures observed (demo-search, gen-roadmap, flags-skills) reproduce identically on clean main and are an environmental artifact of the empty hoisted node_modules in this .claude/worktrees sub-worktree — unrelated to these changes.",
-    "report_path": "docs/audits/2026-07-04-portability-audit.md",
-    "depends_on": "checkpoint-protocol wire-1.1"
+    "mode": "fix-all",
+    "scope": "coordination-gaps overhaul changeset",
+    "loop_state": "open",
+    "findings_total": 41,
+    "findings_confirmed": 31,
+    "findings_refuted": 10,
+    "findings_by_severity": {
+      "critical": 3,
+      "high": 12,
+      "medium": 16,
+      "low": 10
+    },
+    "fixes_applied": 9,
+    "fixes_verified": 9,
+    "fixes_rejected": 0,
+    "grade": "B (changeset); repo-wide grade F from the 2026-07-04 portability audit is UNCHANGED and still open",
+    "verified_tree": "7c59d269ca269bc10035b0bbd706697df230b920",
+    "note": "loop_state stays 'open': this round fixed the changeset's own defects, but the pre-existing 157-finding portability audit (14 critical / 41 high, 2 fixed) has never been closed. Marking this checkpoint 'complete' would repeat exactly the defect the overhaul's P3 exists to prevent."
   }
 }

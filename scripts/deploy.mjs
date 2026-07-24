@@ -81,6 +81,80 @@ function run(cmd, args) {
   }
 }
 
+/** Capture stdout of a command, or null if it fails. Never throws. */
+function capture(cmd, args) {
+  const r = spawnSync(cmd, args, { cwd: REPO_ROOT, encoding: "utf8" });
+  return r.status === 0 ? (r.stdout || "").trim() : null;
+}
+
+/**
+ * Staging must be reachable from `main`.
+ *
+ * CLAUDE.md has said so in prose since the 2026-05-13 deploy gap, when staging
+ * sat on 7303ab6 — a feature-branch SHA not on main — while prod ran 6 days
+ * stale. Prose did not hold it: nothing in this file checked the branch until
+ * now. The point of staging is "what production is about to become"; a staging
+ * deploy from an unmerged branch silently breaks the "I looked at staging, it's
+ * safe to ship" gate, because what you looked at is not what ships.
+ *
+ * Escape hatch is deliberate and loud: OPCHAIN_ALLOW_OFF_MAIN_STAGING=1.
+ */
+function assertStagingFromMain() {
+  if (!STAGING) return;
+
+  if (process.env.OPCHAIN_ALLOW_OFF_MAIN_STAGING === "1") {
+    console.warn(
+      `[deploy:${TARGET}] ⚠ OPCHAIN_ALLOW_OFF_MAIN_STAGING=1 — skipping the ` +
+        `staging-from-main check. staging.opchain.dev will NOT be a faithful ` +
+        `preview of production.`,
+    );
+    return;
+  }
+
+  // Fetch so origin/main is current; a stale ref would fail an honest deploy.
+  const fetched = capture("git", ["fetch", "origin", "main", "--quiet"]) !== null;
+  if (!fetched) {
+    console.warn(
+      `[deploy:${TARGET}] ⚠ could not fetch origin/main — checking against the ` +
+        `local ref, which may be behind.`,
+    );
+  }
+
+  const head = capture("git", ["rev-parse", "HEAD"]);
+  if (!head) {
+    console.error(`[deploy:${TARGET}] ✗ not a git repo (or git unavailable) — refusing to deploy staging.`);
+    process.exit(1);
+  }
+
+  const onMain =
+    spawnSync("git", ["merge-base", "--is-ancestor", "HEAD", "origin/main"], {
+      cwd: REPO_ROOT,
+    }).status === 0;
+
+  if (!onMain) {
+    const branch = capture("git", ["rev-parse", "--abbrev-ref", "HEAD"]) || "(detached)";
+    const subject = capture("git", ["log", "-1", "--format=%s", "HEAD"]) || "";
+    console.error(
+      `\n[deploy:${TARGET}] ✗ REFUSING: HEAD is not reachable from origin/main.\n` +
+        `\n    branch:  ${branch}` +
+        `\n    HEAD:    ${head.slice(0, 12)}  ${subject}\n` +
+        `\nStaging must come from main so it is a faithful preview of what production` +
+        `\nis about to become. Deploying a branch SHA leaves staging on a commit that` +
+        `\nisn't reachable from main and breaks the pre-ship review gate.` +
+        `\n(This is the 2026-05-13 failure mode — see CLAUDE.md § Deployment.)\n` +
+        `\nDo this instead:` +
+        `\n    git checkout main && git pull && npm run deploy:staging\n` +
+        `\nIf you genuinely need a branch preview, say so out loud:` +
+        `\n    OPCHAIN_ALLOW_OFF_MAIN_STAGING=1 npm run deploy:staging\n`,
+    );
+    process.exit(1);
+  }
+
+  console.log(`[deploy:${TARGET}] ✓ HEAD is reachable from origin/main`);
+}
+
+assertStagingFromMain();
+
 const { loaded, source } = loadDevVars();
 if (source) {
   console.log(`[deploy:${TARGET}] loaded ${loaded} var(s) from ${path.relative(REPO_ROOT, source)}`);

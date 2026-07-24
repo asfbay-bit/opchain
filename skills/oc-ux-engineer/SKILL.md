@@ -20,7 +20,7 @@ commands:
 description: >
   UI/UX design harness with Design Planner/Generator/Evaluator loop. Use for /oc-uxe,
   "review the UX", "design iteration", "component library", "accessibility audit",
-  "is the UI consistent", or any design quality question. Trigger liberally.
+  "is the UI consistent", or any design quality question.
 ---
 
 # UX Engineer

@@ -16,7 +16,7 @@ description: >
   evaluation. Use for /oc-agent, "Claude Agent SDK", "build an agent",
   "subagent", "tool budget", "agent loop", "harness", "multi-agent",
   "agent eval", "orchestrator-worker". Model routing comes from oc-claude-api;
-  agent-forge owns topology + harness shape. Trigger liberally on agent work.
+  agent-forge owns topology + harness shape.
 governance:
   breaking_change_policy: skills/CHANGELOG.md
   last_reviewed: 2026-06-21

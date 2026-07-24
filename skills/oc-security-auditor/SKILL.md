@@ -26,7 +26,7 @@ description: >
   "harden this", "what are the security risks", "SOC2 readiness", "pen test prep",
   "how would someone attack this", "security architecture review", "CSP policy",
   "TLS config", "WAF rules". Trigger when user asks about security at an architecture,
-  infrastructure, or compliance level — not just code bugs. Trigger liberally.
+  infrastructure, or compliance level — not just code bugs.
 ---
 
 # Security Auditor

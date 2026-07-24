@@ -21,7 +21,7 @@ description: >
   attribution", "token cost", "budget gate", "model tier routing", "cost
   regression", "cheaper model", "spend per feature". Pairs with oc-prompt-ops
   (cost-regression gate alongside the score gate) and oc-telemetry-ops (feeds
-  the public /dashboard cost stats). Trigger liberally on cost/spend work.
+  the public /dashboard cost stats).
 governance:
   breaking_change_policy: skills/CHANGELOG.md
   last_reviewed: 2026-06-25

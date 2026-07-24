@@ -33,7 +33,7 @@ description: >
   "set up monitoring", "error tracking", "uptime check", "alerting", "incident
   response", "observability", "what's happening in prod", "set up Sentry", "logging
   strategy", "on-call", "runbook", "SLO", "SLI", "is prod healthy", "why is it
-  slow", "error rate", "status page". Trigger liberally.
+  slow", "error rate", "status page".
 ---
 
 # Monitoring Ops

@@ -2,7 +2,7 @@
   "protocol_version": "1.1",
   "skill": "oc-stack-forge",
   "project": "opchain.dev v1.4",
-  "project_dir": "/home/user/opchain",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-08T05:40:00Z",
   "updated_at": "2026-06-22T16:35:00Z",
   "phase": "post-release",

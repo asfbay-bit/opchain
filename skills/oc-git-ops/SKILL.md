@@ -13,10 +13,10 @@ commands:
   - /oc-push
   - /oc-git-sync
 description: >
-  Git workflow: branch, commit, PR, sync. Auto-invokes oc-bug-check before every
+  Git workflow: branch, commit, PR, sync. Chains to (when you invoke it): oc-bug-check before every
   commit and the oc-docs-forge → oc-repo-ops pre-PR gate before every PR. Use for
   /oc-git, /oc-commit, /oc-pr, /oc-push, "commit this", "push to git", "create a PR",
-  "sync to repo", or any git operation. Trigger liberally.
+  "sync to repo", or any git operation.
 ---
 
 # Git Ops
@@ -238,11 +238,13 @@ Then read `.checkpoints/oc-bug-check.checkpoint.json` for the verdict.
 | FAIL | **ABORT.** Surface the failing checks and offer the user `/oc-bugcheck fix` (auto-fix lint/format) or `/oc-bugcheck bypass` (logged override). Do NOT call `git commit` until verdict flips to PASS or the user explicitly bypasses. |
 | (no checkpoint) | Bug-check hasn't run — invoke it first. |
 
-The runtime also has a `PreToolUse(Bash)` hook at
-`.claude/hooks/pre-commit-bugcheck.sh` that blocks `git commit` when the
-oc-bug-check checkpoint is missing or stale (>10min) or has a non-PASS
-verdict. The hook is the safety net; this section is the contract that
-keeps the assistant from tripping it.
+> **This gate is advisory unless your repo installs the hook.** The opchain.dev
+> repo registers a `PreToolUse(Bash)` hook that blocks `git commit` on a missing,
+> stale, or non-PASS bug-check checkpoint — but that hook lives in *that repo's*
+> `.claude/settings.json` and is **not shipped by the skills bundle**. In your
+> project, nothing mechanically enforces the table above; treat it as a contract
+> you are choosing to honour. To get real enforcement, install the opchain plugin
+> (which ships the hook) rather than the skills zip.
 
 ---
 

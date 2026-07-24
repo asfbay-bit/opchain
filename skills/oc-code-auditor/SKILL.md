@@ -12,7 +12,7 @@ commands:
 description: >
   Code quality auditor with Auditor/Fixer/Verifier loop. Use for /oc-audit, "audit this",
   "find bugs", "security audit", "code review", "pre-deploy check", "what's wrong with
-  this code", or any code quality question. Trigger liberally.
+  this code", or any code quality question.
 ---
 
 # Code Auditor

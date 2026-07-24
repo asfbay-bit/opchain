@@ -98,6 +98,25 @@ const SIZE_WARN_BYTES = 32 * 1024;
 const SUMMARY_WARN_CHARS = 1200;
 /** A checkpoint older than this with status in_progress is probably stale. */
 const STALE_DAYS = 7;
+/**
+ * A `complete` checkpoint is not exempt from staleness — it is the artifact most
+ * likely to rot, because it asserts a finished state that history then moves past.
+ * (2026-07-20: oc-orchestrator sat `complete` at v1.5.0 for 27 days and three minor
+ * releases while `doctor` stayed silent, because the drift check required
+ * status === "in_progress".) Longer window than STALE_DAYS: a finished phase is
+ * allowed to sit for a while before it counts as drift.
+ */
+const STALE_COMPLETE_DAYS = 14;
+/** Blocked work goes cold fastest — someone is waiting on a decision. */
+const STALE_BLOCKED_DAYS = 3;
+
+/** Staleness threshold for a given status, or null if the status never goes stale. */
+function staleThresholdFor(status) {
+  if (status === "in_progress") return STALE_DAYS;
+  if (status === "complete") return STALE_COMPLETE_DAYS;
+  if (status === "blocked") return STALE_BLOCKED_DAYS;
+  return null; // "failed" is a terminal record; age is not drift.
+}
 
 // Repo-relative prefixes that look like real generated artifacts worth existence-checking.
 const ARTIFACT_PREFIXES = ["src/", "scripts/", "skills/", "site/", "spec/", "design/", "sprints/", ".checkpoints/", ".github/", ".opchain/"];
@@ -553,7 +572,8 @@ function cmdStatus(opts = {}) {
     const age = d.updated_at ? daysSince(d.updated_at) : null;
     // H4: stale flag.
     let ageCell = age == null ? "—" : `${age < 1 ? "<1" : Math.floor(age)}d`;
-    if (age != null && age > STALE_DAYS && d.status === "in_progress") ageCell = `⚠ ${Math.floor(age)}d stale`;
+    const staleAfter = staleThresholdFor(d.status);
+    if (age != null && staleAfter != null && age > staleAfter) ageCell = `⚠ ${Math.floor(age)}d stale`;
     console.log(`| ${d.skill || "?"} | ${d.phase || "?"} | ${d.step || "?"} | ${d.status || "?"} | ${updated} | ${ageCell} |`);
   }
   console.log();
@@ -645,10 +665,18 @@ async function cmdDoctor(opts = {}) {
       add("warn", skill, `project_dir "${data.project_dir}" doesn't exist here (authored on another machine? expected ${ROOT})`);
     }
 
-    // Drift 2: stale in_progress.
+    // Drift 2: staleness, per status. `complete` is NOT exempt — see STALE_COMPLETE_DAYS.
     const age = data.updated_at ? daysSince(data.updated_at) : null;
-    if (age != null && age > STALE_DAYS && data.status === "in_progress") {
-      add("warn", skill, `in_progress but last updated ${Math.floor(age)}d ago — stale? resume or reset`);
+    const staleAfter = staleThresholdFor(data.status);
+    if (age != null && staleAfter != null && age > staleAfter) {
+      const d = Math.floor(age);
+      add(
+        "warn",
+        skill,
+        data.status === "complete"
+          ? `marked complete but last updated ${d}d ago — does it still describe reality? reconcile against git HEAD/tags or reopen`
+          : `${data.status} but last updated ${d}d ago — stale? resume or reset`,
+      );
     }
 
     // Drift 3: referenced generated_files that look like repo paths but are missing.
