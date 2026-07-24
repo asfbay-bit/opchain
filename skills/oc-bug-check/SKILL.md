@@ -18,10 +18,10 @@ description: >
   Pre-commit QA gate that runs on every commit. Fast, opinionated checks: type
   safety, lint, tests, anti-pattern scan, secret detection, build verification,
   and dependency vulnerability scan. Blocks commits on failures, warns on cautions,
-  passes silently on clean code. Auto-invoked by oc-git-ops before every /oc-git-commit
+  passes silently on clean code. Invoked by oc-git-ops before every /oc-git-commit
   and /oc-git-sync. Use for /oc-bugcheck, "check this before I commit", "run the checks",
   "is this safe to commit", "pre-commit", "quick audit", "lint and test", "any bugs
-  in this?", "sanity check". Trigger liberally.
+  in this?", "sanity check".
 ---
 
 # Bug Check
@@ -117,7 +117,7 @@ on demand (ad-hoc). They complement, not compete:
 | **When** | Every commit | Before deploy, on demand |
 | **Speed** | <2 min | 30+ min |
 | **Depth** | Surface: types, lint, tests, patterns | Deep: tri-agent, security, architecture |
-| **Verdict** | PASS / FAIL (binary) | Grade A-F (nuanced) |
+| **Verdict** | PASS / FAIL / UNSUPPORTED | Grade A-F (nuanced) |
 | **Fixes** | Auto-fix lint/format | Fixer → Verifier loop |
 | **Scope** | Changed files by default | Full codebase |
 
@@ -216,10 +216,13 @@ grep -rn "catch.*{[[:space:]]*}" --include="*.ts" --include="*.tsx" \
 ### Check 5: Secret Detection
 
 ```bash
-# API keys, tokens, passwords in source
-grep -rn --include="*.ts" --include="*.tsx" --include="*.js" --include="*.json" \
-  -E "(api[_-]?key|secret|password|token|credential).*['\"][A-Za-z0-9+/=]{16,}['\"]" \
-  --exclude-dir=node_modules --exclude=".env*" .
+# API keys, tokens, passwords in source.
+# NOT --include-scoped: a hardcoded key is a secret in any language. Scoping this to
+# *.ts made it blind to Swift, Kotlin, Ruby, PHP, Java — every non-JS repo got a
+# silent zero-hit PASS.
+grep -rn -E "(api[_-]?key|secret|password|token|credential).*['\"][A-Za-z0-9+/=]{16,}['\"]" \
+  --exclude-dir=node_modules --exclude-dir=.build --exclude-dir=vendor \
+  --exclude-dir=Pods --exclude-dir=.git --exclude=".env*" .
 
 # AWS-style keys
 grep -rn -E "AKIA[0-9A-Z]{16}" --exclude-dir=node_modules .
@@ -227,9 +230,14 @@ grep -rn -E "AKIA[0-9A-Z]{16}" --exclude-dir=node_modules .
 # Private keys
 grep -rn "BEGIN (RSA |EC |DSA )?PRIVATE KEY" --exclude-dir=node_modules .
 
-# Common service prefixes
-grep -rn -E "(sk-|sk_live_|pk_live_|ghp_|gho_|github_pat_)" \
+# Common service prefixes (sk_test_ included — a test key is still a leaked credential)
+grep -rn -E "(sk-|sk_live_|sk_test_|pk_live_|ghp_|gho_|github_pat_)" \
   --exclude-dir=node_modules --exclude=".env*" .
+
+# JWTs — Supabase anon/service-role keys, Auth0, Firebase. Three base64url segments.
+# This is what a hardcoded `let supabaseKey = "eyJhbGci..."` looks like in Swift.
+grep -rn -E "eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}" \
+  --exclude-dir=node_modules --exclude-dir=.build --exclude=".env*" .
 ```
 
 | Result | Verdict |
@@ -250,7 +258,8 @@ npm run build 2>&1
 |---|---|
 | Exit 0 | PASS |
 | Build failure | FAIL — show error output |
-| No build script | PASS (skip) |
+| No build script, stack recognized | PASS (skip) — this stack legitimately has no build step |
+| No build script, stack **not** recognized | **UNSUPPORTED** — see below. Never PASS. |
 
 ### Check 7: Dependency Vulnerability Scan
 
@@ -446,11 +455,15 @@ secrets, and tests (via `--changed` or related-test detection).
 ### Detecting Changed Files
 
 ```bash
+# Source extensions for the detected stack. Keep this in sync with the stack table
+# below — a filter that drops your language silently empties the whole gate.
+SRC='\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|swift|kt|rb|java|php)$'
+
 # Staged files
-git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|tsx|js|jsx)$'
+git diff --cached --name-only --diff-filter=ACMR | grep -E "$SRC"
 
 # All changed (staged + unstaged)
-git diff --name-only --diff-filter=ACMR HEAD | grep -E '\.(ts|tsx|js|jsx)$'
+git diff --name-only --diff-filter=ACMR HEAD | grep -E "$SRC"
 
 # If no git context (new project, no commits)
 # Fall back to --all mode
@@ -612,14 +625,34 @@ BUG CHECK REPORT — [project]
 
 Bug-check auto-detects the stack from config files and adapts:
 
-| Stack | Type Check | Lint | Test | Build |
-|---|---|---|---|---|
-| TypeScript (Hono, React, Next.js) | `tsc --noEmit` | `eslint` | `vitest run` | `npm run build` |
-| Python (FastAPI) | `mypy .` or `pyright .` | `ruff check .` | `pytest` | N/A |
-| Go | `go vet ./...` | `golangci-lint run` | `go test ./...` | `go build ./...` |
+| Stack | Detect via | Type Check | Lint | Test | Build |
+|---|---|---|---|---|---|
+| TypeScript (Hono, React, Next.js) | `package.json` | `tsc --noEmit` | `eslint` | `vitest run` | `npm run build` |
+| Python (FastAPI) | `pyproject.toml` / `requirements.txt` | `mypy .` or `pyright .` | `ruff check .` | `pytest` | N/A |
+| Go | `go.mod` | `go vet ./...` | `golangci-lint run` | `go test ./...` | `go build ./...` |
+| Swift (SwiftPM / iOS) | `Package.swift` / `*.xcodeproj` / `project.yml` | `swift build` (compiler is the type check) | `swiftlint` | `swift test` or `xcodebuild test` | `swift build` |
 
-If no recognized stack is detected, oc-bug-check runs only the universal checks:
-anti-patterns, secrets, and dependency scan.
+Commands come from `oc-stack-forge/packs/<stack>/pack.yml` where a pack exists —
+read the pack rather than hardcoding, so the two never drift.
+
+### No recognized stack → UNSUPPORTED, not PASS
+
+If no stack is detected, oc-bug-check runs only the universal checks (anti-patterns,
+secrets, dependency scan) and returns **UNSUPPORTED** — a distinct terminal verdict.
+
+**UNSUPPORTED is not PASS.** It means *this gate did not read your code.* Report it as:
+
+```
+⚠ UNSUPPORTED — no recognized stack (looked for: package.json, pyproject.toml,
+  go.mod, Package.swift, *.xcodeproj). Ran 3 of 7 checks; types, lint, tests and
+  build were NOT run. This is not a passing grade — it is an absence of evidence.
+```
+
+Callers must treat UNSUPPORTED as blocking-with-override, never as a green light.
+The failure mode this prevents: on a Swift repo the scope filter
+(`grep -E '\.(ts|tsx|js|jsx)$'`) matches nothing, the build check finds no
+`package.json`, `npm audit` errors with `ENOLOCK`, and the gate historically
+reported PASS **on code it never opened**. Silence is not safety.
 
 ### Python Adaptations
 

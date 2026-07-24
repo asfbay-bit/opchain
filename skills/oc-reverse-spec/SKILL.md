@@ -16,7 +16,7 @@ commands:
 description: >
   Reverse-engineer existing code into spec docs. Use for /oc-rev-spec, /oc-reverse-spec,
   "document this codebase", "generate specs from code", "backfill specs", or when
-  pointing at existing code that needs documentation. Trigger liberally.
+  pointing at existing code that needs documentation.
 ---
 
 # Reverse Spec

@@ -18,7 +18,7 @@ description: >
   API code between model versions (4.6 → 4.7, retired-model replacements). Use
   for /oc-claude-api, "Anthropic SDK", "prompt caching", "cache hit rate",
   "tool use", "model migration", "extended thinking", "batch API", "files API",
-  "memory", "citations". Trigger liberally on Claude API work.
+  "memory", "citations".
 governance:
   breaking_change_policy: skills/CHANGELOG.md
   last_reviewed: 2026-06-21

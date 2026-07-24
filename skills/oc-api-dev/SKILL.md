@@ -25,7 +25,7 @@ description: >
   /oc-api spec, /oc-api scaffold, /oc-api version, /oc-api lint, /oc-api sdk, "design our API",
   "OpenAPI", "GraphQL schema", "versioning strategy", "deprecate endpoint",
   "generate SDK", "schema drift". For consuming someone else's API (Stripe, Slack,
-  OAuth) use oc-integrations-engineer instead. Trigger liberally.
+  OAuth) use oc-integrations-engineer instead.
 ---
 
 # API Developer

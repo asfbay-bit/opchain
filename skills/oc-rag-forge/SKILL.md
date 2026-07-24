@@ -16,7 +16,7 @@ description: >
   Vectors), embedding-model choice, chunking strategy, hybrid search, and
   retrieval evaluation. Use for /oc-rag, "RAG", "vector database", "embeddings",
   "chunking", "semantic search", "hybrid search", "retrieval eval", "reranking",
-  "knowledge base". Trigger liberally on retrieval / RAG work.
+  "knowledge base".
 governance:
   breaking_change_policy: skills/CHANGELOG.md
   last_reviewed: 2026-06-21

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "opchain",
+  "owner": {
+    "name": "opchain",
+    "url": "https://opchain.dev"
+  },
+  "metadata": {
+    "description": "opchain — a software development pipeline as Claude Code skills, with the gates that enforce it.",
+    "version": "1.8.1"
+  },
+  "plugins": [
+    {
+      "name": "opchain",
+      "source": "./plugins/opchain",
+      "description": "29 interconnected skills (concept → spec → design → build → ship) plus working enforcement: a commit gate that blocks unverified commits and a session-start hook that surfaces stale pipeline state. The skills-only zip ships neither.",
+      "version": "1.8.1",
+      "category": "workflow",
+      "keywords": ["pipeline", "gates", "checkpoints", "code-review", "release", "ci"]
+    }
+  ]
+}

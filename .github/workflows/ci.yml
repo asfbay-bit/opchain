@@ -30,6 +30,16 @@ jobs:
         run: npm ci
       - name: Validate checkpoints (.checkpoints/<skill>.checkpoint.json)
         run: npm run checkpoint:validate
+      - name: Checkpoint drift report (advisory)
+        # Advisory on purpose. `doctor` finds real drift (stale `complete`
+        # checkpoints, dead project_dir, merged next_actions) but there is a
+        # standing backlog of warnings; failing the build on them today would
+        # redden every unrelated PR. Ratchet to `--fail-on-warnings` once the
+        # backlog is clear. Never add `--online` here — it fetches
+        # opchain.dev/api/health and would couple PR success to production
+        # reachability (see docs/runbooks/cloudflare-challenge.md).
+        continue-on-error: true
+        run: npm run checkpoint:doctor
       - name: Bundled skill references in sync with sources (fast-fail)
         # Also enforced transitively by pretest/prebuild; this is an explicit,
         # early signal so a source edit without a re-sync fails loudly.

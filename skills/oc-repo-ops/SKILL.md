@@ -14,7 +14,7 @@ commands:
   - /oc-repo catalog
   - /oc-repo status
 description: >
-  Repository hygiene and PR readiness gate. Auto-invoked by oc-git-ops before
+  Repository hygiene and PR readiness gate. Invoked by oc-git-ops before
   every PR and after oc-docs-forge generates the PR documentation packet. Use for
   /oc-repo, /oc-repo audit, /oc-repo verify, "repo hygiene", "clean this repo",
   "is this PR ready", "check generated files", "catalog drift", "plugin/cache

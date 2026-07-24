@@ -2,7 +2,7 @@
   "protocol_version": "1.1",
   "skill": "oc-app-architect",
   "project": "opchain.dev",
-  "project_dir": "/home/user/opchain",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
   "updated_at": "2026-07-03T20:05:28Z",
   "phase": "build",
@@ -91,7 +91,10 @@
       "posts_staged": 2,
       "posts_drawered": 1,
       "calendar_slots": 13,
-      "series": ["Dogfooding opchain (5 parts)", "Seams & Signals in practice (planned, 4 parts)"],
+      "series": [
+        "Dogfooding opchain (5 parts)",
+        "Seams & Signals in practice (planned, 4 parts)"
+      ],
       "prehistory_wave": "5 posts 2026-05-12→06-19 (v1.3, deploy-gap postmortem, oc- rename, MCP v1.4.3, Linear decoupling), each anchored to a real commit; v1.3 post carries an era-names editor's note (pre-rename command forms + updated: field)",
       "crr_pass": "3-round CRR on all 14 session posts: fixed 6/26 tense anachronism (referenced 6/30 sync in past tense), 5/12 era-name anachronism, de-duped the 'house rules' tic (5→2), repaired the two-hard-problems joke, added cross-links (7/02→6/13, 7/03→5/15), trimmed 5 descriptions into 120-160",
       "eval_gates": "astro build 72 pages · astro check 0 errors · vitest 448/448 · OG 24 cards · draft excluded · 0 dead links · chronology check clean for session posts"

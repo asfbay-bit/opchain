@@ -24,7 +24,7 @@ description: >
   "what's the status", "where did I leave off", "which project", "what should I work on",
   "show me everything", or any question about pipeline state across projects. Also trigger
   when the user seems lost, references multiple projects, or asks a vague dev question
-  that needs routing. Trigger liberally.
+  that needs routing.
 ---
 
 # Orchestrator
@@ -132,9 +132,11 @@ node scripts/checkpoint.mjs init
 In any other repo, create `.checkpoints/` and the receiving skill's checkpoint
 directly with the file tools already available; do not assume `scripts/checkpoint.mjs`
 was copied into the project. Follow the oc-checkpoint-protocol
-SKILL.md § "Scaffold Phase" to add the `package.json` scripts, the `.gitattributes`
-merge driver, and the optional post-merge auto-stamp workflow only when the user asks
-to adopt the CLI. Routing and checkpoint writes do not wait for that tooling work.
+SKILL.md § "Scaffold Phase" to add the `package.json` scripts and the `.gitattributes`
+merge driver only when the user asks to adopt the CLI. Do **not** scaffold a per-merge
+auto-stamp workflow — the protocol prohibits it (opchain shipped one and removed it
+2026-06-22 after it deadlocked on branch protection and left ~24 open bot PRs).
+Routing and checkpoint writes do not wait for that tooling work.
 
 **Do not** start routing or dispatching work until you've read the
 checkpoint state. The whole point of the protocol is that the next

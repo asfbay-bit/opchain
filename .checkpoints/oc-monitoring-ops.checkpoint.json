@@ -1,0 +1,28 @@
+{
+  "protocol_version": "1.1",
+  "skill": "oc-monitoring-ops",
+  "project": "opchain.dev",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/opchain-coordination-gaps-8bf890",
+  "created_at": "2026-07-20T03:50:45.264Z",
+  "updated_at": "2026-07-20T03:50:45.266Z",
+  "phase": "audit",
+  "step": "coordination-gap-observability-assessment",
+  "status": "in_progress",
+  "progress_summary": "Invoked in assessment mode (not setup) alongside oc-app-architect to validate a six-part user RCA on opchain's coordination layer. Findings relevant to monitoring-ops: opchain's own observability of its pipeline is non-functional. oc-telemetry-ops advertises telemetry_handle.enabled=true since 2026-06-26 with sink .checkpoints/usage.sqlite, but nothing has ever called telemetry.mjs record (only caller is the package.json alias) and the sqlite store has never been created — 24 days of enabled-with-no-store, undetected. No oc-monitoring-ops checkpoint had ever existed in this repo before this write; oc-security-auditor has never run in repo history. checkpoint.mjs doctor detects 23 drift warnings including a 27-day-stale orchestrator, but doctor is not run by CI and nothing alarms on its output. Deploy/release audit gates are markdown tables with no executable enforcement.",
+  "next_actions": [
+    "Add `checkpoint doctor --fail-on-warnings` (or a drift-budget threshold) to ci.yml — doctor already detects the 27-day orchestrator drift, but nothing runs it, so drift is discoverable and never discovered.",
+    "Fix the oc-telemetry-ops liveness lie: either wire an actual `telemetry.mjs record` call site, or make `/oc-telemetry status` fail loudly when enabled=true and the sink is absent. Enabled-with-no-store must not read as healthy.",
+    "Treat 'monitoring the pipeline' as a first-class surface: the same enabled-but-silent failure that hit telemetry is the T0 gap in opchain's own observability of opchain.",
+    "Re-run /oc-monitor audit after the coordination-gaps patch lands to score the ecosystem's self-observability (currently ungraded — this skill had never run here)."
+  ],
+  "context_primer": {
+    "key_decisions": [
+      "This invocation was assessment-only; no instrumentation, alerts, SLOs, or runbooks were created for opchain.dev.",
+      "The user's proposed 'post-merge auto-stamp workflow' fix was found to be a previously-shipped-and-removed anti-pattern (commit 66107d1, 2026-06-22).",
+      "SUPERSEDED by adversarial review: client-side hooks are NOT the answer either. `git -c core.hooksPath=/dev/null commit` bypasses a blocking .githooks/pre-commit while a sibling probe still reads ARMED (verified, git 2.50.1). All 6 adversarial verifiers converged instead on a required read-only CI status check on PR head — the only surface that is not per-clone, per-worktree, per-agent, or flag-defeatable, and the only one that reaches the second (Codex) agent.",
+      "Binding strength is a property of the SURFACE, not the wording. A tool description is re-presented every model call; a callee SKILL.md is read once and decays. This is why oc-git-ops:223's imperative mandate never fires."
+    ],
+    "generated_files": ["docs/plans/coordination-gaps-overhaul.md"],
+    "user_preferences": []
+  }
+}

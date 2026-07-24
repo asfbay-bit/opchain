@@ -13,7 +13,7 @@ commands:
 description: >
   Deployment pipeline: audit gate → staging → production → monitoring. Use for
   /oc-deploy, "deploy this", "ship it", "push to production", "staging", "rollback",
-  "health check", or any deployment task. Trigger liberally.
+  "health check", or any deployment task.
 ---
 
 # Deploy Ops

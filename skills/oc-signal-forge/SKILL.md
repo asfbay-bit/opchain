@@ -24,7 +24,6 @@ description: >
   "analytics backend", "data harvesting", "is this metric right", "wire up a signal",
   "derive a KPI". Hands rendered output to oc-dash-forge. NOT pipeline telemetry
   (oc-telemetry-ops), NOT dashboards (oc-dash-forge), NOT prod uptime (oc-monitoring-ops).
-  Trigger liberally on product-analytics / metric-engineering work.
 governance:
   breaking_change_policy: skills/CHANGELOG.md
   last_reviewed: 2026-06-26

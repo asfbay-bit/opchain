@@ -15,8 +15,7 @@ description: >
   source-controlled code. Owns prompt versioning, eval datasets, regression
   detection, and drift tracking. Use for /oc-prompt, "prompt versioning",
   "eval dataset", "prompt regression", "prompt drift", "golden set",
-  "prompt diff", "LLM eval", "regression suite". Trigger liberally on
-  prompt-engineering / eval work.
+  "prompt diff", "LLM eval", "regression suite".
 governance:
   breaking_change_policy: skills/CHANGELOG.md
   last_reviewed: 2026-06-25

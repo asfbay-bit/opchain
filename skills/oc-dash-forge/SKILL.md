@@ -26,9 +26,8 @@ description: >
   Also trigger on: "design a dashboard", "dashboard mockup", "BI design", "data
   visualization design", "KPI dashboard", "analytics UI", "monitoring dashboard",
   "dense information display", "what should the dashboard look like", "design a report
-  view". Auto-invoked by /oc-ux-engineer when the UI is data-heavy and by /oc-app-architect
-  when the design phase encounters a dashboard surface. Trigger liberally whenever
-  dashboards, BI interfaces, or dense data displays come up.
+  view". Invoked by /oc-ux-engineer when the UI is data-heavy and by /oc-app-architect
+  when the design phase encounters a dashboard surface.
 ---
 
 # Dash Forge

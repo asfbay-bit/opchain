@@ -21,7 +21,7 @@ description: >
   off to oc-git-ops + oc-deploy-ops. Use for /oc-release, /oc-release plan, /oc-release
   draft, /oc-release bump, /oc-release announce, /oc-release ship, "cut a release",
   "ship v1.3", "tag the release", "draft the changelog", "what's in this
-  release", "version bump". Trigger liberally on release-cadence work.
+  release", "version bump".
 ---
 
 # Release Ops

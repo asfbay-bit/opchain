@@ -6,6 +6,8 @@ on:
     paths:
       - 'skills/**'
       - 'mirror/**'
+      - 'plugins/**'
+      - '.claude-plugin/**'
       - 'LICENSE'
       - '.github/workflows/mirror-public.yml'
   workflow_dispatch:
@@ -31,7 +33,9 @@ jobs:
         run: |
           set -euo pipefail
           missing=()
-          for f in skills LICENSE mirror/README.md mirror/CONTRIBUTING.md mirror/.github/ISSUE_TEMPLATE; do
+          for f in skills LICENSE mirror/README.md mirror/CONTRIBUTING.md mirror/.github/ISSUE_TEMPLATE \
+                   plugins/opchain/.claude-plugin/plugin.json plugins/opchain/hooks/hooks.json \
+                   plugins/opchain/hooks/pre-commit-gate.cjs .claude-plugin/marketplace.json; do
             if [[ ! -e "$f" ]]; then
               missing+=("$f")
             fi
@@ -53,6 +57,13 @@ jobs:
           cp mirror/README.md "$STAGE/README.md"
           cp mirror/CONTRIBUTING.md "$STAGE/CONTRIBUTING.md"
           cp -R mirror/.github/ISSUE_TEMPLATE "$STAGE/.github/ISSUE_TEMPLATE"
+          # Plugin + marketplace. Without these the public repo is skills-only:
+          # `/plugin marketplace add` finds nothing and the gates — the entire
+          # point of the plugin — never reach a user. `-L` dereferences
+          # plugins/opchain/skills, which is a symlink to the source tree here
+          # and must become a real directory in the published snapshot.
+          cp -RL plugins "$STAGE/plugins"
+          cp -R .claude-plugin "$STAGE/.claude-plugin"
           echo "Staged tree:"
           find "$STAGE" -maxdepth 3 -type f | sort | sed "s|$STAGE/|  |"
 

@@ -13,7 +13,7 @@ commands:
 description: >
   Stack advisor for any platform: Cloudflare, Vercel, AWS, Supabase, Rails, Django.
   Use for /oc-stack, /oc-stack-decide, /oc-feature, "what stack", "tech stack", "what should I
-  build with", or framework comparisons. Auto-invoked by oc-app-architect. Trigger liberally.
+  build with", or framework comparisons. Invoked by oc-app-architect.
 ---
 
 # Stack Forge
