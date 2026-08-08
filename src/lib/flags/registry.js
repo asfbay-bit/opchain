@@ -396,7 +396,7 @@ function skillCoverageFlags(packs) {
     default: p.status === "stable",
     category: /** @type {FlagCategory} */ ("release"),
     owner: "oc-stack-forge",
-    description: `Show ${p.displayName ?? p.id} (${p.kind}) as a oc-stack-forge coverage option. Off → hidden from recommendations and scaffolds.`,
+    description: `Reserved — intended to gate ${p.displayName ?? p.id} (${p.kind}) as a oc-stack-forge coverage option. Not wired to any read site today (coverage.astro / architecture.astro list all packs from packs-catalog.json unconditionally); flipping this flag does nothing until that gating is built.`,
   }));
 }
 
